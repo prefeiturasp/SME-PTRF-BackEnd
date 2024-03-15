@@ -1,9 +1,7 @@
 import pytest
 from datetime import date
 from sme_ptrf_apps.core.services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
-from sme_ptrf_apps.despesas.fixtures.factories import RateioDespesaFactory, DespesaFactory
-from sme_ptrf_apps.core.fixtures.factories import (PeriodoFactory, ContaAssociacaoFactory, PrestacaoContaFactory,
-                                                   AssociacaoFactory, AcaoFactory, AcaoAssociacaoFactory)
+
 pytestmark = pytest.mark.django_db
 
 
@@ -102,20 +100,20 @@ def test_despesas_demonstradas_despesa_anteriores_nao_conciliadas(
     assert resultado['despesas_nao_demonstradas']['valor_total'] == 0, "Não deveria estar em não demonstradas"
     assert resultado['despesas_anteriores_nao_demonstradas']['valor_total'] == 100, "Deveria estar em anteriores não demonstradas"
 
-def test_despesas_demonstradas_primeira_pc_associacao():
-    periodo_2022_2 = PeriodoFactory(data_inicio_realizacao_despesas=date(2022, 12, 31))
-    associacao = AssociacaoFactory(periodo_inicial=periodo_2022_2)
-    periodo = PeriodoFactory(periodo_anterior=periodo_2022_2, data_inicio_realizacao_despesas=date(2023, 1, 1))
-    pc = PrestacaoContaFactory(periodo=periodo, associacao=associacao)
-    conta_associacao = ContaAssociacaoFactory(associacao=associacao)
-    acao = AcaoFactory()
-    acao_associacao = AcaoAssociacaoFactory(acao=acao, associacao=associacao)
-    despesa_1 = DespesaFactory(
+def test_despesas_demonstradas_primeira_pc_associacao(periodo_factory, associacao_factory, prestacao_conta_factory, conta_associacao_factory, acao_factory, acao_associacao_factory, despesa_factory, rateio_despesa_factory):
+    periodo_2022_2 = periodo_factory.create(data_inicio_realizacao_despesas=date(2022, 12, 31))
+    associacao = associacao_factory.create(periodo_inicial=periodo_2022_2)
+    periodo = periodo_factory.create(periodo_anterior=periodo_2022_2, data_inicio_realizacao_despesas=date(2023, 1, 1))
+    pc = prestacao_conta_factory.create(periodo=periodo, associacao=associacao)
+    conta_associacao = conta_associacao_factory.create(associacao=associacao)
+    acao = acao_factory.create()
+    acao_associacao = acao_associacao_factory(acao=acao, associacao=associacao)
+    despesa_1 = despesa_factory.create(
         data_transacao=date(2023, 1, 1),
         valor_total=50,
         associacao=associacao
     )
-    rateio_1 = RateioDespesaFactory(
+    rateio_1 = rateio_despesa_factory.create(
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         despesa=despesa_1,
@@ -126,8 +124,8 @@ def test_despesas_demonstradas_primeira_pc_associacao():
         periodo_conciliacao=periodo,
         aplicacao_recurso='CUSTEIO'
     )
-    despesa_2 = DespesaFactory(data_transacao=date(2023, 1, 1), valor_total=100, associacao=associacao)
-    rateio_2 = RateioDespesaFactory(
+    despesa_2 = despesa_factory.create(data_transacao=date(2023, 1, 1), valor_total=100, associacao=associacao)
+    rateio_2 = rateio_despesa_factory.create(
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         despesa=despesa_2,
@@ -138,8 +136,8 @@ def test_despesas_demonstradas_primeira_pc_associacao():
         periodo_conciliacao=periodo,
         aplicacao_recurso='CUSTEIO'
     )
-    despesa_3_periodo_anterior = DespesaFactory(data_transacao=date(2018, 1, 1), valor_total=100, associacao=associacao)
-    rateio_3_periodo_anterior = RateioDespesaFactory(
+    despesa_3_periodo_anterior = despesa_factory.create(data_transacao=date(2018, 1, 1), valor_total=100, associacao=associacao)
+    rateio_3_periodo_anterior = rateio_despesa_factory.create(
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         despesa=despesa_3_periodo_anterior,
@@ -163,26 +161,26 @@ def test_despesas_demonstradas_primeira_pc_associacao():
     assert len(resultado['despesas_demonstradas']['linhas']) == 3
     assert resultado['despesas_demonstradas']['valor_total'] == 250.00
 
-def test_despesas_demonstradas_segunda_pc_associacao():
-    periodo_2022_2 = PeriodoFactory(data_inicio_realizacao_despesas=date(2022, 12, 31))
-    periodo_2023_1 = PeriodoFactory(
+def test_despesas_demonstradas_segunda_pc_associacao(associacao_factory, conta_associacao_factory, acao_factory, acao_associacao_factory, despesa_factory, prestacao_conta_factory, periodo_factory, rateio_despesa_factory):
+    periodo_2022_2 = periodo_factory.create(data_inicio_realizacao_despesas=date(2022, 12, 31))
+    periodo_2023_1 = periodo_factory.create(
         periodo_anterior=periodo_2022_2,
         data_inicio_realizacao_despesas=date(2023, 1, 1),
         data_fim_realizacao_despesas=date(2023, 6, 1)
     )
-    periodo_2023_2 = PeriodoFactory(
+    periodo_2023_2 = periodo_factory.create(
         periodo_anterior=periodo_2023_1,
         data_inicio_realizacao_despesas=date(2023, 6, 2),
         data_fim_realizacao_despesas=date(2023, 12, 31)
     )
-    associacao = AssociacaoFactory(periodo_inicial=periodo_2022_2)
-    conta_associacao = ContaAssociacaoFactory(associacao=associacao)
-    acao = AcaoFactory()
-    acao_associacao = AcaoAssociacaoFactory(acao=acao, associacao=associacao)
+    associacao = associacao_factory.create(periodo_inicial=periodo_2022_2)
+    conta_associacao = conta_associacao_factory.create(associacao=associacao)
+    acao = acao_factory.create()
+    acao_associacao = acao_associacao_factory.create(acao=acao, associacao=associacao)
 
-    PrestacaoContaFactory(periodo=periodo_2023_1, associacao=associacao)
-    despesa_1 = DespesaFactory(data_transacao=date(2023, 1, 1), valor_total=50, associacao=associacao)
-    RateioDespesaFactory(
+    prestacao_conta_factory.create(periodo=periodo_2023_1, associacao=associacao)
+    despesa_1 = despesa_factory.create(data_transacao=date(2023, 1, 1), valor_total=50, associacao=associacao)
+    rateio_despesa_factory.create(
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         despesa=despesa_1,
@@ -194,9 +192,9 @@ def test_despesas_demonstradas_segunda_pc_associacao():
         aplicacao_recurso='CUSTEIO'
     )
 
-    pc_23_2 = PrestacaoContaFactory(periodo=periodo_2023_2, associacao=associacao)
-    despesa_1_32_2 = DespesaFactory(data_transacao=date(2023, 6, 2), valor_total=100, associacao=associacao)
-    RateioDespesaFactory(
+    pc_23_2 = prestacao_conta_factory.create(periodo=periodo_2023_2, associacao=associacao)
+    despesa_1_32_2 = despesa_factory.create(data_transacao=date(2023, 6, 2), valor_total=100, associacao=associacao)
+    rateio_despesa_factory.create(
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         despesa=despesa_1_32_2,
@@ -207,8 +205,8 @@ def test_despesas_demonstradas_segunda_pc_associacao():
         periodo_conciliacao=periodo_2023_2,
         aplicacao_recurso='CUSTEIO'
     )
-    despesa_2_32_2 = DespesaFactory(data_transacao=date(2023, 6, 3), valor_total=80, associacao=associacao)
-    RateioDespesaFactory(
+    despesa_2_32_2 = despesa_factory.create(data_transacao=date(2023, 6, 3), valor_total=80, associacao=associacao)
+    rateio_despesa_factory.create(
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
         despesa=despesa_2_32_2,

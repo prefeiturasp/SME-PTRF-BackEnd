@@ -3,7 +3,6 @@ from datetime import datetime
 from rest_framework import status
 
 from sme_ptrf_apps.core.models import ProcessoAssociacao
-from sme_ptrf_apps.core.fixtures.factories import PeriodoFactory, PrestacaoContaFactory, ProcessoAssociacaoFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -18,10 +17,10 @@ def test_delete_processo_associacao(jwt_authenticated_client_a, processo_associa
     assert not ProcessoAssociacao.objects.filter(uuid=processo_associacao_123456_2019.uuid).exists()
 
 
-def test_delete_processo_associacao_ultimo_processo_e_com_pc_vinculada(jwt_authenticated_client_a):
-    processo_com_pc_vinculada = ProcessoAssociacaoFactory(ano='2023')
-    periodo = PeriodoFactory(data_inicio_realizacao_despesas=datetime(2023, 1, 1))
-    PrestacaoContaFactory(periodo=periodo, associacao=processo_com_pc_vinculada.associacao)
+def test_delete_processo_associacao_ultimo_processo_e_com_pc_vinculada(jwt_authenticated_client_a, processo_associacao_factory, periodo_factory, prestacao_conta_factory):
+    processo_com_pc_vinculada = processo_associacao_factory.create(ano='2023')
+    periodo = periodo_factory.create(data_inicio_realizacao_despesas=datetime(2023, 1, 1))
+    prestacao_conta_factory.create(periodo=periodo, associacao=processo_com_pc_vinculada.associacao)
 
     response = jwt_authenticated_client_a.delete(
         f'/api/processos-associacao/{processo_com_pc_vinculada.uuid}/', content_type='application/json')
