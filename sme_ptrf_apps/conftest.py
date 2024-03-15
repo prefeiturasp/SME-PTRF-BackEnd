@@ -47,6 +47,8 @@ from sme_ptrf_apps.core.fixtures.factories.prestacao_conta_reprovada_nao_apresen
 from sme_ptrf_apps.core.fixtures.factories.tipo_acerto_lancamento_factory import TipoAcertoLancamentoFactory
 from sme_ptrf_apps.core.fixtures.factories.analise_prestacao_conta_factory import AnalisePrestacaoContaFactory
 from sme_ptrf_apps.core.fixtures.factories.analise_lancamento_prestacao_conta_factory import AnaliseLancamentoPrestacaoContaFactory
+from sme_ptrf_apps.core.fixtures.factories.solicitacao_acerto_lancamento_factory import SolicitacaoAcertoLancamentoFactory
+from sme_ptrf_apps.despesas.fixtures.factories.tipo_transacao_factory import TipoTransacaoFactory
 
 from sme_ptrf_apps.fixtures import *
 
@@ -77,6 +79,8 @@ register(PrestacaoContaReprovadaNaoApresentacaoFactory)
 register(TipoAcertoLancamentoFactory)
 register(AnalisePrestacaoContaFactory)
 register(AnaliseLancamentoPrestacaoContaFactory)
+register(SolicitacaoAcertoLancamentoFactory)
+register(TipoTransacaoFactory)
 
 
 @pytest.fixture
