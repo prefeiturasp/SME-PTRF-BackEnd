@@ -5,10 +5,6 @@ from ...models import Associacao
 from ....core.models import Unidade, Periodo
 from waffle.testutils import override_flag
 
-from sme_ptrf_apps.core.fixtures.factories import AssociacaoFactory
-from sme_ptrf_apps.mandatos.fixtures.factories import MandatoFactory, ComposicaoFactory, CargoComposicaoFactory, OcupanteCargoFactory
-
-
 pytestmark = pytest.mark.django_db
 
 
@@ -69,21 +65,21 @@ def test_get_associacoes_ativas_no_periodo_deve_desconsiderar_associacoes_encerr
 
 
 @override_flag('historico-de-membros', active=True)
-def test_get_dados_presidente_composicao_vigente():
+def test_get_dados_presidente_composicao_vigente(associacao_factory, mandato_factory, ocupante_cargo_factory, composicao_factory, cargo_composicao_factory):
     from datetime import timedelta
 
-    associacao = AssociacaoFactory()
-    mandato = MandatoFactory()
-    ocupante_cargo = OcupanteCargoFactory()
+    associacao = associacao_factory.create()
+    mandato = mandato_factory.create()
+    ocupante_cargo = ocupante_cargo_factory.create()
 
-    composicao = ComposicaoFactory(
+    composicao = composicao_factory.create(
         mandato=mandato,
         associacao=associacao,
         data_inicial=mandato.data_inicial,
         data_final=mandato.data_inicial + timedelta(days=31)
     )
 
-    CargoComposicaoFactory(
+    cargo_composicao_factory.create(
         composicao=composicao,
         ocupante_do_cargo=ocupante_cargo,
         cargo_associacao='PRESIDENTE_DIRETORIA_EXECUTIVA'
@@ -101,39 +97,39 @@ def test_get_dados_presidente_composicao_vigente():
 
 
 @override_flag('historico-de-membros', active=True)
-def test_get_dados_presidente_composicao_vigente_com_composicao_anterior():
+def test_get_dados_presidente_composicao_vigente_com_composicao_anterior(associacao_factory, mandato_factory, composicao_factory, ocupante_cargo_factory, cargo_composicao_factory):
     from datetime import timedelta, datetime
 
-    associacao = AssociacaoFactory()
-    mandato = MandatoFactory(data_inicial=datetime.today() - timedelta(days=60))
+    associacao = associacao_factory.create()
+    mandato = mandato_factory.create(data_inicial=datetime.today() - timedelta(days=60))
 
     # Criando composicao anterior
-    composicao_anterior = ComposicaoFactory(
+    composicao_anterior = composicao_factory.create(
         mandato=mandato,
         associacao=associacao,
         data_inicial=mandato.data_inicial,
         data_final=datetime.today() - timedelta(days=1)
     )
 
-    ocupante_cargo_anterior = OcupanteCargoFactory()
+    ocupante_cargo_anterior = ocupante_cargo_factory.create()
 
-    CargoComposicaoFactory(
+    cargo_composicao_factory.create(
         composicao=composicao_anterior,
         ocupante_do_cargo=ocupante_cargo_anterior,
         cargo_associacao='PRESIDENTE_DIRETORIA_EXECUTIVA'
     )
 
     # Criando composicao vigente
-    composicao_vigente = ComposicaoFactory(
+    composicao_vigente = composicao_factory.create(
         mandato=mandato,
         associacao=associacao,
         data_inicial=composicao_anterior.data_final + timedelta(days=1),
         data_final=datetime.today() + timedelta(days=31)
     )
 
-    ocupante_cargo_vigente = OcupanteCargoFactory()
+    ocupante_cargo_vigente = ocupante_cargo_factory.create()
 
-    CargoComposicaoFactory(
+    cargo_composicao_factory.create(
         composicao=composicao_vigente,
         ocupante_do_cargo=ocupante_cargo_vigente,
         cargo_associacao='PRESIDENTE_DIRETORIA_EXECUTIVA'
@@ -151,21 +147,21 @@ def test_get_dados_presidente_composicao_vigente_com_composicao_anterior():
 
 
 @override_flag('historico-de-membros', active=True)
-def test_get_dados_presidente_composicao_vigente_sem_presidente_cadastrado():
+def test_get_dados_presidente_composicao_vigente_sem_presidente_cadastrado(associacao_factory, mandato_factory, ocupante_cargo_factory, composicao_factory, cargo_composicao_factory):
     from datetime import timedelta
 
-    associacao = AssociacaoFactory()
-    mandato = MandatoFactory()
-    ocupante_cargo = OcupanteCargoFactory()
+    associacao = associacao_factory.create()
+    mandato = mandato_factory.create()
+    ocupante_cargo = ocupante_cargo_factory.create()
 
-    composicao = ComposicaoFactory(
+    composicao = composicao_factory.create(
         mandato=mandato,
         associacao=associacao,
         data_inicial=mandato.data_inicial,
         data_final=mandato.data_inicial + timedelta(days=31)
     )
 
-    CargoComposicaoFactory(
+    cargo_composicao_factory.create(
         composicao=composicao,
         ocupante_do_cargo=ocupante_cargo,
         cargo_associacao='SECRETARIO'
