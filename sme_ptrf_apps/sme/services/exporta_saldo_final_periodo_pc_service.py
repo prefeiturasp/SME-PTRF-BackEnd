@@ -10,6 +10,7 @@ from sme_ptrf_apps.core.services.arquivo_download_service import (
 )
 from sme_ptrf_apps.utils.built_in_custom import get_recursive_attr
 from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
+from sme_ptrf_apps.core.models.fechamento_periodo import FechamentoPeriodo
 
 from tempfile import NamedTemporaryFile
 
@@ -80,6 +81,11 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
 
         for instance in self.queryset:
             logger.info(f"Iniciando extração de dados de saldos finais do periodo, fechamento id {instance.id}.")
+
+            if not FechamentoPeriodo.objects.filter(id=instance.id).exists():
+                logger.info(f"Este fechamento não existe mais na base de dados, portanto será pulado")
+                continue
+
             for key, value in TIPOS_APLICACAO:
                 linha_horizontal = []
                 value = str(getattr(instance, value)).replace(".", ",")
