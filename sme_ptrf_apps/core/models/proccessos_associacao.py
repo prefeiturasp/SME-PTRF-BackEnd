@@ -15,6 +15,8 @@ class ProcessoAssociacao(ModeloBase):
 
     ano = models.CharField('Ano', max_length=4, blank=True, default="")
 
+    periodos = models.ManyToManyField('Periodo', related_name='processos', blank=True)
+
     class Meta:
         verbose_name = "Processo de prestação de contas"
         verbose_name_plural = "07.1) Processos de prestação de contas"

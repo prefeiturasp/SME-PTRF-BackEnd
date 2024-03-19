@@ -514,6 +514,8 @@ class ProcessoAssociacaoAdmin(admin.ModelAdmin):
     search_fields = ('uuid', 'numero_processo', 'associacao__nome')
     list_filter = ('ano', 'associacao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre')
     readonly_fields = ('uuid', 'id')
+    filter_horizontal = ('periodos',)
+    raw_id_fields = ('associacao',)
 
 
 @admin.register(ObservacaoConciliacao)
