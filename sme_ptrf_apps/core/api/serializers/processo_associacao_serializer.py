@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from sme_ptrf_apps.core.api.serializers import AssociacaoLookupSerializer
+from sme_ptrf_apps.core.api.serializers import AssociacaoLookupSerializer, PeriodoLookUpSerializer
 from sme_ptrf_apps.core.models import ProcessoAssociacao, Associacao
 
 
@@ -15,15 +15,17 @@ class ProcessoAssociacaoCreateSerializer(serializers.ModelSerializer):
         model = ProcessoAssociacao
         fields = ('uuid', 'associacao', 'numero_processo', 'ano',)
 
+
 class ProcessoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
     associacao = AssociacaoLookupSerializer()
     permite_exclusao = serializers.SerializerMethodField('get_permite_exclusao')
     tooltip_exclusao = serializers.SerializerMethodField('get_tooltip_exclusao')
+    periodos = PeriodoLookUpSerializer(many=True, read_only=True)
 
     class Meta:
         model = ProcessoAssociacao
         fields = ('uuid', 'associacao', 'numero_processo', 'ano', 'criado_em', 'alterado_em',
-                  'permite_exclusao', 'tooltip_exclusao')
+                  'permite_exclusao', 'tooltip_exclusao', 'periodos',)
 
     def get_tooltip_exclusao(self, obj):
         if obj.e_o_ultimo_processo_do_ano_com_pcs_vinculada:

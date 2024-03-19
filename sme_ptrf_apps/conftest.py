@@ -839,7 +839,7 @@ def periodo_2021_2(periodo_2021_1):
 def periodo_2019_1():
     return baker.make(
         'Periodo',
-        referencia='2019.2',
+        referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 5, 31),
         periodo_anterior=None,
