@@ -706,7 +706,7 @@ def lancamentos_da_prestacao(
                 acao_associacao=acao_associacao,
                 periodo=periodo,
                 incluir_inativas=True,
-                conferido=False
+                nao_conciliadas_ou_conciliadas_no_periodo=True
             )
         else:
             rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(

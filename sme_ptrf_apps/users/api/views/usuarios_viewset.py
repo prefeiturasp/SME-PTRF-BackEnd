@@ -1,6 +1,8 @@
 # TODO Substitui user.py que deve ser removida ao fim da implantação da nova gestão de usuários.
 
 import logging
+import waffle
+import datetime
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q
@@ -20,6 +22,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from brazilnum.cpf import format_cpf
 
+from sme_ptrf_apps.mandatos.models import CargoComposicao
 from sme_ptrf_apps.users.api.serializers import (
     UsuarioSerializer,
     UsuarioRetrieveSerializer,
@@ -240,6 +243,8 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
     def usuario_status(self, request):
         from ....core.models import MembroAssociacao, Unidade
 
+        flag_historico_de_membros = waffle.flag_is_active(request, 'historico-de-membros')
+
         username = request.query_params.get('username')
 
         if not username:
@@ -260,13 +265,6 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        # e_servidor_na_unidade = False
-        # if e_servidor and unidade:
-        #     e_servidor_na_unidade = SmeIntegracaoService.get_cargos_do_rf_na_escola(
-        #         rf=username,
-        #         codigo_eol=unidade.codigo_eol
-        #     ) != []
-
         try:
             user_core_sso = SmeIntegracaoService.usuario_core_sso_or_none(username)
             info_core_sso = {
@@ -279,7 +277,6 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
                 'mensagem': 'Erro ao buscar usuário no CoreSSO!'
             }
 
-        # onde_e_membro = MembroAssociacao.associacoes_onde_cpf_e_membro(cpf=username) if not e_servidor else []
         try:
             user_sig_escola = User.objects.get(username=username)
             info_sig_escola = {
@@ -289,13 +286,11 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
                     'user_id': user_sig_escola.id
                 },
                 'mensagem': 'Usuário encontrado no Sig.Escola.',
-                # 'associacoes_que_e_membro': onde_e_membro,
             }
         except User.DoesNotExist as e:
             info_sig_escola = {
                 'info_sig_escola': None,
                 'mensagem': 'Usuário não encontrado no Sig.Escola.',
-                # 'associacoes_que_e_membro': onde_e_membro,
             }
 
         visao_base = None
@@ -304,13 +299,8 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
         else:
             visao_base = 'SME' if unidade_uuid == 'SME' else None
 
-        # pode_acessar_unidade = False
-        # if e_servidor:
-        #     if visao_base == 'SME':
-        #         pode_acessar_unidade =
-
         pode_acessar, mensagem_pode_acessar, info_exercicio = pode_acessar_unidade(
-            username, e_servidor, visao_base, unidade)
+            username, e_servidor, visao_base, unidade, flag_historico_de_membros=flag_historico_de_membros)
 
         info_membro_nao_servidor = ""
         if not e_servidor:
@@ -329,7 +319,6 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
             'usuario_core_sso': info_core_sso,
             'usuario_sig_escola': info_sig_escola,
             'validacao_username': validar_username(username=username, e_servidor=e_servidor),
-            # 'e_servidor_na_unidade': e_servidor_na_unidade,
             'info_membro_nao_servidor': info_membro_nao_servidor,
             'pode_acessar_unidade': {
                 'visao_base': visao_base,
@@ -470,7 +459,7 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
 
 # TODO Mover para um service
 # TODO Criar testes unitários
-def pode_acessar_unidade(username, e_servidor, visao_base, unidade):
+def pode_acessar_unidade(username, e_servidor, visao_base, unidade, flag_historico_de_membros=False):
 
     info_exercicio = ''
 
@@ -497,8 +486,8 @@ def pode_acessar_unidade(username, e_servidor, visao_base, unidade):
                 return False, 'Servidor em exercício em outra unidade.', info_exercicio
 
         if visao_base == 'UE':
-            e_membro_associacao = MembroAssociacao.objects.filter(
-                codigo_identificacao=username, associacao__unidade__codigo_eol=unidade.codigo_eol).exists()
+            e_membro_associacao = eh_membro_associacao(visao_base, username, unidade, eh_servidor=True, flag_historico_de_membros=flag_historico_de_membros)
+
             em_exercicio_na_unidade = unidade_servidor == unidade.codigo_eol
 
             if not em_exercicio_na_unidade and e_membro_associacao:
@@ -516,19 +505,103 @@ def pode_acessar_unidade(username, e_servidor, visao_base, unidade):
     else:
         # Inclui a máscara de CPF ao username. O cadastro de membros usa o CPF com máscara para membros não servidores.
         codigo_membro = format_cpf(username)
-        if visao_base == 'SME' and not MembroAssociacao.objects.filter(cpf=codigo_membro).exists():
-            return False, 'Usuário não é membro de nenhuma associação.', ''
 
-        if visao_base == 'DRE':
-            unidades_dre = unidade.unidades_da_dre.values_list("codigo_eol", flat=True)
-            if not MembroAssociacao.objects.filter(cpf=codigo_membro, associacao__unidade__codigo_eol__in=unidades_dre).exists():
-                return False, 'Usuário não é membro de nenhuma associação da DRE.', ''
+        mensagens_nao_membro = {
+            'SME': 'Usuário não é membro de nenhuma associação.',
+            'DRE': 'Usuário não é membro de nenhuma associação da DRE.',
+            'UE': 'Usuário não é membro da associação.',
+        }
 
-        if visao_base == 'UE' and not MembroAssociacao.objects.filter(cpf=codigo_membro, associacao__unidade__codigo_eol=unidade.codigo_eol).exists():
-            return False, 'Usuário não é membro da associação.', ''
+        e_membro_associacao = eh_membro_associacao(visao_base, codigo_membro, unidade, eh_servidor=False, flag_historico_de_membros=flag_historico_de_membros)
+
+        if not e_membro_associacao and visao_base in mensagens_nao_membro:
+            return False, mensagens_nao_membro[visao_base], ''
 
     return True, '', info_exercicio
 
+
+def eh_membro_associacao(visao_base, codigo_membro, unidade, eh_servidor, flag_historico_de_membros):
+    """
+    Verifica se o usuário é membro da associação da unidade.
+    Decide qual versão da função chamar de acordo com a feature flag "historico-de-membros".
+    """
+    if flag_historico_de_membros is None:
+        raise ValidationError('Parâmetro flag_historico_de_membros obrigatório.')
+
+    if flag_historico_de_membros:
+        return eh_membro_associacao_v2(visao_base, codigo_membro, unidade, eh_servidor)
+    else:
+        return eh_membro_associacao_v1(visao_base, codigo_membro, unidade, eh_servidor)
+
+
+def eh_membro_associacao_v2(visao_base, codigo_membro, unidade, eh_servidor):
+    """
+    Verifica se o usuário é membro da associação da unidade.
+    Caso a feature flag "historico-de-membros" esteja ativa, a verificação é feita na tabela CargoComposicao.
+    """
+    logger.info(f'V2 Validando se {codigo_membro} é membro da associação da unidade {unidade}.')
+    if visao_base == 'UE':
+        if eh_servidor:
+            return CargoComposicao.objects.filter(
+                ocupante_do_cargo__codigo_identificacao=codigo_membro,
+                composicao__associacao__unidade__codigo_eol=unidade.codigo_eol,
+                data_inicio_no_cargo__lte=datetime.date.today(),
+                data_fim_no_cargo__gte=datetime.date.today()
+            ).exists()
+        else:
+            return CargoComposicao.objects.filter(
+                ocupante_do_cargo__cpf_responsavel=codigo_membro,
+                composicao__associacao__unidade__codigo_eol=unidade.codigo_eol,
+                data_inicio_no_cargo__lte=datetime.date.today(),
+                data_fim_no_cargo__gte=datetime.date.today()
+            ).exists()
+
+    if visao_base == 'DRE':
+        return CargoComposicao.objects.filter(
+            ocupante_do_cargo__cpf_responsavel=codigo_membro,
+            composicao__associacao__unidade__codigo_eol__in=unidade.unidades_da_dre.values_list("codigo_eol", flat=True),
+            data_inicio_no_cargo__lte = datetime.date.today(),
+            data_fim_no_cargo__gte = datetime.date.today()
+        ).exists()
+
+    if visao_base == 'SME':
+        return CargoComposicao.objects.filter(
+            ocupante_do_cargo__cpf_responsavel=codigo_membro,
+            data_inicio_no_cargo__lte=datetime.date.today(),
+            data_fim_no_cargo__gte=datetime.date.today()
+        ).exists()
+
+    return False
+
+
+def eh_membro_associacao_v1(visao_base, codigo_membro, unidade, eh_servidor):
+    """
+    Verifica se o usuário é membro da associação da unidade.
+    Caso a feature flag "historico-de-membros" esteja desativada, a verificação é feita na tabela MembroAssociacao.
+    """
+    logger.info(f'V1 Validando se {codigo_membro} é membro da associação da unidade {unidade}.')
+    if visao_base == 'UE':
+        if eh_servidor:
+            return MembroAssociacao.objects.filter(
+                codigo_identificacao=codigo_membro,
+                associacao__unidade__codigo_eol=unidade.codigo_eol
+            ).exists()
+        else:
+            return MembroAssociacao.objects.filter(
+                cpf=codigo_membro,
+                associacao__unidade__codigo_eol=unidade.codigo_eol
+            ).exists()
+
+    if visao_base == 'DRE':
+        return MembroAssociacao.objects.filter(
+            cpf=codigo_membro,
+            associacao__unidade__codigo_eol__in=unidade.unidades_da_dre.values_list("codigo_eol", flat=True)
+        ).exists()
+
+    if visao_base == 'SME':
+        return MembroAssociacao.objects.filter(cpf=codigo_membro).exists()
+
+    return False
 
 # TODO Mover para um service
 # TODO Criar testes unitários

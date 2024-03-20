@@ -176,7 +176,7 @@ class AssociacoesViewSet(ModelViewSet):
         if periodo_uuid:
             try:
                 periodo = Periodo.by_uuid(periodo_uuid)
-            except(ValidationError, Exception):
+            except (ValidationError, Exception):
                 erro = {'erro': 'UUID do período inválido.'}
                 return Response(erro, status=status.HTTP_404_NOT_FOUND)
         else:
@@ -186,7 +186,7 @@ class AssociacoesViewSet(ModelViewSet):
 
         try:
             conta_associacao = ContaAssociacao.by_uuid(conta_associacao_uuid) if conta_associacao_uuid else None
-        except(ValidationError, Exception):
+        except (ValidationError, Exception):
             erro = {'erro': 'UUID da conta inválido.'}
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
@@ -231,11 +231,11 @@ class AssociacoesViewSet(ModelViewSet):
 
         if prestacao_conta_status:
             if prestacao_conta_status['status_prestacao'] == 'NAO_RECEBIDA' or prestacao_conta_status[
-                'status_prestacao'] == 'NAO_APRESENTADA':
+                    'status_prestacao'] == 'NAO_APRESENTADA':
                 gerar_ou_editar_ata_apresentacao = True
 
             if prestacao_conta_status['status_prestacao'] == 'DEVOLVIDA_RETORNADA' or prestacao_conta_status[
-                'status_prestacao'] == 'DEVOLVIDA':
+                    'status_prestacao'] == 'DEVOLVIDA':
                 gerar_ou_editar_ata_retificacao = True
 
         gerar_previas = True
@@ -264,7 +264,8 @@ class AssociacoesViewSet(ModelViewSet):
 
         from sme_ptrf_apps.core.services.conta_associacao_service import checa_se_tem_conta_encerrada_com_saldo_no_periodo
 
-        tem_conta_encerrada_com_saldo, tipos_das_contas_encerradas = checa_se_tem_conta_encerrada_com_saldo_no_periodo(associacao, periodo, data)
+        tem_conta_encerrada_com_saldo, tipos_das_contas_encerradas = checa_se_tem_conta_encerrada_com_saldo_no_periodo(
+            associacao, periodo, data)
 
         result = {
             'associacao': f'{uuid}',
@@ -363,7 +364,8 @@ class AssociacoesViewSet(ModelViewSet):
                     contas_criadas_nesse_periodo_ou_anteriores.append(conta)
             contas = contas_criadas_nesse_periodo_ou_anteriores
         else:
-            contas = ContaAssociacao.ativas_com_solicitacao_em_aberto.filter(associacao=associacao, data_inicio__isnull=False).all()
+            contas = ContaAssociacao.ativas_com_solicitacao_em_aberto.filter(
+                associacao=associacao, data_inicio__isnull=False).all()
 
         contas_data = ContaAssociacaoDadosSerializer(contas, many=True).data
 
@@ -393,7 +395,7 @@ class AssociacoesViewSet(ModelViewSet):
 
         try:
             associacao = Associacao.by_uuid(associacao_uuid)
-        except(ValidationError, Exception):
+        except (ValidationError, Exception):
             erro = {'erro': 'UUID da Associação inválido.'}
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -419,6 +421,56 @@ class AssociacoesViewSet(ModelViewSet):
                 tipo_acerto=None,
                 com_ajustes=True,
                 inclui_inativas=True,
+            )
+            if lancamentos:
+                obj_contas.append(conta)
+
+        contas_data = ContaAssociacaoDadosSerializer(obj_contas, many=True).data
+        return Response(contas_data)
+
+    @action(detail=False, url_path='contas-com-acertos-em-despesas-periodos-anteriores', methods=['get'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def contas_com_acertos_em_despesas_periodos_anteriores(self, request):
+
+        associacao_uuid = request.query_params.get('associacao_uuid')
+        analise_prestacao_uuid = request.query_params.get('analise_prestacao_uuid')
+
+        if not associacao_uuid or not analise_prestacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o UUID da Associacao e o UUID da Análise da PC.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            associacao = Associacao.by_uuid(associacao_uuid)
+        except (ValidationError, Exception):
+            erro = {'erro': 'UUID da Associação inválido.'}
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+        except (ValidationError, Exception):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        contas = ContaAssociacao.objects.filter(associacao=associacao).all()
+
+        obj_contas = []
+        for conta in contas:
+            lancamentos = lancamentos_da_prestacao(
+                analise_prestacao_conta=analise_prestacao,
+                conta_associacao=conta,
+                acao_associacao=None,
+                tipo_transacao="GASTOS",
+                tipo_acerto=None,
+                com_ajustes=True,
+                inclui_inativas=True,
+                apenas_despesas_de_periodos_anteriores=True,
             )
             if lancamentos:
                 obj_contas.append(conta)

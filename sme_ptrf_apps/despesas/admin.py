@@ -1,5 +1,6 @@
 from django.contrib import admin
 from rangefilter.filter import DateRangeFilter
+from sme_ptrf_apps.core.models import Periodo
 
 from .models import TipoTransacao, TipoDocumento, TipoCusteio, EspecificacaoMaterialServico, Despesa, RateioDespesa, \
     Fornecedor, MotivoPagamentoAntecipado
@@ -44,17 +45,15 @@ class RateioDespesaAdmin(admin.ModelAdmin):
     list_filter = (
         ('conferido', customTitledFilter('Conferido')),
         ('tag', customTitledFilter('Tag')),
-        ('associacao__nome', customTitledFilter('Associação')),
         ('associacao__unidade__dre', customTitledFilter('DRE')),
         ('acao_associacao__acao__nome', customTitledFilter('Ação')),
         ('conta_associacao__tipo_conta__nome', customTitledFilter('Tipo Conta')),
         ('aplicacao_recurso', customTitledFilter('Tipo Despesa')),
-        ('despesa__numero_documento', customTitledFilter('Número documento')),
         ('tipo_custeio', customTitledFilter('Tipo Custeio')),
         ('despesa__tipo_documento', customTitledFilter('Tipo Documento')),
         ('despesa__tipo_transacao', customTitledFilter('Tipo Transacao')),
-        ('despesa__nome_fornecedor', customTitledFilter('Nome Fornecedor')),
-        ('especificacao_material_servico__descricao', customTitledFilter('Especificação Material/Serviço')),)
+    )
+    raw_id_fields = ('despesa', 'associacao', 'acao_associacao', 'conta_associacao', 'especificacao_material_servico')
 
     def numero_documento(self, obj):
         return obj.despesa.numero_documento if obj and obj.despesa and obj.despesa.numero_documento else ""
@@ -65,7 +64,7 @@ class RateioDespesaAdmin(admin.ModelAdmin):
     def acao(self, obj):
         return obj.acao_associacao.acao.nome if obj.acao_associacao else ''
 
-    autocomplete_fields = ['associacao', 'despesa', 'conta_associacao', 'acao_associacao']
+    # autocomplete_fields = ['associacao', 'despesa', 'conta_associacao', 'acao_associacao']
     readonly_fields = ('uuid', 'id')
 
 
@@ -79,6 +78,21 @@ class RateioDespesaInLine(admin.TabularInline):
 
     autocomplete_fields = ['associacao', 'despesa', 'conta_associacao', 'acao_associacao']
 
+class PeriodoDaDespesaFilter(admin.SimpleListFilter):
+    title = 'Periodo da Despesa'
+    parameter_name = 'periodo_da_despesa'
+
+    def lookups(self, request, model_admin):
+        periodos = Periodo.objects.all()
+        return [(periodo.id, periodo) for periodo in periodos]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            periodo_id = self.value()
+            periodo = Periodo.objects.get(pk=periodo_id)
+            return queryset.filter(data_transacao__gte=periodo.data_inicio_realizacao_despesas,
+                                    data_transacao__lte=periodo.data_fim_realizacao_despesas)
+        return queryset
 
 @admin.register(Despesa)
 class DespesaAdmin(admin.ModelAdmin):
@@ -94,6 +108,7 @@ class DespesaAdmin(admin.ModelAdmin):
         'associacao__unidade__codigo_eol'
     )
     list_filter = (
+        PeriodoDaDespesaFilter,
         'associacao',
         'associacao__unidade__dre',
         'associacao__unidade__tipo_unidade',
@@ -114,7 +129,7 @@ class DespesaAdmin(admin.ModelAdmin):
     def associacao(self, obj):
         return obj.associacao.nome if obj.associacao else ''
 
-    autocomplete_fields = ['associacao', 'despesas_impostos']
+    raw_id_fields = ['associacao', 'despesas_impostos']
 
 
 @admin.register(EspecificacaoMaterialServico)

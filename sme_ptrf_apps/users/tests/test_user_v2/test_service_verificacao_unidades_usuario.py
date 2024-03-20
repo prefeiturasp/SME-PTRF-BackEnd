@@ -71,11 +71,19 @@ def test_valida_unidades_nao_deve_remover_nenhuma_unidade_usuario_servidor(
 
         mock_get.return_value = data
 
-        assert usuario_servidor_sem_visao_sme_service_gestao_usuario.unidades.count() == 1
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        VerificaUnidadesUsuariosService().iniciar_processo()
+            mock_get_dados_unidade.return_value = data
 
-        assert usuario_servidor_sem_visao_sme_service_gestao_usuario.unidades.count() == 1
+            assert usuario_servidor_sem_visao_sme_service_gestao_usuario.unidades.count() == 1
+
+            VerificaUnidadesUsuariosService().iniciar_processo()
+
+            assert usuario_servidor_sem_visao_sme_service_gestao_usuario.unidades.count() == 1
 
 
 def test_valida_unidades_deve_remover_unidade(
@@ -94,11 +102,19 @@ def test_valida_unidades_deve_remover_unidade(
 
         mock_get.return_value = data
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        VerificaUnidadesUsuariosService().iniciar_processo()
+            mock_get_dados_unidade.return_value = data
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 1
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
+
+            VerificaUnidadesUsuariosService().iniciar_processo()
+
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 1
 
 
 def test_valida_unidades_deve_remover_sme_e_unidade(
@@ -118,13 +134,21 @@ def test_valida_unidades_deve_remover_sme_e_unidade(
 
         mock_get.return_value = data
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
-        assert visao_sme_gestao_usuario in usuario_servidor_service_gestao_usuario.visoes.all()
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        VerificaUnidadesUsuariosService().iniciar_processo()
+            mock_get_dados_unidade.return_value = data
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 1
-        assert visao_sme_gestao_usuario not in usuario_servidor_service_gestao_usuario.visoes.all()
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
+            assert visao_sme_gestao_usuario in usuario_servidor_service_gestao_usuario.visoes.all()
+
+            VerificaUnidadesUsuariosService().iniciar_processo()
+
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 1
+            assert visao_sme_gestao_usuario not in usuario_servidor_service_gestao_usuario.visoes.all()
 
 
 def test_valida_unidades_nao_deve_remover_unidade_suporte(
@@ -144,11 +168,19 @@ def test_valida_unidades_nao_deve_remover_unidade_suporte(
 
         mock_get.return_value = data
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
-        assert usuario_servidor_service_gestao_usuario.acessos_de_suporte.count() == 1
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        VerificaUnidadesUsuariosService().iniciar_processo()
+            mock_get_dados_unidade.return_value = data
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
-        assert usuario_servidor_service_gestao_usuario.acessos_de_suporte.count() == 1
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
+            assert usuario_servidor_service_gestao_usuario.acessos_de_suporte.count() == 1
+
+            VerificaUnidadesUsuariosService().iniciar_processo()
+
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
+            assert usuario_servidor_service_gestao_usuario.acessos_de_suporte.count() == 1
 
