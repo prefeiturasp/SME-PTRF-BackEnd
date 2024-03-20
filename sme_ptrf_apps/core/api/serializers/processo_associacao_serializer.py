@@ -86,6 +86,7 @@ class ProcessoAssociacaoCreateSerializer(serializers.ModelSerializer):
 
 
 class ProcessoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
+
     associacao = AssociacaoLookupSerializer()
     permite_exclusao = serializers.SerializerMethodField('get_permite_exclusao')
     tooltip_exclusao = serializers.SerializerMethodField('get_tooltip_exclusao')
@@ -97,10 +98,19 @@ class ProcessoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
                   'permite_exclusao', 'tooltip_exclusao', 'periodos',)
 
     def get_tooltip_exclusao(self, obj):
-        if obj.e_o_ultimo_processo_do_ano_com_pcs_vinculada:
-            return "Não é possível excluir o número desse processo SEI, pois este já está vinculado a uma prestação de contas. Caso necessário, é possível editá-lo."
+        request = self.context.get('request', None)
+
+        msg = "Não é possível excluir o número desse processo SEI, pois este já está vinculado a uma prestação de contas. Caso necessário, é possível editá-lo."
+
+        if flag_is_active(request, 'periodos-processo-sei'):
+            return msg if obj.prestacoes_vinculadas_aos_periodos.exists() else ""
         else:
-            return ""
+            return msg if obj.e_o_ultimo_processo_do_ano_com_pcs_vinculada else ""
 
     def get_permite_exclusao(self, obj):
-        return not obj.e_o_ultimo_processo_do_ano_com_pcs_vinculada
+        request = self.context.get('request', None)
+
+        if flag_is_active(request, 'periodos-processo-sei'):
+            return not obj.prestacoes_vinculadas_aos_periodos.exists()
+        else:
+            return not obj.e_o_ultimo_processo_do_ano_com_pcs_vinculada
