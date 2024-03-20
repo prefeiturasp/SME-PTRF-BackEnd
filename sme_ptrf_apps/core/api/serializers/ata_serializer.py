@@ -38,6 +38,7 @@ class AtaSerializer(serializers.ModelSerializer):
         required=False,
         queryset=PrestacaoConta.objects.all()
     )
+    completa = serializers.SerializerMethodField('get_completa')
 
     presentes_na_ata = PresentesAtaSerializer(many=True)
 
@@ -46,6 +47,11 @@ class AtaSerializer(serializers.ModelSerializer):
 
     def get_hora_reuniao(self, obj):
         return obj.hora_reuniao.strftime('%H:%M')
+    
+    def get_completa(self, obj):
+        if obj.completa:
+            return True
+        return False
 
     class Meta:
         model = Ata
@@ -72,6 +78,7 @@ class AtaSerializer(serializers.ModelSerializer):
             'presentes_na_ata',
             'hora_reuniao',
             'justificativa_repasses_pendentes',
+            'completa',
         )
 
 

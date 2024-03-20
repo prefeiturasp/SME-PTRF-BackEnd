@@ -82,3 +82,5 @@ from .dados_demonstrativo_financeiro import (
     CategoriaDespesaChoices,
     InformacaoDespesaChoices
 )
+
+from .prestacao_conta_reprovada_nao_apresentacao import PrestacaoContaReprovadaNaoApresentacao

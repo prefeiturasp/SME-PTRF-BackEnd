@@ -362,3 +362,64 @@ def test_dashboard_outro_periodo(jwt_authenticated_client_a, prestacao_conta_apr
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
+
+
+def test_dashboard_com_pc_reprovada_nao_apresentacao(
+    jwt_authenticated_client_a,
+    prestacao_conta_aprovada,
+    prestacao_conta_em_analise,
+    prestacao_conta_aprovada_ressalva,
+    prestacao_conta_nao_recebida,
+    prestacao_conta_devolvida,
+    prestacao_conta_devolvida_retornada,
+    prestacao_conta_devolvida_recebida,
+    periodo,
+    dre,
+    _associacao_que_nao_apresentou_pc1,
+    prestacao_conta_reprovada_nao_apresentacao_factory,
+    _associacao_c_dre_1
+):
+
+    prestacao_conta_reprovada_nao_apresentacao_factory.create(
+        periodo=periodo,
+        associacao=_associacao_c_dre_1
+    )
+
+    response = jwt_authenticated_client_a.get(
+        f"/api/prestacoes-contas/dashboard/?periodo={periodo.uuid}&dre_uuid={dre.uuid}&add_reprovadas_nao_apresentacao=SIM")
+    result = response.json()
+
+    esperado = {
+        'total_associacoes_dre': 8,
+        'cards': [
+            {
+                'titulo': 'Prestações de contas não recebidas',
+                'quantidade_nao_recebida': 1,
+                'quantidade_prestacoes': 1,  # Uma PC não recebida + Uma Associação sem PC - Uma PC Reprovada por não apresentacao.
+                'status': 'NAO_RECEBIDA'},
+            {
+                'titulo': 'Prestações de contas recebidas aguardando análise',
+                'quantidade_prestacoes': 0,
+                'status': 'RECEBIDA'},
+            {
+                'titulo': 'Prestações de contas em análise',
+                'quantidade_prestacoes': 1,
+                'status': 'EM_ANALISE'},
+            {
+                'titulo': 'Prestações de conta devolvidas para acertos',
+                'quantidade_prestacoes': 3,  # Devolvida + Retornada após acertos + Recebida após acertos
+                'quantidade_retornadas': 1,  # Retornada após acertos
+                'status': 'DEVOLVIDA'},
+            {
+                'titulo': 'Prestações de contas aprovadas',
+                'quantidade_prestacoes': 2,  # Aprovada + Aprovada com ressalva
+                'status': 'APROVADA'},
+            {
+                'titulo': 'Prestações de contas reprovadas',
+                'quantidade_prestacoes': 1, # Nenhuma Reprovada + Uma PC Reprovada por não apresentacao
+                'status': 'REPROVADA'}
+        ]
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == esperado
