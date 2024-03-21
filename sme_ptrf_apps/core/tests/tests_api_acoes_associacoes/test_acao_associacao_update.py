@@ -4,7 +4,6 @@ import pytest
 from rest_framework import status
 
 from sme_ptrf_apps.core.models import AcaoAssociacao
-from sme_ptrf_apps.core.fixtures.factories import AcaoFactory, AcaoAssociacaoFactory, AssociacaoFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -42,12 +41,12 @@ def test_update_acao_associacao(
     assert acao_associacao.status == AcaoAssociacao.STATUS_INATIVA, "Deve atualizar o status."
 
 
-def test_validacao_update_acao_associacao(jwt_authenticated_client_a):
-    associacao = AssociacaoFactory()
-    acao = AcaoFactory()
-    outra_acao = AcaoFactory()
+def test_validacao_update_acao_associacao(jwt_authenticated_client_a, associacao_factory, acao_factory, acao_associacao_factory):
+    associacao = associacao_factory.create()
+    acao = acao_factory.create()
+    outra_acao = acao_factory.create()
 
-    acao_associacao_existente = AcaoAssociacaoFactory(associacao=associacao, acao=acao)
+    acao_associacao_existente = acao_associacao_factory.create(associacao=associacao, acao=acao)
 
     payload = {
         'acao': f"{outra_acao.uuid}",

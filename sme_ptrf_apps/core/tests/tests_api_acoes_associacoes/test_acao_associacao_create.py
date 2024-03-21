@@ -4,7 +4,6 @@ import pytest
 from rest_framework import status
 
 from sme_ptrf_apps.core.models import AcaoAssociacao
-from sme_ptrf_apps.core.fixtures.factories import AcaoFactory, AcaoAssociacaoFactory, AssociacaoFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -125,10 +124,10 @@ def test_create_acao_associacao_em_lote_uuid_associacao_invalido(
     assert AcaoAssociacao.objects.exists()
 
 
-def test_validacao_create_acao_associacao(jwt_authenticated_client_a):
-    associacao = AssociacaoFactory()
-    acao = AcaoFactory()
-    acao_associacao_existente = AcaoAssociacaoFactory(associacao=associacao, acao=acao)
+def test_validacao_create_acao_associacao(jwt_authenticated_client_a, acao_associacao_factory, acao_factory, associacao_factory):
+    associacao = associacao_factory.create()
+    acao = acao_factory.create()
+    acao_associacao_existente = acao_associacao_factory.create(associacao=associacao, acao=acao)
 
     payload = {
         'acao': f"{acao.uuid}",
