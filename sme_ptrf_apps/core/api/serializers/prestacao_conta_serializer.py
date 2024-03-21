@@ -1,3 +1,5 @@
+from waffle import flag_is_active
+
 from rest_framework import serializers
 
 from sme_ptrf_apps.core.models import PrestacaoConta, ObservacaoConciliacao
@@ -41,7 +43,8 @@ class PrestacaoContaListSerializer(serializers.ModelSerializer):
         return obj.associacao.unidade.nome if obj.associacao and obj.associacao.unidade else ''
 
     def get_processo_sei(self, obj):
-        return get_processo_sei_da_prestacao(prestacao_contas=obj)
+        request = self.context.get('request', None)
+        return get_processo_sei_da_prestacao(prestacao_contas=obj,  periodos_processo_sei=flag_is_active(request, 'periodos-processo-sei'))
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid if obj.periodo else ''
