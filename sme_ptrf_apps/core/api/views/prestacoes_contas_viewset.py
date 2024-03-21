@@ -900,7 +900,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=False, url_path='nao-recebidas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def nao_recebidas(self, _):
+    def nao_recebidas(self, request):
         # Determina a DRE
         dre_uuid = self.request.query_params.get('associacao__unidade__dre__uuid')
 
@@ -965,8 +965,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                                                          periodo=periodo,
                                                          filtro_nome=nome,
                                                          filtro_tipo_unidade=tipo_unidade,
-                                                         filtro_status=status_pc_list
-                                                         )
+                                                         filtro_status=status_pc_list,
+                                                         periodos_processo_sei=flag_is_active(request,'periodos-processo-sei')
+                                                        )
         return Response(result)
 
     @action(detail=False, url_path='todos-os-status',
