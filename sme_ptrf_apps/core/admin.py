@@ -1050,7 +1050,7 @@ class AmbienteAdmin(admin.ModelAdmin):
 
 @admin.register(ArquivoDownload)
 class ArquivoDownloadAdmin(admin.ModelAdmin):
-    list_display = ('identificador', 'status', 'alterado_em', 'lido')
+    list_display = ('identificador', 'status', 'alterado_em', 'lido', 'informacoes')
     readonly_fields = ('uuid', 'id',)
     list_display_links = ('identificador',)
 

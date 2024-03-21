@@ -11,6 +11,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 import mimetypes
 from django.http import HttpResponse
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Q
 
 
 class ArquivosDownloadViewSet(mixins.ListModelMixin,
@@ -35,7 +36,10 @@ class ArquivosDownloadViewSet(mixins.ListModelMixin,
 
         identificador = self.request.query_params.get('identificador')
         if identificador is not None:
-            qs = qs.filter(identificador__unaccent__icontains=identificador)
+            qs = qs.filter(
+                Q(identificador__unaccent__icontains=identificador) |
+                Q(informacoes__unaccent__icontains=identificador)
+            )
 
         return qs
 
