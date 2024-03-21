@@ -5,7 +5,7 @@ from model_bakery import baker
 from sme_ptrf_apps.core.services.relacao_bens_dados_service import persistir_dados_relacao_bens, formatar_e_retornar_dados_relatorio_relacao_bens
 from sme_ptrf_apps.core.services.relacao_bens import apagar_previas_relacao_de_bens
 from sme_ptrf_apps.core.models.relatorio_relacao_bens import RelatorioRelacaoBens
-from sme_ptrf_apps.core.fixtures.factories.relacao_bens_factory import RelacaoBensFactory, RelatorioRelacaoBensFactory, ItemRelatorioRelacaoDeBensFactory
+
 pytestmark = pytest.mark.django_db
 
 dados_relacao_bens = {
@@ -82,8 +82,8 @@ dados_relacao_bens = {
   }
 }
 
-def test_persistir_relatorio_relacao_bens(periodo, conta_associacao, despesa, rateio_despesa_01, rateio_despesa_02, usuario):
-    relacao_bens = RelacaoBensFactory()
+def test_persistir_relatorio_relacao_bens(periodo, conta_associacao, despesa, rateio_despesa_01, rateio_despesa_02, usuario, relacao_bens_factory):
+    relacao_bens = relacao_bens_factory.create()
 
     persistir_dados_relacao_bens(periodo, conta_associacao, despesa.rateios.all(), relacao_bens, usuario)
     relatorio = RelatorioRelacaoBens.objects.get(relacao_bens=relacao_bens)
@@ -122,14 +122,14 @@ def rateio_despesa_02(associacao, despesa, conta_associacao, acao, tipo_aplicaca
         valor_original=100.00,
     )
 
-def test_persistir_relatorio_final_relacao_bens_com_relatorios_anteriores(periodo, conta_associacao, despesa, rateio_despesa_01, rateio_despesa_02, usuario):
-    relacao_bens_anterior = RelacaoBensFactory()
-    relatorio_anterior = RelatorioRelacaoBensFactory(relacao_bens=relacao_bens_anterior)
-    ItemRelatorioRelacaoDeBensFactory(relatorio=relatorio_anterior)
+def test_persistir_relatorio_final_relacao_bens_com_relatorios_anteriores(periodo, conta_associacao, despesa, rateio_despesa_01, rateio_despesa_02, usuario, relacao_bens_factory, item_relatorio_relacao_de_bens_factory, relatorio_relacao_bens_factory):
+    relacao_bens_anterior = relacao_bens_factory.create()
+    relatorio_anterior = relatorio_relacao_bens_factory.create(relacao_bens=relacao_bens_anterior)
+    item_relatorio_relacao_de_bens_factory.create(relatorio=relatorio_anterior)
 
     apagar_previas_relacao_de_bens(relacao_bens_anterior.periodo_previa, relacao_bens_anterior.conta_associacao)
 
-    relacao_bens = RelacaoBensFactory()
+    relacao_bens = relacao_bens_factory.create()
 
     persistir_dados_relacao_bens(periodo, conta_associacao, despesa.rateios.all(), relacao_bens, usuario)
 
@@ -138,10 +138,10 @@ def test_persistir_relatorio_final_relacao_bens_com_relatorios_anteriores(period
     assert relatorio.count() == 1
 
 
-def test_formatar_e_retornar_dados_relatorio_relacao_bens():
-    relacao_bens = RelacaoBensFactory()
-    relatorio_instance = RelatorioRelacaoBensFactory(relacao_bens=relacao_bens)
-    ItemRelatorioRelacaoDeBensFactory(relatorio=relatorio_instance)
+def test_formatar_e_retornar_dados_relatorio_relacao_bens(relacao_bens_factory, item_relatorio_relacao_de_bens_factory, relatorio_relacao_bens_factory):
+    relacao_bens = relacao_bens_factory.create()
+    relatorio_instance = relatorio_relacao_bens_factory.create(relacao_bens=relacao_bens)
+    item_relatorio_relacao_de_bens_factory.create(relatorio=relatorio_instance)
 
     resultado = formatar_e_retornar_dados_relatorio_relacao_bens(relatorio_instance)
 

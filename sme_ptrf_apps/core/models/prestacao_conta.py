@@ -467,7 +467,7 @@ class PrestacaoConta(ModeloBase):
                 conta_associacao=conta,
                 periodo=self.periodo,
                 incluir_inativas=True,
-                conferido=False
+                nao_conciliadas_ou_conciliadas_no_periodo=True
             )
 
             if tem_gastos_periodos_anteriores:

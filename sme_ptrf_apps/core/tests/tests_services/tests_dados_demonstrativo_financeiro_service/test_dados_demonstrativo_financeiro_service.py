@@ -1,13 +1,9 @@
 import pytest
 from sme_ptrf_apps.core.models import DadosDemonstrativoFinanceiro
 from sme_ptrf_apps.core.fixtures.factories.demonstrativo_financeiro_factory import (
-    DemonstrativoFinanceiroFactory,
     DadosDemonstrativoFinanceiroFactory,
-    ItemResumoPorAcaoFactory,
-    ItemCreditoFactory,
-    ItemDespesaFactory,
-    CategoriaDespesaChoices
 )
+from sme_ptrf_apps.core.models.dados_demonstrativo_financeiro import CategoriaDespesaChoices
 from sme_ptrf_apps.core.services.persistencia_dados_demo_financeiro_service import PersistenciaDadosDemoFinanceiro
 from sme_ptrf_apps.core.services.recuperacao_dados_persistindos_demo_financeiro_service import RecuperaDadosDemoFinanceiro
 
@@ -102,8 +98,8 @@ dados_demonstrativo = {
 }
 
 
-def test_persistir_relatorio_demonstrativo_financeiro():
-    demonstrativo = DemonstrativoFinanceiroFactory()
+def test_persistir_relatorio_demonstrativo_financeiro(demonstrativo_financeiro_factory):
+    demonstrativo = demonstrativo_financeiro_factory.create()
 
     PersistenciaDadosDemoFinanceiro(dados=dados_demonstrativo, demonstrativo=demonstrativo)
     relatorio = DadosDemonstrativoFinanceiro.objects.get(demonstrativo=demonstrativo)
@@ -111,8 +107,8 @@ def test_persistir_relatorio_demonstrativo_financeiro():
     assert relatorio
 
 
-def test_deve_substituir_dados_de_relatorio_anterior_existente():
-    demonstrativo = DemonstrativoFinanceiroFactory()
+def test_deve_substituir_dados_de_relatorio_anterior_existente(demonstrativo_financeiro_factory):
+    demonstrativo = demonstrativo_financeiro_factory.create()
     DadosDemonstrativoFinanceiroFactory(demonstrativo=demonstrativo)
 
     assert DadosDemonstrativoFinanceiro.objects.all().count() == 1
@@ -122,10 +118,10 @@ def test_deve_substituir_dados_de_relatorio_anterior_existente():
     assert DadosDemonstrativoFinanceiro.objects.all().count() == 1
 
 
-def test_retorna_dados_formatados_cabecalho():
-    demonstrativo = DemonstrativoFinanceiroFactory()
+def test_retorna_dados_formatados_cabecalho(demonstrativo_financeiro_factory, item_resumo_por_acao_factory):
+    demonstrativo = demonstrativo_financeiro_factory.create()
     dados_demonstrativo_financeiro = DadosDemonstrativoFinanceiroFactory(demonstrativo=demonstrativo)
-    ItemResumoPorAcaoFactory(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
+    item_resumo_por_acao_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
 
     resultado = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
 
@@ -136,10 +132,10 @@ def test_retorna_dados_formatados_cabecalho():
     assert 'conta' in resultado['cabecalho']
 
 
-def test_retorna_dados_formatados_identificacao_apm():
-    demonstrativo = DemonstrativoFinanceiroFactory()
+def test_retorna_dados_formatados_identificacao_apm(demonstrativo_financeiro_factory, item_resumo_por_acao_factory):
+    demonstrativo = demonstrativo_financeiro_factory.create()
     dados_demonstrativo_financeiro = DadosDemonstrativoFinanceiroFactory(demonstrativo=demonstrativo)
-    ItemResumoPorAcaoFactory(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
+    item_resumo_por_acao_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
 
     resultado = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
 
@@ -155,10 +151,10 @@ def test_retorna_dados_formatados_identificacao_apm():
     assert 'nome_unidade' in resultado['identificacao_apm']
 
 
-def test_retorna_dados_formatados_identificacao_conta():
-    demonstrativo = DemonstrativoFinanceiroFactory()
+def test_retorna_dados_formatados_identificacao_conta(demonstrativo_financeiro_factory, item_resumo_por_acao_factory):
+    demonstrativo = demonstrativo_financeiro_factory.create()
     dados_demonstrativo_financeiro = DadosDemonstrativoFinanceiroFactory(demonstrativo=demonstrativo)
-    ItemResumoPorAcaoFactory(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
+    item_resumo_por_acao_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
 
     resultado = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
 
@@ -171,12 +167,12 @@ def test_retorna_dados_formatados_identificacao_conta():
     assert 'encerrada_em' in resultado['identificacao_conta']
 
 
-def test_retorna_dados_formatados_resumo_por_acao():
-    demonstrativo = DemonstrativoFinanceiroFactory()
+def test_retorna_dados_formatados_resumo_por_acao(demonstrativo_financeiro_factory, item_resumo_por_acao_factory):
+    demonstrativo = demonstrativo_financeiro_factory.create()
     dados_demonstrativo_financeiro = DadosDemonstrativoFinanceiroFactory(demonstrativo=demonstrativo)
 
-    ItemResumoPorAcaoFactory(dados_demonstrativo=dados_demonstrativo_financeiro)
-    ItemResumoPorAcaoFactory(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
+    item_resumo_por_acao_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro)
+    item_resumo_por_acao_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
 
     resultado = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
 
@@ -186,12 +182,12 @@ def test_retorna_dados_formatados_resumo_por_acao():
     assert len(resultado["resumo_por_acao"]["resumo_acoes"]) == 1
 
 
-def test_retorna_dados_formatados_creditos_demonstrados():
-    demonstrativo = DemonstrativoFinanceiroFactory()
+def test_retorna_dados_formatados_creditos_demonstrados(demonstrativo_financeiro_factory, item_resumo_por_acao_factory, item_credito_factory):
+    demonstrativo = demonstrativo_financeiro_factory.create()
     dados_demonstrativo_financeiro = DadosDemonstrativoFinanceiroFactory(demonstrativo=demonstrativo)
 
-    ItemResumoPorAcaoFactory(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
-    ItemCreditoFactory(dados_demonstrativo=dados_demonstrativo_financeiro)
+    item_resumo_por_acao_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
+    item_credito_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro)
 
     resultado = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
 
@@ -201,12 +197,12 @@ def test_retorna_dados_formatados_creditos_demonstrados():
     assert len(resultado["creditos_demonstrados"]["linhas"]) == 1
 
 
-def test_retorna_dados_formatados_creditos_demonstrados_com_estorno():
-    demonstrativo = DemonstrativoFinanceiroFactory()
+def test_retorna_dados_formatados_creditos_demonstrados_com_estorno(demonstrativo_financeiro_factory, item_resumo_por_acao_factory, item_credito_factory):
+    demonstrativo = demonstrativo_financeiro_factory.create()
     dados_demonstrativo_financeiro = DadosDemonstrativoFinanceiroFactory(demonstrativo=demonstrativo)
 
-    ItemResumoPorAcaoFactory(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
-    ItemCreditoFactory(dados_demonstrativo=dados_demonstrativo_financeiro, receita_estornada=True)
+    item_resumo_por_acao_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
+    item_credito_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro, receita_estornada=True)
 
     resultado = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
 
@@ -217,12 +213,12 @@ def test_retorna_dados_formatados_creditos_demonstrados_com_estorno():
     assert 'estorno' in resultado["creditos_demonstrados"]["linhas"][0]
 
 
-def test_retorna_dados_formatados_despesas_demonstradas():
-    demonstrativo = DemonstrativoFinanceiroFactory()
+def test_retorna_dados_formatados_despesas_demonstradas(demonstrativo_financeiro_factory, item_resumo_por_acao_factory, item_despesa_factory):
+    demonstrativo = demonstrativo_financeiro_factory.create()
     dados_demonstrativo_financeiro = DadosDemonstrativoFinanceiroFactory(demonstrativo=demonstrativo)
 
-    ItemResumoPorAcaoFactory(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
-    ItemDespesaFactory(dados_demonstrativo=dados_demonstrativo_financeiro)
+    item_resumo_por_acao_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
+    item_despesa_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro)
 
     resultado = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
 
@@ -232,12 +228,12 @@ def test_retorna_dados_formatados_despesas_demonstradas():
     assert len(resultado["despesas_demonstradas"]["linhas"]) == 1
 
 
-def test_retorna_dados_formatados_despesas_nao_demonstradas():
-    demonstrativo = DemonstrativoFinanceiroFactory()
+def test_retorna_dados_formatados_despesas_nao_demonstradas(demonstrativo_financeiro_factory, item_resumo_por_acao_factory, item_despesa_factory):
+    demonstrativo = demonstrativo_financeiro_factory.create()
     dados_demonstrativo_financeiro = DadosDemonstrativoFinanceiroFactory(demonstrativo=demonstrativo)
 
-    ItemResumoPorAcaoFactory(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
-    ItemDespesaFactory(
+    item_resumo_por_acao_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
+    item_despesa_factory.create(
         dados_demonstrativo=dados_demonstrativo_financeiro, categoria_despesa=CategoriaDespesaChoices.NAO_DEMONSTRADA)
 
     resultado = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
@@ -248,12 +244,12 @@ def test_retorna_dados_formatados_despesas_nao_demonstradas():
     assert len(resultado["despesas_nao_demonstradas"]["linhas"]) == 1
 
 
-def test_retorna_dados_formatados_despesas_anteriores_nao_demonstradas():
-    demonstrativo = DemonstrativoFinanceiroFactory()
+def test_retorna_dados_formatados_despesas_anteriores_nao_demonstradas(demonstrativo_financeiro_factory, item_resumo_por_acao_factory, item_despesa_factory):
+    demonstrativo = demonstrativo_financeiro_factory.create()
     dados_demonstrativo_financeiro = DadosDemonstrativoFinanceiroFactory(demonstrativo=demonstrativo)
 
-    ItemResumoPorAcaoFactory(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
-    ItemDespesaFactory(
+    item_resumo_por_acao_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
+    item_despesa_factory.create(
         dados_demonstrativo=dados_demonstrativo_financeiro,
         categoria_despesa=CategoriaDespesaChoices.NAO_DEMONSTRADA_PERIODO_ANTERIOR
     )
@@ -266,41 +262,41 @@ def test_retorna_dados_formatados_despesas_anteriores_nao_demonstradas():
     assert len(resultado["despesas_anteriores_nao_demonstradas"]["linhas"]) == 1
 
 
-def test_retorna_dados_formatados_justificativas():
-    demonstrativo = DemonstrativoFinanceiroFactory()
+def test_retorna_dados_formatados_justificativas(demonstrativo_financeiro_factory, item_resumo_por_acao_factory):
+    demonstrativo = demonstrativo_financeiro_factory.create()
     dados_demonstrativo_financeiro = DadosDemonstrativoFinanceiroFactory(demonstrativo=demonstrativo)
 
-    ItemResumoPorAcaoFactory(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
+    item_resumo_por_acao_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
     resultado = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
 
     assert 'justificativas' in resultado
 
 
-def test_retorna_dados_formatados_data_geracao_documento():
-    demonstrativo = DemonstrativoFinanceiroFactory()
+def test_retorna_dados_formatados_data_geracao_documento(demonstrativo_financeiro_factory, item_resumo_por_acao_factory):
+    demonstrativo = demonstrativo_financeiro_factory.create()
     dados_demonstrativo_financeiro = DadosDemonstrativoFinanceiroFactory(demonstrativo=demonstrativo)
 
-    ItemResumoPorAcaoFactory(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
+    item_resumo_por_acao_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
     resultado = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
 
     assert 'data_geracao_documento' in resultado
 
 
-def test_retorna_dados_formatados_data_geracao():
-    demonstrativo = DemonstrativoFinanceiroFactory()
+def test_retorna_dados_formatados_data_geracao(demonstrativo_financeiro_factory, item_resumo_por_acao_factory):
+    demonstrativo = demonstrativo_financeiro_factory.create()
     dados_demonstrativo_financeiro = DadosDemonstrativoFinanceiroFactory(demonstrativo=demonstrativo)
 
-    ItemResumoPorAcaoFactory(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
+    item_resumo_por_acao_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
     resultado = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
 
     assert 'data_geracao' in resultado
 
 
-def test_retorna_dados_formatados_previa():
-    demonstrativo = DemonstrativoFinanceiroFactory()
+def test_retorna_dados_formatados_previa(demonstrativo_financeiro_factory, item_resumo_por_acao_factory):
+    demonstrativo = demonstrativo_financeiro_factory.create()
     dados_demonstrativo_financeiro = DadosDemonstrativoFinanceiroFactory(demonstrativo=demonstrativo)
 
-    ItemResumoPorAcaoFactory(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
+    item_resumo_por_acao_factory.create(dados_demonstrativo=dados_demonstrativo_financeiro, total_geral=True)
     resultado = RecuperaDadosDemoFinanceiro(demonstrativo=demonstrativo).dados_formatados
 
     assert 'previa' in resultado

@@ -3,9 +3,6 @@ import json
 import pytest
 from rest_framework import status
 
-from sme_ptrf_apps.receitas.fixtures.factories.tipo_receita_factory import TipoReceitaFactory
-from sme_ptrf_apps.core.fixtures.factories.associacao_factory import AssociacaoFactory
-
 pytestmark = pytest.mark.django_db
 
 def test_get_tabelas(
@@ -38,14 +35,14 @@ def test_get_tabelas(
     assert len(result['contas_associacao']) == 1
     assert len(result['periodos']) == 1
 
-def test_get_tabelas_tipos_receita_por_unidade(jwt_authenticated_client_p):
-    associacao_1 = AssociacaoFactory()
-    associacao_2 = AssociacaoFactory()
+def test_get_tabelas_tipos_receita_por_unidade(jwt_authenticated_client_p, associacao_factory, tipo_receita_factory):
+    associacao_1 = associacao_factory.create()
+    associacao_2 = associacao_factory.create()
 
-    tipo = TipoReceitaFactory()
+    tipo = tipo_receita_factory.create()
     tipo.unidades.set([associacao_1.unidade], clear=True)
 
-    tipo_2 = TipoReceitaFactory()
+    tipo_2 = tipo_receita_factory.create()
     tipo_2.unidades.set([associacao_2.unidade], clear=True)
 
     response = jwt_authenticated_client_p.get(
@@ -56,11 +53,11 @@ def test_get_tabelas_tipos_receita_por_unidade(jwt_authenticated_client_p):
     assert result['tipos_receita'][0]['nome'] == tipo.nome
     assert response.status_code == status.HTTP_200_OK
 
-def test_get_tabelas_tipos_receita_sem_unidade(jwt_authenticated_client_p):
-    associacao_1 = AssociacaoFactory()
+def test_get_tabelas_tipos_receita_sem_unidade(jwt_authenticated_client_p, associacao_factory, tipo_receita_factory):
+    associacao_1 = associacao_factory.create()
 
-    tipo = TipoReceitaFactory()
-    tipo_2 = TipoReceitaFactory()
+    tipo = tipo_receita_factory.create()
+    tipo_2 = tipo_receita_factory.create()
 
     response = jwt_authenticated_client_p.get(
         f'/api/receitas/tabelas/?associacao_uuid={associacao_1.uuid}', content_type='application/json')

@@ -8,7 +8,6 @@ from .....dre.services.valores_reprogramados_dre_service import (
     barra_status
 )
 from decimal import Decimal
-from sme_ptrf_apps.core.fixtures.factories.solicitacao_encerramento_conta_associacao_factory import SolicitacaoEncerramentoContaAssociacaoFactory
 pytestmark = pytest.mark.django_db
 
 
@@ -382,8 +381,9 @@ def test_monta_estrutura_valores_reprogramados_com_solicitacao_encerramento_de_c
     associacao,
     conta_associacao,
     acao_associacao_aceita_custeio,
+    solicitacao_encerramento_conta_associacao_factory
 ):
-    SolicitacaoEncerramentoContaAssociacaoFactory(conta_associacao=conta_associacao)
+    solicitacao_encerramento_conta_associacao_factory.create(conta_associacao=conta_associacao)
 
     esperado = [{
         "conta": {

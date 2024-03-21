@@ -3,8 +3,6 @@ import pytest
 from waffle.testutils import override_flag
 from freezegun import freeze_time
 from rest_framework import status
-from sme_ptrf_apps.core.fixtures.factories import AssociacaoFactory
-from sme_ptrf_apps.mandatos.fixtures.factories import MandatoFactory, ComposicaoFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -97,10 +95,13 @@ def test_status_cadastro_somente_pendencia_membros(
 @override_flag('historico-de-membros', active=True)
 def test_status_cadastro_somente_pendencia_novo_mandato(
     jwt_authenticated_client_a,
+    associacao_factory,
+    mandato_factory,
+    composicao_factory
 ):
-    associacao = AssociacaoFactory()
-    mandato = MandatoFactory()
-    ComposicaoFactory(mandato=mandato)
+    associacao = associacao_factory.create()
+    mandato = mandato_factory.create()
+    composicao_factory.create(mandato=mandato)
 
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-cadastro/',
                           content_type='application/json')
