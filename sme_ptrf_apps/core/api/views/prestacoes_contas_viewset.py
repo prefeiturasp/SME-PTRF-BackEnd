@@ -972,7 +972,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=False, url_path='todos-os-status',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def todos_os_status(self, _):
+    def todos_os_status(self, request):
         # Determina a DRE
         dre_uuid = self.request.query_params.get('associacao__unidade__dre__uuid')
 
@@ -1042,7 +1042,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             filtro_nome=nome,
             filtro_tipo_unidade=tipo_unidade,
             filtro_por_status=status_pc_list,
-            filtro_por_devolucao_tesouro=devolucao_tesouro
+            filtro_por_devolucao_tesouro=devolucao_tesouro,
+            periodos_processo_sei=flag_is_active(request, 'periodos-processo-sei')
         )
         return Response(result)
 

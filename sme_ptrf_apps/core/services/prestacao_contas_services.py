@@ -427,7 +427,8 @@ def lista_prestacoes_de_conta_todos_os_status(
     filtro_nome=None,
     filtro_tipo_unidade=None,
     filtro_por_devolucao_tesouro=None,
-    filtro_por_status=[]
+    filtro_por_status=[],
+    periodos_processo_sei=False
 ):
     associacoes_da_dre = Associacao.get_associacoes_ativas_no_periodo(
         periodo=periodo, dre=dre).order_by('unidade__tipo_unidade', 'unidade__nome')
@@ -462,11 +463,17 @@ def lista_prestacoes_de_conta_todos_os_status(
             if prestacao_conta and prestacao_conta.devolucoes_ao_tesouro_da_prestacao.exists():
                 continue
 
+        if prestacao_conta:
+            processo_sei = get_processo_sei_da_prestacao(prestacao_contas=prestacao_conta, periodos_processo_sei=periodos_processo_sei)
+        else:
+            processo_sei = get_processo_sei_da_associacao_no_periodo(associacao=associacao, periodo=periodo, periodos_processo_sei=periodos_processo_sei)
+
+
         info_prestacao = {
             'periodo_uuid': f'{periodo.uuid}',
             'data_recebimento': prestacao_conta.data_recebimento if prestacao_conta else None,
             'data_ultima_analise': prestacao_conta.data_ultima_analise if prestacao_conta else None,
-            'processo_sei': get_processo_sei_da_prestacao(prestacao_contas=prestacao_conta) if prestacao_conta else '',
+            'processo_sei': processo_sei,
             'status': prestacao_conta.status if prestacao_conta else PrestacaoConta.STATUS_NAO_APRESENTADA,
             'tecnico_responsavel': prestacao_conta.tecnico_responsavel.nome if prestacao_conta and prestacao_conta.tecnico_responsavel else '',
             'unidade_eol': associacao.unidade.codigo_eol,
