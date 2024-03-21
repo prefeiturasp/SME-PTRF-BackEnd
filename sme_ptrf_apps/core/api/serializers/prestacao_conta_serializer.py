@@ -122,7 +122,8 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
         return obj.periodo.referencia
 
     def get_processo_sei(self, obj):
-        return get_processo_sei_da_prestacao(prestacao_contas=obj)
+        request = self.context.get('request', None)
+        return get_processo_sei_da_prestacao(prestacao_contas=obj,  periodos_processo_sei=flag_is_active(request, 'periodos-processo-sei'))
 
     def get_devolucao_ao_tesouro(self, obj):
         return obj.total_devolucao_ao_tesouro_str
