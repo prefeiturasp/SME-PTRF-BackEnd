@@ -24,7 +24,7 @@ CABECALHO_RECEITA = [
         ('ID do crédito', 'id'),
         ('Data do crédito', 'data'),
         ('Valor do crédito', 'valor'),
-        ('ID da Conta Associação', 'associacao__id'),
+        ('ID da Conta Associação', 'conta_associacao__id'),
         ('ID do tipo de Conta', 'conta_associacao__tipo_conta__id'),
         ('Nome do tipo de Conta', 'conta_associacao__tipo_conta__nome'),
         ('ID da Ação Associação', 'acao_associacao__id'),
@@ -32,12 +32,12 @@ CABECALHO_RECEITA = [
         ('Nome da Ação', 'acao_associacao__acao__nome'),
         ('ID do tipo de receita', 'tipo_receita__id'),
         ('Nome do tipo de receita', 'tipo_receita__nome'),
-        ('ID da categoria de receita', 'tipo_receita__id'),
-        ('Nome da categoria de receita', 'tipo_receita__nome'),
-        ('ID do detalhe de tipo de receita', 'categoria_receita'),
-        ('Nome do detalhe de tipo de receita', (APLICACAO_NOMES, 'categoria_receita')),
-        ('Detalhe (outros)', 'tipo_receita__id'),
-        ('ID do período de devolução ao tesouro', 'tipo_receita__nome'),
+        ('ID da categoria de receita', 'categoria_receita'),
+        ('Nome da categoria de receita', (APLICACAO_NOMES, 'categoria_receita')),
+        ('ID do detalhe de tipo de receita', 'detalhe_tipo_receita__id'),
+        ('Nome do detalhe de tipo de receita', 'detalhe_tipo_receita__nome'),
+        ('Detalhe (outros)', 'detalhe_outros'),
+        ('ID do período de devolução ao tesouro', 'referencia_devolucao__id'),
         ('Referência do Período da Prestação de contas da devolução ao tesouro', 'referencia_devolucao__referencia'),
         ('ID da despesa referente a saída de recurso externo', 'saida_do_recurso__id'),
         ('ID da despesa estornada (no caso de estorno)', 'rateio_estornado__id'),
@@ -91,11 +91,11 @@ class ExportacoesDadosCreditosService:
         ) as tmp:
             write = csv.writer(tmp.file, delimiter=";")
             write.writerow([cabecalho[0] for cabecalho in self.cabecalho])
-            
+
             for instance in self.queryset:
-                
+
                 motivos = list(instance.motivos_estorno.all())
-                
+
                 for _, campo in self.cabecalho:
 
                     if campo == 'data':
@@ -105,7 +105,7 @@ class ExportacoesDadosCreditosService:
                     elif campo == 'valor':
                         campo = str(getattr(instance, campo)).replace(".", ",")
                         linha.append(campo)
-                        
+
                     elif campo == 'outros_motivos_estorno':
                         motivo_string = '; '.join(str(motivo) for motivo in motivos)
                         if(len(motivo_string)):
@@ -147,13 +147,13 @@ class ExportacoesDadosCreditosService:
                 **{f'{field}__lt': self.data_final}
             )
         return self.queryset
-    
-    def cria_registro_central_download(self): 
+
+    def cria_registro_central_download(self):
         logger.info(f"Criando registro na central de download")
-        
-        obj = gerar_arquivo_download( 
-            self.user, 
-            self.nome_arquivo ) 
+
+        obj = gerar_arquivo_download(
+            self.user,
+            self.nome_arquivo )
         self.objeto_arquivo_download = obj
 
     def envia_arquivo_central_download(self, tmp) -> None:
