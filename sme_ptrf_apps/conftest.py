@@ -834,8 +834,20 @@ def periodo_2021_2(periodo_2021_1):
     )
 
 
+
 @pytest.fixture
-def periodo_2019_2(periodo):
+def periodo_2019_1():
+    return baker.make(
+        'Periodo',
+        referencia='2019.1',
+        data_inicio_realizacao_despesas=date(2019, 1, 1),
+        data_fim_realizacao_despesas=date(2019, 5, 31),
+        periodo_anterior=None,
+    )
+
+
+@pytest.fixture
+def periodo_2019_2(periodo_2019_1):
     return baker.make(
         'Periodo',
         referencia='2019.2',
@@ -844,7 +856,7 @@ def periodo_2019_2(periodo):
         data_prevista_repasse=date(2019, 6, 1),
         data_inicio_prestacao_contas=date(2020, 1, 1),
         data_fim_prestacao_contas=date(2020, 1, 10),
-        periodo_anterior=periodo
+        periodo_anterior=periodo_2019_1
     )
 
 
@@ -2191,12 +2203,13 @@ def tag_ativa():
 
 
 @pytest.fixture
-def processo_associacao_123456_2019(associacao):
+def processo_associacao_123456_2019(associacao, periodo_2019_1, periodo_2019_2):
     return baker.make(
         'ProcessoAssociacao',
         associacao=associacao,
         numero_processo='123456',
-        ano='2019'
+        ano='2019',
+        periodos=[periodo_2019_1, periodo_2019_2],
     )
 
 

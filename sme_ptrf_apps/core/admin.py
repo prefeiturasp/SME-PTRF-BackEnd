@@ -510,11 +510,20 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(ProcessoAssociacao)
 class ProcessoAssociacaoAdmin(admin.ModelAdmin):
-    list_display = ('associacao', 'numero_processo', 'ano')
+    list_display = ('associacao', 'numero_processo', 'ano', 'periodos_str')
     search_fields = ('uuid', 'numero_processo', 'associacao__nome')
     list_filter = ('ano', 'associacao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre')
     readonly_fields = ('uuid', 'id')
+    filter_horizontal = ('periodos',)
+    raw_id_fields = ('associacao',)
 
+    def periodos_str(self, obj):
+        """
+        Retorna uma string com as referências dos períodos associados ao ProcessoAssociacao.
+        """
+        return ", ".join([periodo.referencia for periodo in obj.periodos.all()])
+
+    periodos_str.short_description = "Períodos"
 
 @admin.register(ObservacaoConciliacao)
 class ObservacaoConciliacaoAdmin(admin.ModelAdmin):

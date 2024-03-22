@@ -1,6 +1,6 @@
 import pytest
 
-from ...models import ProcessoAssociacao, Associacao
+from ...models import ProcessoAssociacao, Associacao, Periodo
 
 pytestmark = pytest.mark.django_db
 
@@ -12,6 +12,7 @@ def test_instance_model(processo_associacao_123456_2019):
     assert model.numero_processo
     assert model.ano
     assert model.uuid
+    assert isinstance(model.periodos.first(), Periodo)
 
 
 def test_admin():
