@@ -15,6 +15,8 @@ class ProcessoAssociacao(ModeloBase):
 
     ano = models.CharField('Ano', max_length=4, blank=True, default="")
 
+    periodos = models.ManyToManyField('Periodo', related_name='processos', blank=True)
+
     class Meta:
         verbose_name = "Processo de prestação de contas"
         verbose_name_plural = "07.1) Processos de prestação de contas"
@@ -43,9 +45,17 @@ class ProcessoAssociacao(ModeloBase):
         return pcs
 
     @property
+    def prestacoes_vinculadas_aos_periodos(self):
+        from sme_ptrf_apps.core.models import PrestacaoConta
+        pcs = PrestacaoConta.objects.filter(associacao=self.associacao,
+                                            periodo__in=self.periodos.all())
+        return pcs
+
+    @property
     def e_o_ultimo_processo_do_ano_com_pcs_vinculada(self):
         ultimo_processo = ProcessoAssociacao.ultimo_processo_do_ano_por_associacao(
             associacao=self.associacao, ano=self.ano)
         return (self == ultimo_processo) and self.prestacoes_vinculadas.exists()
+
 
 auditlog.register(ProcessoAssociacao)
