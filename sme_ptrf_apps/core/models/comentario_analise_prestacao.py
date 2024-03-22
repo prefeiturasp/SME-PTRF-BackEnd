@@ -48,7 +48,7 @@ class ComentarioAnalisePrestacao(ModeloBase):
 
     class Meta:
         verbose_name = "Observação de análise de prestação de contas"
-        verbose_name_plural = "09.9) Observações de análise de prestações de contas"
+        verbose_name_plural = "09.10) Observações de análise de prestações de contas"
 
 
 auditlog.register(ComentarioAnalisePrestacao)

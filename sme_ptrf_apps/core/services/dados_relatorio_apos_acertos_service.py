@@ -4,7 +4,7 @@ from datetime import date
 from ...utils.numero_ordinal import formata_numero_ordinal
 from sme_ptrf_apps.core.models import TipoAcertoLancamento
 from datetime import datetime
-
+from waffle import get_waffle_flag_model
 import logging
 
 logger = logging.getLogger(__name__)
@@ -12,6 +12,10 @@ logger = logging.getLogger(__name__)
 
 class DadosRelatorioAposAcertos:
     def __init__(self, analise_prestacao_conta, previa, usuario):
+        flags = get_waffle_flag_model()
+        self.flag_ajustes_despesas_anteriores_ativa = flags.objects.filter(
+            name='ajustes-despesas-anteriores', everyone=True).exists()
+
         self.categoria_devolucao = TipoAcertoLancamento.CATEGORIA_DEVOLUCAO
 
         self.analise_prestacao_conta = analise_prestacao_conta
@@ -22,6 +26,12 @@ class DadosRelatorioAposAcertos:
         self.dados_associacao = self.__dados_associacao()
         self.dados_extratos_bancarios = self.__dados_extratos_bancarios()
         self.dados_lancamentos = self.__dados_lancamentos()
+
+        if self.flag_ajustes_despesas_anteriores_ativa:
+            self.dados_despesas_periodos_anteriores = self.__dados_despesas_periodos_anteriores()
+        else:
+            self.dados_despesas_periodos_anteriores = []
+
         self.dados_documentos = self.__dados_documentos()
         self.blocos = self.__blocos()
         self.rodape = self.__rodape()
@@ -84,6 +94,27 @@ class DadosRelatorioAposAcertos:
 
         return dados_lancamentos
 
+    def __dados_despesas_periodos_anteriores(self):
+        dados_lancamentos = []
+
+        for conta in self.analise_prestacao_conta.prestacao_conta.associacao.contas.all():
+            lancamentos = lancamentos_da_prestacao(
+                analise_prestacao_conta=self.analise_prestacao_conta,
+                conta_associacao=conta,
+                com_ajustes=True,
+                apenas_despesas_de_periodos_anteriores=True
+            )
+
+            if lancamentos:
+                dados = {
+                    'nome_conta': conta.tipo_conta.nome,
+                    'lancamentos': lancamentos
+                }
+
+                dados_lancamentos.append(dados)
+
+        return dados_lancamentos
+
     def __dados_documentos(self):
         documentos = self.analise_prestacao_conta.analises_de_documento.filter(resultado='AJUSTE').all().order_by(
             'tipo_documento_prestacao_conta__nome')
@@ -104,6 +135,11 @@ class DadosRelatorioAposAcertos:
         if self.dados_lancamentos:
             numero_bloco = numero_bloco + 1
             dados[f'acertos_lancamentos'] = f'Bloco {numero_bloco} - Acertos nos lançamentos'
+
+        if self.flag_ajustes_despesas_anteriores_ativa:
+            if self.dados_despesas_periodos_anteriores:
+                numero_bloco = numero_bloco + 1
+                dados[f'acertos_despesas_periodos_anteriores'] = f'Bloco {numero_bloco} - Despesas de períodos anteriores'
 
         if self.dados_documentos:
             numero_bloco = numero_bloco + 1
@@ -156,6 +192,7 @@ class DadosRelatorioAposAcertos:
             'dados_associacao': self.dados_associacao,
             'dados_extratos_bancarios': self.dados_extratos_bancarios,
             'dados_lancamentos': self.dados_lancamentos,
+            'dados_despesas_periodos_anteriores': self.dados_despesas_periodos_anteriores,
             'dados_documentos': self.dados_documentos,
             'blocos': self.blocos,
             'rodape': self.rodape,

@@ -78,6 +78,8 @@ class RateioDespesa(ModeloBase):
 
     eh_despesa_sem_comprovacao_fiscal = models.BooleanField('É despesa sem comprovação fiscal?', default=False)
 
+    nao_exibir_em_rel_bens = models.BooleanField('Não exibir na relação de bens', default=False)
+
     objects = models.Manager()  # Manager Padrão
     completos = RateiosCompletosManager()
 
@@ -99,14 +101,14 @@ class RateioDespesa(ModeloBase):
                 completo = completo and self.tipo_custeio
 
         elif completo and self.aplicacao_recurso == APLICACAO_CAPITAL:
-            if not self.eh_despesa_sem_comprovacao_fiscal:
-                completo = completo and \
-                    self.quantidade_itens_capital > 0 and \
-                    self.valor_item_capital > 0 and self.numero_processo_incorporacao_capital
-            else:
-                completo = completo and \
-                    self.quantidade_itens_capital > 0 and \
-                    self.valor_item_capital > 0
+            completo = completo and \
+                       self.quantidade_itens_capital > 0 and \
+                       self.valor_item_capital > 0
+
+            if not (self.eh_despesa_sem_comprovacao_fiscal or self.nao_exibir_em_rel_bens):
+                # O número do processo de incorporação é obrigatório nas despesas de capital
+                # Exceto para despesas sem comprovação fiscal ou que não devem ser exibidas na relação de bens
+                completo = completo and self.numero_processo_incorporacao_capital
 
         return completo
 
@@ -187,8 +189,17 @@ class RateioDespesa(ModeloBase):
         return dataset.all()
 
     @classmethod
-    def rateios_da_conta_associacao_no_periodo(cls, conta_associacao, periodo, conferido=None,
-                                               exclude_despesa=None, aplicacao_recurso=None, acao_associacao=None, incluir_inativas=False):
+    def rateios_da_conta_associacao_no_periodo(
+        cls,
+        conta_associacao,
+        periodo,
+        conferido=None,
+        exclude_despesa=None,
+        aplicacao_recurso=None,
+        acao_associacao=None,
+        incluir_inativas=False,
+        nao_exibir_em_rel_bens=None,
+    ):
         todos_rateios = cls.objects.exclude(status=STATUS_INCOMPLETO) if incluir_inativas else cls.completos
         if periodo.data_fim_realizacao_despesas:
             dataset = todos_rateios.filter(conta_associacao=conta_associacao).filter(
@@ -212,6 +223,9 @@ class RateioDespesa(ModeloBase):
 
         if acao_associacao:
             dataset = dataset.filter(acao_associacao=acao_associacao)
+
+        if nao_exibir_em_rel_bens is not None:
+            dataset = dataset.filter(nao_exibir_em_rel_bens=nao_exibir_em_rel_bens)
 
         return dataset.all()
 
@@ -250,7 +264,8 @@ class RateioDespesa(ModeloBase):
 
     @classmethod
     def rateios_da_conta_associacao_em_periodos_anteriores(cls, conta_associacao, periodo, conferido=None,
-                                                           exclude_despesa=None, aplicacao_recurso=None, acao_associacao=None, incluir_inativas=False):
+                                                           exclude_despesa=None, aplicacao_recurso=None, acao_associacao=None, incluir_inativas=False,
+                                                           nao_conciliadas_ou_conciliadas_no_periodo=False):
 
         dataset = cls.objects.exclude(status=STATUS_INCOMPLETO) if incluir_inativas else cls.completos
 
@@ -261,6 +276,9 @@ class RateioDespesa(ModeloBase):
                 dataset = dataset.filter(conferido=True, periodo_conciliacao__referencia__lte=periodo.referencia)
             else:
                 dataset = dataset.filter(Q(conferido=False) | Q(periodo_conciliacao__referencia__gt=periodo.referencia))
+
+        if nao_conciliadas_ou_conciliadas_no_periodo:
+            dataset = dataset.filter(Q(conferido=False) | Q(periodo_conciliacao__referencia=periodo.referencia))
 
         if exclude_despesa:
             dataset = dataset.exclude(despesa__uuid=exclude_despesa)

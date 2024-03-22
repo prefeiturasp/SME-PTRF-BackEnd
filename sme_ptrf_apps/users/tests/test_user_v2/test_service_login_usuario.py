@@ -38,15 +38,24 @@ def test_get_unidades_que_usuario_tem_acesso_servidor(
         }
 
         mock_get.return_value = data
-        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
 
-        login_service = LoginUsuarioService(
-            usuario=usuario_servidor_service_gestao_usuario,
-            gestao_usuario=gestao_usuario
-        )
-        result = login_service.unidades_que_usuario_tem_acesso
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        assert len(result) == 1
+            mock_get_dados_unidade.return_value = data
+
+            gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+
+            login_service = LoginUsuarioService(
+                usuario=usuario_servidor_service_gestao_usuario,
+                gestao_usuario=gestao_usuario
+            )
+            result = login_service.unidades_que_usuario_tem_acesso
+
+            assert len(result) == 1
 
 
 def test_get_unidades_que_usuario_tem_acesso_servidor_com_sme(
@@ -141,17 +150,25 @@ def test_valida_unidades_usuario_servidor_nao_deve_remover_unidades_flag_true(
 
         mock_get.return_value = data
 
-        assert usuario_servidor_sem_visao_sme_service_gestao_usuario.unidades.count() == 1
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_sem_visao_sme_service_gestao_usuario)
+            mock_get_dados_unidade.return_value = data
 
-        # A função valida_unidades_usuario() é chamada internamente no serviço
-        LoginUsuarioService(
-            usuario=usuario_servidor_sem_visao_sme_service_gestao_usuario,
-            gestao_usuario=gestao_usuario
-        )
+            assert usuario_servidor_sem_visao_sme_service_gestao_usuario.unidades.count() == 1
 
-        assert usuario_servidor_sem_visao_sme_service_gestao_usuario.unidades.count() == 1
+            gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_sem_visao_sme_service_gestao_usuario)
+
+            # A função valida_unidades_usuario() é chamada internamente no serviço
+            LoginUsuarioService(
+                usuario=usuario_servidor_sem_visao_sme_service_gestao_usuario,
+                gestao_usuario=gestao_usuario
+            )
+
+            assert usuario_servidor_sem_visao_sme_service_gestao_usuario.unidades.count() == 1
 
 
 def test_valida_unidades_usuario_deve_remover_unidade(
@@ -171,17 +188,25 @@ def test_valida_unidades_usuario_deve_remover_unidade(
 
         mock_get.return_value = data
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+            mock_get_dados_unidade.return_value = data
 
-        # A função valida_unidades_usuario() é chamada internamente no serviço
-        LoginUsuarioService(
-            usuario=usuario_servidor_service_gestao_usuario,
-            gestao_usuario=gestao_usuario
-        )
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 1
+            gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+
+            # A função valida_unidades_usuario() é chamada internamente no serviço
+            LoginUsuarioService(
+                usuario=usuario_servidor_service_gestao_usuario,
+                gestao_usuario=gestao_usuario
+            )
+
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 1
 
 
 def test_valida_unidades_usuario_nao_deve_remover_unidade_suporte(
@@ -203,19 +228,27 @@ def test_valida_unidades_usuario_nao_deve_remover_unidade_suporte(
 
         mock_get.return_value = data
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
-        assert usuario_servidor_service_gestao_usuario.acessos_de_suporte.count() == 1
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+            mock_get_dados_unidade.return_value = data
 
-        # A função valida_unidades_usuario() é chamada internamente no serviço
-        LoginUsuarioService(
-            usuario=usuario_servidor_service_gestao_usuario,
-            gestao_usuario=gestao_usuario
-        )
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
+            assert usuario_servidor_service_gestao_usuario.acessos_de_suporte.count() == 1
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
-        assert usuario_servidor_service_gestao_usuario.acessos_de_suporte.count() == 1
+            gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+
+            # A função valida_unidades_usuario() é chamada internamente no serviço
+            LoginUsuarioService(
+                usuario=usuario_servidor_service_gestao_usuario,
+                gestao_usuario=gestao_usuario
+            )
+
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
+            assert usuario_servidor_service_gestao_usuario.acessos_de_suporte.count() == 1
 
 
 def test_valida_unidades_usuario_deve_remover_sme_e_unidade(
@@ -236,19 +269,27 @@ def test_valida_unidades_usuario_deve_remover_sme_e_unidade(
 
         mock_get.return_value = data
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
-        assert visao_sme_gestao_usuario in usuario_servidor_service_gestao_usuario.visoes.all()
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+            mock_get_dados_unidade.return_value = data
 
-        # A função valida_unidades_usuario() é chamada internamente no serviço
-        LoginUsuarioService(
-            usuario=usuario_servidor_service_gestao_usuario,
-            gestao_usuario=gestao_usuario
-        )
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
+            assert visao_sme_gestao_usuario in usuario_servidor_service_gestao_usuario.visoes.all()
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 1
-        assert visao_sme_gestao_usuario not in usuario_servidor_service_gestao_usuario.visoes.all()
+            gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+
+            # A função valida_unidades_usuario() é chamada internamente no serviço
+            LoginUsuarioService(
+                usuario=usuario_servidor_service_gestao_usuario,
+                gestao_usuario=gestao_usuario
+            )
+
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 1
+            assert visao_sme_gestao_usuario not in usuario_servidor_service_gestao_usuario.visoes.all()
 
 
 def test_lista_unidades_que_perdeu_acesso(
@@ -269,21 +310,29 @@ def test_lista_unidades_que_perdeu_acesso(
 
         mock_get.return_value = data
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
-        assert visao_sme_gestao_usuario in usuario_servidor_service_gestao_usuario.visoes.all()
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+            mock_get_dados_unidade.return_value = data
 
-        # A função valida_unidades_usuario() é chamada internamente no serviço
-        login_service = LoginUsuarioService(
-            usuario=usuario_servidor_service_gestao_usuario,
-            gestao_usuario=gestao_usuario
-        )
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
+            assert visao_sme_gestao_usuario in usuario_servidor_service_gestao_usuario.visoes.all()
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 1
-        assert visao_sme_gestao_usuario not in usuario_servidor_service_gestao_usuario.visoes.all()
+            gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
 
-        assert len(login_service.unidades_que_perdeu_acesso) == 2
+            # A função valida_unidades_usuario() é chamada internamente no serviço
+            login_service = LoginUsuarioService(
+                usuario=usuario_servidor_service_gestao_usuario,
+                gestao_usuario=gestao_usuario
+            )
+
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 1
+            assert visao_sme_gestao_usuario not in usuario_servidor_service_gestao_usuario.visoes.all()
+
+            assert len(login_service.unidades_que_perdeu_acesso) == 2
 
 
 def test_get_mensagem_perdeu_acesso(
@@ -304,22 +353,30 @@ def test_get_mensagem_perdeu_acesso(
 
         mock_get.return_value = data
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
-        assert visao_sme_gestao_usuario in usuario_servidor_service_gestao_usuario.visoes.all()
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+            mock_get_dados_unidade.return_value = data
 
-        # A função valida_unidades_usuario() é chamada internamente no serviço
-        login_service = LoginUsuarioService(
-            usuario=usuario_servidor_service_gestao_usuario,
-            gestao_usuario=gestao_usuario
-        )
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
+            assert visao_sme_gestao_usuario in usuario_servidor_service_gestao_usuario.visoes.all()
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 1
-        assert visao_sme_gestao_usuario not in usuario_servidor_service_gestao_usuario.visoes.all()
+            gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
 
-        assert login_service.mensagem_perca_acesso == "Favor entrar em contato com a DRE."
-        assert login_service.get_exibe_modal() is True
+            # A função valida_unidades_usuario() é chamada internamente no serviço
+            login_service = LoginUsuarioService(
+                usuario=usuario_servidor_service_gestao_usuario,
+                gestao_usuario=gestao_usuario
+            )
+
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 1
+            assert visao_sme_gestao_usuario not in usuario_servidor_service_gestao_usuario.visoes.all()
+
+            assert login_service.mensagem_perca_acesso == "Favor entrar em contato com a DRE."
+            assert login_service.get_exibe_modal() is True
 
 
 def test_get_mensagem_perdeu_acesso_tecnico_dre(
@@ -341,22 +398,30 @@ def test_get_mensagem_perdeu_acesso_tecnico_dre(
 
         mock_get.return_value = data
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
-        assert visao_sme_gestao_usuario in usuario_servidor_service_gestao_usuario.visoes.all()
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
 
-        gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+            mock_get_dados_unidade.return_value = data
 
-        # A função valida_unidades_usuario() é chamada internamente no serviço
-        login_service = LoginUsuarioService(
-            usuario=usuario_servidor_service_gestao_usuario,
-            gestao_usuario=gestao_usuario
-        )
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
+            assert visao_sme_gestao_usuario in usuario_servidor_service_gestao_usuario.visoes.all()
 
-        assert usuario_servidor_service_gestao_usuario.unidades.count() == 1
-        assert visao_sme_gestao_usuario not in usuario_servidor_service_gestao_usuario.visoes.all()
+            gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
 
-        assert login_service.mensagem_perca_acesso == "Favor entrar em contato com a SME."
-        assert login_service.get_exibe_modal() is True
+            # A função valida_unidades_usuario() é chamada internamente no serviço
+            login_service = LoginUsuarioService(
+                usuario=usuario_servidor_service_gestao_usuario,
+                gestao_usuario=gestao_usuario
+            )
+
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 1
+            assert visao_sme_gestao_usuario not in usuario_servidor_service_gestao_usuario.visoes.all()
+
+            assert login_service.mensagem_perca_acesso == "Favor entrar em contato com a SME."
+            assert login_service.get_exibe_modal() is True
 
 
 def test_get_mensagem_perdeu_acesso_deve_retornar_none(

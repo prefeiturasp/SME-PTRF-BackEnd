@@ -2,23 +2,19 @@ import pytest
 from datetime import date
 from django.contrib.auth.models import Permission
 
-from sme_ptrf_apps.core.fixtures.factories import PeriodoFactory, PrestacaoContaFactory, UnidadeFactory, AssociacaoFactory
-from sme_ptrf_apps.users.fixtures.factories.usuario_factory import UsuarioFactory
-from sme_ptrf_apps.users.fixtures.factories.visao_factory import VisaoFactory
-from sme_ptrf_apps.users.fixtures.factories.grupo_acesso_factory import GrupoAcessoFactory
 from sme_ptrf_apps.core.models import Notificacao
 from sme_ptrf_apps.core.services.notificacao_services.notificacao_pendencia_geracao_ata import notificar_pendencia_geracao_ata_apresentacao
 
 pytestmark = pytest.mark.django_db
 
-def test_notifica_pendencia_geracao_ata_apresentacao():
-    visao_ue = VisaoFactory(nome='UE')
-    grupo_ue_1 = GrupoAcessoFactory(name="ue_nivel1")
-    unidade = UnidadeFactory()
-    usuario_a_ser_notificado = UsuarioFactory()
-    associacao = AssociacaoFactory(unidade=unidade)
-    periodo_2023_1 = PeriodoFactory(data_inicio_realizacao_despesas=date(2023, 1, 1))
-    pc = PrestacaoContaFactory(periodo=periodo_2023_1, associacao=associacao)
+def test_notifica_pendencia_geracao_ata_apresentacao(visao_factory, grupo_acesso_factory, unidade_factory, usuario_factory, periodo_factory, associacao_factory, prestacao_conta_factory):
+    visao_ue = visao_factory.create(nome='UE')
+    grupo_ue_1 = grupo_acesso_factory.create(name="ue_nivel1")
+    unidade = unidade_factory.create()
+    usuario_a_ser_notificado = usuario_factory.create()
+    associacao = associacao_factory.create(unidade=unidade)
+    periodo_2023_1 = periodo_factory.create(data_inicio_realizacao_despesas=date(2023, 1, 1))
+    pc = prestacao_conta_factory.create(periodo=periodo_2023_1, associacao=associacao)
 
     permission_notificacao = Permission.objects.filter(codename='recebe_notificacao_geracao_ata_apresentacao').first()
     grupo_ue_1.permissions.add(permission_notificacao)

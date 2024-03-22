@@ -467,7 +467,7 @@ class PrestacaoConta(ModeloBase):
                 conta_associacao=conta,
                 periodo=self.periodo,
                 incluir_inativas=True,
-                conferido=False
+                nao_conciliadas_ou_conciliadas_no_periodo=True
             )
 
             if tem_gastos_periodos_anteriores:
@@ -739,6 +739,16 @@ class PrestacaoConta(ModeloBase):
     def by_periodo(cls, associacao, periodo):
         return cls.objects.filter(associacao=associacao, periodo=periodo).first()
 
+    @staticmethod
+    def retorna_quantidade_pcs_reprovadas_nao_apresentacao(periodo_uuid, dre_uuid):
+        from sme_ptrf_apps.core.models import PrestacaoContaReprovadaNaoApresentacao
+        quantidade_reprovadas_nao_apresentacao = PrestacaoContaReprovadaNaoApresentacao.objects.filter(
+            periodo__uuid=periodo_uuid,
+            associacao__unidade__dre__uuid=dre_uuid
+        ).count()
+
+        return quantidade_reprovadas_nao_apresentacao
+
     @classmethod
     def dashboard(
         cls,
@@ -747,6 +757,7 @@ class PrestacaoConta(ModeloBase):
         add_aprovado_ressalva=False,
         add_info_devolvidas_retornadas=False,
         apenas_nao_publicadas=False,
+        add_reprovadas_nao_apresentacao=False,
     ):
         """
         Retorna um dicionário com as informações para o dashboard de prestação de contas.
@@ -762,6 +773,8 @@ class PrestacaoConta(ModeloBase):
         devolução.
 
         :param apenas_nao_publicadas: True para retornar apenas as prestações de contas que não foram publicadas.
+
+        :param add_reprovadas_nao_apresentacao: True para retornar também as PCs do Modelo PrestacaoContaReprovadaNaoApresentacao.
         """
         from ..models import Associacao, Periodo, Unidade
 
@@ -793,6 +806,10 @@ class PrestacaoConta(ModeloBase):
                 continue
 
             quantidade_status = qs.filter(status=status).count()
+
+            # Tratativa PrestacaoContaReprovadaNaoApresentacao
+            if status == cls.STATUS_REPROVADA and add_reprovadas_nao_apresentacao:
+                quantidade_status += cls.retorna_quantidade_pcs_reprovadas_nao_apresentacao(periodo_uuid, dre_uuid)
 
             if status == cls.STATUS_APROVADA and not add_aprovado_ressalva:
                 quantidade_status += qs.filter(status=cls.STATUS_APROVADA_RESSALVA).count()
@@ -831,6 +848,7 @@ class PrestacaoConta(ModeloBase):
             "quantidade_nao_recebida": qs.filter(status=cls.STATUS_NAO_RECEBIDA).count(),
             "status": 'NAO_RECEBIDA'
         }
+
         cards.insert(0, card_nao_recebidas)
         return cards
 
