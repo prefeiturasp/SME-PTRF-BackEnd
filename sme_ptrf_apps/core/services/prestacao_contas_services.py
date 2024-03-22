@@ -898,7 +898,8 @@ def lancamentos_da_prestacao(
                 'despesas_impostos': DespesaImpostoSerializer(despesas_impostos, many=True,
                                                               required=False).data if despesas_impostos else None,
                 'informacoes': despesa.tags_de_informacao,
-                'informacoes_ordenamento': despesa.tags_de_informacao_concatenadas
+                'informacoes_ordenamento': despesa.tags_de_informacao_concatenadas,
+                'is_repasse': False
             }
 
             if com_ajustes:
@@ -949,7 +950,8 @@ def lancamentos_da_prestacao(
                                    'houve_considerados_corretos_automaticamente': analise_lancamento.houve_considerados_corretos_automaticamente,
                                    } if analise_lancamento else None,
             'informacoes': receita.tags_de_informacao,
-            'informacoes_ordenamento': receita.tags_de_informacao_concatenadas
+            'informacoes_ordenamento': receita.tags_de_informacao_concatenadas,
+            'is_repasse': receita.tipo_receita.e_repasse if receita.tipo_receita else False
         }
 
         if com_ajustes:
