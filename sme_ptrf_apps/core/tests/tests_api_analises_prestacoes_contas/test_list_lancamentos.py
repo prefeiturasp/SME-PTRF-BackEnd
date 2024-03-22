@@ -264,6 +264,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                 } if lancamento["analise_lancamento"] else None,
                 'informacoes': retorna_tags_de_informacao(lancamento=lancamento),
                 'informacoes_ordenamento': retorna_tags_de_informacao_concatenadas(lancamento=lancamento),
+                'is_repasse': False,
             }
         )
 
