@@ -6,10 +6,15 @@ from sme_ptrf_apps.sme.services.exporta_dados_creditos_service import Exportacoe
 from tempfile import NamedTemporaryFile
 
 
+# DATA_FILTRADAS = [
+#         (datetime.date(2020, 2, 25), datetime.date(2020, 4, 26), 2),
+#         (None, datetime.date(2020, 4, 26), 2),
+#         (datetime.date(2050, 10, 28), None, 0)
+#     ]
 DATA_FILTRADAS = [
-        (datetime.date(2020, 2, 25), datetime.date(2020, 4, 26), 2),
-        (None, datetime.date(2020, 4, 26), 2),
-        (datetime.date(2050, 10, 28), None, 0)
+        ('2020-02-25', '2020-04-26', 2),
+        (None, '2020-04-26', 2),
+        ('2050-10-28', None, 0)
     ]
 
 
@@ -21,8 +26,8 @@ def test_exporta_creditos_principal(receita_queryset, usuario_para_teste, data_f
     ExportacoesDadosCreditosService(
         nome_arquivo='creditos_principal.csv',
         queryset=receita_queryset,
-        data_inicio=str(data_filtrada[0]),
-        data_fim=str(data_filtrada[1]),
+        data_inicio=data_filtrada[0],
+        data_fim=data_filtrada[1],
         user=usuario_para_teste.username,
     ).exporta_creditos_principal()
 
@@ -35,8 +40,8 @@ def test_exporta_creditos_motivos_estorno(receita_queryset, usuario_para_teste, 
     ExportacoesDadosCreditosService(
         nome_arquivo='creditos_motivos_estorno.csv',
         queryset=receita_queryset,
-        data_inicio=str(data_filtrada[0]),
-        data_fim=str(data_filtrada[1]),
+        data_inicio=data_filtrada[0],
+        data_fim=data_filtrada[1],
         user=usuario_para_teste.username,
     ).exporta_creditos_motivos_estorno()
 
