@@ -21,8 +21,8 @@ def test_exporta_creditos_principal(receita_queryset, usuario_para_teste, data_f
     ExportacoesDadosCreditosService(
         nome_arquivo='creditos_principal.csv',
         queryset=receita_queryset,
-        data_inicio=data_filtrada[0],
-        data_fim=data_filtrada[1],
+        data_inicio=str(data_filtrada[0]),
+        data_fim=str(data_filtrada[1]),
         user=usuario_para_teste.username,
     ).exporta_creditos_principal()
 
@@ -35,8 +35,8 @@ def test_exporta_creditos_motivos_estorno(receita_queryset, usuario_para_teste, 
     ExportacoesDadosCreditosService(
         nome_arquivo='creditos_motivos_estorno.csv',
         queryset=receita_queryset,
-        data_inicio=data_filtrada[0],
-        data_fim=data_filtrada[1],
+        data_inicio=str(data_filtrada[0]),
+        data_fim=str(data_filtrada[1]),
         user=usuario_para_teste.username,
     ).exporta_creditos_motivos_estorno()
 
