@@ -31,6 +31,14 @@ class ProcessoAssociacao(ModeloBase):
         return processos.last().numero_processo if processos.exists() else ""
 
     @classmethod
+    def by_associacao_periodo_v2(cls, associacao, periodo):
+        """Usado quando a feature flag periodos-processo-sei estiver ativa.
+        Retorna o primeiro processo da associação que tenha o periodo dentre seus periodos vinculados."""
+        processos = cls.objects.filter(associacao=associacao, periodos=periodo)
+        return processos.first().numero_processo if processos.exists() else ""
+
+
+    @classmethod
     def ultimo_processo_do_ano_por_associacao(cls, associacao, ano):
         processos = cls.objects.filter(associacao=associacao, ano=ano).order_by('criado_em')
         return processos.last()
