@@ -392,7 +392,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     @action(detail=True, methods=['patch'],
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def receber(self, request, uuid):
-        from sme_ptrf_apps.core.services.processos_services import trata_processo_sei_ao_receber_pc
+        from sme_ptrf_apps.core.services.processos_services import (
+            trata_processo_sei_ao_receber_pc,
+            trata_processo_sei_ao_receber_pc_v2,
+        )
 
         prestacao_conta = self.get_object()
 
@@ -437,8 +440,12 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        trata_processo_sei_ao_receber_pc(prestacao_conta=prestacao_conta,
-                                         processo_sei=processo_sei, acao_processo_sei=acao_processo_sei)
+        if flag_is_active(request, "periodos-processo-sei"):
+            trata_processo_sei_ao_receber_pc_v2(prestacao_conta=prestacao_conta,
+                                             processo_sei=processo_sei, acao_processo_sei=acao_processo_sei)
+        else:
+            trata_processo_sei_ao_receber_pc(prestacao_conta=prestacao_conta,
+                                             processo_sei=processo_sei, acao_processo_sei=acao_processo_sei)
 
         prestacao_recebida = prestacao_conta.receber(data_recebimento=data_recebimento)
 
@@ -900,7 +907,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
     @action(detail=False, url_path='nao-recebidas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def nao_recebidas(self, _):
+    def nao_recebidas(self, request):
         # Determina a DRE
         dre_uuid = self.request.query_params.get('associacao__unidade__dre__uuid')
 
@@ -965,13 +972,14 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                                                          periodo=periodo,
                                                          filtro_nome=nome,
                                                          filtro_tipo_unidade=tipo_unidade,
-                                                         filtro_status=status_pc_list
-                                                         )
+                                                         filtro_status=status_pc_list,
+                                                         periodos_processo_sei=flag_is_active(request,'periodos-processo-sei')
+                                                        )
         return Response(result)
 
     @action(detail=False, url_path='todos-os-status',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def todos_os_status(self, _):
+    def todos_os_status(self, request):
         # Determina a DRE
         dre_uuid = self.request.query_params.get('associacao__unidade__dre__uuid')
 
@@ -1041,7 +1049,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             filtro_nome=nome,
             filtro_tipo_unidade=tipo_unidade,
             filtro_por_status=status_pc_list,
-            filtro_por_devolucao_tesouro=devolucao_tesouro
+            filtro_por_devolucao_tesouro=devolucao_tesouro,
+            periodos_processo_sei=flag_is_active(request, 'periodos-processo-sei')
         )
         return Response(result)
 

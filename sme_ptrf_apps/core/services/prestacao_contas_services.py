@@ -360,8 +360,10 @@ def informacoes_financeiras_para_atas(prestacao_contas):
 def lista_prestacoes_de_conta_nao_recebidas(
     dre,
     periodo,
-    filtro_nome=None, filtro_tipo_unidade=None, filtro_status=[]
+    filtro_nome=None, filtro_tipo_unidade=None, filtro_status=[],
+    periodos_processo_sei=False
 ):
+
     associacoes_da_dre = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo, dre=dre).order_by(
         'unidade__tipo_unidade', 'unidade__nome')
 
@@ -394,9 +396,9 @@ def lista_prestacoes_de_conta_nao_recebidas(
                     continue
 
         if prestacao_conta:
-            processo_sei = get_processo_sei_da_prestacao(prestacao_contas=prestacao_conta)
+            processo_sei = get_processo_sei_da_prestacao(prestacao_contas=prestacao_conta, periodos_processo_sei=periodos_processo_sei)
         else:
-            processo_sei = get_processo_sei_da_associacao_no_periodo(associacao=associacao, periodo=periodo)
+            processo_sei = get_processo_sei_da_associacao_no_periodo(associacao=associacao, periodo=periodo, periodos_processo_sei=periodos_processo_sei)
 
         info_prestacao = {
             'periodo_uuid': f'{periodo.uuid}',
@@ -425,7 +427,8 @@ def lista_prestacoes_de_conta_todos_os_status(
     filtro_nome=None,
     filtro_tipo_unidade=None,
     filtro_por_devolucao_tesouro=None,
-    filtro_por_status=[]
+    filtro_por_status=[],
+    periodos_processo_sei=False
 ):
     associacoes_da_dre = Associacao.get_associacoes_ativas_no_periodo(
         periodo=periodo, dre=dre).order_by('unidade__tipo_unidade', 'unidade__nome')
@@ -460,11 +463,17 @@ def lista_prestacoes_de_conta_todos_os_status(
             if prestacao_conta and prestacao_conta.devolucoes_ao_tesouro_da_prestacao.exists():
                 continue
 
+        if prestacao_conta:
+            processo_sei = get_processo_sei_da_prestacao(prestacao_contas=prestacao_conta, periodos_processo_sei=periodos_processo_sei)
+        else:
+            processo_sei = get_processo_sei_da_associacao_no_periodo(associacao=associacao, periodo=periodo, periodos_processo_sei=periodos_processo_sei)
+
+
         info_prestacao = {
             'periodo_uuid': f'{periodo.uuid}',
             'data_recebimento': prestacao_conta.data_recebimento if prestacao_conta else None,
             'data_ultima_analise': prestacao_conta.data_ultima_analise if prestacao_conta else None,
-            'processo_sei': get_processo_sei_da_prestacao(prestacao_contas=prestacao_conta) if prestacao_conta else '',
+            'processo_sei': processo_sei,
             'status': prestacao_conta.status if prestacao_conta else PrestacaoConta.STATUS_NAO_APRESENTADA,
             'tecnico_responsavel': prestacao_conta.tecnico_responsavel.nome if prestacao_conta and prestacao_conta.tecnico_responsavel else '',
             'unidade_eol': associacao.unidade.codigo_eol,
@@ -1043,22 +1052,6 @@ def marca_lancamentos_como_corretos(analise_prestacao, lancamentos_corretos):
             minhas_solicitacoes = minha_analise_lancamento.solicitacoes_de_ajuste_da_analise.all()
 
             for solicitacao_acerto in minhas_solicitacoes:
-                # TODO Remover o bloco comentado após conclusão da mudança em solicitações de dev.tesouro
-                # if solicitacao_acerto.copiado:
-                #     devolucao_ao_tesouro = solicitacao_acerto.devolucao_ao_tesouro
-                #     if devolucao_ao_tesouro:
-                #         logging.info(f'A solicitação de acerto {solicitacao_acerto.uuid} '
-                #                      f'foi copiada de uma analise anterior, a devolucao ao tesouro '
-                #                      f'{devolucao_ao_tesouro} NÃO será apagada.')
-                # else:
-                #     devolucao_ao_tesouro = solicitacao_acerto.devolucao_ao_tesouro
-                #     if devolucao_ao_tesouro:
-                #         logging.info(f'A solicitação de acerto {solicitacao_acerto.uuid} '
-                #                      f'NÃO foi copiada de uma analise anterior, a devolucao ao tesouro '
-                #                      f'{devolucao_ao_tesouro} SERÁ apagada.')
-                #
-                #         devolucao_ao_tesouro.delete()
-
                 logging.info(f'Apagando solicitação de acerto {solicitacao_acerto.uuid}.')
                 solicitacao_acerto.delete()
 
@@ -1183,20 +1176,6 @@ def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atual
 
             tipo_acerto = TipoAcertoLancamento.objects.get(uuid=solicitacao_acerto['tipo_acerto'])
 
-            # TODO Remover o bloco comentado após conclusão da mudança em solicitações de dev.tesouro
-            # devolucao_tesouro = None
-            # if analise_lancamento.tipo_lancamento == 'GASTO' and solicitacao_acerto['devolucao_tesouro']:
-            #     logging.info(f'Criando devolução ao tesouro para a análise de lançamento {analise_lancamento.uuid}.')
-            #     devolucao_tesouro = DevolucaoAoTesouro.objects.create(
-            #         prestacao_conta=analise_lancamento.analise_prestacao_conta.prestacao_conta,
-            #         tipo=TipoDevolucaoAoTesouro.objects.get(uuid=solicitacao_acerto['devolucao_tesouro']['tipo']),
-            #         data=solicitacao_acerto['devolucao_tesouro']['data'],
-            #         despesa=analise_lancamento.despesa,
-            #         devolucao_total=solicitacao_acerto['devolucao_tesouro']['devolucao_total'],
-            #         valor=solicitacao_acerto['devolucao_tesouro']['valor'],
-            #         motivo=solicitacao_acerto['detalhamento']
-            #     )
-
             if not solicitacao_acerto['devolucao_tesouro'] or analise_lancamento.tipo_lancamento == 'GASTO':
                 # Em atualizações em lote Apenas lançamentos do tipo gasto recebem ajustes de devolução ao tesouro
                 logging.info(f'Criando solicitação de acerto para a análise de lançamento {analise_lancamento.uuid}.')
@@ -1229,17 +1208,6 @@ def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atual
         for solicitacao_existente in analise_lancamento.solicitacoes_de_ajuste_da_analise.all():
             if solicitacao_existente.uuid not in keep_solicitacoes:
                 logging.info(f"A solicitação: {solicitacao_existente} será apagada.")
-
-                # TODO Remover o bloco comentado após conclusão da mudança em solicitações de dev.tesouro
-                # devolucao_ao_tesouro = solicitacao_existente.devolucao_ao_tesouro
-                # if devolucao_ao_tesouro:
-                #     if solicitacao_existente.copiado:
-                #         logging.info(f"A solicitação: {solicitacao_existente} foi copiada de uma analise anterior, "
-                #                      f"a devolução NÃO será apagada")
-                #     else:
-                #         logging.info(f'Apagando devolução ao tesouro {devolucao_ao_tesouro.uuid}.')
-                #         devolucao_ao_tesouro.delete()
-
                 solicitacao_existente.delete()
 
 
