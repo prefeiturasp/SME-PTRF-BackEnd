@@ -58,6 +58,26 @@ CABECALHO_MOTIVOS_ESTORNO = [
 logger = logging.getLogger(__name__)
 
 
+def get_informacoes_download(data_inicio, data_final):
+    """
+    Retorna uma string com as informações do download conforme a data de início e final de extração.
+    """
+
+    data_inicio = datetime.datetime.strptime(data_inicio, "%Y-%m-%d").strftime("%d/%m/%Y") if data_inicio else None
+    data_final = datetime.datetime.strptime(data_final, "%Y-%m-%d").strftime("%d/%m/%Y") if data_final else None
+
+    if data_inicio and data_final:
+        return f"Filtro aplicado: {data_inicio} a {data_final} (data de criação do registro)"
+
+    if data_inicio and not data_final:
+        return f"Filtro aplicado: {data_inicio}(data inicial de criação do registro)"
+
+    if data_final and not data_inicio:
+        return f"Filtro aplicado: {data_final}(data final de criação do registro)"
+
+    return "Filtro aplicado: Sem definição de datas"
+
+
 class ExportacoesDadosCreditosService:
 
     def __init__(self, **kwargs) -> None:
@@ -153,7 +173,9 @@ class ExportacoesDadosCreditosService:
 
         obj = gerar_arquivo_download(
             self.user,
-            self.nome_arquivo )
+            self.nome_arquivo,
+            informacoes=get_informacoes_download(self.data_inicio, self.data_final)
+        )
         self.objeto_arquivo_download = obj
 
     def envia_arquivo_central_download(self, tmp) -> None:
