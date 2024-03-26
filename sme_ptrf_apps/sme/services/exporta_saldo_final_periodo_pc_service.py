@@ -17,16 +17,16 @@ from tempfile import NamedTemporaryFile
 logger = logging.getLogger(__name__)
 
 CABECALHO_SALDO_FINAL_PERIODO = [
-        ('Código EOL', 'associacao__unidade__codigo_eol'),
-        ('Nome Unidade', 'associacao__unidade__nome'),
-        ('Nome Associação', 'associacao__nome'),
-        ('DRE', 'associacao__unidade__dre__nome'),
-        ('Referência do Período da PC', 'periodo__referencia'),
-        ('Status da PC', 'prestacao_conta__status'),
-        ('Nome do tipo de Conta', 'conta_associacao__tipo_conta__nome'),
-        ('Nome da Ação', 'acao_associacao__acao__nome'),
-        ('Tipo de aplicação do recurso', 'TIPO_APLICACAO'),
-        ('Valor', 'VALOR_TIPO_APLICACAO'),
+    ('Código EOL', 'associacao__unidade__codigo_eol'),
+    ('Nome Unidade', 'associacao__unidade__nome'),
+    ('Nome Associação', 'associacao__nome'),
+    ('DRE', 'associacao__unidade__dre__nome'),
+    ('Referência do Período da PC', 'periodo__referencia'),
+    ('Status da PC', 'prestacao_conta__status'),
+    ('Nome do tipo de Conta', 'conta_associacao__tipo_conta__nome'),
+    ('Nome da Ação', 'acao_associacao__acao__nome'),
+    ('Tipo de aplicação do recurso', 'TIPO_APLICACAO'),
+    ('Valor', 'VALOR_TIPO_APLICACAO'),
 ]
 
 TIPOS_APLICACAO = [
@@ -34,6 +34,7 @@ TIPOS_APLICACAO = [
     ("Capital", "saldo_reprogramado_capital"),
     ("Livre aplicação", "saldo_reprogramado_livre")
 ]
+
 
 class ExportacoesDadosSaldosFinaisPeriodoService:
 
@@ -46,11 +47,31 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
         self.cabecalho = CABECALHO_SALDO_FINAL_PERIODO
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
+        self.informacoes_download = self.get_informacoes_download()
 
     @property
     def get_ambiente(self):
         ambiente = Ambiente.objects.first()
         return ambiente.prefixo if ambiente else ""
+
+    def get_informacoes_download(self):
+        """
+        Retorna uma string com as informações do download conforme a data de início e final de extração.
+        """
+
+        data_inicio = datetime.strptime(self.data_inicio, "%Y-%m-%d").strftime("%d/%m/%Y") if self.data_inicio else None
+        data_final = datetime.strptime(self.data_final, "%Y-%m-%d").strftime("%d/%m/%Y") if self.data_final else None
+
+        if data_inicio and data_final:
+            return f"Filtro aplicado: {data_inicio} a {data_final} (data de criação do registro)"
+
+        if data_inicio and not data_final:
+            return f"Filtro aplicado: A partir de {data_inicio} (data de criação do registro)"
+
+        if data_final and not data_inicio:
+            return f"Filtro aplicado: Até {data_final} (data de criação do registro)"
+
+        return ""
 
     def exporta_saldos_finais_periodos(self):
         self.cria_registro_central_download()
@@ -108,7 +129,8 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo)
 
-                logger.info(f"Escrevendo linha {linha_horizontal} de saldos finais do periodo, fechamento id: {instance.id}.")
+                logger.info(
+                    f"Escrevendo linha {linha_horizontal} de saldos finais do periodo, fechamento id: {instance.id}.")
                 linhas_vertical.append(linha_horizontal)
                 logger.info(f"Finalizado extração de dados de saldos finais do periodo, fechamento id: {instance.id}.")
 
@@ -141,7 +163,8 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
         logger.info(f"Criando registro na central de download")
         obj = gerar_arquivo_download(
             self.user,
-            self.nome_arquivo
+            self.nome_arquivo,
+            self.informacoes_download
         )
 
         self.objeto_arquivo_download = obj
@@ -163,10 +186,9 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
             self.objeto_arquivo_download.save()
             logger.error("Erro arquivo download...")
 
-
     def texto_rodape(self):
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado pelo {self.ambiente} em {data_hora_geracao}"
+        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
 
         return texto
 
@@ -174,10 +196,13 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
         rodape = []
         texto = self.texto_rodape()
 
-        rodape.append("\n")
         write.writerow(rodape)
         rodape.clear()
 
         rodape.append(texto)
+        write.writerow(rodape)
+        rodape.clear()
+
+        rodape.append(self.informacoes_download)
         write.writerow(rodape)
         rodape.clear()
