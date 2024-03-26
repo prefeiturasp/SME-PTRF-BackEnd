@@ -4,7 +4,8 @@ import enum
 import logging
 import os
 
-from sme_ptrf_apps.core.models import Acao, AcaoAssociacao, Associacao, ContaAssociacao, Periodo, TipoConta
+from sme_ptrf_apps.core.models import Acao, AcaoAssociacao, Associacao, ContaAssociacao, Periodo, TipoConta, \
+    PrestacaoConta
 from sme_ptrf_apps.core.models.arquivo import (
     DELIMITADOR_PONTO_VIRGULA,
     DELIMITADOR_VIRGULA,
@@ -147,6 +148,9 @@ def processa_repasse(reader, tipo_conta, arquivo):
     nome_arquivo = arquivo.identificador
 
     periodo = get_periodo(nome_arquivo)
+
+    if PrestacaoConta.objects.filter(periodo=periodo).exists():
+        raise CargaRepassePrevistoException(f"Já existe prestações de conta para o período {periodo.referencia}.")
 
     logs = []
     importados = 0
