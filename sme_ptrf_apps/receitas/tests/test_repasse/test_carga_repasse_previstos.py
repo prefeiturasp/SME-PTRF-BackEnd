@@ -272,6 +272,6 @@ def test_carga_processado_com_erro_associacao_periodo_com_pc(
     acao_ptrf_basico
 ):
     carrega_repasses_previstos(arquivo_carga_associacao_periodo_com_pc)
-    msg = """Erro na linha 1: A associação 123456 já possui PC gerada no período 2019.1.\nForam criados 0 repasses. Erro na importação de 1 repasse(s)."""
+    msg = "Erro ao processar repasses previstos: Já existe prestações de conta para o período 2019.1."
     assert arquivo_carga_associacao_periodo_com_pc.log == msg
     assert arquivo_carga_associacao_periodo_com_pc.status == ERRO
