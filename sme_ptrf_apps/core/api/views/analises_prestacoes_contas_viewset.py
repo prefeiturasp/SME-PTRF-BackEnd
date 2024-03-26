@@ -523,3 +523,56 @@ class AnalisesPrestacoesContasViewSet(
         )
 
         return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='regerar-previa-relatorio-apos-acertos',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def regerar_previa_relatorio_apos_acertos(self, request):
+        from sme_ptrf_apps.core.tasks import (
+            gerar_previa_relatorio_apos_acertos_v2_async,
+        )
+
+        # Define a análise da prestação de contas
+        analise_prestacao_uuid = self.request.query_params.get('analise_prestacao_uuid')
+
+        if analise_prestacao_uuid:
+            try:
+                analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+            except AnalisePrestacaoConta.DoesNotExist:
+                erro = {
+                    'erro': 'Objeto não encontrado.',
+                    'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                erro = {
+                    'erro': 'Ocorreu um erro!',
+                    'mensagem': f"{e}"
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da analise.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        task_celery_geracao_relatorio_apos_acerto = TaskCelery.objects.create(
+            nome_task="regerar_previa_relatorio_apos_acertos_v2_async",
+            associacao=analise_prestacao.prestacao_conta.associacao,
+            periodo=analise_prestacao.prestacao_conta.periodo,
+            usuario=request.user
+        )
+
+        gerar_previa_relatorio_apos_acertos_v2_async.apply_async(
+            (
+                task_celery_geracao_relatorio_apos_acerto.uuid,
+                analise_prestacao.prestacao_conta.associacao.uuid,
+                analise_prestacao.prestacao_conta.periodo.uuid,
+                request.user.username,
+                analise_prestacao.uuid
+            ), countdown=1
+        )
+
+        return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
