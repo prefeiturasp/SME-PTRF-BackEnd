@@ -7,6 +7,7 @@ from tempfile import NamedTemporaryFile
 
 pytestmark = pytest.mark.django_db
 
+
 def test_cria_registro_central_download(usuario_para_teste):
     exportacao_rateio = ExportacoesRateiosService(
         nome_arquivo='despesas_classificacao_item.csv',
@@ -43,6 +44,7 @@ def test_envia_arquivo_central_download(usuario_para_teste):
     assert objeto_arquivo_download.identificador == 'despesas_classificacao_item.csv'
     assert ArquivoDownload.objects.count() == 1
 
+
 def test_filtra_range_data_fora_do_range(rateios_despesa_queryset):
     data_inicio = datetime.date(2020, 2, 25)
     data_final = datetime.date(2020, 4, 26)
@@ -54,6 +56,7 @@ def test_filtra_range_data_fora_do_range(rateios_despesa_queryset):
     ).filtra_range_data('despesa__criado_em')
 
     assert queryset_filtrado.count() == 0
+
 
 def test_filtra_range_data_dentro_do_range(rateios_despesa_queryset):
     data_inicio = datetime.date.today()
@@ -67,6 +70,7 @@ def test_filtra_range_data_dentro_do_range(rateios_despesa_queryset):
 
     assert queryset_filtrado.count() == len(rateios_despesa_queryset)
 
+
 def test_filtra_range_data_com_data_inicio_e_sem_data_final(rateios_despesa_queryset):
     data_inicio = datetime.date.today()
 
@@ -77,6 +81,7 @@ def test_filtra_range_data_com_data_inicio_e_sem_data_final(rateios_despesa_quer
 
     assert queryset_filtrado.count() == len(rateios_despesa_queryset)
 
+
 def test_filtra_range_data_sem_data_inicio_e_com_data_final(rateios_despesa_queryset):
     data_final = datetime.date.today()
 
@@ -86,6 +91,7 @@ def test_filtra_range_data_sem_data_inicio_e_com_data_final(rateios_despesa_quer
     ).filtra_range_data('despesa__criado_em')
 
     assert queryset_filtrado.count() == len(rateios_despesa_queryset)
+
 
 def test_filtra_range_data_sem_data_inicio_e_sem_data_final(rateios_despesa_queryset):
     queryset_filtrado = ExportacoesRateiosService(
@@ -103,6 +109,7 @@ def test_quantidade_dados_extracao(rateios_despesa_queryset):
     # Existem tres registros de rateios
     assert len(dados) == 3
 
+
 def test_quantidade_linha_individual_dados_extracao(rateios_despesa_queryset):
     dados = ExportacoesRateiosService(
         queryset=rateios_despesa_queryset,
@@ -115,6 +122,7 @@ def test_quantidade_linha_individual_dados_extracao(rateios_despesa_queryset):
             Codigo eol
             Nome unidade
             Nome associacao
+            DRE
             ID do Gasto
             Número do documento
             Tipo de documento
@@ -147,7 +155,8 @@ def test_quantidade_linha_individual_dados_extracao(rateios_despesa_queryset):
             UUID do rateio
     """
 
-    assert len(linha_individual) == 33
+    assert len(linha_individual) == 34
+
 
 def test_resultado_esperado_dados_extracao(rateios_despesa_queryset):
     dados = ExportacoesRateiosService(
@@ -161,6 +170,7 @@ def test_resultado_esperado_dados_extracao(rateios_despesa_queryset):
         primeiro_rateio.associacao.unidade.codigo_eol,
         primeiro_rateio.associacao.unidade.nome,
         primeiro_rateio.associacao.nome,
+        primeiro_rateio.associacao.unidade.nome_dre,
         primeiro_rateio.despesa.id,
         primeiro_rateio.despesa.numero_documento,
         primeiro_rateio.despesa.tipo_documento.nome,
@@ -195,6 +205,7 @@ def test_resultado_esperado_dados_extracao(rateios_despesa_queryset):
 
     assert linha_individual == resultado_esperado
 
+
 def test_cabecalho(rateios_despesa_queryset):
     dados = ExportacoesRateiosService(
         queryset=rateios_despesa_queryset,
@@ -206,6 +217,7 @@ def test_cabecalho(rateios_despesa_queryset):
         'Código EOL',
         'Nome Unidade',
         'Nome Associação',
+        'DRE',
         'ID do Gasto',
         'Número do documento',
         'Tipo de documento',
@@ -240,13 +252,65 @@ def test_cabecalho(rateios_despesa_queryset):
 
     assert cabecalho == resultado_esperado
 
+
 def test_rodape(rateios_despesa_queryset, ambiente):
     dados = ExportacoesRateiosService(
         queryset=rateios_despesa_queryset,
+        user="12345"
     ).texto_rodape()
 
     data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-    resultado_esperado = f"Arquivo gerado pelo {ambiente.prefixo} em {data_atual}"
+    resultado_esperado = f"Arquivo gerado via {ambiente.prefixo} pelo usuário 12345 em {data_atual}"
 
     assert dados == resultado_esperado
 
+
+def test_filtros_aplicados_sem_data_inicio_e_sem_data_final(rateios_despesa_queryset):
+    dados = ExportacoesRateiosService(
+        queryset=rateios_despesa_queryset,
+    ).get_texto_filtro_aplicado()
+
+    resultado_esperado = ""
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_com_data_inicio_e_com_data_final(rateios_despesa_queryset):
+    data_inicio = datetime.date.today()
+    data_final = datetime.date.today()
+
+    dados = ExportacoesRateiosService(
+        queryset=rateios_despesa_queryset,
+        data_inicio=data_inicio,
+        data_final=data_final
+    ).get_texto_filtro_aplicado()
+
+    resultado_esperado = f"Filtro aplicado: {data_inicio.strftime('%d/%m/%Y')} a {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_com_data_inicio_e_sem_data_final(rateios_despesa_queryset):
+    data_inicio = datetime.date.today()
+
+    dados = ExportacoesRateiosService(
+        queryset=rateios_despesa_queryset,
+        data_inicio=data_inicio,
+    ).get_texto_filtro_aplicado()
+
+    resultado_esperado = f"Filtro aplicado: A partir de {data_inicio.strftime('%d/%m/%Y')} (data de criação do registro)"
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_sem_data_inicio_e_com_data_final(rateios_despesa_queryset):
+    data_final = datetime.date.today()
+
+    dados = ExportacoesRateiosService(
+        queryset=rateios_despesa_queryset,
+        data_final=data_final
+    ).get_texto_filtro_aplicado()
+
+    resultado_esperado = f"Filtro aplicado: Até {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
+
+    assert dados == resultado_esperado
