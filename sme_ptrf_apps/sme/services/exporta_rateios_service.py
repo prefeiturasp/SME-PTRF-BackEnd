@@ -5,6 +5,7 @@ import logging
 from django.core.files import File
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.core.models.ambiente import Ambiente
+from sme_ptrf_apps.despesas.models.rateio_despesa import RateioDespesa
 from sme_ptrf_apps.core.services.arquivo_download_service import (
     gerar_arquivo_download
 )
@@ -18,6 +19,7 @@ CABECALHO_RATEIOS = [
         ('Código EOL', 'associacao__unidade__codigo_eol'),
         ('Nome Unidade', 'associacao__unidade__nome'),
         ('Nome Associação', 'associacao__nome'),
+        ('DRE', 'associacao__unidade__dre__nome'),
         ('ID do Gasto', 'despesa__id'),
         ('Número do documento', 'despesa__numero_documento'),
         ('Tipo de documento', 'despesa__tipo_documento__nome'),
@@ -62,11 +64,34 @@ class ExportacoesRateiosService:
         self.cabecalho = CABECALHO_RATEIOS
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
+        self.texto_filtro_aplicado = self.get_texto_filtro_aplicado()
 
     @property
     def get_ambiente(self):
         ambiente = Ambiente.objects.first()
         return ambiente.prefixo if ambiente else ""
+
+    def get_texto_filtro_aplicado(self):
+        if self.data_inicio and self.data_final:
+            data_inicio_formatada = datetime.strptime(f"{self.data_inicio}", '%Y-%m-%d')
+            data_inicio_formatada = data_inicio_formatada.strftime("%d/%m/%Y")
+
+            data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
+            data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
+
+            return f"Filtro aplicado: {data_inicio_formatada} a {data_final_formatada} (data de criação do registro)"
+
+        if self.data_inicio:
+            data_inicio_formatada = datetime.strptime(f"{self.data_inicio}", '%Y-%m-%d')
+            data_inicio_formatada = data_inicio_formatada.strftime("%d/%m/%Y")
+            return f"Filtro aplicado: A partir de {data_inicio_formatada} (data de criação do registro)"
+
+        if self.data_final:
+            data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
+            data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
+            return f"Filtro aplicado: Até {data_final_formatada} (data de criação do registro)"
+
+        return ""
 
     def exporta_rateios(self):
         self.cria_registro_central_download()
@@ -97,6 +122,11 @@ class ExportacoesRateiosService:
 
         for instance in self.queryset:
             logger.info(f"Iniciando extração de dados de rateios, rateio id: {instance.id}.")
+
+            if not RateioDespesa.objects.filter(id=instance.id).exists():
+                logger.info(f"Este registro não existe mais na base de dados, portanto será pulado")
+                continue
+
             linha_horizontal = []
 
             for _, campo in self.cabecalho:
@@ -209,7 +239,8 @@ class ExportacoesRateiosService:
         logger.info(f"Criando registro na central de download")
         obj = gerar_arquivo_download(
             self.user,
-            self.nome_arquivo
+            self.nome_arquivo,
+            self.texto_filtro_aplicado
         )
 
         self.objeto_arquivo_download = obj
@@ -231,10 +262,9 @@ class ExportacoesRateiosService:
             self.objeto_arquivo_download.save()
             logger.error("Erro arquivo download...")
 
-
     def texto_rodape(self):
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado pelo {self.ambiente} em {data_hora_geracao}"
+        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
 
         return texto
 
@@ -242,10 +272,14 @@ class ExportacoesRateiosService:
         rodape = []
         texto = self.texto_rodape()
 
-        rodape.append("\n")
         write.writerow(rodape)
         rodape.clear()
 
         rodape.append(texto)
         write.writerow(rodape)
         rodape.clear()
+
+        rodape.append(self.texto_filtro_aplicado)
+        write.writerow(rodape)
+        rodape.clear()
+
