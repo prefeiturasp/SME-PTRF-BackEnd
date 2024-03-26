@@ -73,12 +73,12 @@ def get_informacoes_download(data_inicio, data_final):
         return f"Filtro aplicado: {data_inicio} a {data_final} (data de criação do registro)"
 
     if data_inicio and not data_final:
-        return f"Filtro aplicado: {data_inicio}(data inicial de criação do registro)"
+        return f"Filtro aplicado: A partir de {data_inicio} (data de criação do registro)"
 
     if data_final and not data_inicio:
-        return f"Filtro aplicado: {data_final}(data final de criação do registro)"
+        return f"Filtro aplicado: Até {data_final} (data de criação do registro)"
 
-    return "Filtro aplicado: Sem definição de datas"
+    return ""
 
 
 class ExportacoesDadosCreditosService:
