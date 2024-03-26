@@ -2,8 +2,12 @@ import csv
 import datetime
 import logging
 
+from tempfile import NamedTemporaryFile
+from typing import BinaryIO
+
 from django.core.files import File
 from django.db.models import QuerySet
+
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.core.services.arquivo_download_service import (
     gerar_arquivo_download
@@ -12,8 +16,7 @@ from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (
     APLICACAO_NOMES
 )
 from sme_ptrf_apps.utils.built_in_custom import get_recursive_attr
-from tempfile import NamedTemporaryFile
-from typing import BinaryIO
+from sme_ptrf_apps.core.models.ambiente import Ambiente
 
 
 CABECALHO_RECEITA = [
@@ -58,6 +61,26 @@ CABECALHO_MOTIVOS_ESTORNO = [
 logger = logging.getLogger(__name__)
 
 
+def get_informacoes_download(data_inicio, data_final):
+    """
+    Retorna uma string com as informações do download conforme a data de início e final de extração.
+    """
+
+    data_inicio = datetime.datetime.strptime(data_inicio, "%Y-%m-%d").strftime("%d/%m/%Y") if data_inicio else None
+    data_final = datetime.datetime.strptime(data_final, "%Y-%m-%d").strftime("%d/%m/%Y") if data_final else None
+
+    if data_inicio and data_final:
+        return f"Filtro aplicado: {data_inicio} a {data_final} (data de criação do registro)"
+
+    if data_inicio and not data_final:
+        return f"Filtro aplicado: {data_inicio}(data inicial de criação do registro)"
+
+    if data_final and not data_inicio:
+        return f"Filtro aplicado: {data_final}(data final de criação do registro)"
+
+    return "Filtro aplicado: Sem definição de datas"
+
+
 class ExportacoesDadosCreditosService:
 
     def __init__(self, **kwargs) -> None:
@@ -67,12 +90,40 @@ class ExportacoesDadosCreditosService:
         self.nome_arquivo = kwargs.get('nome_arquivo', None)
         self.user = kwargs.get('user', None)
         self.objeto_arquivo_download = None
+        self.ambiente = self.get_ambiente
+
+    @property
+    def get_ambiente(self):
+        ambiente = Ambiente.objects.first()
+        return ambiente.prefixo if ambiente else ""
 
     def exporta_creditos_principal(self):
         self.cria_registro_central_download()
         self.cabecalho = CABECALHO_RECEITA[0]
         self.filtra_range_data('data')
         self.exporta_credito_csv()
+
+    def cria_rodape(self, write):
+        rodape = []
+        texto_info_arquivo_gerado = self.texto_info_arquivo_gerado()
+
+        rodape.append(" ")
+        write.writerow(rodape)
+        rodape.clear()
+
+        rodape.append(texto_info_arquivo_gerado)
+        write.writerow(rodape)
+        rodape.clear()
+
+        rodape.append(get_informacoes_download(self.data_inicio, self.data_final))
+        write.writerow(rodape)
+        rodape.clear()
+
+    def texto_info_arquivo_gerado(self):
+        data_hora_geracao = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
+        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
+
+        return texto
 
     def exporta_creditos_motivos_estorno(self):
         self.cria_registro_central_download()
@@ -131,6 +182,9 @@ class ExportacoesDadosCreditosService:
                 logger.info(f"Escrevendo linha {linha} do crédito {instance.id}.")
                 write.writerow(linha) if linha else None
                 linha.clear()
+
+            self.cria_rodape(write)
+
             self.envia_arquivo_central_download(tmp)
 
     def filtra_range_data(self, field) -> QuerySet:
@@ -153,7 +207,9 @@ class ExportacoesDadosCreditosService:
 
         obj = gerar_arquivo_download(
             self.user,
-            self.nome_arquivo )
+            self.nome_arquivo,
+            informacoes=get_informacoes_download(self.data_inicio, self.data_final)
+        )
         self.objeto_arquivo_download = obj
 
     def envia_arquivo_central_download(self, tmp) -> None:
