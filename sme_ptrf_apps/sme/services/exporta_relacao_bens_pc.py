@@ -58,19 +58,19 @@ class ExportacoesDadosRelacaoBensService:
             data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
             data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
 
-            return f"Filtro aplicado: {data_inicio_formatada} à {data_final_formatada}"
+            return f"Filtro aplicado: {data_inicio_formatada} a {data_final_formatada} (data de criação do registro)"
 
         if self.data_inicio:
             data_inicio_formatada = datetime.strptime(f"{self.data_inicio}", '%Y-%m-%d')
             data_inicio_formatada = data_inicio_formatada.strftime("%d/%m/%Y")
-            return f"Filtro aplicado: {data_inicio_formatada}"
+            return f"Filtro aplicado: A partir de {data_inicio_formatada} (data de criação do registro)"
 
         if self.data_final:
             data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
             data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
-            return f"Filtro aplicado: {data_final_formatada}"
+            return f"Filtro aplicado: Até {data_final_formatada} (data de criação do registro)"
 
-        return "Filtro aplicado: sem definição de datas."
+        return ""
 
     def exporta_relacao_bens(self):
         self.cria_registro_central_download()

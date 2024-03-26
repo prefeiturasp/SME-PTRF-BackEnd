@@ -151,7 +151,7 @@ def test_filtros_aplicados_sem_data_inicio_e_sem_data_final(repasse_exportacao_c
         queryset=queryset
     ).get_texto_filtro_aplicado()
 
-    resultado_esperado = "Filtro aplicado: sem definição de datas."
+    resultado_esperado = ""
 
     assert dados == resultado_esperado
 
@@ -168,7 +168,7 @@ def test_filtros_aplicados_com_data_inicio_e_com_data_final(repasse_exportacao_c
         data_final=data_final
     ).get_texto_filtro_aplicado()
 
-    resultado_esperado = f"Filtro aplicado: {data_inicio.strftime('%d/%m/%Y')} à {data_final.strftime('%d/%m/%Y')}"
+    resultado_esperado = f"Filtro aplicado: {data_inicio.strftime('%d/%m/%Y')} a {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
 
     assert dados == resultado_esperado
 
@@ -183,7 +183,7 @@ def test_filtros_aplicados_com_data_inicio_e_sem_data_final(repasse_exportacao_c
         data_inicio=data_inicio,
     ).get_texto_filtro_aplicado()
 
-    resultado_esperado = f"Filtro aplicado: {data_inicio.strftime('%d/%m/%Y')}"
+    resultado_esperado = f"Filtro aplicado: A partir de {data_inicio.strftime('%d/%m/%Y')} (data de criação do registro)"
 
     assert dados == resultado_esperado
 
@@ -198,7 +198,7 @@ def test_filtros_aplicados_sem_data_inicio_e_com_data_final(repasse_exportacao_c
         data_final=data_final,
     ).get_texto_filtro_aplicado()
 
-    resultado_esperado = f"Filtro aplicado: {data_final.strftime('%d/%m/%Y')}"
+    resultado_esperado = f"Filtro aplicado: Até {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
 
     assert dados == resultado_esperado
 
