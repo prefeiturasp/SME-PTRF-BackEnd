@@ -11,3 +11,4 @@ from .exportar_documentos_despesas import exportar_documentos_despesas_async
 from .gerar_relatorio_devolucao_acertos import gerar_relatorio_devolucao_acertos_async
 from .exportar_dados_contas import exportar_dados_conta_async
 from .exportar_repasses import exportar_repasses_async
+from .exportar_membros_apm import exportar_dados_membros_apm_async

@@ -22,7 +22,8 @@ from sme_ptrf_apps.sme.tasks import (
     exportar_rateios_async,
     exportar_demonstativos_financeiros_async,
     exportar_dados_conta_async,
-    exportar_repasses_async
+    exportar_repasses_async,
+    exportar_dados_membros_apm_async
 )
 
 from sme_ptrf_apps.users.permissoes import (
@@ -318,6 +319,42 @@ class ExportacoesDadosViewSet(GenericViewSet):
     )
     def repasses(self, request):
         exportar_repasses_async.delay(
+            data_inicio=request.query_params.get("data_inicio"),
+            data_final=request.query_params.get("data_final"),
+            username=request.user.username,
+        )
+
+        return Response(
+            {
+                "response": "O arquivo está sendo gerado e será enviado para a central de download após conclusão."
+            },
+            status=HTTP_201_CREATED,
+        )
+        
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="data_inicio",
+                type=OpenApiTypes.DATE,
+                description="Data de início",
+                required=False,
+            ),
+            OpenApiParameter(
+                name="data_final",
+                type=OpenApiTypes.DATE,
+                description="Data final",
+                required=False,
+            ),
+        ]
+    )
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="dados_membros_apm",
+        permission_classes=permission_classes,
+    )
+    def dados_membros_apm(self, request):
+        exportar_dados_membros_apm_async.delay(
             data_inicio=request.query_params.get("data_inicio"),
             data_final=request.query_params.get("data_final"),
             username=request.user.username,
