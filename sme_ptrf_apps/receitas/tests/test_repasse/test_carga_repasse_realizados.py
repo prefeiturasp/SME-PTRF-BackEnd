@@ -124,7 +124,18 @@ def test_carga_com_erro_formatacao(arquivo_carga, tipo_conta_cheque):
     assert arquivo_carga.status == ERRO
 
 
-def test_carga_com_erro(arquivo_carga_virgula, tipo_conta_cheque):
+@pytest.fixture
+def periodo_2020_u():
+    return baker.make(
+        'Periodo',
+        referencia='2020.u',
+        data_inicio_realizacao_despesas=datetime.date(2020, 1, 1),
+        data_fim_realizacao_despesas=datetime.date(2020, 12, 31),
+        periodo_anterior=None,
+    )
+
+
+def test_carga_com_erro(arquivo_carga_virgula, tipo_conta_cheque, periodo_2020_u):
     carrega_repasses_realizados(arquivo_carga_virgula)
     msg = """\nErro na linha 1: Associação com código eol: 93238 não encontrado. Linha ID:10
 Foram criados 0 repasses. Erro na importação de 1 repasse(s)."""
@@ -138,7 +149,7 @@ def acao_role_cultural_teste():
 
 
 def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao, tipo_receita_repasse,
-                                   tipo_conta_cheque, acao_role_cultural, acao_role_cultural_teste):
+                                   tipo_conta_cheque, acao_role_cultural, acao_role_cultural_teste, periodo_2020_u):
     carrega_repasses_realizados(arquivo_carga_virgula_processado)
     msg = """\nErro na linha 1: Ação Rolê Cultural não permite capital.\nErro na linha 2: Associação com código eol: 93238 não encontrado. Linha ID:20
 Foram criados 0 repasses. Erro na importação de 2 repasse(s)."""
@@ -254,6 +265,6 @@ def test_carga_processado_com_erro_associacao_periodo_com_pc(
     acao_ptrf_basico
 ):
     carrega_repasses_realizados(arquivo_carga_associacao_periodo_com_pc)
-    msg = """\nErro na linha 1: A associação 123456 já possui PC gerada no período 2024.1.\nForam criados 0 repasses. Erro na importação de 1 repasse(s)."""
+    msg = "Erro ao processar repasses realizados: Não foi possível realizar a carga. Já existem PCs geradas no período."
     assert arquivo_carga_associacao_periodo_com_pc.log == msg
     assert arquivo_carga_associacao_periodo_com_pc.status == ERRO
