@@ -1,10 +1,11 @@
 import csv
-import datetime
+import datetime, time
 import logging
 
 from tempfile import NamedTemporaryFile
 from typing import BinaryIO
 
+from django.utils.timezone import make_aware
 from django.core.files import File
 from django.db.models import QuerySet
 
@@ -100,7 +101,7 @@ class ExportacoesDadosCreditosService:
     def exporta_creditos_principal(self):
         self.cria_registro_central_download()
         self.cabecalho = CABECALHO_RECEITA[0]
-        self.filtra_range_data('data')
+        self.filtra_range_data('criado_em')
         self.exporta_credito_csv()
 
     def cria_rodape(self, write):
@@ -188,17 +189,25 @@ class ExportacoesDadosCreditosService:
             self.envia_arquivo_central_download(tmp)
 
     def filtra_range_data(self, field) -> QuerySet:
-        if self.data_inicio and self.data_final:
+        # Converte as datas inicial e final de texto para date
+        inicio = datetime.datetime.strptime(self.data_inicio, "%Y-%m-%d").date() if self.data_inicio else None
+        final = datetime.datetime.strptime(self.data_final, "%Y-%m-%d").date() if self.data_final else None
+
+        # Define o horário da data_final para o último momento do dia
+        # Sem isso o filtro pode não incluir todos os registros do dia
+        final = make_aware(datetime.datetime.combine(final, datetime.time.max)) if final else None
+
+        if inicio and final:
             self.queryset = self.queryset.filter(
-                **{f'{field}__range': [self.data_inicio, self.data_final]}
+                **{f'{field}__gte': inicio, f'{field}__lte': final}
             )
-        elif self.data_inicio and not self.data_final:
+        elif inicio and not final:
             self.queryset = self.queryset.filter(
-                **{f'{field}__gt': self.data_inicio}
+                **{f'{field}__gte': inicio}
             )
-        elif self.data_final and not self.data_inicio:
+        elif final and not inicio:
             self.queryset = self.queryset.filter(
-                **{f'{field}__lt': self.data_final}
+                **{f'{field}__lte': final}
             )
         return self.queryset
 
