@@ -185,7 +185,8 @@ class ExportacoesAtasService:
         logger.info(f"Criando registro na central de download")
         obj = gerar_arquivo_download(
             self.user,
-            self.nome_arquivo
+            self.nome_arquivo,
+            informacoes=get_informacoes_download(self.data_inicio, self.data_final)
         )
 
         self.objeto_arquivo_download = obj
