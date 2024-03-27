@@ -1,14 +1,22 @@
 import pytest
 import datetime
 
+from sme_ptrf_apps.core.models.associacao import Associacao
+from sme_ptrf_apps.core.models.periodo import Periodo
+from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
 from sme_ptrf_apps.sme.services.exporta_status_prestacoes_conta_service import ExportacoesStatusPrestacoesContaService
 
 pytestmark = pytest.mark.django_db
 
 resultado_esperado = [
-    ['123456', 'Escola Teste', 'Escola Teste', '2019.2', 'APROVADA_RESSALVA', 'Motivo aprovação 1; Motivo aprovação 2; Teste outro motivo aprovação ressalva', 'Recomendação teste', ''], 
-    ['123456', 'Escola Teste', 'Outra', '2019.2', 'REPROVADA', '', '', 'Motivo reprovação 1; Motivo reprovação 2; Teste outro motivo reprovação']
+    ['123456', 'Escola Teste', 'Escola Teste', 'DRE teste', '2019.2', 'APROVADA_RESSALVA', 'Motivo aprovação 1; Motivo aprovação 2; Teste outro motivo aprovação ressalva', 'Recomendação teste', ''], 
+    ['123456', 'Escola Teste', 'Outra', 'DRE teste', '2019.2', 'REPROVADA', '', '', 'Motivo reprovação 1; Motivo reprovação 2; Teste outro motivo reprovação']
 ]
+
+resultado_pcs_nao_apresentadas = [
+    ['123456', 'Escola Teste', 'Escola Teste', 'DRE teste', '2019.3', 'NAO_APRESENTADA'], 
+    ['123456', 'Escola Teste', 'Outra', 'DRE teste', '2019.3', 'NAO_APRESENTADA'], ['123456', 'Escola Teste', 'Outra', 'DRE teste', '2020.1', 'NAO_APRESENTADA']]
+
 
 def test_dados_esperados_csv(queryset_ordered):
     dados = ExportacoesStatusPrestacoesContaService(
@@ -16,7 +24,27 @@ def test_dados_esperados_csv(queryset_ordered):
     ).monta_dados()
 
     assert dados == resultado_esperado
+    
+def test_dados_esperados_pcs_nao_apresentadas_csv(queryset_ordered, periodo_factory):
+    data_inicio = datetime.date(2019, 1, 10)
+    data_final = datetime.date(2020, 12, 29)
+    
+    periodo_2019_3 = periodo_factory.create(referencia='2019.3', data_inicio_realizacao_despesas=datetime.date(2019,12,1),data_fim_realizacao_despesas=datetime.date(2019, 12, 31))
+    
+    periodo_factory.create(periodo_anterior=periodo_2019_3, referencia='2020.1', data_inicio_realizacao_despesas=datetime.date(2020,1,1),data_fim_realizacao_despesas=datetime.date(2020, 12, 31))
+    
+    servico = ExportacoesStatusPrestacoesContaService(
+        queryset=queryset_ordered,
+        data_inicio=data_inicio,
+        data_final=data_final
+    )
+    
+    servico.define_periodos_selecionados_no_range_do_filtro_de_data()
+    pcs_nao_apresentadas = servico.monta_dados_pcs_nao_apresentadas()
 
+    # Existem apenas 3 "pcs" não apresentadas, já que uma foi encerrada no periodo 2019.3
+    assert resultado_pcs_nao_apresentadas == pcs_nao_apresentadas
+    
 def test_cabecalho(queryset_ordered):
     dados = ExportacoesStatusPrestacoesContaService(queryset=queryset_ordered)
 
@@ -26,6 +54,7 @@ def test_cabecalho(queryset_ordered):
         'Código EOL',
         'Nome Unidade',
         'Nome Associação',
+        'DRE',
         'Referência do Período da PC',
         'Status da PC',
         'Descrição do motivo aprovação com ressalvas',
@@ -42,6 +71,14 @@ def test_rodape(ambiente):
     data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
     resultado_esperado = f"Arquivo gerado pelo {ambiente.prefixo} em {data_atual}"
 
+    assert dados == resultado_esperado
+    
+def test_info_arquivo_gerado(ambiente):
+    dados = ExportacoesStatusPrestacoesContaService(user='12345').texto_info_arquivo_gerado()
+    
+    data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
+    resultado_esperado = f"Arquivo gerado via {ambiente.prefixo} pelo usuário 12345 em {data_atual}"
+    
     assert dados == resultado_esperado
 
 def test_filtra_range_data_fora_do_range(queryset_ordered):

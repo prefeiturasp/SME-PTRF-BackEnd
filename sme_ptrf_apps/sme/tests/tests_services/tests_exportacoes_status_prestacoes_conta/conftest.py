@@ -36,11 +36,25 @@ def motivo_reprovacao_2():
     )
 
 @pytest.fixture
-def prestacao_conta_aprovada_com_ressalva(periodo, associacao, motivo_aprovacao_ressalva_1, motivo_aprovacao_ressalva_2):
+def associacao_1(unidade, periodo_anterior):
+    return baker.make(
+        'Associacao',
+        nome='Escola Teste',
+        cnpj='52.302.275/0001-83',
+        unidade=unidade,
+        periodo_inicial=periodo_anterior,
+        ccm='0.000.00-0',
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456',
+        data_de_encerramento=datetime.date(2019, 12, 20)
+    )
+
+@pytest.fixture
+def prestacao_conta_aprovada_com_ressalva(periodo, associacao_1, motivo_aprovacao_ressalva_1, motivo_aprovacao_ressalva_2):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo,
-        associacao=associacao,
+        associacao=associacao_1,
         recomendacoes="Recomendação teste",
         status='APROVADA_RESSALVA',
         outros_motivos_aprovacao_ressalva='Teste outro motivo aprovação ressalva',
