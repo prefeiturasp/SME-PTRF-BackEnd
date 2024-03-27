@@ -15,33 +15,34 @@ from tempfile import NamedTemporaryFile
 logger = logging.getLogger(__name__)
 
 CABECALHO_DOCS = [
-        ('Código EOL', 'associacao__unidade__codigo_eol'),
-        ('Nome unidade', 'associacao__unidade__nome'),
-        ('Nome associação', 'associacao__nome'),
-        ('DRE', 'associacao__unidade__dre__nome'),
-        ('ID do gasto', 'id'),
-        ('É despesa sem comprovação fiscal?', 'eh_despesa_sem_comprovacao_fiscal'),
-        ('É despesa reconhecida pela Associação?', 'eh_despesa_reconhecida_pela_associacao'),
-        ('Número do documento', 'numero_documento'),
-        ('Tipo de documento', 'tipo_documento__nome'),
-        ('Data do documento', 'data_documento'),
-        ('CPF_CNPJ do fornecedor', 'cpf_cnpj_fornecedor'),
-        ('Nome do fornecedor', 'nome_fornecedor'),
-        ('Tipo de transação', 'tipo_transacao__nome'),
-        ('Número do documento de transação', 'documento_transacao'),
-        ('Data da transação', 'data_transacao'),
-        ('Valor total do documento', 'valor_total'),
-        ('Valor realizado', 'valor_original'),
-        ('Valor pago com recursos próprios', 'valor_recursos_proprios'),
-        ('Número do Boletim de Ocorrência', 'numero_boletim_de_ocorrencia'),
-        ('Retem impostos?', 'retem_imposto'),
-        ('Descrição do motivo de pagamento antecipado', 'motivos'),
-        ('É saída de recurso externo?', 'saida_recurso_externo'),
-        ('Status do gasto', 'status'),
-        ('Data e hora de criação', 'criado_em'),
-        ('Data e hora da última atualização', 'alterado_em'),
-        ('UUID do gasto', 'uuid')
+    ('Código EOL', 'associacao__unidade__codigo_eol'),
+    ('Nome unidade', 'associacao__unidade__nome'),
+    ('Nome associação', 'associacao__nome'),
+    ('DRE', 'associacao__unidade__dre__nome'),
+    ('ID do gasto', 'id'),
+    ('É despesa sem comprovação fiscal?', 'eh_despesa_sem_comprovacao_fiscal'),
+    ('É despesa reconhecida pela Associação?', 'eh_despesa_reconhecida_pela_associacao'),
+    ('Número do documento', 'numero_documento'),
+    ('Tipo de documento', 'tipo_documento__nome'),
+    ('Data do documento', 'data_documento'),
+    ('CPF_CNPJ do fornecedor', 'cpf_cnpj_fornecedor'),
+    ('Nome do fornecedor', 'nome_fornecedor'),
+    ('Tipo de transação', 'tipo_transacao__nome'),
+    ('Número do documento de transação', 'documento_transacao'),
+    ('Data da transação', 'data_transacao'),
+    ('Valor total do documento', 'valor_total'),
+    ('Valor realizado', 'valor_original'),
+    ('Valor pago com recursos próprios', 'valor_recursos_proprios'),
+    ('Número do Boletim de Ocorrência', 'numero_boletim_de_ocorrencia'),
+    ('Retem impostos?', 'retem_imposto'),
+    ('Descrição do motivo de pagamento antecipado', 'motivos'),
+    ('É saída de recurso externo?', 'saida_recurso_externo'),
+    ('Status do gasto', 'status'),
+    ('Data e hora de criação', 'criado_em'),
+    ('Data e hora da última atualização', 'alterado_em'),
+    ('UUID do gasto', 'uuid')
 ]
+
 
 class ExportacoesDocumentosDespesasService:
 
@@ -54,11 +55,31 @@ class ExportacoesDocumentosDespesasService:
         self.cabecalho = CABECALHO_DOCS
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
+        self.informacoes_download = self.get_informacoes_download()
 
     @property
     def get_ambiente(self):
         ambiente = Ambiente.objects.first()
         return ambiente.prefixo if ambiente else ""
+
+    def get_informacoes_download(self):
+        """
+        Retorna uma string com as informações do download conforme a data de início e final de extração.
+        """
+
+        data_inicio = datetime.strptime(self.data_inicio, "%Y-%m-%d").strftime("%d/%m/%Y") if self.data_inicio else None
+        data_final = datetime.strptime(self.data_final, "%Y-%m-%d").strftime("%d/%m/%Y") if self.data_final else None
+
+        if data_inicio and data_final:
+            return f"Filtro aplicado: {data_inicio} a {data_final} (data de criação do registro)"
+
+        if data_inicio and not data_final:
+            return f"Filtro aplicado: A partir de {data_inicio} (data de criação do registro)"
+
+        if data_final and not data_inicio:
+            return f"Filtro aplicado: Até {data_final} (data de criação do registro)"
+
+        return ""
 
     def exporta_despesas(self):
         self.cria_registro_central_download()
@@ -116,13 +137,13 @@ class ExportacoesDocumentosDespesasService:
                     valor_total_formatado = str(campo).replace(".", ",") if campo is not None else ''
                     linha_horizontal.append(valor_total_formatado)
                     continue
-                    
+
                 if campo == "valor_original":
                     campo = get_recursive_attr(instance, campo)
                     valor_original_formatado = str(campo).replace(".", ",") if campo is not None else ''
                     linha_horizontal.append(valor_original_formatado)
                     continue
-                    
+
                 if campo == "valor_recursos_proprios":
                     campo = get_recursive_attr(instance, campo)
                     valor_recursos_proprios_formatado = str(campo).replace(".", ",") if campo is not None else ''
@@ -164,9 +185,9 @@ class ExportacoesDocumentosDespesasService:
 
                 if campo == "motivos":
                     motivo_string = '; '.join(str(motivo) for motivo in motivos)
-                    if(len(motivo_string)):
+                    if (len(motivo_string)):
                         motivo_string = motivo_string + '; ' + instance.outros_motivos_pagamento_antecipado
-                    elif(len(instance.outros_motivos_pagamento_antecipado)):
+                    elif (len(instance.outros_motivos_pagamento_antecipado)):
                         motivo_string = instance.outros_motivos_pagamento_antecipado
                     linha_horizontal.append(motivo_string)
                     continue
@@ -178,7 +199,7 @@ class ExportacoesDocumentosDespesasService:
 
                 campo = get_recursive_attr(instance, campo)
                 linha_horizontal.append(campo)
-            
+
             logger.info(f"Escrevendo linha {linha_horizontal} de despesas, despesa id: {instance.id}.")
             linhas_vertical.append(linha_horizontal)
 
@@ -213,7 +234,8 @@ class ExportacoesDocumentosDespesasService:
         logger.info(f"Criando registro na central de download")
         obj = gerar_arquivo_download(
             self.user,
-            self.nome_arquivo
+            self.nome_arquivo,
+            self.informacoes_download
         )
 
         self.objeto_arquivo_download = obj
@@ -237,7 +259,7 @@ class ExportacoesDocumentosDespesasService:
 
     def texto_rodape(self):
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado pelo {self.ambiente} em {data_hora_geracao}"
+        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
 
         return texto
 
@@ -245,10 +267,13 @@ class ExportacoesDocumentosDespesasService:
         rodape = []
         texto = self.texto_rodape()
 
-        rodape.append("\n")
         write.writerow(rodape)
         rodape.clear()
 
         rodape.append(texto)
+        write.writerow(rodape)
+        rodape.clear()
+
+        rodape.append(self.informacoes_download)
         write.writerow(rodape)
         rodape.clear()
