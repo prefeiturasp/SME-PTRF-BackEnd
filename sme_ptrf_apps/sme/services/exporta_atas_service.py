@@ -1,8 +1,9 @@
 import csv
-from datetime import datetime
+from datetime import datetime, time
 import logging
 
 from django.core.files import File
+from django.utils.timezone import make_aware
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.core.models.ambiente import Ambiente
 from sme_ptrf_apps.core.services.arquivo_download_service import (
@@ -167,17 +168,21 @@ class ExportacoesAtasService:
         return linhas_vertical
 
     def filtra_range_data(self, field):
+        # Define o horário da data_final para o último momento do dia
+        # Sem isso o filtro pode não incluir todos os registros do dia
+        data_final_com_horario = make_aware(datetime.combine(self.data_final, time.max)) if self.data_final else None
+
         if self.data_inicio and self.data_final:
             self.queryset = self.queryset.filter(
-                **{f'{field}__range': [self.data_inicio, self.data_final]}
+                **{f'{field}__gte': self.data_inicio, f'{field}__lte': data_final_com_horario}
             )
         elif self.data_inicio and not self.data_final:
             self.queryset = self.queryset.filter(
-                **{f'{field}__gt': self.data_inicio}
+                **{f'{field}__gte': self.data_inicio}
             )
         elif self.data_final and not self.data_inicio:
             self.queryset = self.queryset.filter(
-                **{f'{field}__lt': self.data_final}
+                **{f'{field}__lte': data_final_com_horario}
             )
         return self.queryset
 
