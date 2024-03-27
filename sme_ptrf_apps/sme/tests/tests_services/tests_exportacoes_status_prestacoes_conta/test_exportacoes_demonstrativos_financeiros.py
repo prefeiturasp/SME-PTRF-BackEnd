@@ -122,6 +122,7 @@ def test_quantidade_linha_individual_dados_extracao(demonstrativo_financeiro_que
         Código EOL
         Nome Unidade
         Nome Associação
+        DRE
         Referência do Período da PC
         Nome do tipo de Conta
         Data (Saldo bancário)
@@ -134,7 +135,7 @@ def test_quantidade_linha_individual_dados_extracao(demonstrativo_financeiro_que
         Data e hora da última atualização
     """
 
-    assert len(linha_individual) == 13
+    assert len(linha_individual) == 14
 
 
 def test_resultado_esperado_dados_extracao(
@@ -153,6 +154,7 @@ def test_resultado_esperado_dados_extracao(
         primeiro_demonstrativo_financeiro.conta_associacao.associacao.unidade.codigo_eol,
         primeiro_demonstrativo_financeiro.conta_associacao.associacao.unidade.nome,
         primeiro_demonstrativo_financeiro.conta_associacao.associacao.nome,
+        primeiro_demonstrativo_financeiro.conta_associacao.associacao.unidade.nome_dre,
         primeiro_demonstrativo_financeiro.prestacao_conta.periodo.referencia,
         primeiro_demonstrativo_financeiro.conta_associacao.tipo_conta.nome,
         datetime.date(2020, 7, 1),
@@ -179,6 +181,7 @@ def test_cabecalho(demonstrativo_financeiro_queryset):
         'Código EOL',
         'Nome Unidade',
         'Nome Associação',
+        'DRE',
         'Referência do Período da PC',
         'Nome do tipo de Conta',
         'Data (Saldo bancário)',
@@ -197,9 +200,61 @@ def test_cabecalho(demonstrativo_financeiro_queryset):
 def test_rodape(demonstrativo_financeiro_queryset, ambiente):
     dados = ExportaDemonstrativosFinanceirosService(
         queryset=demonstrativo_financeiro_queryset,
+        user="12345"
     ).texto_rodape()
 
     data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-    resultado_esperado = f"Arquivo gerado pelo {ambiente.prefixo} em {data_atual}"
+    resultado_esperado = f"Arquivo gerado via {ambiente.prefixo} pelo usuário 12345 em {data_atual}"
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_sem_data_inicio_e_sem_data_final(demonstrativo_financeiro_queryset):
+    dados = ExportaDemonstrativosFinanceirosService(
+        queryset=demonstrativo_financeiro_queryset,
+    ).get_texto_filtro_aplicado()
+
+    resultado_esperado = ""
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_com_data_inicio_e_com_data_final(demonstrativo_financeiro_queryset):
+    data_inicio = datetime.date.today()
+    data_final = datetime.date.today()
+
+    dados = ExportaDemonstrativosFinanceirosService(
+        queryset=demonstrativo_financeiro_queryset,
+        data_inicio=data_inicio,
+        data_final=data_final
+    ).get_texto_filtro_aplicado()
+
+    resultado_esperado = f"Filtro aplicado: {data_inicio.strftime('%d/%m/%Y')} a {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_com_data_inicio_e_sem_data_final(demonstrativo_financeiro_queryset):
+    data_inicio = datetime.date.today()
+
+    dados = ExportaDemonstrativosFinanceirosService(
+        queryset=demonstrativo_financeiro_queryset,
+        data_inicio=data_inicio,
+    ).get_texto_filtro_aplicado()
+
+    resultado_esperado = f"Filtro aplicado: A partir de {data_inicio.strftime('%d/%m/%Y')} (data de criação do registro)"
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_sem_data_inicio_e_com_data_final(demonstrativo_financeiro_queryset):
+    data_final = datetime.date.today()
+
+    dados = ExportaDemonstrativosFinanceirosService(
+        queryset=demonstrativo_financeiro_queryset,
+        data_final=data_final
+    ).get_texto_filtro_aplicado()
+
+    resultado_esperado = f"Filtro aplicado: Até {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
 
     assert dados == resultado_esperado
