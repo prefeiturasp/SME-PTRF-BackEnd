@@ -7,6 +7,7 @@ from django.core.files import File
 from sme_ptrf_apps.core.models import ObservacaoConciliacao
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.core.models.ambiente import Ambiente
+from sme_ptrf_apps.core.models.demonstrativo_financeiro import DemonstrativoFinanceiro
 from sme_ptrf_apps.core.services.arquivo_download_service import (
     gerar_arquivo_download
 )
@@ -20,6 +21,7 @@ CABECALHO_DEMONSTATIVOS_FINANCEIROS = [
     ('Código EOL', 'conta_associacao__associacao__unidade__codigo_eol'),
     ('Nome Unidade', 'conta_associacao__associacao__unidade__nome'),
     ('Nome Associação', 'conta_associacao__associacao__nome'),
+    ('DRE', 'conta_associacao__associacao__unidade__dre__nome'),
     ('Referência do Período da PC', 'prestacao_conta__periodo__referencia'),
     ('Nome do tipo de Conta', 'conta_associacao__tipo_conta__nome'),
     ('Data (Saldo bancário)', 'DATA_SALDO_BANCARIO'),
@@ -32,6 +34,7 @@ CABECALHO_DEMONSTATIVOS_FINANCEIROS = [
     ('Data e hora da última atualização', 'alterado_em'),
 ]
 
+
 class ExportaDemonstrativosFinanceirosService:
 
     def __init__(self, **kwargs):
@@ -43,27 +46,49 @@ class ExportaDemonstrativosFinanceirosService:
         self.cabecalho = CABECALHO_DEMONSTATIVOS_FINANCEIROS
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
+        self.texto_filtro_aplicado = self.get_texto_filtro_aplicado()
 
     @property
     def get_ambiente(self):
         ambiente = Ambiente.objects.first()
         return ambiente.prefixo if ambiente else ""
 
+    def get_texto_filtro_aplicado(self):
+        if self.data_inicio and self.data_final:
+            data_inicio_formatada = datetime.strptime(f"{self.data_inicio}", '%Y-%m-%d')
+            data_inicio_formatada = data_inicio_formatada.strftime("%d/%m/%Y")
+
+            data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
+            data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
+
+            return f"Filtro aplicado: {data_inicio_formatada} a {data_final_formatada} (data de criação do registro)"
+
+        if self.data_inicio:
+            data_inicio_formatada = datetime.strptime(f"{self.data_inicio}", '%Y-%m-%d')
+            data_inicio_formatada = data_inicio_formatada.strftime("%d/%m/%Y")
+            return f"Filtro aplicado: A partir de {data_inicio_formatada} (data de criação do registro)"
+
+        if self.data_final:
+            data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
+            data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
+            return f"Filtro aplicado: Até {data_final_formatada} (data de criação do registro)"
+
+        return ""
+
     def exporta_demonstrativos_financeiros(self):
         self.cria_registro_central_download()
         self.filtra_range_data('criado_em')
         self.exporta_demonstrativos_financeiros_csv()
 
-
     def cria_registro_central_download(self):
         logger.info(f"Criando registro na central de download")
         obj = gerar_arquivo_download(
             self.user,
-            self.nome_arquivo
+            self.nome_arquivo,
+            self.texto_filtro_aplicado
         )
 
         self.objeto_arquivo_download = obj
-
 
     def filtra_range_data(self, field):
         if self.data_inicio and self.data_final:
@@ -87,7 +112,6 @@ class ExportaDemonstrativosFinanceirosService:
                 **{f'{field}__lt': self.data_final}
             )
         return self.queryset
-
 
     def exporta_demonstrativos_financeiros_csv(self):
         dados = self.monta_dados()
@@ -130,6 +154,11 @@ class ExportaDemonstrativosFinanceirosService:
 
         for instance in self.queryset:
             logger.info(f"Iniciando extração de dados do demonstrativo financeiro : {instance.id}.")
+
+            if not DemonstrativoFinanceiro.objects.filter(id=instance.id).exists():
+                logger.info(f"Este registro não existe mais na base de dados, portanto será pulado")
+                continue
+
             linha_horizontal = []
 
             for _, campo in self.cabecalho:
@@ -209,7 +238,6 @@ class ExportaDemonstrativosFinanceirosService:
                     linha_horizontal.append(texto)
                     continue
 
-
                 campo = get_recursive_attr(instance, campo)
                 linha_horizontal.append(campo)
 
@@ -219,10 +247,9 @@ class ExportaDemonstrativosFinanceirosService:
 
         return linhas_vertical
 
-
     def texto_rodape(self):
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado pelo {self.ambiente} em {data_hora_geracao}"
+        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
 
         return texto
 
@@ -230,11 +257,14 @@ class ExportaDemonstrativosFinanceirosService:
         rodape = []
         texto = self.texto_rodape()
 
-        rodape.append("\n")
         write.writerow(rodape)
         rodape.clear()
 
         rodape.append(texto)
+        write.writerow(rodape)
+        rodape.clear()
+
+        rodape.append(self.texto_filtro_aplicado)
         write.writerow(rodape)
         rodape.clear()
 
