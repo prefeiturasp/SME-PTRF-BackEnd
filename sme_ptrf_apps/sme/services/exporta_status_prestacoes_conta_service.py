@@ -33,7 +33,7 @@ def get_informacoes_download(data_inicio, data_final):
     """
     Retorna uma string com as informações do download conforme a data de início e final de extração.
     """
-    
+
     data_inicio = datetime.strptime(data_inicio, "%Y-%m-%d").strftime("%d/%m/%Y") if data_inicio else None
     data_final = datetime.strptime(data_final, "%Y-%m-%d").strftime("%d/%m/%Y") if data_final else None
 
@@ -60,6 +60,7 @@ class ExportacoesStatusPrestacoesContaService:
         self.objeto_arquivo_download = None
         self.ambiente = self.get_ambiente
         self.periodos = None
+        self.dre_uuid = kwargs.get('dre_uuid', None)
 
     @property
     def get_ambiente(self):
@@ -67,7 +68,7 @@ class ExportacoesStatusPrestacoesContaService:
         return ambiente.prefixo if ambiente else ""
 
     def exporta_status_prestacoes_conta(self):
-        
+
         self.filtra_range_data('criado_em')
         self.cria_registro_central_download()
         self.define_periodos_selecionados_no_range_do_filtro_de_data()
@@ -89,7 +90,7 @@ class ExportacoesStatusPrestacoesContaService:
 
             for linha in dados:
                 write.writerow(linha) if linha else None
-                
+
             for linha in dados_pcs_nao_apresentadas:
                 write.writerow(linha) if linha else None
 
@@ -102,7 +103,7 @@ class ExportacoesStatusPrestacoesContaService:
         for instance in self.queryset:
 
             linha_horizontal = []
-            
+
             if not PrestacaoConta.objects.filter(id=instance.id).exists():
                 logger.info(f"Este fechamento não existe mais na base de dados, portanto será pulado")
                 continue
@@ -143,37 +144,42 @@ class ExportacoesStatusPrestacoesContaService:
             logger.info(
                 f"Escrevendo linha {linha_horizontal} de status de prestação de conta de custeio {instance.id}.")
             linhas_vertical.append(linha_horizontal)
-            
 
         return linhas_vertical
-    
+
     def monta_dados_pcs_nao_apresentadas(self):
-        associacoes_com_periodo_inicial = Associacao.objects.exclude(periodo_inicial=None)
-        
+
+        if self.dre_uuid:
+            associacoes_com_periodo_inicial = Associacao.objects.filter(
+                unidade__dre__uuid=self.dre_uuid
+            ).exclude(periodo_inicial=None)
+        else:
+            associacoes_com_periodo_inicial = Associacao.objects.exclude(periodo_inicial=None)
+
         dados_pcs_nao_apresentadas = []
-        
+
         for associacao in associacoes_com_periodo_inicial:
             for periodo in self.periodos:
-                
+
                 # Verifica se associação já foi iniciada nesse periodo
                 if periodo.data_inicio_realizacao_despesas > associacao.periodo_inicial.data_inicio_realizacao_despesas:
-                    
+
                     periodo_encerramento = None
                     if associacao.data_de_encerramento:
                         periodo_encerramento = Periodo.objects.get(
                             data_inicio_realizacao_despesas__lte=associacao.data_de_encerramento,
                             data_fim_realizacao_despesas__gte=associacao.data_de_encerramento
                         ).proximo_periodo
-                        
+
                         if periodo_encerramento and periodo.data_fim_realizacao_despesas > periodo_encerramento.data_inicio_realizacao_despesas:
                             # associacao encerrada nesse periodo
                             continue
-                    
-                    
+
+
                     # Verifica se não tem PC nesse periodo, se não existir é uma "PC não entregue"
                     if not PrestacaoConta.objects.filter(associacao=associacao, periodo=periodo).exists():
                         linha_horizontal = []
-                        
+
                         for _, campo in self.cabecalho:
                             if campo == 'associacao__unidade__codigo_eol':
                                 linha_horizontal.append(associacao.unidade.codigo_eol)
@@ -187,10 +193,10 @@ class ExportacoesStatusPrestacoesContaService:
                                 linha_horizontal.append(periodo.referencia)
                             elif campo == 'status':
                                 linha_horizontal.append('NAO_APRESENTADA')
-                                
+
                         logger.info(f"Escrevendo linha {linha_horizontal} de status de prestação de conta não apresentada da associacao {associacao.id} do periodo {periodo}.")
                         dados_pcs_nao_apresentadas.append(linha_horizontal)
-            
+
         return dados_pcs_nao_apresentadas
 
     def filtra_range_data(self, field):
@@ -266,7 +272,7 @@ class ExportacoesStatusPrestacoesContaService:
         texto = f"Arquivo gerado pelo {self.ambiente} em {data_hora_geracao}"
 
         return texto
-    
+
     def texto_info_arquivo_gerado(self):
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
         texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
