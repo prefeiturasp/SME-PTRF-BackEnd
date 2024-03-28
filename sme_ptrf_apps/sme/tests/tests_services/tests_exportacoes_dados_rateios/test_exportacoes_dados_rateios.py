@@ -46,8 +46,8 @@ def test_envia_arquivo_central_download(usuario_para_teste):
 
 
 def test_filtra_range_data_fora_do_range(rateios_despesa_queryset):
-    data_inicio = datetime.date(2020, 2, 25)
-    data_final = datetime.date(2020, 4, 26)
+    data_inicio = str(datetime.date(2020, 2, 25))
+    data_final = str(datetime.date(2020, 4, 26))
 
     queryset_filtrado = ExportacoesRateiosService(
         queryset=rateios_despesa_queryset,
@@ -59,8 +59,8 @@ def test_filtra_range_data_fora_do_range(rateios_despesa_queryset):
 
 
 def test_filtra_range_data_dentro_do_range(rateios_despesa_queryset):
-    data_inicio = datetime.date.today()
-    data_final = datetime.date.today()
+    data_inicio = str(datetime.date.today())
+    data_final = str(datetime.date.today())
 
     queryset_filtrado = ExportacoesRateiosService(
         queryset=rateios_despesa_queryset,
@@ -72,7 +72,7 @@ def test_filtra_range_data_dentro_do_range(rateios_despesa_queryset):
 
 
 def test_filtra_range_data_com_data_inicio_e_sem_data_final(rateios_despesa_queryset):
-    data_inicio = datetime.date.today()
+    data_inicio = str(datetime.date.today())
 
     queryset_filtrado = ExportacoesRateiosService(
         queryset=rateios_despesa_queryset,
@@ -83,7 +83,7 @@ def test_filtra_range_data_com_data_inicio_e_sem_data_final(rateios_despesa_quer
 
 
 def test_filtra_range_data_sem_data_inicio_e_com_data_final(rateios_despesa_queryset):
-    data_final = datetime.date.today()
+    data_final = str(datetime.date.today())
 
     queryset_filtrado = ExportacoesRateiosService(
         queryset=rateios_despesa_queryset,
@@ -281,8 +281,8 @@ def test_filtros_aplicados_com_data_inicio_e_com_data_final(rateios_despesa_quer
 
     dados = ExportacoesRateiosService(
         queryset=rateios_despesa_queryset,
-        data_inicio=data_inicio,
-        data_final=data_final
+        data_inicio=str(data_inicio),
+        data_final=str(data_final)
     ).get_texto_filtro_aplicado()
 
     resultado_esperado = f"Filtro aplicado: {data_inicio.strftime('%d/%m/%Y')} a {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
@@ -295,7 +295,7 @@ def test_filtros_aplicados_com_data_inicio_e_sem_data_final(rateios_despesa_quer
 
     dados = ExportacoesRateiosService(
         queryset=rateios_despesa_queryset,
-        data_inicio=data_inicio,
+        data_inicio=str(data_inicio)
     ).get_texto_filtro_aplicado()
 
     resultado_esperado = f"Filtro aplicado: A partir de {data_inicio.strftime('%d/%m/%Y')} (data de criação do registro)"
@@ -308,7 +308,7 @@ def test_filtros_aplicados_sem_data_inicio_e_com_data_final(rateios_despesa_quer
 
     dados = ExportacoesRateiosService(
         queryset=rateios_despesa_queryset,
-        data_final=data_final
+        data_final=str(data_final)
     ).get_texto_filtro_aplicado()
 
     resultado_esperado = f"Filtro aplicado: Até {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
