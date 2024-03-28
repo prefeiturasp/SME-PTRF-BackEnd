@@ -20,6 +20,7 @@ CABECALHO_REPASSES = (
         ("Nome Unidade", "associacao__unidade__nome"),
         ("Nome Associação", "associacao__nome"),
         ("DRE", "associacao__unidade__dre__nome"),
+        ("Período", "periodo__referencia"),
         ("Nome do tipo de conta", "conta_associacao__tipo_conta__nome"),
         ("Nome da Ação", "acao_associacao__acao__nome"),
         ("Valor custeio", "valor_custeio"),
