@@ -92,8 +92,8 @@ def test_rodape(queryset_ordered, ambiente):
 
 
 def test_filtra_range_data_fora_do_range(queryset_ordered):
-    data_inicio = datetime.date(2020, 2, 10)
-    data_final = datetime.date(2020, 5, 10)
+    data_inicio = "2020-02-10"
+    data_final = "2020-05-10"
 
     queryset_filtrado = ExportacoesAtasService(
         queryset=queryset_ordered,
@@ -105,8 +105,8 @@ def test_filtra_range_data_fora_do_range(queryset_ordered):
 
 
 def test_filtra_range_data_dentro_do_range(queryset_ordered):
-    data_inicio = datetime.date.today()
-    data_final = datetime.date.today()
+    data_inicio = datetime.date.today().strftime("%Y-%m-%d")
+    data_final = datetime.date.today().strftime("%Y-%m-%d")
 
     queryset_filtrado = ExportacoesAtasService(
         queryset=queryset_ordered,
@@ -118,7 +118,7 @@ def test_filtra_range_data_dentro_do_range(queryset_ordered):
 
 
 def test_filtra_range_data_com_data_inicio_e_sem_data_final(queryset_ordered):
-    data_inicio = datetime.date.today()
+    data_inicio = datetime.date.today().strftime("%Y-%m-%d")
 
     queryset_filtrado = ExportacoesAtasService(
         queryset=queryset_ordered,
@@ -129,7 +129,7 @@ def test_filtra_range_data_com_data_inicio_e_sem_data_final(queryset_ordered):
 
 
 def test_filtra_range_data_sem_data_inicio_e_com_data_final(queryset_ordered):
-    data_final = datetime.date.today()
+    data_final = datetime.date.today().strftime("%Y-%m-%d")
 
     queryset_filtrado = ExportacoesAtasService(
         queryset=queryset_ordered,
