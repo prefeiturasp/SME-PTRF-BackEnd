@@ -168,21 +168,25 @@ class ExportacoesAtasService:
         return linhas_vertical
 
     def filtra_range_data(self, field):
+        # Converte as datas inicial e final de texto para date
+        inicio = datetime.strptime(self.data_inicio, "%Y-%m-%d").date() if self.data_inicio else None
+        final = datetime.strptime(self.data_final, "%Y-%m-%d").date() if self.data_final else None
+
         # Define o horário da data_final para o último momento do dia
         # Sem isso o filtro pode não incluir todos os registros do dia
-        data_final_com_horario = make_aware(datetime.combine(self.data_final, time.max)) if self.data_final else None
+        final = make_aware(datetime.combine(final, time.max)) if final else None
 
-        if self.data_inicio and self.data_final:
+        if inicio and final:
             self.queryset = self.queryset.filter(
-                **{f'{field}__gte': self.data_inicio, f'{field}__lte': data_final_com_horario}
+                **{f'{field}__gte': inicio, f'{field}__lte': final}
             )
-        elif self.data_inicio and not self.data_final:
+        elif inicio and not final:
             self.queryset = self.queryset.filter(
-                **{f'{field}__gte': self.data_inicio}
+                **{f'{field}__gte': inicio}
             )
-        elif self.data_final and not self.data_inicio:
+        elif final and not inicio:
             self.queryset = self.queryset.filter(
-                **{f'{field}__lte': data_final_com_horario}
+                **{f'{field}__lte': final}
             )
         return self.queryset
 
