@@ -81,8 +81,8 @@ def test_rodape(repasse_exportacao_csv, ambiente):
 def test_filtra_range_data_fora_do_range(repasse_exportacao_csv):
     queryset = Repasse.objects.all()
 
-    data_inicio = datetime.date(2020, 2, 10)
-    data_final = datetime.date(2020, 5, 10)
+    data_inicio = str(datetime.date(2020, 2, 10))
+    data_final = str(datetime.date(2020, 5, 10))
 
     queryset_filtrado = ExportacaoDadosRepassesService(
         queryset=queryset,
@@ -96,8 +96,8 @@ def test_filtra_range_data_fora_do_range(repasse_exportacao_csv):
 def test_filtra_range_data_dentro_do_range(repasse_exportacao_csv):
     queryset = Repasse.objects.all()
 
-    data_inicio = datetime.date.today()
-    data_final = datetime.date.today()
+    data_inicio = str(datetime.date.today())
+    data_final = str(datetime.date.today())
 
     queryset_filtrado = ExportacaoDadosRepassesService(
         queryset=queryset,
@@ -111,7 +111,7 @@ def test_filtra_range_data_dentro_do_range(repasse_exportacao_csv):
 def test_filtra_range_data_com_data_inicio_e_sem_data_final(repasse_exportacao_csv):
     queryset = Repasse.objects.all()
 
-    data_inicio = datetime.date.today()
+    data_inicio = str(datetime.date.today())
 
     queryset_filtrado = ExportacaoDadosRepassesService(
         queryset=queryset,
@@ -124,7 +124,7 @@ def test_filtra_range_data_com_data_inicio_e_sem_data_final(repasse_exportacao_c
 def test_filtra_range_data_sem_data_inicio_e_com_data_final(repasse_exportacao_csv):
     queryset = Repasse.objects.all()
 
-    data_final = datetime.date.today()
+    data_final = str(datetime.date.today())
 
     queryset_filtrado = ExportacaoDadosRepassesService(
         queryset=queryset,
@@ -164,8 +164,8 @@ def test_filtros_aplicados_com_data_inicio_e_com_data_final(repasse_exportacao_c
 
     dados = ExportacaoDadosRepassesService(
         queryset=queryset,
-        data_inicio=data_inicio,
-        data_final=data_final
+        data_inicio=str(data_inicio),
+        data_final=str(data_final)
     ).get_texto_filtro_aplicado()
 
     resultado_esperado = f"Filtro aplicado: {data_inicio.strftime('%d/%m/%Y')} a {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
@@ -180,7 +180,7 @@ def test_filtros_aplicados_com_data_inicio_e_sem_data_final(repasse_exportacao_c
 
     dados = ExportacaoDadosRepassesService(
         queryset=queryset,
-        data_inicio=data_inicio,
+        data_inicio=str(data_inicio),
     ).get_texto_filtro_aplicado()
 
     resultado_esperado = f"Filtro aplicado: A partir de {data_inicio.strftime('%d/%m/%Y')} (data de criação do registro)"
@@ -195,7 +195,7 @@ def test_filtros_aplicados_sem_data_inicio_e_com_data_final(repasse_exportacao_c
 
     dados = ExportacaoDadosRepassesService(
         queryset=queryset,
-        data_final=data_final,
+        data_final=str(data_final),
     ).get_texto_filtro_aplicado()
 
     resultado_esperado = f"Filtro aplicado: Até {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"

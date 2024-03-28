@@ -8,6 +8,8 @@ from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.receitas.models.repasse import Repasse
 from sme_ptrf_apps.core.models.ambiente import Ambiente
 from sme_ptrf_apps.core.services.arquivo_download_service import gerar_arquivo_download
+from django.utils.timezone import make_aware
+from django.db.models import QuerySet
 
 from sme_ptrf_apps.utils.built_in_custom import get_recursive_attr
 from tempfile import NamedTemporaryFile
@@ -159,26 +161,28 @@ class ExportacaoDadosRepassesService:
 
         return linhas_vertical
 
-    def filtra_range_data(self, field):
-        if self.data_inicio and self.data_final:
-            self.data_inicio = datetime.strptime(f"{self.data_inicio} 00:00:00", '%Y-%m-%d %H:%M:%S')
-            self.data_final = datetime.strptime(f"{self.data_final} 23:59:59", '%Y-%m-%d %H:%M:%S')
+    def filtra_range_data(self, field) -> QuerySet:
+        import datetime
 
+        # Converte as datas inicial e final de texto para date
+        inicio = datetime.datetime.strptime(self.data_inicio, "%Y-%m-%d").date() if self.data_inicio else None
+        final = datetime.datetime.strptime(self.data_final, "%Y-%m-%d").date() if self.data_final else None
+
+        # Define o horário da data_final para o último momento do dia
+        # Sem isso o filtro pode não incluir todos os registros do dia
+        final = make_aware(datetime.datetime.combine(final, datetime.time.max)) if final else None
+
+        if inicio and final:
             self.queryset = self.queryset.filter(
-                **{f'{field}__range': [self.data_inicio, self.data_final]}
+                **{f'{field}__gte': inicio, f'{field}__lte': final}
             )
-        elif self.data_inicio and not self.data_final:
-            self.data_inicio = datetime.strptime(f"{self.data_inicio} 00:00:00", '%Y-%m-%d %H:%M:%S')
-
+        elif inicio and not final:
             self.queryset = self.queryset.filter(
-                **{f'{field}__gt': self.data_inicio}
+                **{f'{field}__gte': inicio}
             )
-
-        elif self.data_final and not self.data_inicio:
-            self.data_final = datetime.strptime(f"{self.data_final} 23:59:59", '%Y-%m-%d %H:%M:%S')
-
+        elif final and not inicio:
             self.queryset = self.queryset.filter(
-                **{f'{field}__lt': self.data_final}
+                **{f'{field}__lte': final}
             )
         return self.queryset
 
