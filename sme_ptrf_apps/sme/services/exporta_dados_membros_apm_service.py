@@ -5,10 +5,8 @@ from datetime import datetime
 
 from django.core.files import File
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
-from sme_ptrf_apps.core.models.periodo import Periodo
 from sme_ptrf_apps.mandatos.models.cargo_composicao import CargoComposicao
 from sme_ptrf_apps.mandatos.models.ocupante_cargo import OcupanteCargo
-from sme_ptrf_apps.receitas.models.repasse import Repasse
 from sme_ptrf_apps.core.models.ambiente import Ambiente
 from sme_ptrf_apps.core.services.arquivo_download_service import gerar_arquivo_download
 
@@ -29,6 +27,7 @@ CABECALHO_MEMBROS_APM = (
         ("Composição data inicial", "composicao__data_inicial"),
         ("Composição data final", "composicao__data_final"),
         ("Cargo", "cargo_associacao"),
+        ("Nome", "ocupante_do_cargo__nome"),
         ("Número de identificação", "ocupante_do_cargo__cpf_responsavel"),
         ("Representação", "ocupante_do_cargo__representacao"),
         ("Período inicial de ocupação", "data_inicio_no_cargo"),
@@ -107,11 +106,9 @@ class ExportacaoDadosMembrosApmService:
         linhas_vertical = []
 
         for instance in self.queryset:
-            logger.info(f"Iniciando extração de dados de repasses, id: {instance.id}.")
+            logger.info(f"Iniciando extração de dados de membros apm, id: {instance.id}.")
 
             if not CargoComposicao.objects.filter(id=instance.id).exists():
-                logger.info(["------------", CargoComposicao.objects.first().id, instance, instance.id])
-                
                 logger.info(f"Este registro não existe mais na base de dados, portanto será pulado")
                 continue
 
