@@ -21,6 +21,7 @@ def test_cria_registro_central_download(usuario_para_teste):
     assert objeto_arquivo_download.identificador == 'pcs_relacoes_bens.csv'
     assert ArquivoDownload.objects.count() == 1
 
+
 def test_envia_arquivo_central_download(usuario_para_teste):
     with NamedTemporaryFile(
         mode="r+",
@@ -43,9 +44,10 @@ def test_envia_arquivo_central_download(usuario_para_teste):
     assert objeto_arquivo_download.identificador == 'pcs_relacoes_bens.csv'
     assert ArquivoDownload.objects.count() == 1
 
+
 def test_filtra_range_data_fora_do_range(relacao_bens_queryset):
-    data_inicio = datetime.date(2020, 2, 25)
-    data_final = datetime.date(2020, 4, 26)
+    data_inicio = str(datetime.date(2020, 2, 25))
+    data_final = str(datetime.date(2020, 4, 26))
 
     queryset_filtrado = ExportacoesDadosRelacaoBensService(
         queryset=relacao_bens_queryset,
@@ -55,9 +57,10 @@ def test_filtra_range_data_fora_do_range(relacao_bens_queryset):
 
     assert queryset_filtrado.count() == 0
 
+
 def test_filtra_range_data_dentro_do_range(relacao_bens_queryset):
-    data_inicio = datetime.date.today()
-    data_final = datetime.date.today()
+    data_inicio = str(datetime.date.today())
+    data_final = str(datetime.date.today())
 
     queryset_filtrado = ExportacoesDadosRelacaoBensService(
         queryset=relacao_bens_queryset,
@@ -67,8 +70,9 @@ def test_filtra_range_data_dentro_do_range(relacao_bens_queryset):
 
     assert queryset_filtrado.count() == len(relacao_bens_queryset)
 
+
 def test_filtra_range_data_com_data_inicio_e_sem_data_final(relacao_bens_queryset):
-    data_inicio = datetime.date.today()
+    data_inicio = str(datetime.date.today())
 
     queryset_filtrado = ExportacoesDadosRelacaoBensService(
         queryset=relacao_bens_queryset,
@@ -77,8 +81,9 @@ def test_filtra_range_data_com_data_inicio_e_sem_data_final(relacao_bens_queryse
 
     assert queryset_filtrado.count() == len(relacao_bens_queryset)
 
+
 def test_filtra_range_data_sem_data_inicio_e_com_data_final(relacao_bens_queryset):
-    data_final = datetime.date.today()
+    data_final = str(datetime.date.today())
 
     queryset_filtrado = ExportacoesDadosRelacaoBensService(
         queryset=relacao_bens_queryset,
@@ -86,6 +91,7 @@ def test_filtra_range_data_sem_data_inicio_e_com_data_final(relacao_bens_queryse
     ).filtra_range_data('criado_em')
 
     assert queryset_filtrado.count() == len(relacao_bens_queryset)
+
 
 def test_filtra_range_data_sem_data_inicio_e_sem_data_final(relacao_bens_queryset):
     queryset_filtrado = ExportacoesDadosRelacaoBensService(
@@ -103,6 +109,7 @@ def test_quantidade_dados_extracao(relacao_bens_queryset):
     # Existem dois registros de relação de bens
     assert len(dados) == 2
 
+
 def test_quantidade_linha_individual_dados_extracao(relacao_bens_queryset):
     dados = ExportacoesDadosRelacaoBensService(
         queryset=relacao_bens_queryset,
@@ -115,6 +122,7 @@ def test_quantidade_linha_individual_dados_extracao(relacao_bens_queryset):
             Codigo eol
             Nome unidade
             Nome associacao
+            DRE
             Referencia do periodo
             Status da PC
             Nome do tipo de Conta
@@ -125,7 +133,8 @@ def test_quantidade_linha_individual_dados_extracao(relacao_bens_queryset):
             Data e hora da última atualização
     """
 
-    assert len(linha_individual) == 11
+    assert len(linha_individual) == 12
+
 
 def test_resultado_esperado_dados_extracao(relacao_bens_queryset, ambiente):
     dados = ExportacoesDadosRelacaoBensService(
@@ -139,6 +148,7 @@ def test_resultado_esperado_dados_extracao(relacao_bens_queryset, ambiente):
         primeira_relacao_bens.prestacao_conta.associacao.unidade.codigo_eol,
         primeira_relacao_bens.prestacao_conta.associacao.unidade.nome,
         primeira_relacao_bens.prestacao_conta.associacao.nome,
+        primeira_relacao_bens.prestacao_conta.associacao.unidade.nome_dre,
         primeira_relacao_bens.prestacao_conta.periodo.referencia,
         primeira_relacao_bens.prestacao_conta.status,
         primeira_relacao_bens.conta_associacao.tipo_conta.nome,
@@ -151,6 +161,7 @@ def test_resultado_esperado_dados_extracao(relacao_bens_queryset, ambiente):
 
     assert linha_individual == resultado_esperado
 
+
 def test_cabecalho(relacao_bens_queryset):
     dados = ExportacoesDadosRelacaoBensService(
         queryset=relacao_bens_queryset,
@@ -162,6 +173,7 @@ def test_cabecalho(relacao_bens_queryset):
         'Código EOL',
         'Nome Unidade',
         'Nome Associação',
+        'DRE',
         'Referência do Período da PC',
         'Status da PC',
         'Nome do tipo de Conta',
@@ -174,13 +186,65 @@ def test_cabecalho(relacao_bens_queryset):
 
     assert cabecalho == resultado_esperado
 
+
 def test_rodape(relacao_bens_queryset, ambiente):
     dados = ExportacoesDadosRelacaoBensService(
         queryset=relacao_bens_queryset,
+        user="12345"
     ).texto_rodape()
 
     data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-    resultado_esperado = f"Arquivo gerado pelo {ambiente.prefixo} em {data_atual}"
+    resultado_esperado = f"Arquivo gerado via {ambiente.prefixo} pelo usuário 12345 em {data_atual}"
 
     assert dados == resultado_esperado
 
+
+def test_filtros_aplicados_sem_data_inicio_e_sem_data_final(relacao_bens_queryset):
+    dados = ExportacoesDadosRelacaoBensService(
+        queryset=relacao_bens_queryset,
+    ).get_texto_filtro_aplicado()
+
+    resultado_esperado = ""
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_com_data_inicio_e_com_data_final(relacao_bens_queryset):
+    data_inicio = datetime.date.today()
+    data_final = datetime.date.today()
+
+    dados = ExportacoesDadosRelacaoBensService(
+        queryset=relacao_bens_queryset,
+        data_inicio=str(data_inicio),
+        data_final=str(data_final)
+    ).get_texto_filtro_aplicado()
+
+    resultado_esperado = f"Filtro aplicado: {data_inicio.strftime('%d/%m/%Y')} a {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_com_data_inicio_e_sem_data_final(relacao_bens_queryset):
+    data_inicio = datetime.date.today()
+
+    dados = ExportacoesDadosRelacaoBensService(
+        queryset=relacao_bens_queryset,
+        data_inicio=str(data_inicio),
+    ).get_texto_filtro_aplicado()
+
+    resultado_esperado = f"Filtro aplicado: A partir de {data_inicio.strftime('%d/%m/%Y')} (data de criação do registro)"
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_sem_data_inicio_e_com_data_final(relacao_bens_queryset):
+    data_final = datetime.date.today()
+
+    dados = ExportacoesDadosRelacaoBensService(
+        queryset=relacao_bens_queryset,
+        data_final=str(data_final)
+    ).get_texto_filtro_aplicado()
+
+    resultado_esperado = f"Filtro aplicado: Até {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
+
+    assert dados == resultado_esperado

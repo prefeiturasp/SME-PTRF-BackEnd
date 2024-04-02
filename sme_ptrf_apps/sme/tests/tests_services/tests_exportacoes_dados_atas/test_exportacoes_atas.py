@@ -8,6 +8,7 @@ from sme_ptrf_apps.core.models.ata import Ata
 
 pytestmark = pytest.mark.django_db
 
+
 def test_cabecalho():
     dados = ExportacoesAtasService()
 
@@ -17,6 +18,7 @@ def test_cabecalho():
         'Código EOL',
         'Nome unidade',
         'Nome associação',
+        'DRE',
         'Referência do período da PC',
         'Tipo de ata',
         'Tipo de reunião',
@@ -41,16 +43,18 @@ def test_cabecalho():
 
     assert cabecalho == resultado_esperado
 
+
 def test_dados_esperados_csv(queryset_ordered, ambiente):
     dados = ExportacoesAtasService(queryset=queryset_ordered).monta_dados()
 
     linha_individual = dados[0]
     ata = queryset_ordered.first()
-    
+
     resultado_esperado = [
         ata.associacao.unidade.codigo_eol,
         ata.associacao.unidade.nome,
         ata.associacao.nome,
+        ata.associacao.unidade.dre.nome,
         ata.periodo.referencia,
         ata.tipo_ata,
         ata.tipo_reuniao,
@@ -75,19 +79,21 @@ def test_dados_esperados_csv(queryset_ordered, ambiente):
 
     assert linha_individual == resultado_esperado
 
+
 def test_rodape(queryset_ordered, ambiente):
     dados = ExportacoesAtasService(
         queryset=queryset_ordered,
-    ).texto_rodape()
+    ).texto_info_arquivo_gerado()
 
     data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-    resultado_esperado = f"Arquivo gerado pelo {ambiente.prefixo} em {data_atual}"
+    resultado_esperado = f"Arquivo gerado via {ambiente.prefixo} pelo usuário None em {data_atual}"
 
     assert dados == resultado_esperado
 
+
 def test_filtra_range_data_fora_do_range(queryset_ordered):
-    data_inicio = datetime.date(2020, 2, 10)
-    data_final = datetime.date(2020, 5, 10)
+    data_inicio = "2020-02-10"
+    data_final = "2020-05-10"
 
     queryset_filtrado = ExportacoesAtasService(
         queryset=queryset_ordered,
@@ -97,9 +103,10 @@ def test_filtra_range_data_fora_do_range(queryset_ordered):
 
     assert queryset_filtrado.count() == 0
 
+
 def test_filtra_range_data_dentro_do_range(queryset_ordered):
-    data_inicio = datetime.date.today()
-    data_final = datetime.date.today()
+    data_inicio = datetime.date.today().strftime("%Y-%m-%d")
+    data_final = datetime.date.today().strftime("%Y-%m-%d")
 
     queryset_filtrado = ExportacoesAtasService(
         queryset=queryset_ordered,
@@ -109,8 +116,9 @@ def test_filtra_range_data_dentro_do_range(queryset_ordered):
 
     assert queryset_filtrado.count() == len(queryset_ordered)
 
+
 def test_filtra_range_data_com_data_inicio_e_sem_data_final(queryset_ordered):
-    data_inicio = datetime.date.today()
+    data_inicio = datetime.date.today().strftime("%Y-%m-%d")
 
     queryset_filtrado = ExportacoesAtasService(
         queryset=queryset_ordered,
@@ -119,8 +127,9 @@ def test_filtra_range_data_com_data_inicio_e_sem_data_final(queryset_ordered):
 
     assert queryset_filtrado.count() == len(queryset_ordered)
 
+
 def test_filtra_range_data_sem_data_inicio_e_com_data_final(queryset_ordered):
-    data_final = datetime.date.today()
+    data_final = datetime.date.today().strftime("%Y-%m-%d")
 
     queryset_filtrado = ExportacoesAtasService(
         queryset=queryset_ordered,
@@ -129,12 +138,14 @@ def test_filtra_range_data_sem_data_inicio_e_com_data_final(queryset_ordered):
 
     assert queryset_filtrado.count() == len(queryset_ordered)
 
+
 def test_filtra_range_data_sem_data_inicio_e_sem_data_final(queryset_ordered):
     queryset_filtrado = ExportacoesAtasService(
         queryset=queryset_ordered
     ).filtra_range_data('criado_em')
-    
+
     assert queryset_filtrado.count() == len(queryset_ordered)
+
 
 def test_cria_registro_central_download(usuario_para_teste):
     exportacao_saldo_final = ExportacoesAtasService(
@@ -148,6 +159,7 @@ def test_cria_registro_central_download(usuario_para_teste):
     assert objeto_arquivo_download.status == ArquivoDownload.STATUS_EM_PROCESSAMENTO
     assert objeto_arquivo_download.identificador == 'pcs_atas.csv'
     assert ArquivoDownload.objects.count() == 1
+
 
 def test_envia_arquivo_central_download(usuario_para_teste):
     with NamedTemporaryFile(

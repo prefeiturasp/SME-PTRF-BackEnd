@@ -22,6 +22,7 @@ class ArquivoDownload(ModeloBase):
     )
 
     identificador = models.CharField("Nome do arquivo", max_length=200, default='')
+    informacoes = models.TextField('Informações', blank=True, default='')
     arquivo = models.FileField(null=True, verbose_name='Arquivo')
     status = models.CharField(
         'status',

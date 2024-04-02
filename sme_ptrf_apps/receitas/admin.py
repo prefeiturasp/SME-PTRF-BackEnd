@@ -101,8 +101,8 @@ class RepasseAdmin(admin.ModelAdmin):
     list_display = ('associacao', 'periodo', 'valor_capital', 'valor_custeio',
                     'valor_livre', 'tipo_conta', 'acao', 'status')
     list_filter = ('periodo', 'status', 'carga_origem')
-    # Campos tipo autocomplete substituem o componente padrão de seleção de chaves extrangeiras e são bem mais rápidos.
-    autocomplete_fields = ['associacao', 'periodo', 'conta_associacao', 'acao_associacao', 'carga_origem']
+    raw_id_fields = ('associacao', 'periodo', 'conta_associacao', 'acao_associacao', 'carga_origem')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
     def tipo_conta(self, obj):
         return obj.conta_associacao.tipo_conta if obj.conta_associacao else ''

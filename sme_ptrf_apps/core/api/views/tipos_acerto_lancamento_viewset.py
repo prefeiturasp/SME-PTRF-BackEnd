@@ -57,10 +57,12 @@ class TiposAcertoLancamentoViewSet(mixins.ListModelMixin,
             permission_classes=[IsAuthenticated & PermissaoApiDre])
     def tabelas(self, request):
         aplicavel_despesas_periodos_anteriores = request.query_params.get('aplicavel_despesas_periodos_anteriores')
+        is_repasse = request.query_params.get('is_repasse')
 
         result = {
             "categorias": TipoAcertoLancamento.categorias(),
-            "agrupado_por_categorias": TipoAcertoLancamento.agrupado_por_categoria(aplicavel_despesas_periodos_anteriores)
+            "agrupado_por_categorias": TipoAcertoLancamento.agrupado_por_categoria(
+                aplicavel_despesas_periodos_anteriores, is_repasse)
         }
 
         return Response(result, status=status.HTTP_200_OK)

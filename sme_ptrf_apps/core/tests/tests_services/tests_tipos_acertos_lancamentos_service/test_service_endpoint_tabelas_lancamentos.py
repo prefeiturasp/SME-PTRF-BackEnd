@@ -100,3 +100,50 @@ def test_service_tabelas_agrupado_por_categorias(
     assert resultado_esperado == resultado
 
 
+def test_service_tabelas_agrupado_por_categorias_deve_ignorar_categoria(
+    tipo_acerto_lancamento_agrupa_categoria_01,
+    tipo_acerto_lancamento_agrupa_categoria_02,
+    tipo_acerto_lancamento_agrupa_categoria_03,
+    tipo_acerto_lancamento_agrupa_categoria_04,  # Não deve entrar na listagem
+):
+
+    resultado_esperado = [
+        {
+            "id": "DEVOLUCAO",
+            "nome": "Devolução ao tesouro",
+            "texto": "Esse tipo de acerto demanda informação da data de pagamento da devolução.",
+            "cor": 1,
+            "tipos_acerto_lancamento": [
+                {
+                    "id": tipo_acerto_lancamento_agrupa_categoria_01.id,
+                    "nome": "Teste",
+                    "categoria": "DEVOLUCAO",
+                    "ativo": tipo_acerto_lancamento_agrupa_categoria_01.ativo,
+                    "uuid": tipo_acerto_lancamento_agrupa_categoria_01.uuid
+                },
+                {
+                    "id": tipo_acerto_lancamento_agrupa_categoria_02.id,
+                    "nome": "Teste 2",
+                    "categoria": "DEVOLUCAO",
+                    "ativo": tipo_acerto_lancamento_agrupa_categoria_02.ativo,
+                    "uuid": tipo_acerto_lancamento_agrupa_categoria_02.uuid
+                },
+                {
+                    "id": tipo_acerto_lancamento_agrupa_categoria_03.id,
+                    "nome": "Teste 3",
+                    "categoria": "DEVOLUCAO",
+                    "ativo": tipo_acerto_lancamento_agrupa_categoria_03.ativo,
+                    "uuid": tipo_acerto_lancamento_agrupa_categoria_03.uuid
+                }
+            ]
+        },
+    ]
+
+    categorias_a_ignorar = {
+        TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO
+    }
+
+    resultado = TipoAcertoLancamentoService.agrupado_por_categoria(
+        TipoAcertoLancamento.CATEGORIA_CHOICES, categorias_a_ignorar)
+
+    assert resultado_esperado == resultado
