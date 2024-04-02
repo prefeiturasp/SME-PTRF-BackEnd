@@ -136,7 +136,6 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "Não é permitido informar a data de saída do cargo anterior a data final da composição anterior")
 
-
         ocupante_do_cargo_data = data['ocupante_do_cargo']
 
         """
@@ -198,7 +197,8 @@ class CargoComposicaoCreateSerializer(serializers.ModelSerializer):
                 associacao=composicao.associacao,
                 mandato=composicao.mandato
             )
-            composicao_anterior = servico_composicao_vigente.get_composicao_anterior(validated_data['data_inicio_no_cargo'])
+            composicao_anterior = servico_composicao_vigente.get_composicao_anterior(
+                validated_data['data_inicio_no_cargo'])
 
             if composicao_anterior:
                 cargo_substituido = composicao_anterior.cargos_da_composicao_da_composicao.filter(
