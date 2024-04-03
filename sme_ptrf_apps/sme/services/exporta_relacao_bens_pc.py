@@ -2,10 +2,13 @@ import csv
 from datetime import datetime
 import logging
 
+from django.utils.timezone import make_aware
+from django.db.models import QuerySet
 from django.core.files import File
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
 from sme_ptrf_apps.core.models.ambiente import Ambiente
+from sme_ptrf_apps.core.models.relacao_bens import RelacaoBens
 from sme_ptrf_apps.core.services.arquivo_download_service import (
     gerar_arquivo_download
 )
@@ -19,6 +22,7 @@ CABECALHO_RELACAO_BENS = [
         ('Código EOL', 'conta_associacao__associacao__unidade__codigo_eol'),
         ('Nome Unidade', 'conta_associacao__associacao__unidade__nome'),
         ('Nome Associação', 'conta_associacao__associacao__nome'),
+        ('DRE', 'conta_associacao__associacao__unidade__dre__nome'),
         ('Referência do Período da PC', 'prestacao_conta__periodo__referencia'),
         ('Status da PC', 'prestacao_conta__status'),
         ('Nome do tipo de Conta', 'conta_associacao__tipo_conta__nome'),
@@ -28,6 +32,7 @@ CABECALHO_RELACAO_BENS = [
         ('Data e hora de criação', 'criado_em'),
         ('Data e hora da última atualização', 'alterado_em'),
 ]
+
 
 class ExportacoesDadosRelacaoBensService:
 
@@ -40,11 +45,34 @@ class ExportacoesDadosRelacaoBensService:
         self.cabecalho = CABECALHO_RELACAO_BENS
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
+        self.texto_filtro_aplicado = self.get_texto_filtro_aplicado()
 
     @property
     def get_ambiente(self):
         ambiente = Ambiente.objects.first()
         return ambiente.prefixo if ambiente else ""
+
+    def get_texto_filtro_aplicado(self):
+        if self.data_inicio and self.data_final:
+            data_inicio_formatada = datetime.strptime(f"{self.data_inicio}", '%Y-%m-%d')
+            data_inicio_formatada = data_inicio_formatada.strftime("%d/%m/%Y")
+
+            data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
+            data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
+
+            return f"Filtro aplicado: {data_inicio_formatada} a {data_final_formatada} (data de criação do registro)"
+
+        if self.data_inicio:
+            data_inicio_formatada = datetime.strptime(f"{self.data_inicio}", '%Y-%m-%d')
+            data_inicio_formatada = data_inicio_formatada.strftime("%d/%m/%Y")
+            return f"Filtro aplicado: A partir de {data_inicio_formatada} (data de criação do registro)"
+
+        if self.data_final:
+            data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
+            data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
+            return f"Filtro aplicado: Até {data_final_formatada} (data de criação do registro)"
+
+        return ""
 
     def exporta_relacao_bens(self):
         self.cria_registro_central_download()
@@ -75,6 +103,11 @@ class ExportacoesDadosRelacaoBensService:
 
         for instance in self.queryset:
             logger.info(f"Iniciando extração de dados de relação de bens : {instance.id}.")
+
+            if not RelacaoBens.objects.filter(id=instance.id).exists():
+                logger.info(f"Este registro não existe mais na base de dados, portanto será pulado")
+                continue
+
             linha_horizontal = []
 
             for _, campo in self.cabecalho:
@@ -119,26 +152,28 @@ class ExportacoesDadosRelacaoBensService:
 
         return linhas_vertical
 
-    def filtra_range_data(self, field):
-        if self.data_inicio and self.data_final:
-            self.data_inicio = datetime.strptime(f"{self.data_inicio} 00:00:00", '%Y-%m-%d %H:%M:%S')
-            self.data_final = datetime.strptime(f"{self.data_final} 23:59:59", '%Y-%m-%d %H:%M:%S')
+    def filtra_range_data(self, field) -> QuerySet:
+        import datetime
 
+        # Converte as datas inicial e final de texto para date
+        inicio = datetime.datetime.strptime(self.data_inicio, "%Y-%m-%d").date() if self.data_inicio else None
+        final = datetime.datetime.strptime(self.data_final, "%Y-%m-%d").date() if self.data_final else None
+
+        # Define o horário da data_final para o último momento do dia
+        # Sem isso o filtro pode não incluir todos os registros do dia
+        final = make_aware(datetime.datetime.combine(final, datetime.time.max)) if final else None
+
+        if inicio and final:
             self.queryset = self.queryset.filter(
-                **{f'{field}__range': [self.data_inicio, self.data_final]}
+                **{f'{field}__gte': inicio, f'{field}__lte': final}
             )
-        elif self.data_inicio and not self.data_final:
-            self.data_inicio = datetime.strptime(f"{self.data_inicio} 00:00:00", '%Y-%m-%d %H:%M:%S')
-
+        elif inicio and not final:
             self.queryset = self.queryset.filter(
-                **{f'{field}__gt': self.data_inicio}
+                **{f'{field}__gte': inicio}
             )
-
-        elif self.data_final and not self.data_inicio:
-            self.data_final = datetime.strptime(f"{self.data_final} 23:59:59", '%Y-%m-%d %H:%M:%S')
-
+        elif final and not inicio:
             self.queryset = self.queryset.filter(
-                **{f'{field}__lt': self.data_final}
+                **{f'{field}__lte': final}
             )
         return self.queryset
 
@@ -146,7 +181,8 @@ class ExportacoesDadosRelacaoBensService:
         logger.info(f"Criando registro na central de download")
         obj = gerar_arquivo_download(
             self.user,
-            self.nome_arquivo
+            self.nome_arquivo,
+            self.texto_filtro_aplicado
         )
 
         self.objeto_arquivo_download = obj
@@ -168,10 +204,9 @@ class ExportacoesDadosRelacaoBensService:
             self.objeto_arquivo_download.save()
             logger.error("Erro arquivo download...")
 
-
     def texto_rodape(self):
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado pelo {self.ambiente} em {data_hora_geracao}"
+        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
 
         return texto
 
@@ -179,10 +214,13 @@ class ExportacoesDadosRelacaoBensService:
         rodape = []
         texto = self.texto_rodape()
 
-        rodape.append("\n")
         write.writerow(rodape)
         rodape.clear()
 
         rodape.append(texto)
+        write.writerow(rodape)
+        rodape.clear()
+
+        rodape.append(self.texto_filtro_aplicado)
         write.writerow(rodape)
         rodape.clear()

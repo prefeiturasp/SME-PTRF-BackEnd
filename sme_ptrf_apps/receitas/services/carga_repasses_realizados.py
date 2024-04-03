@@ -4,7 +4,15 @@ import enum
 import logging
 from datetime import datetime
 
-from sme_ptrf_apps.core.models import Acao, AcaoAssociacao, Associacao, ContaAssociacao, Periodo, TipoConta
+from sme_ptrf_apps.core.models import (
+    Acao,
+    AcaoAssociacao,
+    Associacao,
+    ContaAssociacao,
+    Periodo,
+    TipoConta,
+    PrestacaoConta
+)
 from sme_ptrf_apps.core.models.arquivo import (
     DELIMITADOR_PONTO_VIRGULA,
     DELIMITADOR_VIRGULA,
@@ -320,6 +328,17 @@ def processa_repasse(reader, tipo_conta, arquivo):
     arquivo.save()
 
 
+def arquivo_tem_periodos_com_pcs(reader):
+    logger.info("Verificando se arquivo tem períodos com PCs")
+    for index, row in enumerate(reader):
+        if index == 0:  # Ignorar cabeçalho
+            continue
+        periodo = get_periodo(str(row[PERIODO]).strip())
+        if PrestacaoConta.objects.filter(periodo=periodo).exists():
+            return True
+    return False
+
+
 def carrega_repasses_realizados(arquivo):
     logger.info("Processando arquivo %s", arquivo.identificador)
     tipo_conta_nome = TipoContaEnum.CARTAO.value if 'cartao' in arquivo.identificador else TipoContaEnum.CHEQUE.value
@@ -340,6 +359,12 @@ def carrega_repasses_realizados(arquivo):
                 return
 
             reader = csv.reader(f, delimiter=sniffer.delimiter)
+
+            if arquivo_tem_periodos_com_pcs(reader):
+                raise CargaRepasseRealizadoException(f"Não foi possível realizar a carga. Já existem PCs geradas no período.")
+
+            f.seek(0)  # Retorna ao início do arquivo para a segunda leitura
+
             processa_repasse(reader, tipo_conta, arquivo)
 
     except Exception as err:

@@ -17,7 +17,6 @@ class ServicoComposicaoVigente:
     def mandato(self):
         return self.__mandato
 
-
     def get_composicao_vigente(self):
         data_atual = date.today()
 
@@ -30,7 +29,7 @@ class ServicoComposicaoVigente:
         # Filtrar as composições da associacao
         qs = qs.filter(associacao=self.associacao)
 
-        #Filtrar as composições do mandato
+        # Filtrar as composições do mandato
         qs = qs.filter(mandato=self.mandato)
 
         # Verificar se há mais de uma composicao vigente, e caso haja, retornar o último (o mais recente)
@@ -111,6 +110,7 @@ class ServicoCriaComposicaoVigenteDoMandato(ServicoComposicaoVigente):
 
             minha_composicao_atual = cargo_composicao_sendo_editado.composicao
 
+            # cargos encerrados na mesma data não devem gerar composições diferentes.
             composicao, created = Composicao.objects.get_or_create(
                 associacao=self.associacao,
                 mandato=self.mandato,
@@ -139,8 +139,14 @@ class ServicoCriaComposicaoVigenteDoMandato(ServicoComposicaoVigente):
                         data_inicio_no_cargo=cargo.data_inicio_no_cargo,
                         data_fim_no_cargo=cargo.data_fim_no_cargo
                     )
+                    # a data fim do cargo inicia com a data fim do mandato, porém deve acompanhar a data fim da composição.
+                    cargo.data_fim_no_cargo = minha_composicao_atual.data_final
+                    cargo.save()
             else:
-                composicao.cargos_da_composicao_da_composicao.filter(ocupante_do_cargo=cargo_composicao_sendo_editado.ocupante_do_cargo).delete()
+                # caso a composição exista, então mais de um cargo foi finalizado com a mesma data.
+                # sendo assim, o cargo é apenas deletado e o cargo da composição anterior atribuído como substituido.
+                composicao.cargos_da_composicao_da_composicao.filter(
+                    ocupante_do_cargo=cargo_composicao_sendo_editado.ocupante_do_cargo).delete()
 
                 try:
                     composicao_anterior = Composicao.objects.get(
@@ -155,8 +161,6 @@ class ServicoCriaComposicaoVigenteDoMandato(ServicoComposicaoVigente):
                     composicao_anterior.cargos_da_composicao_da_composicao.filter(
                         cargo_associacao=cargo_composicao_sendo_editado.cargo_associacao
                     ).update(substituido=True)
-
-
 
 
 class ServicoRecuperaComposicaoPorData:
