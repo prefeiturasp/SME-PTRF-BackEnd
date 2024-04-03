@@ -15,10 +15,17 @@ logger = logging.getLogger(__name__)
     time_limet=600,
     soft_time_limit=30000
 )
-def exportar_relacao_bens_async(data_inicio, data_final, username):
+def exportar_relacao_bens_async(data_inicio, data_final, username, dre_uuid):
     logger.info("Exportando csv em processamento...")
 
-    queryset = RelacaoBens.objects.all().order_by('id')
+    queryset = RelacaoBens.objects
+
+    if dre_uuid:
+        queryset = queryset.filter(
+            conta_associacao__associacao__unidade__dre__uuid=dre_uuid,
+        )
+
+    queryset = queryset.order_by('id')
 
     try:
         logger.info("Criando arquivo %s pcs_relacoes_bens.csv")
