@@ -19,4 +19,5 @@ from .gerar_demonstrativo_financeiro import gerar_demonstrativo_financeiro_async
 from .gerar_relacao_de_bens import gerar_relacao_bens_async
 from .calcular_prestacao_de_contas import calcular_prestacao_de_contas_async
 from .terminar_processo_pc import terminar_processo_pc_async
-
+from .gerar_previa_relatorio_apos_acertos_v2 import gerar_previa_relatorio_apos_acertos_v2_async
+from .vincula_processo_sei_a_periodos import vincular_processos_async

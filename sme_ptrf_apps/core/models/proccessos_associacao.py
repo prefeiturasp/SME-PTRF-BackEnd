@@ -65,5 +65,35 @@ class ProcessoAssociacao(ModeloBase):
             associacao=self.associacao, ano=self.ano)
         return (self == ultimo_processo) and self.prestacoes_vinculadas.exists()
 
+    @classmethod
+    def vincula_periodos_aos_processos(cls):
+        from sme_ptrf_apps.core.models import Periodo
+        from datetime import datetime
+
+        processos = cls.objects.all().order_by('criado_em')
+        for processo in processos:
+            ano = processo.ano
+            associacao = processo.associacao
+
+            processos_do_ano = ProcessoAssociacao.objects.filter(ano=ano, associacao=associacao).all().order_by('id')
+
+            if processos_do_ano:
+
+                data_inicial = datetime.strptime(f'{ano}-01-01', "%Y-%m-%d").date()
+                data_final = datetime.strptime(f'{ano}-12-31', "%Y-%m-%d").date()
+
+                periodos_deste_ano = Periodo.objects.filter(
+                    data_inicio_realizacao_despesas__gte=data_inicial,
+                    data_fim_realizacao_despesas__lte=data_final
+                ).order_by('referencia')
+
+                if processos_do_ano.count() == 1:
+                    processo.periodos.set(periodos_deste_ano)
+                    processo.save()
+                else:
+                    primeiro_processo_cadastrado = processos_do_ano.first()
+                    primeiro_processo_cadastrado.periodos.set(periodos_deste_ano)
+                    primeiro_processo_cadastrado.save()
+
 
 auditlog.register(ProcessoAssociacao)
