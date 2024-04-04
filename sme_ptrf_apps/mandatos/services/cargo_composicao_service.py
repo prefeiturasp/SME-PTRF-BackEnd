@@ -45,6 +45,24 @@ class ServicoCargosDaComposicao:
         else:
             return False
 
+    def get_cargos_por_ocupante_e_mandato(self, cargo):
+        mandato = self.composicao.mandato
+        cargos = CargoComposicao.objects.filter(
+            composicao__mandato=mandato,
+            ocupante_do_cargo=cargo.ocupante_do_cargo,
+        ).order_by('composicao__data_final')
+        return cargos
+
+    def get_data_fim_no_cargo_composicao_mais_recente(self, cargo):
+        ''' Caso seja uma composição passada, retorna informação de
+            data final da composição mais recente do ocupante.'''
+
+        if cargo and not self.retorna_se_composicao_vigente():
+            cargos_composicao = self.get_cargos_por_ocupante_e_mandato(cargo)
+            if cargos_composicao.exists():
+                return cargos_composicao.last().composicao.data_final.strftime("%Y-%m-%d")
+        return None
+
     def monta_cargos(self, cargo, indice, valor):
 
         obj = {
@@ -69,6 +87,7 @@ class ServicoCargosDaComposicao:
             "cargo_associacao_label": valor.split(" ")[0],
             "data_inicio_no_cargo": cargo.data_inicio_no_cargo if cargo else None,
             "data_fim_no_cargo": cargo.data_fim_no_cargo if cargo else None,
+            "data_fim_no_cargo_composicao_mais_recente": self.get_data_fim_no_cargo_composicao_mais_recente(cargo),
             "eh_composicao_vigente": self.retorna_se_composicao_vigente(),
             "substituto": cargo.substituto if cargo else None,
             "tag_substituto": f'Novo membro em {cargo.data_inicio_no_cargo.strftime("%d/%m/%Y")}' if cargo and cargo.substituto else None,
@@ -166,13 +185,13 @@ class ServicoPendenciaCargosDaComposicaoVigenteDaAssociacao:
 class ServicoCargosOcupantesComposicao:
     def get_ocupantes_ordenados_por_cargo(self, composicao):
         ocupantes = OcupanteCargo.objects.filter(
-                cargos_da_composicao_do_ocupante__composicao=composicao
-            )
-        
+            cargos_da_composicao_do_ocupante__composicao=composicao
+        )
+
         if not ocupantes:
             # Nao existem ocupantes na composicao
             return []
-        
+
         temp_diretoria_executiva = {}
         temp_conselho_fiscal = {}
 
@@ -232,5 +251,5 @@ class ServicoCargosOcupantesComposicao:
             'diretoria_executiva': diretoria_executiva,
             'conselho_fiscal': conselho_fiscal
         }
-        
+
         return objeto
