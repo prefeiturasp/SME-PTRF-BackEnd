@@ -21,6 +21,7 @@ class FuncSmePainelParametrizacoes(models.Model):
 
         permissions = (
             ('access_painel_parametrizacoes', '[SME] Pode acessar o Painel de parametrizações.'),
+            ('change_painel_parametrizacoes', '[SME] Pode atualizar o Painel de parametrizações '),
         )
 
 
