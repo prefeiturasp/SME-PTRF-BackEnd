@@ -7,6 +7,7 @@ from sme_ptrf_apps.sme.services.exporta_documentos_despesas import ExportacoesDo
 
 pytestmark = pytest.mark.django_db
 
+
 def test_dados_esperados_csv(queryset_ordered):
     dados = ExportacoesDocumentosDespesasService(queryset=queryset_ordered).monta_dados()
 
@@ -44,6 +45,7 @@ def test_dados_esperados_csv(queryset_ordered):
 
     assert linha_individual == resultado_esperado
 
+
 def test_cabecalho():
     dados = ExportacoesDocumentosDespesasService()
 
@@ -80,17 +82,24 @@ def test_cabecalho():
 
     assert cabecalho == resultado_esperado
 
+
 def test_rodape(ambiente):
-    dados = ExportacoesDocumentosDespesasService().texto_rodape()
+    dados = ExportacoesDocumentosDespesasService(
+        user="12345"
+    ).texto_rodape()
 
     data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-    resultado_esperado = f"Arquivo gerado pelo {ambiente.prefixo} em {data_atual}"
+    # resultado_esperado = f"Arquivo gerado pelo {ambiente.prefixo} em {data_atual}"
+    resultado_esperado = f"Arquivo gerado via {ambiente.prefixo} pelo usuário 12345 em {data_atual}"
 
     assert dados == resultado_esperado
 
+
 def test_filtra_range_data_fora_do_range(queryset_ordered):
-    data_inicio = datetime.date(2020, 2, 10)
-    data_final = datetime.date(2020, 5, 10)
+    data_inicio = datetime.date(2020, 2, 25)
+    data_inicio = data_inicio.strftime('%Y-%m-%d')
+    data_final = datetime.date(2020, 4, 26)
+    data_final = data_final.strftime('%Y-%m-%d')
 
     queryset_filtrado = ExportacoesDocumentosDespesasService(
         queryset=queryset_ordered,
@@ -100,9 +109,12 @@ def test_filtra_range_data_fora_do_range(queryset_ordered):
 
     assert queryset_filtrado.count() == 0
 
+
 def test_filtra_range_data_dentro_do_range(queryset_ordered):
     data_inicio = datetime.date.today()
+    data_inicio = data_inicio.strftime('%Y-%m-%d')
     data_final = datetime.date.today()
+    data_final = data_final.strftime('%Y-%m-%d')
 
     queryset_filtrado = ExportacoesDocumentosDespesasService(
         queryset=queryset_ordered,
@@ -112,8 +124,10 @@ def test_filtra_range_data_dentro_do_range(queryset_ordered):
 
     assert queryset_filtrado.count() == len(queryset_ordered)
 
+
 def test_filtra_range_data_com_data_inicio_e_sem_data_final(queryset_ordered):
     data_inicio = datetime.date.today()
+    data_inicio = data_inicio.strftime('%Y-%m-%d')
 
     queryset_filtrado = ExportacoesDocumentosDespesasService(
         queryset=queryset_ordered,
@@ -122,8 +136,10 @@ def test_filtra_range_data_com_data_inicio_e_sem_data_final(queryset_ordered):
 
     assert queryset_filtrado.count() == len(queryset_ordered)
 
+
 def test_filtra_range_data_sem_data_inicio_e_com_data_final(queryset_ordered):
     data_final = datetime.date.today()
+    data_final = data_final.strftime('%Y-%m-%d')
 
     queryset_filtrado = ExportacoesDocumentosDespesasService(
         queryset=queryset_ordered,
@@ -132,12 +148,14 @@ def test_filtra_range_data_sem_data_inicio_e_com_data_final(queryset_ordered):
 
     assert queryset_filtrado.count() == len(queryset_ordered)
 
+
 def test_filtra_range_data_sem_data_inicio_e_sem_data_final(queryset_ordered):
     queryset_filtrado = ExportacoesDocumentosDespesasService(
         queryset=queryset_ordered
     ).filtra_range_data('criado_em')
-    
+
     assert queryset_filtrado.count() == len(queryset_ordered)
+
 
 def test_cria_registro_central_download(usuario_para_teste):
     exportacao_saldo_final = ExportacoesDocumentosDespesasService(
@@ -151,6 +169,7 @@ def test_cria_registro_central_download(usuario_para_teste):
     assert objeto_arquivo_download.status == ArquivoDownload.STATUS_EM_PROCESSAMENTO
     assert objeto_arquivo_download.identificador == 'pcs_despesas.csv'
     assert ArquivoDownload.objects.count() == 1
+
 
 def test_envia_arquivo_central_download(usuario_para_teste):
     with NamedTemporaryFile(
@@ -173,3 +192,57 @@ def test_envia_arquivo_central_download(usuario_para_teste):
     assert objeto_arquivo_download.status == ArquivoDownload.STATUS_CONCLUIDO
     assert objeto_arquivo_download.identificador == 'pcs_despesas.csv'
     assert ArquivoDownload.objects.count() == 1
+
+
+def test_filtros_aplicados_sem_data_inicio_e_sem_data_final(queryset_ordered, ambiente):
+    dados = ExportacoesDocumentosDespesasService(
+        queryset=queryset_ordered,
+    ).get_informacoes_download()
+
+    resultado_esperado = ""
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_com_data_inicio_e_com_data_final(queryset_ordered, ambiente):
+
+    data_inicio = '2024-03-01'
+    data_final = '2024-03-26'
+
+    dados = ExportacoesDocumentosDespesasService(
+        queryset=queryset_ordered,
+        data_inicio=data_inicio,
+        data_final=data_final
+    ).get_informacoes_download()
+
+    resultado_esperado = f"Filtro aplicado: 01/03/2024 a 26/03/2024 (data de criação do registro)"
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_com_data_inicio_e_sem_data_final(queryset_ordered, ambiente):
+
+    data_inicio = '2024-03-01'
+
+    dados = ExportacoesDocumentosDespesasService(
+        queryset=queryset_ordered,
+        data_inicio=data_inicio,
+    ).get_informacoes_download()
+
+    resultado_esperado = f"Filtro aplicado: A partir de 01/03/2024 (data de criação do registro)"
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_sem_data_inicio_e_com_data_final(queryset_ordered, ambiente):
+
+    data_final = '2024-03-26'
+
+    dados = ExportacoesDocumentosDespesasService(
+        queryset=queryset_ordered,
+        data_final=data_final
+    ).get_informacoes_download()
+
+    resultado_esperado = f"Filtro aplicado: Até 26/03/2024 (data de criação do registro)"
+
+    assert dados == resultado_esperado

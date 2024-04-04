@@ -7,9 +7,9 @@ from tempfile import NamedTemporaryFile
 
 
 DATA_FILTRADAS = [
-        (datetime.date(2020, 2, 25), datetime.date(2020, 4, 26), 2),
-        (None, datetime.date(2020, 4, 26), 2),
-        (datetime.date(2050, 10, 28), None, 0)
+        ('2020-02-25', '2020-04-26', 2),
+        (None, '2020-04-26', 2),
+        ('2050-10-28', None, 0)
     ]
 
 
