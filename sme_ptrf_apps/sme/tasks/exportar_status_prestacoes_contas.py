@@ -13,10 +13,15 @@ logger = logging.getLogger(__name__)
     time_limet=600,
     soft_time_limit=30000
 )
-def exportar_status_prestacoes_contas_async(data_inicio, data_final, username):
+def exportar_status_prestacoes_contas_async(data_inicio, data_final, username, dre_uuid):
     logger.info("Exportando csv em processamento...")
 
-    queryset = PrestacaoConta.objects.all().order_by('criado_em')
+    if dre_uuid:
+        queryset = PrestacaoConta.objects.filter(
+            associacao__unidade__dre__uuid=dre_uuid,
+        ).order_by('criado_em')
+    else:
+        queryset = PrestacaoConta.objects.all().order_by('criado_em')
 
     try:
         logger.info("Criando arquivo %s status_prestacoes_de_contas.csv")
@@ -25,6 +30,7 @@ def exportar_status_prestacoes_contas_async(data_inicio, data_final, username):
             'data_inicio': data_inicio,
             'data_final': data_final,
             'user': username,
+            'dre_uuid': dre_uuid,
         }
 
         ExportacoesStatusPrestacoesContaService(

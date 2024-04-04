@@ -47,16 +47,28 @@ class TipoAcertoLancamento(ModeloIdNome):
     ativo = models.BooleanField('Ativo', default=True)
 
     @classmethod
-    def agrupado_por_categoria(cls, aplicavel_despesas_periodos_anteriores=False):
+    def agrupado_por_categoria(cls, aplicavel_despesas_periodos_anteriores=False, is_repasse=False):
         from sme_ptrf_apps.core.services import TipoAcertoLancamentoService
+
+        categorias_a_ignorar = None
+
+        if is_repasse:
+            categorias_a_ignorar = [
+                TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO
+            ]
+
         if aplicavel_despesas_periodos_anteriores:
-            FILTERED_CATEGORIA_CHOICES = (
-                (cls.CATEGORIA_CONCILIACAO_LANCAMENTO, cls.CATEGORIA_NOMES[cls.CATEGORIA_CONCILIACAO_LANCAMENTO]),
-                (cls.CATEGORIA_DESCONCILIACAO_LANCAMENTO, cls.CATEGORIA_NOMES[cls.CATEGORIA_DESCONCILIACAO_LANCAMENTO]),
-            )
-            return TipoAcertoLancamentoService.agrupado_por_categoria(FILTERED_CATEGORIA_CHOICES)
-        else:
-            return TipoAcertoLancamentoService.agrupado_por_categoria(cls.CATEGORIA_CHOICES)
+            # Apenas as categorias de conciliacao e desconciliacao devem ser retornadas
+
+            categorias_a_ignorar = [
+                TipoAcertoLancamento.CATEGORIA_DEVOLUCAO,
+                TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
+                TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO,
+                TipoAcertoLancamento.CATEGORIA_AJUSTES_EXTERNOS,
+                TipoAcertoLancamento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO
+            ]
+
+        return TipoAcertoLancamentoService.agrupado_por_categoria(cls.CATEGORIA_CHOICES, categorias_a_ignorar)
 
     @classmethod
     def categorias(cls):

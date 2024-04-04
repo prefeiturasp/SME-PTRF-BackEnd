@@ -7,6 +7,7 @@ from tempfile import NamedTemporaryFile
 
 pytestmark = pytest.mark.django_db
 
+
 def test_cria_registro_central_download(usuario_para_teste):
     exportacao_saldo_final = ExportacoesDadosSaldosFinaisPeriodoService(
         nome_arquivo='pcs_saldo_final_periodo.csv',
@@ -19,6 +20,7 @@ def test_cria_registro_central_download(usuario_para_teste):
     assert objeto_arquivo_download.status == ArquivoDownload.STATUS_EM_PROCESSAMENTO
     assert objeto_arquivo_download.identificador == 'pcs_saldo_final_periodo.csv'
     assert ArquivoDownload.objects.count() == 1
+
 
 def test_envia_arquivo_central_download(usuario_para_teste):
     with NamedTemporaryFile(
@@ -42,9 +44,12 @@ def test_envia_arquivo_central_download(usuario_para_teste):
     assert objeto_arquivo_download.identificador == 'pcs_saldo_final_periodo.csv'
     assert ArquivoDownload.objects.count() == 1
 
+
 def test_filtra_range_data_fora_do_range(fechamento_periodo_queryset):
     data_inicio = datetime.date(2020, 2, 25)
+    data_inicio = data_inicio.strftime('%Y-%m-%d')
     data_final = datetime.date(2020, 4, 26)
+    data_final = data_final.strftime('%Y-%m-%d')
 
     queryset_filtrado = ExportacoesDadosSaldosFinaisPeriodoService(
         queryset=fechamento_periodo_queryset,
@@ -54,9 +59,12 @@ def test_filtra_range_data_fora_do_range(fechamento_periodo_queryset):
 
     assert queryset_filtrado.count() == 0
 
+
 def test_filtra_range_data_dentro_do_range(fechamento_periodo_queryset):
     data_inicio = datetime.date.today()
+    data_inicio = data_inicio.strftime('%Y-%m-%d')
     data_final = datetime.date.today()
+    data_final = data_final.strftime('%Y-%m-%d')
 
     queryset_filtrado = ExportacoesDadosSaldosFinaisPeriodoService(
         queryset=fechamento_periodo_queryset,
@@ -66,8 +74,10 @@ def test_filtra_range_data_dentro_do_range(fechamento_periodo_queryset):
 
     assert queryset_filtrado.count() == len(fechamento_periodo_queryset)
 
+
 def test_filtra_range_data_com_data_inicio_e_sem_data_final(fechamento_periodo_queryset):
     data_inicio = datetime.date.today()
+    data_inicio = data_inicio.strftime('%Y-%m-%d')
 
     queryset_filtrado = ExportacoesDadosSaldosFinaisPeriodoService(
         queryset=fechamento_periodo_queryset,
@@ -76,8 +86,10 @@ def test_filtra_range_data_com_data_inicio_e_sem_data_final(fechamento_periodo_q
 
     assert queryset_filtrado.count() == len(fechamento_periodo_queryset)
 
+
 def test_filtra_range_data_sem_data_inicio_e_com_data_final(fechamento_periodo_queryset):
     data_final = datetime.date.today()
+    data_final = data_final.strftime('%Y-%m-%d')
 
     queryset_filtrado = ExportacoesDadosSaldosFinaisPeriodoService(
         queryset=fechamento_periodo_queryset,
@@ -85,6 +97,7 @@ def test_filtra_range_data_sem_data_inicio_e_com_data_final(fechamento_periodo_q
     ).filtra_range_data('criado_em')
 
     assert queryset_filtrado.count() == len(fechamento_periodo_queryset)
+
 
 def test_filtra_range_data_sem_data_inicio_e_sem_data_final(fechamento_periodo_queryset):
     queryset_filtrado = ExportacoesDadosSaldosFinaisPeriodoService(
@@ -103,6 +116,7 @@ def test_quantidade_dados_extracao(fechamento_periodo_queryset):
     # Portando o tamanho correto é 2x3 (6)
 
     assert len(dados) == 6
+
 
 def test_quantidade_linha_individual_dados_extracao(fechamento_periodo_queryset):
     dados = ExportacoesDadosSaldosFinaisPeriodoService(
@@ -124,6 +138,7 @@ def test_quantidade_linha_individual_dados_extracao(fechamento_periodo_queryset)
     """
 
     assert len(linha_individual) == 10
+
 
 def test_resultado_esperado_dados_extracao(fechamento_periodo_queryset):
     dados = ExportacoesDadosSaldosFinaisPeriodoService(
@@ -148,6 +163,7 @@ def test_resultado_esperado_dados_extracao(fechamento_periodo_queryset):
 
     assert linha_individual == resultado_esperado
 
+
 def test_cabecalho(fechamento_periodo_queryset):
     dados = ExportacoesDadosSaldosFinaisPeriodoService(
         queryset=fechamento_periodo_queryset,
@@ -170,13 +186,68 @@ def test_cabecalho(fechamento_periodo_queryset):
 
     assert cabecalho == resultado_esperado
 
+
 def test_rodape(fechamento_periodo_queryset, ambiente):
     dados = ExportacoesDadosSaldosFinaisPeriodoService(
         queryset=fechamento_periodo_queryset,
+        user="12345"
     ).texto_rodape()
 
     data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-    resultado_esperado = f"Arquivo gerado pelo {ambiente.prefixo} em {data_atual}"
+    resultado_esperado = f"Arquivo gerado via {ambiente.prefixo} pelo usuário 12345 em {data_atual}"
 
     assert dados == resultado_esperado
 
+
+def test_filtros_aplicados_sem_data_inicio_e_sem_data_final(fechamento_periodo_queryset, ambiente):
+    dados = ExportacoesDadosSaldosFinaisPeriodoService(
+        queryset=fechamento_periodo_queryset,
+    ).get_informacoes_download()
+
+    resultado_esperado = ""
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_com_data_inicio_e_com_data_final(fechamento_periodo_queryset, ambiente):
+
+    data_inicio = '2024-03-01'
+    data_final = '2024-03-26'
+
+    dados = ExportacoesDadosSaldosFinaisPeriodoService(
+        queryset=fechamento_periodo_queryset,
+        data_inicio=data_inicio,
+        data_final=data_final
+    ).get_informacoes_download()
+
+    resultado_esperado = f"Filtro aplicado: 01/03/2024 a 26/03/2024 (data de criação do registro)"
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_com_data_inicio_e_sem_data_final(fechamento_periodo_queryset, ambiente):
+
+    data_inicio = '2024-03-01'
+
+    dados = ExportacoesDadosSaldosFinaisPeriodoService(
+        queryset=fechamento_periodo_queryset,
+        data_inicio=data_inicio,
+    ).get_informacoes_download()
+
+    resultado_esperado = f"Filtro aplicado: A partir de 01/03/2024 (data de criação do registro)"
+
+    assert dados == resultado_esperado
+
+
+def test_filtros_aplicados_sem_data_inicio_e_com_data_final(fechamento_periodo_queryset, ambiente):
+
+    data_final = '2024-03-26'
+
+    dados = ExportacoesDadosSaldosFinaisPeriodoService(
+        queryset=fechamento_periodo_queryset,
+        data_final=data_final,
+    ).get_informacoes_download()
+
+    resultado_esperado = f"Filtro aplicado: Até 26/03/2024 (data de criação do registro)"
+
+    assert dados == resultado_esperado
