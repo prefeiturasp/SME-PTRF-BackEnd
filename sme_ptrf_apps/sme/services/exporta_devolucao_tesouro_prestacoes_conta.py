@@ -19,6 +19,7 @@ CABECALHO = [
         ('Código EOL', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol'),
         ('Nome Unidade', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome'),
         ('Nome Associação', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome'),
+        ('DRE', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre__nome'),
         ('Referência do Período da PC', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo__referencia'),
         ('Status da PC', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__status'),
         ('ID da despesa','solicitacao_acerto_lancamento__analise_lancamento__despesa__id'),
@@ -50,7 +51,7 @@ CABECALHO = [
 
 
 class ExportacoesDevolucaoTesouroPrestacoesContaService:
-    
+
     def __init__(self, **kwargs):
         self.queryset = kwargs.get('queryset', None)
         self.data_inicio = kwargs.get('data_inicio', None)
@@ -61,9 +62,9 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
 
-    @property 
-    def get_ambiente(self): 
-        ambiente = Ambiente.objects.first() 
+    @property
+    def get_ambiente(self):
+        ambiente = Ambiente.objects.first()
         return ambiente.prefixo if ambiente else ""
 
     def exporta_devolucao_tesouro_pc(self):
@@ -83,10 +84,10 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
         ) as tmp:
             write = csv.writer(tmp.file, delimiter=";")
             write.writerow([cabecalho[0] for cabecalho in self.cabecalho])
-            
+
             for linha in dados:
                 write.writerow(linha) if linha else None
-                        
+
             self.cria_rodape(write)
             self.envia_arquivo_central_download(tmp)
 
@@ -127,7 +128,7 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                 elif campo == 'motivo':
                     linha_horizontal.append(devolucao_ao_tesouro.motivo if devolucao_ao_tesouro is not None else '')
                 elif campo == 'devolucao_total':
-                    if devolucao_ao_tesouro is not None:   
+                    if devolucao_ao_tesouro is not None:
                         linha_horizontal.append('Sim' if devolucao_ao_tesouro.devolucao_total else 'Não')
                     else:
                         linha_horizontal.append('')
@@ -152,12 +153,12 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                     linha_nova[20] = rateio.acao_associacao.acao.nome if rateio.acao_associacao else ''
                     linha_nova[21] = str(rateio.valor_rateio).replace(".", ",") if rateio.valor_rateio else ''
                     linha_nova[22] = str(rateio.valor_original).replace(".", ",") if rateio.valor_original else ''
-                    
+
                     logger.info(f"Escrevendo linha {linha_nova} de status de prestação de conta de custeio {instance.id}.")
                     linhas_vertical.append(linha_nova)
             else:
                 logger.info(f"Escrevendo linha {linha_horizontal} de status de prestação de conta de custeio {instance.id}.")
-                linhas_vertical.append(linha_horizontal) 
+                linhas_vertical.append(linha_horizontal)
 
         return linhas_vertical
 
@@ -183,28 +184,28 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                 **{f'{field}__lt': self.data_final}
             )
         return self.queryset
-    
-    def cria_registro_central_download(self): 
-        logger.info(f"Criando registro na central de download") 
-        obj = gerar_arquivo_download( 
-            self.user, 
-            self.nome_arquivo ) 
-        self.objeto_arquivo_download = obj 
-    
-    def envia_arquivo_central_download(self, tmp): 
-        try: 
-            logger.info("Salvando arquivo download...") 
-            self.objeto_arquivo_download.arquivo.save( 
-                name=self.objeto_arquivo_download.identificador, 
-                content=File(tmp) 
-            ) 
-            self.objeto_arquivo_download.status = ArquivoDownload.STATUS_CONCLUIDO 
-            self.objeto_arquivo_download.save() 
-            logger.info("Arquivo salvo com sucesso...") 
-        except Exception as e: 
-            self.objeto_arquivo_download.status = ArquivoDownload.STATUS_ERRO 
-            self.objeto_arquivo_download.msg_erro = str(e) 
-            self.objeto_arquivo_download.save() 
+
+    def cria_registro_central_download(self):
+        logger.info(f"Criando registro na central de download")
+        obj = gerar_arquivo_download(
+            self.user,
+            self.nome_arquivo )
+        self.objeto_arquivo_download = obj
+
+    def envia_arquivo_central_download(self, tmp):
+        try:
+            logger.info("Salvando arquivo download...")
+            self.objeto_arquivo_download.arquivo.save(
+                name=self.objeto_arquivo_download.identificador,
+                content=File(tmp)
+            )
+            self.objeto_arquivo_download.status = ArquivoDownload.STATUS_CONCLUIDO
+            self.objeto_arquivo_download.save()
+            logger.info("Arquivo salvo com sucesso...")
+        except Exception as e:
+            self.objeto_arquivo_download.status = ArquivoDownload.STATUS_ERRO
+            self.objeto_arquivo_download.msg_erro = str(e)
+            self.objeto_arquivo_download.save()
             logger.error("Erro arquivo download...")
 
     def texto_rodape(self):
@@ -221,4 +222,3 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
         rodape.append(texto)
         write.writerow(rodape)
         rodape.clear()
-        
