@@ -103,6 +103,31 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
 
             for _, campo in self.cabecalho:
 
+                if campo == "solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "solicitacao_acerto_lancamento__analise_lancamento__despesa__nome_fornecedor":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "solicitacao_acerto_lancamento__analise_lancamento__despesa__documento_transacao":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
                 if campo == 'aplicacao_recurso' or campo == 'tipo_custeio' or campo == 'desc_material_serv' or campo == 'nome_tipo_conta' or campo == 'nome_acao' or campo == 'valor_rateio' or campo == 'valor_realizado':
                     linha_horizontal.append('')
                 elif campo == 'solicitacao_acerto_lancamento__analise_lancamento__despesa__data_documento':
@@ -124,9 +149,9 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                 elif campo == 'tipo_id':
                     linha_horizontal.append(devolucao_ao_tesouro.tipo.id if devolucao_ao_tesouro is not None else '')
                 elif campo == 'tipo_nome':
-                    linha_horizontal.append(devolucao_ao_tesouro.tipo.nome if devolucao_ao_tesouro is not None else '')
+                    linha_horizontal.append(devolucao_ao_tesouro.tipo.nome.replace(";", ",") if devolucao_ao_tesouro is not None else '')
                 elif campo == 'motivo':
-                    linha_horizontal.append(devolucao_ao_tesouro.motivo if devolucao_ao_tesouro is not None else '')
+                    linha_horizontal.append(devolucao_ao_tesouro.motivo.replace(";", ",") if devolucao_ao_tesouro is not None else '')
                 elif campo == 'devolucao_total':
                     if devolucao_ao_tesouro is not None:
                         linha_horizontal.append('Sim' if devolucao_ao_tesouro.devolucao_total else 'Não')
@@ -138,7 +163,7 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                     data_formatada = devolucao_ao_tesouro.data.strftime("%d/%m/%Y") if devolucao_ao_tesouro is not None and devolucao_ao_tesouro.data is not None else ''
                     linha_horizontal.append(data_formatada)
                 elif campo == 'justificativa':
-                    linha_horizontal.append(instance.solicitacao_acerto_lancamento.justificativa if instance.solicitacao_acerto_lancamento.justificativa is not None else '')
+                    linha_horizontal.append(instance.solicitacao_acerto_lancamento.justificativa.replace(";", ",") if instance.solicitacao_acerto_lancamento.justificativa is not None else '')
                 else:
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo)
@@ -146,13 +171,13 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
             if len(rateios) > 0:
                 for rateio in rateios:
                     linha_nova = linha_horizontal.copy()
-                    linha_nova[16] = rateio.aplicacao_recurso if rateio.aplicacao_recurso else ''
-                    linha_nova[17] = rateio.tipo_custeio.nome if rateio.tipo_custeio else ''
-                    linha_nova[18] = rateio.especificacao_material_servico.descricao if rateio.especificacao_material_servico else ''
-                    linha_nova[19] = rateio.conta_associacao.tipo_conta.nome if rateio.conta_associacao else ''
-                    linha_nova[20] = rateio.acao_associacao.acao.nome if rateio.acao_associacao else ''
-                    linha_nova[21] = str(rateio.valor_rateio).replace(".", ",") if rateio.valor_rateio else ''
-                    linha_nova[22] = str(rateio.valor_original).replace(".", ",") if rateio.valor_original else ''
+                    linha_nova[17] = rateio.aplicacao_recurso if rateio.aplicacao_recurso else ''
+                    linha_nova[18] = rateio.tipo_custeio.nome.replace(";", ",") if rateio.tipo_custeio else ''
+                    linha_nova[19] = rateio.especificacao_material_servico.descricao.replace(";", ",") if rateio.especificacao_material_servico else ''
+                    linha_nova[20] = rateio.conta_associacao.tipo_conta.nome.replace(";", ",") if rateio.conta_associacao else ''
+                    linha_nova[21] = rateio.acao_associacao.acao.nome.replace(";", ",") if rateio.acao_associacao else ''
+                    linha_nova[22] = str(rateio.valor_rateio).replace(".", ",") if rateio.valor_rateio else ''
+                    linha_nova[23] = str(rateio.valor_original).replace(".", ",") if rateio.valor_original else ''
 
                     logger.info(f"Escrevendo linha {linha_nova} de status de prestação de conta de custeio {instance.id}.")
                     linhas_vertical.append(linha_nova)
