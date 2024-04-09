@@ -107,6 +107,9 @@ def consulta_unidade(codigo_eol):
             response = SmeIntegracaoService.get_dados_unidade_eol(codigo_eol)
             resultado = response.json()
             if resultado:
+                if resultado["codigo"] is None:
+                    raise TypeError("Código EOL não encontrado")
+
                 unidade_retorno = resultado
                 result['codigo_eol'] = codigo_eol
                 result['nome'] = unidade_retorno.get('nome') or ''
@@ -119,6 +122,11 @@ def consulta_unidade(codigo_eol):
                 result['bairro'] = unidade_retorno.get('bairro') or ''
                 result['cep'] = f"{unidade_retorno['cep']:0>8}" or ''
                 logger.info("Unidade %s: %s localizada.", codigo_eol, result['nome'])
+        except TypeError as e:
+            logger.info(f"Erro ao consultar código eol: {str(e)}")
+            result['erro'] = 'erro'
+            result['mensagem'] = f"Erro ao consultar código eol: Código EOL não encontrado"
+            logger.info(result['mensagem'])
         except Exception as err:
             logger.info("Erro ao consultar código eol")
             result['erro'] = 'erro'
