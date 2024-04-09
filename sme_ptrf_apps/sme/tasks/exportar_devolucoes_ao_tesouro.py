@@ -14,10 +14,16 @@ logger = logging.getLogger(__name__)
     time_limet=600,
     soft_time_limit=30000
 )
-def exportar_devolucoes_ao_tesouro_async(data_inicio, data_final, username):
+def exportar_devolucoes_ao_tesouro_async(data_inicio, data_final, username, dre_uuid):
     logger.info("Exportando csv em processamento...")
 
-    queryset = SolicitacaoDevolucaoAoTesouro.objects.order_by('solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo_id', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta_id', 'solicitacao_acerto_lancamento__analise_lancamento__despesa_id', '-criado_em').distinct('solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo_id', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta_id', 'solicitacao_acerto_lancamento__analise_lancamento__despesa_id')
+    queryset = SolicitacaoDevolucaoAoTesouro.objects
+
+    if dre_uuid:
+        queryset = queryset.filter(
+            solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre__uuid=dre_uuid,
+        )
+    queryset = queryset.order_by('solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo_id', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta_id', 'solicitacao_acerto_lancamento__analise_lancamento__despesa_id', '-criado_em').distinct('solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo_id', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta_id', 'solicitacao_acerto_lancamento__analise_lancamento__despesa_id')
 
     try:
         logger.info("Criando arquivo %s pcs_devolucoes_tesouro.csv")

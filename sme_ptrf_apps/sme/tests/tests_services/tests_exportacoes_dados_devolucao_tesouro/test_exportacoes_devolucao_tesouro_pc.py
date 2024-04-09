@@ -28,6 +28,7 @@ def test_dados_esperados_csv(queryset_ordered):
         pc.associacao.unidade.codigo_eol,
         pc.associacao.unidade.nome,
         pc.associacao.nome,
+        pc.associacao.unidade.dre.nome,
         pc.periodo.referencia,
         pc.status,
         despesa.id,
@@ -65,23 +66,24 @@ def test_cabecalho():
     cabecalho = [cabecalho[0] for cabecalho in dados.cabecalho]
 
     resultado_esperado = [
-        'Código EOL', 
-        'Nome Unidade', 
-        'Nome Associação', 
-        'Referência do Período da PC', 
-        'Status da PC', 
+        'Código EOL',
+        'Nome Unidade',
+        'Nome Associação',
+        'DRE',
+        'Referência do Período da PC',
+        'Status da PC',
         'ID da despesa',
         'Número do documento',
-        'Tipo do documento', 
-        'Data do documento', 
-        'CPF_CNPJ do fornecedor', 
-        'Nome do fornecedor', 
-        'Tipo de transação', 
-        'Número do documento da transação', 
-        'Data da transação', 
-        'Valor (Despeza)', 
-        'Valor realizado (Despesa)', 
-        'Tipo de aplicação do recurso', 
+        'Tipo do documento',
+        'Data do documento',
+        'CPF_CNPJ do fornecedor',
+        'Nome do fornecedor',
+        'Tipo de transação',
+        'Número do documento da transação',
+        'Data da transação',
+        'Valor (Despeza)',
+        'Valor realizado (Despesa)',
+        'Tipo de aplicação do recurso',
         'Nome do Tipo de Custeio',
         'Descrição da especificação de Material ou Serviço',
         'Nome do tipo de Conta',
@@ -103,7 +105,8 @@ def test_rodape(ambiente):
     dados = ExportacoesDevolucaoTesouroPrestacoesContaService().texto_rodape()
 
     data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-    resultado_esperado = f"Arquivo gerado pelo {ambiente.prefixo} em {data_atual}"
+
+    resultado_esperado = f"Arquivo gerado via {ambiente.prefixo} pelo usuário None em {data_atual}"
 
     assert dados == resultado_esperado
 
@@ -155,7 +158,7 @@ def test_filtra_range_data_sem_data_inicio_e_sem_data_final(queryset_ordered):
     queryset_filtrado = ExportacoesDevolucaoTesouroPrestacoesContaService(
         queryset=queryset_ordered
     ).filtra_range_data('criado_em')
-    
+
     assert queryset_filtrado.count() == len(queryset_ordered)
 
 def test_cria_registro_central_download(usuario_para_teste):
