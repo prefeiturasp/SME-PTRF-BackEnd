@@ -112,6 +112,26 @@ class ExportacoesDadosRelacaoBensService:
 
             for _, campo in self.cabecalho:
 
+                if campo == "conta_associacao__associacao__unidade__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "conta_associacao__associacao__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "conta_associacao__associacao__unidade__dre__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "conta_associacao__tipo_conta__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
                 if campo == "arquivo_pdf":
                     campo = get_recursive_attr(instance, campo)
                     url = ""
