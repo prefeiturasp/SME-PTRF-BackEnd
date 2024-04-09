@@ -61,11 +61,34 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
         self.cabecalho = CABECALHO[0]
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
+        self.texto_filtro_aplicado = self.get_texto_filtro_aplicado()
 
     @property
     def get_ambiente(self):
         ambiente = Ambiente.objects.first()
         return ambiente.prefixo if ambiente else ""
+
+    def get_texto_filtro_aplicado(self):
+        if self.data_inicio and self.data_final:
+            data_inicio_formatada = datetime.strptime(f"{self.data_inicio}", '%Y-%m-%d')
+            data_inicio_formatada = data_inicio_formatada.strftime("%d/%m/%Y")
+
+            data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
+            data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
+
+            return f"Filtro aplicado: {data_inicio_formatada} a {data_final_formatada} (data de criação do registro)"
+
+        if self.data_inicio:
+            data_inicio_formatada = datetime.strptime(f"{self.data_inicio}", '%Y-%m-%d')
+            data_inicio_formatada = data_inicio_formatada.strftime("%d/%m/%Y")
+            return f"Filtro aplicado: A partir de {data_inicio_formatada} (data de criação do registro)"
+
+        if self.data_final:
+            data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
+            data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
+            return f"Filtro aplicado: Até {data_final_formatada} (data de criação do registro)"
+
+        return ""
 
     def exporta_devolucao_tesouro_pc(self):
         self.cria_registro_central_download()
@@ -235,15 +258,26 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
 
     def texto_rodape(self):
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado pelo {self.ambiente} em {data_hora_geracao}"
+        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
 
         return texto
 
     def cria_rodape(self, write):
         rodape = []
+
+        rodape.append(" ")
+        write.writerow(rodape)
+        rodape.clear()
+
         texto = self.texto_rodape()
 
-        write.writerow([])
+        write.writerow(rodape)
+        rodape.clear()
+
         rodape.append(texto)
+        write.writerow(rodape)
+        rodape.clear()
+
+        rodape.append(self.texto_filtro_aplicado)
         write.writerow(rodape)
         rodape.clear()
