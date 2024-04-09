@@ -237,7 +237,9 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
         logger.info(f"Criando registro na central de download")
         obj = gerar_arquivo_download(
             self.user,
-            self.nome_arquivo )
+            self.nome_arquivo,
+            self.texto_filtro_aplicado
+        )
         self.objeto_arquivo_download = obj
 
     def envia_arquivo_central_download(self, tmp):
