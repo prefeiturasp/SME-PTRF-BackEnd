@@ -11,6 +11,7 @@ from rest_framework.routers import DefaultRouter, SimpleRouter
 from sme_ptrf_apps import __version__
 from sme_ptrf_apps.core.api.views import (
     AssociacoesViewSet,
+    ParametrizacoesAssociacoesViewSet,
     AtasViewSet,
     DemonstrativoFinanceiroViewSet,
     MembroAssociacaoViewSet,
@@ -127,6 +128,7 @@ router.register("rateios-despesas", RateiosDespesasViewSet)
 router.register("receitas", ReceitaViewSet)
 router.register("fornecedores", FornecedoresViewSet)
 router.register("associacoes", AssociacoesViewSet)
+router.register("parametrizacoes-associacoes", ParametrizacoesAssociacoesViewSet)
 router.register("repasses", RepasseViewSet, basename='repasses-pendentes')
 router.register("periodos", PeriodosViewSet)
 router.register("prestacoes-contas", PrestacoesContasViewSet)
