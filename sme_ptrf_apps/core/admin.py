@@ -482,7 +482,7 @@ class AtaAdmin(admin.ModelAdmin):
     list_display_links = ('get_eol_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__unidade__nome',
-                     'associacao__unidade__dre__codigo_eol')
+                     'associacao__unidade__dre__codigo_eol', 'comentarios')
 
 
 @admin.register(Arquivo)
