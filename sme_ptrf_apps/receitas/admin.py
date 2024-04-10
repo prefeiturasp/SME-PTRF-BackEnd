@@ -100,7 +100,7 @@ class RepasseAdmin(admin.ModelAdmin):
     search_fields = ('associacao__nome', 'associacao__unidade__codigo_eol', 'carga_origem_linha_id')
     list_display = ('associacao', 'periodo', 'valor_capital', 'valor_custeio',
                     'valor_livre', 'tipo_conta', 'acao', 'status')
-    list_filter = ('periodo', 'status', 'carga_origem')
+    list_filter = ('periodo', 'status', 'carga_origem', 'associacao__unidade__dre')
     raw_id_fields = ('associacao', 'periodo', 'conta_associacao', 'acao_associacao', 'carga_origem')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
