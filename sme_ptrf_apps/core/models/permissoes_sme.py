@@ -81,21 +81,6 @@ class FuncSmeConsultaSaldoBancario(models.Model):
         )
 
 
-class FuncSmeFornecedores(models.Model):
-
-    class Meta:
-        managed = False  # No database table creation.
-        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
-
-        verbose_name = "[SME] Parametrização Cadastro de Fornecedor"
-        verbose_name_plural = "[SME] Parametrizações Cadastro de Fornecedores"
-
-        permissions = (
-            ('access_fornecedores', '[SME] Pode acessar parametrizações cadastro de fornecedores.'),
-            ('change_fornecedores', '[SME] Pode atualizar parametrizações cadastro de fornecedores.'),
-        )
-
-
 class FuncSmeSuporteUnidades(models.Model):
 
     class Meta:
