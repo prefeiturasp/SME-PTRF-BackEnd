@@ -27,6 +27,7 @@ from sme_ptrf_apps.core.api.views import (
     TiposContaViewSet,
     ComentariosAnalisesPrestacoesViewSet,
     AcaoAssociacaoViewSet,
+    ParametrizacoesAcoesAssociacaoViewSet,
     AcoesViewSet,
     ArquivoViewSet,
     TagsViewSet,
@@ -155,6 +156,7 @@ router.register("justificativas-relatorios-consolidados-dre", JustificativasRela
 router.register("motivos-aprovacao-ressalva", MotivoAprovacaoRessalvaViewSet)
 router.register("motivos-reprovacao", MotivoReprovacaoViewSet)
 router.register("acoes-associacoes", AcaoAssociacaoViewSet)
+router.register("parametrizacoes-acoes-associacoes", ParametrizacoesAcoesAssociacaoViewSet)
 router.register("acoes", AcoesViewSet)
 router.register("arquivos", ArquivoViewSet)
 router.register("tags", TagsViewSet)
