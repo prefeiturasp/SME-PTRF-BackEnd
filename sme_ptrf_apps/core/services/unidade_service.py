@@ -113,14 +113,14 @@ def consulta_unidade(codigo_eol):
                 unidade_retorno = resultado
                 result['codigo_eol'] = codigo_eol
                 result['nome'] = unidade_retorno.get('nome') or ''
-                result['tipo_unidade'] = unidade_retorno.get('siglaTipoEscola').strip() or ''
+                result['tipo_unidade'] = unidade_retorno.get('siglaTipoEscola').strip() if unidade_retorno["siglaTipoEscola"] is not None else ''
                 result['email'] = unidade_retorno.get('email') or ''
                 result['telefone'] = unidade_retorno.get('telefone') or ''
                 result['numero'] = unidade_retorno.get('numero') or ''
                 result['tipo_logradouro'] = unidade_retorno.get('tipoLogradouro') or ''
                 result['logradouro'] = unidade_retorno.get('logradouro') or ''
                 result['bairro'] = unidade_retorno.get('bairro') or ''
-                result['cep'] = f"{unidade_retorno['cep']:0>8}" or ''
+                result['cep'] = f"{unidade_retorno['cep']:0>8}" if unidade_retorno['cep'] is not None else ''
                 logger.info("Unidade %s: %s localizada.", codigo_eol, result['nome'])
         except TypeError as e:
             logger.info(f"Erro ao consultar código eol: {str(e)}")
