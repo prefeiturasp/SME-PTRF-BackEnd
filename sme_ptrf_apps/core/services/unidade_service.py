@@ -125,7 +125,7 @@ def consulta_unidade(codigo_eol):
         except TypeError as e:
             logger.info(f"Erro ao consultar código eol: {str(e)}")
             result['erro'] = 'erro'
-            result['mensagem'] = f"Erro ao consultar código eol: Código EOL não encontrado"
+            result['mensagem'] = f"Código EOL não encontrado"
             logger.info(result['mensagem'])
         except Exception as err:
             logger.info("Erro ao consultar código eol")
