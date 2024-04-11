@@ -1490,6 +1490,7 @@ class PresenteAtaAdmin(admin.ModelAdmin):
         'ata__periodo',
         'ata__associacao__unidade__tipo_unidade',
         'ata__associacao__unidade__dre',
+        'ata__tipo_ata',
         'cargo',
         'membro',
         ('criado_em', DateRangeFilter),
