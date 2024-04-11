@@ -33,9 +33,13 @@ def atualizar_presidente_e_secretario():
 
         ata_atualizada = True
 
+        # Remove a flag de revisão caso exista
+        if ata.comentarios and '**rever**' in ata.comentarios:
+            ata.comentarios = ata.comentarios.replace('**rever**', '').strip()
+
         if ata.presidente_reuniao:
             # Atualizar presidente
-            presidente = Participante.objects.filter(nome=ata.presidente_reuniao, ata=ata).first()
+            presidente = Participante.objects.filter(nome__unaccent__icontains=ata.presidente_reuniao, ata=ata).first()
             if presidente:
                 ata.presidente_da_reuniao = presidente
             else:
@@ -44,7 +48,7 @@ def atualizar_presidente_e_secretario():
 
         if ata.secretario_reuniao:
             # Atualizar secretário
-            secretario = Participante.objects.filter(nome=ata.secretario_reuniao, ata=ata).first()
+            secretario = Participante.objects.filter(nome__unaccent__icontains=ata.secretario_reuniao, ata=ata).first()
             if secretario:
                 ata.secretario_da_reuniao = secretario
             else:
