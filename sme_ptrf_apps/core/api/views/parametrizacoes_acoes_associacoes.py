@@ -27,7 +27,6 @@ class ParametrizacoesAcoesAssociacaoViewSet(mixins.ListModelMixin, GenericViewSe
         nome = self.request.query_params.get('nome')
         filtro_informacoes = self.request.query_params.get('filtro_informacoes')
         filtro_informacoes_list = filtro_informacoes.split(',') if filtro_informacoes else []
-        filtro_informacoes_list = [info.strip('{}') for info in filtro_informacoes_list]
 
         encerradas = FiltroInformacoesAssociacao.FILTRO_INFORMACOES_ENCERRADAS
         nao_encerradas = FiltroInformacoesAssociacao.FILTRO_INFORMACOES_NAO_ENCERRADAS
