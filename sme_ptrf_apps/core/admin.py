@@ -461,15 +461,27 @@ class AtaAdmin(admin.ModelAdmin):
 
     get_referencia_periodo.short_description = 'Período'
 
+    def get_presidente(self, obj):
+        return obj.presidente_da_reuniao.nome if obj and obj.presidente_da_reuniao else ''
+
+    get_presidente.short_description = 'Presidente'
+
+    def get_secretario(self, obj):
+        return obj.secretario_da_reuniao.nome if obj and obj.secretario_da_reuniao else ''
+
+    get_secretario.short_description = 'Secretário'
+
+
     raw_id_fields = ('prestacao_conta', 'associacao', 'composicao', 'presidente_da_reuniao', 'secretario_da_reuniao')
 
     list_display = (
         'get_eol_unidade',
         'get_referencia_periodo',
         'tipo_ata',
+        'get_presidente',
+        'get_secretario',
         'parecer_conselho',
         'previa',
-        'arquivo_pdf',
     )
 
     list_filter = (
@@ -482,7 +494,7 @@ class AtaAdmin(admin.ModelAdmin):
     list_display_links = ('get_eol_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__unidade__nome',
-                     'associacao__unidade__dre__codigo_eol')
+                     'associacao__unidade__dre__codigo_eol', 'comentarios')
 
 
 @admin.register(Arquivo)
@@ -1478,6 +1490,7 @@ class PresenteAtaAdmin(admin.ModelAdmin):
         'ata__periodo',
         'ata__associacao__unidade__tipo_unidade',
         'ata__associacao__unidade__dre',
+        'ata__tipo_ata',
         'cargo',
         'membro',
         ('criado_em', DateRangeFilter),
