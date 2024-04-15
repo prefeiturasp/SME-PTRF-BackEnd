@@ -134,6 +134,8 @@ class AtaCreateSerializer(serializers.ModelSerializer):
                 presentes_lista.append(presentes_object)
 
         ata.presentes_na_ata.set(presentes_lista)
+        ata.arquivo_pdf = None
+        ata.arquivo_pdf_nao_gerado()
         ata.save()
 
         return ata
@@ -183,6 +185,8 @@ class AtaCreateSerializer(serializers.ModelSerializer):
 
         update_instance_from_dict(instance, validated_data)
         instance.presentes_na_ata.set(presentes_lista)
+        instance.arquivo_pdf = None
+        instance.arquivo_pdf_nao_gerado()
         instance.save()
 
         return instance
