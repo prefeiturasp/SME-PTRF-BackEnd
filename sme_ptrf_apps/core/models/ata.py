@@ -179,6 +179,8 @@ class Ata(ModeloBase):
     previa = models.BooleanField("É prévia?", default=False)
 
     justificativa_repasses_pendentes = models.TextField('Justificativa repasses pendentes', blank=True, default='')
+    
+    pdf_gerado_previamente = models.BooleanField("PDF gerado previamente", blank=True, default=False, help_text="O PDF já foi gerado e precisa ser regerado quando a ata é editada/apagada")
 
     @property
     def nome(self):
@@ -290,6 +292,7 @@ class Ata(ModeloBase):
         self.save()
 
     def arquivo_pdf_concluir(self):
+        self.pdf_gerado_previamente = True
         self.status_geracao_pdf = self.STATUS_CONCLUIDO
         self.save()
 
