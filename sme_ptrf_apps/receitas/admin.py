@@ -75,7 +75,7 @@ class ReceitaAdmin(admin.ModelAdmin):
         'categoria_receita',
         'status',
     )
-    readonly_fields = ('uuid', 'id',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     actions = ['conciliar_receita', 'desconciliar_receita', ]
 
     def conciliar_receita(self, request, queryset):
@@ -126,5 +126,5 @@ class DetalheTipoReceitaAdmin(admin.ModelAdmin):
 @admin.register(MotivoEstorno)
 class MotivoEstornoAdmin(admin.ModelAdmin):
     list_display = ('motivo', 'uuid', )
-    readonly_fields = ('uuid', 'id')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('motivo', )
