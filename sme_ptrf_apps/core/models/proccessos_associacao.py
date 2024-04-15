@@ -84,7 +84,7 @@ class ProcessoAssociacao(ModeloBase):
 
                 periodos_deste_ano = Periodo.objects.filter(
                     data_inicio_realizacao_despesas__gte=data_inicial,
-                    data_fim_realizacao_despesas__lte=data_final
+                    data_inicio_realizacao_despesas__lte=data_final
                 ).order_by('referencia')
 
                 if processos_do_ano.count() == 1:
