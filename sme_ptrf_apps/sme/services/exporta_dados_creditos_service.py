@@ -149,6 +149,46 @@ class ExportacoesDadosCreditosService:
                 motivos = list(instance.motivos_estorno.all())
 
                 for _, campo in self.cabecalho:
+                    # Removendo ponto e vírgula e substituindo por vírgula
+                    if campo == "associacao__unidade__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == 'associacao__nome':
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "associacao__unidade__dre__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "conta_associacao__tipo_conta__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "acao_associacao__acao__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "tipo_receita__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "detalhe_tipo_receita__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "detalhe_outros":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
 
                     if campo == 'data':
                         campo = getattr(instance, campo)
@@ -164,7 +204,7 @@ class ExportacoesDadosCreditosService:
                             motivo_string = motivo_string + '; ' + instance.outros_motivos_estorno
                         elif(len(instance.outros_motivos_estorno)):
                             motivo_string = instance.outros_motivos_estorno
-                        linha.append(motivo_string)
+                        linha.append(motivo_string.replace(";", ","))
 
                     elif isinstance(campo, tuple) and campo[1] == 'categoria_receita':
                         linha.append(campo[0][getattr(instance, campo[1])])
@@ -173,7 +213,9 @@ class ExportacoesDadosCreditosService:
                         for instance_m2m in getattr(instance, campo[1]).all():
                             linha.append(getattr(instance, campo[0]))
                             linha.append(getattr(instance_m2m, self.cabecalho[1][1]))
-                            linha.append(getattr(instance_m2m, self.cabecalho[2][1]))
+
+                            motivo_estorno_descricao = getattr(instance_m2m, self.cabecalho[2][1])
+                            linha.append(motivo_estorno_descricao.replace(";", ",") if motivo_estorno_descricao else "")
                             write.writerow(linha)
                             linha.clear()
 
