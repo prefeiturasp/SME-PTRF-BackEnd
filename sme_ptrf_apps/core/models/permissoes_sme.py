@@ -21,6 +21,7 @@ class FuncSmePainelParametrizacoes(models.Model):
 
         permissions = (
             ('access_painel_parametrizacoes', '[SME] Pode acessar o Painel de parametrizações.'),
+            ('change_painel_parametrizacoes', '[SME] Pode atualizar o Painel de parametrizações '),
         )
 
 
@@ -77,21 +78,6 @@ class FuncSmeConsultaSaldoBancario(models.Model):
 
         permissions = (
             ('access_consulta_saldo_bancario', '[SME] Pode acessar a consulta de saldo bancário.'),
-        )
-
-
-class FuncSmeFornecedores(models.Model):
-
-    class Meta:
-        managed = False  # No database table creation.
-        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
-
-        verbose_name = "[SME] Parametrização Cadastro de Fornecedor"
-        verbose_name_plural = "[SME] Parametrizações Cadastro de Fornecedores"
-
-        permissions = (
-            ('access_fornecedores', '[SME] Pode acessar parametrizações cadastro de fornecedores.'),
-            ('change_fornecedores', '[SME] Pode atualizar parametrizações cadastro de fornecedores.'),
         )
 
 

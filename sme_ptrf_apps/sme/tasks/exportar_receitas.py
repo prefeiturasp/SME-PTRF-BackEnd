@@ -12,9 +12,16 @@ logger = logging.getLogger(__name__)
     time_limet=600,
     soft_time_limit=30000
 )
-def exportar_receitas_async(data_inicio, data_final, username):
+def exportar_receitas_async(data_inicio, data_final, username, dre_uuid=None):
     logger.info("Exportando csv em processamento...")
-    queryset = Receita.objects.all()
+
+    if dre_uuid:
+        queryset = Receita.objects.filter(
+            associacao__unidade__dre__uuid=dre_uuid,
+        ).order_by('id')
+    else:
+        queryset = Receita.objects.all()
+
     try:
         logger.info("Criando arquivo %s creditos_principal.csv")
         params = {

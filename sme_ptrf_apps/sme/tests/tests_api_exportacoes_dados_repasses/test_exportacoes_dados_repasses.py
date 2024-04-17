@@ -36,5 +36,6 @@ def test_exportacoes_dados_repasses(jwt_authenticated_client_sme, usuario_permis
     mock_exportar_repasse_async.assert_called_once_with(
         data_inicio='2020-03-26',
         data_final='2020-04-26',
-        username=usuario_permissao_sme.username
+        username=usuario_permissao_sme.username,
+        dre_uuid=None
     )
