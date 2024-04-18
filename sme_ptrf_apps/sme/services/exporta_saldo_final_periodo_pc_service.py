@@ -112,6 +112,33 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
                 value = str(getattr(instance, value)).replace(".", ",")
 
                 for _, campo in self.cabecalho:
+
+                    # Removendo ponto e vírgula e substituindo por vírgula
+                    if campo == "associacao__unidade__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "associacao__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "associacao__unidade__dre__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "conta_associacao__tipo_conta__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "acao_associacao__acao__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                        continue
+
                     if campo == "TIPO_APLICACAO":
                         linha_horizontal.append(key)
                         continue

@@ -114,6 +114,33 @@ class ExportacaoDadosRepassesService:
             linha_horizontal = []
 
             for _, campo in self.cabecalho:
+
+                # Removendo ponto e vírgula e substituindo por vírgula
+                if campo == "associacao__unidade__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "associacao__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "associacao__unidade__dre__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "conta_associacao__tipo_conta__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "acao_associacao__acao__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
                 if campo == "valor_custeio":
                     valor_custeio = str(getattr(instance, campo)).replace(".", ",")
                     linha_horizontal.append(valor_custeio)

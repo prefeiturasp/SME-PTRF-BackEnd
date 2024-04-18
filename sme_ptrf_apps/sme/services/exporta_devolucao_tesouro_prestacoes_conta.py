@@ -19,6 +19,7 @@ CABECALHO = [
         ('Código EOL', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol'),
         ('Nome Unidade', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome'),
         ('Nome Associação', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome'),
+        ('DRE', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre__nome'),
         ('Referência do Período da PC', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo__referencia'),
         ('Status da PC', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__status'),
         ('ID da despesa','solicitacao_acerto_lancamento__analise_lancamento__despesa__id'),
@@ -50,7 +51,7 @@ CABECALHO = [
 
 
 class ExportacoesDevolucaoTesouroPrestacoesContaService:
-    
+
     def __init__(self, **kwargs):
         self.queryset = kwargs.get('queryset', None)
         self.data_inicio = kwargs.get('data_inicio', None)
@@ -60,11 +61,34 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
         self.cabecalho = CABECALHO[0]
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
+        self.texto_filtro_aplicado = self.get_texto_filtro_aplicado()
 
-    @property 
-    def get_ambiente(self): 
-        ambiente = Ambiente.objects.first() 
+    @property
+    def get_ambiente(self):
+        ambiente = Ambiente.objects.first()
         return ambiente.prefixo if ambiente else ""
+
+    def get_texto_filtro_aplicado(self):
+        if self.data_inicio and self.data_final:
+            data_inicio_formatada = datetime.strptime(f"{self.data_inicio}", '%Y-%m-%d')
+            data_inicio_formatada = data_inicio_formatada.strftime("%d/%m/%Y")
+
+            data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
+            data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
+
+            return f"Filtro aplicado: {data_inicio_formatada} a {data_final_formatada} (data de criação do registro)"
+
+        if self.data_inicio:
+            data_inicio_formatada = datetime.strptime(f"{self.data_inicio}", '%Y-%m-%d')
+            data_inicio_formatada = data_inicio_formatada.strftime("%d/%m/%Y")
+            return f"Filtro aplicado: A partir de {data_inicio_formatada} (data de criação do registro)"
+
+        if self.data_final:
+            data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
+            data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
+            return f"Filtro aplicado: Até {data_final_formatada} (data de criação do registro)"
+
+        return ""
 
     def exporta_devolucao_tesouro_pc(self):
         self.cria_registro_central_download()
@@ -83,10 +107,10 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
         ) as tmp:
             write = csv.writer(tmp.file, delimiter=";")
             write.writerow([cabecalho[0] for cabecalho in self.cabecalho])
-            
+
             for linha in dados:
                 write.writerow(linha) if linha else None
-                        
+
             self.cria_rodape(write)
             self.envia_arquivo_central_download(tmp)
 
@@ -101,6 +125,31 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
             rateios = list(instance.solicitacao_acerto_lancamento.analise_lancamento.despesa.rateios.all())
 
             for _, campo in self.cabecalho:
+
+                if campo == "solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "solicitacao_acerto_lancamento__analise_lancamento__despesa__nome_fornecedor":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "solicitacao_acerto_lancamento__analise_lancamento__despesa__documento_transacao":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
 
                 if campo == 'aplicacao_recurso' or campo == 'tipo_custeio' or campo == 'desc_material_serv' or campo == 'nome_tipo_conta' or campo == 'nome_acao' or campo == 'valor_rateio' or campo == 'valor_realizado':
                     linha_horizontal.append('')
@@ -123,11 +172,11 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                 elif campo == 'tipo_id':
                     linha_horizontal.append(devolucao_ao_tesouro.tipo.id if devolucao_ao_tesouro is not None else '')
                 elif campo == 'tipo_nome':
-                    linha_horizontal.append(devolucao_ao_tesouro.tipo.nome if devolucao_ao_tesouro is not None else '')
+                    linha_horizontal.append(devolucao_ao_tesouro.tipo.nome.replace(";", ",") if devolucao_ao_tesouro is not None else '')
                 elif campo == 'motivo':
-                    linha_horizontal.append(devolucao_ao_tesouro.motivo if devolucao_ao_tesouro is not None else '')
+                    linha_horizontal.append(devolucao_ao_tesouro.motivo.replace(";", ",") if devolucao_ao_tesouro is not None else '')
                 elif campo == 'devolucao_total':
-                    if devolucao_ao_tesouro is not None:   
+                    if devolucao_ao_tesouro is not None:
                         linha_horizontal.append('Sim' if devolucao_ao_tesouro.devolucao_total else 'Não')
                     else:
                         linha_horizontal.append('')
@@ -137,7 +186,7 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                     data_formatada = devolucao_ao_tesouro.data.strftime("%d/%m/%Y") if devolucao_ao_tesouro is not None and devolucao_ao_tesouro.data is not None else ''
                     linha_horizontal.append(data_formatada)
                 elif campo == 'justificativa':
-                    linha_horizontal.append(instance.solicitacao_acerto_lancamento.justificativa if instance.solicitacao_acerto_lancamento.justificativa is not None else '')
+                    linha_horizontal.append(instance.solicitacao_acerto_lancamento.justificativa.replace(";", ",") if instance.solicitacao_acerto_lancamento.justificativa is not None else '')
                 else:
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo)
@@ -145,19 +194,19 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
             if len(rateios) > 0:
                 for rateio in rateios:
                     linha_nova = linha_horizontal.copy()
-                    linha_nova[16] = rateio.aplicacao_recurso if rateio.aplicacao_recurso else ''
-                    linha_nova[17] = rateio.tipo_custeio.nome if rateio.tipo_custeio else ''
-                    linha_nova[18] = rateio.especificacao_material_servico.descricao if rateio.especificacao_material_servico else ''
-                    linha_nova[19] = rateio.conta_associacao.tipo_conta.nome if rateio.conta_associacao else ''
-                    linha_nova[20] = rateio.acao_associacao.acao.nome if rateio.acao_associacao else ''
-                    linha_nova[21] = str(rateio.valor_rateio).replace(".", ",") if rateio.valor_rateio else ''
-                    linha_nova[22] = str(rateio.valor_original).replace(".", ",") if rateio.valor_original else ''
-                    
+                    linha_nova[17] = rateio.aplicacao_recurso if rateio.aplicacao_recurso else ''
+                    linha_nova[18] = rateio.tipo_custeio.nome.replace(";", ",") if rateio.tipo_custeio else ''
+                    linha_nova[19] = rateio.especificacao_material_servico.descricao.replace(";", ",") if rateio.especificacao_material_servico else ''
+                    linha_nova[20] = rateio.conta_associacao.tipo_conta.nome.replace(";", ",") if rateio.conta_associacao else ''
+                    linha_nova[21] = rateio.acao_associacao.acao.nome.replace(";", ",") if rateio.acao_associacao else ''
+                    linha_nova[22] = str(rateio.valor_rateio).replace(".", ",") if rateio.valor_rateio else ''
+                    linha_nova[23] = str(rateio.valor_original).replace(".", ",") if rateio.valor_original else ''
+
                     logger.info(f"Escrevendo linha {linha_nova} de status de prestação de conta de custeio {instance.id}.")
                     linhas_vertical.append(linha_nova)
             else:
                 logger.info(f"Escrevendo linha {linha_horizontal} de status de prestação de conta de custeio {instance.id}.")
-                linhas_vertical.append(linha_horizontal) 
+                linhas_vertical.append(linha_horizontal)
 
         return linhas_vertical
 
@@ -183,42 +232,54 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                 **{f'{field}__lt': self.data_final}
             )
         return self.queryset
-    
-    def cria_registro_central_download(self): 
-        logger.info(f"Criando registro na central de download") 
-        obj = gerar_arquivo_download( 
-            self.user, 
-            self.nome_arquivo ) 
-        self.objeto_arquivo_download = obj 
-    
-    def envia_arquivo_central_download(self, tmp): 
-        try: 
-            logger.info("Salvando arquivo download...") 
-            self.objeto_arquivo_download.arquivo.save( 
-                name=self.objeto_arquivo_download.identificador, 
-                content=File(tmp) 
-            ) 
-            self.objeto_arquivo_download.status = ArquivoDownload.STATUS_CONCLUIDO 
-            self.objeto_arquivo_download.save() 
-            logger.info("Arquivo salvo com sucesso...") 
-        except Exception as e: 
-            self.objeto_arquivo_download.status = ArquivoDownload.STATUS_ERRO 
-            self.objeto_arquivo_download.msg_erro = str(e) 
-            self.objeto_arquivo_download.save() 
+
+    def cria_registro_central_download(self):
+        logger.info(f"Criando registro na central de download")
+        obj = gerar_arquivo_download(
+            self.user,
+            self.nome_arquivo,
+            self.texto_filtro_aplicado
+        )
+        self.objeto_arquivo_download = obj
+
+    def envia_arquivo_central_download(self, tmp):
+        try:
+            logger.info("Salvando arquivo download...")
+            self.objeto_arquivo_download.arquivo.save(
+                name=self.objeto_arquivo_download.identificador,
+                content=File(tmp)
+            )
+            self.objeto_arquivo_download.status = ArquivoDownload.STATUS_CONCLUIDO
+            self.objeto_arquivo_download.save()
+            logger.info("Arquivo salvo com sucesso...")
+        except Exception as e:
+            self.objeto_arquivo_download.status = ArquivoDownload.STATUS_ERRO
+            self.objeto_arquivo_download.msg_erro = str(e)
+            self.objeto_arquivo_download.save()
             logger.error("Erro arquivo download...")
 
     def texto_rodape(self):
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado pelo {self.ambiente} em {data_hora_geracao}"
+        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
 
         return texto
 
     def cria_rodape(self, write):
         rodape = []
+
+        rodape.append(" ")
+        write.writerow(rodape)
+        rodape.clear()
+
         texto = self.texto_rodape()
 
-        write.writerow([])
+        write.writerow(rodape)
+        rodape.clear()
+
         rodape.append(texto)
         write.writerow(rodape)
         rodape.clear()
-        
+
+        rodape.append(self.texto_filtro_aplicado)
+        write.writerow(rodape)
+        rodape.clear()
