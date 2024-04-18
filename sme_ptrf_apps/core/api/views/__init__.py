@@ -1,4 +1,5 @@
 from .associacoes_viewset import AssociacoesViewSet
+from .parametrizacoes_associacoes import ParametrizacoesAssociacoesViewSet
 from .atas_viewset import AtasViewSet
 from .conciliacoes_viewset import ConciliacoesViewSet
 from .demonstrativo_financeiro_viewset import DemonstrativoFinanceiroViewSet
@@ -32,3 +33,4 @@ from .falhas_geracao_pc_viewset import FalhaGeracaoPcViewSet
 from .solicitacao_encerramento_conta_associacao_viewset import SolicitacaoEncerramentoContaAssociacaoViewset
 from .motivo_rejeicao_encerramento_conta_associacao_viewset import MotivoRejeicaoEncerramentoContaAssociacaoViewset
 from .feature_flags_view import feature_flags
+from .parametrizacoes_acoes_associacoes import ParametrizacoesAcoesAssociacaoViewSet
