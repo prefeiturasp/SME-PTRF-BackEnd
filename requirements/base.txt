@@ -48,7 +48,7 @@ Babel==2.12.1
 Pillow==10.2.0
 argon2-cffi==19.2.0
 brazilnum==0.8.8
-openpyxl==3.0.3
+openpyxl==3.0.10
 python-slugify==8.0.1
 pytz==2019.3
 rcssmin==1.1.1
