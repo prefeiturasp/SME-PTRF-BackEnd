@@ -345,7 +345,9 @@ class PersistenciaDadosDemoFinanceiro:
             if 'despesas_impostos' in despesa:
                 info_retencao_imposto = ''
                 for imposto in despesa['despesas_impostos']:
-                    data_transacao_imposto = self.string_to_date(imposto["data_transacao"]).date()
+                    data_transacao_imposto = ''
+                    if imposto["data_transacao"]:
+                        data_transacao_imposto = self.string_to_date(imposto["data_transacao"]).date()
                     valor_imposto = imposto["valor"]
 
                     info_retencao_imposto = info_retencao_imposto + f"{valor_imposto};{data_transacao_imposto}\r\n"
