@@ -2,6 +2,10 @@ import pytest
 
 from ...services.gestao_usuario_service import GestaoUsuarioService
 from unittest.mock import patch
+from datetime import datetime, timedelta
+from sme_ptrf_apps.mandatos.models.cargo_composicao import CargoComposicao
+from brazilnum.cpf import format_cpf
+from waffle.testutils import override_flag
 
 pytestmark = pytest.mark.django_db
 
@@ -862,3 +866,363 @@ def test_permite_tipo_unidade_administrativa_encontrado_com_codigo_eol_deve_reto
         result = gestao_usuario.permite_tipo_unidade_administrativa("130000")
 
         assert result is False
+
+
+def test_retorna_unidades_membros_v2_usuario_servidor(
+    mandato_factory,
+    composicao_factory,
+    cargo_composicao_factory,
+    ocupante_cargo_factory,
+    usuario_servidor_service_gestao_usuario
+):
+
+    mandato_2024 = mandato_factory.create(data_inicial=datetime.now(
+    ) - timedelta(days=91), data_final=datetime.now() + timedelta(days=365))
+
+    # Composição vigente de uma associacao
+    composicao_vigente_1 = composicao_factory.create(
+        mandato=mandato_2024, data_inicial=mandato_2024.data_inicial, data_final=mandato_2024.data_final)
+
+    # Composição vigente de outra associacao
+    composicao_vigente_2 = composicao_factory.create(
+        mandato=mandato_2024, data_inicial=mandato_2024.data_inicial, data_final=mandato_2024.data_final)
+
+    presidente_executiva = ocupante_cargo_factory.create(
+        codigo_identificacao=usuario_servidor_service_gestao_usuario.username
+    )
+
+    secretario = ocupante_cargo_factory.create(
+        codigo_identificacao=usuario_servidor_service_gestao_usuario.username
+    )
+
+    cargo_composicao_1 = cargo_composicao_factory.create(
+        data_inicio_no_cargo=composicao_vigente_1.data_inicial,
+        data_fim_no_cargo=composicao_vigente_1.data_final,
+        composicao=composicao_vigente_1,
+        ocupante_do_cargo=presidente_executiva,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA
+    )
+
+    cargo_composicao_2 = cargo_composicao_factory.create(
+        data_inicio_no_cargo=composicao_vigente_2.data_inicial,
+        data_fim_no_cargo=composicao_vigente_2.data_final,
+        composicao=composicao_vigente_2,
+        ocupante_do_cargo=secretario,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_SECRETARIO
+    )
+
+    gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+
+    unidades = [
+        composicao_vigente_1.associacao.unidade.codigo_eol,
+        composicao_vigente_2.associacao.unidade.codigo_eol
+    ]
+
+    result = gestao_usuario.retorna_unidades_membros_v2(unidades=unidades)
+
+    assert len(result) == 2
+
+
+def test_retorna_unidades_membros_v2(
+    mandato_factory,
+    composicao_factory,
+    cargo_composicao_factory,
+    ocupante_cargo_factory,
+    usuario_nao_servidor_service_gestao_usuario
+):
+    codigo_membro = format_cpf(usuario_nao_servidor_service_gestao_usuario.username)
+
+    mandato_2024 = mandato_factory.create(data_inicial=datetime.now(
+    ) - timedelta(days=91), data_final=datetime.now() + timedelta(days=365))
+
+    # Composição vigente de uma associacao
+    composicao_vigente_1 = composicao_factory.create(
+        mandato=mandato_2024, data_inicial=mandato_2024.data_inicial, data_final=mandato_2024.data_final)
+
+    # Composição vigente de outra associacao
+    composicao_vigente_2 = composicao_factory.create(
+        mandato=mandato_2024, data_inicial=mandato_2024.data_inicial, data_final=mandato_2024.data_final)
+
+    presidente_executiva = ocupante_cargo_factory.create(
+        cpf_responsavel=codigo_membro
+    )
+
+    secretario = ocupante_cargo_factory.create(
+        cpf_responsavel=codigo_membro
+    )
+
+    cargo_composicao_1 = cargo_composicao_factory.create(
+        data_inicio_no_cargo=composicao_vigente_1.data_inicial,
+        data_fim_no_cargo=composicao_vigente_1.data_final,
+        composicao=composicao_vigente_1,
+        ocupante_do_cargo=presidente_executiva,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA
+    )
+
+    cargo_composicao_2 = cargo_composicao_factory.create(
+        data_inicio_no_cargo=composicao_vigente_2.data_inicial,
+        data_fim_no_cargo=composicao_vigente_2.data_final,
+        composicao=composicao_vigente_2,
+        ocupante_do_cargo=secretario,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_SECRETARIO
+    )
+
+    gestao_usuario = GestaoUsuarioService(usuario=usuario_nao_servidor_service_gestao_usuario)
+
+    unidades = [
+        composicao_vigente_1.associacao.unidade.codigo_eol,
+        composicao_vigente_2.associacao.unidade.codigo_eol
+    ]
+
+    result = gestao_usuario.retorna_unidades_membros_v2(unidades=unidades)
+
+    assert len(result) == 2
+
+
+def test_retorna_unidades_membros_v2_sem_composicao_vigente(
+    mandato_factory,
+    composicao_factory,
+    cargo_composicao_factory,
+    ocupante_cargo_factory,
+    usuario_nao_servidor_service_gestao_usuario
+):
+    codigo_membro = format_cpf(usuario_nao_servidor_service_gestao_usuario.username)
+
+    mandato_2024 = mandato_factory.create(data_inicial=datetime.now(
+    ) - timedelta(days=91), data_final=datetime.now() + timedelta(days=365))
+
+    finaliza_apos_30_dias = mandato_2024.data_inicial + timedelta(days=30)
+
+    # Composicao inicial de uma escola (Não é composição vigente)
+    composicao_inicial = composicao_factory.create(
+        mandato=mandato_2024,
+        data_inicial=mandato_2024.data_inicial,
+        data_final=finaliza_apos_30_dias
+    )
+
+    presidente_executiva = ocupante_cargo_factory.create(
+        cpf_responsavel=codigo_membro
+    )
+
+    cargo_composicao = cargo_composicao_factory.create(
+        data_inicio_no_cargo=composicao_inicial.data_inicial,
+        data_fim_no_cargo=composicao_inicial.data_final,
+        composicao=composicao_inicial,
+        ocupante_do_cargo=presidente_executiva,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA
+    )
+
+    gestao_usuario = GestaoUsuarioService(usuario=usuario_nao_servidor_service_gestao_usuario)
+
+    unidades = [
+        composicao_inicial.associacao.unidade.codigo_eol,
+    ]
+
+    result = gestao_usuario.retorna_unidades_membros_v2(unidades=unidades)
+
+    # Este usuario não é membro de nenhuma composição vigente
+    assert len(result) == 0
+
+
+def test_retorna_unidades_membros_v2_com_apenas_uma_composicao_vigente(
+    mandato_factory,
+    composicao_factory,
+    cargo_composicao_factory,
+    ocupante_cargo_factory,
+    usuario_nao_servidor_service_gestao_usuario
+):
+    codigo_membro = format_cpf(usuario_nao_servidor_service_gestao_usuario.username)
+
+    mandato_2024 = mandato_factory.create(data_inicial=datetime.now(
+    ) - timedelta(days=91), data_final=datetime.now() + timedelta(days=365))
+
+    finaliza_apos_30_dias = mandato_2024.data_inicial + timedelta(days=30)
+
+    # Composicao inicial de uma escola (Não é composição vigente)
+    composicao_inicial = composicao_factory.create(
+        mandato=mandato_2024,
+        data_inicial=mandato_2024.data_inicial,
+        data_final=finaliza_apos_30_dias
+    )
+
+    # Composicao vigente de outra escola
+    composicao_vigente = composicao_factory.create(
+        mandato=mandato_2024,
+        data_inicial=mandato_2024.data_inicial,
+        data_final=mandato_2024.data_final
+    )
+
+    presidente_executiva = ocupante_cargo_factory.create(
+        cpf_responsavel=codigo_membro
+    )
+
+    secretario = ocupante_cargo_factory.create(
+        cpf_responsavel=codigo_membro
+    )
+
+    cargo_da_composicao_inicial = cargo_composicao_factory.create(
+        data_inicio_no_cargo=composicao_inicial.data_inicial,
+        data_fim_no_cargo=composicao_inicial.data_final,
+        composicao=composicao_inicial,
+        ocupante_do_cargo=presidente_executiva,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA
+    )
+
+    cargo_da_composicao_vigente = cargo_composicao_factory.create(
+        data_inicio_no_cargo=composicao_vigente.data_inicial,
+        data_fim_no_cargo=composicao_vigente.data_final,
+        composicao=composicao_vigente,
+        ocupante_do_cargo=secretario,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_SECRETARIO
+    )
+
+    gestao_usuario = GestaoUsuarioService(usuario=usuario_nao_servidor_service_gestao_usuario)
+
+    unidades = [
+        composicao_inicial.associacao.unidade.codigo_eol,
+        composicao_vigente.associacao.unidade.codigo_eol,
+    ]
+
+    result = gestao_usuario.retorna_unidades_membros_v2(unidades=unidades)
+
+    # Este usuario é membro de apenas uma composição vigente
+    assert len(result) == 1
+    assert result[0]["uuid_unidade"] == f"{composicao_vigente.associacao.unidade.uuid}"
+
+
+@override_flag('historico-de-membros', active=True)
+def test_retorna_unidades_que_eh_membro_associacao_com_flag_ativa(
+    mandato_factory,
+    composicao_factory,
+    cargo_composicao_factory,
+    ocupante_cargo_factory,
+    usuario_nao_servidor_service_gestao_usuario
+):
+    codigo_membro = format_cpf(usuario_nao_servidor_service_gestao_usuario.username)
+
+    mandato_2024 = mandato_factory.create(data_inicial=datetime.now(
+    ) - timedelta(days=91), data_final=datetime.now() + timedelta(days=365))
+
+    composicao_vigente = composicao_factory.create(
+        mandato=mandato_2024,
+        data_inicial=mandato_2024.data_inicial,
+        data_final=mandato_2024.data_final
+    )
+
+    presidente_executiva = ocupante_cargo_factory.create(
+        cpf_responsavel=codigo_membro
+    )
+
+    cargo_composicao = cargo_composicao_factory.create(
+        data_inicio_no_cargo=composicao_vigente.data_inicial,
+        data_fim_no_cargo=composicao_vigente.data_final,
+        composicao=composicao_vigente,
+        ocupante_do_cargo=presidente_executiva,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA
+    )
+
+    gestao_usuario = GestaoUsuarioService(usuario=usuario_nao_servidor_service_gestao_usuario)
+
+    unidades = [
+        composicao_vigente.associacao.unidade.codigo_eol,
+    ]
+
+    result = gestao_usuario.retorna_unidades_que_eh_membro_associacao(unidades=unidades)
+
+    assert len(result) == 1
+
+
+@override_flag('historico-de-membros', active=False)
+def test_retorna_unidades_que_eh_membro_associacao_com_flag_nao_ativa(
+    usuario_nao_servidor_service_gestao_usuario,
+    membro_associacao_nao_servidor_a,
+    membro_associacao_nao_servidor_b
+):
+    gestao_usuario = GestaoUsuarioService(usuario=usuario_nao_servidor_service_gestao_usuario)
+
+    unidades = [
+        membro_associacao_nao_servidor_a.associacao.unidade.codigo_eol,
+        membro_associacao_nao_servidor_b.associacao.unidade.codigo_eol,
+    ]
+
+    result = gestao_usuario.retorna_unidades_que_eh_membro_associacao(unidades=unidades)
+
+    assert len(result) == 2
+
+
+def test_valida_unidades_do_usuario_deve_remover_unidade_e_retornar_lista_de_removidas(
+    usuario_servidor_service_gestao_usuario,
+    unidade_gestao_usuario_a,
+    unidade_gestao_usuario_b,
+    visao_sme_gestao_usuario,
+    parametros_sme
+):
+    path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_info_lotacao_e_exercicio_do_servidor'
+    with patch(path) as mock_get:
+        data = {
+            "unidadeExercicio": {
+                "codigo": f"{unidade_gestao_usuario_a.codigo_eol}",
+                "nomeUnidade": f"{unidade_gestao_usuario_a.nome}"
+            }
+        }
+
+        mock_get.return_value = data
+
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
+
+            mock_get_dados_unidade.return_value = data
+
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
+            assert visao_sme_gestao_usuario in usuario_servidor_service_gestao_usuario.visoes.all()
+
+            gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+            result = gestao_usuario.valida_unidades_do_usuario()
+
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 1
+            assert visao_sme_gestao_usuario not in usuario_servidor_service_gestao_usuario.visoes.all()
+
+            # Foram removidas uma unidade e a visão SME
+            assert len(result) == 2
+
+
+def test_valida_unidades_do_usuario_nao_deve_remover_unidade_e_deve_retornar_lista_de_unidades_que_seriam_removidas(
+    usuario_servidor_service_gestao_usuario,
+    unidade_gestao_usuario_a,
+    unidade_gestao_usuario_b,
+    visao_sme_gestao_usuario,
+    parametros_sme_valida_unidades_login_falso
+):
+    path = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_info_lotacao_e_exercicio_do_servidor'
+    with patch(path) as mock_get:
+        data = {
+            "unidadeExercicio": {
+                "codigo": f"{unidade_gestao_usuario_a.codigo_eol}",
+                "nomeUnidade": f"{unidade_gestao_usuario_a.nome}"
+            }
+        }
+
+        mock_get.return_value = data
+
+        path_dados_unidade = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
+        with patch(path_dados_unidade) as mock_get_dados_unidade:
+            data = {
+                "tipoUnidadeAdm": "1"
+            }
+
+            mock_get_dados_unidade.return_value = data
+
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
+            assert visao_sme_gestao_usuario in usuario_servidor_service_gestao_usuario.visoes.all()
+
+            gestao_usuario = GestaoUsuarioService(usuario=usuario_servidor_service_gestao_usuario)
+            result = gestao_usuario.valida_unidades_do_usuario()
+
+            assert usuario_servidor_service_gestao_usuario.unidades.count() == 2
+            assert visao_sme_gestao_usuario in usuario_servidor_service_gestao_usuario.visoes.all()
+
+            # Foram removidas uma unidade e a visão SME
+            assert len(result) == 2

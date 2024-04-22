@@ -8,14 +8,24 @@ from sme_ptrf_apps.users.services import (
     SmeIntegracaoException
 )
 from django.db.models import Q
+from waffle import get_waffle_flag_model
+from sme_ptrf_apps.sme.models import ParametrosSme
+from sme_ptrf_apps.mandatos.services import ServicoMandatoVigente
+from sme_ptrf_apps.mandatos.services import ServicoComposicaoVigente
+
+from sme_ptrf_apps.mandatos.models import CargoComposicao
+import logging
 
 User = get_user_model()
+
+logger = logging.getLogger(__name__)
 
 
 class GestaoUsuarioService:
 
     def __init__(self, usuario):
         self.usuario = usuario
+        self.deve_remover_unidades = ParametrosSme.get().valida_unidades_login
 
     def unidades_do_usuario(self, unidade_base="SME", visao_base="SME", inclui_unidades_suporte=False):
         if self.usuario.e_servidor:
@@ -46,12 +56,43 @@ class GestaoUsuarioService:
             codigo_identificacao=self.usuario.username, associacao__unidade=unidade).exists()
 
     def usuario_membro_associacao_na_unidade(self, unidade):
-        if not self.usuario.e_servidor:
-            return MembroAssociacao.objects.filter(
-                cpf=format_cpf(self.usuario.username), associacao__unidade=unidade).exists()
+        flags = get_waffle_flag_model()
+
+        if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+            servico_mandato_vigente = ServicoMandatoVigente()
+            mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+            servico_composicao_vigente = ServicoComposicaoVigente(
+                associacao=unidade.associacoes.first(),
+                mandato=mandato_vigente
+            )
+
+            composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
+            if composicao_vigente:
+                if self.usuario.e_servidor:
+                    cargo_composicao = CargoComposicao.objects.filter(
+                        ocupante_do_cargo__codigo_identificacao=self.usuario.username,
+                        composicao=composicao_vigente
+                    ).exists()
+                else:
+                    codigo_membro = format_cpf(self.usuario.username)
+
+                    cargo_composicao = CargoComposicao.objects.filter(
+                        ocupante_do_cargo__cpf_responsavel=codigo_membro,
+                        composicao=composicao_vigente,
+                    ).exists()
+
+                return cargo_composicao
+
+            return False
+
         else:
-            return MembroAssociacao.objects.filter(
-                codigo_identificacao=self.usuario.username, associacao__unidade=unidade).exists()
+            if not self.usuario.e_servidor:
+                return MembroAssociacao.objects.filter(
+                    cpf=format_cpf(self.usuario.username), associacao__unidade=unidade).exists()
+            else:
+                return MembroAssociacao.objects.filter(
+                    codigo_identificacao=self.usuario.username, associacao__unidade=unidade).exists()
 
     def get_info_unidade(self):
         try:
@@ -94,7 +135,6 @@ class GestaoUsuarioService:
 
     def retorna_lista_unidades_nao_servidor(self, unidade_base, visao_base, inclui_unidades_suporte=False):
         lista = []
-        membro_associacoes = MembroAssociacao.objects.filter(cpf=format_cpf(self.usuario.username)).all()
         acessos_concedidos_pela_sme = AcessoConcedidoSme.objects.filter(user=self.usuario).all()
         unidades = []
 
@@ -103,18 +143,13 @@ class GestaoUsuarioService:
         elif visao_base == 'DRE':
             unidades = unidade_base.unidades_da_dre.values_list("codigo_eol", flat=True)
 
-        for membro in membro_associacoes.filter(associacao__unidade__codigo_eol__in=unidades).all():
-            lista.append({
-                'uuid_unidade': f'{membro.associacao.unidade.uuid}',
-                'nome_com_tipo': f'{membro.associacao.unidade.tipo_unidade} {membro.associacao.unidade.nome}',
-                'membro': True,
-                'tem_acesso': self.usuario_possui_acesso_a_unidade(membro.associacao.unidade),
-                'username': self.usuario.username,
-                'acesso_concedido_sme': False,
-                'tipo_unidade': membro.associacao.unidade.tipo_unidade
-            })
+        unidades_que_eh_membro_associacao = self.retorna_unidades_que_eh_membro_associacao(unidades)
+        lista.extend(unidades_que_eh_membro_associacao)
 
         for acesso in acessos_concedidos_pela_sme.filter(unidade__codigo_eol__in=unidades).all():
+            if self.unidade_esta_na_lista(lista=lista, unidade=acesso.unidade):
+                continue
+
             lista.append({
                 'uuid_unidade': f'{acesso.unidade.uuid}',
                 'nome_com_tipo': f'{acesso.unidade.tipo_unidade} {acesso.unidade.nome}',
@@ -129,13 +164,16 @@ class GestaoUsuarioService:
             unidades_em_suporte = UnidadeEmSuporte.objects.filter(user=self.usuario).all()
 
             for unidade_suporte in unidades_em_suporte:
+                if self.unidade_esta_na_lista(lista=lista, unidade=unidade_suporte.unidade):
+                    continue
+
                 lista.append({
                     'uuid_unidade': f'{unidade_suporte.unidade.uuid}',
                     'nome_com_tipo': f'{unidade_suporte.unidade.tipo_unidade} {unidade_suporte.unidade.nome}',
                     'membro': self.usuario_membro_associacao_na_unidade(unidade_suporte.unidade),
                     'tem_acesso': True,
                     'username': self.usuario.username,
-                    'acesso_concedido_sme': False
+                    'acesso_concedido_sme': self.acesso_concedido_sme(unidade=unidade_suporte.unidade)
                 })
 
         lista_ordenada = sorted(lista, key=lambda row: (row['tem_acesso'] is False, row['nome_com_tipo']))
@@ -179,30 +217,18 @@ class GestaoUsuarioService:
                 'tem_acesso': self.usuario_possui_acesso_a_unidade(unidade_encontrada_na_base),
                 'username': self.usuario.username,
                 'unidade_em_exercicio': True,
-                'acesso_concedido_sme': False,
+                'acesso_concedido_sme': self.acesso_concedido_sme(unidade=unidade_encontrada_na_base),
                 'tipo_unidade': unidade_encontrada_na_base.tipo_unidade
             })
 
-        membro_associacoes = MembroAssociacao.objects.filter(codigo_identificacao=self.usuario.username).all()
-        for membro in membro_associacoes.filter(associacao__unidade__codigo_eol__in=unidades).all():
-
-            if unidade_encontrada_na_base == membro.associacao.unidade:
-                # Esta unidade ja foi adicionada a lista no bloco acima
-                continue
-
-            lista.append({
-                'uuid_unidade': f'{membro.associacao.unidade.uuid}',
-                'nome_com_tipo': f'{membro.associacao.unidade.tipo_unidade} {membro.associacao.unidade.nome}',
-                'membro': True,
-                'tem_acesso': self.usuario_possui_acesso_a_unidade(membro.associacao.unidade),
-                'username': self.usuario.username,
-                'unidade_em_exercicio': False,
-                'acesso_concedido_sme': False,
-                'tipo_unidade': membro.associacao.unidade.tipo_unidade
-            })
+        unidades_que_eh_membro_associacao = self.retorna_unidades_que_eh_membro_associacao(unidades, unidade_encontrada_na_base)
+        lista.extend(unidades_que_eh_membro_associacao)
 
         acessos_concedidos_pela_sme = AcessoConcedidoSme.objects.filter(user=self.usuario).all()
         for acesso in acessos_concedidos_pela_sme.filter(unidade__codigo_eol__in=unidades).all():
+            if self.unidade_esta_na_lista(lista=lista, unidade=acesso.unidade):
+                continue
+
             lista.append({
                 'uuid_unidade': f'{acesso.unidade.uuid}',
                 'nome_com_tipo': f'{acesso.unidade.tipo_unidade} {acesso.unidade.nome}',
@@ -218,6 +244,9 @@ class GestaoUsuarioService:
             unidades_em_suporte = UnidadeEmSuporte.objects.filter(user=self.usuario).all()
 
             for unidade_suporte in unidades_em_suporte:
+                if self.unidade_esta_na_lista(lista=lista, unidade=unidade_suporte.unidade):
+                    continue
+
                 lista.append({
                     'uuid_unidade': f'{unidade_suporte.unidade.uuid}',
                     'nome_com_tipo': f'{unidade_suporte.unidade.tipo_unidade} {unidade_suporte.unidade.nome}',
@@ -334,3 +363,139 @@ class GestaoUsuarioService:
                         break
 
         return tipos_unidades_usuario_tem_acesso
+
+    @staticmethod
+    def unidade_esta_na_lista(lista, unidade):
+        unidade = [u for u in lista if str(unidade.uuid) == u["uuid_unidade"]]
+
+        return unidade
+
+    def acesso_concedido_sme(self, unidade):
+        return AcessoConcedidoSme.objects.filter(user=self.usuario, unidade=unidade).exists()
+
+    def retorna_unidades_membros_v2(self, unidades, unidade_encontrada_na_base=None):
+        lista = []
+        servico_mandato_vigente = ServicoMandatoVigente()
+        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+        if self.usuario.e_servidor:
+            cargos_composicao_do_membro = CargoComposicao.objects.filter(
+                ocupante_do_cargo__codigo_identificacao=self.usuario.username,
+            )
+        else:
+            codigo_membro = format_cpf(self.usuario.username)
+            cargos_composicao_do_membro = CargoComposicao.objects.filter(
+                ocupante_do_cargo__cpf_responsavel=codigo_membro,
+            )
+
+        for cargo_composicao in cargos_composicao_do_membro.filter(composicao__associacao__unidade__codigo_eol__in=unidades).all():
+            associacao = cargo_composicao.composicao.associacao
+
+            if unidade_encontrada_na_base == associacao.unidade:
+                # Esta unidade ja foi adicionada a lista no bloco acima
+                continue
+
+            servico_composicao_vigente = ServicoComposicaoVigente(
+                associacao=associacao,
+                mandato=mandato_vigente
+            )
+            composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
+
+            if composicao_vigente == cargo_composicao.composicao:
+                lista.append({
+                    'uuid_unidade': f'{associacao.unidade.uuid}',
+                    'nome_com_tipo': f'{associacao.unidade.tipo_unidade} {associacao.unidade.nome}',
+                    'membro': True,
+                    'tem_acesso': self.usuario_possui_acesso_a_unidade(associacao.unidade),
+                    'username': self.usuario.username,
+                    'unidade_em_exercicio': False,
+                    'acesso_concedido_sme': self.acesso_concedido_sme(unidade=associacao.unidade),
+                    'tipo_unidade': associacao.unidade.tipo_unidade
+                })
+
+        return lista
+
+    def retorna_unidades_membros_v1(self, unidades, unidade_encontrada_na_base=None):
+        lista = []
+
+        if self.usuario.e_servidor:
+            membro_associacoes = MembroAssociacao.objects.filter(codigo_identificacao=self.usuario.username).all()
+        else:
+            membro_associacoes = MembroAssociacao.objects.filter(cpf=format_cpf(self.usuario.username)).all()
+
+        for membro in membro_associacoes.filter(associacao__unidade__codigo_eol__in=unidades).all():
+
+            if unidade_encontrada_na_base == membro.associacao.unidade:
+                # Esta unidade ja foi adicionada a lista no bloco acima
+                continue
+
+            lista.append({
+                'uuid_unidade': f'{membro.associacao.unidade.uuid}',
+                'nome_com_tipo': f'{membro.associacao.unidade.tipo_unidade} {membro.associacao.unidade.nome}',
+                'membro': True,
+                'tem_acesso': self.usuario_possui_acesso_a_unidade(membro.associacao.unidade),
+                'username': self.usuario.username,
+                'unidade_em_exercicio': False,
+                'acesso_concedido_sme': False,
+                'tipo_unidade': membro.associacao.unidade.tipo_unidade
+            })
+
+        return lista
+
+    def retorna_unidades_que_eh_membro_associacao(self, unidades, unidade_encontrada_na_base=None):
+        flags = get_waffle_flag_model()
+
+        if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+            return self.retorna_unidades_membros_v2(unidades, unidade_encontrada_na_base)
+        else:
+            return self.retorna_unidades_membros_v1(unidades, unidade_encontrada_na_base)
+
+    def unidade_em_suporte(self, unidade):
+        return UnidadeEmSuporte.objects.filter(unidade=unidade, user=self.usuario).exists()
+
+    def valida_unidades_do_usuario(self):
+        unidades_que_perdeu_acesso = []
+        unidades_vinculadas = self.usuario.unidades.all()
+        unidades_que_usuario_pode_ter_acesso = self.unidades_do_usuario(inclui_unidades_suporte=True)
+
+        for unidade_vinculada in unidades_vinculadas:
+            if self.unidade_em_suporte(unidade=unidade_vinculada):
+                logger.info(
+                    f"A {unidade_vinculada} está em suporte para o usuário: {self.usuario}, portanto será ignorada")
+                continue
+
+            unidade_com_direito = [u for u in unidades_que_usuario_pode_ter_acesso if
+                                   str(unidade_vinculada.uuid) == u["uuid_unidade"]]
+
+            if not unidade_com_direito:
+
+                unidades_que_perdeu_acesso.append({
+                    "uuid_unidade": unidade_vinculada.uuid,
+                    "nome_unidade": unidade_vinculada.nome,
+                    "tipo_unidade": unidade_vinculada.tipo_unidade,
+                    "cod_eol": unidade_vinculada.codigo_eol
+                })
+
+                if self.deve_remover_unidades:
+                    logger.info("A flag 'valida_unidades_login' está ativa, portanto as unidades serão removidas")
+                    self.desabilitar_acesso(unidade=unidade_vinculada)
+                    self.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade=unidade_vinculada,
+                                                                                          visao_base="SME")
+
+        if self.usuario_possui_visao(visao="SME"):
+            sme = [u for u in unidades_que_usuario_pode_ter_acesso if "SME" == u["uuid_unidade"]]
+
+            if not sme:
+                unidades_que_perdeu_acesso.append({
+                    "uuid_unidade": "",
+                    "nome_unidade": "Secretaria Municipal de Educação",
+                    "tipo_unidade": "SME",
+                    "cod_eol": ""
+                })
+
+                if self.deve_remover_unidades:
+                    logger.info("A flag 'valida_unidades_login' está ativa, portanto a visão SME sera removida")
+                    self.desabilitar_acesso(unidade="SME")
+                    self.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade="SME", visao_base="SME")
+
+        return unidades_que_perdeu_acesso
