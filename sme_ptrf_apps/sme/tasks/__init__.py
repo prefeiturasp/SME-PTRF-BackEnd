@@ -13,3 +13,4 @@ from .exportar_dados_contas import exportar_dados_conta_async
 from .exportar_repasses import exportar_repasses_async
 from .exportar_membros_apm import exportar_dados_membros_apm_async
 from .exportar_processos_sei_regularidade import exportar_processos_sei_regularidade_async
+from .exportar_processos_sei_prestacao_contas import exportar_processos_sei_prestacao_contas_async
