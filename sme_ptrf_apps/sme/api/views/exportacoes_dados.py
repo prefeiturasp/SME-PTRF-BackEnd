@@ -216,6 +216,7 @@ class ExportacoesDadosViewSet(GenericViewSet):
             data_inicio=request.query_params.get("data_inicio"),
             data_final=request.query_params.get("data_final"),
             username=request.user.username,
+            dre_uuid=request.query_params.get("dre_uuid"),
         )
 
         return Response(
