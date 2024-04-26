@@ -12,7 +12,9 @@ from sme_ptrf_apps.core.services.carga_devolucoes_tesouro_service import CargaDe
 from sme_ptrf_apps.receitas.services.carga_repasses_previstos import carrega_repasses_previstos
 from sme_ptrf_apps.receitas.services.carga_repasses_realizados import carrega_repasses_realizados
 from sme_ptrf_apps.users.services.carga_usuario_service import CargaUsuariosService
+from sme_ptrf_apps.users.services.carga_usuario_v2_service import CargaUsuariosGestaoUsuarioService
 from sme_ptrf_apps.despesas.services.carga_materiais_servicos_service import CargaMateriaisServicosService
+from waffle import get_waffle_flag_model
 
 def processa_cargas(queryset):
     for arquivo in queryset.all():
@@ -31,7 +33,13 @@ def processa_carga(arquivo):
     elif arquivo.tipo_carga == CARGA_ASSOCIACOES:
         CargaAssociacoesService().carrega_associacoes(arquivo)
     elif arquivo.tipo_carga == CARGA_USUARIOS:
-        CargaUsuariosService().carrega_usuarios(arquivo)
+        flags = get_waffle_flag_model()
+
+        if flags.objects.filter(name='gestao-usuarios', everyone=True).exists():
+            CargaUsuariosGestaoUsuarioService().carrega_usuarios(arquivo)
+        else:
+            CargaUsuariosService().carrega_usuarios(arquivo)
+
     elif arquivo.tipo_carga == CARGA_CENSO:
         carrega_censo(arquivo)
     elif arquivo.tipo_carga == CARGA_REPASSE_PREVISTO_SME:

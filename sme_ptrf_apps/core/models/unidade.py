@@ -101,6 +101,14 @@ class Unidade(ModeloBase, TemNome):
         else:
             return ""
 
+    def tipo_unidade_pertence_a_grupo_ue(self):
+        TIPOS_UNIDADES_NAO_PERTENCENTES_A_GRUPO_UE = ['ADM', 'DRE', 'IFSP', 'CMCT']
+
+        if self.tipo_unidade not in TIPOS_UNIDADES_NAO_PERTENCENTES_A_GRUPO_UE:
+            return True
+
+        return False
+
     class Meta:
         verbose_name = 'Unidade'
         verbose_name_plural = '06.0) Unidades'
