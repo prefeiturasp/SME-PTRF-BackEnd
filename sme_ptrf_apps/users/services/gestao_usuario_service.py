@@ -56,82 +56,19 @@ class GestaoUsuarioService:
             codigo_identificacao=self.usuario.username, associacao__unidade=unidade).exists()
 
     def usuario_membro_associacao_na_unidade(self, unidade):
-        flags = get_waffle_flag_model()
-
-        if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
-            servico_mandato_vigente = ServicoMandatoVigente()
-            mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
-
-            servico_composicao_vigente = ServicoComposicaoVigente(
-                associacao=unidade.associacoes.first(),
-                mandato=mandato_vigente
-            )
-
-            composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
-            if composicao_vigente:
-                if self.usuario.e_servidor:
-                    cargo_composicao = CargoComposicao.objects.filter(
-                        ocupante_do_cargo__codigo_identificacao=self.usuario.username,
-                        composicao=composicao_vigente
-                    ).exists()
-                else:
-                    codigo_membro = format_cpf(self.usuario.username)
-
-                    cargo_composicao = CargoComposicao.objects.filter(
-                        ocupante_do_cargo__cpf_responsavel=codigo_membro,
-                        composicao=composicao_vigente,
-                    ).exists()
-
-                return cargo_composicao
-
-            return False
-
-        else:
-            if not self.usuario.e_servidor:
-                return MembroAssociacao.objects.filter(
-                    cpf=format_cpf(self.usuario.username), associacao__unidade=unidade).exists()
-            else:
-                return MembroAssociacao.objects.filter(
-                    codigo_identificacao=self.usuario.username, associacao__unidade=unidade).exists()
+        return GestaoUsuarioService.get_se_usuario_membro_associacao_na_unidade(
+            unidade=unidade,
+            username=self.usuario.username,
+            e_servidor=self.usuario.e_servidor
+        )
 
     def get_info_unidade(self):
-        try:
-            info = SmeIntegracaoService.get_info_lotacao_e_exercicio_do_servidor(self.usuario.username)
-        except SmeIntegracaoException:
-            info = None
-
-        unidade_encontrada = None
-
-        if info:
-            if "unidadeExercicio" in info and info['unidadeExercicio'] is not None:
-                unidade_encontrada = info['unidadeExercicio']
-
-            elif "unidadeLotacao" in info and info['unidadeLotacao'] is not None:
-                unidade_encontrada = info['unidadeLotacao']
-
-        return unidade_encontrada
+        return GestaoUsuarioService.get_info_unidade_exercicio_lotacao(username=self.usuario.username)
 
     @staticmethod
     def permite_tipo_unidade_administrativa(codigo_eol):
-        resultado = SmeIntegracaoService.get_dados_unidade_eol(codigo_eol, retorna_json=True)
 
-        if resultado and "tipoUnidadeAdm" in resultado:
-            tipo_unidade_adm = int(resultado["tipoUnidadeAdm"])
-
-            tipo_unidade_adm_encontrado_na_base = TipoUnidadeAdministrativa.objects.filter(
-                tipo_unidade_administrativa=tipo_unidade_adm
-            )
-
-            if tipo_unidade_adm_encontrado_na_base.exists():
-                tipo_unidade_adm_encontrado_na_base = tipo_unidade_adm_encontrado_na_base.first()
-
-                if not tipo_unidade_adm_encontrado_na_base.possui_codigo_eol:
-                    return True
-
-                if codigo_eol.startswith(tipo_unidade_adm_encontrado_na_base.inicio_codigo_eol):
-                    return True
-
-        return False
+        return GestaoUsuarioService.get_se_permite_tipo_unidade_administrativa(codigo_eol=codigo_eol)
 
     def retorna_lista_unidades_nao_servidor(self, unidade_base, visao_base, inclui_unidades_suporte=False):
         lista = []
@@ -499,3 +436,83 @@ class GestaoUsuarioService:
                     self.remover_grupos_acesso_apos_remocao_acesso_unidade(unidade="SME", visao_base="SME")
 
         return unidades_que_perdeu_acesso
+
+    @classmethod
+    def get_info_unidade_exercicio_lotacao(cls, username):
+        try:
+            info = SmeIntegracaoService.get_info_lotacao_e_exercicio_do_servidor(username)
+        except SmeIntegracaoException:
+            info = None
+
+        unidade_encontrada = None
+
+        if info:
+            if "unidadeExercicio" in info and info['unidadeExercicio'] is not None:
+                unidade_encontrada = info['unidadeExercicio']
+
+            elif "unidadeLotacao" in info and info['unidadeLotacao'] is not None:
+                unidade_encontrada = info['unidadeLotacao']
+
+        return unidade_encontrada
+
+    @classmethod
+    def get_se_usuario_membro_associacao_na_unidade(cls, unidade, username, e_servidor):
+        flags = get_waffle_flag_model()
+
+        if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+            servico_mandato_vigente = ServicoMandatoVigente()
+            mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+            servico_composicao_vigente = ServicoComposicaoVigente(
+                associacao=unidade.associacoes.first(),
+                mandato=mandato_vigente
+            )
+
+            composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
+            if composicao_vigente:
+                if e_servidor:
+                    cargo_composicao = CargoComposicao.objects.filter(
+                        ocupante_do_cargo__codigo_identificacao=username,
+                        composicao=composicao_vigente
+                    ).exists()
+                else:
+                    codigo_membro = format_cpf(username)
+
+                    cargo_composicao = CargoComposicao.objects.filter(
+                        ocupante_do_cargo__cpf_responsavel=codigo_membro,
+                        composicao=composicao_vigente,
+                    ).exists()
+
+                return cargo_composicao
+
+            return False
+
+        else:
+            if not e_servidor:
+                return MembroAssociacao.objects.filter(
+                    cpf=format_cpf(username), associacao__unidade=unidade).exists()
+            else:
+                return MembroAssociacao.objects.filter(
+                    codigo_identificacao=username, associacao__unidade=unidade).exists()
+
+    @classmethod
+    def get_se_permite_tipo_unidade_administrativa(cls, codigo_eol):
+        resultado = SmeIntegracaoService.get_dados_unidade_eol(codigo_eol, retorna_json=True)
+
+        if resultado and "tipoUnidadeAdm" in resultado:
+            tipo_unidade_adm = int(resultado["tipoUnidadeAdm"])
+
+            tipo_unidade_adm_encontrado_na_base = TipoUnidadeAdministrativa.objects.filter(
+                tipo_unidade_administrativa=tipo_unidade_adm
+            )
+
+            if tipo_unidade_adm_encontrado_na_base.exists():
+                tipo_unidade_adm_encontrado_na_base = tipo_unidade_adm_encontrado_na_base.first()
+
+                if not tipo_unidade_adm_encontrado_na_base.possui_codigo_eol:
+                    return True
+
+                if codigo_eol.startswith(tipo_unidade_adm_encontrado_na_base.inicio_codigo_eol):
+                    return True
+
+        return False
