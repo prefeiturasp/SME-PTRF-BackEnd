@@ -37,30 +37,30 @@ def get_informacoes_download(data_inicio, data_final):
 
 
 CABECALHO_ATAS = [
-        ('Código EOL', 'associacao__unidade__codigo_eol'),
-        ('Nome unidade', 'associacao__unidade__nome'),
-        ('Nome associação', 'associacao__nome'),
-        ('DRE', 'associacao__unidade__dre__nome'),
-        ('Referência do período da PC', 'periodo__referencia'),
-        ('Tipo de ata', 'tipo_ata'),
-        ('Tipo de reunião', 'tipo_reuniao'),
-        ('Data da reunião', 'data_reuniao'),
-        ('Hora da reunião', 'hora_reuniao'),
-        ('Local da reunião', 'local_reuniao'),
-        ('Convocação', 'convocacao'),
-        ('Presidente da reunião', 'presidente_reuniao'),
-        ('Cargo do presidente', 'cargo_presidente_reuniao'),
-        ('Secretário da reunião', 'secretario_reuniao'),
-        ('Cargo do secretário', 'cargo_secretaria_reuniao'),
-        ('Justificativas de repasses pendentes', 'justificativa_repasses_pendentes'),
-        ('Manifestações', 'comentarios'),
-        ('Retificações', 'retificacoes'),
-        ('Parecer dos presentes', 'parecer_conselho'),
-        ('Data e hora de preenchimento', 'preenchida_em'),
-        ('URL do arquivo PDF', 'arquivo_pdf'),
-        ('Status', 'status_geracao_pdf'),
-        ('Data e hora de criação', 'criado_em'),
-        ('Data e hora da última atualização', 'alterado_em')
+    ('Código EOL', 'associacao__unidade__codigo_eol'),
+    ('Nome unidade', 'associacao__unidade__nome'),
+    ('Nome associação', 'associacao__nome'),
+    ('DRE', 'associacao__unidade__dre__nome'),
+    ('Referência do período da PC', 'periodo__referencia'),
+    ('Tipo de ata', 'tipo_ata'),
+    ('Tipo de reunião', 'tipo_reuniao'),
+    ('Data da reunião', 'data_reuniao'),
+    ('Hora da reunião', 'hora_reuniao'),
+    ('Local da reunião', 'local_reuniao'),
+    ('Convocação', 'convocacao'),
+    ('Presidente da reunião', 'presidente_reuniao'),
+    ('Cargo do presidente', 'cargo_presidente_reuniao'),
+    ('Secretário da reunião', 'secretario_reuniao'),
+    ('Cargo do secretário', 'cargo_secretaria_reuniao'),
+    ('Justificativas de repasses pendentes', 'justificativa_repasses_pendentes'),
+    ('Manifestações', 'comentarios'),
+    ('Retificações', 'retificacoes'),
+    ('Parecer dos presentes', 'parecer_conselho'),
+    ('Data e hora de preenchimento', 'preenchida_em'),
+    ('URL do arquivo PDF', 'arquivo_pdf'),
+    ('Status', 'status_geracao_pdf'),
+    ('Data e hora de criação', 'criado_em'),
+    ('Data e hora da última atualização', 'alterado_em')
 ]
 
 
@@ -238,4 +238,3 @@ class ExportacoesAtasService:
         rodape.append(get_informacoes_download(self.data_inicio, self.data_final))
         write.writerow(rodape)
         rodape.clear()
-
