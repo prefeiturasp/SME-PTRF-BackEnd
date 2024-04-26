@@ -14,10 +14,15 @@ logger = logging.getLogger(__name__)
     time_limet=600,
     soft_time_limit=300000
 )
-def exportar_rateios_async(data_inicio, data_final, username):
+def exportar_rateios_async(data_inicio, data_final, username, dre_uuid=None):
     logger.info("Exportando csv em processamento...")
 
-    queryset = RateioDespesa.objects.exclude(status=STATUS_INATIVO).order_by('id')
+    if dre_uuid:
+        queryset = RateioDespesa.objects.filter(
+            associacao__unidade__dre__uuid=dre_uuid,
+        ).exclude(status=STATUS_INATIVO).order_by('id')
+    else:
+        queryset = RateioDespesa.objects.exclude(status=STATUS_INATIVO).order_by('id')
 
     try:
         logger.info("Criando arquivo %s despesas_classificacao_item.csv")
