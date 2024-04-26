@@ -48,19 +48,16 @@ class ProcessoAssociacaoCreateSerializer(serializers.ModelSerializer):
             associacao = data.get('associacao')
             periodos = data.get('periodos', [])
             numero_processo = data.get('numero_processo')
-            
-            # Verifica se já existe na associação no mesmo ano o mesmo numero
-            if numero_processo and associacao and ano_processo:
-                processos_existentes = ProcessoAssociacao.objects.filter(
-                    associacao=associacao, numero_processo=numero_processo, ano=ano_processo
-                )
 
+
+            # Verifica unicidade do número de processo em toda a base de dados
+            if numero_processo:
+                processos_existentes = ProcessoAssociacao.objects.filter(numero_processo=numero_processo)
                 if self.instance:
                     processos_existentes = processos_existentes.exclude(pk=self.instance.pk)
-
                 if processos_existentes.exists():
                     raise serializers.ValidationError({
-                        "numero_processo": f"Este número de processo SEI já existe para o ano informado."
+                        "numero_processo": "Este número de processo já está sendo usado."
                     })
 
             # Verifica se os períodos estão sendo reutilizados na mesma associação
