@@ -1,7 +1,7 @@
 import csv
-from datetime import datetime, time
+from datetime import datetime, time, date
 import logging
-
+from django.db.models.fields.files import FieldFile
 from django.core.files import File
 from django.utils.timezone import make_aware
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
@@ -105,6 +105,29 @@ class ExportacoesAtasService:
             self.cria_rodape(write)
             self.envia_arquivo_central_download(tmp)
 
+    def formata_dado(self, valor):
+
+        if isinstance(valor, datetime):
+            if valor.strftime("%H:%M:%S") == "00:00:00":
+                valor = valor.strftime("%d/%m/%Y")
+            else:
+                valor = valor.strftime("%d/%m/%Y às %H:%M:%S")
+        if isinstance(valor, date):
+            valor = valor.strftime("%d/%m/%Y")
+        if isinstance(valor, time):
+            valor = valor.strftime("%H:%M")
+            valor = "" if valor == "00:00" else valor
+        if isinstance(valor, FieldFile) and valor:
+            if valor.url:
+                if self.ambiente == "local":
+                    valor = f"http://127.0.0.1:8000{valor.url}"
+                else:
+                    valor = f"https://{self.ambiente}.sme.prefeitura.sp.gov.br{valor.url}"
+
+        valor = str(valor).replace(";", ",")
+
+        return valor
+
     def monta_dados(self):
         linhas_vertical = []
 
@@ -113,53 +136,9 @@ class ExportacoesAtasService:
             linha_horizontal = []
 
             for _, campo in self.cabecalho:
-                if campo == "data_reuniao":
-                    campo = get_recursive_attr(instance, campo)
-                    data_reuniao_formatado = campo.strftime("%d/%m/%Y") if campo else ""
-                    linha_horizontal.append(data_reuniao_formatado)
-                    continue
-
-                if campo == "hora_reuniao":
-                    campo = get_recursive_attr(instance, campo)
-                    hora_reuniao_formatado = campo.strftime("%H:%M") if campo else ""
-                    if hora_reuniao_formatado == "00:00":
-                        hora_reuniao_formatado = ""
-                    linha_horizontal.append(hora_reuniao_formatado)
-                    continue
-
-                if campo == "preenchida_em":
-                    campo = get_recursive_attr(instance, campo)
-                    preenchida_em_formatado = campo.strftime("%d/%m/%Y") if campo else ""
-                    linha_horizontal.append(preenchida_em_formatado)
-                    continue
-
-                if campo == "arquivo_pdf":
-                    campo = get_recursive_attr(instance, campo)
-                    url = ""
-
-                    if campo:
-                        if self.ambiente == "local":
-                            url = f"http://127.0.0.1:8000{campo.url}"
-                        else:
-                            url = f"https://{self.ambiente}.sme.prefeitura.sp.gov.br{campo.url}"
-
-                    linha_horizontal.append(url)
-                    continue
-
-                if campo == "criado_em":
-                    campo = get_recursive_attr(instance, campo)
-                    criado_em_formatado = campo.strftime("%d/%m/%Y às %H:%M:%S")
-                    linha_horizontal.append(criado_em_formatado)
-                    continue
-
-                if campo == "alterado_em":
-                    campo = get_recursive_attr(instance, campo)
-                    alterado_em_formatado = campo.strftime("%d/%m/%Y às %H:%M:%S")
-                    linha_horizontal.append(alterado_em_formatado)
-                    continue
-
-                campo = get_recursive_attr(instance, campo)
-                linha_horizontal.append(campo)
+                campo_valor = get_recursive_attr(instance, campo)
+                campo_valor = self.formata_dado(campo_valor)
+                linha_horizontal.append(campo_valor)
 
             logger.info(f"Escrevendo linha {linha_horizontal} de atas, ata id: {instance.id}.")
             linhas_vertical.append(linha_horizontal)
