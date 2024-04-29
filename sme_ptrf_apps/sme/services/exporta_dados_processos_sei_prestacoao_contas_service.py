@@ -78,7 +78,7 @@ class ExportacaoDadosProcessosSEIPrestacaoContasService:
             linha_horizontal = []
 
             for _, campo in self.cabecalho:
-
+                campo_valor = get_recursive_attr(instance, campo)
                 if campo == "periodos":
                     periodos_strings = []
 
@@ -91,8 +91,8 @@ class ExportacaoDadosProcessosSEIPrestacaoContasService:
 
                     continue
 
-                campo = get_recursive_attr(instance, campo)
-                linha_horizontal.append(campo)
+                campo_valor = "" if not campo_valor else str(campo_valor).replace(";", ",")
+                linha_horizontal.append(campo_valor)
 
             logger.info(f"Escrevendo linha {linha_horizontal}, id: {instance.id}.")
             linhas_vertical.append(linha_horizontal)
