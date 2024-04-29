@@ -51,6 +51,7 @@ class UserAdmin(auth_admin.UserAdmin):
         "unidades__tipo_unidade",
         "unidades__dre",
         ("unidades", custom_titled_filter("unidade")),
+        "e_servidor"
     )
     search_fields = ["name", "username", ]
     inlines = [UnidadeInline, VisaoInline]
