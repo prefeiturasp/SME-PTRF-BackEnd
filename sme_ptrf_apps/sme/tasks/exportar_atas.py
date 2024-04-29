@@ -14,10 +14,15 @@ logger = logging.getLogger(__name__)
     time_limet=600,
     soft_time_limit=300000
 )
-def exportar_atas_async(data_inicio, data_final, username):
+def exportar_atas_async(data_inicio, data_final, username, dre_uuid=None):
     logger.info("Exportando csv em processamento...")
 
-    queryset = Ata.objects.order_by('id')
+    if dre_uuid:
+        queryset = Ata.objects.filter(
+            associacao__unidade__dre__uuid=dre_uuid,
+        ).order_by('id')
+    else:
+        queryset = Ata.objects.order_by('id')
 
     try:
         logger.info("Criando arquivo %s pcs_atas.csv")
