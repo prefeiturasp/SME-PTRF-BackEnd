@@ -124,8 +124,7 @@ class ExportacoesAtasService:
                 else:
                     valor = f"https://{self.ambiente}.sme.prefeitura.sp.gov.br{valor.url}"
 
-        valor = str(valor).replace(";", ",")
-
+        valor = "" if not valor else str(valor).replace(";", ",")
         return valor
 
     def monta_dados(self):
