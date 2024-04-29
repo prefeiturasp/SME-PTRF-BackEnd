@@ -87,7 +87,7 @@ class GrupoAdmin(admin.ModelAdmin):
 
     def get_visoes_nomes(self, obj):
         return ", ".join(visao.nome for visao in obj.visoes.all())
-    
+
     get_visoes_nomes.short_description = 'visoes'
 
 
@@ -117,9 +117,8 @@ class AcessoConcedidoSmeAdmin(admin.ModelAdmin):
     get_nome_user.short_description = 'Nome Usuário'
 
     list_display = ('unidade', 'user', 'get_nome_user', 'criado_em')
-    list_filter = ('unidade__dre', 'unidade__tipo_unidade',)
+    list_filter = ('unidade__dre', 'unidade__tipo_unidade', 'user__e_servidor', )
     list_display_links = ('unidade', 'user')
     readonly_fields = ('uuid', 'id')
     search_fields = ('unidade__nome', 'unidade__codigo_eol', 'user__name', 'user__username')
     autocomplete_fields = ['unidade', 'user',]
-
