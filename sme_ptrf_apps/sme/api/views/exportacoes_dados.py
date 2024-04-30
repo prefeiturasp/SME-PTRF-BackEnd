@@ -60,11 +60,12 @@ class ExportacoesDadosViewSet(GenericViewSet):
             data_inicio=request.query_params.get("data_inicio"),
             data_final=request.query_params.get("data_final"),
             username=request.user.username,
+            dre_uuid=request.query_params.get("dre_uuid"),
         )
 
         return Response(
             {
-                "response": "Arquivo gerado com sucesso, enviado para a central de download"
+                "response": "O arquivo está sendo gerado e será enviado para a central de download após conclusão."
             },
             status=HTTP_201_CREATED,
         )
