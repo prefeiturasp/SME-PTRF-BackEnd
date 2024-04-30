@@ -18,8 +18,9 @@ class TipoReceitaForm(ModelForm):
             if len(unidades_com_receita_do_tipo) > 0 and not (unidades.filter(codigo_eol__in=unidades_com_receita_do_tipo).exists() and (len(unidades_selecionadas) == len(unidades_com_receita_do_tipo))):
                 unidades_faltantes = Unidade.objects.filter(codigo_eol__in=unidades_com_receita_do_tipo).exclude(
                     codigo_eol__in=unidades_selecionadas).values_list('codigo_eol', flat=True)
-                raise ValidationError(
-                    f"Não é possível restringir tipo de receita, pois existem unidades que já possuem receita criada com esse tipo e não estão selecionadas. Unidades faltantes: {list(unidades_faltantes)}")
+                if len(unidades_faltantes) > 0:
+                    raise ValidationError(
+                        f"Não é possível restringir tipo de receita, pois existem unidades que já possuem receita criada com esse tipo e não estão selecionadas. Unidades faltantes: {list(unidades_faltantes)}")
         return unidades
 
 
