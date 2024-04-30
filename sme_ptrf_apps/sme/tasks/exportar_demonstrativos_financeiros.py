@@ -12,10 +12,15 @@ logger = logging.getLogger(__name__)
     time_limet=600,
     soft_time_limit=30000
 )
-def exportar_demonstativos_financeiros_async(data_inicio, data_final, username):
+def exportar_demonstativos_financeiros_async(data_inicio, data_final, username, dre_uuid=None):
     logger.info("Exportando csv em processamento...")
 
-    queryset = DemonstrativoFinanceiro.objects.all().order_by('id')
+    if dre_uuid:
+        queryset = DemonstrativoFinanceiro.objects.filter(
+            conta_associacao__associacao__unidade__dre__uuid=dre_uuid,
+        ).order_by('id')
+    else:
+        queryset = DemonstrativoFinanceiro.objects.all().order_by('id')
 
     try:
         logger.info("Criando arquivo %s pcs_demonstrativos.csv")
