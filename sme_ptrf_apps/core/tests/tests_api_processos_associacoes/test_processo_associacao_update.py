@@ -64,7 +64,7 @@ def test_update_processo_associacao_sem_periodos_com_flag_ligada(jwt_authenticat
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         result = json.loads(response.content)
         assert result == {'periodos': ["É necessário informar ao menos um período quando a feature 'periodos-processo-sei' está ativa."]}
-        
+
 def test_update_processo_associacao_com_mesmo_numero_processo_para_mesmo_ano_na_mesma_associacao(
     jwt_authenticated_client_a,
     periodos_de_2019_ate_2023,
@@ -76,14 +76,14 @@ def test_update_processo_associacao_com_mesmo_numero_processo_para_mesmo_ano_na_
     associacao = associacao_factory.create()
     processo1 = processo_associacao_factory.create(associacao=associacao, ano='2019', numero_processo="123456")
     processo2 = processo_associacao_factory.create(associacao=associacao, ano='2019', numero_processo="111111")
-    
+
     payload = {
         'ano': '2019',
         'numero_processo': "123456",
         'periodos': [str(periodo2.uuid)],
         'associacao': str(associacao.uuid)
     }
-    
+
     with override_flag('periodos-processo-sei', active=True):
         response = jwt_authenticated_client_a.put(
             f'/api/processos-associacao/{processo2.uuid}/',
@@ -92,7 +92,7 @@ def test_update_processo_associacao_com_mesmo_numero_processo_para_mesmo_ano_na_
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         result = json.loads(response.content)
-        assert result == {'numero_processo': ['Este número de processo SEI já existe para o ano informado.']}
+        assert result == {'numero_processo': ['Este número de processo já está sendo usado.']}
 
 def test_update_processo_associacao_com_mesmo_numero_processo_para_outro_ano_na_mesma_associacao(
     jwt_authenticated_client_a,
@@ -105,22 +105,20 @@ def test_update_processo_associacao_com_mesmo_numero_processo_para_outro_ano_na_
     associacao = associacao_factory.create()
     processo1 = processo_associacao_factory.create(associacao=associacao, ano='2019', numero_processo="123456")
     processo2 = processo_associacao_factory.create(associacao=associacao, ano='2020', numero_processo="111111")
-    
+
     payload = {
         'ano': '2020',
         'numero_processo': "123456",
         'periodos': [str(periodo2.uuid)],
         'associacao': str(associacao.uuid)
     }
-    
+
     with override_flag('periodos-processo-sei', active=True):
         response = jwt_authenticated_client_a.put(
             f'/api/processos-associacao/{processo2.uuid}/',
             data=json.dumps(payload),
             content_type='application/json')
-        
-        assert response.status_code == status.HTTP_200_OK
-        result = json.loads(response.content)
-        assert result['numero_processo'] == '123456'
-        assert result['uuid'] == str(processo2.uuid).replace('urn:', '').replace('uuid:', '')
 
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        result = json.loads(response.content)
+        assert result == {'numero_processo': ['Este número de processo já está sendo usado.']}
