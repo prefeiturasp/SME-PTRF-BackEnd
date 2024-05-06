@@ -471,7 +471,6 @@ class AtaAdmin(admin.ModelAdmin):
 
     get_secretario.short_description = 'Secretário'
 
-
     raw_id_fields = ('prestacao_conta', 'associacao', 'composicao', 'presidente_da_reuniao', 'secretario_da_reuniao')
 
     list_display = (
@@ -536,6 +535,7 @@ class ProcessoAssociacaoAdmin(admin.ModelAdmin):
         return ", ".join([periodo.referencia for periodo in obj.periodos.all()])
 
     periodos_str.short_description = "Períodos"
+
 
 @admin.register(ObservacaoConciliacao)
 class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
@@ -1647,7 +1647,8 @@ class FalhaGeracaoPcAdmin(admin.ModelAdmin):
     list_filter = ['ultimo_usuario', 'associacao', 'periodo', 'data_hora_ultima_ocorrencia',
                    'qtd_ocorrencias_sucessivas', 'resolvido', 'associacao__unidade__dre']
     readonly_fields = ('uuid', 'id')
-    search_fields = ('ultimo_usuario__username', 'associacao__nome', 'associacao__unidade__nome')
+    search_fields = ('ultimo_usuario__username', 'associacao__nome',
+                     'associacao__unidade__nome', 'associacao__unidade__codigo_eol')
 
 
 @admin.register(TransferenciaEol)

@@ -18,7 +18,11 @@ def validate_tipos_unidade(value):
 class ParametrosSme(SingletonModel, ModeloBase):
     history = AuditlogHistoryField()
 
-    valida_unidades_login = models.BooleanField('Valida unidades ao logar', default=False)
+    valida_unidades_login = models.BooleanField(
+        'Valida unidades ao logar',
+        default=False,
+        help_text="Remove definitivamente os acessos indevidos."
+    )
 
     def __str__(self):
         return 'Parâmetros SME do PTRF'

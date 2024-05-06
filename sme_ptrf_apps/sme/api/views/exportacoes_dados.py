@@ -24,7 +24,8 @@ from sme_ptrf_apps.sme.tasks import (
     exportar_dados_conta_async,
     exportar_repasses_async,
     exportar_dados_membros_apm_async,
-    exportar_processos_sei_regularidade_async
+    exportar_processos_sei_regularidade_async,
+    exportar_processos_sei_prestacao_contas_async
 )
 
 from sme_ptrf_apps.users.permissoes import (
@@ -59,11 +60,12 @@ class ExportacoesDadosViewSet(GenericViewSet):
             data_inicio=request.query_params.get("data_inicio"),
             data_final=request.query_params.get("data_final"),
             username=request.user.username,
+            dre_uuid=request.query_params.get("dre_uuid"),
         )
 
         return Response(
             {
-                "response": "Arquivo gerado com sucesso, enviado para a central de download"
+                "response": "O arquivo está sendo gerado e será enviado para a central de download após conclusão."
             },
             status=HTTP_201_CREATED,
         )
@@ -215,6 +217,7 @@ class ExportacoesDadosViewSet(GenericViewSet):
             data_inicio=request.query_params.get("data_inicio"),
             data_final=request.query_params.get("data_final"),
             username=request.user.username,
+            dre_uuid=request.query_params.get("dre_uuid"),
         )
 
         return Response(
@@ -235,11 +238,12 @@ class ExportacoesDadosViewSet(GenericViewSet):
             data_inicio=request.query_params.get("data_inicio"),
             data_final=request.query_params.get("data_final"),
             username=request.user.username,
+            dre_uuid=request.query_params.get("dre_uuid"),
         )
 
         return Response(
             {
-                "response": "Arquivo gerado com sucesso, enviado para a central de download"
+                "response": "O arquivo está sendo gerado e será enviado para a central de download após conclusão."
             },
             status=HTTP_201_CREATED,
         )
@@ -382,6 +386,25 @@ class ExportacoesDadosViewSet(GenericViewSet):
     def processos_sei_regularidade(self, request):
         exportar_processos_sei_regularidade_async.delay(
             username=request.user.username,
+        )
+
+        return Response(
+            {
+                "response": "O arquivo está sendo gerado e será enviado para a central de download após conclusão."
+            },
+            status=HTTP_201_CREATED,
+        )
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="processos-sei-prestacao-contas",
+        permission_classes=permission_classes,
+    )
+    def processos_sei_prestacao_contas(self, request):
+        exportar_processos_sei_prestacao_contas_async.delay(
+            username=request.user.username,
+            dre_uuid=request.query_params.get("dre_uuid"),
         )
 
         return Response(
