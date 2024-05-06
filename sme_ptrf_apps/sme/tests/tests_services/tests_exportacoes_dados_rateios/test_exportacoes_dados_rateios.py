@@ -8,6 +8,30 @@ from tempfile import NamedTemporaryFile
 pytestmark = pytest.mark.django_db
 
 
+def test_dados_extracao(rateios_despesa_queryset):
+    dados = ExportacoesRateiosService(
+        queryset=rateios_despesa_queryset,
+    ).monta_dados()
+
+    # Existem tres registros de rateios
+    assert len(dados) == 3
+
+
+def test_dados_extracao_dre(rateios_despesa_queryset, dre_ipiranga):
+
+    rateios_despesa_queryset_dre = rateios_despesa_queryset.filter(
+            associacao__unidade__dre__uuid=f"{dre_ipiranga.uuid}",
+        ).order_by('id')
+
+    dados = ExportacoesRateiosService(
+        queryset=rateios_despesa_queryset_dre,
+        dre_uuid=dre_ipiranga.uuid
+    ).monta_dados()
+
+    # Não existe nenhum rateio para a Dre Ipiranga
+    assert len(dados) == 0
+
+
 def test_cria_registro_central_download(usuario_para_teste):
     exportacao_rateio = ExportacoesRateiosService(
         nome_arquivo='despesas_classificacao_item.csv',
