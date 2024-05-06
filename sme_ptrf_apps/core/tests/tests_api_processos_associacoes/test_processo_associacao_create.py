@@ -138,22 +138,22 @@ def test_create_processo_associacao_com_mesmo_numero_processo_para_mesmo_ano_na_
     periodo2 = Periodo.objects.get(referencia=2019.2)
     associacao = associacao_factory.create()
     processo_associacao_factory.create(associacao=associacao, ano=2019, numero_processo="123456")
-    
+
     payload = {
         'associacao': str(associacao.uuid),
         'numero_processo': "123456",
         'ano': '2019',
         'periodos': [str(periodo1.uuid)]
     }
-    
+
     with override_flag('periodos-processo-sei', active=True):
         response = jwt_authenticated_client_a.post(
             '/api/processos-associacao/', data=json.dumps(payload), content_type='application/json')
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         result = json.loads(response.content)
-        assert result == {'numero_processo': ['Este número de processo SEI já existe para o ano informado.']}
-        
+        assert result == {'numero_processo': ['Este número de processo já está sendo usado.']}
+
 def test_create_processo_associacao_com_mesmo_numero_processo_para_outro_ano_na_mesma_associacao(
     jwt_authenticated_client_a,
     periodos_de_2019_ate_2023,
@@ -164,19 +164,20 @@ def test_create_processo_associacao_com_mesmo_numero_processo_para_outro_ano_na_
     periodo2 = Periodo.objects.get(referencia=2020.1)
     associacao = associacao_factory.create()
     processo1 = processo_associacao_factory.create(associacao=associacao, ano=2019, numero_processo="123456")
-    
+
     payload = {
         'associacao': str(associacao.uuid),
         'numero_processo': "123456",
         'ano': '2020',
         'periodos': [str(periodo2.uuid)]
     }
-    
+
     with override_flag('periodos-processo-sei', active=True):
         assert ProcessoAssociacao.objects.count() == 1
-        
+
         response = jwt_authenticated_client_a.post(
             '/api/processos-associacao/', data=json.dumps(payload), content_type='application/json')
 
-        assert response.status_code == status.HTTP_201_CREATED
-        assert ProcessoAssociacao.objects.count() == 2
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        result = json.loads(response.content)
+        assert result == {'numero_processo': ['Este número de processo já está sendo usado.']}
