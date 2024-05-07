@@ -146,6 +146,16 @@ class ExportacoesDocumentosDespesasService:
                     linha_horizontal.append(campo.replace(";", ",") if campo else "")
                     continue
 
+                if campo == "eh_despesa_sem_comprovacao_fiscal":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append("Sim" if campo else "Não")
+                    continue
+
+                if campo == "eh_despesa_reconhecida_pela_associacao":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append("Sim" if campo else "Não")
+                    continue
+
                 if campo == "data_transacao":
                     campo = get_recursive_attr(instance, campo)
                     data_transacao_formatada = campo.strftime("%d/%m/%Y") if campo else ""
@@ -178,7 +188,7 @@ class ExportacoesDocumentosDespesasService:
 
                 if campo == "numero_boletim_de_ocorrencia":
                     campo = get_recursive_attr(instance, campo)
-                    linha_horizontal.append(campo if campo else "")
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
                     continue
 
                 if campo == "retem_imposto":
@@ -204,12 +214,12 @@ class ExportacoesDocumentosDespesasService:
                     continue
 
                 if campo == "motivos":
-                    motivo_string = '; '.join(str(motivo).replace(";", ",") for motivo in motivos)
-                    if len(motivo_string):
-                        motivo_string = motivo_string + '; ' + instance.outros_motivos_pagamento_antecipado.replace(";", ",") if len(instance.outros_motivos_pagamento_antecipado) else ""
-                    elif len(instance.outros_motivos_pagamento_antecipado):
-                        motivo_string = instance.outros_motivos_pagamento_antecipado.replace(";", ",")
-                    linha_horizontal.append(motivo_string)
+                    motivo_string = '; '.join(str(motivo) for motivo in motivos)
+                    if (len(motivo_string)):
+                        motivo_string = motivo_string + '; ' + instance.outros_motivos_pagamento_antecipado
+                    elif (len(instance.outros_motivos_pagamento_antecipado)):
+                        motivo_string = instance.outros_motivos_pagamento_antecipado
+                    linha_horizontal.append(motivo_string.replace(";", ","))
                     continue
 
                 if campo == "uuid":
