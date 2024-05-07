@@ -14,10 +14,17 @@ logger = logging.getLogger(__name__)
     time_limet=600,
     soft_time_limit=300000
 )
-def exportar_documentos_despesas_async(data_inicio, data_final, username):
+def exportar_documentos_despesas_async(data_inicio, data_final, username, dre_uuid):
     logger.info("Exportando csv em processamento...")
 
-    queryset = Despesa.objects.all().order_by("criado_em")
+    queryset = Despesa.objects
+
+    if dre_uuid:
+        queryset = queryset.filter(
+            associacao__unidade__dre__uuid=dre_uuid,
+        )
+
+    queryset = queryset.order_by('id').order_by("criado_em")
 
     try:
         logger.info("Criando arquivo %s despesas_documento.csv")
