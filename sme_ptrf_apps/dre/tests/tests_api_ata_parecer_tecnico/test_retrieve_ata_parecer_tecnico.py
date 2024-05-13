@@ -19,6 +19,7 @@ def test_api_retrieve_ata_parecer_tecnico(jwt_authenticated_client_dre, ata_pare
         'dre': {'codigo_eol': ata_parecer_tecnico.dre.codigo_eol,
                 'dre': None,
                 'nome': ata_parecer_tecnico.dre.nome,
+                'nome_com_tipo': f"{ata_parecer_tecnico.dre.nome_com_tipo}",
                 'sigla': ata_parecer_tecnico.dre.sigla,
                 'tipo_unidade': 'DRE',
                 'uuid': f'{ata_parecer_tecnico.dre.uuid}'},
