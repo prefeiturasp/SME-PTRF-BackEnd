@@ -80,6 +80,50 @@ class RepasseSerializer(serializers.ModelSerializer):
         ]
 
 
+class RepasseListSerializer(serializers.ModelSerializer):
+    acao_associacao = AcaoAssociacaoLookUpSerializer()
+    conta_associacao = ContaAssociacaoLookUpSerializer()
+    periodo = PeriodoSerializer()
+    associacao = AssociacaoSerializer()
+
+    carga_origem = serializers.SerializerMethodField('get_carga_origem')
+    campos_editaveis = serializers.SerializerMethodField('get_campos_editaveis')
+
+    def get_carga_origem(self, obj):
+        import os
+
+        if obj.carga_origem:
+            if obj.carga_origem.conteudo:
+                nome_do_arquivo = os.path.basename(obj.carga_origem.conteudo.name)
+                return nome_do_arquivo
+
+        return ""
+
+    def get_campos_editaveis(self, obj):
+        return obj.get_campos_editaveis()
+
+    class Meta:
+        model = Repasse
+        fields = [
+            'associacao',
+            'uuid',
+            'valor_capital',
+            'valor_custeio',
+            'valor_livre',
+            'acao_associacao',
+            'conta_associacao',
+            'periodo',
+            'status',
+            'realizado_capital',
+            'realizado_custeio',
+            'realizado_livre',
+            'carga_origem',
+            'carga_origem_linha_id',
+            'id',
+            'campos_editaveis'
+        ]
+
+
 class RepasseCreateSerializer(serializers.ModelSerializer):
     associacao = serializers.SlugRelatedField(
         slug_field='uuid',

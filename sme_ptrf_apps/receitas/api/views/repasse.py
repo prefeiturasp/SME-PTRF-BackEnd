@@ -8,12 +8,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins, status
 from django.db.models import Q
 
-from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComLeituraOuGravacao
+from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComLeituraOuGravacao, PermissaoApiSME
 
 from ...models import Repasse
+from ...models.repasse import StatusRepasse
 from ....core.models import Periodo, TipoConta, Acao
 
-from ..serializers import RepasseSerializer, RepasseCreateSerializer
+from ..serializers import RepasseSerializer, RepasseCreateSerializer, RepasseListSerializer
 from ....core.api.serializers import PeriodoSerializer, TipoContaSerializer, AcaoSerializer, ContaAssociacaoLookUpSerializer, AcaoAssociacaoLookUpSerializer
 from ....core.api.utils.pagination import CustomPagination
 
@@ -28,15 +29,15 @@ class RepasseViewSet(
 ):
     lookup_field = 'uuid'
     queryset = Repasse.objects.all().order_by('id')
-    permission_classes = [IsAuthenticated & PermissaoApiUe]
+    permission_classes = [IsAuthenticated & (PermissaoApiUe | PermissaoApiSME)]
     serializer_class = RepasseSerializer
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
-            return RepasseSerializer
+            return RepasseListSerializer
         elif self.action == 'list':
-            return RepasseSerializer
+            return RepasseListSerializer
         else:
             return RepasseCreateSerializer
 
@@ -74,12 +75,28 @@ class RepasseViewSet(
 
         obj = self.get_object()
 
+        if obj.status == StatusRepasse.REALIZADO.name:
+            content = {
+                'erro': 'StatusNaoPermitido',
+                'mensagem': 'Não é possível excluir um repasse realizado.'
+            }
+
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        if obj.possui_receita_vinculada:
+            content = {
+                'erro': 'ReceitaVinculada',
+                'mensagem': 'Não é possível excluir um repasse com crédito vinculado.'
+            }
+
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             self.perform_destroy(obj)
         except ProtectedError:
             content = {
                 'erro': 'ProtectedError',
-                'mensagem': 'Não é possível excluir essa associação porque ela já possui movimentação (despesas, receitas, etc.)'
+                'mensagem': 'Não é possível excluir esse repasse porque ele já possui movimentação.'
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
