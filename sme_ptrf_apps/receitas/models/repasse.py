@@ -71,6 +71,10 @@ class Repasse(ModeloBase):
     def valor_realizado(self):
         return self.realizado_capital + self.realizado_custeio + self.realizado_livre
 
+    @property
+    def possui_receita_vinculada(self):
+        return self.receitas.exists()
+
     def get_campos_editaveis(self):
         # Campos de realizacao se referem a: realizado_capital, realizado_custeio, realizado_livre
         campos_de_realizacao = False
