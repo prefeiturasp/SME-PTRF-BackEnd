@@ -43,6 +43,7 @@ def test_lista_arquivos(jwt_authenticated_client, arquivo_carga):
             'tipo_delimitador': 'DELIMITADOR_PONTO_VIRGULA',
             'status': 'PENDENTE',
             'log': None,
+            'periodo': None,
             'ultima_execucao': None
             }
         ]
