@@ -46,6 +46,7 @@ def test_lista_arquivos_por_identificador(jwt_authenticated_client, arquivo_carg
             'tipo_delimitador': 'DELIMITADOR_PONTO_VIRGULA',
             'status': 'PENDENTE',
             'log': None,
+            "periodo": None,
             'ultima_execucao': arquivo_carga.ultima_execucao.isoformat("T")
         }]
 
@@ -68,6 +69,7 @@ def test_lista_arquivos_por_status(jwt_authenticated_client, arquivo_carga):
             'tipo_delimitador': 'DELIMITADOR_PONTO_VIRGULA',
             'status': 'PENDENTE',
             'log': None,
+            "periodo": None,
             'ultima_execucao': arquivo_carga.ultima_execucao.isoformat("T")
         }]
 
@@ -91,6 +93,7 @@ def test_lista_arquivos_por_data_execucao(jwt_authenticated_client, arquivo_carg
             'tipo_delimitador': 'DELIMITADOR_PONTO_VIRGULA',
             'status': 'PENDENTE',
             'log': None,
+            "periodo": None,
             'ultima_execucao': arquivo_carga_associacao_processado_2020_01_01.ultima_execucao.isoformat("T")
         }]
 
