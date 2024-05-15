@@ -13,9 +13,15 @@ logger = logging.getLogger(__name__)
     time_limet=600,
     soft_time_limit=30000
 )
-def exportar_dados_conta_async(data_inicio, data_final, username):
+def exportar_dados_conta_async(data_inicio, data_final, username, dre_uuid=None):
     logger.info("Exportando csv em processamento...")
     queryset = ContaAssociacao.objects.all()
+
+    if dre_uuid:
+        queryset = queryset.filter(
+            associacao__unidade__dre__uuid=dre_uuid,
+        )
+
     try:
         logger.info("Criando arquivo %s dados_contas.csv")
         params = {

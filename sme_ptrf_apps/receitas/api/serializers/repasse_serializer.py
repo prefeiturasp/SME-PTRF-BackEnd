@@ -161,7 +161,4 @@ class RepasseCreateSerializer(serializers.ModelSerializer):
             'conta_associacao',
             'periodo',
             'status',
-            'realizado_capital',
-            'realizado_custeio',
-            'realizado_livre',
         ]
