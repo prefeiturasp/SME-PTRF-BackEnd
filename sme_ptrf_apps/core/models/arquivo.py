@@ -1,7 +1,7 @@
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-from sme_ptrf_apps.core.choices.tipos_carga import CARGA_CHOICES, CARGA_REPASSE_REALIZADO
+from sme_ptrf_apps.core.choices.tipos_carga import CARGA_CHOICES, CARGA_REPASSE_REALIZADO, CARGA_REQUER_PERIODO
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -70,6 +70,14 @@ class Arquivo(ModeloBase):
     )
     log = models.TextField(blank=True, null=True)
     ultima_execucao = models.DateTimeField("Ultima execução", blank=True, null=True)
+    periodo = models.ForeignKey(
+        'Periodo',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name='Período',
+        help_text='Período associado ao arquivo (opcional dependendo do tipo de carga)'
+    )
 
     class Meta:
         verbose_name = "arquivo de carga"
@@ -81,6 +89,9 @@ class Arquivo(ModeloBase):
     def inicia_processamento(self):
         self.status = PROCESSANDO
         self.save()
+        
+    def requer_periodo(self):
+        return CARGA_REQUER_PERIODO.get(self.tipo_carga, False)
 
     @classmethod
     def status_to_json(cls):
@@ -94,7 +105,8 @@ class Arquivo(ModeloBase):
     def tipos_cargas_to_json(cls):
         return [{
                 'id': choice[0],
-                'nome': choice[1]
+                'nome': choice[1],
+                'requer_periodo': CARGA_REQUER_PERIODO.get(choice[0], False),
                 }
                 for choice in CARGA_CHOICES]
 
