@@ -290,6 +290,30 @@ def rateio_despesa_2020_role_custeio_conferido_outra_conta(associacao, despesa_2
 
 
 @pytest.fixture
+def rateio_despesa_2020_role_capital_conferido_nao_exibir_em_relacao_de_bens(associacao, despesa_2020_1, conta_associacao_cartao, acao,
+                                               tipo_aplicacao_recurso_capital,
+                                               tipo_custeio_servico,
+                                               especificacao_ar_condicionado, acao_associacao_role_cultural):
+    return baker.make(
+        'RateioDespesa',
+        despesa=despesa_2020_1,
+        associacao=associacao,
+        conta_associacao=conta_associacao_cartao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_capital,
+        tipo_custeio=tipo_custeio_servico,
+        especificacao_material_servico=especificacao_ar_condicionado,
+        valor_rateio=100.00,
+        update_conferido=True,
+        conferido=True,
+        quantidade_itens_capital=1,
+        valor_item_capital=100.0,
+        nao_exibir_em_rel_bens=False,
+        numero_processo_incorporacao_capital="123456"
+
+    )
+
+@pytest.fixture
 def rateio_despesa_2020_role_capital_conferido(associacao, despesa_2020_1, conta_associacao_cartao, acao,
                                                tipo_aplicacao_recurso_capital,
                                                tipo_custeio_servico,
