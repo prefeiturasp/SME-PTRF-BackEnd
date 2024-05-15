@@ -37,5 +37,6 @@ def test_exportacoes_dados_contas(jwt_authenticated_client_sme, usuario_permissa
     mock_exportar_dados_conta_async.assert_called_once_with(
         data_inicio='2020-03-26',
         data_final='2020-04-26',
-        username=usuario_permissao_sme.username
+        username=usuario_permissao_sme.username,
+        dre_uuid=None
     )
