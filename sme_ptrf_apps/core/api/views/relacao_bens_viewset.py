@@ -220,7 +220,11 @@ class RelacaoBensViewSet(GenericViewSet):
         msg = ""
         if not relacao_bens:
             rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
-                conta_associacao=conta_associacao, periodo=periodo, aplicacao_recurso=APLICACAO_CAPITAL)
+                conta_associacao=conta_associacao,
+                periodo=periodo,
+                aplicacao_recurso=APLICACAO_CAPITAL,
+                nao_exibir_em_rel_bens=False,
+            )
             if rateios:
                 msg = 'Documento pendente de geração'
             else:
