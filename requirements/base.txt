@@ -9,10 +9,10 @@ django-ckeditor==6.7.0
 django-compressor==4.4
 django-cors-headers==4.3.1
 django-crispy-forms==2.1
-django-environ==0.4.5
-django-filter==2.4.0
+django-environ==0.11.2
+django-filter==21.1
 django-mathfilters==1.0.0
-django-model-utils==4.0.0
+django-model-utils==4.5.1
 django-waffle==4.0.0                    # Solução para features flags
 
 # Django DES - EmailBackend that allows email configuration to be changed while the server is running.

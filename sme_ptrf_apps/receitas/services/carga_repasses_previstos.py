@@ -147,7 +147,10 @@ def processa_repasse(reader, tipo_conta, arquivo):
 
     nome_arquivo = arquivo.identificador
 
-    periodo = get_periodo(nome_arquivo)
+    if arquivo.periodo and arquivo.requer_periodo:
+        periodo = arquivo.periodo
+    else:
+        periodo = get_periodo(nome_arquivo)
 
     if PrestacaoConta.objects.filter(periodo=periodo).exists():
         raise CargaRepassePrevistoException(f"Já existe prestações de conta para o período {periodo.referencia}.")
