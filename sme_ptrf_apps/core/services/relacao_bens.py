@@ -65,7 +65,11 @@ def _retornar_dados_relatorio_relacao_de_bens(relacao_bens):
 
 def _persistir_arquivo_relacao_de_bens(periodo, conta_associacao, usuario, prestacao=None, previa=False):
     rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
-        conta_associacao=conta_associacao, periodo=periodo, aplicacao_recurso=APLICACAO_CAPITAL)
+        conta_associacao=conta_associacao,
+        periodo=periodo,
+        aplicacao_recurso=APLICACAO_CAPITAL,
+        nao_exibir_em_rel_bens=False,
+    )
 
     if rateios:
         relacao_bens, _ = RelacaoBens.objects.update_or_create(
