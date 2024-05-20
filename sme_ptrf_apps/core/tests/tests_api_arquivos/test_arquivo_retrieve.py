@@ -26,6 +26,7 @@ def test_retrieve_arquivo(
         "tipo_delimitador": "DELIMITADOR_VIRGULA",
         "status": "PENDENTE",
         "log": None,
+        "periodo": None,
         "ultima_execucao": None
     }
 

@@ -101,6 +101,48 @@ class ExportacaoDadosContasService:
                     continue
 
                 for _, campo in self.cabecalho:
+
+                    # Removendo ponto e vírgula e substituindo por vírgula
+                    if campo == "associacao__unidade__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "associacao__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "associacao__unidade__dre__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "tipo_conta__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "banco_nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "agencia":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "numero_conta":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
+                    if campo == "motivo_rejeicao_encerramento":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
                     if campo in ["data_inicio", "criado_em", "data_encerramento"]:
                         campo = getattr(instance, campo)
                         linha.append(

@@ -116,6 +116,36 @@ class ExportacoesDocumentosDespesasService:
             motivos = list(instance.motivos_pagamento_antecipado.all())
 
             for _, campo in self.cabecalho:
+                if campo == "associacao__unidade__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "associacao__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "associacao__unidade__dre__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "nome_fornecedor":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "documento_transacao":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "numero_boletim_de_ocorrencia":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
                 if campo == "eh_despesa_sem_comprovacao_fiscal":
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append("Sim" if campo else "Não")
@@ -158,7 +188,7 @@ class ExportacoesDocumentosDespesasService:
 
                 if campo == "numero_boletim_de_ocorrencia":
                     campo = get_recursive_attr(instance, campo)
-                    linha_horizontal.append(campo if campo else "")
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
                     continue
 
                 if campo == "retem_imposto":
@@ -189,7 +219,7 @@ class ExportacoesDocumentosDespesasService:
                         motivo_string = motivo_string + '; ' + instance.outros_motivos_pagamento_antecipado
                     elif (len(instance.outros_motivos_pagamento_antecipado)):
                         motivo_string = instance.outros_motivos_pagamento_antecipado
-                    linha_horizontal.append(motivo_string)
+                    linha_horizontal.append(motivo_string.replace(";", ","))
                     continue
 
                 if campo == "uuid":

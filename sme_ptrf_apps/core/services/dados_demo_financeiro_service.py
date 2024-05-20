@@ -764,11 +764,14 @@ def cria_despesas(rateios):
             "uuid_rateio": f"{rateio.uuid}"
         }
 
-        if rateio.despesa.despesas_impostos.exists():
+        # Filtrando por impostos com o Status de Completo
+        impostos_completos = rateio.despesa.despesas_impostos.filter(status="COMPLETO")
+
+        if impostos_completos.exists():
             # Despesas que possuem despesa imposto são despesas geradoras
             logging.info(f'Obtendo lista de impostos da despesa {rateio.despesa.uuid}')
             linha["despesas_impostos"] = []
-            for despesa_imposto in rateio.despesa.despesas_impostos.all():
+            for despesa_imposto in impostos_completos.all():
 
                 rateio_imposto = despesa_imposto.rateios.first()
 
@@ -780,8 +783,8 @@ def cria_despesas(rateios):
                     data_transacao = ""
                     info_pagamento = "pagamento ainda não realizado"
 
-                tipo_transacao_imposto = despesa_imposto.tipo_transacao.nome
-                if "CHEQUE" in tipo_transacao_imposto.upper():
+                tipo_transacao_imposto = despesa_imposto.tipo_transacao.nome if despesa_imposto.tipo_transacao and despesa_imposto.tipo_transacao.nome else ''
+                if tipo_transacao_imposto and "CHEQUE" in tipo_transacao_imposto.upper():
                     tipo_transacao_imposto = f"Ch-{despesa_imposto.documento_transacao}"
 
                 data_documento_imposto = despesa_imposto.data_documento.strftime("%d/%m/%Y") if despesa_imposto.data_documento else ''

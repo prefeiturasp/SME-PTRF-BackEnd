@@ -226,6 +226,7 @@ def monta_result_esperado(
                             'uuid': f"{associacao.unidade.dre.uuid}"
                         },
                         'nome': f"{associacao.unidade.nome}",
+                        'nome_com_tipo': f"{associacao.unidade.nome_com_tipo}",
                         'sigla': f"{associacao.unidade.sigla}",
                         'tipo_unidade': f"{associacao.unidade.tipo_unidade}",
                         'uuid': f"{associacao.unidade.uuid}"
@@ -321,6 +322,7 @@ def monta_result_esperado(
                             'uuid': f"{associacao.unidade.dre.uuid}"
                         },
                         'nome': f"{associacao.unidade.nome}",
+                        'nome_com_tipo': f"{associacao.unidade.nome_com_tipo}",
                         'sigla': f"{associacao.unidade.sigla}",
                         'tipo_unidade': f"{associacao.unidade.tipo_unidade}",
                         'uuid': f"{associacao.unidade.uuid}"
