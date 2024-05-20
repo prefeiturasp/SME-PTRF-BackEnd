@@ -14,7 +14,7 @@ class UnidadeLookUpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Unidade
-        fields = ('uuid', 'codigo_eol', 'tipo_unidade', 'nome', 'sigla', 'dre')
+        fields = ('uuid', 'codigo_eol', 'tipo_unidade', 'nome', 'nome_com_tipo', 'sigla', 'dre')
 
 
 class UnidadeSerializer(serializers.ModelSerializer):
@@ -79,7 +79,7 @@ class UnidadeListSerializer(serializers.ModelSerializer):
 
     def get_data_de_encerramento_associacao(self, obj):
         return obj.associacoes.first().data_de_encerramento if obj.associacoes.exists() else None
-    
+
     def get_tags_da_associacao(self, obj):
         return obj.associacoes.first().tags_de_informacao if obj.associacoes.exists() else []
 

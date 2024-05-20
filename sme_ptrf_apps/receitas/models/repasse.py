@@ -71,6 +71,44 @@ class Repasse(ModeloBase):
     def valor_realizado(self):
         return self.realizado_capital + self.realizado_custeio + self.realizado_livre
 
+    @property
+    def possui_receita_vinculada(self):
+        return self.receitas.exists()
+
+    def get_campos_editaveis(self):
+        # Campos de realizacao se referem a: realizado_capital, realizado_custeio, realizado_livre
+        campos_de_realizacao = False
+
+        # Campos identificacao se referem a: todos os campos fora valores
+        campos_identificacao = True
+
+        valor_capital = True
+        valor_custeio = True
+        valor_livre = True
+
+        if self.realizado_capital or self.realizado_custeio or self.realizado_livre:
+            campos_identificacao = False
+
+        if self.realizado_capital:
+            valor_capital = False
+
+        if self.realizado_custeio:
+            valor_custeio = False
+
+        if self.realizado_livre:
+            valor_livre = False
+
+        campos_editaveis = {
+            "campos_identificacao": campos_identificacao,
+            "valor_capital": valor_capital,
+            "valor_custeio": valor_custeio,
+            "valor_livre": valor_livre,
+            "campos_de_realizacao": campos_de_realizacao,
+        }
+
+        return campos_editaveis
+
+
     @classmethod
     def repasses_pendentes_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conta_associacao=None):
 
@@ -80,6 +118,15 @@ class Repasse(ModeloBase):
             dataset = dataset.filter(conta_associacao=conta_associacao)
 
         return dataset.all()
+
+    @classmethod
+    def status_to_json(cls):
+        result = [{
+            'id': choice[0],
+            'nome': choice[1]
+        } for choice in STATUS_CHOICES]
+
+        return result
 
 
 auditlog.register(Repasse)

@@ -25,6 +25,7 @@ def test_retrieve_membro_comissao(
             'codigo_eol': '812345',
             'dre': None,
             'nome': 'X',
+            'nome_com_tipo': "DRE X",
             'sigla': 'X',
             'tipo_unidade': 'DRE',
             'uuid': f'{dre_x.uuid}'
