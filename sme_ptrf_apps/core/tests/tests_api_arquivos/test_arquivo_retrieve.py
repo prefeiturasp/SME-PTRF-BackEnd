@@ -23,6 +23,7 @@ def test_retrieve_arquivo(
         "identificador": arquivo_carga.identificador,
         "conteudo": 'http://testserver/media/arquivo.csv',
         "tipo_carga": "CARGA_ASSOCIACOES",
+        'tipo_de_conta': None,
         "tipo_delimitador": "DELIMITADOR_VIRGULA",
         "status": "PENDENTE",
         "log": None,
