@@ -97,7 +97,7 @@ class PeriodoDaDespesaFilter(admin.SimpleListFilter):
 class DespesaAdmin(admin.ModelAdmin):
     list_display = (
         'tipo_documento', 'numero_documento', 'data_documento', 'nome_fornecedor', 'valor_total', 'status',
-        'associacao', 'retem_imposto')
+        'associacao', 'retem_imposto', 'despesa_anterior_ao_uso_do_sistema', 'despesa_anterior_ao_uso_do_sistema_pc_concluida')
     ordering = ('-data_documento',)
     search_fields = (
         'numero_documento',
@@ -120,6 +120,8 @@ class DespesaAdmin(admin.ModelAdmin):
         'eh_despesa_sem_comprovacao_fiscal',
         'eh_despesa_reconhecida_pela_associacao',
         'retem_imposto',
+        'despesa_anterior_ao_uso_do_sistema',
+        'despesa_anterior_ao_uso_do_sistema_pc_concluida',
     )
     inlines = [RateioDespesaInLine, ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')

@@ -26,7 +26,7 @@ class ArquivoViewSet(ModelViewSet):
     filter_fields = ('status', 'tipo_carga')
 
     def get_queryset(self):
-        qs = Arquivo.objects.all()
+        qs = self.queryset
 
         data_execucao = self.request.query_params.get('data_execucao')
         if data_execucao is not None:
