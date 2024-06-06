@@ -1,7 +1,7 @@
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-from sme_ptrf_apps.core.choices.tipos_carga import CARGA_CHOICES, CARGA_REPASSE_REALIZADO, CARGA_REQUER_PERIODO
+from sme_ptrf_apps.core.choices.tipos_carga import CARGA_CHOICES, CARGA_REPASSE_REALIZADO, CARGA_REQUER_PERIODO, CARGA_REQUER_TIPO_CONTA
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -78,6 +78,15 @@ class Arquivo(ModeloBase):
         verbose_name='Período',
         help_text='Período associado ao arquivo (opcional dependendo do tipo de carga)'
     )
+    
+    tipo_de_conta = models.ForeignKey(
+        'TipoConta',
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name='Tipo de conta',
+        help_text='Tipo de conta associado ao arquivo (opcional dependendo do tipo de carga)'
+    )
 
     class Meta:
         verbose_name = "arquivo de carga"
@@ -92,6 +101,9 @@ class Arquivo(ModeloBase):
         
     def requer_periodo(self):
         return CARGA_REQUER_PERIODO.get(self.tipo_carga, False)
+    
+    def requer_tipo_de_conta(self):
+        return CARGA_REQUER_TIPO_CONTA.get(self.tipo_carga, False)
 
     @classmethod
     def status_to_json(cls):
@@ -107,6 +119,7 @@ class Arquivo(ModeloBase):
                 'id': choice[0],
                 'nome': choice[1],
                 'requer_periodo': CARGA_REQUER_PERIODO.get(choice[0], False),
+                'requer_tipo_de_conta': CARGA_REQUER_TIPO_CONTA.get(choice[0], False),
                 }
                 for choice in CARGA_CHOICES]
 

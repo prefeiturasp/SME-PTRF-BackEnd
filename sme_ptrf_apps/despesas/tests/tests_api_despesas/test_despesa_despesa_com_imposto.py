@@ -237,6 +237,9 @@ def monta_result_esperado(
         'criado_em': despesa_com_imposto.criado_em.strftime("%Y-%m-%dT%H:%M:%S.%f"),
         'data_documento': None,
         'data_transacao': f"{despesa_com_imposto.data_transacao}",
+        'despesa_anterior_ao_uso_do_sistema': False,
+        'despesa_anterior_ao_uso_do_sistema_editavel': True,
+        'despesa_anterior_ao_uso_do_sistema_pc_concluida': False,
         'despesa_geradora_do_imposto': None,
         'despesas_impostos': [{
             'alterado_em': despesa_despesa_imposto.alterado_em.strftime("%Y-%m-%dT%H:%M:%S.%f"),
@@ -245,6 +248,8 @@ def monta_result_esperado(
             'criado_em': despesa_despesa_imposto.criado_em.strftime("%Y-%m-%dT%H:%M:%S.%f"),
             'data_documento': None,
             'data_transacao': None,
+            'despesa_anterior_ao_uso_do_sistema': False,
+            'despesa_anterior_ao_uso_do_sistema_pc_concluida': False,
             'despesas_impostos': [],
             'documento_transacao': '',
             'eh_despesa_reconhecida_pela_associacao': True,

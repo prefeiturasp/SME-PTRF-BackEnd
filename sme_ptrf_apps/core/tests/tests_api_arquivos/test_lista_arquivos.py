@@ -40,6 +40,7 @@ def test_lista_arquivos(jwt_authenticated_client, arquivo_carga):
             'identificador': 'carga_previsao_repasse',
             'conteudo': 'http://testserver/media/arquivo.csv',
             'tipo_carga': 'CARGA_REPASSE_PREVISTO_SME',
+            'tipo_de_conta': None,
             'tipo_delimitador': 'DELIMITADOR_PONTO_VIRGULA',
             'status': 'PENDENTE',
             'log': None,

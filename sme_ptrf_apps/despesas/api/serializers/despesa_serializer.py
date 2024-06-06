@@ -53,6 +53,19 @@ class DespesaSerializer(serializers.ModelSerializer):
     despesas_impostos = DespesaImpostoSerializer(many=True, required=False, allow_null=True)
     despesa_geradora_do_imposto = serializers.SerializerMethodField(method_name="get_despesa_de_imposto", required=False, allow_null=True)
     motivos_pagamento_antecipado = MotivoPagamentoAntecipadoSerializer(many=True)
+    despesa_anterior_ao_uso_do_sistema_editavel = serializers.SerializerMethodField(method_name="get_despesa_anterior_ao_uso_do_sistema_editavel", required=False, allow_null=True)
+
+    def get_despesa_anterior_ao_uso_do_sistema_editavel(self, despesa):
+        associacao = despesa.associacao
+        pcs_da_associacao = associacao.prestacoes_de_conta_da_associacao.all().exists()
+        editavel = True
+
+        if not pcs_da_associacao:
+            editavel = True
+        elif despesa.despesa_anterior_ao_uso_do_sistema and despesa.despesa_anterior_ao_uso_do_sistema_pc_concluida and pcs_da_associacao:
+            editavel = False
+
+        return editavel
 
     def get_despesa_de_imposto(self, despesa):
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
@@ -218,6 +231,11 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                 despesa_imposto.atualiza_status()
 
             log.info("Criação de despesa de imposto finalizada!")
+
+        # Setando despesa_anterior_ao_uso_do_sistema
+        data_transacao = validated_data['data_transacao'] if validated_data['data_transacao'] else None
+        if data_transacao:
+            despesa.set_despesa_anterior_ao_uso_do_sistema()
 
         return despesa
 
@@ -400,6 +418,11 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             despesa_imposto.verifica_data_documento_vazio()
             despesa_imposto.atualiza_status()
 
+        # Setando despesa_anterior_ao_uso_do_sistema
+        data_transacao = validated_data['data_transacao'] if validated_data['data_transacao'] else None
+        if data_transacao:
+            despesa.set_despesa_anterior_ao_uso_do_sistema()
+
         return despesa
 
     class Meta:
@@ -451,6 +474,7 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
 
     def get_informacoes(self, despesa):
         return despesa.tags_de_informacao
+
     class Meta:
         model = Despesa
         fields = (

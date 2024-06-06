@@ -48,7 +48,7 @@ class TipoContaEnum(enum.Enum):
 
 
 class StatusRepasse(enum.Enum):
-    PENDENTE = 'Pendente'
+    PENDENTE = 'Previsto'
     REALIZADO = 'Realizado'
 
 

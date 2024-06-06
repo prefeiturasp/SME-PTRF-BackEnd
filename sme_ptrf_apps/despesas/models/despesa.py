@@ -12,6 +12,10 @@ from .fornecedor import Fornecedor
 from .validators import cpf_cnpj_validation
 from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO, STATUS_INATIVO
 from ...core.models import Associacao
+from waffle import get_waffle_flag_model
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class DespesasCompletasManager(models.Manager):
@@ -89,8 +93,65 @@ class Despesa(ModeloBase):
 
     data_e_hora_de_inativacao = models.DateTimeField("Inativado em", blank=True, null=True)
 
+    despesa_anterior_ao_uso_do_sistema = models.BooleanField('É despesa anterior ao uso do sistema?', default=False)
+
+    despesa_anterior_ao_uso_do_sistema_pc_concluida = models.BooleanField('Essa Despesa anterior ao uso do sistema já teve alguma PC concluída?', default=False)
+
     objects = models.Manager()  # Manager Padrão
     completas = DespesasCompletasManager()
+
+    def set_despesa_anterior_ao_uso_do_sistema_pc_concluida(self):
+
+        logger.info("Método set_despesa_anterior_ao_uso_do_sistema_pc_concluida. Verificando se a flag <ajustes-despesas-anteriores> está ativa...")
+
+        flags = get_waffle_flag_model()
+        flag_ajustes_despesas_anteriores_ativa = flags.objects.filter(
+            name='ajustes-despesas-anteriores',
+            everyone=True
+        ).exists()
+
+        if flag_ajustes_despesas_anteriores_ativa:
+            logger.info("A flag <ajustes-despesas-anteriores> está ativa...")
+            logger.info(f"Setando despesa {self} como despesa_anterior_ao_uso_do_sistema_pc_concluida")
+            self.despesa_anterior_ao_uso_do_sistema_pc_concluida = True
+            self.save()
+
+        return
+
+    def set_despesa_anterior_ao_uso_do_sistema(self):
+        logger.info("Método set_despesa_anterior_ao_uso_do_sistema. Verificando se a flag <ajustes-despesas-anteriores> está ativa...")
+
+        flags = get_waffle_flag_model()
+        flag_ajustes_despesas_anteriores_ativa = flags.objects.filter(
+            name='ajustes-despesas-anteriores',
+            everyone=True
+        ).exists()
+
+        if flag_ajustes_despesas_anteriores_ativa:
+
+            logger.info("A flag <ajustes-despesas-anteriores> está ativa...")
+
+            data_transacao = self.data_transacao
+
+            data_inicio_realizacao_despesas = self.associacao.periodo_inicial.data_inicio_realizacao_despesas if self.associacao and self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_inicio_realizacao_despesas else None
+            data_fim_realizacao_despesas = self.associacao.periodo_inicial.data_fim_realizacao_despesas if self.associacao and self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_fim_realizacao_despesas else None
+
+            if data_fim_realizacao_despesas:
+                if data_transacao <= data_fim_realizacao_despesas:
+                    self.despesa_anterior_ao_uso_do_sistema = True
+                else:
+                    self.despesa_anterior_ao_uso_do_sistema = False
+            elif data_inicio_realizacao_despesas:
+                if data_transacao <= data_inicio_realizacao_despesas:
+                    self.despesa_anterior_ao_uso_do_sistema = True
+                else:
+                    self.despesa_anterior_ao_uso_do_sistema = False
+
+            logger.info(f"Setando despesa {self} como despesa_anterior_ao_uso_do_sistema")
+
+            self.save()
+
+        return
 
     @property
     def valor_ptrf(self):

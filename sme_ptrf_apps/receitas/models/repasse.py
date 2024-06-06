@@ -10,7 +10,7 @@ from auditlog.registry import auditlog
 
 
 class StatusRepasse(Enum):
-    PENDENTE = 'Pendente'
+    PENDENTE = 'Previsto'
     REALIZADO = 'Realizado'
 
 STATUS_CHOICES = (

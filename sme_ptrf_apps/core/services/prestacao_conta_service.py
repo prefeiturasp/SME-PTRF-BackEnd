@@ -333,6 +333,15 @@ class PrestacaoContaService:
         )
         registra_falha_service.marcar_como_resolvido()
 
+    def set_despesa_anterior_ao_uso_do_sistema_pc_concluida(self):
+        despesas_anteriores_ao_uso_do_sistema = self.associacao.despesas.filter(
+            despesa_anterior_ao_uso_do_sistema=True,
+            despesa_anterior_ao_uso_do_sistema_pc_concluida=False,
+        )
+
+        for despesa in despesas_anteriores_ao_uso_do_sistema:
+            despesa.set_despesa_anterior_ao_uso_do_sistema_pc_concluida()
+
     def terminar_processo_pc(self):
         if not self._prestacao:
             raise Exception(f"Não existe PC para o período {self._periodo} e associação {self._associacao}.")
@@ -368,6 +377,8 @@ class PrestacaoContaService:
             self.logger.info(f'Terminando o processo da PC {self._prestacao}...')
             self._prestacao.status = PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA if self.e_retorno_devolucao else PrestacaoConta.STATUS_NAO_RECEBIDA
             self._prestacao.save()
+
+            self.set_despesa_anterior_ao_uso_do_sistema_pc_concluida()
 
             self.resolve_registros_falha()
 

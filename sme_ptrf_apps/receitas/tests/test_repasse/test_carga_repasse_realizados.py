@@ -27,8 +27,8 @@ def test_criacao_conta_associacao_na_carga_repasses_realizados_com_valor_default
     assert conta.numero_cartao == '987644164221'
 
 
-def test_criacao_conta_associacao_na_carga_repasses_previstos_com_valor_default(tipo_conta, associacao):
-    conta = get_conta_previstos(tipo_conta, associacao)
+def test_criacao_conta_associacao_na_carga_repasses_previstos_com_valor_default(tipo_conta, associacao, periodo_2020_u):
+    conta = get_conta_previstos(tipo_conta, associacao, periodo_2020_u)
 
     assert conta.banco_nome == "Banco do Inter"
     assert conta.agencia == '67945'
