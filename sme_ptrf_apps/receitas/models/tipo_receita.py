@@ -22,7 +22,7 @@ class TipoReceita(ModeloIdNome):
     mensagem_usuario = models.TextField('Mensagem para o usuario', blank=True, default='')
     possui_detalhamento = models.BooleanField('Deve exibir detalhamento?', default=False)
 
-    unidades = models.ManyToManyField('core.Unidade', null=True, blank=True)
+    unidades = models.ManyToManyField('core.Unidade', blank=True)
     class Meta:
         verbose_name = 'Tipo de receita'
         verbose_name_plural = 'Tipos de receita'
