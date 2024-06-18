@@ -134,9 +134,15 @@ class Despesa(ModeloBase):
             data_transacao = self.data_transacao
 
             data_inicio_realizacao_despesas = self.associacao.periodo_inicial.data_inicio_realizacao_despesas if self.associacao and self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_inicio_realizacao_despesas else None
+            data_fim_realizacao_despesas = self.associacao.periodo_inicial.data_fim_realizacao_despesas if self.associacao and self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_fim_realizacao_despesas else None
 
-            if data_inicio_realizacao_despesas:
-                if data_transacao < data_inicio_realizacao_despesas:
+            if data_fim_realizacao_despesas:
+                if data_transacao <= data_fim_realizacao_despesas:
+                    self.despesa_anterior_ao_uso_do_sistema = True
+                else:
+                    self.despesa_anterior_ao_uso_do_sistema = False
+            elif data_inicio_realizacao_despesas:
+                if data_transacao <= data_inicio_realizacao_despesas:
                     self.despesa_anterior_ao_uso_do_sistema = True
                 else:
                     self.despesa_anterior_ao_uso_do_sistema = False

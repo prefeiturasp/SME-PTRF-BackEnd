@@ -32,6 +32,8 @@ def migra_despesas_periodos_anteriores():
     """
     Percorre todas as despesas com data de transação anterior ao período inicial de sua associação e atualiza os campos
     despesa_anterior_ao_uso_do_sistema e despesa_anterior_ao_uso_do_sistema_pc_concluida.
+
+    O período inicial de uma associação é o período do seu saldo de implantação
     """
     logger.info('Obtendo lista de todas as associações ativas..')
     associacoes = Associacao.ativas.all()
@@ -43,7 +45,7 @@ def migra_despesas_periodos_anteriores():
 
         logger.info(f'Migrando despesas anteriores a {associacao.periodo_inicial.referencia} da associação {associacao}..')
 
-        despesas_anteriores = associacao.despesas.filter(data_transacao__lt=associacao.periodo_inicial.data_inicio_realizacao_despesas)
+        despesas_anteriores = associacao.despesas.filter(data_transacao__lte=associacao.periodo_inicial.data_fim_realizacao_despesas)
 
         for despesa in despesas_anteriores:
             logger.info(f'Migrando despesa {despesa}..')
