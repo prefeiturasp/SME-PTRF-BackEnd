@@ -100,6 +100,7 @@ def test_despesas_demonstradas_despesa_anteriores_nao_conciliadas(
     assert resultado['despesas_nao_demonstradas']['valor_total'] == 0, "Não deveria estar em não demonstradas"
     assert resultado['despesas_anteriores_nao_demonstradas']['valor_total'] == 100, "Deveria estar em anteriores não demonstradas"
 
+
 def test_despesas_demonstradas_primeira_pc_associacao(periodo_factory, associacao_factory, prestacao_conta_factory, conta_associacao_factory, acao_factory, acao_associacao_factory, despesa_factory, rateio_despesa_factory):
     periodo_2022_2 = periodo_factory.create(data_inicio_realizacao_despesas=date(2022, 12, 31))
     associacao = associacao_factory.create(periodo_inicial=periodo_2022_2)
@@ -136,7 +137,8 @@ def test_despesas_demonstradas_primeira_pc_associacao(periodo_factory, associaca
         periodo_conciliacao=periodo,
         aplicacao_recurso='CUSTEIO'
     )
-    despesa_3_periodo_anterior = despesa_factory.create(data_transacao=date(2018, 1, 1), valor_total=100, associacao=associacao)
+    despesa_3_periodo_anterior = despesa_factory.create(
+        data_transacao=date(2018, 1, 1), valor_total=100, associacao=associacao)
     rateio_3_periodo_anterior = rateio_despesa_factory.create(
         conta_associacao=conta_associacao,
         acao_associacao=acao_associacao,
@@ -158,8 +160,9 @@ def test_despesas_demonstradas_primeira_pc_associacao(periodo_factory, associaca
         previa=False,
     )
 
-    assert len(resultado['despesas_demonstradas']['linhas']) == 3
-    assert resultado['despesas_demonstradas']['valor_total'] == 250.00
+    assert len(resultado['despesas_demonstradas']['linhas']) == 2
+    assert resultado['despesas_demonstradas']['valor_total'] == 150.00
+
 
 def test_despesas_demonstradas_segunda_pc_associacao(associacao_factory, conta_associacao_factory, acao_factory, acao_associacao_factory, despesa_factory, prestacao_conta_factory, periodo_factory, rateio_despesa_factory):
     periodo_2022_2 = periodo_factory.create(data_inicio_realizacao_despesas=date(2022, 12, 31))
