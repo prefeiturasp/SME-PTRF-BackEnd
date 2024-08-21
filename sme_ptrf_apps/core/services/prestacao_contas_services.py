@@ -396,9 +396,11 @@ def lista_prestacoes_de_conta_nao_recebidas(
                     continue
 
         if prestacao_conta:
-            processo_sei = get_processo_sei_da_prestacao(prestacao_contas=prestacao_conta, periodos_processo_sei=periodos_processo_sei)
+            processo_sei = get_processo_sei_da_prestacao(
+                prestacao_contas=prestacao_conta, periodos_processo_sei=periodos_processo_sei)
         else:
-            processo_sei = get_processo_sei_da_associacao_no_periodo(associacao=associacao, periodo=periodo, periodos_processo_sei=periodos_processo_sei)
+            processo_sei = get_processo_sei_da_associacao_no_periodo(
+                associacao=associacao, periodo=periodo, periodos_processo_sei=periodos_processo_sei)
 
         info_prestacao = {
             'periodo_uuid': f'{periodo.uuid}',
@@ -464,10 +466,11 @@ def lista_prestacoes_de_conta_todos_os_status(
                 continue
 
         if prestacao_conta:
-            processo_sei = get_processo_sei_da_prestacao(prestacao_contas=prestacao_conta, periodos_processo_sei=periodos_processo_sei)
+            processo_sei = get_processo_sei_da_prestacao(
+                prestacao_contas=prestacao_conta, periodos_processo_sei=periodos_processo_sei)
         else:
-            processo_sei = get_processo_sei_da_associacao_no_periodo(associacao=associacao, periodo=periodo, periodos_processo_sei=periodos_processo_sei)
-
+            processo_sei = get_processo_sei_da_associacao_no_periodo(
+                associacao=associacao, periodo=periodo, periodos_processo_sei=periodos_processo_sei)
 
         info_prestacao = {
             'periodo_uuid': f'{periodo.uuid}',
@@ -714,7 +717,7 @@ def lancamentos_da_prestacao(
                 conta_associacao=conta_associacao,
                 acao_associacao=acao_associacao,
                 periodo=periodo,
-                incluir_inativas=True,
+                incluir_inativas=False,
                 nao_conciliadas_ou_conciliadas_no_periodo=True
             )
         else:
