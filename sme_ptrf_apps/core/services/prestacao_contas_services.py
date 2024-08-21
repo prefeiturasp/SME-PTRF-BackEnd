@@ -717,7 +717,6 @@ def lancamentos_da_prestacao(
                 conta_associacao=conta_associacao,
                 acao_associacao=acao_associacao,
                 periodo=periodo,
-                incluir_inativas=False,
                 nao_conciliadas_ou_conciliadas_no_periodo=True
             )
         else:
