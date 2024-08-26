@@ -102,8 +102,8 @@ class RateioDespesa(ModeloBase):
 
         elif completo and self.aplicacao_recurso == APLICACAO_CAPITAL:
             completo = completo and \
-                       self.quantidade_itens_capital > 0 and \
-                       self.valor_item_capital > 0
+                self.quantidade_itens_capital > 0 and \
+                self.valor_item_capital > 0
 
             if not (self.eh_despesa_sem_comprovacao_fiscal or self.nao_exibir_em_rel_bens):
                 # O número do processo de incorporação é obrigatório nas despesas de capital
@@ -269,7 +269,7 @@ class RateioDespesa(ModeloBase):
 
         dataset = cls.objects.exclude(status=STATUS_INCOMPLETO) if incluir_inativas else cls.completos
 
-        dataset = dataset.filter(despesa__data_transacao__lte=periodo.data_inicio_realizacao_despesas)
+        dataset = dataset.filter(despesa__data_transacao__lt=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
             if conferido:
