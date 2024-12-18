@@ -11,6 +11,7 @@ from drf_spectacular.types import OpenApiTypes
 
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.sme.tasks import (
+    exportar_associacoes_async,
     exportar_atas_async,
     exportar_documentos_despesas_async,
     exportar_materiais_e_servicos_async,
@@ -407,6 +408,58 @@ class ExportacoesDadosViewSet(GenericViewSet):
         exportar_processos_sei_prestacao_contas_async.delay(
             username=request.user.username,
             dre_uuid=request.query_params.get("dre_uuid"),
+        )
+
+        return Response(
+            {
+                "response": "O arquivo está sendo gerado e será enviado para a central de download após conclusão."
+            },
+            status=HTTP_201_CREATED,
+        )
+
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='data_inicio',
+                description='Filtro de início de data de criação',
+                required=False,
+                allow_blank=True,
+                type=str,
+                location=OpenApiParameter.QUERY,
+            ),
+            OpenApiParameter(
+                name='data_final',
+                description='Filtro de fim de data de criação',
+                required=False,
+                allow_blank=True,
+                type=str,
+                location=OpenApiParameter.QUERY,
+            ),
+            OpenApiParameter(
+                name='dre_uui',
+                description='Filtro de uuid de DRE',
+                required=False,
+                allow_blank=True,
+                type=str,
+                location=OpenApiParameter.QUERY,
+            ),
+        ],
+        description="Parâmetros de URL",
+        responses={200: "Success"},
+    )
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="associacoes",
+        permission_classes=permission_classes,
+    )
+    def associacoes(self, request):
+        exportar_associacoes_async.delay(
+            username=request.user.username,
+            dre_uuid=request.query_params.get("dre_uuid"),
+            data_inicio=request.query_params.get("data_inicio"),
+            data_final=request.query_params.get("data_final"),
         )
 
         return Response(
