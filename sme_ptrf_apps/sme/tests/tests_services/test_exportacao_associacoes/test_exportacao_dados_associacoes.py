@@ -27,22 +27,22 @@ def test_cabecalho():
     cabecalho = [cabecalho[0] for cabecalho in dados.cabecalho]
 
     resultado_esperado = [
-    ('Código EOL'),
-    ('Nome Unidade'),
-    ('Nome Associação'),
-    ('DRE'),
-    ('CNPJ'),
-    ('ID do Período Inicial'),
-    ('Referência do Período inicial'),
-    ('Data de encerramento'),
-    ('CCM'),
-    ('E-mail'),
-    ('Número do processo de regularidade'),
-    ('Status do presidente'),
-    ('Cargo substituto do presidente'),
-    ('Data e hora de criação'),
-    ('Data e hora da última atualização'),
-]
+        ('Código EOL'),
+        ('Nome Unidade'),
+        ('Nome Associação'),
+        ('DRE'),
+        ('CNPJ'),
+        ('ID do Período Inicial'),
+        ('Referência do Período inicial'),
+        ('Data de encerramento'),
+        ('CCM'),
+        ('E-mail'),
+        ('Número do processo de regularidade'),
+        ('Status do presidente'),
+        ('Cargo substituto do presidente'),
+        ('Data e hora de criação'),
+        ('Data e hora da última atualização'),
+    ]
 
     assert cabecalho == resultado_esperado
 
@@ -51,21 +51,21 @@ def test_get_texto_filtro_aplicado_datas_inicio_e_fim():
     service = ExportaAssociacoesService(data_inicio="2024-12-01", data_final="2024-12-31")
     result = service.get_texto_filtro_aplicado()
 
-    assert result == f"Filtro aplicado: 01/12/2024 a 31/12/2024 (data de criação do registro)"
+    assert result == "Filtro aplicado: 01/12/2024 a 31/12/2024 (data de criação do registro)"
 
 
 def test_get_texto_filtro_aplicado_data_inicio():
     service = ExportaAssociacoesService(data_inicio="2024-12-01")
     result = service.get_texto_filtro_aplicado()
 
-    assert result == f"Filtro aplicado: A partir de 01/12/2024 (data de criação do registro)"
+    assert result == "Filtro aplicado: A partir de 01/12/2024 (data de criação do registro)"
 
 
 def test_get_texto_filtro_aplicado_data_final():
     service = ExportaAssociacoesService(data_final="2024-12-31")
     result = service.get_texto_filtro_aplicado()
 
-    assert result == f"Filtro aplicado: Até 31/12/2024 (data de criação do registro)"
+    assert result == "Filtro aplicado: Até 31/12/2024 (data de criação do registro)"
 
 
 def test_filtra_range_data_inicial_e_final(associacao_factory):
@@ -88,7 +88,7 @@ def test_monta_dados(associacao_factory):
     queryset = Associacao.objects.all().order_by('id')
     service = ExportaAssociacoesService(queryset=queryset)
     result = service.monta_dados()
-    
+
     assert len(result) == 2
     assert result[0][0] == queryset[0].unidade.codigo_eol
     assert result[0][1] == queryset[0].unidade.nome
@@ -149,11 +149,9 @@ def test_envia_arquivo_central_download_exception(mock_save_arquivo_download, us
         mock_save_arquivo_download.side_effect = Exception("Erro")
         with pytest.raises(Exception):
             service.envia_arquivo_central_download(file)
-        
-    
+
     assert service.objeto_arquivo_download.status == ArquivoDownload.STATUS_ERRO
     assert service.objeto_arquivo_download.msg_erro == 'Erro'
-
 
 
 def test_exporta_associacoes_csv(associacao_factory, usuario_para_teste):

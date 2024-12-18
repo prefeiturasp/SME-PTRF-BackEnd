@@ -11,7 +11,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_exportacoes_dados_associacoes(jwt_authenticated_client_sme, usuario_permissao_sme, monkeypatch):
-    url = f'/api/exportacoes-dados/associacoes/'
+    url = '/api/exportacoes-dados/associacoes/'
     resultado_esperado = {
         'response': 'O arquivo está sendo gerado e será enviado para a central de download após conclusão.'
     }
@@ -38,7 +38,7 @@ def test_exportacoes_dados_associacoes(jwt_authenticated_client_sme, usuario_per
 
 
 def test_exportacoes_dados_associacoes_com_parametros(jwt_authenticated_client_sme, usuario_permissao_sme, monkeypatch):
-    url = f'/api/exportacoes-dados/associacoes/?data_inicio=2023-01-01&data_final=2024-12-31&dre_uuid=30591115-6da5-46fe-b241-13ba99e82232'
+    url = '/api/exportacoes-dados/associacoes/?data_inicio=2023-01-01&data_final=2024-12-31&dre_uuid=30591115-6da5-46fe-b241-13ba99e82232'
     resultado_esperado = {
         'response': 'O arquivo está sendo gerado e será enviado para a central de download após conclusão.'
     }

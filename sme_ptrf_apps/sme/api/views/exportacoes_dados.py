@@ -417,7 +417,6 @@ class ExportacoesDadosViewSet(GenericViewSet):
             status=HTTP_201_CREATED,
         )
 
-
     @extend_schema(
         parameters=[
             OpenApiParameter(
