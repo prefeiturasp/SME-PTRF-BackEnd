@@ -1,4 +1,5 @@
 # flake8: noqa
+from .exportar_associacoes import exportar_associacoes_async
 from .exportar_unidades import exportar_unidades_async
 from .exportar_receitas import exportar_receitas_async
 from .exportar_demonstrativos_financeiros import exportar_demonstativos_financeiros_async
