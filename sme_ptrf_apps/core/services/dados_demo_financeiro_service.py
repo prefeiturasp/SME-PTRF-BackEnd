@@ -37,14 +37,14 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
             conta_associacao=conta_associacao, periodo=periodo, conferido=False).order_by(
             'despesa__data_transacao', 'despesa__numero_documento')
 
-        if conta_associacao.associacao.primeiro_periodo_ativo == periodo:
-            rateios_conferidos_periodos_anteriores = RateioDespesa.rateios_da_conta_associacao_em_periodos_anteriores(
-                conta_associacao=conta_associacao, periodo=periodo, conferido=True)
+        # if conta_associacao.associacao.primeiro_periodo_ativo == periodo:
+        #     rateios_conferidos_periodos_anteriores = RateioDespesa.rateios_da_conta_associacao_em_periodos_anteriores(
+        #         conta_associacao=conta_associacao, periodo=periodo, conferido=True)
 
-            rateios_conferidos = (rateios_conferidos | rateios_conferidos_periodos_anteriores).distinct()
+        #     rateios_conferidos = (rateios_conferidos | rateios_conferidos_periodos_anteriores).distinct()
 
-            rateios_conferidos = rateios_conferidos.order_by(
-            'despesa__data_transacao', 'despesa__numero_documento')
+        #     rateios_conferidos = rateios_conferidos.order_by(
+        #     'despesa__data_transacao', 'despesa__numero_documento')
 
         receitas_demonstradas = Receita.receitas_da_conta_associacao_no_periodo(
             conta_associacao=conta_associacao, periodo=periodo, conferido=True)
@@ -167,13 +167,15 @@ def cria_identificacao_apm(acoes):
                     composicao=composicao_vigente,
                     cargo_associacao=associacao.cargo_substituto_presidente_ausente
                 ).first()
-                cargo_substituto_presidente_ausente_value = [x[1] for x in list_choices if x[0] == associacao.cargo_substituto_presidente_ausente][0]
+                cargo_substituto_presidente_ausente_value = [
+                    x[1] for x in list_choices if x[0] == associacao.cargo_substituto_presidente_ausente][0]
             else:
                 cargo_da_composicao_presidente_diretoria_executiva = CargoComposicao.objects.filter(
                     composicao=composicao_vigente,
                     cargo_associacao='PRESIDENTE_DIRETORIA_EXECUTIVA'
                 ).first()
-                cargo_substituto_presidente_ausente_value = [x[1] for x in list_choices if x[0] == 'PRESIDENTE_DIRETORIA_EXECUTIVA'][0]
+                cargo_substituto_presidente_ausente_value = [
+                    x[1] for x in list_choices if x[0] == 'PRESIDENTE_DIRETORIA_EXECUTIVA'][0]
 
             cargo_da_composicao_presidente_conselho_fiscal = CargoComposicao.objects.filter(
                 composicao=composicao_vigente,
@@ -369,9 +371,9 @@ def sintese_receita_despesa(acao_associacao, conta_associacao, periodo, fechamen
 
     valor_total_reprogramado_proximo = valor_saldo_reprogramado_proximo_periodo_livre
     valor_total_reprogramado_proximo = valor_total_reprogramado_proximo + \
-                                       valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else valor_total_reprogramado_proximo
+        valor_saldo_reprogramado_proximo_periodo_capital if valor_saldo_reprogramado_proximo_periodo_capital > 0 else valor_total_reprogramado_proximo
     valor_total_reprogramado_proximo = valor_total_reprogramado_proximo + \
-                                       valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else valor_total_reprogramado_proximo
+        valor_saldo_reprogramado_proximo_periodo_custeio if valor_saldo_reprogramado_proximo_periodo_custeio > 0 else valor_total_reprogramado_proximo
 
     subtotal_saldo_bancario = linha_custeio['valor_saldo_bancario_custeio'] + linha_capital[
         'valor_saldo_bancario_capital'] + linha_livre['valor_saldo_reprogramado_proximo_periodo_livre']
@@ -452,7 +454,7 @@ def sintese_custeio(acao_associacao, conta_associacao, periodo, fechamento_perio
     valor_custeio_rateios_demonstrados = rateios_demonstrados_custeio['valor'] or 0
     valor_custeio_rateios_nao_demonstrados = rateios_nao_conferidos_custeio['valor'] or 0
     valor_custeio_rateios_nao_demonstrados_periodos_anteriores = rateios_nao_conferidos_custeio_periodos_anteriores[
-                                                                     'valor'] or 0
+        'valor'] or 0
 
     saldo_anterior = 0
     credito = 0
@@ -787,7 +789,8 @@ def cria_despesas(rateios):
                 if tipo_transacao_imposto and "CHEQUE" in tipo_transacao_imposto.upper():
                     tipo_transacao_imposto = f"Ch-{despesa_imposto.documento_transacao}"
 
-                data_documento_imposto = despesa_imposto.data_documento.strftime("%d/%m/%Y") if despesa_imposto.data_documento else ''
+                data_documento_imposto = despesa_imposto.data_documento.strftime(
+                    "%d/%m/%Y") if despesa_imposto.data_documento else ''
 
                 tipo_documento_imposto = despesa_imposto.tipo_documento.nome if despesa_imposto.tipo_documento.nome else ''
                 nome_acao_documento_imposto = \
@@ -902,7 +905,7 @@ def tem_movimentacao(resumo_acao):
         resumo_acao["linha_custeio"]["despesa_realizada"] != '' else 0
 
     soma_absoluta_custeio = valor_absoluto_linha_custeio_saldo_anterior + valor_absoluto_linha_custeio_credito \
-                            + valor_absoluto_linha_custeio_despesa
+        + valor_absoluto_linha_custeio_despesa
 
     # Calcula valor absoluto de capital
     valor_absoluto_linha_capital_saldo_anterior = abs(resumo_acao["linha_capital"]["saldo_anterior"]) if \
@@ -915,7 +918,7 @@ def tem_movimentacao(resumo_acao):
         resumo_acao["linha_capital"]["despesa_realizada"] != '' else 0
 
     soma_absoluta_capital = valor_absoluto_linha_capital_saldo_anterior + valor_absoluto_linha_capital_credito \
-                            + valor_absoluto_linha_capital_despesa
+        + valor_absoluto_linha_capital_despesa
 
     # Calcula valor absoluto de livre
     valor_absoluto_linha_livre_saldo_anterior = abs(resumo_acao["linha_livre"]["saldo_anterior"]) if \

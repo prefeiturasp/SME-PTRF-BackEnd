@@ -25,7 +25,8 @@ from sme_ptrf_apps.sme.tasks import (
     exportar_repasses_async,
     exportar_dados_membros_apm_async,
     exportar_processos_sei_regularidade_async,
-    exportar_processos_sei_prestacao_contas_async
+    exportar_processos_sei_prestacao_contas_async,
+    exportar_unidades_async
 )
 
 from sme_ptrf_apps.users.permissoes import (
@@ -82,6 +83,57 @@ class ExportacoesDadosViewSet(GenericViewSet):
             data_final=request.query_params.get("data_final"),
             username=request.user.username,
             dre_uuid=request.query_params.get("dre_uuid"),
+        )
+
+        return Response(
+            {
+                "response": "Arquivo gerado com sucesso, enviado para a central de download"
+            },
+            status=HTTP_201_CREATED,
+        )
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='data_inicio',
+                description='Filtro de início de data de criação',
+                required=False,
+                allow_blank=True,
+                type=str,
+                location=OpenApiParameter.QUERY,
+            ),
+            OpenApiParameter(
+                name='data_final',
+                description='Filtro de fim de data de criação',
+                required=False,
+                allow_blank=True,
+                type=str,
+                location=OpenApiParameter.QUERY,
+            ),
+            OpenApiParameter(
+                name='dre_uui',
+                description='Filtro de uuid de DRE',
+                required=False,
+                allow_blank=True,
+                type=str,
+                location=OpenApiParameter.QUERY,
+            ),
+        ],
+        description="parâmetros de URL",
+        responses={200: "Success"},
+    )
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="unidades",
+        permission_classes=permission_classes,
+    )
+    def unidades(self, request):
+        exportar_unidades_async.delay(
+            data_inicio=request.query_params.get("data_inicio"),
+            data_final=request.query_params.get("data_final"),
+            username=request.user.username,
+            dre_uuid=request.query_params.get("dre_uuid", None),
         )
 
         return Response(

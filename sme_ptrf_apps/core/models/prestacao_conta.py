@@ -466,7 +466,6 @@ class PrestacaoConta(ModeloBase):
             tem_gastos_periodos_anteriores = RateioDespesa.rateios_da_conta_associacao_em_periodos_anteriores(
                 conta_associacao=conta,
                 periodo=self.periodo,
-                incluir_inativas=True,
                 nao_conciliadas_ou_conciliadas_no_periodo=True
             )
 
