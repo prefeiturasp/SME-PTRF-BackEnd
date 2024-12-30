@@ -16,7 +16,6 @@ from sme_ptrf_apps.core.services.arquivo_download_service import (
 from sme_ptrf_apps.utils.built_in_custom import get_recursive_attr
 
 
-
 logger = logging.getLogger(__name__)
 
 CABECALHO_ASSOCIACOES = [
@@ -27,7 +26,7 @@ CABECALHO_ASSOCIACOES = [
     ('CNPJ', 'cnpj', lambda x: x.replace(";", ",") if x else ""),
     ('ID do Período Inicial', 'periodo_inicial__uuid', lambda x: str(x).replace(";", ",") if x else ""),
     ('Referência do Período inicial', 'periodo_inicial__referencia', lambda x: x.replace(";", ",") if x else ""),
-    ('Data de encerramento', 'data_de_encerramento', lambda x: x.replace(";", ",") if x else ""),
+    ('Data de encerramento', 'data_de_encerramento', lambda x: x.strftime("%d/%m/%Y") if x else ""),
     ('CCM', 'ccm', lambda x: x.replace(";", ",") if x else ""),
     ('E-mail', 'email', lambda x: x.replace(";", ",") if x else ""),
     ('Número do processo de regularidade', 'processo_regularidade', lambda x: x.replace(";", ",") if x else ""),
@@ -138,9 +137,6 @@ class ExportaAssociacoesService:
         for instance in self.queryset:
             logger.info(f"Iniciando extração de asscociacao: {instance.id}.")
 
-            # if not Associacao.objects.using("homolog").filter(id=instance.id).exists():
-            #     logger.info(f"Este registro não existe mais na base de dados, portanto será pulado")
-            #     continue
             if not Associacao.objects.filter(id=instance.id).exists():
                 logger.info(f"Este registro não existe mais na base de dados, portanto será pulado")
                 continue
@@ -148,7 +144,6 @@ class ExportaAssociacoesService:
             linha_horizontal = []
 
             for _, campo, tratamento  in self.cabecalho:
-                # Removendo ponto e vírgula e substituindo por vírgula
                 valor = get_recursive_attr(instance, campo)
                 valor_tratado = tratamento(valor)
                 linha_horizontal.append(valor_tratado)
