@@ -15,13 +15,6 @@ logger = logging.getLogger(__name__)
 def exportar_associacoes_async(data_inicio, data_final, username, dre_uuid=None):
     logger.info("Exportando csv em processamento...")
 
-    # if dre_uuid:
-    #     queryset = Associacao.objects.using("homolog").filter(
-    #         unidade__dre__uuid=dre_uuid,
-    #     ).order_by('id')
-    # else:
-    #     queryset = Associacao.objects.using("homolog").all().order_by('id')
-
     if dre_uuid:
         queryset = Associacao.objects.filter(
             unidade__dre__uuid=dre_uuid,

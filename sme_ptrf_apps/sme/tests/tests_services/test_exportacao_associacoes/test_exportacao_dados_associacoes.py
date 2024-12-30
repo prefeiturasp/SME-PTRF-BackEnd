@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from tempfile import NamedTemporaryFile
 import pytest
 from unittest.mock import patch
@@ -84,7 +84,7 @@ def test_filtra_range_data_inicial_e_final(associacao_factory):
 
 def test_monta_dados(associacao_factory):
     associacao_factory.create()
-    associacao_factory.create()
+    associacao_factory.create(data_de_encerramento=date(2024, 10, 31))
     queryset = Associacao.objects.all().order_by('id')
     service = ExportaAssociacoesService(queryset=queryset)
     result = service.monta_dados()
