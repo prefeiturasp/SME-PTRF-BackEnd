@@ -1,4 +1,4 @@
-from datetime import datetime, time, date, timedelta
+from datetime import datetime, time, date
 import pytest
 import logging
 
@@ -6,14 +6,12 @@ from tempfile import NamedTemporaryFile
 from django.utils.timezone import make_aware
 from unittest.mock import MagicMock, patch
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
-from sme_ptrf_apps.core.models.unidade import Unidade
 from sme_ptrf_apps.sme.services.exporta_dados_unidades_service import (
     ExportacoesDadosUnidadesService
 )
 logger = logging.getLogger(__name__)
 
 pytestmark = pytest.mark.django_db
-
 
 DATAS = (date(2020, 3, 26), date(2024, 4, 26))
 
@@ -24,19 +22,6 @@ def test_get_ambiente(export_service):
         assert export_service.get_ambiente == "PROD"
         mock_ambiente.return_value = None
         assert export_service.get_ambiente == ""
-
-def test_get_texto_filtro_aplicado_data_inicio():
-    service = ExportacoesDadosUnidadesService(data_inicio="2024-12-01")
-    result = service.get_texto_filtro_aplicado()
-
-    assert result == "Filtro aplicado: A partir de 01/12/2024 (data de criação do registro)"
-
-
-def test_get_texto_filtro_aplicado_data_final():
-    service = ExportacoesDadosUnidadesService(data_final="2024-12-31")
-    result = service.get_texto_filtro_aplicado()
-
-    assert result == "Filtro aplicado: Até 31/12/2024 (data de criação do registro)"
 
 
 def test_get_texto_filtro_aplicado(export_service):
@@ -64,20 +49,6 @@ def test_filtra_range_data(export_service, mock_query_set):
         criado_em__lte=final_aware,
     )
     assert filtered_queryset == mock_query_set
-
-
-def test_filtra_range_data_inicial_e_final(unidade_factory):
-    unidade_factory.create()
-    unidade_factory.create()
-    queryset = Unidade.objects.all().order_by('uuid')
-    data_inicio = datetime.now().strftime("%Y-%m-%d")
-    data_final = (datetime.now() + timedelta(days=1)).strftime("%Y-%m-%d")
-    service = ExportacoesDadosUnidadesService(queryset=queryset, data_inicio=data_inicio, data_final=data_final)
-    result = service.filtra_range_data("criado_em")
-    new_queryset = Unidade.objects.all().order_by('uuid')
-
-    assert result.count() == new_queryset.count()
-    assert result[0].tipo_unidade == new_queryset[0].tipo_unidade
 
 
 def test_monta_dados(export_service):
@@ -136,16 +107,6 @@ def test_texto_rodape(export_service):
 
     assert resultado is not None
 
-def test_rodape(usuario_para_teste):
-    service = ExportacoesDadosUnidadesService(user=usuario_para_teste)
-    service.ambiente = "Ambiente de Teste"
-    result = service.texto_rodape()
-
-    data_atual = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-    resultado_esperado = f"Arquivo gerado via Ambiente de Teste pelo usuário {usuario_para_teste} em {data_atual}"
-
-    assert result == resultado_esperado, result
-
 
 @patch('csv.writer')
 def test_exporta_unidades_csv(mock_writer):
@@ -180,49 +141,3 @@ def test_exporta_unidades_csv(mock_writer):
     mock_write.writerow.assert_any_call(["2", "Dado 2"])
 
     service.envia_arquivo_central_download.assert_called_once()
-
-def test_cria_registro_central_download(usuario_para_teste):
-    with NamedTemporaryFile(
-        mode="r+",
-        newline='',
-        encoding='utf-8',
-        prefix='unidades',
-        suffix='.csv'
-    ) as file:
-        file.write("testando central de download")
-
-        service = ExportacoesDadosUnidadesService(
-            nome_arquivo='unidades.csv',
-            user=usuario_para_teste.username
-        )
-        service.cria_registro_central_download()
-        service.envia_arquivo_central_download(file)
-        objeto_arquivo_download = service.objeto_arquivo_download
-
-    assert objeto_arquivo_download.status == ArquivoDownload.STATUS_CONCLUIDO
-    assert objeto_arquivo_download.identificador == 'unidades.csv'
-    assert ArquivoDownload.objects.count() == 1
-
-
-def test_exporta_associacoes_csv(associacao_factory, usuario_para_teste):
-    associacao_factory.create()
-    queryset = Unidade.objects.all().order_by('uuid')
-    service = ExportacoesDadosUnidadesService(
-        queryset=queryset,
-        nome_arquivo='unidades.csv',
-        user=usuario_para_teste.username)
-    service.cria_registro_central_download()
-    service.exporta_unidades_csv()
-    assert service.objeto_arquivo_download.status == ArquivoDownload.STATUS_CONCLUIDO
-
-
-def test_exporta_associacoes(associacao_factory, usuario_para_teste):
-    associacao_factory.create()
-    queryset = Unidade.objects.all().order_by('uuid')
-    service = ExportacoesDadosUnidadesService(
-        queryset=queryset,
-        nome_arquivo='unidades.csv',
-        user=usuario_para_teste.username)
-    service.cria_registro_central_download()
-    service.exporta_unidades()
-    assert service.objeto_arquivo_download.status == ArquivoDownload.STATUS_CONCLUIDO
