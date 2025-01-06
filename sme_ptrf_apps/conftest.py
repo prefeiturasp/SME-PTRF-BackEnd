@@ -25,7 +25,7 @@ from pytest_factoryboy import register
 from sme_ptrf_apps.fixtures import *
 
 from sme_ptrf_apps.core.fixtures.factories import (
-    DreFactory, UnidadeFactory, AssociacaoFactory, ContaAssociacaoFactory,
+    DreFactory, UnidadeFactory, AssociacaoFactory, AssociacaoFactoryComPeriodoInicial, ContaAssociacaoFactory,
     PeriodoFactory, TipoContaFactory, ObservacaoConciliacaoFactory,
     PrestacaoContaFactory, ArquivoFactory, AcaoFactory, AcaoAssociacaoFactory,
     FechamentoPeriodoFactory, MembroAssociacaoFactory, RelacaoBensFactory,
@@ -51,7 +51,7 @@ from sme_ptrf_apps.receitas.fixtures.factories import (
 )
 
 factories_to_register = [
-    DreFactory, UnidadeFactory, AssociacaoFactory, ContaAssociacaoFactory,
+    DreFactory, UnidadeFactory, AssociacaoFactory, AssociacaoFactoryComPeriodoInicial, ContaAssociacaoFactory,
     PeriodoFactory, TipoContaFactory, ObservacaoConciliacaoFactory,
     PrestacaoContaFactory, UsuarioFactory, UnidadeEmSuporteFactory,
     GrupoAcessoFactory, VisaoFactory, ArquivoFactory, AcaoFactory,

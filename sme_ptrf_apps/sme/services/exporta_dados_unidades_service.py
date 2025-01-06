@@ -26,7 +26,7 @@ CABECALHO_UNIDADES = [
     ('Tipo Logradouro', 'tipo_logradouro', lambda x: x.replace(";", ",")),
     ('Logradouro', 'logradouro', lambda x: x.replace(";", ",")),
     ('Bairro', 'bairro', lambda x: x.replace(";", ",")),
-    ('Numero', 'numero', lambda x: x.replace(";", ",")),
+    ('Número', 'numero', lambda x: x.replace(";", ",")),
     ('Complemento', 'complemento', lambda x: x.replace(";", ",")),
     ('Telefone', 'telefone', lambda x: x.replace(";", ",")),
     ('E-mail', 'email', lambda x: x.replace(";", "")),
