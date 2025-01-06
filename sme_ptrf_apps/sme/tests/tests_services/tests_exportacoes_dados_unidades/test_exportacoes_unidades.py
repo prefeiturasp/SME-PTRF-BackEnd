@@ -113,7 +113,7 @@ def test_exporta_unidades_csv(mock_writer):
     nome_arquivo = "exportacao_unidades"
     cabecalho = [[
         'Código EOL', 'Tipo', 'Nome', 'CEP', 'Tipo Logradouro', 'Logradouro',
-        'Bairro', 'Numero', 'Complemento', 'Telefone', 'E-mail',
+        'Bairro', 'Número', 'Complemento', 'Telefone', 'E-mail',
         'Código EOL DRE', 'Nome DRE', 'Sigla DRE', 'Nome Diretor Unidade',
         'Data e hora de criação do registro',
         'Data e hora da última atualização do registro', ],
@@ -131,7 +131,7 @@ def test_exporta_unidades_csv(mock_writer):
 
     cabecalho_esperado = [
         'Código EOL', 'Tipo', 'Nome', 'CEP', 'Tipo Logradouro', 'Logradouro',
-        'Bairro', 'Numero', 'Complemento', 'Telefone', 'E-mail',
+        'Bairro', 'Número', 'Complemento', 'Telefone', 'E-mail',
         'Código EOL DRE', 'Nome DRE', 'Sigla DRE', 'Nome Diretor Unidade',
         'Data e hora de criação do registro',
         'Data e hora da última atualização do registro']
