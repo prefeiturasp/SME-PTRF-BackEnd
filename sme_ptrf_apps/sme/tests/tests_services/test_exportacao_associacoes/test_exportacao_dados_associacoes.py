@@ -84,7 +84,7 @@ def test_filtra_range_data_inicial_e_final(associacao_factory):
 
 def test_monta_dados(associacao_factory_com_periodo_inicial):
     associacao_factory_com_periodo_inicial.create()
-    associacao_factory_com_periodo_inicial.create(data_de_encerramento=date(2023, 10, 31))
+    associacao_factory_com_periodo_inicial.create(data_de_encerramento=date(2024, 10, 31))
     queryset = Associacao.objects.all().order_by('id')
     service = ExportaAssociacoesService(queryset=queryset)
     result = service.monta_dados()
