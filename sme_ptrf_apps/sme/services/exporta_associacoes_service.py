@@ -24,7 +24,7 @@ CABECALHO_ASSOCIACOES = [
     ('Nome Associação', 'nome', lambda x: x.replace(";", ",") if x else ""),
     ('DRE', 'unidade__dre__nome', lambda x: x.replace(";", ",") if x else ""),
     ('CNPJ', 'cnpj', lambda x: x.replace(";", ",") if x else ""),
-    ('ID do Período Inicial', 'periodo_inicial__uuid', lambda x: str(x).replace(";", ",") if x else ""),
+    ('ID do Período Inicial', 'periodo_inicial__id', lambda x: str(x).replace(";", ",") if x else ""),
     ('Referência do Período inicial', 'periodo_inicial__referencia', lambda x: x.replace(";", ",") if x else ""),
     ('Data de encerramento', 'data_de_encerramento', lambda x: x.strftime("%d/%m/%Y") if x else ""),
     ('CCM', 'ccm', lambda x: x.replace(";", ",") if x else ""),
