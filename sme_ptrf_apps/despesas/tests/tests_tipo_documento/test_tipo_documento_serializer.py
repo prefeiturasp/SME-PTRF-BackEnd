@@ -5,7 +5,6 @@ from ...api.serializers.tipo_documento_serializer import (
     TipoDocumentoSerializer
 )
 from ...models import TipoDocumento
-from .factory import TipoDocumentoFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -63,11 +62,11 @@ def test_update_tipo_documento_success(tipo_documento):
     assert tipo_documento_atualizado.nome == "Documento Atualizado"
 
 
-def test_create_tipo_documento_duplicate_nome():
+def test_create_tipo_documento_duplicate_nome(tipo_documento_factory):
     """
     Testa a criação de um TipoDocumento com um nome duplicado.
     """
-    TipoDocumentoFactory(nome="Documento Teste")
+    tipo_documento_factory.create(nome="Documento Teste")
     data = {
         "nome": "Documento Teste",
         "apenas_digitos": True,
@@ -86,11 +85,11 @@ def test_create_tipo_documento_duplicate_nome():
     assert isinstance(exc.value, error)
 
 
-def test_update_tipo_documento_duplicate_nome(tipo_documento):
+def test_update_tipo_documento_duplicate_nome(tipo_documento, tipo_documento_factory):
     """
     Testa a atualização de um TipoDocumento para um nome já existente.
     """
-    TipoDocumentoFactory(nome="Documento Existente")
+    tipo_documento_factory.create(nome="Documento Existente")
 
     data = {
         "nome": "Documento Existente"
