@@ -6,9 +6,6 @@ from rest_framework.response import Response
 from ..serializers.tipo_documento_serializer import (
     TipoDocumentoSerializer,
 )
-from sme_ptrf_apps.users.permissoes import (
-    PermissaoAPIApenasSmeComLeituraOuGravacao,
-)
 from ...models import TipoDocumento
 
 
@@ -18,7 +15,7 @@ class TiposDocumentoViewSet(mixins.ListModelMixin,
                             mixins.UpdateModelMixin,
                             mixins.DestroyModelMixin,
                             GenericViewSet):
-    permission_classes = [IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
+    permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
     queryset = TipoDocumento.objects.all()
     serializer_class = TipoDocumentoSerializer
