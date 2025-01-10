@@ -1,10 +1,14 @@
 import pytest
-
-from ...api.serializers.tipo_documento_serializer import (TipoDocumentoSerializer, TipoDocumentoListSerializer)
-from ...models import TipoDocumento
 from rest_framework.exceptions import ValidationError
 
+from ...api.serializers.tipo_documento_serializer import (
+    TipoDocumentoSerializer
+)
+from ...models import TipoDocumento
+from .factory import TipoDocumentoFactory
+
 pytestmark = pytest.mark.django_db
+
 
 def test_serializer(tipo_documento):
 
@@ -39,11 +43,10 @@ def test_create_tipo_documento_success():
     assert TipoDocumento.objects.count() == 1
 
 
-def test_update_tipo_documento_success():
+def test_update_tipo_documento_success(tipo_documento):
     """
     Testa a atualização de um TipoDocumento com um nome novo.
     """
-    tipo_documento = TipoDocumento.objects.create(nome="Documento Antigo")
     data = {
         "nome": "Documento Atualizado",
         "apenas_digitos": False,
@@ -60,19 +63,11 @@ def test_update_tipo_documento_success():
     assert tipo_documento_atualizado.nome == "Documento Atualizado"
 
 
-def test_Listserializer(tipo_documento):
-
-    serializer = TipoDocumentoSerializer(tipo_documento)
-
-    assert serializer.data is not None
-    assert serializer.data['id']
-    assert serializer.data['nome']
-
 def test_create_tipo_documento_duplicate_nome():
     """
     Testa a criação de um TipoDocumento com um nome duplicado.
     """
-    TipoDocumento.objects.create(nome="Documento Teste")
+    TipoDocumentoFactory(nome="Documento Teste")
     data = {
         "nome": "Documento Teste",
         "apenas_digitos": True,
@@ -86,16 +81,17 @@ def test_create_tipo_documento_duplicate_nome():
     with pytest.raises(ValidationError) as exc:
         serializer.is_valid(raise_exception=True)
 
-    assert "non_field_errors" in str(exc.value), exc.value
+    assert "non_field_errors" in str(exc.value)
     error = ValidationError
     assert isinstance(exc.value, error)
 
-def test_update_tipo_documento_duplicate_nome():
+
+def test_update_tipo_documento_duplicate_nome(tipo_documento):
     """
     Testa a atualização de um TipoDocumento para um nome já existente.
     """
-    TipoDocumento.objects.create(nome="Documento Existente")
-    tipo_documento = TipoDocumento.objects.create(nome="Documento Original")
+    TipoDocumentoFactory(nome="Documento Existente")
+
     data = {
         "nome": "Documento Existente"
     }
