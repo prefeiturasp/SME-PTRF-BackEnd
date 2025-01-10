@@ -1,6 +1,8 @@
 from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.response import Response
+
 from ..serializers.tipo_documento_serializer import (
     TipoDocumentoSerializer,
 )
@@ -8,15 +10,14 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasSmeComLeituraOuGravacao,
 )
 from ...models import TipoDocumento
-from rest_framework.response import Response
 
 
 class TiposDocumentoViewSet(mixins.ListModelMixin,
-                                  mixins.RetrieveModelMixin,
-                                  mixins.CreateModelMixin,
-                                  mixins.UpdateModelMixin,
-                                  mixins.DestroyModelMixin,
-                                  GenericViewSet):
+                            mixins.RetrieveModelMixin,
+                            mixins.CreateModelMixin,
+                            mixins.UpdateModelMixin,
+                            mixins.DestroyModelMixin,
+                            GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
     lookup_field = 'uuid'
     queryset = TipoDocumento.objects.all()

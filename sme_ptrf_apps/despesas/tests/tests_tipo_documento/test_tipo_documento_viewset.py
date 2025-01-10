@@ -2,6 +2,7 @@ import pytest
 from rest_framework import status
 from ....despesas.models import TipoDocumento, Despesa
 
+
 @pytest.fixture
 def tipo_documento():
     return TipoDocumento.objects.create(nome="Cupom")
