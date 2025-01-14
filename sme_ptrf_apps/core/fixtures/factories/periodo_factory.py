@@ -14,3 +14,10 @@ class PeriodoFactory(DjangoModelFactory):
     referencia = LazyAttribute(lambda obj: obj.data_inicio_realizacao_despesas.strftime("%Y.1"))
     
     # TODO adicionar outros campos
+
+
+class PeriodoFactoryComDataFixa(DjangoModelFactory):
+    class Meta:
+        model = Periodo
+
+    data_inicio_realizacao_despesas = Sequence(lambda n: fake.date_between_dates(date_start=datetime(2024, 4, 1), date_end=datetime(2024, 6, 1)))
