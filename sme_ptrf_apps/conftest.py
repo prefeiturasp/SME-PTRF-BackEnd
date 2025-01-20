@@ -44,7 +44,8 @@ from sme_ptrf_apps.mandatos.fixtures.factories import (
     MandatoFactory, ComposicaoFactory, OcupanteCargoFactory, CargoComposicaoFactory
 )
 from sme_ptrf_apps.despesas.fixtures.factories import (
-    DespesaFactory, RateioDespesaFactory, TipoTransacaoFactory, TipoDocumentoFactory
+    DespesaFactory, RateioDespesaFactory, TipoTransacaoFactory, TipoDocumentoFactory,
+    MotivoPagamentoAntecipadoFactory
 )
 from sme_ptrf_apps.receitas.fixtures.factories import (
     TipoReceitaFactory
@@ -65,7 +66,11 @@ factories_to_register = [
     ItemDespesaFactory, ItemCreditoFactory, TipoReceitaFactory, RelacaoBensFactory,
     RelatorioRelacaoBensFactory, ItemRelatorioRelacaoDeBensFactory,
     SolicitacaoEncerramentoContaAssociacaoFactory, ArquivoDownloadFactory,
+<<<<<<< HEAD
     TipoDocumentoFactory
+=======
+    MotivoPagamentoAntecipadoFactory
+>>>>>>> feature/124988-api-motivos-pagamento-antecipado
 ]
 
 for factory in factories_to_register:
