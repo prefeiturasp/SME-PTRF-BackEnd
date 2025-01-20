@@ -66,11 +66,7 @@ factories_to_register = [
     ItemDespesaFactory, ItemCreditoFactory, TipoReceitaFactory, RelacaoBensFactory,
     RelatorioRelacaoBensFactory, ItemRelatorioRelacaoDeBensFactory,
     SolicitacaoEncerramentoContaAssociacaoFactory, ArquivoDownloadFactory,
-<<<<<<< HEAD
-    TipoDocumentoFactory
-=======
-    MotivoPagamentoAntecipadoFactory
->>>>>>> feature/124988-api-motivos-pagamento-antecipado
+    TipoDocumentoFactory, MotivoPagamentoAntecipadoFactory
 ]
 
 for factory in factories_to_register:
