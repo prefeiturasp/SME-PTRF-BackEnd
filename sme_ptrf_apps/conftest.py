@@ -44,7 +44,7 @@ from sme_ptrf_apps.mandatos.fixtures.factories import (
     MandatoFactory, ComposicaoFactory, OcupanteCargoFactory, CargoComposicaoFactory
 )
 from sme_ptrf_apps.despesas.fixtures.factories import (
-    DespesaFactory, RateioDespesaFactory, TipoTransacaoFactory
+    DespesaFactory, RateioDespesaFactory, TipoTransacaoFactory, MotivoPagamentoAntecipadoFactory
 )
 from sme_ptrf_apps.receitas.fixtures.factories import (
     TipoReceitaFactory
@@ -64,7 +64,8 @@ factories_to_register = [
     CargoComposicaoFactory, DemonstrativoFinanceiroFactory, ItemResumoPorAcaoFactory,
     ItemDespesaFactory, ItemCreditoFactory, TipoReceitaFactory, RelacaoBensFactory,
     RelatorioRelacaoBensFactory, ItemRelatorioRelacaoDeBensFactory,
-    SolicitacaoEncerramentoContaAssociacaoFactory, ArquivoDownloadFactory
+    SolicitacaoEncerramentoContaAssociacaoFactory, ArquivoDownloadFactory,
+    MotivoPagamentoAntecipadoFactory
 ]
 
 for factory in factories_to_register:
