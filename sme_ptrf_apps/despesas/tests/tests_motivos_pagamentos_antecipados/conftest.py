@@ -24,5 +24,4 @@ def despesa_com_motivo_pgto_antecipado(associacao, tipo_documento, tipo_transaca
         valor_total=100.00,
     )
     despesa_com_motivo.motivos_pagamento_antecipado.set([motivo_pagamento_antecipado])
-    # despesa_com_motivo.save()
     return despesa_com_motivo
