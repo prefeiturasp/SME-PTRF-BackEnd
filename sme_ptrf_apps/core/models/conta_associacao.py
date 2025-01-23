@@ -72,7 +72,7 @@ class ContaAssociacao(ModeloBase):
 
     associacao = models.ForeignKey(
         "Associacao",
-        on_delete=models.CASCADE,
+        on_delete=models.PROTECT,
         related_name="contas",
         blank=True,
         null=True,
@@ -115,6 +115,12 @@ class ContaAssociacao(ModeloBase):
     def ativar(self):
         self.status = self.STATUS_ATIVA
         self.save()
+
+    def tipo_conta_dados(self):
+        return self.tipo_conta
+
+    def associacao_dados(self):
+        return self.associacao
 
     @property
     def periodo_encerramento(self):
@@ -486,7 +492,6 @@ class ContaAssociacao(ModeloBase):
 
     class Meta:
         verbose_name = "Conta de Associação"
-
         verbose_name_plural = "07.1) Contas de Associações"
 
 

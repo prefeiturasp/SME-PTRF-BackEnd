@@ -21,7 +21,8 @@ from .conta_associacao_serializer import (
     ContaAssociacaoInfoAtaSerializer,
     ContaAssociacaoLookUpSerializer,
     ContaAssociacaoSerializer,
-    ContaAssociacaoDadosSerializer
+    ContaAssociacaoDadosSerializer,
+    ContaAssociacaoCriacaoSerializer
 )
 from .membro_associacao_serializer import MembroAssociacaoCreateSerializer, MembroAssociacaoListSerializer
 from .notificacao_serializer import NotificacaoSerializer
