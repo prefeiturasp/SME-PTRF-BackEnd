@@ -54,6 +54,7 @@ from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import Especificaca
 from sme_ptrf_apps.despesas.api.views.fornecedores_viewset import FornecedoresViewSet
 from sme_ptrf_apps.despesas.api.views.rateios_despesas_viewset import RateiosDespesasViewSet
 from sme_ptrf_apps.despesas.api.views.tipos_custeio_viewset import TiposCusteioViewSet
+from sme_ptrf_apps.despesas.api.views.tipos_transacao_viewset import TiposTransacaoViewSet
 from sme_ptrf_apps.despesas.api.views.motivos_pagamento_antecipado_viewset import MotivosPagamentoAntecipadoViewSet
 from sme_ptrf_apps.dre.api.views import (
     FaqCategoriasViewSet,
@@ -162,6 +163,7 @@ router.register("arquivos", ArquivoViewSet)
 router.register("tags", TagsViewSet)
 router.register("modelos-cargas", ModelosCargasViewSet)
 router.register("tipos-custeio", TiposCusteioViewSet)
+router.register("tipos-transacao", TiposTransacaoViewSet)
 router.register("ambientes", AmbientesViewSet)
 router.register("saldos-bancarios-sme", SaldosBancariosSMEViewSet)
 router.register("saldos-bancarios-sme-detalhes", SaldosBancariosSmeDetalhesAsocciacoesViewSet)
