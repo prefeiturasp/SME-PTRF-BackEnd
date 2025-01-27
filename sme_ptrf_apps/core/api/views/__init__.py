@@ -2,6 +2,7 @@ from .associacoes_viewset import AssociacoesViewSet
 from .parametrizacoes_associacoes import ParametrizacoesAssociacoesViewSet
 from .atas_viewset import AtasViewSet
 from .conciliacoes_viewset import ConciliacoesViewSet
+from .contas_associacoes_viewset import ContasAssociacoesViewSet
 from .demonstrativo_financeiro_viewset import DemonstrativoFinanceiroViewSet
 from .dres_viewset import DresViewSet
 from .membro_associacao_viewset import MembroAssociacaoViewSet
