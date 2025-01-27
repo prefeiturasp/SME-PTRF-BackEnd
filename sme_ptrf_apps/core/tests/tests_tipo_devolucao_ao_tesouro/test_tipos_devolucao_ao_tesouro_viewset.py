@@ -54,28 +54,29 @@ def test_view_set(tipo_devolucao_ao_tesouro, usuario_permissao_associacao):
     assert response.status_code == status.HTTP_200_OK
 
 
-def test_filtra_tipo_devolucao_ao_tesouro_por_nome(jwt_authenticated_client, tipo_devolucao_ao_tesouro):
+def test_filtra_tipo_devolucao_ao_tesouro_por_nome(jwt_authenticated_client_sme, tipo_devolucao_ao_tesouro):
     url = "/api/tipos-devolucao-ao-tesouro/?nome=Teste"
-    response = jwt_authenticated_client.get(url)
+    response = jwt_authenticated_client_sme.get(url)
 
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data) == 1, response.data
     assert response.data[0]['nome'] == "Teste"
 
 
-def test_excluir_tipo_devolucao_ao_tesouro_sem_devolucao(jwt_authenticated_client, tipo_devolucao_ao_tesouro):
+def test_excluir_tipo_devolucao_ao_tesouro_sem_devolucao(jwt_authenticated_client_sme, tipo_devolucao_ao_tesouro):
     url = f"/api/tipos-devolucao-ao-tesouro/{tipo_devolucao_ao_tesouro.uuid}/"
-    response = jwt_authenticated_client.delete(url)
+    response = jwt_authenticated_client_sme.delete(url)
+
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
-def test_excluir_tipo_devolucao_ao_tesouro_com_devolucao(jwt_authenticated_client,
+def test_excluir_tipo_devolucao_ao_tesouro_com_devolucao(jwt_authenticated_client_sme,
                                                          devolucao_ao_tesouro_com_tipo_devolucao_ao_tesouro,
                                                          tipo_devolucao_ao_tesouro):
 
     url = f"/api/tipos-devolucao-ao-tesouro/{tipo_devolucao_ao_tesouro.uuid}/"
-    response = jwt_authenticated_client.delete(url)
+    response = jwt_authenticated_client_sme.delete(url)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data['erro'] == 'ProtectedError'
