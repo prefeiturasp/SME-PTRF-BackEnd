@@ -1,4 +1,5 @@
 from rest_framework import viewsets, status, exceptions
+from django.db.models.deletion import ProtectedError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from ...models import MotivoPagamentoAntecipado
@@ -30,5 +31,14 @@ class MotivosPagamentoAntecipadoViewSet(viewsets.ModelViewSet):
                     'mensagem': 'Essa operação não pode ser realizada. Há lançamentos ' +
                     'cadastrados com esse motivo de pagamento antecipado.'
                 })
+        try:
+            self.perform_destroy(obj)
+        except ProtectedError:
+            content = {
+                'erro': 'ProtectedError',
+                'mensagem': 'Essa operação não pode ser realizada. Há lançamentos ' +
+                    'cadastrados com esse motivo de pagamento antecipado.'
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
