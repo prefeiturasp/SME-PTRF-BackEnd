@@ -17,6 +17,7 @@ class TipoDocumento(ModeloIdNome):
     class Meta:
         verbose_name = "Tipo de documento"
         verbose_name_plural = "Tipos de documento"
+        unique_together = ['nome', ]
 
 
 auditlog.register(TipoDocumento)

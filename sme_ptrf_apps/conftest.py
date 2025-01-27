@@ -45,7 +45,8 @@ from sme_ptrf_apps.mandatos.fixtures.factories import (
     MandatoFactory, ComposicaoFactory, OcupanteCargoFactory, CargoComposicaoFactory
 )
 from sme_ptrf_apps.despesas.fixtures.factories import (
-    DespesaFactory, RateioDespesaFactory, TipoTransacaoFactory
+    DespesaFactory, RateioDespesaFactory, TipoTransacaoFactory, TipoDocumentoFactory,
+    MotivoPagamentoAntecipadoFactory
 )
 from sme_ptrf_apps.receitas.fixtures.factories import (
     TipoReceitaFactory
@@ -66,7 +67,7 @@ factories_to_register = [
     ItemDespesaFactory, ItemCreditoFactory, TipoReceitaFactory, RelacaoBensFactory,
     RelatorioRelacaoBensFactory, ItemRelatorioRelacaoDeBensFactory,
     SolicitacaoEncerramentoContaAssociacaoFactory, ArquivoDownloadFactory,
-    TipoDevolucaoAoTesouroFactory
+    TipoDevolucaoAoTesouroFactory, TipoDocumentoFactory, MotivoPagamentoAntecipadoFactory
 ]
 
 for factory in factories_to_register:
@@ -1089,6 +1090,15 @@ def prestacao_conta_2019_2_conciliada(periodo_2019_2, associacao):
         periodo=periodo_2019_2,
         associacao=associacao,
         status=PrestacaoConta.STATUS_NAO_RECEBIDA
+    )
+
+@pytest.fixture
+def prestacao_conta_2019_2_aprovada_associacao_encerrada(periodo_2019_2, associacao_encerrada_2020_1):
+    return baker.make(
+        'PrestacaoConta',
+        periodo=periodo_2019_2,
+        associacao=associacao_encerrada_2020_1,
+        status=PrestacaoConta.STATUS_APROVADA
     )
 
 
