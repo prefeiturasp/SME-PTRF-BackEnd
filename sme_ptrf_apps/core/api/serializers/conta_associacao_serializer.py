@@ -1,9 +1,11 @@
+from django.core.exceptions import ValidationError
+
 from rest_framework import serializers
 
 from ..serializers.associacao_serializer import AssociacaoSerializer
 from ..serializers.tipo_conta_serializer import TipoContaSerializer
 from ..serializers.solicitacao_encerramento_conta_associacao_serializer import SolicitacaoEncerramentoContaAssociacaoSerializer
-from ...models import ContaAssociacao, Associacao
+from ...models import ContaAssociacao, Associacao, TipoConta
 
 
 class ContaAssociacaoSerializer(serializers.ModelSerializer):
@@ -111,3 +113,70 @@ class ContaAssociacaoCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContaAssociacao
         exclude = ('id',)
+
+
+class ContaAssociacaoCriacaoSerializer(serializers.ModelSerializer):
+    associacao = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Associacao.objects.all()
+    )
+
+    tipo_conta = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=TipoConta.objects.all()
+    )
+    tipo_conta_dados = TipoContaSerializer(many=False, read_only=True)
+    associacao_dados = AssociacaoSerializer(many=False, read_only=True)
+
+    class Meta:
+        model = ContaAssociacao
+        fields = ('id', 'uuid', 'banco_nome', 'agencia', 'numero_conta', 'numero_cartao',
+                  'data_inicio', 'associacao', 'tipo_conta', 'status', 'tipo_conta_dados', 'associacao_dados')
+        read_only_fields = ('tipo_conta_dados', 'associacao_dados',)
+
+    def create(self, validated_data):
+        associacao = validated_data.get('associacao')
+        tipo_conta = validated_data.get('tipo_conta')
+        banco_nome = validated_data.get('banco_nome')
+        agencia = validated_data.get('agencia')
+        numero_conta = validated_data.get('numero_conta')
+        numero_cartao = validated_data.get('numero_cartao')
+
+        if ContaAssociacao.objects.filter(
+                associacao=associacao,
+                tipo_conta=tipo_conta,
+                banco_nome=banco_nome,
+                agencia=agencia,
+                numero_conta=numero_conta,
+                numero_cartao=numero_cartao).exists():
+            raise serializers.ValidationError({
+                'non_field_errors': 'Esta conta de associacao já existe.'
+                })
+
+        instance = super().create(validated_data)
+        return instance
+
+    def update(self, instance, validated_data):
+        associacao = validated_data.get('associacao')
+        tipo_conta = validated_data.get('tipo_conta')
+        banco_nome = validated_data.get('banco_nome')
+        agencia = validated_data.get('agencia')
+        numero_conta = validated_data.get('numero_conta')
+        numero_cartao = validated_data.get('numero_cartao')
+
+        if ContaAssociacao.objects.filter(
+            associacao=associacao,
+            tipo_conta=tipo_conta,
+            banco_nome=banco_nome,
+            agencia=agencia,
+            numero_conta=numero_conta,
+            numero_cartao=numero_cartao
+        ).exclude(pk=self.instance.pk).exists():
+            raise serializers.ValidationError({
+                'non_field_errors': 'Esta conta de associacao já existe.'
+                })
+
+        instance = super().update(instance, validated_data)
+        return instance
