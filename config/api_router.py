@@ -21,6 +21,7 @@ from sme_ptrf_apps.core.api.views import (
     ProcessosAssociacaoViewSet,
     UnidadesViewSet,
     ConciliacoesViewSet,
+    ContasAssociacoesViewSet,
     NotificacaoViewSet,
     DresViewSet,
     TiposDevolucaoAoTesouroViewSet,
@@ -50,6 +51,7 @@ from sme_ptrf_apps.core.api.views import (
 from sme_ptrf_apps.core.api.views.prestacoes_contas_reprovadas_nao_apresentacao_viewset import \
     PrestacaoContaReprovadaNaoApresentacaoViewSet
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
+from sme_ptrf_apps.despesas.api.views.tipo_documento_viewset import TiposDocumentoViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
 from sme_ptrf_apps.despesas.api.views.fornecedores_viewset import FornecedoresViewSet
 from sme_ptrf_apps.despesas.api.views.rateios_despesas_viewset import RateiosDespesasViewSet
@@ -150,12 +152,14 @@ router.register("notificacoes", NotificacaoViewSet)
 router.register("dres", DresViewSet)
 router.register("tipos-devolucao-ao-tesouro", TiposDevolucaoAoTesouroViewSet)
 router.register("tipos-conta", TiposContaViewSet)
+router.register("tipos-documento", TiposDocumentoViewSet, basename='tipos-documento')
 router.register("comentarios-de-analises", ComentariosAnalisesPrestacoesViewSet)
 router.register("relatorios-consolidados-dre", RelatoriosConsolidadosDREViewSet)
 router.register("justificativas-relatorios-consolidados-dre", JustificativasRelatoriosConsolidadosDreViewSet)
 router.register("motivos-aprovacao-ressalva", MotivoAprovacaoRessalvaViewSet)
 router.register("motivos-reprovacao", MotivoReprovacaoViewSet)
 router.register("acoes-associacoes", AcaoAssociacaoViewSet)
+router.register("contas-associacoes", ContasAssociacoesViewSet)
 router.register("parametrizacoes-acoes-associacoes", ParametrizacoesAcoesAssociacaoViewSet)
 router.register("acoes", AcoesViewSet)
 router.register("arquivos", ArquivoViewSet)
