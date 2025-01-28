@@ -138,4 +138,3 @@ def test_valida_se_pode_editar_periodo_inicial_deve_retornar_erro_tem_gastos(
     assert response["pode_editar_periodo_inicial"] == False
     assert "- Despesa(s)" in response["mensagem_pode_editar_periodo_inicial"]
 
-
