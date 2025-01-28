@@ -53,7 +53,7 @@ class MotivosDevolucaoAoTesouroViewSet(mixins.ListModelMixin,
                                      mixins.UpdateModelMixin,
                                      mixins.DestroyModelMixin,
                                      GenericViewSet):
-    permission_classes = []#[IsAuthenticated & PermissaoApiUe]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = TipoDevolucaoAoTesouro.objects.all()
     serializer_class = TipoDevolucaoAoTesouroSerializer
