@@ -12,7 +12,7 @@ class TiposTransacaoViewSet(mixins.ListModelMixin,
                             mixins.UpdateModelMixin,
                             mixins.DestroyModelMixin,
                             GenericViewSet):
-    permission_classes = []#[IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
     queryset = TipoTransacao.objects.all().order_by('nome')
     serializer_class = TipoTransacaoComUuidSerializer
