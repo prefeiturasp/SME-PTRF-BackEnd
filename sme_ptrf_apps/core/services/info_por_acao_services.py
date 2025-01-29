@@ -846,7 +846,7 @@ def info_painel_acoes_por_periodo_e_conta(associacao_uuid, periodo_uuid=None, co
     info_acoes = info_acoes_associacao_no_periodo(associacao_uuid=associacao_uuid, periodo=periodo, conta=conta)
 
     info_acoes = [info for info in info_acoes if
-                  info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+                  info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo'] or info['despesas_nao_conciliadas_anteriores']]
 
     if info_conta:
         for acao in info_acoes:
