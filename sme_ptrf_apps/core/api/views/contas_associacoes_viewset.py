@@ -28,7 +28,11 @@ class ContasAssociacoesViewSet(ModelViewSet):
 
         filters = Q()
         if associacao_nome:
-            filters &= Q(associacao__nome__unaccent__icontains=associacao_nome)
+            filters &= Q(
+                Q(associacao__nome__unaccent__icontains=associacao_nome) |
+                Q(associacao__unidade__codigo_eol=associacao_nome) |
+                Q(associacao__unidade__nome__unaccent__icontains=associacao_nome)
+            )
         if tipo_conta_uuid:
             filters &= Q(tipo_conta__uuid=tipo_conta_uuid)
         if status:
