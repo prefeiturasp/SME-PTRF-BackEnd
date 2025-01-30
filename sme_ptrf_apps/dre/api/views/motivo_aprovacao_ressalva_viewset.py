@@ -19,7 +19,7 @@ class MotivoAprovacaoRessalvaViewSet(viewsets.ModelViewSet):
 
 
 class MotivoAprovacaoRessalvaParametrizacaoViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = []#[IsAuthenticated]
     lookup_field = 'uuid'
     queryset = MotivoAprovacaoRessalva.objects.all().order_by('motivo')
     serializer_class = MotivoAprovacaoRessalvaParametrizacaoSerializer
@@ -37,13 +37,10 @@ class MotivoAprovacaoRessalvaParametrizacaoViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         from django.db.models.deletion import ProtectedError
         obj = self.get_object()
-        try:
-            self.perform_destroy(obj)
-        except ProtectedError:
+        if obj.prestacaoconta_set.exists():
             content = {
-                'erro': 'ProtectedError',
                 'mensagem': 'Essa operação não pode ser realizada. Há PCs com análise concluída com esse motivo de aprovação de PC com ressalvas.'
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
-
+        self.perform_destroy(obj)
         return Response(status=status.HTTP_204_NO_CONTENT)
