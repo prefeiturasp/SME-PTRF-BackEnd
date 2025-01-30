@@ -6,8 +6,13 @@ from ...models import MotivoAprovacaoRessalva
 class MotivoAprovacaoRessalvaSerializer(serializers.ModelSerializer):
     class Meta:
         model = MotivoAprovacaoRessalva
-        fields = ('id', 'uuid', 'motivo')
+        fields = ('uuid', 'motivo')
 
+
+class MotivoAprovacaoRessalvaParametrizacaoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MotivoAprovacaoRessalva
+        fields = ('id', 'uuid', 'motivo')
 
     def create(self, validated_data):
         motivo = validated_data.get('motivo')
@@ -19,7 +24,6 @@ class MotivoAprovacaoRessalvaSerializer(serializers.ModelSerializer):
 
         instance = super().create(validated_data)
         return instance
-
 
     def update(self, instance, validated_data):
         motivo = validated_data.get('motivo')
