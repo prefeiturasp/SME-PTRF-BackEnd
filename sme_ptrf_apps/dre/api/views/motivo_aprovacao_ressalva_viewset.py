@@ -33,7 +33,7 @@ class MotivoAprovacaoRessalvaViewSet(viewsets.ModelViewSet):
         except ProtectedError:
             content = {
                 'erro': 'ProtectedError',
-                'mensagem': 'Essa operação não pode ser realizada. Há dados vinculados a esse motivo de aprovação com ressalva'
+                'mensagem': 'Essa operação não pode ser realizada. Há PCs com análise concluída com esse motivo de aprovação de PC com ressalvas.'
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 

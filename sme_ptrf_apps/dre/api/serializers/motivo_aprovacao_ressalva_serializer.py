@@ -14,7 +14,7 @@ class MotivoAprovacaoRessalvaSerializer(serializers.ModelSerializer):
 
         if MotivoAprovacaoRessalva.objects.filter(motivo=motivo).exists():
             raise serializers.ValidationError({
-                'non_field_errors': 'Este motivo de aprovação de pc com ressalva já existe.'
+                'non_field_errors': 'Este motivo de aprovação de PC com ressalva já existe.'
                 })
 
         instance = super().create(validated_data)
@@ -26,7 +26,7 @@ class MotivoAprovacaoRessalvaSerializer(serializers.ModelSerializer):
 
         if MotivoAprovacaoRessalva.objects.filter(motivo=motivo).exclude(pk=self.instance.pk).exists():
             raise serializers.ValidationError({
-                'non_field_errors': 'Este motivo de aprovação de pc com ressalva já existe.'
+                'non_field_errors': 'Este motivo de aprovação de PC com ressalva já existe.'
                 })
 
         instance = super().update(instance, validated_data)
