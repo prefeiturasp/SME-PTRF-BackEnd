@@ -36,7 +36,7 @@ class TiposTransacaoViewSet(mixins.ListModelMixin,
         except ProtectedError:
             content = {
                 'erro': 'ProtectedError',
-                'mensagem': 'Esse tipo não pode ser excluído pois existem despesas cadastradas com esse tipo.'
+                'mensagem': 'Essa operação não pode ser realizada. Há despesas vinculadas a esse tipo de transação.'
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
