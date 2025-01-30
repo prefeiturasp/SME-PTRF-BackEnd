@@ -19,7 +19,7 @@ class MotivoAprovacaoRessalvaViewSet(viewsets.ModelViewSet):
 
 
 class MotivoAprovacaoRessalvaParametrizacaoViewSet(viewsets.ModelViewSet):
-    permission_classes = []#[IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
     queryset = MotivoAprovacaoRessalva.objects.all().order_by('motivo')
     serializer_class = MotivoAprovacaoRessalvaParametrizacaoSerializer
