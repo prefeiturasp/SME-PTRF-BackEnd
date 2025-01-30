@@ -67,6 +67,7 @@ from sme_ptrf_apps.dre.api.views import (
     RelatoriosConsolidadosDREViewSet,
     JustificativasRelatoriosConsolidadosDreViewSet,
     MotivoAprovacaoRessalvaViewSet,
+    MotivoAprovacaoRessalvaParametrizacaoViewSet,
     MotivoReprovacaoViewSet,
     ComissoesViewSet,
     MembrosComissoesViewSet,
@@ -160,6 +161,7 @@ router.register("comentarios-de-analises", ComentariosAnalisesPrestacoesViewSet)
 router.register("relatorios-consolidados-dre", RelatoriosConsolidadosDREViewSet)
 router.register("justificativas-relatorios-consolidados-dre", JustificativasRelatoriosConsolidadosDreViewSet)
 router.register("motivos-aprovacao-ressalva", MotivoAprovacaoRessalvaViewSet)
+router.register("motivos-aprovacao-ressalva-parametrizacao", MotivoAprovacaoRessalvaParametrizacaoViewSet)
 router.register("motivos-reprovacao", MotivoReprovacaoViewSet)
 router.register("acoes-associacoes", AcaoAssociacaoViewSet)
 router.register("contas-associacoes", ContasAssociacoesViewSet)
