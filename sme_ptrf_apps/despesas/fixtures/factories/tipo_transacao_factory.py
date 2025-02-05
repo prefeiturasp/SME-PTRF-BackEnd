@@ -7,3 +7,5 @@ fake = Faker("pt_BR")
 class TipoTransacaoFactory(DjangoModelFactory):
     class Meta:
         model = TipoTransacao
+
+    nome = fake.currency_code()

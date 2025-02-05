@@ -21,9 +21,11 @@ from sme_ptrf_apps.core.api.views import (
     ProcessosAssociacaoViewSet,
     UnidadesViewSet,
     ConciliacoesViewSet,
+    ContasAssociacoesViewSet,
     NotificacaoViewSet,
     DresViewSet,
     TiposDevolucaoAoTesouroViewSet,
+    MotivosDevolucaoAoTesouroViewSet,
     TiposContaViewSet,
     ComentariosAnalisesPrestacoesViewSet,
     AcaoAssociacaoViewSet,
@@ -50,10 +52,12 @@ from sme_ptrf_apps.core.api.views import (
 from sme_ptrf_apps.core.api.views.prestacoes_contas_reprovadas_nao_apresentacao_viewset import \
     PrestacaoContaReprovadaNaoApresentacaoViewSet
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
+from sme_ptrf_apps.despesas.api.views.tipo_documento_viewset import TiposDocumentoViewSet
 from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
 from sme_ptrf_apps.despesas.api.views.fornecedores_viewset import FornecedoresViewSet
 from sme_ptrf_apps.despesas.api.views.rateios_despesas_viewset import RateiosDespesasViewSet
 from sme_ptrf_apps.despesas.api.views.tipos_custeio_viewset import TiposCusteioViewSet
+from sme_ptrf_apps.despesas.api.views.tipos_transacao_viewset import TiposTransacaoViewSet
 from sme_ptrf_apps.despesas.api.views.motivos_pagamento_antecipado_viewset import MotivosPagamentoAntecipadoViewSet
 from sme_ptrf_apps.dre.api.views import (
     FaqCategoriasViewSet,
@@ -63,6 +67,7 @@ from sme_ptrf_apps.dre.api.views import (
     RelatoriosConsolidadosDREViewSet,
     JustificativasRelatoriosConsolidadosDreViewSet,
     MotivoAprovacaoRessalvaViewSet,
+    MotivoAprovacaoRessalvaParametrizacaoViewSet,
     MotivoReprovacaoViewSet,
     ComissoesViewSet,
     MembrosComissoesViewSet,
@@ -149,19 +154,24 @@ router.register("conciliacoes", ConciliacoesViewSet, basename='conciliacoes')
 router.register("notificacoes", NotificacaoViewSet)
 router.register("dres", DresViewSet)
 router.register("tipos-devolucao-ao-tesouro", TiposDevolucaoAoTesouroViewSet)
+router.register("motivos-devolucao-ao-tesouro", MotivosDevolucaoAoTesouroViewSet)
 router.register("tipos-conta", TiposContaViewSet)
+router.register("tipos-documento", TiposDocumentoViewSet, basename='tipos-documento')
 router.register("comentarios-de-analises", ComentariosAnalisesPrestacoesViewSet)
 router.register("relatorios-consolidados-dre", RelatoriosConsolidadosDREViewSet)
 router.register("justificativas-relatorios-consolidados-dre", JustificativasRelatoriosConsolidadosDreViewSet)
 router.register("motivos-aprovacao-ressalva", MotivoAprovacaoRessalvaViewSet)
+router.register("motivos-aprovacao-ressalva-parametrizacao", MotivoAprovacaoRessalvaParametrizacaoViewSet)
 router.register("motivos-reprovacao", MotivoReprovacaoViewSet)
 router.register("acoes-associacoes", AcaoAssociacaoViewSet)
+router.register("contas-associacoes", ContasAssociacoesViewSet)
 router.register("parametrizacoes-acoes-associacoes", ParametrizacoesAcoesAssociacaoViewSet)
 router.register("acoes", AcoesViewSet)
 router.register("arquivos", ArquivoViewSet)
 router.register("tags", TagsViewSet)
 router.register("modelos-cargas", ModelosCargasViewSet)
 router.register("tipos-custeio", TiposCusteioViewSet)
+router.register("tipos-transacao", TiposTransacaoViewSet)
 router.register("ambientes", AmbientesViewSet)
 router.register("saldos-bancarios-sme", SaldosBancariosSMEViewSet)
 router.register("saldos-bancarios-sme-detalhes", SaldosBancariosSmeDetalhesAsocciacoesViewSet)

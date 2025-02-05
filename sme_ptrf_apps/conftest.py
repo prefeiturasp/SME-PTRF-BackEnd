@@ -34,7 +34,8 @@ from sme_ptrf_apps.core.fixtures.factories import (
     AnalisePrestacaoContaFactory, AnaliseLancamentoPrestacaoContaFactory,
     SolicitacaoAcertoLancamentoFactory, ProcessoAssociacaoFactory,
     PrestacaoContaReprovadaNaoApresentacaoFactory, DemonstrativoFinanceiroFactory,
-    ItemResumoPorAcaoFactory, ItemDespesaFactory, ItemCreditoFactory, ArquivoDownloadFactory
+    ItemResumoPorAcaoFactory, ItemDespesaFactory, ItemCreditoFactory, ArquivoDownloadFactory,
+    TipoDevolucaoAoTesouroFactory
 )
 from sme_ptrf_apps.users.fixtures.factories import (
     UsuarioFactory, UnidadeEmSuporteFactory, GrupoAcessoFactory, VisaoFactory,
@@ -44,7 +45,8 @@ from sme_ptrf_apps.mandatos.fixtures.factories import (
     MandatoFactory, ComposicaoFactory, OcupanteCargoFactory, CargoComposicaoFactory
 )
 from sme_ptrf_apps.despesas.fixtures.factories import (
-    DespesaFactory, RateioDespesaFactory, TipoTransacaoFactory
+    DespesaFactory, RateioDespesaFactory, TipoTransacaoFactory, TipoDocumentoFactory,
+    MotivoPagamentoAntecipadoFactory
 )
 from sme_ptrf_apps.receitas.fixtures.factories import (
     TipoReceitaFactory
@@ -64,7 +66,8 @@ factories_to_register = [
     CargoComposicaoFactory, DemonstrativoFinanceiroFactory, ItemResumoPorAcaoFactory,
     ItemDespesaFactory, ItemCreditoFactory, TipoReceitaFactory, RelacaoBensFactory,
     RelatorioRelacaoBensFactory, ItemRelatorioRelacaoDeBensFactory,
-    SolicitacaoEncerramentoContaAssociacaoFactory, ArquivoDownloadFactory
+    SolicitacaoEncerramentoContaAssociacaoFactory, ArquivoDownloadFactory,
+    TipoDevolucaoAoTesouroFactory, TipoDocumentoFactory, MotivoPagamentoAntecipadoFactory
 ]
 
 for factory in factories_to_register:
