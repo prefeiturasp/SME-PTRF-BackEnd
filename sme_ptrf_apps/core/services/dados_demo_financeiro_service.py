@@ -61,7 +61,6 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
         justificativas = cria_justificativas(observacao_conciliacao)
         data_geracao_documento = cria_data_geracao_documento(usuario, previa)
         data_geracao = cria_data_geracao()
-
         """
             Mapeamento campos x pdf - Campos usados em cada um dos blocos do PDF:
 
@@ -903,9 +902,12 @@ def tem_movimentacao(resumo_acao):
 
     valor_absoluto_linha_custeio_despesa = abs(resumo_acao["linha_custeio"]["despesa_realizada"]) if \
         resumo_acao["linha_custeio"]["despesa_realizada"] != '' else 0
+    
+    valor_absoluto_linha_custeio_despesa_nao_realizada = abs(resumo_acao["linha_custeio"]["despesa_nao_realizada"]) if \
+        resumo_acao["linha_custeio"]["despesa_nao_realizada"] != '' else 0
 
     soma_absoluta_custeio = valor_absoluto_linha_custeio_saldo_anterior + valor_absoluto_linha_custeio_credito \
-        + valor_absoluto_linha_custeio_despesa
+        + valor_absoluto_linha_custeio_despesa + valor_absoluto_linha_custeio_despesa_nao_realizada
 
     # Calcula valor absoluto de capital
     valor_absoluto_linha_capital_saldo_anterior = abs(resumo_acao["linha_capital"]["saldo_anterior"]) if \
@@ -916,9 +918,12 @@ def tem_movimentacao(resumo_acao):
 
     valor_absoluto_linha_capital_despesa = abs(resumo_acao["linha_capital"]["despesa_realizada"]) if \
         resumo_acao["linha_capital"]["despesa_realizada"] != '' else 0
+    
+    valor_absoluto_linha_capital_despesa_nao_realizada = abs(resumo_acao["linha_capital"]["despesa_nao_realizada"]) if \
+        resumo_acao["linha_capital"]["despesa_nao_realizada"] != '' else 0
 
     soma_absoluta_capital = valor_absoluto_linha_capital_saldo_anterior + valor_absoluto_linha_capital_credito \
-        + valor_absoluto_linha_capital_despesa
+        + valor_absoluto_linha_capital_despesa + valor_absoluto_linha_capital_despesa_nao_realizada
 
     # Calcula valor absoluto de livre
     valor_absoluto_linha_livre_saldo_anterior = abs(resumo_acao["linha_livre"]["saldo_anterior"]) if \
