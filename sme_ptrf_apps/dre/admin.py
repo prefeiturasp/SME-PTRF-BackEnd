@@ -100,9 +100,6 @@ class ConsolidadoDREAdmin(admin.ModelAdmin):
             pcs_dessa_dre_e_periodo = PrestacaoConta.objects.filter(
                 periodo=periodo, associacao__unidade__dre=dre, consolidado_dre=consolidado).all()
 
-            if pcs_do_consolidado.count() == pcs_dessa_dre_e_periodo.count():
-                continue
-
             for pc in pcs_dessa_dre_e_periodo:
                 if pc not in pcs_do_consolidado:
                     consolidado.pcs_do_consolidado.add(pc)
