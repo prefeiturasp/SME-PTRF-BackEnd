@@ -201,7 +201,6 @@ def test_carga_contas_processado_com_erro(arquivo_carga_com_erro, associacao, ti
     msg_status_nao_informado = "Status de conta não informado."
     msg_data_nao_informada = "Data de início não informada."
     msg_data_invalida = "Data informada fora do padrão"
-    print('############', arquivo_carga_com_erro.log)
     assert msg_tipo_conta_nao_existe in arquivo_carga_com_erro.log
     assert msg_tipo_conta_nao_informado in arquivo_carga_com_erro.log
     assert msg_codigo_eol_inexistente in arquivo_carga_com_erro.log
