@@ -264,7 +264,7 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
                                                       conta=conta_associacao)
         result = {
             'info_acoes': [info for info in info_acoes if
-                           info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+                           info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo'] or info['despesas_nao_conciliadas_anteriores']]
         }
 
         return Response(result)

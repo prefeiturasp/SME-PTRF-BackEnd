@@ -333,7 +333,7 @@ def informacoes_financeiras_para_atas(prestacao_contas):
                                                       conta=conta_associacao)
 
         info_acoes = [info for info in info_acoes if
-                      info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+                      info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo'] or info['despesas_nao_conciliadas_anteriores']]
 
         info_contas.append(
             {
@@ -1544,7 +1544,7 @@ def previa_informacoes_financeiras_para_atas(associacao, periodo):
                                                           )
 
             info_acoes = [info for info in info_acoes if
-                          info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo']]
+                          info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo'] or info['despesas_nao_conciliadas_anteriores']]
 
             info_contas.append(
                 {
