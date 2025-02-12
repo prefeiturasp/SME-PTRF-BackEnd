@@ -17,34 +17,34 @@ pytestmark = pytest.mark.django_db
 
 
 CSV_CABECALHO_INCORRETO = bytes(
-    """Código de unidade;Tipo de conta;Status;Nome do banco;Nº da agência;Nº da conta;Data de início da conta
-    123456;Cartão;Ativa;Banco do Brasil;1897-X;19.150-7;01/06/2024""", encoding="utf-8")
+    """Código de unidade;Tipo de conta;Status;Nome do banco;N° da agência;N° da conta;N° Cartão;Data de início da conta
+    123456;Cartão;Ativa;Banco do Brasil;1897-X;19.150-7;123456789;01/06/2024""", encoding="utf-8")
 
 
 CSV_DELIMITADOR_INVALIDO = bytes(
-    """Código de unidade|Tipo de conta|Status|Nome do banco|Nº da agência|Nº da conta|Data de início da conta""",
+    """Código de unidade|Tipo de conta|Status|Nome do banco|N° da agência|N° da conta|Data de início da conta""",
     encoding="utf-8")
 
 
 CSV_LOTE_CONTAS = bytes(
-    """Código eol;Tipo de conta;Status;Nome do banco;Nº da agência;Nº da conta;Data de início da conta
-    123456;Cartão;Ativa;Banco do Brasil;1897-X;19.150-7;01/06/2024
-    123456;Cartão;Ativa;Banco do Brasil 2;1898-X;19.151-7;01/07/2024
-    123456;Cartão;Inativa;C6 bank;1898-X;19.151-7;02/06/2024
-    123456;Débito;Ativa;Nu Bank;1899;191527;03/06/2024""", encoding="utf-8")
+    """Código eol;Tipo de conta;Status;Nome do banco;N° da agência;N° da conta;N° Cartão;Data de início da conta
+    123456;Cartão;Ativa;Banco do Brasil;1897-X;19.150-7;123456789;01/06/2024
+    123456;Cartão;Ativa;Banco do Brasil 2;1898-X;19.151-7;123456789;01/07/2024
+    123456;Cartão;Inativa;C6 bank;1898-X;19.151-7;123456789;02/06/2024
+    123456;Débito;Ativa;Nu Bank;1899;191527;123456789;03/06/2024""", encoding="utf-8")
 
 
 CSV_LOTE_COM_ERRO = bytes(
-    """Código eol;Tipo de conta;Status;Nome do banco;Nº da agência;Nº da conta;Data de início da conta
-    123456;Cartão;Ativa;Banco do Brasil;1897-X;19.150-7;01/06/2024
-    123456;;Inativa;C6 bank;1898-X;19.151-7;02/06/2024
-    123456;Cartão;BLOQUEADO;C6 bank;1898-X;19.151-7;02/06/2024
-    123456;Cartão;Inativa;C6 bank;1898-X;19.151-7;
-    123456;Cartão;Inativa;C6 bank;1898-X;19.151-7;01/15/2024
-    999090;;Inativa;C6 bank;1898-X;19.151-7;02/06/2024
-    ;;Inativa;C6 bank;1898-X;19.151-7;02/06/2024
-    123456;Cartão;;C6 bank;1898-X;19.151-7;02/06/2024
-    123456;TipoContaInexistente;Ativa;Nu Bank;1899;191527;03/06/2024""", encoding="utf-8")
+    """Código eol;Tipo de conta;Status;Nome do banco;N° da agência;N° da conta;N° Cartão;Data de início da conta
+    123456;Cartão;Ativa;Banco do Brasil;1897-X;19.150-7;123456789;01/06/2024
+    123456;;Inativa;C6 bank;1898-X;19.151-7;123456789;02/06/2024
+    123456;Cartão;BLOQUEADO;C6 bank;1898-X;19.151-7;123456789;02/06/2024
+    123456;Cartão;Inativa;C6 bank;1898-X;123456789;19.151-7;
+    123456;Cartão;Inativa;C6 bank;1898-X;19.151-7;123456789;01/15/2024
+    999090;;Inativa;C6 bank;1898-X;19.151-7;123456789;02/06/2024
+    ;;Inativa;C6 bank;1898-X;19.151-7;123456789;02/06/2024
+    123456;Cartão;;C6 bank;1898-X;19.151-7;123456789;02/06/2024
+    123456;TesteInexistente;Ativa;Nu Bank;1899;191527;123456789;03/06/2024""", encoding="utf-8")
 
 
 @pytest.fixture
@@ -163,7 +163,7 @@ def arquivo_carga_ponto_virgula(arquivo):
 
 def test_carga_com_erro_formatacao(arquivo_carga_virgula):
     CargaContasAssociacoesService().carrega_contas_associacoes(arquivo_carga_virgula)
-    msg = ("""\nLinha:0 Formato definido (DELIMITADOR_VIRGULA) é diferente do formato """ +
+    msg = ("""\nLinha 0: Formato definido (DELIMITADOR_VIRGULA) é diferente do formato """ +
            """do arquivo csv (DELIMITADOR_PONTO_VIRGULA)\n0 linha(s) importada(s) com """ +
            """sucesso. 1 erro(s) reportado(s).""")
     assert arquivo_carga_virgula.log == msg
@@ -193,14 +193,14 @@ def test_carga_contas_delimitador_invalido(arquivo_carga_delimitador_invalido):
 
 def test_carga_contas_processado_com_erro(arquivo_carga_com_erro, associacao, tipo_conta_cartao):
     CargaContasAssociacoesService().carrega_contas_associacoes(arquivo_carga_com_erro)
-    msg_tipo_conta_nao_existe = "Tipo de conta None não existe."
-    msg_tipo_conta_nao_informado = "Tipo de conta não informado."
-    msg_codigo_eol_inexistente = "Código EOL não existe: 999090"
-    msg_codigo_eol_nao_informado = "Código EOL não informado."
-    msg_status_invalido = "Status inválido"
-    msg_status_nao_informado = "Status de conta não informado."
-    msg_data_nao_informada = "Data de início não informada."
-    msg_data_invalida = "Data informada fora do padrão"
+    msg_tipo_conta_nao_existe = "Tipo de conta TesteInexistente não existe."
+    msg_tipo_conta_nao_informado = "Coluna Tipo de conta preenchimento obrigatório."
+    msg_codigo_eol_inexistente = "Código eol não existe: 999090"
+    msg_codigo_eol_nao_informado = "Coluna Código eol preenchimento obrigatório."
+    msg_status_invalido = 'Status inválido: "BLOQUEADO". As opções disponíveis são: Ativa, Inativa.'
+    msg_status_nao_informado = "Coluna Status preenchimento obrigatório."
+    msg_data_nao_informada = "Coluna Data de início da conta preenchimento obrigatório."
+    msg_data_invalida = "Data de início da conta informada fora do padrão (DD/MM/AAAA)."
     assert msg_tipo_conta_nao_existe in arquivo_carga_com_erro.log
     assert msg_tipo_conta_nao_informado in arquivo_carga_com_erro.log
     assert msg_codigo_eol_inexistente in arquivo_carga_com_erro.log
