@@ -42,7 +42,7 @@ class RepasseViewSet(
             return RepasseCreateSerializer
 
     def get_queryset(self):
-        qs = Repasse.objects.all().order_by('id')
+        qs = Repasse.objects.all().order_by('-periodo__referencia')
 
         search = self.request.query_params.get('search')
         if search is not None:
@@ -123,9 +123,11 @@ class RepasseViewSet(
     @action(detail=False, methods=['GET'], url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, request):
+        
+        periodos_ordenados = Periodo.objects.all().order_by('-referencia')
 
         result = {
-            "periodos": PeriodoSerializer(Periodo.objects.all(), many=True).data,
+            "periodos": PeriodoSerializer(periodos_ordenados, many=True).data,
             "tipos_contas": TipoContaSerializer(TipoConta.objects.all(), many=True).data,
             "acoes": AcaoSerializer(Acao.objects.all(), many=True).data,
             "status": Repasse.status_to_json()
@@ -156,5 +158,3 @@ class RepasseViewSet(
         }
 
         return Response(result)
-
-
