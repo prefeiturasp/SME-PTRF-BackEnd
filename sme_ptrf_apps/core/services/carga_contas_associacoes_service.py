@@ -168,7 +168,7 @@ class CargaContasAssociacoesService:
         # Status (Ativa ou Inativa)
         status = self.__dados_conta_associacao['status']
         if not status:
-            msg_erro = 'Coluna Status preenchimento obrigatório.'
+            msg_erro = f'Coluna {self.__CABECALHOS.get(self.__STATUS)} preenchimento obrigatório.'
             self.loga_erro_carga_conta_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
             return None
 
