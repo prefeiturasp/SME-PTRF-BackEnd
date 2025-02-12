@@ -26,15 +26,17 @@ class CargaContasAssociacoesService:
     __BANCO = 3
     __AGENCIA = 4
     __CONTA = 5
-    __DATA_INICIO = 6
+    __CARTAO = 6
+    __DATA_INICIO = 7
 
     __CABECALHOS = {
         __EOL_UE: "Código eol",
         __TIPO_CONTA: "Tipo de conta",
         __STATUS: "Status",
         __BANCO: "Nome do banco",
-        __AGENCIA: "Nº da agência",
-        __CONTA: "Nº da conta",
+        __AGENCIA: "N° da agência",
+        __CONTA: "N° da conta",
+        __CARTAO: "N° Cartão",
         __DATA_INICIO: "Data de início da conta"
     }
 
@@ -53,7 +55,7 @@ class CargaContasAssociacoesService:
         self.__erros = 0
 
     def loga_erro_carga_conta_associacao(self, mensagem_erro, linha=0):
-        mensagem = f'Linha:{linha} {mensagem_erro}'
+        mensagem = f'Linha {linha}: {mensagem_erro}'
         logger.error(mensagem)
         self.__logs = f"{self.__logs}\n{mensagem}"
         self.__erros += 1
@@ -76,6 +78,7 @@ class CargaContasAssociacoesService:
         banco_nome = _strip(linha_conteudo[self.__BANCO])
         agencia = _strip(linha_conteudo[self.__AGENCIA])
         numero_conta = _strip(linha_conteudo[self.__CONTA])
+        numero_cartao = _strip(linha_conteudo[self.__CARTAO])
         data_inicio = _strip(linha_conteudo[self.__DATA_INICIO])
 
         self.__dados_conta_associacao = {
@@ -85,6 +88,7 @@ class CargaContasAssociacoesService:
             'banco_nome': banco_nome,
             'agencia': agencia,
             'numero_conta': numero_conta,
+            'numero_cartao': numero_cartao,
             'data_inicio': data_inicio,
         }
 
@@ -125,7 +129,7 @@ class CargaContasAssociacoesService:
     def valida_codigo_eol(self):
         codigo_eol = self.__dados_conta_associacao['eol_unidade']
         if not codigo_eol:
-            msg_erro = 'Código EOL não informado.'
+            msg_erro = f'Coluna {self.__CABECALHOS.get(self.__EOL_UE)} preenchimento obrigatório.'
             self.loga_erro_carga_conta_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
             return None
 
@@ -133,7 +137,7 @@ class CargaContasAssociacoesService:
         # Exibir mensagem de erro: Código EOL não existe.
         associacao = Associacao.objects.filter(unidade__codigo_eol=codigo_eol).first()
         if not associacao:
-            msg_erro = f'Código EOL não existe: {codigo_eol}.'
+            msg_erro = f'{self.__CABECALHOS.get(self.__EOL_UE)} não existe: {codigo_eol}.'
             self.loga_erro_carga_conta_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
             return None
 
@@ -146,25 +150,25 @@ class CargaContasAssociacoesService:
         # Exibir mensagem de erro: Tipo de conta não existe.
         tipo_conta = self.__dados_conta_associacao['tipo_conta']
         if not tipo_conta:
-            msg_erro = 'Tipo de conta não informado.'
+            msg_erro = f'Coluna {self.__CABECALHOS.get(self.__TIPO_CONTA)} preenchimento obrigatório.'
             self.loga_erro_carga_conta_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
             return None
 
-        tipo_conta = TipoConta.objects.filter(nome=tipo_conta).first()
-        if not tipo_conta:
-            msg_erro = f'Tipo de conta {tipo_conta} não existe.'
+        model_tipo_conta = TipoConta.objects.filter(nome=tipo_conta).first()
+        if not model_tipo_conta:
+            msg_erro = f'{self.__CABECALHOS.get(self.__TIPO_CONTA)} {tipo_conta} não existe.'
             self.loga_erro_carga_conta_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
             return None
 
-        self.__dados_conta_associacao['tipo_conta'] = tipo_conta
+        self.__dados_conta_associacao['tipo_conta'] = model_tipo_conta
 
-        return tipo_conta
+        return model_tipo_conta
 
     def valida_status(self):
         # Status (Ativa ou Inativa)
         status = self.__dados_conta_associacao['status']
         if not status:
-            msg_erro = 'Status de conta não informado.'
+            msg_erro = f'Coluna {self.__CABECALHOS.get(self.__STATUS)} preenchimento obrigatório.'
             self.loga_erro_carga_conta_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
             return None
 
@@ -180,36 +184,88 @@ class CargaContasAssociacoesService:
 
         return status
 
+    def valida_banco(self):
+        status = self.__dados_conta_associacao['banco_nome']
+        if not status:
+            msg_erro = f'Coluna {self.__CABECALHOS.get(self.__STATUS)} preenchimento obrigatório.'
+            self.loga_erro_carga_conta_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
+            return None
+
+        self.__dados_conta_associacao['banco_nome'] = status
+
+        return status
+
+    def valida_agencia(self):
+        status = self.__dados_conta_associacao['agencia']
+        if not status:
+            msg_erro = f'Coluna {self.__CABECALHOS.get(self.__AGENCIA)} preenchimento obrigatório.'
+            self.loga_erro_carga_conta_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
+            return None
+
+        self.__dados_conta_associacao['agencia'] = status
+
+        return status
+
+    def valida_numero_conta(self):
+        status = self.__dados_conta_associacao['numero_conta']
+        if not status:
+            msg_erro = f'Coluna {self.__CABECALHOS.get(self.__CONTA)} preenchimento obrigatório.'
+            self.loga_erro_carga_conta_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
+            return None
+
+        self.__dados_conta_associacao['numero_conta'] = status
+
+        return status
+
+    def valida_numero_cartao(self):
+        status = self.__dados_conta_associacao['numero_cartao']
+        if not status:
+            msg_erro = f'Coluna {self.__CABECALHOS.get(self.__CARTAO)} preenchimento obrigatório.'
+            self.loga_erro_carga_conta_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
+            return None
+
+        self.__dados_conta_associacao['numero_cartao'] = status
+
+        return status
+
     def valida_data_inicio(self):
         # Data de início da conta (Validar o formato da data informada(Formato: DD/MM/AAAA).
         # Exibir mensagem de erro: Data informada fora do padrão.
         data_inicio = self.__dados_conta_associacao['data_inicio']
         if not data_inicio:
-            msg_erro = 'Data de início não informada.'
+            msg_erro = f'Coluna {self.__CABECALHOS.get(self.__DATA_INICIO)} preenchimento obrigatório.'
             self.loga_erro_carga_conta_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
             return None
 
         try:
             data_inicio = self.valida_formato_data(data_inicio)
         except Exception:
-            msg_erro = 'Data informada fora do padrão (DD/MM/AAAA).'
+            msg_erro = f'{self.__CABECALHOS.get(self.__DATA_INICIO)} informada fora do padrão (DD/MM/AAAA).'
             self.loga_erro_carga_conta_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
             return None
         self.__dados_conta_associacao['data_inicio'] = data_inicio
 
         return data_inicio
 
+    def valida_campos(self):
+        validacoes = (
+            self.valida_codigo_eol,
+            self.valida_tipo_conta,
+            self.valida_status,
+            self.valida_banco,
+            self.valida_agencia,
+            self.valida_numero_conta,
+            self.valida_numero_cartao,
+            self.valida_data_inicio,
+        )
+
+        for valida_campo in validacoes:
+            if not valida_campo():
+                return None
+        return True
+
     def cria_ou_atualiza_conta_associacao(self):
-        if not self.valida_codigo_eol():
-            return None
-
-        if not self.valida_tipo_conta():
-            return None
-
-        if not self.valida_status():
-            return None
-
-        if not self.valida_data_inicio():
+        if not self.valida_campos():
             return None
 
         conta_associacao, created = ContaAssociacao.objects.get_or_create(
