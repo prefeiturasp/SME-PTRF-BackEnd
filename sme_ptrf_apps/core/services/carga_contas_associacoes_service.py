@@ -276,6 +276,7 @@ class CargaContasAssociacoesService:
                 'banco_nome': self.__dados_conta_associacao['banco_nome'],
                 'agencia': self.__dados_conta_associacao['agencia'],
                 'numero_conta': self.__dados_conta_associacao['numero_conta'],
+                'numero_cartao': self.__dados_conta_associacao['numero_cartao'],
                 'data_inicio': self.__dados_conta_associacao['data_inicio'],
             },
         )
@@ -288,6 +289,7 @@ class CargaContasAssociacoesService:
             conta_associacao.agencia = self.__dados_conta_associacao['agencia']
             conta_associacao.numero_conta = self.__dados_conta_associacao['numero_conta']
             conta_associacao.data_inicio = self.__dados_conta_associacao['data_inicio']
+            conta_associacao.numero_cartao = self.__dados_conta_associacao['numero_cartao']
             conta_associacao.save()
 
         self.__dados_conta_associacao['conta_associacao_obj'] = conta_associacao
