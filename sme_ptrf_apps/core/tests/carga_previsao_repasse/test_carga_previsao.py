@@ -91,7 +91,7 @@ def test_carga_com_erro_formatacao(arquivo_carga):
 
 def test_carga_com_erro(arquivo_carga_virgula):
     carrega_previsoes_repasses(arquivo_carga_virgula)
-    msg = """Erro na linha 1: Associação com código eol: 93238 não encontrado.
+    msg = """Erro na linha [1]: Associação com código eol: 93238 não encontrado.
 Importados 0 previsões de repasse. Erro na importação de 1 previsões."""
     assert arquivo_carga_virgula.log == msg
     assert arquivo_carga_virgula.status == ERRO
@@ -100,7 +100,7 @@ Importados 0 previsões de repasse. Erro na importação de 1 previsões."""
 def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao, conta_associacao, acao_associacao):
     assert not PrevisaoRepasseSme.objects.exists()
     carrega_previsoes_repasses(arquivo_carga_virgula_processado)
-    msg = """Erro na linha 2: Associação com código eol: 93238 não encontrado.
+    msg = """Erro na linha [2]: Associação com código eol: 93238 não encontrado.
 Importados 1 previsões de repasse. Erro na importação de 1 previsões."""
     assert arquivo_carga_virgula_processado.log == msg
     assert arquivo_carga_virgula_processado.status == PROCESSADO_COM_ERRO
