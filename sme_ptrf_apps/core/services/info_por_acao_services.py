@@ -85,8 +85,26 @@ def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
     for uuid_conta, gasto_por_conta_acao_aplicacao in gastos_por_conta_acao_aplicacao.items():
         for acao in gasto_por_conta_acao_aplicacao:
             
-            acao_associacao = AcaoAssociacao.by_uuid(acao)
-            conta = ContaAssociacao.by_uuid(uuid_conta)
+            try:
+                acao_associacao = AcaoAssociacao.by_uuid(acao)
+            except AcaoAssociacao.DoesNotExist:
+                return {
+                    'situacao_do_saldo': 'impossivel_determinar',
+                    'mensagem': 'Sem informar a ação da associação não há como determinar o saldo disponível.',
+                    'saldos_insuficientes': [],
+                    'aceitar_lancamento': True
+                }
+            
+            try:
+                conta = ContaAssociacao.by_uuid(uuid_conta)
+            except ContaAssociacao.DoesNotExist:
+                return {
+                    'situacao_do_saldo': 'impossivel_determinar',
+                    'mensagem': 'Sem informar a conta da associação não há como determinar o saldo disponível.',
+                    'saldos_insuficientes': [],
+                    'aceitar_lancamento': True
+                }
+
             saldos_acao = info_acao_associacao_no_periodo(acao_associacao, periodo, conta=conta, exclude_despesa=exclude_despesa)
             
             saldo_livre_acao = saldos_acao['saldo_atual_livre']
@@ -159,6 +177,18 @@ def valida_rateios_quanto_aos_saldos(rateios, associacao, data_documento=None, e
         periodo=periodo_despesa,
         exclude_despesa=exclude_despesa
     )
+
+    if 'situacao_do_saldo' in saldos_insuficientes and saldos_insuficientes['situacao_do_saldo'] == 'impossivel_determinar':
+        logger.info("Impossível determinar saldo nas contas e ações.")
+        """
+        Caso não sejam seja possivel determinar saldo.
+        """
+        return {
+            'situacao_do_saldo': 'impossivel_determinar',
+            'mensagem': saldos_insuficientes['mensagem'],
+            'saldos_insuficientes': [],
+            'aceitar_lancamento': True
+        }
 
     if not saldos_insuficientes['saldos_insuficientes']:
         logger.info("Saldos suficientes nas contas e ações.")
