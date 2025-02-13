@@ -74,77 +74,119 @@ def get_periodo(referencia):
         return Periodo.objects.filter(referencia=referencia).get()
     return None
 
+def agrupar_por_eol_conta_e_periodo(reader):
+    grouped_data= {}
+    for lin, row in enumerate(reader):
+        try:
+            if lin != 0:
+                try:
+                    cod_eol = row[CODIGO_EOL]
+                    conta = row[CONTA]
+                    acao = row[ACAO]
+                    periodo = row[PERIODO]
+                    valor_capital = get_valor(row[VALOR_CAPITAL])
+                    valor_custeio = get_valor(row[VALOR_CUSTEIO])
+                    valor_livre = get_valor(row[VALOR_LIVRE])
+
+                    chave = (cod_eol, conta, periodo)
+
+                    if chave not in grouped_data:
+                        grouped_data[chave] = {
+                            'Custeio': 0.0,
+                            'Capital': 0.0,
+                            'Livre Aplicacao': 0.0,
+                            'Linhas': [],
+                            'Cod_eol': cod_eol,
+                            'Conta': conta,
+                            'Acao': acao,
+                            'Periodo': periodo
+                        }
+
+                    grouped_data[chave]['Custeio'] += valor_custeio
+                    grouped_data[chave]['Capital'] += valor_capital
+                    grouped_data[chave]['Livre Aplicacao'] += valor_livre
+                    grouped_data[chave]['Linhas'].append(lin)
+                except Exception as e:
+                    msg_erro = f'Erro no agrupamento dos dados. {str(e)}'
+                    raise Exception(msg_erro)
+
+        except Exception as e:
+            msg_erro = f"Erro na linha {lin}: {str(e)}"
+            logger.info(msg_erro)
+
+    return grouped_data
 
 def processa_previsoes_repasse(reader, arquivo):
     logs = []
     importados = 0
+    atualizados = 0
     erros = 0
-    for lin, row in enumerate(reader):
+
+    agrupados = agrupar_por_eol_conta_e_periodo(reader)
+
+    for chave, valores in agrupados.items():
         try:
-            if lin != 0:
-                logger.info('Linha %s: %s', lin, row)
-                if not any(row):
-                    logger.info("Pulando linha %s que está vazia.", lin)
-                    continue
+            logger.info('Linha %s: %s', str(valores['Linhas']), valores)
 
-                associacao = get_associacao(str(row[CODIGO_EOL]).strip())
-                if not associacao:
-                    msg_erro = f'Associação com código eol: {row[CODIGO_EOL]} não encontrado.'
-                    raise Exception(msg_erro)
+            cod_eol, conta, periodo = chave
+            valor_capital = valores['Capital']
+            valor_custeio = valores['Custeio']
+            valor_livre = valores['Livre Aplicacao']
+            acao = valores['Acao']
 
-                conta_associacao = get_conta_associacao(associacao, str(row[CONTA]).strip())
-                if not conta_associacao:
-                    msg_erro = f'Conta associação com nome: {row[CONTA]} não encontrado.'
-                    raise Exception(msg_erro)
+            associacao = get_associacao(str(cod_eol).strip())
+            if not associacao:
+                msg_erro = f'Associação com código eol: {cod_eol} não encontrado.'
+                raise Exception(msg_erro)
 
-                acao_associacao = get_acao_associacao(associacao, str(row[ACAO]).strip())
-                if not acao_associacao:
-                    msg_erro = f'Ação associação com nome: {row[ACAO]} não encontrado.'
-                    raise Exception(msg_erro)
+            conta_associacao = get_conta_associacao(associacao, str(conta).strip())
+            if not conta_associacao:
+                msg_erro = f'Conta associação com nome: {conta} não encontrado.'
+                raise Exception(msg_erro)
 
-                periodo = get_periodo(str(row[PERIODO]).strip())
-                if not periodo:
-                    msg_erro = f"Período ({str(row[PERIODO])}) não encontrado."
-                    raise Exception(msg_erro)
+            acao_associacao = get_acao_associacao(associacao, str(acao).strip())
+            if not acao_associacao:
+                msg_erro = f'Ação associação com nome: {acao} não encontrado.'
+                raise Exception(msg_erro)
 
-                data_referencia = periodo.data_fim_realizacao_despesas if periodo.data_fim_realizacao_despesas else periodo.data_inicio_realizacao_despesas
+            periodo = get_periodo(str(periodo).strip())
+            if not periodo:
+                msg_erro = f"Período ({str(periodo)}) não encontrado."
+                raise Exception(msg_erro)
 
-                if associacao.encerrada and (data_referencia >= associacao.data_de_encerramento):
-                    msg_erro = f'A associação foi encerrada em {associacao.data_de_encerramento.strftime("%d/%m/%Y")}'
-                    raise Exception(msg_erro)
+            data_referencia = periodo.data_fim_realizacao_despesas if periodo.data_fim_realizacao_despesas else periodo.data_inicio_realizacao_despesas
 
-                if associacao.periodo_inicial and (data_referencia <= associacao.periodo_inicial.data_fim_realizacao_despesas):
-                    msg_erro = f'O período informado é anterior ao período inicial da associação'
-                    raise Exception(msg_erro)
+            if associacao.encerrada and (data_referencia >= associacao.data_de_encerramento):
+                msg_erro = f'A associação foi encerrada em {associacao.data_de_encerramento.strftime("%d/%m/%Y")}'
+                raise Exception(msg_erro)
 
-                valor_capital = get_valor(row[VALOR_CAPITAL])
-                valor_custeio = get_valor(row[VALOR_CUSTEIO])
-                valor_livre = get_valor(row[VALOR_LIVRE])
+            if associacao.periodo_inicial and (data_referencia <= associacao.periodo_inicial.data_fim_realizacao_despesas):
+                msg_erro = f'O período informado é anterior ao período inicial da associação'
+                raise Exception(msg_erro) 
 
-                if valor_capital > 0 or valor_custeio > 0 or valor_livre > 0:
-                    previsao_repasse = PrevisaoRepasseSme.objects.filter(associacao=associacao, conta_associacao=conta_associacao, periodo=periodo).first()
-                    if not previsao_repasse:
-                        previsao_repasse = PrevisaoRepasseSme.objects.create(
-                            associacao=associacao,
-                            conta_associacao=conta_associacao,
-                            periodo=periodo,
-                            valor_capital=valor_capital,
-                            valor_custeio=valor_custeio,
-                            valor_livre=valor_livre
-                        )
-                        importados += 1
-                        logger.info("Previsão repasse criada com sucesso: %s", previsao_repasse)
-                    else:
-                        previsao_repasse.valor_capital = float(previsao_repasse.valor_capital) + valor_capital
-                        previsao_repasse.valor_custeio = float(previsao_repasse.valor_custeio) + valor_custeio
-                        previsao_repasse.valor_livre = float(previsao_repasse.valor_livre) + valor_livre
-                        previsao_repasse.save()
-                        logger.info("Previsão repasse atualizada com sucesso: %s", previsao_repasse)
+            if valor_capital > 0 or valor_custeio > 0 or valor_livre > 0:
+                previsao_repasse, created = PrevisaoRepasseSme.objects.update_or_create(
+                    associacao=associacao,
+                    conta_associacao=conta_associacao,
+                    periodo=periodo,
+                    defaults={
+                        'valor_capital': valor_capital,
+                        'valor_custeio': valor_custeio,
+                        'valor_livre': valor_livre,
+                    }
+                )
+
+                if created:
+                    importados += 1
+                    logger.info("Previsão repasse criada com sucesso: %s", previsao_repasse)
                 else:
-                    msg_erro = "Valores não estão de acordo com o esperado. Valor capital: {valor_capital}, Valor custeio: {valor_custeio}, Valor livre: {valor_livre}"
-                    raise Exception(msg_erro)
+                    atualizados +=1
+                    logger.info("Previsão repasse atualizada com sucesso: %s", previsao_repasse)
+            else:
+                msg_erro = "Valores não estão de acordo com o esperado. Valor capital: {valor_capital}, Valor custeio: {valor_custeio}, Valor livre: {valor_livre}"
+                raise Exception(msg_erro)
         except Exception as e:
-            msg_erro = f"Erro na linha {lin}: {str(e)}"
+            msg_erro = f"Erro na linha {str(valores['Linhas'])}: {str(e)}"
             logger.info(msg_erro)
             logs.append(msg_erro)
             erros += 1
