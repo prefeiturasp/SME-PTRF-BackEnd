@@ -115,3 +115,18 @@ def test_repasses_pendentes_sem_permissao(
         f'/api/repasses/pendentes/?acao-associacao={acao_associacao.uuid}&data=02/09/2019', content_type='application/json')
 
     assert response.status_code == HTTP_403_FORBIDDEN
+
+def test_tabelas_retorna_periodos_ordenados(jwt_authenticated_client_p, periodo_factory):
+    periodo1 = periodo_factory(referencia="2024.6")
+    periodo2 = periodo_factory(referencia="2023.2")
+    periodo3 = periodo_factory(referencia="2025.1")
+
+    response = jwt_authenticated_client_p.get('/api/repasses/tabelas/', content_type='application/json')
+    
+    assert response.status_code == HTTP_200_OK
+
+    result = json.loads(response.content)
+
+    periodos_retorno = [p['referencia'] for p in result['periodos']]
+
+    assert periodos_retorno == ["2025.1", "2024.6", "2023.2"]
