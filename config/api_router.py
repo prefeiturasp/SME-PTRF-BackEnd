@@ -53,7 +53,8 @@ from sme_ptrf_apps.core.api.views.prestacoes_contas_reprovadas_nao_apresentacao_
     PrestacaoContaReprovadaNaoApresentacaoViewSet
 from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 from sme_ptrf_apps.despesas.api.views.tipo_documento_viewset import TiposDocumentoViewSet
-from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet
+from sme_ptrf_apps.despesas.api.views.especificacoes_viewset import EspecificacaoMaterialServicoViewSet, \
+    ParametrizacaoEspecificacoesMaterialServicoViewSet
 from sme_ptrf_apps.despesas.api.views.fornecedores_viewset import FornecedoresViewSet
 from sme_ptrf_apps.despesas.api.views.rateios_despesas_viewset import RateiosDespesasViewSet
 from sme_ptrf_apps.despesas.api.views.tipos_custeio_viewset import TiposCusteioViewSet
@@ -130,6 +131,7 @@ router.register("usuarios-v2", UsuariosViewSet)
 router.register("grupos", GruposViewSet)
 router.register("despesas", DespesasViewSet)
 router.register("especificacoes", EspecificacaoMaterialServicoViewSet)
+router.register("especificacoes-materiais-servicos", ParametrizacaoEspecificacoesMaterialServicoViewSet)
 router.register("rateios-despesas", RateiosDespesasViewSet)
 router.register("receitas", ReceitaViewSet)
 router.register("fornecedores", FornecedoresViewSet)
