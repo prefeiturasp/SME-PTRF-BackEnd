@@ -56,6 +56,7 @@ class Parametros(SingletonModel, ModeloBase):
     texto_pagina_suporte_dre = RichTextField(null=True, verbose_name='Texto da página de suporte (DRE)')
 
     texto_pagina_suporte_sme = RichTextField(null=True, verbose_name='Texto da página de suporte (SME)')
+    texo_pagina_paa_ue = RichTextField(null=True, verbose_name='Texto da página de PAA (UE)')
 
     texto_pagina_valores_reprogramados_ue = RichTextField(
         null=True, verbose_name='Texto da página de valores reprogramados (UE)')

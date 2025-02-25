@@ -25,3 +25,10 @@ class ParametrosUeViewSet(GenericViewSet):
         texto = Parametros.get().texto_pagina_valores_reprogramados_ue
 
         return Response({'detail': texto}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='texto-pagina-paa-ue',
+            permission_classes=[IsAuthenticated, PermissaoAPITodosComLeituraOuGravacao])
+    def texto_pagina_paa_ue(self, request):
+        texto = Parametros.get().texo_pagina_paa_ue
+
+        return Response({'detail': texto}, status=status.HTTP_200_OK)
