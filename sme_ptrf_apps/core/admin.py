@@ -832,7 +832,7 @@ class ParametrosAdmin(admin.ModelAdmin):
                     'dias_antes_fim_prazo_ajustes_pc_para_notificacao',
                     'numero_periodos_consecutivos',
                     'texto_pagina_valores_reprogramados_ue',
-                    'texo_pagina_paa_ue'
+                    'texto_pagina_paa_ue'
                 )
         }),
         ('DRE', {
