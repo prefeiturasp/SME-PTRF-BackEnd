@@ -66,6 +66,7 @@ class ParametrizacaoEspecificacoesMaterialServicoViewSet(
 
         pesquisa = self.request.query_params.get('descricao')
         if pesquisa:
+            pesquisa = pesquisa.strip()
             qs = qs.filter(
                 Q(descricao__unaccent__icontains=pesquisa) |
                 Q(tipo_custeio__nome__unaccent__icontains=pesquisa)
