@@ -1894,6 +1894,7 @@ def parametros():
         texto_pagina_suporte_dre='Teste DRE',
         texto_pagina_suporte_sme='Teste SME',
         texto_pagina_valores_reprogramados_ue='Teste UE',
+        texto_pagina_paa_ue='Teste PAA UE',
         texto_pagina_valores_reprogramados_dre='Teste DRE'
     )
 
