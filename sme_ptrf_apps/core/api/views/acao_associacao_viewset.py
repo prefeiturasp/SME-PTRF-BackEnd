@@ -1,3 +1,6 @@
+from rest_framework.exceptions import ValidationError
+from rest_framework.pagination import PageNumberPagination
+
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
@@ -12,6 +15,10 @@ from sme_ptrf_apps.core.choices.filtro_informacoes_associacao import FiltroInfor
 from sme_ptrf_apps.core.models import AcaoAssociacao, Acao, Associacao
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComGravacao
 
+class AcaoAssociacaoPagination(PageNumberPagination):
+    page_size = 10 
+    page_size_query_param = 'page_size' 
+    max_page_size = 100
 
 class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
                             mixins.CreateModelMixin,
@@ -25,6 +32,7 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
     queryset = AcaoAssociacao.objects.all().order_by('associacao__nome', 'acao__nome')
     filter_backends = (filters.DjangoFilterBackend,)
     filter_fields = ('acao__uuid', 'status', 'associacao__uuid')
+    pagination_class = AcaoAssociacaoPagination
 
     def get_queryset(self):
         qs = AcaoAssociacao.objects.all()
