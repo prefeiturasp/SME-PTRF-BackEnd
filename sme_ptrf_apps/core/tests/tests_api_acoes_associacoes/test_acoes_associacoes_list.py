@@ -60,7 +60,7 @@ def test_api_list_acoes_associacoes_todas(
         )
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado
+    assert result['results'] == resultado_esperado
 
 
 def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
@@ -113,7 +113,7 @@ def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
             }
         )
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado
+    assert result['results'] == resultado_esperado
 
 
 def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
@@ -166,7 +166,7 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
             }
         )
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado
+    assert result['results'] == resultado_esperado
 
 
 def test_api_list_associacoes_pelo_eol_escola(jwt_authenticated_client_a,
@@ -219,7 +219,7 @@ def test_api_list_associacoes_pelo_eol_escola(jwt_authenticated_client_a,
             }
         )
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado
+    assert result['results'] == resultado_esperado
 
 
 def test_api_list_associacoes_por_acao(jwt_authenticated_client_a,
@@ -274,7 +274,7 @@ def test_api_list_associacoes_por_acao(jwt_authenticated_client_a,
             }
         )
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado
+    assert result['results'] == resultado_esperado
 
 
 def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
@@ -330,7 +330,7 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
             }
         )
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado
+    assert result['results'] == resultado_esperado
 
 def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_authenticated_client_a,
                                                                           acao_associacao_charli_bravo_000086_x,
@@ -415,7 +415,7 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
         },
     ]
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado
+    assert result['results'] == resultado_esperado
 
 def test_api_list_associacoes_por_associacoes_somente_encerradas(jwt_authenticated_client_a,
                                                                  acao_associacao_charli_bingo_000086_x,
@@ -464,7 +464,7 @@ def test_api_list_associacoes_por_associacoes_somente_encerradas(jwt_authenticat
         }
     ]
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado
+    assert result['results'] == resultado_esperado
 
 def test_api_list_associacoes_por_associacoes_somente_nao_encerradas(jwt_authenticated_client_a,
                                                                      acao_associacao_charli_bravo_000086_x,
@@ -513,4 +513,4 @@ def test_api_list_associacoes_por_associacoes_somente_nao_encerradas(jwt_authent
         },
     ]
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado
+    assert result['results'] == resultado_esperado
