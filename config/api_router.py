@@ -48,6 +48,8 @@ from sme_ptrf_apps.core.api.views import (
     SolicitacaoEncerramentoContaAssociacaoViewset,
     MotivoRejeicaoEncerramentoContaAssociacaoViewset,
     feature_flags,
+    AcoesPddeViewSet,
+    CategoriaPddeViewSet
 )
 from sme_ptrf_apps.core.api.views.prestacoes_contas_reprovadas_nao_apresentacao_viewset import \
     PrestacaoContaReprovadaNaoApresentacaoViewSet
@@ -204,6 +206,8 @@ router.register("analises-consolidados-dre", AnalisesConsolidadoDreViewSet)
 router.register("falhas-geracao-pc", FalhaGeracaoPcViewSet)
 router.register("solicitacoes-encerramento-conta", SolicitacaoEncerramentoContaAssociacaoViewset)
 router.register("motivos-rejeicao-encerramento-conta", MotivoRejeicaoEncerramentoContaAssociacaoViewset)
+router.register("categorias-pdde", CategoriaPddeViewSet, basename="categorias-pdde")
+router.register("acoes-pdde", AcoesPddeViewSet, basename="acoes-pdde")
 router.register("mandatos", MandatosViewSet)
 router.register("composicoes", ComposicoesViewSet)
 router.register("ocupantes-cargos", OcupantesCargosViewSet)
