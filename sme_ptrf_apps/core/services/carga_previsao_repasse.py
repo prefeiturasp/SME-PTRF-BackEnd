@@ -169,6 +169,7 @@ def processa_previsoes_repasse(reader, arquivo):
                     associacao=associacao,
                     conta_associacao=conta_associacao,
                     periodo=periodo,
+                    carga=arquivo,
                     defaults={
                         'valor_capital': valor_capital,
                         'valor_custeio': valor_custeio,

@@ -763,7 +763,7 @@ class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
                     'periodo', 'valor_capital', 'valor_custeio', 'valor_livre')
     list_filter = ('associacao', 'periodo', 'conta_associacao__tipo_conta', 'associacao__unidade__dre')
     list_display_links = ('associacao',)
-    readonly_fields = ('uuid', 'id')
+    readonly_fields = ('uuid', 'id', 'carga')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__dre__codigo_eol')
     raw_id_fields = ['periodo', 'associacao', 'conta_associacao',]
 
