@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import Q
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 from sme_ptrf_apps.core.models import TipoConta, Associacao
+from sme_ptrf_apps.receitas.models import DetalheTipoReceita
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -21,8 +22,9 @@ class TipoReceita(ModeloIdNome):
     tipos_conta = models.ManyToManyField(TipoConta, blank=True)
     mensagem_usuario = models.TextField('Mensagem para o usuario', blank=True, default='')
     possui_detalhamento = models.BooleanField('Deve exibir detalhamento?', default=False)
-
+    detalhes = models.ManyToManyField(DetalheTipoReceita, blank=True)
     unidades = models.ManyToManyField('core.Unidade', blank=True)
+
     class Meta:
         verbose_name = 'Tipo de receita'
         verbose_name_plural = 'Tipos de receita'
