@@ -25,6 +25,7 @@ class PrevisaoRepasseSme(ModeloBase):
 
     conta_associacao = models.ForeignKey('ContaAssociacao', on_delete=models.PROTECT,
                                          related_name='previsoes_de_repasse_sme_para_a_conta', blank=True, null=True)
+    carga = models.ForeignKey('Arquivo', null=True, on_delete=models.PROTECT)
 
     @property
     def valor_total(self):
@@ -36,7 +37,7 @@ class PrevisaoRepasseSme(ModeloBase):
     class Meta:
         verbose_name = "Previsão repasse SME"
         verbose_name_plural = "12.0) Previsões de repasse"
-        unique_together = ['associacao', 'periodo', 'conta_associacao']
+        unique_together = ['associacao', 'periodo', 'conta_associacao', 'carga']
 
 
 auditlog.register(PrevisaoRepasseSme)
