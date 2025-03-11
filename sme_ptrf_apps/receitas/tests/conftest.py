@@ -11,9 +11,9 @@ from datetime import date
 
 
 @pytest.fixture
-def tipo_receita(tipo_conta):
+def tipo_receita(tipo_conta, dre_ipiranga, dre, unidade):
     return baker.make('TipoReceita', nome='Estorno', e_repasse=False, aceita_capital=False, aceita_custeio=False,
-                      e_devolucao=False, tipos_conta=[tipo_conta])
+                      e_devolucao=False, tipos_conta=[tipo_conta], detalhes=[], unidades=[dre_ipiranga, dre, unidade])
 
 
 @pytest.fixture
@@ -22,15 +22,15 @@ def tipo_receita_estorno(tipo_receita):
 
 
 @pytest.fixture
-def tipo_receita_repasse(tipo_conta):
+def tipo_receita_repasse(tipo_conta, dre_ipiranga):
     return baker.make('TipoReceita', nome='Repasse', e_repasse=True, aceita_capital=True, aceita_custeio=True,
-                      tipos_conta=[tipo_conta])
+                      tipos_conta=[tipo_conta], detalhes=[], unidades=[dre_ipiranga])
 
 
 @pytest.fixture
 def tipo_receita_devolucao(tipo_conta):
     return baker.make('TipoReceita', nome='Devolução', e_devolucao=True, aceita_capital=True, aceita_custeio=True,
-                      tipos_conta=[tipo_conta])
+                      tipos_conta=[tipo_conta], detalhes=[])
 
 
 @pytest.fixture
