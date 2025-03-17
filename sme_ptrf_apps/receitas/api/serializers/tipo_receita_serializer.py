@@ -28,6 +28,7 @@ class TipoReceitaEDetalhesSerializer(serializers.ModelSerializer):
                   'e_devolucao',
                   'e_recursos_proprios',
                   'e_estorno',
+                  'e_rendimento',
                   'mensagem_usuario',
                   'possui_detalhamento',
                   'tipos_conta',

@@ -31,6 +31,7 @@ class TipoReceitaAdmin(admin.ModelAdmin):
         'nome', 'e_repasse', 'e_rendimento', 'aceita_capital', 'aceita_custeio', 'aceita_livre',
         'mensagem_usuario', 'possui_detalhamento'
     )
+    readonly_fields= ('uuid',)
     autocomplete_fields = ('unidades',)
 
 
