@@ -55,6 +55,7 @@ class TipoReceitaListaSerializer(serializers.ModelSerializer):
                   'aceita_capital',
                   'aceita_custeio',
                   'aceita_livre',
+                  'e_rendimento',
                   'e_repasse',
                   'e_devolucao',
                   'e_recursos_proprios',
