@@ -154,7 +154,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         if not unidade:
             return Response({"detail": "Unidade não encontrada ou já desvinculada."}, status=status.HTTP_404_NOT_FOUND)
         
-        if instance.pode_desvincular_unidades([unidade_uuid]):
+        if instance.pode_restringir_unidades([unidade_uuid]):
             instance.unidades.remove(unidade)
         else:
             return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)
@@ -178,7 +178,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         if not unidades.exists():
             return Response({"erro": "Nenhuma unidade encontrada ou já desvinculada."}, status=status.HTTP_404_NOT_FOUND)
 
-        if instance.pode_desvincular_unidades(unidade_uuids):
+        if instance.pode_restringir_unidades(unidade_uuids):
             instance.unidades.remove(*unidades)
         else:
             return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)
@@ -193,8 +193,11 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         instance = self.get_object()
 
         unidade = Unidade.objects.filter(uuid=unidade_uuid).first()
-        
-        instance.unidades.add(unidade)
+
+        if instance.pode_restringir_unidades([unidade_uuid]):
+            instance.unidades.add(unidade)
+        else:
+            return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"mensagem": "Unidade vinculada com sucesso!"}, status=200)
     
@@ -215,6 +218,9 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         if not unidades.exists():
             return Response({"erro": "Nenhuma unidade encontrada."}, status=status.HTTP_404_NOT_FOUND)
 
-        instance.unidades.add(*unidades)
+        if instance.pode_restringir_unidades(unidade_uuids):
+            instance.unidades.add(*unidades)
+        else:
+            return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"mensagem": "Unidades vinculadas com sucesso!"}, status=status.HTTP_200_OK)
