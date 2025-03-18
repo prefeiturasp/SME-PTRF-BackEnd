@@ -8,7 +8,6 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from django.core.exceptions import ValidationError
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.core.api.serializers import TipoContaSerializer
@@ -21,10 +20,8 @@ from sme_ptrf_apps.core.models import TipoConta
 from sme_ptrf_apps.receitas.models import TipoReceita, DetalheTipoReceita
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
-    PermissaoAPITodosComLeituraOuGravacao,
-    PermissaoAPITodosComGravacao
+    PermissaoAPIApenasSmeComLeituraOuGravacao
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +65,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False, url_path='filtros',
-            permission_classes=[])#[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def filtros(self, request, *args, **kwargs):
 
         tipos = [
@@ -92,7 +89,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, url_path='unidades-vinculadas',
-            permission_classes=[])#[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def unidades_vinculadas(self, request, *args, **kwargs):
         from sme_ptrf_apps.core.api.serializers import UnidadeLookUpSerializer
         uuid_dre = self.request.query_params.get('dre')
@@ -116,7 +113,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         return paginator.get_paginated_response(paginated_unidades)
     
     @action(detail=True, url_path='unidades-nao-vinculadas',
-            permission_classes=[])#[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def unidades_nao_vinculadas(self, request, *args, **kwargs):
         from sme_ptrf_apps.core.api.serializers import UnidadeLookUpSerializer
         from sme_ptrf_apps.core.models.unidade import Unidade
@@ -147,7 +144,8 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         return paginator.get_paginated_response(paginated_unidades)
     
-    @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/desvincular', permission_classes=[])
+    @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/desvincular', 
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def desvincular_unidade(self, request, unidade_uuid, *args, **kwargs):
         instance = self.get_object()
 
@@ -163,7 +161,8 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         return Response({"mensagem": "Unidade desvinculada com sucesso!"}, status=200)
 
-    @action(detail=True, methods=['POST'], url_path='desvincular-em-lote', permission_classes=[])
+    @action(detail=True, methods=['POST'], url_path='desvincular-em-lote', 
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def desvincular_em_lote(self, request, *args, **kwargs):
         from sme_ptrf_apps.core.models.unidade import Unidade
 
@@ -186,7 +185,8 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         return Response({"mensagem": "Unidades desvinculadas com sucesso!"}, status=status.HTTP_200_OK)
     
-    @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/vincular', permission_classes=[])
+    @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/vincular', 
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def vincular_unidade(self, request, unidade_uuid, *args, **kwargs):
         from sme_ptrf_apps.core.models.unidade import Unidade
         
@@ -198,7 +198,8 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         return Response({"mensagem": "Unidade vinculada com sucesso!"}, status=200)
     
-    @action(detail=True, methods=['POST'], url_path='vincular-em-lote', permission_classes=[])
+    @action(detail=True, methods=['POST'], url_path='vincular-em-lote', 
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def vincular_em_lote(self, request, *args, **kwargs):
         from sme_ptrf_apps.core.models.unidade import Unidade
 

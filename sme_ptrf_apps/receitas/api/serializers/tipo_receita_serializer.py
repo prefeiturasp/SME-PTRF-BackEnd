@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from sme_ptrf_apps.core.api.serializers import TipoContaSerializer, UnidadeSerializer
+from sme_ptrf_apps.core.api.serializers import TipoContaSerializer
 from .detalhe_tipo_receita_serializer import DetalheTipoReceitaSerializer
 from sme_ptrf_apps.receitas.models import TipoReceita, DetalheTipoReceita
 from sme_ptrf_apps.core.models import TipoConta, Unidade
@@ -44,7 +44,6 @@ class TipoReceitaLookUpSerializer(serializers.ModelSerializer):
 class TipoReceitaListaSerializer(serializers.ModelSerializer):
     detalhes = DetalheTipoReceitaSerializer(many=True)
     tipos_conta = TipoContaSerializer(many=True)
-    #unidades = UnidadeSerializer(many=True)
     todas_unidades_selecionadas = serializers.SerializerMethodField()
 
     class Meta:
