@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from sme_ptrf_apps.core.api.serializers import TipoContaSerializer, UnidadeSerializer
+from sme_ptrf_apps.core.api.serializers import TipoContaSerializer
 from .detalhe_tipo_receita_serializer import DetalheTipoReceitaSerializer
 from sme_ptrf_apps.receitas.models import TipoReceita, DetalheTipoReceita
 from sme_ptrf_apps.core.models import TipoConta, Unidade
@@ -28,6 +28,7 @@ class TipoReceitaEDetalhesSerializer(serializers.ModelSerializer):
                   'e_devolucao',
                   'e_recursos_proprios',
                   'e_estorno',
+                  'e_rendimento',
                   'mensagem_usuario',
                   'possui_detalhamento',
                   'tipos_conta',
@@ -43,7 +44,7 @@ class TipoReceitaLookUpSerializer(serializers.ModelSerializer):
 class TipoReceitaListaSerializer(serializers.ModelSerializer):
     detalhes = DetalheTipoReceitaSerializer(many=True)
     tipos_conta = TipoContaSerializer(many=True)
-    unidades = UnidadeSerializer(many=True)
+    todas_unidades_selecionadas = serializers.SerializerMethodField()
 
     class Meta:
         model = TipoReceita
@@ -61,9 +62,11 @@ class TipoReceitaListaSerializer(serializers.ModelSerializer):
                   'possui_detalhamento',
                   'detalhes',
                   'tipos_conta',
-                  'unidades'
+                  'todas_unidades_selecionadas'
                 )
 
+    def get_todas_unidades_selecionadas(self, obj):
+        return obj.unidades.count() == Unidade.objects.all().count()
 
 class TipoReceitaCreateSerializer(serializers.ModelSerializer):
     detalhes = serializers.PrimaryKeyRelatedField(many=True, queryset=DetalheTipoReceita.objects.all(), required=False)
@@ -89,6 +92,11 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
                   'unidades'
                 )
 
+    def validate(self, data):
+        if self.context["request"].data.get("selecionar_todas"):
+            data["unidades"] = Unidade.objects.all()
+        return data
+    
     def create(self, validated_data):
         nome = validated_data.get('nome')
 
@@ -109,4 +117,5 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
                 })
 
         instance = super().update(instance, validated_data)
+
         return instance
