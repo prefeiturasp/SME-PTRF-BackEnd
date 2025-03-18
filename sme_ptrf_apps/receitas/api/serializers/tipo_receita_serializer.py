@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from sme_ptrf_apps.core.api.serializers import TipoContaSerializer
+from sme_ptrf_apps.core.api.serializers import TipoContaSerializer, UnidadeSerializer
 from .detalhe_tipo_receita_serializer import DetalheTipoReceitaSerializer
 from sme_ptrf_apps.receitas.models import TipoReceita, DetalheTipoReceita
 from sme_ptrf_apps.core.models import TipoConta, Unidade
@@ -44,6 +44,7 @@ class TipoReceitaLookUpSerializer(serializers.ModelSerializer):
 class TipoReceitaListaSerializer(serializers.ModelSerializer):
     detalhes = DetalheTipoReceitaSerializer(many=True)
     tipos_conta = TipoContaSerializer(many=True)
+    unidades = UnidadeSerializer(many=True)
     todas_unidades_selecionadas = serializers.SerializerMethodField()
 
     class Meta:
@@ -62,11 +63,12 @@ class TipoReceitaListaSerializer(serializers.ModelSerializer):
                   'possui_detalhamento',
                   'detalhes',
                   'tipos_conta',
+                  'unidades',
                   'todas_unidades_selecionadas'
                 )
 
     def get_todas_unidades_selecionadas(self, obj):
-        return obj.unidades.count() == Unidade.objects.all().count()
+        return obj.unidades.count() == 0
 
 class TipoReceitaCreateSerializer(serializers.ModelSerializer):
     detalhes = serializers.PrimaryKeyRelatedField(many=True, queryset=DetalheTipoReceita.objects.all(), required=False)
@@ -85,6 +87,7 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
                   'e_devolucao',
                   'e_recursos_proprios',
                   'e_estorno',
+                  'e_rendimento',
                   'mensagem_usuario',
                   'possui_detalhamento',
                   'detalhes',
@@ -94,9 +97,9 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         if self.context["request"].data.get("selecionar_todas"):
-            data["unidades"] = Unidade.objects.all()
+            data["unidades"].clear()
         return data
-    
+
     def create(self, validated_data):
         nome = validated_data.get('nome')
 
