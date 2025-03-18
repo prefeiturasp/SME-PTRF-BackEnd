@@ -50,17 +50,19 @@ class TipoReceita(ModeloIdNome):
 
         return query.order_by('nome')
 
-    def pode_desvincular_unidades(self, unidades_uuid):
-        return not self.tem_unidades_com_receitas(unidades_uuid)
-
-    def tem_unidades_com_receitas(self, unidades):
+    def pode_restringir_unidades(self, unidades_uuid):
         from sme_ptrf_apps.core.models import Unidade
 
-        unidades_obj = Unidade.objects.filter(uuid__in=unidades)
-
+        unidades_obj = Unidade.objects.filter(uuid__in=unidades_uuid)
+        
         receitas = self.receita_set.filter(associacao__unidade__in=unidades_obj)
+        
+        unidades_com_receitas = receitas.values_list('associacao__unidade__uuid', flat=True).distinct()
 
-        return receitas.exists()
+        if set(unidades_com_receitas).issubset(set(unidades_uuid)):
+            return True
+        else:
+            return False
 
 
 auditlog.register(TipoReceita)
