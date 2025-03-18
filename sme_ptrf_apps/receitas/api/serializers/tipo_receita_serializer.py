@@ -44,7 +44,8 @@ class TipoReceitaLookUpSerializer(serializers.ModelSerializer):
 class TipoReceitaListaSerializer(serializers.ModelSerializer):
     detalhes = DetalheTipoReceitaSerializer(many=True)
     tipos_conta = TipoContaSerializer(many=True)
-    unidades = UnidadeSerializer(many=True)
+    #unidades = UnidadeSerializer(many=True)
+    todas_unidades_selecionadas = serializers.SerializerMethodField()
 
     class Meta:
         model = TipoReceita
@@ -62,9 +63,11 @@ class TipoReceitaListaSerializer(serializers.ModelSerializer):
                   'possui_detalhamento',
                   'detalhes',
                   'tipos_conta',
-                  'unidades'
+                  'todas_unidades_selecionadas'
                 )
 
+    def get_todas_unidades_selecionadas(self, obj):
+        return obj.unidades.count() == Unidade.objects.all().count()
 
 class TipoReceitaCreateSerializer(serializers.ModelSerializer):
     detalhes = serializers.PrimaryKeyRelatedField(many=True, queryset=DetalheTipoReceita.objects.all(), required=False)
@@ -90,6 +93,11 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
                   'unidades'
                 )
 
+    def validate(self, data):
+        if self.context["request"].data.get("selecionar_todas"):
+            data["unidades"] = Unidade.objects.all()
+        return data
+    
     def create(self, validated_data):
         nome = validated_data.get('nome')
 
@@ -110,4 +118,5 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
                 })
 
         instance = super().update(instance, validated_data)
+
         return instance
