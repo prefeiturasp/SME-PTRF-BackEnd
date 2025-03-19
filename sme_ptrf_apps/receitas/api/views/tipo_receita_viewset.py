@@ -36,7 +36,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
     queryset = TipoReceita.objects.all().order_by('-nome')
     serializer_class = TipoReceitaListaSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('nome', 'e_repasse', 'e_rendimento', 'e_devolucao', 'e_estorno', 'aceita_capital', 'aceita_custeio',
+    filter_fields = ('e_repasse', 'e_rendimento', 'e_devolucao', 'e_estorno', 'aceita_capital', 'aceita_custeio',
                      'aceita_livre', 'e_recursos_proprios', 'tipos_conta__uuid', 'unidades__uuid')
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     pagination_class = CustomPagination
@@ -46,6 +46,15 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return TipoReceitaListaSerializer
         else:
             return TipoReceitaCreateSerializer
+        
+    def get_queryset(self):
+        qs = TipoReceita.objects.all().order_by('-nome')
+        
+        nome = self.request.query_params.get('nome')
+        
+        if nome is not None:
+            qs = qs.filter(nome__icontains=nome)
+        return qs
 
 
     def destroy(self, request, *args, **kwargs):
