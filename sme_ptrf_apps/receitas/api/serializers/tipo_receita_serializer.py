@@ -72,7 +72,9 @@ class TipoReceitaListaSerializer(serializers.ModelSerializer):
         return obj.unidades.count() == 0
 
 class TipoReceitaCreateSerializer(serializers.ModelSerializer):
-    detalhes = serializers.PrimaryKeyRelatedField(many=True, queryset=DetalheTipoReceita.objects.all(), required=False)
+    detalhes = serializers.ListField(
+        child=serializers.CharField(), required=False, write_only=True
+    )
     tipos_conta = serializers.SlugRelatedField(many=True, queryset=TipoConta.objects.all(), slug_field='uuid')
 
     class Meta:
@@ -89,13 +91,14 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
                   'e_estorno',
                   'e_rendimento',
                   'mensagem_usuario',
-                  'possui_detalhamento',
                   'detalhes',
+                  'possui_detalhamento',
                   'tipos_conta',
                 )
 
     def create(self, validated_data):
         nome = validated_data.get('nome')
+        detalhes_data = validated_data.pop("detalhes", [])
 
         if TipoReceita.objects.filter(nome=nome).exists():
             raise serializers.ValidationError({
@@ -107,10 +110,23 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
         if self.context["request"].data.get("selecionar_todas"):
             instance.unidades.clear()
 
+        detalhes_list = []
+
+        for item in detalhes_data:
+            try:
+                detalhe = DetalheTipoReceita.objects.get(id=item)
+            except Exception:
+                detalhe = DetalheTipoReceita.objects.create(nome=item, tipo_receita=instance)
+            
+            detalhes_list.append(detalhe)
+
+        instance.detalhes.set(detalhes_list)
+
         return instance
 
     def update(self, instance, validated_data):
         nome = validated_data.get('nome')
+        detalhes_data = validated_data.pop("detalhes", [])
 
         if TipoReceita.objects.filter(nome=nome).exclude(pk=self.instance.pk).exists():
             raise serializers.ValidationError({
@@ -121,5 +137,17 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
         
         if self.context["request"].data.get("selecionar_todas"):
             instance.unidades.clear()
+
+        detalhes_list = []
+
+        for item in detalhes_data:
+            try:
+                detalhe = DetalheTipoReceita.objects.get(id=item)
+            except Exception:
+                detalhe = DetalheTipoReceita.objects.create(nome=item, tipo_receita=instance)
+            
+            detalhes_list.append(detalhe)
+
+        instance.detalhes.set(detalhes_list)
 
         return instance
