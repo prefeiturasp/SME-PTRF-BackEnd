@@ -47,6 +47,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return TipoReceitaListaSerializer
         else:
             return TipoReceitaCreateSerializer
+
     def get_queryset(self):
         qs = TipoReceita.objects.all().order_by('-nome')
         nome = self.request.query_params.get('nome')
@@ -60,7 +61,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         if unidade_uuid:
             qs_com_unidade = list(qs.filter(unidades__in=unidade_filtrada).values_list('id', flat=True))
             qs_sem_unidade = list(qs.filter(unidades__isnull=True).values_list('id', flat=True))
-            qs = qs.filter(id__in = qs_com_unidade + qs_sem_unidade)
+            qs = qs.filter(id__in=qs_com_unidade + qs_sem_unidade)
         return qs
 
     def destroy(self, request, *args, **kwargs):
@@ -115,18 +116,18 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         if uuid_dre is not None and uuid_dre != "":
             unidades_qs = unidades_qs.filter(dre__uuid=uuid_dre)
-        
+
         if nome_ou_codigo is not None:
             unidades_qs = unidades_qs.filter(Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo) | Q(
                 nome__unaccent__icontains=nome_ou_codigo))
-            
+
         serializer = UnidadeLookUpSerializer(unidades_qs, many=True)
 
         paginator = CustomPagination()
         paginated_unidades = paginator.paginate_queryset(serializer.data, request)
 
         return paginator.get_paginated_response(paginated_unidades)
-    
+
     @action(detail=True, url_path='unidades-nao-vinculadas',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def unidades_nao_vinculadas(self, request, *args, **kwargs):
@@ -146,11 +147,10 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
             if uuid_dre is not None and uuid_dre != "":
                 unidades_nao_vinculadas = unidades_nao_vinculadas.filter(dre__uuid=uuid_dre)
-            
+
             if nome_ou_codigo is not None:
                 unidades_nao_vinculadas = unidades_nao_vinculadas.filter(Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo) | Q(
                     nome__unaccent__icontains=nome_ou_codigo))
-
 
         serializer = UnidadeLookUpSerializer(unidades_nao_vinculadas, many=True)
 
@@ -158,8 +158,8 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         paginated_unidades = paginator.paginate_queryset(serializer.data, request)
 
         return paginator.get_paginated_response(paginated_unidades)
-    
-    @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/desvincular', 
+
+    @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/desvincular',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def desvincular_unidade(self, request, unidade_uuid, *args, **kwargs):
         instance = self.get_object()
@@ -168,7 +168,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         if not unidade:
             return Response({"detail": "Unidade não encontrada ou já desvinculada."}, status=status.HTTP_404_NOT_FOUND)
-        
+
         if instance.pode_restringir_unidades([unidade_uuid]):
             instance.unidades.remove(unidade)
         else:
@@ -176,7 +176,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         return Response({"mensagem": "Unidade desvinculada com sucesso!"}, status=200)
 
-    @action(detail=True, methods=['POST'], url_path='desvincular-em-lote', 
+    @action(detail=True, methods=['POST'], url_path='desvincular-em-lote',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def desvincular_em_lote(self, request, *args, **kwargs):
         from sme_ptrf_apps.core.models.unidade import Unidade
@@ -199,12 +199,12 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"mensagem": "Unidades desvinculadas com sucesso!"}, status=status.HTTP_200_OK)
-    
-    @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/vincular', 
+
+    @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/vincular',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def vincular_unidade(self, request, unidade_uuid, *args, **kwargs):
         from sme_ptrf_apps.core.models.unidade import Unidade
-        
+
         instance = self.get_object()
 
         unidade = Unidade.objects.filter(uuid=unidade_uuid).first()
@@ -215,8 +215,8 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"mensagem": "Unidade vinculada com sucesso!"}, status=200)
-    
-    @action(detail=True, methods=['POST'], url_path='vincular-em-lote', 
+
+    @action(detail=True, methods=['POST'], url_path='vincular-em-lote',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def vincular_em_lote(self, request, *args, **kwargs):
         from sme_ptrf_apps.core.models.unidade import Unidade
