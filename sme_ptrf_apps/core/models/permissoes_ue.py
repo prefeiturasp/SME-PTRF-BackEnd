@@ -208,3 +208,16 @@ class FuncUeMembrosDaAssociacao(models.Model):
             ('access_membros_da_associacao', '[UE] Pode acessar Membros da Associação.'),
             ('change_membros_da_associacao', '[UE] Pode editar Membros da Associação.'),
         )
+        
+class FuncUePlanoAnualDeAtividade(models.Model):
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[UE] Plano anual de atividade"
+        verbose_name_plural = "[UE] Plano anual de atividade"
+
+        permissions = (
+            ('access_paa', '[UE] Pode acessar Plano Anual de Atividade.'),
+            ('change_paa', '[UE] Pode editar Plano Anual de Atividade".'),
+        )

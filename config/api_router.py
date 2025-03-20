@@ -48,6 +48,8 @@ from sme_ptrf_apps.core.api.views import (
     SolicitacaoEncerramentoContaAssociacaoViewset,
     MotivoRejeicaoEncerramentoContaAssociacaoViewset,
     feature_flags,
+    AcoesPddeViewSet,
+    CategoriaPddeViewSet
 )
 from sme_ptrf_apps.core.api.views.prestacoes_contas_reprovadas_nao_apresentacao_viewset import \
     PrestacaoContaReprovadaNaoApresentacaoViewSet
@@ -88,7 +90,12 @@ from sme_ptrf_apps.sme.api.views import (
     ParametrosSmeViewSet,
     ExportacoesDadosViewSet
 )
-from sme_ptrf_apps.receitas.api.views import ReceitaViewSet, RepasseViewSet, MotivosEstornoViewSet
+from sme_ptrf_apps.receitas.api.views import (
+    ReceitaViewSet,
+    RepasseViewSet,
+    MotivosEstornoViewSet,
+    TipoReceitaViewSet
+)
 from sme_ptrf_apps.users.api.views import (
     EsqueciMinhaSenhaViewSet,
     LoginView,
@@ -134,6 +141,7 @@ router.register("especificacoes", EspecificacaoMaterialServicoViewSet)
 router.register("especificacoes-materiais-servicos", ParametrizacaoEspecificacoesMaterialServicoViewSet)
 router.register("rateios-despesas", RateiosDespesasViewSet)
 router.register("receitas", ReceitaViewSet)
+router.register("tipos-receitas", TipoReceitaViewSet)
 router.register("fornecedores", FornecedoresViewSet)
 router.register("associacoes", AssociacoesViewSet)
 router.register("parametrizacoes-associacoes", ParametrizacoesAssociacoesViewSet)
@@ -204,6 +212,8 @@ router.register("analises-consolidados-dre", AnalisesConsolidadoDreViewSet)
 router.register("falhas-geracao-pc", FalhaGeracaoPcViewSet)
 router.register("solicitacoes-encerramento-conta", SolicitacaoEncerramentoContaAssociacaoViewset)
 router.register("motivos-rejeicao-encerramento-conta", MotivoRejeicaoEncerramentoContaAssociacaoViewset)
+router.register("categorias-pdde", CategoriaPddeViewSet, basename="categorias-pdde")
+router.register("acoes-pdde", AcoesPddeViewSet, basename="acoes-pdde")
 router.register("mandatos", MandatosViewSet)
 router.register("composicoes", ComposicoesViewSet)
 router.register("ocupantes-cargos", OcupantesCargosViewSet)

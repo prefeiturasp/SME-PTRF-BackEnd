@@ -35,7 +35,7 @@ from sme_ptrf_apps.core.fixtures.factories import (
     SolicitacaoAcertoLancamentoFactory, ProcessoAssociacaoFactory,
     PrestacaoContaReprovadaNaoApresentacaoFactory, DemonstrativoFinanceiroFactory,
     ItemResumoPorAcaoFactory, ItemDespesaFactory, ItemCreditoFactory, ArquivoDownloadFactory,
-    TipoDevolucaoAoTesouroFactory
+    TipoDevolucaoAoTesouroFactory, AcaoPddeFactory, CategoriaPddeFactory, FlagFactory
 )
 from sme_ptrf_apps.users.fixtures.factories import (
     UsuarioFactory, UnidadeEmSuporteFactory, GrupoAcessoFactory, VisaoFactory,
@@ -67,7 +67,8 @@ factories_to_register = [
     ItemDespesaFactory, ItemCreditoFactory, TipoReceitaFactory, RelacaoBensFactory,
     RelatorioRelacaoBensFactory, ItemRelatorioRelacaoDeBensFactory,
     SolicitacaoEncerramentoContaAssociacaoFactory, ArquivoDownloadFactory,
-    TipoDevolucaoAoTesouroFactory, TipoDocumentoFactory, MotivoPagamentoAntecipadoFactory
+    TipoDevolucaoAoTesouroFactory, TipoDocumentoFactory, MotivoPagamentoAntecipadoFactory,
+    AcaoPddeFactory, CategoriaPddeFactory, FlagFactory
 ]
 
 for factory in factories_to_register:
@@ -3096,4 +3097,21 @@ def task_celery_criada_2(periodo_2020_1, associacao):
         nome_task='concluir_prestacao_de_contas_async',
         associacao=associacao,
         periodo=periodo_2020_1
+    )
+
+
+@pytest.fixture
+def categoria_pdde():
+    return baker.make(
+        'CategoriaPdde',
+        nome='Categoria PDDE Teste',
+    )
+
+
+@pytest.fixture
+def acao_pdde(categoria_pdde):
+    return baker.make(
+        'AcaoPdde',
+        nome='Ação PDDE Teste',
+        categoria=categoria_pdde,
     )
