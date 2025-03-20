@@ -17,6 +17,7 @@ from sme_ptrf_apps.receitas.api.serializers import (
     DetalheTipoReceitaSerializer
 )
 from sme_ptrf_apps.core.models import TipoConta
+from sme_ptrf_apps.core.models import Unidade
 from sme_ptrf_apps.receitas.models import TipoReceita, DetalheTipoReceita
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
@@ -37,7 +38,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
     serializer_class = TipoReceitaListaSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filter_fields = ('e_repasse', 'e_rendimento', 'e_devolucao', 'e_estorno', 'aceita_capital', 'aceita_custeio',
-                     'aceita_livre', 'e_recursos_proprios', 'tipos_conta__uuid', 'unidades__uuid')
+                     'aceita_livre', 'e_recursos_proprios', 'tipos_conta__uuid')
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     pagination_class = CustomPagination
 
@@ -46,16 +47,21 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return TipoReceitaListaSerializer
         else:
             return TipoReceitaCreateSerializer
-        
     def get_queryset(self):
         qs = TipoReceita.objects.all().order_by('-nome')
-        
         nome = self.request.query_params.get('nome')
-        
-        if nome is not None:
-            qs = qs.filter(nome__icontains=nome)
-        return qs
+        unidade_uuid = self.request.query_params.get('unidades__uuid')
 
+        unidade_filtrada = Unidade.objects.filter(uuid=unidade_uuid)
+
+        if nome:
+            qs = qs.filter(nome__icontains=nome)
+
+        if unidade_uuid:
+            qs_com_unidade = list(qs.filter(unidades__in=unidade_filtrada).values_list('id', flat=True))
+            qs_sem_unidade = list(qs.filter(unidades__isnull=True).values_list('id', flat=True))
+            qs = qs.filter(id__in = qs_com_unidade + qs_sem_unidade)
+        return qs
 
     def destroy(self, request, *args, **kwargs):
         from django.db.models.deletion import ProtectedError
