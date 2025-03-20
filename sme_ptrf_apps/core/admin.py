@@ -58,7 +58,9 @@ from .models import (
     ItemResumoPorAcao,
     ItemCredito,
     ItemDespesa,
-    PrestacaoContaReprovadaNaoApresentacao
+    PrestacaoContaReprovadaNaoApresentacao,
+    CategoriaPdde,
+    AcaoPdde
 )
 
 from django.db.models import Count
@@ -763,7 +765,7 @@ class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
                     'periodo', 'valor_capital', 'valor_custeio', 'valor_livre')
     list_filter = ('associacao', 'periodo', 'conta_associacao__tipo_conta', 'associacao__unidade__dre')
     list_display_links = ('associacao',)
-    readonly_fields = ('uuid', 'id')
+    readonly_fields = ('uuid', 'id', 'carga')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__dre__codigo_eol')
     raw_id_fields = ['periodo', 'associacao', 'conta_associacao',]
 
@@ -1841,3 +1843,19 @@ class PrestacaoContaReprovadaNaoApresentacaoAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
     raw_id_fields = ('periodo', 'associacao',)
+
+
+@admin.register(CategoriaPdde)
+class CategoriaPddeAdmin(admin.ModelAdmin):
+    list_display = ('nome',)
+    search_fields = ('nome',)
+    list_filter = ('nome',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+
+@admin.register(AcaoPdde)
+class AcaoPddeAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'categoria')
+    search_fields = ('nome', 'categoria__nome')
+    list_filter = ('categoria__nome',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')

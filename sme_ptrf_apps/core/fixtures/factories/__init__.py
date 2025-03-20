@@ -21,3 +21,5 @@ from .demonstrativo_financeiro_factory import *
 from .tipo_conta_factory import *
 from .arquivo_download_factory import *
 from .tipo_devolucao_ao_tesouro_factory import *
+from .acao_pdde_factory import *
+from .flag_factory import *
