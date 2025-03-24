@@ -13,7 +13,11 @@ from rest_framework.decorators import action
 from sme_ptrf_apps.core.api.serializers import AcaoAssociacaoCreateSerializer, AcaoAssociacaoRetrieveSerializer
 from sme_ptrf_apps.core.choices.filtro_informacoes_associacao import FiltroInformacoesAssociacao
 from sme_ptrf_apps.core.models import AcaoAssociacao, Acao, Associacao
-from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComGravacao
+from sme_ptrf_apps.users.permissoes import (
+    PermissaoApiUe,
+    PermissaoAPITodosComGravacao,
+    PermissaoAPITodosComLeituraOuGravacao
+)
 
 class AcaoAssociacaoPagination(PageNumberPagination):
     page_size = 10 
@@ -164,3 +168,9 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
             }
 
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['get'], url_path='obter-saldo-atual',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def obter_saldo_atual(self, request, uuid, *args, **kwrgs):
+        saldos = self.get_object().saldo_atual()
+        return Response(saldos, status=status.HTTP_200_OK)
