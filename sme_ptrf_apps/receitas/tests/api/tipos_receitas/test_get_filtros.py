@@ -1,18 +1,13 @@
 
 import json
-
 import pytest
 from rest_framework import status
-
-from sme_ptrf_apps.core.models import TipoConta, Unidade
-
 
 pytestmark = pytest.mark.django_db
 
 
-def test_get_filtros(jwt_authenticated_client_p, detalhe_tipo_receita):
-    response = jwt_authenticated_client_p.get(f'/api/tipos-receitas/filtros/',
-                                              content_type='application/json')
+def test_get_filtros(jwt_authenticated_client_sme, detalhe_tipo_receita):
+    response = jwt_authenticated_client_sme.get(f'/api/tipos-receitas/filtros/', content_type='application/json')
     content = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
