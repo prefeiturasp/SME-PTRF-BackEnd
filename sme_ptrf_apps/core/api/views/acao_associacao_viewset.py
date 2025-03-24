@@ -164,3 +164,9 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
             }
 
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['get'], url_path='obter-saldo-atual',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
+    def obter_saldo_atual(self, request, uuid, *args, **kwrgs):
+        saldos = self.get_object().saldo_atual()
+        return Response(saldos, status=status.HTTP_200_OK)

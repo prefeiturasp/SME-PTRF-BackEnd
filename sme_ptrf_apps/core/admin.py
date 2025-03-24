@@ -60,7 +60,8 @@ from .models import (
     ItemDespesa,
     PrestacaoContaReprovadaNaoApresentacao,
     CategoriaPdde,
-    AcaoPdde
+    AcaoPdde,
+    ReceitaPrevistaPaa,
 )
 
 from django.db.models import Count
@@ -1858,4 +1859,13 @@ class AcaoPddeAdmin(admin.ModelAdmin):
     list_display = ('nome', 'categoria')
     search_fields = ('nome', 'categoria__nome')
     list_filter = ('categoria__nome',)
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+
+@admin.register(ReceitaPrevistaPaa)
+class ReceitaPrevistaPaaAdmin(admin.ModelAdmin):
+    list_display = ('acao_associacao', 'previsao_valor_custeio', 'previsao_valor_capital', 'previsao_valor_livre')
+    search_fields = ('acao_associacao__acao__nome', 'acao_associacao__associacao__nome')
+    autocomplete_fields = ('acao_associacao',)
+    list_filter = ('acao_associacao__associacao',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
