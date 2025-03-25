@@ -46,3 +46,4 @@ class ReceitaPrevistaPaaViewSet(WaffleFlagMixin, ModelViewSet):
     pagination_class = CustomPagination
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     filterset_class = ReceitaPrevistaPaaFiltro
+    http_method_names = ['get', 'post', 'patch']
