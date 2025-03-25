@@ -54,3 +54,17 @@ def test_retrieve_acao_associacao(
     }
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
+
+def test_retrieve_acao_associacao_saldo_atual(
+    jwt_authenticated_client_a,
+    acao_associacao_charli_bravo_000086_x
+):
+    response = jwt_authenticated_client_a.get(
+        f'/api/acoes-associacoes/{acao_associacao_charli_bravo_000086_x.uuid}/obter-saldo-atual/',
+        content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert 'saldo_atual_total' in response.data
+    assert 'saldo_atual_capital' in response.data
+    assert 'saldo_atual_custeio' in response.data
+    assert 'saldo_atual_livre' in response.data

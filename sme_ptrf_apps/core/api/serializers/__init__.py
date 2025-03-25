@@ -65,3 +65,4 @@ from .prestacao_conta_reprovada_nao_apresentacao_serializer import PrestacaoCont
 from .acao_serializer import AcaoSerializer
 from .acao_pdde_serializer import AcaoPddeSerializer
 from .categoria_pdde_serializer import CategoriaPddeSerializer
+from .receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer

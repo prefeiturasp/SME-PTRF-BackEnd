@@ -21,9 +21,6 @@ class ReceitaPrevistaPaa(ModeloBase):
 
     def acao_associacao_objeto(self):
         return self.acao_associacao
-    
-    # def __str__(self):
-    #     return self.acao_associacao or ''
 
     class Meta:
         verbose_name = "Receita Prevista PAA"
