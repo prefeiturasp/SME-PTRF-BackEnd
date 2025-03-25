@@ -31,6 +31,7 @@ class ReceitaPrevistaPaaSerializer(serializers.ModelSerializer):
                             'criado_em', 'alterado_em')
 
     def validate(self, attrs):
-        if not attrs.get('acao_associacao'):
+        if not attrs.get('acao_associacao') and not self.instance:
+            # Valida se acao_associacao foi informada no create
             raise serializers.ValidationError({'acao_associacao': 'O campo Ação de Associação é obrigatório.'})
         return super().validate(attrs)
