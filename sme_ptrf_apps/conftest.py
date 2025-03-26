@@ -3098,20 +3098,3 @@ def task_celery_criada_2(periodo_2020_1, associacao):
         associacao=associacao,
         periodo=periodo_2020_1
     )
-
-
-@pytest.fixture
-def categoria_pdde():
-    return baker.make(
-        'CategoriaPdde',
-        nome='Categoria PDDE Teste',
-    )
-
-
-@pytest.fixture
-def acao_pdde(categoria_pdde):
-    return baker.make(
-        'AcaoPdde',
-        nome='Ação PDDE Teste',
-        categoria=categoria_pdde,
-    )
