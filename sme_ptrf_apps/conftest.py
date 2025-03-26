@@ -3102,23 +3102,6 @@ def task_celery_criada_2(periodo_2020_1, associacao):
 
 
 @pytest.fixture
-def categoria_pdde():
-    return baker.make(
-        'CategoriaPdde',
-        nome='Categoria PDDE Teste',
-    )
-
-
-@pytest.fixture
-def acao_pdde(categoria_pdde):
-    return baker.make(
-        'AcaoPdde',
-        nome='Ação PDDE Teste',
-        categoria=categoria_pdde,
-    )
-
-
-@pytest.fixture
 def receita_prevista_paa(acao_associacao):
     """
     Fixture para criar instancia de teste de 'ReceitaPrevistaPaa' associada à Ação e
