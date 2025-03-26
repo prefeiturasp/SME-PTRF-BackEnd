@@ -66,6 +66,19 @@ def test_cria_categoria_duplicada(jwt_authenticated_client_sme, categoria_pdde, 
 
 
 @pytest.mark.django_db
+def test_cria_categoria_duplicada_case_sensitive(jwt_authenticated_client_sme, categoria_pdde, flag_paa):
+    data = {"nome": categoria_pdde.nome.lower()}
+    response = jwt_authenticated_client_sme.post("/api/categorias-pdde/", data)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'detail' in response.data
+    assert 'erro' in response.data
+    assert response.data["erro"] == "Duplicated"
+    assert response.data["detail"] == ("Erro ao criar Categoria PDDE. Já existe uma "
+                                       "Categoria PDDE cadastrada com este nome.")
+
+
+@pytest.mark.django_db
 def test_altera_categoria(jwt_authenticated_client_sme, categoria_pdde, flag_paa):
     data = {"nome": "Novo Nome"}
     response = jwt_authenticated_client_sme.patch(f"/api/categorias-pdde/{categoria_pdde.uuid}/", data)
@@ -90,16 +103,30 @@ def test_altera_categoria_para_duplicado_existente(jwt_authenticated_client_sme,
 
 
 @pytest.mark.django_db
-def test_exclui_categoria(jwt_authenticated_client_sme, categoria_pdde, flag_paa):
-    response = jwt_authenticated_client_sme.delete(f"/api/categorias-pdde/{categoria_pdde.uuid}/")
+def test_altera_categoria_para_duplicado_existente_case_sensitive(jwt_authenticated_client_sme, categoria_pdde, flag_paa):
+    categoria = CategoriaPddeFactory(nome="Novo Nome")
+    data = {"nome": categoria_pdde.nome.lower()}
+    response = jwt_authenticated_client_sme.patch(f"/api/categorias-pdde/{categoria.uuid}/", data)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'detail' in response.data
+    assert 'erro' in response.data
+    assert response.data['erro'] == 'Duplicated'
+    assert response.data['detail'] == ("Erro ao atualizar Categoria PDDE. Já existe uma " +
+                                       "Categoria PDDE cadastrada com este nome.")
+
+
+@pytest.mark.django_db
+def test_exclui_categoria_da_mesma_acao(jwt_authenticated_client_sme, acao_pdde, categoria_pdde, flag_paa):
+    response = jwt_authenticated_client_sme.delete(f"/api/categorias-pdde/{acao_pdde.categoria.uuid}/?acao_pdde_uuid={acao_pdde.uuid}")
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert not CategoriaPdde.objects.filter(uuid=categoria_pdde.uuid).exists()
 
 
 @pytest.mark.django_db
-def test_exclui_categoria_vinculado(jwt_authenticated_client_sme, acao_pdde, flag_paa):
-    response = jwt_authenticated_client_sme.delete(f"/api/categorias-pdde/{acao_pdde.categoria.uuid}/")
+def test_exclui_categoria_da_mesma_acao_erro(jwt_authenticated_client_sme, acao_pdde_2, acao_pdde_3, flag_paa):
+    response = jwt_authenticated_client_sme.delete(f"/api/categorias-pdde/{acao_pdde_2.categoria.uuid}/?acao_pdde_uuid={acao_pdde_2.uuid}")
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["erro"] == "ProtectedError"
@@ -107,3 +134,23 @@ def test_exclui_categoria_vinculado(jwt_authenticated_client_sme, acao_pdde, fla
         'erro': 'ProtectedError',
         'mensagem': 'Essa operação não pode ser realizada. Há Ações PDDE vinculadas a esta categoria.'
     }
+
+
+@pytest.mark.django_db
+def test_exclui_categoria_da_outra_acao_erro(jwt_authenticated_client_sme, acao_pdde, acao_pdde_2, flag_paa):
+    response = jwt_authenticated_client_sme.delete(f"/api/categorias-pdde/{acao_pdde.categoria.uuid}/?acao_pdde_uuid={acao_pdde_2.uuid}")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["erro"] == "ProtectedError"
+    assert response.data == {
+        'erro': 'ProtectedError',
+        'mensagem': 'Essa operação não pode ser realizada. Há Ações PDDE vinculadas a esta categoria.'
+    }
+
+
+@pytest.mark.django_db
+def test_exclui_categoria_sem_acao(jwt_authenticated_client_sme, acao_pdde, categoria_pdde_3, flag_paa):
+    response = jwt_authenticated_client_sme.delete(f"/api/categorias-pdde/{categoria_pdde_3.uuid}/?acao_pdde_uuid={acao_pdde.uuid}")
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert not CategoriaPdde.objects.filter(uuid=categoria_pdde_3.uuid).exists()

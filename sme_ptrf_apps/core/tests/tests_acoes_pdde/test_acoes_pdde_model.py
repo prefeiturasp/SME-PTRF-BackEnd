@@ -22,3 +22,10 @@ def test_unique_together(acao_pdde):
 
     with pytest.raises(Exception):
         AcaoPddeFactory(nome="Ação PDDE Teste", categoria=acao_pdde.categoria)
+
+
+@pytest.mark.django_db
+def test_acao_pdde_categoria_objeto():
+    acao = AcaoPddeFactory(nome="Ação PDDE Novo")
+
+    assert acao.categoria == acao.categoria_objeto()
