@@ -46,8 +46,7 @@ class CategoriaPddeViewSet(WaffleFlagMixin, ModelViewSet):
             validação de constraints da Model (ao Criar)"""
 
         nome = self.validar_campos(request)
-        try:
-            CategoriaPdde.objects.get(nome=nome)
+        if CategoriaPdde.objects.filter(nome__iexact=nome).first():
             raise serializers.ValidationError(
                 {
                     "erro": "Duplicated",
@@ -55,10 +54,6 @@ class CategoriaPddeViewSet(WaffleFlagMixin, ModelViewSet):
                                "Categoria PDDE cadastrada com este nome.")
                 }
             )
-        except CategoriaPdde.DoesNotExist:
-            # Não existe nenhuma Categoria PDDE cadastrada com o nome informado,
-            # ao cadastrar uma Categoria PDDE
-            pass
         return super().create(request)
 
     def update(self, request, *args, **kwargs):
@@ -67,8 +62,7 @@ class CategoriaPddeViewSet(WaffleFlagMixin, ModelViewSet):
 
         obj = self.get_object()
         nome = request.data.get('nome')
-        try:
-            CategoriaPdde.objects.exclude(pk=obj.pk).get(nome=nome)
+        if CategoriaPdde.objects.exclude(pk=obj.pk).filter(nome__iexact=nome).first():
             raise serializers.ValidationError(
                 {
                     "erro": "Duplicated",
@@ -76,10 +70,7 @@ class CategoriaPddeViewSet(WaffleFlagMixin, ModelViewSet):
                                "Categoria PDDE cadastrada com este nome.")
                 }
             )
-        except CategoriaPdde.DoesNotExist:
-            # Não existe nenhuma Categoria PDDE cadastrada com o nome informado,
-            # ao atualizar uma Categoria PDDE
-            pass
+
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
