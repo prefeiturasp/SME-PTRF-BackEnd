@@ -38,3 +38,4 @@ from .parametrizacoes_acoes_associacoes import ParametrizacoesAcoesAssociacaoVie
 from .acoes_pdde_viewset import AcoesPddeViewSet
 from .categorias_pdde_viewset import CategoriaPddeViewSet
 from .receitas_previstas_paa_viewset import ReceitaPrevistaPaaViewSet
+from .paa_viewset import PaaViewSet
