@@ -26,6 +26,12 @@ def test_api_list_acoes_associacoes_todas(
                 'uuid': f'{acao_associacao.uuid}',
                 'id': acao_associacao.id,
                 'receitas_previstas_paa': [],
+                'saldos': {
+                    'saldo_atual_capital': 0.0,
+                    'saldo_atual_custeio': 0.0,
+                    'saldo_atual_livre': 0.0,
+                    'saldo_atual_total': 0.0
+                },
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
@@ -81,6 +87,12 @@ def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
                 'uuid': f'{acao_associacao.uuid}',
                 'id': acao_associacao.id,
                 'receitas_previstas_paa': [],
+                'saldos': {
+                    'saldo_atual_capital': 0.0,
+                    'saldo_atual_custeio': 0.0,
+                    'saldo_atual_livre': 0.0,
+                    'saldo_atual_total': 0.0
+                },
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
@@ -135,6 +147,12 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
                 'uuid': f'{acao_associacao.uuid}',
                 'id': acao_associacao.id,
                 'receitas_previstas_paa': [],
+                'saldos': {
+                    'saldo_atual_capital': 0.0,
+                    'saldo_atual_custeio': 0.0,
+                    'saldo_atual_livre': 0.0,
+                    'saldo_atual_total': 0.0
+                },
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
@@ -189,6 +207,12 @@ def test_api_list_associacoes_pelo_eol_escola(jwt_authenticated_client_a,
                 'uuid': f'{acao_associacao.uuid}',
                 'id': acao_associacao.id,
                 'receitas_previstas_paa': [],
+                'saldos': {
+                    'saldo_atual_capital': 0.0,
+                    'saldo_atual_custeio': 0.0,
+                    'saldo_atual_livre': 0.0,
+                    'saldo_atual_total': 0.0
+                },
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
@@ -245,6 +269,12 @@ def test_api_list_associacoes_por_acao(jwt_authenticated_client_a,
                 'uuid': f'{acao_associacao.uuid}',
                 'id': acao_associacao.id,
                 'receitas_previstas_paa': [],
+                'saldos': {
+                    'saldo_atual_capital': 0.0,
+                    'saldo_atual_custeio': 0.0,
+                    'saldo_atual_livre': 0.0,
+                    'saldo_atual_total': 0.0
+                },
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
@@ -302,6 +332,12 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
                 'uuid': f'{acao_associacao.uuid}',
                 'id': acao_associacao.id,
                 'receitas_previstas_paa': [],
+                'saldos': {
+                    'saldo_atual_capital': 0.0,
+                    'saldo_atual_custeio': 0.0,
+                    'saldo_atual_livre': 0.0,
+                    'saldo_atual_total': 0.0
+                },
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
                     'nome': acao_associacao.associacao.nome,
@@ -353,6 +389,12 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
             'uuid': f'{acao_associacao_charli_bingo_000086_x.uuid}',
             'id': acao_associacao_charli_bingo_000086_x.id,
             'receitas_previstas_paa': [],
+            'saldos': {
+                'saldo_atual_capital': 0.0,
+                'saldo_atual_custeio': 0.0,
+                'saldo_atual_livre': 0.0,
+                'saldo_atual_total': 0.0
+            },
             'associacao': {
                 'uuid': f'{acao_associacao_charli_bingo_000086_x.associacao.uuid}',
                 'nome': acao_associacao_charli_bingo_000086_x.associacao.nome,
@@ -389,6 +431,12 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
             'uuid': f'{acao_associacao_charli_bravo_000086_x.uuid}',
             'id': acao_associacao_charli_bravo_000086_x.id,
             'receitas_previstas_paa': [],
+            'saldos': {
+                'saldo_atual_capital': 0.0,
+                'saldo_atual_custeio': 0.0,
+                'saldo_atual_livre': 0.0,
+                'saldo_atual_total': 0.0
+            },
             'associacao': {
                 'uuid': f'{acao_associacao_charli_bravo_000086_x.associacao.uuid}',
                 'nome': acao_associacao_charli_bravo_000086_x.associacao.nome,
@@ -439,6 +487,12 @@ def test_api_list_associacoes_por_associacoes_somente_encerradas(jwt_authenticat
             'uuid': f'{acao_associacao_charli_bingo_000086_x.uuid}',
             'id': acao_associacao_charli_bingo_000086_x.id,
             'receitas_previstas_paa': [],
+            'saldos': {
+                'saldo_atual_capital': 0.0,
+                'saldo_atual_custeio': 0.0,
+                'saldo_atual_livre': 0.0,
+                'saldo_atual_total': 0.0
+            },
             'associacao': {
                 'uuid': f'{acao_associacao_charli_bingo_000086_x.associacao.uuid}',
                 'nome': acao_associacao_charli_bingo_000086_x.associacao.nome,
@@ -489,6 +543,12 @@ def test_api_list_associacoes_por_associacoes_somente_nao_encerradas(jwt_authent
             'uuid': f'{acao_associacao_charli_bravo_000086_x.uuid}',
             'id': acao_associacao_charli_bravo_000086_x.id,
             'receitas_previstas_paa': [],
+            'saldos': {
+                'saldo_atual_capital': 0.0,
+                'saldo_atual_custeio': 0.0,
+                'saldo_atual_livre': 0.0,
+                'saldo_atual_total': 0.0
+            },
             'associacao': {
                 'uuid': f'{acao_associacao_charli_bravo_000086_x.associacao.uuid}',
                 'nome': acao_associacao_charli_bravo_000086_x.associacao.nome,
