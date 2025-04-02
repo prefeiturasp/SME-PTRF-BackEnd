@@ -49,7 +49,9 @@ from sme_ptrf_apps.core.api.views import (
     MotivoRejeicaoEncerramentoContaAssociacaoViewset,
     feature_flags,
     AcoesPddeViewSet,
-    CategoriaPddeViewSet
+    CategoriaPddeViewSet,
+    ReceitaPrevistaPaaViewSet,
+    PaaViewSet
 )
 from sme_ptrf_apps.core.api.views.prestacoes_contas_reprovadas_nao_apresentacao_viewset import \
     PrestacaoContaReprovadaNaoApresentacaoViewSet
@@ -214,11 +216,13 @@ router.register("solicitacoes-encerramento-conta", SolicitacaoEncerramentoContaA
 router.register("motivos-rejeicao-encerramento-conta", MotivoRejeicaoEncerramentoContaAssociacaoViewset)
 router.register("categorias-pdde", CategoriaPddeViewSet, basename="categorias-pdde")
 router.register("acoes-pdde", AcoesPddeViewSet, basename="acoes-pdde")
+router.register("receitas-previstas-paa", ReceitaPrevistaPaaViewSet, basename="receitas-previstas-paa")
 router.register("mandatos", MandatosViewSet)
 router.register("composicoes", ComposicoesViewSet)
 router.register("ocupantes-cargos", OcupantesCargosViewSet)
 router.register("cargos-composicao", CargosComposicoesViewSet)
 router.register("prestacoes-contas-reprovadas-nao-apresentacao", PrestacaoContaReprovadaNaoApresentacaoViewSet)
+router.register("paa", PaaViewSet, basename='paa')
 
 app_name = "api"
 urlpatterns = router.urls
