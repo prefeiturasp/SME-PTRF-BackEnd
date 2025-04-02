@@ -86,3 +86,4 @@ from .dados_demonstrativo_financeiro import (
 from .prestacao_conta_reprovada_nao_apresentacao import PrestacaoContaReprovadaNaoApresentacao
 from .acao_pdde import AcaoPdde
 from .categoria_pdde import CategoriaPdde
+from .receita_prevista_paa import ReceitaPrevistaPaa

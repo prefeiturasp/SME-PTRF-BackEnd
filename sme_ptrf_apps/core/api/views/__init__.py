@@ -37,3 +37,5 @@ from .feature_flags_view import feature_flags
 from .parametrizacoes_acoes_associacoes import ParametrizacoesAcoesAssociacaoViewSet
 from .acoes_pdde_viewset import AcoesPddeViewSet
 from .categorias_pdde_viewset import CategoriaPddeViewSet
+from .receitas_previstas_paa_viewset import ReceitaPrevistaPaaViewSet
+from .paa_viewset import PaaViewSet

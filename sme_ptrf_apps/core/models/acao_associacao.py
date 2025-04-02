@@ -33,6 +33,12 @@ class AcaoAssociacao(ModeloBase):
         default=STATUS_ATIVA
     )
 
+    def saldo_atual(self):
+        from ..services.acoes_associacoes_service import obter_saldos_periodo_atual
+
+        saldos = obter_saldos_periodo_atual(self)
+        return saldos
+
     def __str__(self):
         associacao = self.associacao.nome if self.associacao else 'ACM indefinida'
         acao = self.acao.nome if self.acao else 'Ação indefinida'
@@ -80,6 +86,9 @@ class AcaoAssociacao(ModeloBase):
                 status="ATIVA"
             )
         return erros
+
+    def receitas_previstas_paa(self):
+        return self.receitaprevistapaa_set.all()
 
     class Meta:
         verbose_name = "Ação de Associação"

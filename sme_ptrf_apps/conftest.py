@@ -35,7 +35,8 @@ from sme_ptrf_apps.core.fixtures.factories import (
     SolicitacaoAcertoLancamentoFactory, ProcessoAssociacaoFactory,
     PrestacaoContaReprovadaNaoApresentacaoFactory, DemonstrativoFinanceiroFactory,
     ItemResumoPorAcaoFactory, ItemDespesaFactory, ItemCreditoFactory, ArquivoDownloadFactory,
-    TipoDevolucaoAoTesouroFactory, AcaoPddeFactory, CategoriaPddeFactory, FlagFactory
+    TipoDevolucaoAoTesouroFactory, AcaoPddeFactory, CategoriaPddeFactory, FlagFactory,
+    ReceitaPrevistaPaaFactory
 )
 from sme_ptrf_apps.users.fixtures.factories import (
     UsuarioFactory, UnidadeEmSuporteFactory, GrupoAcessoFactory, VisaoFactory,
@@ -68,7 +69,7 @@ factories_to_register = [
     RelatorioRelacaoBensFactory, ItemRelatorioRelacaoDeBensFactory,
     SolicitacaoEncerramentoContaAssociacaoFactory, ArquivoDownloadFactory,
     TipoDevolucaoAoTesouroFactory, TipoDocumentoFactory, MotivoPagamentoAntecipadoFactory,
-    AcaoPddeFactory, CategoriaPddeFactory, FlagFactory
+    AcaoPddeFactory, CategoriaPddeFactory, FlagFactory, ReceitaPrevistaPaaFactory
 ]
 
 for factory in factories_to_register:
@@ -3101,17 +3102,35 @@ def task_celery_criada_2(periodo_2020_1, associacao):
 
 
 @pytest.fixture
-def categoria_pdde():
-    return baker.make(
-        'CategoriaPdde',
-        nome='Categoria PDDE Teste',
-    )
+def receita_prevista_paa(acao_associacao):
+    """
+    Fixture para criar instancia de teste de 'ReceitaPrevistaPaa' associada à Ação e
+    Associação por meio da instância AcaoAssociacao.
 
+    Para a instância AcaoAssociacao utiliza-se as seguintes fixtures:
+    Ação (com o seguinte baker): baker.make('Acao', nome='PTRF')
+    Associação (com o baker)   : baker.make(
+                                    'Associacao',
+                                    nome='Escola Teste',
+                                    cnpj='52.302.275/0001-83',
+                                    unidade=unidade,
+                                    periodo_inicial=periodo_anterior,
+                                    ccm='0.000.00-0',
+                                    email="ollyverottoboni@gmail.com",
+                                    processo_regularidade='123456'
+                                )
+    Returns:
+        Instance de teste 'ReceitaPrevistaPaa' com os campos preenchidos:
+        - acao_associacao
+        - previsao_valor_custeio
+        - previsao_valor_capital
+        - previsao_valor_livre
+    """
 
-@pytest.fixture
-def acao_pdde(categoria_pdde):
     return baker.make(
-        'AcaoPdde',
-        nome='Ação PDDE Teste',
-        categoria=categoria_pdde,
+        'ReceitaPrevistaPaa',
+        acao_associacao=acao_associacao,
+        previsao_valor_custeio=1000.0,
+        previsao_valor_capital=2000.0,
+        previsao_valor_livre=3000.0
     )

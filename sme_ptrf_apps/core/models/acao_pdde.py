@@ -7,7 +7,7 @@ from .categoria_pdde import CategoriaPdde
 
 class AcaoPdde(ModeloIdNome):
     history = AuditlogHistoryField()
-    categoria = models.ForeignKey(CategoriaPdde, on_delete=models.PROTECT)
+    categoria = models.ForeignKey(CategoriaPdde, on_delete=models.SET_NULL, null=True, blank=True)
     aceita_capital = models.BooleanField('Aceita capital?', default=False)
     aceita_custeio = models.BooleanField('Aceita custeio?', default=False)
     aceita_livre_aplicacao = models.BooleanField('Aceita livre aplicação?', default=False)
