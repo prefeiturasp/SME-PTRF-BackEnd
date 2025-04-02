@@ -21,6 +21,12 @@ def test_retrieve_acao_associacao(
         'uuid': f'{acao_associacao.uuid}',
         'id': acao_associacao.id,
         'receitas_previstas_paa': [],
+        'saldos': {
+            'saldo_atual_capital': 0.0,
+            'saldo_atual_custeio': 0.0,
+            'saldo_atual_livre': 0.0,
+            'saldo_atual_total': 0.0
+        },
         'associacao': {
             'uuid': f'{acao_associacao.associacao.uuid}',
             'nome': acao_associacao.associacao.nome,
