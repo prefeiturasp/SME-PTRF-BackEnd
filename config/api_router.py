@@ -51,7 +51,9 @@ from sme_ptrf_apps.core.api.views import (
     AcoesPddeViewSet,
     CategoriaPddeViewSet,
     ReceitaPrevistaPaaViewSet,
-    PaaViewSet
+    PaaViewSet,
+    FonteRecursoPaaViewSet,
+    RecursoProprioPaaViewSet
 )
 from sme_ptrf_apps.core.api.views.prestacoes_contas_reprovadas_nao_apresentacao_viewset import \
     PrestacaoContaReprovadaNaoApresentacaoViewSet
@@ -223,6 +225,9 @@ router.register("ocupantes-cargos", OcupantesCargosViewSet)
 router.register("cargos-composicao", CargosComposicoesViewSet)
 router.register("prestacoes-contas-reprovadas-nao-apresentacao", PrestacaoContaReprovadaNaoApresentacaoViewSet)
 router.register("paa", PaaViewSet, basename='paa')
+router.register("fontes-recursos-paa", FonteRecursoPaaViewSet, basename='fonte_recurso_paa')
+router.register("recursos-proprios-paa", RecursoProprioPaaViewSet, basename='recursos_proprios_paa')
+
 
 app_name = "api"
 urlpatterns = router.urls
