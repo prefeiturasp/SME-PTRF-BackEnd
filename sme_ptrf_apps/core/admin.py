@@ -62,6 +62,8 @@ from .models import (
     CategoriaPdde,
     AcaoPdde,
     ReceitaPrevistaPaa,
+    FonteRecursoPaa,
+    RecursoProprioPaa
 )
 
 from django.db.models import Count
@@ -1869,3 +1871,16 @@ class ReceitaPrevistaPaaAdmin(admin.ModelAdmin):
     autocomplete_fields = ('acao_associacao',)
     list_filter = ('acao_associacao__associacao',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+
+@admin.register(FonteRecursoPaa)
+class FonteRecursoPaaAdmin(admin.ModelAdmin):
+    list_display = ('nome',)
+    search_fields = ('nome',)
+
+
+@admin.register(RecursoProprioPaa)
+class RecursoProprioPaaAdmin(admin.ModelAdmin):
+    list_display = ('fonte_recurso', 'associacao', 'data_prevista', 'descricao', 'valor',)
+    search_fields = ('fonte_recurso__nome', 'associacao__nome',)
+    list_filter = ('associacao',)

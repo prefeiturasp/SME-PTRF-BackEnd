@@ -66,3 +66,5 @@ from .acao_serializer import AcaoSerializer
 from .acao_pdde_serializer import AcaoPddeSerializer
 from .categoria_pdde_serializer import CategoriaPddeSerializer
 from .receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
+from .fonte_recurso_paa_serializer import FonteRecursoPaaSerializer
+from .recurso_proprio_paa_serializer import RecursoProprioPaaCreateSerializer, RecursoProprioPaaListSerializer
