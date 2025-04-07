@@ -55,7 +55,6 @@ class CategoriasPddeSomatorioTotalSerializer(serializers.Serializer):
     total = TotalGeralSerializer(read_only=True)
 
     def to_representation(self, instance):
-        # categorias = CategoriaPdde.objects.all()
         categorias = CategoriaPdde.objects.prefetch_related('acaopdde_set').all()
         categorias_data = CategoriaPddeComTotaisSerializer(categorias, many=True).data
 
