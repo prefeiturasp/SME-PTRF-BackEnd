@@ -44,10 +44,10 @@ class CategoriaPddeComTotaisSerializer(serializers.ModelSerializer):
 
 
 class TotalGeralSerializer(serializers.Serializer):
-    total_valor_custeio = serializers.IntegerField()
-    total_valor_capital = serializers.IntegerField()
-    total_valor_livre_aplicacao = serializers.IntegerField()
-    total = serializers.IntegerField()
+    total_valor_custeio = serializers.DecimalField(max_digits=20, decimal_places=2)
+    total_valor_capital = serializers.DecimalField(max_digits=20, decimal_places=2)
+    total_valor_livre_aplicacao = serializers.DecimalField(max_digits=20, decimal_places=2)
+    total = serializers.DecimalField(max_digits=20, decimal_places=2)
 
 
 class CategoriasPddeSomatorioTotalSerializer(serializers.Serializer):
