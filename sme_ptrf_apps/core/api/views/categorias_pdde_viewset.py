@@ -1,6 +1,7 @@
 from django.db.models.deletion import ProtectedError
 
 from rest_framework import status, serializers
+from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
@@ -9,7 +10,7 @@ from waffle.mixins import WaffleFlagMixin
 import django_filters
 
 from ...models import CategoriaPdde, AcaoPdde
-from ..serializers.categoria_pdde_serializer import CategoriaPddeSerializer
+from ..serializers.categoria_pdde_serializer import CategoriaPddeSerializer, CategoriasPddeSomatorioTotalSerializer
 from ....core.api.utils.pagination import CustomPagination
 
 from sme_ptrf_apps.users.permissoes import PermissaoAPIApenasSmeComLeituraOuGravacao
@@ -104,3 +105,8 @@ class CategoriaPddeViewSet(WaffleFlagMixin, ModelViewSet):
         self.perform_destroy(obj)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['get'], url_path='totais')
+    def somatorio_total_por_categorias(self, request):
+        serializer = CategoriasPddeSomatorioTotalSerializer(instance=None)
+        return Response(serializer.to_representation(None), status=status.HTTP_200_OK)
