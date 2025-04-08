@@ -154,3 +154,41 @@ def test_exclui_categoria_sem_acao(jwt_authenticated_client_sme, acao_pdde, cate
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert not CategoriaPdde.objects.filter(uuid=categoria_pdde_3.uuid).exists()
+
+
+@pytest.mark.django_db
+def test_obtem_categorias_somatorio(jwt_authenticated_client_sme, flag_paa, categoria_pdde, categoria_pdde_2, categoria_pdde_3, acao_pdde_factory):
+    acao_pdde_factory.create(categoria=categoria_pdde, aceita_capital=True, aceita_custeio=True, aceita_livre_aplicacao=True,
+                             saldo_valor_custeio=110.00, saldo_valor_capital=150.00, saldo_valor_livre_aplicacao=200.00,
+                             previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre_aplicacao=415.00)
+    acao_pdde_factory.create(categoria=categoria_pdde, aceita_capital=True, aceita_custeio=True, aceita_livre_aplicacao=True,
+                             saldo_valor_custeio=110.00, saldo_valor_capital=150.00, saldo_valor_livre_aplicacao=200.00,
+                             previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre_aplicacao=415.00)
+    acao_pdde_factory.create(categoria=categoria_pdde_2, aceita_capital=True, aceita_custeio=True, aceita_livre_aplicacao=True, 
+                             saldo_valor_custeio=110.00, saldo_valor_capital=150.00, saldo_valor_livre_aplicacao=200.00,
+                             previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre_aplicacao=415.00)
+    acao_pdde_factory.create(categoria=categoria_pdde_2, aceita_capital=True, aceita_custeio=True, aceita_livre_aplicacao=True, 
+                             saldo_valor_custeio=110.00, saldo_valor_capital=150.00, saldo_valor_livre_aplicacao=200.00,
+                             previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre_aplicacao=415.00)
+    acao_pdde_factory.create(categoria=categoria_pdde_3, aceita_capital=True, aceita_custeio=True, aceita_livre_aplicacao=True,
+                             saldo_valor_custeio=110.00, saldo_valor_capital=150.00, saldo_valor_livre_aplicacao=200.00,
+                             previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre_aplicacao=415.00)
+    acao_pdde_factory.create(categoria=categoria_pdde_3, aceita_capital=True, aceita_custeio=True, aceita_livre_aplicacao=True,
+                             saldo_valor_custeio=110.00, saldo_valor_capital=150.00, saldo_valor_livre_aplicacao=200.00,
+                             previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre_aplicacao=415.00)
+
+    response = jwt_authenticated_client_sme.get(f"/api/categorias-pdde/totais/")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert 'categorias' in response.data
+    assert 'total' in response.data
+    assert response.data["total"] == {
+        "total_valor_custeio": 1500.00,
+        "total_valor_capital": 2772.00,
+        "total_valor_livre_aplicacao": 3690.00,
+        "total": 7962.00
+    }
+    assert response.data["categorias"][0]["nome"] == "Categoria PDDE Teste"
+    assert response.data["categorias"][0]["total_valor_custeio"] == 500.00
+    assert response.data["categorias"][1]["nome"] == "Categoria PDDE Teste 2"
+    assert response.data["categorias"][1]["total_valor_custeio"] == 500.00
