@@ -5,10 +5,11 @@ from sme_ptrf_apps.core.fixtures.factories import AcaoPddeFactory
 
 @pytest.mark.django_db
 def test_create_acao_pdde():
-    acao = AcaoPddeFactory(nome="Ação PDDE Novo")
+    acao = AcaoPddeFactory(nome="Ação PDDE Novo", saldo_valor_custeio=150.00)
 
     assert AcaoPdde.objects.count() == 1
     assert acao.nome == "Ação PDDE Novo"
+    assert acao.saldo_valor_custeio == 150.0
     assert acao.categoria is not None
 
 
