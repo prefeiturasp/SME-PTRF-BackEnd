@@ -15,3 +15,9 @@ def test_acoes_pdde_list_serializer(acao_pdde):
     assert 'aceita_capital' in serializer.data
     assert 'aceita_custeio' in serializer.data
     assert 'aceita_livre_aplicacao' in serializer.data
+    assert 'saldo_valor_custeio' in serializer.data
+    assert 'saldo_valor_capital' in serializer.data
+    assert 'saldo_valor_livre_aplicacao' in serializer.data
+    assert 'previsao_valor_custeio' in serializer.data
+    assert 'previsao_valor_capital' in serializer.data
+    assert 'previsao_valor_livre_aplicacao' in serializer.data
