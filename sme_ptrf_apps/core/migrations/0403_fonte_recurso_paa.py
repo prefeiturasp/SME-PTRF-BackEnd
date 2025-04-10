@@ -8,15 +8,15 @@ import uuid
 def carregar_dados(apps, schema_editor):
     fonte_recurso_model = apps.get_model('core', 'FonteRecursoPaa')
     fontes  = [
-        "Campanhas com arrecadação",
-        "Campanhas sem arrecadação",
-        "Convênios e parcerias",
+        "Campanhas com Arrecadação",
+        "Campanhas sem Arrecadação",
+        "Convênios e Parcerias",
         "Doações",
-        "Festas com arrecadação",
-        "Festas sem arrecadação",
+        "Festas com Arrecadação",
+        "Festas sem Arrecadação",
         "Juros",
         "Outras Fontes",
-        "Reuniões Ordinários"
+        "Reuniões Ordinárias"
         
     ]
     registros = [fonte_recurso_model(nome=fonte) for fonte in fontes]
