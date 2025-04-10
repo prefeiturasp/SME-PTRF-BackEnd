@@ -22,6 +22,7 @@ class RecursoProprioPaaViewSet(WaffleFlagMixin, ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
     pagination_class = CustomPagination
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
+    filter_fields = ('associacao__uuid',)
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
@@ -46,7 +47,8 @@ class RecursoProprioPaaViewSet(WaffleFlagMixin, ModelViewSet):
     @action(detail=False, methods=['get'], url_path='total',
             permission_classes=[IsAuthenticated])
     def total_recursos(self, request, *args, **kwrgs):
-        valor_total = RecursoProprioPaa.objects.aggregate(total=Sum('valor'))
+        queryset = self.filter_queryset(self.get_queryset())
+        valor_total = queryset.aggregate(total=Sum('valor'))
         return Response({
             'total': valor_total['total']
         }, status=status.HTTP_200_OK)
