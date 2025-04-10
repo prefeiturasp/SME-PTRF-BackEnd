@@ -27,7 +27,11 @@ class RecursoProprioPaaListSerializer(serializers.ModelSerializer):
 
     fonte_recurso = FonteRecursoPaaSerializer()
     valor = serializers.FloatField()
+    associacao = serializers.SerializerMethodField('get_associacao_uuid')
+
+    def get_associacao_uuid(self, obj):
+        return obj.associacao.uuid
 
     class Meta:
         model = RecursoProprioPaa
-        fields = ('id', 'uuid', 'fonte_recurso', 'data_prevista', 'descricao', 'valor')
+        fields = ('id', 'uuid', 'associacao', 'fonte_recurso', 'data_prevista', 'descricao', 'valor')
