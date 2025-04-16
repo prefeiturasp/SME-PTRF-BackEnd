@@ -11,6 +11,12 @@ class AcaoPdde(ModeloIdNome):
     aceita_capital = models.BooleanField('Aceita capital?', default=False)
     aceita_custeio = models.BooleanField('Aceita custeio?', default=False)
     aceita_livre_aplicacao = models.BooleanField('Aceita livre aplicação?', default=False)
+    saldo_valor_custeio = models.DecimalField('Saldo Valor Custeio', max_digits=20, decimal_places=2, null=True, blank=True)
+    saldo_valor_capital = models.DecimalField('Saldo Valor Capital', max_digits=20, decimal_places=2, null=True, blank=True)
+    saldo_valor_livre_aplicacao = models.DecimalField('Saldo Valor Livre Aplicação', max_digits=20, decimal_places=2, null=True, blank=True)
+    previsao_valor_custeio = models.DecimalField('Previsão Valor Custeio', max_digits=20, decimal_places=2, null=True, blank=True)
+    previsao_valor_capital = models.DecimalField('Previsão Valor Capital', max_digits=20, decimal_places=2, null=True, blank=True)
+    previsao_valor_livre_aplicacao = models.DecimalField('Previsão Valor Livre Aplicação', max_digits=20, decimal_places=2, null=True, blank=True)
 
     def categoria_objeto(self):
         return self.categoria
