@@ -24,3 +24,5 @@ from .tipo_devolucao_ao_tesouro_factory import *
 from .acao_pdde_factory import *
 from .flag_factory import *
 from .receitas_previstas_factory import *
+from .fonte_recurso_paa_factory import FonteRecursoPaaFactory
+from .recurso_proprio_paa_factory import RecursoProprioPaaFactory

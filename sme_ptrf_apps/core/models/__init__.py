@@ -87,3 +87,5 @@ from .prestacao_conta_reprovada_nao_apresentacao import PrestacaoContaReprovadaN
 from .acao_pdde import AcaoPdde
 from .categoria_pdde import CategoriaPdde
 from .receita_prevista_paa import ReceitaPrevistaPaa
+from .fonte_recurso_paa import FonteRecursoPaa
+from .recurso_proprio_paa import RecursoProprioPaa
