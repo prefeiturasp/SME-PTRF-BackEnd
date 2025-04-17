@@ -6,7 +6,7 @@ from sme_ptrf_apps.paa.models import PeriodoPaa
 @admin.register(PeriodoPaa)
 class PeriodoPaaAdmin(admin.ModelAdmin):
 
-    list_display = ('id', 'referencia', 'data_inicial')
+    list_display = ('id', 'referencia', 'data_inicial', 'data_final')
     search_fields = (
         'referencia',
     )
