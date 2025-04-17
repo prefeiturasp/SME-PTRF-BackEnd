@@ -100,6 +100,9 @@ from sme_ptrf_apps.receitas.api.views import (
     MotivosEstornoViewSet,
     TipoReceitaViewSet
 )
+from sme_ptrf_apps.paa.api.views import (
+    PeriodoPaaViewSet
+)
 from sme_ptrf_apps.users.api.views import (
     EsqueciMinhaSenhaViewSet,
     LoginView,
@@ -227,6 +230,7 @@ router.register("prestacoes-contas-reprovadas-nao-apresentacao", PrestacaoContaR
 router.register("paa", PaaViewSet, basename='paa')
 router.register("fontes-recursos-paa", FonteRecursoPaaViewSet, basename='fonte_recurso_paa')
 router.register("recursos-proprios-paa", RecursoProprioPaaViewSet, basename='recursos_proprios_paa')
+router.register("periodos-paa", PeriodoPaaViewSet, basename='periodos_paa')
 
 
 app_name = "api"
