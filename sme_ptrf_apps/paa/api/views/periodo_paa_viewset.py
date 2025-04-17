@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class PeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
-    permission_classes = []# [IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
+    permission_classes = [IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
     lookup_field = 'uuid'
     queryset = PeriodoPaa.objects.all().order_by('data_inicial')
     serializer_class = PeriodoPaaSerializer
