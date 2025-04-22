@@ -60,7 +60,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
     queryset = Despesa.objects.all()
     serializer_class = DespesaSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
-    filter_fields = ('associacao__uuid', 'cpf_cnpj_fornecedor', 'tipo_documento__uuid',
+    filterset_fields = ('associacao__uuid', 'cpf_cnpj_fornecedor', 'tipo_documento__uuid',
                      'numero_documento', 'tipo_documento__id', 'status')
     pagination_class = CustomPagination
 

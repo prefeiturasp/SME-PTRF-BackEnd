@@ -3,6 +3,7 @@
 import logging
 
 from django.contrib.auth import get_user_model
+from django.urls import reverse
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 from rest_framework.exceptions import ValidationError
@@ -57,14 +58,11 @@ class UsuarioSerializer(serializers.ModelSerializer):
     groups = SerializerMethodField()
     unidades = SerializerMethodField()
     visoes = SerializerMethodField()
+    url = SerializerMethodField()
 
     class Meta:
         model = User
         fields = ["id", "username", "email", "name", "url", "e_servidor", "groups", "unidades", "visoes"]
-
-        extra_kwargs = {
-            "url": {"view_name": "api:user-detail", "lookup_field": "username"}
-        }
 
     def get_groups(self, instance):
         """
@@ -86,6 +84,10 @@ class UsuarioSerializer(serializers.ModelSerializer):
 
     def get_visoes(selfself, instance):
         return VisaoSerializer(instance.visoes, many=True).data
+
+    def get_url(self, instance):
+        path = reverse("api:usuarios-detail", kwargs={"id": instance.id})
+        return self.context["request"].build_absolute_uri(path)
 
 class UsuarioRetrieveSerializer(serializers.ModelSerializer):
     visoes = VisaoSerializer(many=True)

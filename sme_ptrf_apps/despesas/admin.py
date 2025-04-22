@@ -1,5 +1,5 @@
 from django.contrib import admin
-from rangefilter.filter import DateRangeFilter
+from rangefilter.filters import DateRangeFilter
 from sme_ptrf_apps.core.models import Periodo
 
 from .models import TipoTransacao, TipoDocumento, TipoCusteio, EspecificacaoMaterialServico, Despesa, RateioDespesa, \

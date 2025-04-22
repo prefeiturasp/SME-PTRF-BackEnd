@@ -25,7 +25,7 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
     serializer_class = MembroAssociacaoListSerializer
     queryset = MembroAssociacao.objects.all()
     filter_backends = (filters.DjangoFilterBackend, SearchFilter)
-    filter_fields = ('cpf', 'codigo_identificacao', 'email')
+    filterset_fields = ('cpf', 'codigo_identificacao', 'email')
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:

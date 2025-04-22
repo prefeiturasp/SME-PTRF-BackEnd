@@ -21,7 +21,7 @@ class ModelosCargasViewSet(ModelViewSet):
     queryset = ModeloCarga.objects.all().order_by('-criado_em')
     serializer_class = ModeloCargaSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
-    filter_fields = ('tipo_carga', )
+    filterset_fields = ('tipo_carga', )
 
     @action(detail=True, methods=['get'], url_path='download')
     def download(self, request, tipo_carga=None):

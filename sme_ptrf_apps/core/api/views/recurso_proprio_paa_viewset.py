@@ -22,7 +22,7 @@ class RecursoProprioPaaViewSet(WaffleFlagMixin, ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
     pagination_class = CustomPagination
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filter_fields = ('associacao__uuid',)
+    filterset_fields = ('associacao__uuid',)
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
