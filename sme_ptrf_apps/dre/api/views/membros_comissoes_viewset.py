@@ -22,7 +22,7 @@ class MembrosComissoesViewSet(viewsets.ModelViewSet):
     queryset = MembroComissao.objects.all().order_by('nome')
     serializer_class = MembroComissaoListSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
-    filter_fields = ('dre__uuid',)
+    filterset_fields = ('dre__uuid',)
 
     def get_queryset(self):
         qs = MembroComissao.objects.all().order_by('nome')

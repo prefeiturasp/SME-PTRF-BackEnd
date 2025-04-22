@@ -27,7 +27,7 @@ def test_lista_usuarios_filtro_por_visao(
             'username': usuario_3.username,
             'email': usuario_3.email,
             'name': usuario_3.name,
-            'url': f'http://testserver/api/esqueci-minha-senha/{usuario_3.username}/',
+            'url': f'http://testserver/api/usuarios/{usuario_3.id}/',
             'e_servidor': usuario_3.e_servidor,
             'groups': [
                 {
@@ -51,7 +51,7 @@ def test_lista_usuarios_filtro_por_visao(
             'username': usuario_para_teste.username,
             'email': 'luh@gmail.com',
             'name': 'LUCIA HELENA',
-            'url': f'http://testserver/api/esqueci-minha-senha/{usuario_para_teste.username}/',
+            'url': f'http://testserver/api/usuarios/{usuario_para_teste.id}/',
             'e_servidor': usuario_para_teste.e_servidor,
             'groups': [
                 {
@@ -99,7 +99,7 @@ def test_lista_usuarios_filtro_por_grupo(
             'username': usuario_2.username,
             'email': "luh@gmail.com",
             'name': 'LUCIA HELENA',
-            'url': f'http://testserver/api/esqueci-minha-senha/{usuario_2.username}/',
+            'url': f'http://testserver/api/usuarios/{usuario_2.id}/',
             'e_servidor': usuario_2.e_servidor,
             'groups': [
                 {'descricao': 'Descrição grupo 2', 'id': grupo_2.id, 'name': 'grupo2'},
@@ -143,7 +143,7 @@ def test_lista_usuarios_filtro_por_nome(
          'username': '7218198',
          'email': 'sme8198@amcom.com.br',
          'name': 'Arthur Marques',
-         'url': 'http://testserver/api/esqueci-minha-senha/7218198/',
+         'url': f'http://testserver/api/usuarios/{usuario_3.id}/',
          'e_servidor': usuario_3.e_servidor,
          'groups': [
              {
@@ -188,7 +188,7 @@ def test_lista_usuarios_filtro_por_nome_ou_username(
          'username': '7218198',
          'email': 'sme8198@amcom.com.br',
          'name': 'Arthur Marques',
-         'url': 'http://testserver/api/esqueci-minha-senha/7218198/',
+         'url': f'http://testserver/api/usuarios/{usuario_3.id}/',
          'e_servidor': usuario_3.e_servidor,
          'groups': [
              {
@@ -230,7 +230,7 @@ def test_lista_usuarios_filtro_por_associacao(
             'id': usuario_3.id,
             'name': 'Arthur Marques',
             'e_servidor': True,
-            'url': 'http://testserver/api/esqueci-minha-senha/7218198/',
+            'url': f'http://testserver/api/usuarios/{usuario_3.id}/',
             'username': '7218198',
             'email': 'sme8198@amcom.com.br',
             'groups': [
@@ -254,7 +254,7 @@ def test_lista_usuarios_filtro_por_associacao(
             'id': usuario_para_teste.id,
             'name': 'LUCIA HELENA',
             'e_servidor': False,
-            'url': 'http://testserver/api/esqueci-minha-senha/7210418/',
+            'url': f'http://testserver/api/usuarios/{usuario_para_teste.id}/',
             'username': '7210418',
             'email': 'luh@gmail.com',
             'groups': [
@@ -302,7 +302,7 @@ def test_lista_usuarios_filtro_por_e_servidor_true(
             'username': usuario_servidor.username,
             'email': usuario_servidor.email,
             'name': usuario_servidor.name,
-            'url': f'http://testserver/api/esqueci-minha-senha/{usuario_servidor.username}/',
+            'url': f'http://testserver/api/usuarios/{usuario_servidor.id}/',
             'e_servidor': usuario_servidor.e_servidor,
             'groups': [{'id': grupo_2.id, 'name': grupo_2.name, 'descricao': grupo_2.descricao}],
             'unidades': [
@@ -336,7 +336,7 @@ def test_lista_usuarios_filtro_por_e_servidor_false(
             'username': usuario_para_teste.username,
             'email': 'luh@gmail.com',
             'name': 'LUCIA HELENA',
-            'url': f'http://testserver/api/esqueci-minha-senha/{usuario_para_teste.username}/',
+            'url': f'http://testserver/api/usuarios/{usuario_para_teste.id}/',
             'e_servidor': usuario_para_teste.e_servidor,
             'groups': [{'id': grupo_1.id, 'name': grupo_1.name, 'descricao': grupo_1.descricao}],
             'unidades': [
@@ -370,7 +370,7 @@ def test_lista_usuarios_filtro_por_unidade_uuid(
             'id': usuario_3.id,
             'name': 'Arthur Marques',
             'e_servidor': True,
-            'url': 'http://testserver/api/esqueci-minha-senha/7218198/',
+            'url': f'http://testserver/api/usuarios/{usuario_3.id}/',
             'username': '7218198',
             'email': 'sme8198@amcom.com.br',
             'groups': [
@@ -394,7 +394,7 @@ def test_lista_usuarios_filtro_por_unidade_uuid(
             'id': usuario_para_teste.id,
             'name': 'LUCIA HELENA',
             'e_servidor': False,
-            'url': 'http://testserver/api/esqueci-minha-senha/7210418/',
+            'url': f'http://testserver/api/usuarios/{usuario_para_teste.id}/',
             'username': '7210418',
             'email': 'luh@gmail.com',
             'groups': [
@@ -437,7 +437,7 @@ def test_lista_usuarios_filtro_por_unidade_nome(
             'id': usuario_3.id,
             'name': 'Arthur Marques',
             'e_servidor': True,
-            'url': 'http://testserver/api/esqueci-minha-senha/7218198/',
+            'url': f'http://testserver/api/usuarios/{usuario_3.id}/',
             'username': '7218198',
             'email': 'sme8198@amcom.com.br',
             'groups': [
@@ -461,7 +461,7 @@ def test_lista_usuarios_filtro_por_unidade_nome(
             'id': usuario_para_teste.id,
             'name': 'LUCIA HELENA',
             'e_servidor': False,
-            'url': 'http://testserver/api/esqueci-minha-senha/7210418/',
+            'url': f'http://testserver/api/usuarios/{usuario_para_teste.id}/',
             'username': '7210418',
             'email': 'luh@gmail.com',
             'groups': [
@@ -508,7 +508,7 @@ def test_lista_usuarios_filtro_por_username(
          'username': '7218198',
          'email': 'sme8198@amcom.com.br',
          'name': 'Arthur Marques',
-         'url': 'http://testserver/api/esqueci-minha-senha/7218198/',
+         'url': f'http://testserver/api/usuarios/{usuario_3.id}/',
          'e_servidor': usuario_3.e_servidor,
          'groups': [
              {

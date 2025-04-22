@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.forms import ModelForm
 from django.core.exceptions import ValidationError
-from rangefilter.filter import DateRangeFilter
+from rangefilter.filters import DateRangeFilter
 from sme_ptrf_apps.core.models import Unidade
 from sme_ptrf_apps.receitas.models import Receita, TipoReceita, Repasse, DetalheTipoReceita, MotivoEstorno
 
