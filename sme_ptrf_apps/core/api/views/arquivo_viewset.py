@@ -23,7 +23,7 @@ class ArquivoViewSet(ModelViewSet):
     queryset = Arquivo.objects.all().order_by('-criado_em')
     serializer_class = ArquivoSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
-    filter_fields = ('status', 'tipo_carga')
+    filterset_fields = ('status', 'tipo_carga')
 
     def get_queryset(self):
         qs = self.queryset

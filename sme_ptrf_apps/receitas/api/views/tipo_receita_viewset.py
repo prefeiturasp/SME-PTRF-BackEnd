@@ -37,7 +37,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
     queryset = TipoReceita.objects.all().order_by('-nome')
     serializer_class = TipoReceitaListaSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('e_repasse', 'e_rendimento', 'e_devolucao', 'e_estorno', 'aceita_capital', 'aceita_custeio',
+    filterset_fields = ('e_repasse', 'e_rendimento', 'e_devolucao', 'e_estorno', 'aceita_capital', 'aceita_custeio',
                      'aceita_livre', 'e_recursos_proprios', 'tipos_conta__uuid')
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     pagination_class = CustomPagination

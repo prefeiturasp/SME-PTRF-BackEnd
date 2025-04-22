@@ -15,7 +15,7 @@ class FornecedoresViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('nome',)
     search_fields = ('uuid', 'nome',)
-    filter_fields = ('uuid', 'cpf_cnpj')
+    filterset_fields = ('uuid', 'cpf_cnpj')
 
     def get_queryset(self):
         qs = Fornecedor.objects.all().order_by('nome')

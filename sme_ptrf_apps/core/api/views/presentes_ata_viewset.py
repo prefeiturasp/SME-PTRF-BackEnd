@@ -30,7 +30,7 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     queryset = Participante.objects.all()
     serializer_class = PresentesAtaSerializer
-    filter_fields = ('ata__uuid',)
+    filterset_fields = ('ata__uuid',)
     filter_backends = (filters.DjangoFilterBackend,)
 
     @action(detail=False, url_path='membros-e-nao-membros',

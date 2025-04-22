@@ -26,7 +26,7 @@ class ParametrizacoesAssociacoesViewSet(mixins.ListModelMixin, GenericViewSet):
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoListSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
-    filter_fields = ('unidade__dre__uuid', 'unidade__tipo_unidade')
+    filterset_fields = ('unidade__dre__uuid', 'unidade__tipo_unidade')
     pagination_class = CustomPagination
 
     def get_queryset(self):

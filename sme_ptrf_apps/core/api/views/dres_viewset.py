@@ -26,7 +26,7 @@ class DresViewSet(mixins.ListModelMixin,
     queryset = Unidade.dres.all()
     filters = (filters.DjangoFilterBackend, SearchFilter,)
     serializer_class = UnidadeSerializer
-    filter_fields = ('codigo_eol')
+    filterset_fields = ('codigo_eol')
 
     def get_queryset(self):
         qs = Unidade.dres.all().order_by('codigo_eol')

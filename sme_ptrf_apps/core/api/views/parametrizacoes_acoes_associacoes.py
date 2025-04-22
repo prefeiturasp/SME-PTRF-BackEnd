@@ -18,7 +18,7 @@ class ParametrizacoesAcoesAssociacaoViewSet(mixins.ListModelMixin, GenericViewSe
     queryset = AcaoAssociacao.objects.all()
     serializer_class = AcaoAssociacaoRetrieveSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('acao__uuid', 'status', 'associacao__uuid')
+    filterset_fields = ('acao__uuid', 'status', 'associacao__uuid')
     pagination_class = CustomPagination
 
     def get_queryset(self):
