@@ -42,6 +42,16 @@ class PeriodoPaa(ModeloBase):
         data_final_e_valida, mensagem = validar_data_final(self.data_inicial, self.data_final)
         if not data_final_e_valida:
             raise ValidationError(mensagem)
+
+        # validar se o período já existe com a referencia, data_inicial e data_final
+        if PeriodoPaa.objects.filter(
+            referencia=self.referencia,
+            data_inicial__year=self.data_inicial.year,
+            data_inicial__month=self.data_inicial.month,
+            data_final__year=self.data_final.year,
+            data_final__month=self.data_final.month,
+        ).exclude(pk=self.pk).exists():
+            raise ValidationError('Referência do PAA já existe.')
         super().clean()
 
     def save(self, *args, **kwargs):
