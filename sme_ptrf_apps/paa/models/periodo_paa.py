@@ -42,8 +42,6 @@ class PeriodoPaa(ModeloBase):
         data_final_e_valida, mensagem = validar_data_final(self.data_inicial, self.data_final)
         if not data_final_e_valida:
             raise ValidationError(mensagem)
-        if self.data_final < self.data_inicial:
-            raise ValidationError('A data final deve ser maior que a data inicial')
         super().clean()
 
     def save(self, *args, **kwargs):

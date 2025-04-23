@@ -31,4 +31,4 @@ def validar_data_final(data_inicial: date, data_final: date) -> bool:
     if data_inicial.month == data_final.month and data_inicial.year == data_final.year:
         return False, "Data final não pode ter o mesmo mês que a data inicial"
     
-    return data_final >= data_inicial, "Data final não pode ser menor que a data inicial"
+    return data_final >= data_inicial, "Data final deve ser maior que a data inicial"

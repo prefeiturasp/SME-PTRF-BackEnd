@@ -27,7 +27,6 @@ class PeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
 
     def get_queryset(self):
         qs = self.queryset
-
         filtro_referencia = self.request.query_params.get('referencia', None)
 
         if filtro_referencia is not None:
