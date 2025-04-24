@@ -51,7 +51,7 @@ def test_patch_erro_datas_mesmo_mes_e_ano(jwt_authenticated_client_sme, flag_paa
 
     content = json.loads(response.content)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert content["non_field_errors"] == "Data final não pode ter o mesmo mês que a data inicial"
+    assert content["non_field_errors"] == "Data final deve ser maior que a data inicial"
 
 
 def test_patch_erro_data_final_menor_inicial(jwt_authenticated_client_sme, flag_paa, periodo_paa_1):
