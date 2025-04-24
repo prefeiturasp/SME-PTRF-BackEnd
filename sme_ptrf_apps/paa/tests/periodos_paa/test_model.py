@@ -17,7 +17,7 @@ def test_validacao_datas():
             data_inicial="2025-03-01",
             data_final="2025-03-31"
         )
-    assert str(e.value) == "{'__all__': ['Data final não pode ter o mesmo mês que a data inicial']}"
+    assert str(e.value) == "{'__all__': ['Data final deve ser maior que a data inicial']}"
 
 
 def test_validacao_data_final():
