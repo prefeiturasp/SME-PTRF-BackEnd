@@ -8,4 +8,4 @@ class PeriodoPaaFactory(DjangoModelFactory):
     class Meta:
         model = PeriodoPaa
 
-    nome = fake.unique.name()
+    referencia = fake.unique.name()
