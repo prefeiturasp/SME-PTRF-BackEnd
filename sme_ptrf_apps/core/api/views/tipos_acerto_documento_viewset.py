@@ -24,7 +24,7 @@ class TiposAcertoDocumentoViewSet(mixins.ListModelMixin,
     queryset = TipoAcertoDocumento.objects.all()
     serializer_class = TipoAcertoDocumentoListaSerializer
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('tipos_documento_prestacao__uuid',)
+    filterset_fields = ('tipos_documento_prestacao__uuid',)
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:

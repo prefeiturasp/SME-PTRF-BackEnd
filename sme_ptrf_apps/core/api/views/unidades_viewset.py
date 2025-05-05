@@ -23,7 +23,7 @@ class UnidadesViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
     filters = (filters.DjangoFilterBackend, SearchFilter,)
     serializer_class = UnidadeSerializer
-    filter_fields = ('tipo_unidade', 'codigo_eol', 'dre__uuid')
+    filterset_fields = ('tipo_unidade', 'codigo_eol', 'dre__uuid')
 
     def get_queryset(self):
         qs = Unidade.objects.all()

@@ -52,6 +52,9 @@ from sme_ptrf_apps.despesas.fixtures.factories import (
 from sme_ptrf_apps.receitas.fixtures.factories import (
     TipoReceitaFactory
 )
+from sme_ptrf_apps.paa.fixtures.factories import (
+    PeriodoPaaFactory
+)
 
 factories_to_register = [
     DreFactory, UnidadeFactory, AssociacaoFactory, AssociacaoFactoryComPeriodoInicial, ContaAssociacaoFactory,
@@ -70,7 +73,7 @@ factories_to_register = [
     SolicitacaoEncerramentoContaAssociacaoFactory, ArquivoDownloadFactory,
     TipoDevolucaoAoTesouroFactory, TipoDocumentoFactory, MotivoPagamentoAntecipadoFactory,
     AcaoPddeFactory, CategoriaPddeFactory, FlagFactory, ReceitaPrevistaPaaFactory,
-    FonteRecursoPaaFactory, RecursoProprioPaaFactory
+    FonteRecursoPaaFactory, RecursoProprioPaaFactory, PeriodoPaaFactory
 ]
 
 for factory in factories_to_register:

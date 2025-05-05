@@ -22,7 +22,7 @@ class GruposViewSet(mixins.ListModelMixin, GenericViewSet):
     serializer_class = GrupoSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
     search_fields = ['name', 'descricao', ]
-    filter_fields = ('visoes__id', 'visoes__nome')
+    filterset_fields = ('visoes__id', 'visoes__nome')
 
     def get_queryset(self, *args, **kwargs):
         """

@@ -12,4 +12,4 @@ class FaqsViewSet(viewsets.ModelViewSet):
     queryset = Faq.objects.all()
     serializer_class = FaqSerializer
     filter_backends = (filters.DjangoFilterBackend, )
-    filter_fields = ('categoria__uuid', )
+    filterset_fields = ('categoria__uuid', )

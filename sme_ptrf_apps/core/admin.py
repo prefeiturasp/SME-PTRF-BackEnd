@@ -1,7 +1,7 @@
 import logging
 from django.contrib import admin, messages
 from django.forms import ModelForm, ValidationError
-from rangefilter.filter import DateRangeFilter
+from rangefilter.filters import DateRangeFilter
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
 from sme_ptrf_apps.core.services import associacao_pode_implantar_saldo
 from sme_ptrf_apps.core.tasks.regerar_demonstrativos_financeiros import regerar_demonstrativo_financeiro_async
