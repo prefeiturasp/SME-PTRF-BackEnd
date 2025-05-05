@@ -91,6 +91,7 @@ LOCAL_APPS = [
     "sme_ptrf_apps.dre.apps.DreConfig",
     "sme_ptrf_apps.sme.apps.SmeConfig",
     "sme_ptrf_apps.mandatos.apps.MandatosConfig",
+    "sme_ptrf_apps.paa.apps.PaaConfig",
 ]
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 

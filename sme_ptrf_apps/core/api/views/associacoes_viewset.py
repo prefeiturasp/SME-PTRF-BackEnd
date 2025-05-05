@@ -73,7 +73,7 @@ class AssociacoesViewSet(ModelViewSet):
     queryset = Associacao.objects.all()
     serializer_class = AssociacaoSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
-    filter_fields = ('unidade__dre__uuid', 'unidade__tipo_unidade')
+    filterset_fields = ('unidade__dre__uuid', 'unidade__tipo_unidade')
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

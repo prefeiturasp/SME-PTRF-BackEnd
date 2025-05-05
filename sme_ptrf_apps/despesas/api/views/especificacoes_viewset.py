@@ -25,7 +25,7 @@ class EspecificacaoMaterialServicoViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('descricao',)
     search_fields = ('uuid', 'id', 'descricao')
-    filter_fields = ('aplicacao_recurso', 'tipo_custeio')
+    filterset_fields = ('aplicacao_recurso', 'tipo_custeio')
 
     def get_serializer_class(self):
         return EspecificacaoMaterialServicoLookUpSerializer

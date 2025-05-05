@@ -24,7 +24,7 @@ class ArquivosDownloadViewSet(mixins.ListModelMixin,
     serializer_class = ArquivoDownloadSerializer
     lookup_field = 'uuid'
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
-    filter_fields = ('status', 'lido', )
+    filterset_fields = ('status', 'lido', )
 
     def get_queryset(self):
         user = self.request.user

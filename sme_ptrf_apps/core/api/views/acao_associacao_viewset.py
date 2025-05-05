@@ -35,7 +35,7 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
     serializer_class = AcaoAssociacaoRetrieveSerializer
     queryset = AcaoAssociacao.objects.all().order_by('associacao__nome', 'acao__nome')
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('acao__uuid', 'status', 'associacao__uuid')
+    filterset_fields = ('acao__uuid', 'status', 'associacao__uuid')
     pagination_class = AcaoAssociacaoPagination
 
     def get_queryset(self):

@@ -40,7 +40,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     serializer_class = ReceitaListaSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data',)
-    filter_fields = ('associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid', 'conferido')
+    filterset_fields = ('associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid', 'conferido')
     permission_classes = [IsAuthenticated & PermissaoApiUe]
 
     def get_serializer_class(self):
@@ -135,7 +135,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             "associacao_uuid": f'{associacao_uuid}',
             "total_receitas_sem_filtro": get_total_receita_sem_filtro(queryset),
             "total_receitas_com_filtro": get_total_receita_com_filtro(
-                self.get_queryset(), self.filter_fields, request)
+                self.get_queryset(), self.filterset_fields, request)
         }
 
         return Response(result)

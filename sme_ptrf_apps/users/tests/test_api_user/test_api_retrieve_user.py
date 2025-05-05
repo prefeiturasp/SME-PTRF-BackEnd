@@ -24,7 +24,7 @@ def test_retrieve_usuarios(
         'username': usuario_3.username,
         'email': usuario_3.email,
         'name': usuario_3.name,
-        'url': f'http://testserver/api/esqueci-minha-senha/{usuario_3.username}/',
+        'url': f'http://testserver/api/usuarios/{usuario_3.id}/',
         'e_servidor': usuario_3.e_servidor,
         'groups': [
             {

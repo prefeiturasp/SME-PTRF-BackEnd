@@ -2,7 +2,7 @@
 # ------------------------------------------------------------------------------
 django==4.2.20
 django-admin-interface==0.26.1
-django-admin-rangefilter==0.11.2
+django-admin-rangefilter==0.12.5
 django-allauth==0.56.1
 django-auditlog==2.0.0
 django-ckeditor==6.7.0
@@ -10,7 +10,7 @@ django-compressor==4.4
 django-cors-headers==4.3.1
 django-crispy-forms==2.1
 django-environ==0.11.2
-django-filter==21.1
+django-filter==24.3
 django-mathfilters==1.0.0
 django-model-utils==4.5.1
 django-waffle==4.0.0                    # Solução para features flags
@@ -21,8 +21,8 @@ git+https://github.com/prefeiturasp/django-des-fork.git#egg=django-des
 
 # Django Rest Framework
 # ------------------------------------------------------------------------------
-djangorestframework==3.14.0
-djangorestframework-simplejwt==5.3.1    # JWT authentication for DRF
+djangorestframework==3.15.1
+djangorestframework-simplejwt==5.4.0  # JWT authentication for DRF
 drf-spectacular==0.26.2                 # Auto-generate OpenAPI 3.0 schemas from Django Rest Framework code
 
 # Celery e Redis

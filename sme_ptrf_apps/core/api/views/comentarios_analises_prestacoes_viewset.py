@@ -18,7 +18,7 @@ class ComentariosAnalisesPrestacoesViewSet(viewsets.ModelViewSet):
     serializer_class = ComentarioAnalisePrestacaoRetrieveSerializer
     queryset = ComentarioAnalisePrestacao.objects.all().order_by('ordem')
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('prestacao_conta__uuid',)
+    filterset_fields = ('prestacao_conta__uuid',)
 
     def destroy(self, request, *args, **kwargs):
         comentario = self.get_object()

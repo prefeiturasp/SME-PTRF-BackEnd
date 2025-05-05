@@ -18,7 +18,7 @@ class ComentariosAnalisesConsolidadosDREViewSet(viewsets.ModelViewSet):
     serializer_class = ComentarioAnaliseConsolidadoDRESerializer
     queryset = ComentarioAnaliseConsolidadoDRE.objects.all().order_by('ordem')
     filter_backends = (filters.DjangoFilterBackend,)
-    filter_fields = ('consolidado_dre__uuid',)
+    filterset_fields = ('consolidado_dre__uuid',)
 
     @action(detail=False, url_path='comentarios', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
