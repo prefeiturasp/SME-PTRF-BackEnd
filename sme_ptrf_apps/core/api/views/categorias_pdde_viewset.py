@@ -26,7 +26,7 @@ class CategoriaPddeFiltro(django_filters.FilterSet):
 
 class CategoriaPddeViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
-    permission_classes = []#[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
+    permission_classes = [IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
     lookup_field = 'uuid'
     queryset = CategoriaPdde.objects.all().order_by('nome')
     serializer_class = CategoriaPddeSerializer
