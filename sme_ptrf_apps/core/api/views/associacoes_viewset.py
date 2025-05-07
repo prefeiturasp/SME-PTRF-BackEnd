@@ -16,6 +16,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from weasyprint import HTML
 
+from sme_ptrf_apps.paa.models import PeriodoPaa
+from sme_ptrf_apps.paa.api.serializers import PaaSerializer
+
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
     PermissaoAPITodosComLeituraOuGravacao,
@@ -887,3 +890,14 @@ class AssociacoesViewSet(ModelViewSet):
 
         lista_contas = associacao.contas_ativas_do_periodo_selecionado(periodo)
         return Response(lista_contas)
+
+    @action(detail=True, methods=['get'], url_path='paa-vigente',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def paa_vigente(self, request, uuid):
+        associacao = self.get_object()
+
+        periodo_paa_vigente = PeriodoPaa.periodo_vigente()
+        paa = associacao.paa_set.get(periodo_paa=periodo_paa_vigente)
+
+        serialized = PaaSerializer(paa, many=False)
+        return Response(serialized.data, status=status.HTTP_200_OK)
