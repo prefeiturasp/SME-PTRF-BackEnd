@@ -38,7 +38,7 @@ class CategoriaPddeViewSet(WaffleFlagMixin, ModelViewSet):
         nome = request.data.get('nome')
         if not nome:
             raise serializers.ValidationError(
-                {"nome": "Nome da Categoria PDDE não foi informado."}
+                {"nome": "Nome do Programa PDDE não foi informado."}
             )
         return nome
 
@@ -51,8 +51,8 @@ class CategoriaPddeViewSet(WaffleFlagMixin, ModelViewSet):
             raise serializers.ValidationError(
                 {
                     "erro": "Duplicated",
-                    "detail": ("Erro ao criar Categoria PDDE. Já existe uma " +
-                               "Categoria PDDE cadastrada com este nome.")
+                    "detail": ("Erro ao criar Programa PDDE. Já existe um " +
+                               "Programa PDDE cadastrado com este nome.")
                 }
             )
         return super().create(request)
@@ -67,8 +67,8 @@ class CategoriaPddeViewSet(WaffleFlagMixin, ModelViewSet):
             raise serializers.ValidationError(
                 {
                     "erro": "Duplicated",
-                    "detail": ("Erro ao atualizar Categoria PDDE. Já existe uma " +
-                               "Categoria PDDE cadastrada com este nome.")
+                    "detail": ("Erro ao atualizar Programa PDDE. Já existe um " +
+                               "Programa PDDE cadastrado com este nome.")
                 }
             )
 
@@ -76,31 +76,14 @@ class CategoriaPddeViewSet(WaffleFlagMixin, ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         obj = self.get_object()
-        acao_pdde_uuid = self.request.query_params.get('acao_pdde_uuid')
 
-        # verificando se a categoria está vinculada à ação pdde que está sendo editada
-        acao_pdde = AcaoPdde.objects.filter(uuid=acao_pdde_uuid, categoria=obj).first()
-        if acao_pdde:
-            # verificando se existe mais ações pdde vinculadas à categoria com excção da ação pdde que está sendo editada
-            acoes_quantidade = AcaoPdde.objects.filter(categoria=obj).exclude(id=acao_pdde.id).count()
-            if acoes_quantidade > 0:
-                content = {
-                    'erro': 'ProtectedError',
-                    'mensagem': ("Essa operação não pode ser realizada. " +
-                                "Há Ações PDDE vinculadas a esta categoria.")
-                }
-                return Response(content, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            # excluindo uma categoria de outra ação pdde que não está sendo editada
-            # buscando ações pdde vinculadas à categoria
-            acoes_pdde = AcaoPdde.objects.filter(categoria=obj).count()
-            if acoes_pdde > 0:
-                content = {
-                    'erro': 'ProtectedError',
-                    'mensagem': ("Essa operação não pode ser realizada. " +
-                                "Há Ações PDDE vinculadas a esta categoria.")
-                }
-                return Response(content, status=status.HTTP_400_BAD_REQUEST)
+        if obj.acaopdde_set.count() > 0:
+            content = {
+                'erro': 'ProtectedError',
+                'mensagem': ("Não é possível excluir. " +
+                            "Este programa ainda está vinculado há alguma ação.")
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
         self.perform_destroy(obj)
 

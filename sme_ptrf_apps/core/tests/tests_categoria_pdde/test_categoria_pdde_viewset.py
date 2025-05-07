@@ -49,7 +49,7 @@ def test_cria_categoria_sem_nome(jwt_authenticated_client_sme, flag_paa):
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'nome' in response.data
-    assert response.data["nome"] == "Nome da Categoria PDDE não foi informado."
+    assert response.data["nome"] == "Nome do Programa PDDE não foi informado."
 
 
 @pytest.mark.django_db
@@ -61,8 +61,8 @@ def test_cria_categoria_duplicada(jwt_authenticated_client_sme, categoria_pdde, 
     assert 'detail' in response.data
     assert 'erro' in response.data
     assert response.data["erro"] == "Duplicated"
-    assert response.data["detail"] == ("Erro ao criar Categoria PDDE. Já existe uma "
-                                       "Categoria PDDE cadastrada com este nome.")
+    assert response.data["detail"] == ("Erro ao criar Programa PDDE. Já existe um "
+                                       "Programa PDDE cadastrado com este nome.")
 
 
 @pytest.mark.django_db
@@ -74,8 +74,8 @@ def test_cria_categoria_duplicada_case_sensitive(jwt_authenticated_client_sme, c
     assert 'detail' in response.data
     assert 'erro' in response.data
     assert response.data["erro"] == "Duplicated"
-    assert response.data["detail"] == ("Erro ao criar Categoria PDDE. Já existe uma "
-                                       "Categoria PDDE cadastrada com este nome.")
+    assert response.data["detail"] == ("Erro ao criar Programa PDDE. Já existe um "
+                                       "Programa PDDE cadastrado com este nome.")
 
 
 @pytest.mark.django_db
@@ -98,8 +98,8 @@ def test_altera_categoria_para_duplicado_existente(jwt_authenticated_client_sme,
     assert 'detail' in response.data
     assert 'erro' in response.data
     assert response.data['erro'] == 'Duplicated'
-    assert response.data['detail'] == ("Erro ao atualizar Categoria PDDE. Já existe uma " +
-                                       "Categoria PDDE cadastrada com este nome.")
+    assert response.data['detail'] == ("Erro ao atualizar Programa PDDE. Já existe um " +
+                                       "Programa PDDE cadastrado com este nome.")
 
 
 @pytest.mark.django_db
@@ -112,39 +112,19 @@ def test_altera_categoria_para_duplicado_existente_case_sensitive(jwt_authentica
     assert 'detail' in response.data
     assert 'erro' in response.data
     assert response.data['erro'] == 'Duplicated'
-    assert response.data['detail'] == ("Erro ao atualizar Categoria PDDE. Já existe uma " +
-                                       "Categoria PDDE cadastrada com este nome.")
+    assert response.data['detail'] == ("Erro ao atualizar Programa PDDE. Já existe um " +
+                                       "Programa PDDE cadastrado com este nome.")
 
 
 @pytest.mark.django_db
-def test_exclui_categoria_da_mesma_acao(jwt_authenticated_client_sme, acao_pdde, categoria_pdde, flag_paa):
-    response = jwt_authenticated_client_sme.delete(f"/api/categorias-pdde/{acao_pdde.categoria.uuid}/?acao_pdde_uuid={acao_pdde.uuid}")
-
-    assert response.status_code == status.HTTP_204_NO_CONTENT
-    assert not CategoriaPdde.objects.filter(uuid=categoria_pdde.uuid).exists()
-
-
-@pytest.mark.django_db
-def test_exclui_categoria_da_mesma_acao_erro(jwt_authenticated_client_sme, acao_pdde_2, acao_pdde_3, flag_paa):
-    response = jwt_authenticated_client_sme.delete(f"/api/categorias-pdde/{acao_pdde_2.categoria.uuid}/?acao_pdde_uuid={acao_pdde_2.uuid}")
-
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.data["erro"] == "ProtectedError"
-    assert response.data == {
-        'erro': 'ProtectedError',
-        'mensagem': 'Essa operação não pode ser realizada. Há Ações PDDE vinculadas a esta categoria.'
-    }
-
-
-@pytest.mark.django_db
-def test_exclui_categoria_da_outra_acao_erro(jwt_authenticated_client_sme, acao_pdde, acao_pdde_2, flag_paa):
+def test_exclui_categoria_erro(jwt_authenticated_client_sme, acao_pdde, acao_pdde_2, flag_paa):
     response = jwt_authenticated_client_sme.delete(f"/api/categorias-pdde/{acao_pdde.categoria.uuid}/?acao_pdde_uuid={acao_pdde_2.uuid}")
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["erro"] == "ProtectedError"
     assert response.data == {
         'erro': 'ProtectedError',
-        'mensagem': 'Essa operação não pode ser realizada. Há Ações PDDE vinculadas a esta categoria.'
+        'mensagem': 'Não é possível excluir. Este programa ainda está vinculado há alguma ação.'
     }
 
 
