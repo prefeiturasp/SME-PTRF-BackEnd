@@ -5,11 +5,14 @@ from ...models import CategoriaPdde
 
 
 class CategoriaPddeSerializer(serializers.ModelSerializer):
+    pode_ser_excluida = serializers.SerializerMethodField()
 
     class Meta:
         model = CategoriaPdde
-        fields = ('id', 'uuid', 'nome')
+        fields = ('id', 'uuid', 'nome', 'pode_ser_excluida')
 
+    def get_pode_ser_excluida(self, obj):
+        return obj.acaopdde_set.count() == 0
 
 class CategoriaPddeComTotaisSerializer(serializers.ModelSerializer):
     total_valor_custeio = serializers.SerializerMethodField()
