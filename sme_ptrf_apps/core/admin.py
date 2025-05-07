@@ -1868,9 +1868,9 @@ class AcaoPddeAdmin(admin.ModelAdmin):
 class ReceitaPrevistaPaaAdmin(admin.ModelAdmin):
     list_display = ('acao_associacao', 'previsao_valor_custeio', 'previsao_valor_capital', 'previsao_valor_livre')
     search_fields = ('acao_associacao__acao__nome', 'acao_associacao__associacao__nome')
-    autocomplete_fields = ('acao_associacao',)
     list_filter = ('acao_associacao__associacao',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    raw_id_fields = ('acao_associacao',)
 
 
 @admin.register(FonteRecursoPaa)
@@ -1884,3 +1884,4 @@ class RecursoProprioPaaAdmin(admin.ModelAdmin):
     list_display = ('fonte_recurso', 'associacao', 'data_prevista', 'descricao', 'valor',)
     search_fields = ('fonte_recurso__nome', 'associacao__nome',)
     list_filter = ('associacao',)
+    raw_id_fields = ('associacao', 'fonte_recurso')
