@@ -10,6 +10,7 @@ def test_categoria_pdde_list_serializer(categoria_pdde):
     assert serializer.data is not None
     assert 'uuid' in serializer.data
     assert 'nome' in serializer.data
+    assert 'pode_ser_excluida' in serializer.data
 
 
 def test_categoria_pdde_somatorio_serializer(categoria_pdde, categoria_pdde_2, categoria_pdde_3, acao_pdde_factory):
