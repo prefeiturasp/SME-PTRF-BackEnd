@@ -897,7 +897,10 @@ class AssociacoesViewSet(ModelViewSet):
         associacao = self.get_object()
 
         periodo_paa_vigente = PeriodoPaa.periodo_vigente()
-        paa = associacao.paa_set.get(periodo_paa=periodo_paa_vigente)
+        try:
+            paa = associacao.paa_set.get(periodo_paa=periodo_paa_vigente)
+        except:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
         serialized = PaaSerializer(paa, many=False)
         return Response(serialized.data, status=status.HTTP_200_OK)
