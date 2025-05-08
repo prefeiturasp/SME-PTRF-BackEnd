@@ -4,8 +4,8 @@ import pytest
 from django.contrib.admin.sites import site
 from rest_framework.test import APIClient
 
-from sme_ptrf_apps.paa.admin import PeriodoPaaAdmin
-from sme_ptrf_apps.paa.models import PeriodoPaa
+from sme_ptrf_apps.paa.admin import PeriodoPaaAdmin, PaaAdmin, ParametroPaaAdmin
+from sme_ptrf_apps.paa.models import PeriodoPaa, Paa, ParametroPaa
 from datetime import date
 
 
@@ -32,3 +32,22 @@ def periodo_paa_2(periodo_paa_factory):
                                       data_inicial=date(2025, 11, 1),
                                       data_final=date(2025, 12, 31))
 
+
+@pytest.fixture
+def paa_admin():
+    return PaaAdmin(model=Paa, admin_site=site)
+
+
+@pytest.fixture
+def parametro_paa_admin():
+    return ParametroPaaAdmin(model=ParametroPaa, admin_site=site)
+
+
+@pytest.fixture
+def paa(paa_factory, periodo_paa_1, associacao):
+    return paa_factory.create(periodo_paa=periodo_paa_1, associacao=associacao)
+
+
+@pytest.fixture
+def parametro_paa(parametro_paa_factory):
+    return parametro_paa_factory.create(mes_elaboracao_paa=4)
