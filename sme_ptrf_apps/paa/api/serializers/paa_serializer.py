@@ -22,13 +22,12 @@ class PaaSerializer(serializers.ModelSerializer):
         except Exception as exc:
             raise serializers.ValidationError({'non_field_errors': exc})
 
-        try:
-            periodo_paa = PeriodoPaa.periodo_vigente()
-            attrs["periodo_paa"] = periodo_paa
-        except PeriodoPaa.DoesNotExist:
+        periodo_paa = PeriodoPaa.periodo_vigente()
+        if not periodo_paa:
             raise serializers.ValidationError({
                 'non_field_errors': ['Nenhum Período vigente foi encontrado.']
             })
+        attrs["periodo_paa"] = periodo_paa
 
         return super().validate(attrs)
 
@@ -39,7 +38,7 @@ class PaaSerializer(serializers.ModelSerializer):
         existe_paa = Paa.objects.filter(periodo_paa=periodo_paa, associacao=associacao).exists()
         if existe_paa:
             raise serializers.ValidationError({
-                'non_field_errors': ['Já existe uma PAA para a Associação informada.']
+                'non_field_errors': ['Já existe um PAA para a Associação informada.']
                 })
 
         instance = super().create(validated_data)
