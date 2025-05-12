@@ -53,7 +53,9 @@ from sme_ptrf_apps.receitas.fixtures.factories import (
     TipoReceitaFactory
 )
 from sme_ptrf_apps.paa.fixtures.factories import (
-    PeriodoPaaFactory
+    PeriodoPaaFactory,
+    PaaFactory,
+    ParametroPaaFactory
 )
 
 factories_to_register = [
@@ -73,7 +75,8 @@ factories_to_register = [
     SolicitacaoEncerramentoContaAssociacaoFactory, ArquivoDownloadFactory,
     TipoDevolucaoAoTesouroFactory, TipoDocumentoFactory, MotivoPagamentoAntecipadoFactory,
     AcaoPddeFactory, CategoriaPddeFactory, FlagFactory, ReceitaPrevistaPaaFactory,
-    FonteRecursoPaaFactory, RecursoProprioPaaFactory, PeriodoPaaFactory
+    FonteRecursoPaaFactory, RecursoProprioPaaFactory, PeriodoPaaFactory, PaaFactory,
+    ParametroPaaFactory
 ]
 
 for factory in factories_to_register:
