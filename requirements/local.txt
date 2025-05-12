@@ -30,6 +30,6 @@ django-stubs==4.2.6
 black==24.4.0
 coverage==5.0.3
 flake8==6.1.0
-pre-commit==2.1.1
+pre-commit==4.2.0
 pylint-celery==0.3
 pylint-django==2.5.5
