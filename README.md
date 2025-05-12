@@ -190,3 +190,15 @@ Observe que, conforme a porta definida no `docker-compose.yml`, a aplicação es
 ##### 4.2 Execução de testes sem cobertura.
     $ pytest
 
+
+
+#### 5. Instalação e execução do pre-commit com flake8
+O pre-commit é uma biblioteca auxiliar para verificar o código ao usar o git commit.
+Nessa versão de agora, estamos usando o flake8, podendo ser adicionados novas verificações posteriormente
+com outras bibliotecas auxiliares
+
+##### 5.1 Instalação
+    $ pre-commit install
+
+##### 5.2 Execução sem ser pelo git commit
+    $ pre-commit run --files <caminho do arquivo .py>
