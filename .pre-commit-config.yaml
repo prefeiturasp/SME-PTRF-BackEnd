@@ -1,13 +1,13 @@
 exclude: 'docs|node_modules|migrations|.git|.tox'
-default_stages: [commit]
+default_stages: [pre-commit]
 fail_fast: true
 
 repos:
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: master
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
-        files: (^|/)a/.+\.(py|html|sh|css|js)$
+        files: (^|/)a/.+\.(py)$
 
 -   repo: local
     hooks:
@@ -17,4 +17,3 @@ repos:
         language: python
         types: [python]
         args: ['--config=setup.cfg']
-
