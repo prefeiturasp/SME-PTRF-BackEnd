@@ -1,4 +1,5 @@
 import logging
+from waffle import flag_is_active
 from rest_framework import status
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.decorators import action
@@ -25,6 +26,7 @@ from sme_ptrf_apps.sme.tasks import (
     exportar_dados_conta_async,
     exportar_repasses_async,
     exportar_dados_membros_apm_async,
+    exportar_dados_membros_apm_legado_async,
     exportar_processos_sei_regularidade_async,
     exportar_processos_sei_prestacao_contas_async,
     exportar_unidades_async
@@ -419,11 +421,18 @@ class ExportacoesDadosViewSet(GenericViewSet):
         permission_classes=permission_classes,
     )
     def dados_membros_apm(self, request):
-        exportar_dados_membros_apm_async.delay(
-            data_inicio=request.query_params.get("data_inicio"),
-            data_final=request.query_params.get("data_final"),
-            username=request.user.username,
-        )
+        if flag_is_active(self.request, "historico-de-membros"):
+            exportar_dados_membros_apm_async.delay(
+                data_inicio=request.query_params.get("data_inicio"),
+                data_final=request.query_params.get("data_final"),
+                username=request.user.username,
+            )
+        else:
+            exportar_dados_membros_apm_legado_async.delay(
+                data_inicio=request.query_params.get("data_inicio"),
+                data_final=request.query_params.get("data_final"),
+                username=request.user.username,
+            )
 
         return Response(
             {
