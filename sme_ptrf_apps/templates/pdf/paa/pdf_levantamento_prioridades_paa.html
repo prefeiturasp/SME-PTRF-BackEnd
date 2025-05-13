@@ -204,6 +204,44 @@
 </section>
 {# ************************* FIM Grêmio Estudantil ************************* #}
 
+{# ************************* Pais, Responsáveis e Alunos ************************* #}
+<section class="new-page grupo-conteudo mt-3">
+  <div class='row'>
+    <div class='col-4 light-grey-box justify-content-center font-12'>
+      <span><strong>Pais, Responsáveis e Alunos - {{dados.ano}}</strong></span>
+    </div>
+    <div class='col-8 light-grey-box'>
+      <div class="row">
+        <span class='px-2 pt-2'><strong>Nome da Associação:</strong></span>
+        <span class='px-2 pb-2 mt-1'>{{dados.nome_associacao}}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class='grupo-texto'>
+  <div class="row">
+    <div class="col-12 light-grey-box">
+      <span class="text-left my-2">Relação de serviços e aquisições considerados fundamentais pelos Pais, Responsáveis e Alunos para a melhoria das condições de trabalho, em consonância com o Projeto Político-Pedagógico da Unidade Educacional e que posteriormente, ouvidos os demais segmentos comporão o Plano Anual de Atividades da: {{dados.nome_associacao}}</span>
+    </div>
+  </div>
+  {% if dados.tipo_unidade == "CEU" %}
+    <span><strong>ATENÇÃO:</strong> Esta planilha subsidiará as decisões da APMSUAC/Conselho de escola</span>
+  {% else %}
+    <span><strong>ATENÇÃO:</strong> Esta planilha subsidiará as decisões da APM/Conselho de Escola</span>
+  {% endif %}
+</section>
+
+<section class="conteudo">
+  {% include "./partials/tabela-prioridades.html" %}
+</section>
+
+<section class="new-page conteudo mt-3">
+  {% include "./partials/tabela-participantes.html" %}
+</section>
+
+{# ************************* FIM Pais, Responsáveis e Alunos ************************* #}
+
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
         integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
         crossorigin="anonymous"></script>
