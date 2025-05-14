@@ -481,12 +481,7 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
         if not despesa.data_documento:
             return None
 
-        periodo = (
-            Periodo.objects
-            .filter(data_inicio_realizacao_despesas__lte=despesa.data_documento)
-            .filter(data_fim_realizacao_despesas__gte=despesa.data_documento)
-            .first()
-        )
+        periodo = Periodo.da_data(despesa.data_documento)
         return periodo.referencia if periodo else None
 
     class Meta:

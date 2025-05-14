@@ -9,7 +9,7 @@ from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido
-from sme_ptrf_apps.situacao_patrimonial.api.serializers import BemProduzidoSerializer
+from sme_ptrf_apps.situacao_patrimonial.api.serializers import BemProduzidoSerializer, BemProduzidoCreateSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
     queryset = BemProduzido.objects.all().order_by('id')
     serializer_class = BemProduzidoSerializer
     pagination_class = CustomPagination
-    http_method_names = ['get', 'post', 'delete']
+    http_method_names = ['get', 'post', 'put', 'patch', 'delete']
 
     def get_queryset(self):
         qs = self.queryset
@@ -31,3 +31,8 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
             qs = qs.filter(associacao__uuid=associacao)
 
         return qs
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return BemProduzidoCreateSerializer
+        return BemProduzidoSerializer
