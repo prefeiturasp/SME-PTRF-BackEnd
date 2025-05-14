@@ -322,38 +322,28 @@ def despesas_nao_conciliadas_por_conta_no_periodo(conta_associacao, periodo):
 
 
 def saldo_anterior_total_conta_associacao_no_periodo(conta_associacao, periodo):
-    def saldo_anterior_periodo_fechado_sumarizado(fechamentos_periodo):
-        saldo_anterior_total = 0
+    acoes_associacao = Associacao.acoes_da_associacao(associacao_uuid=conta_associacao.associacao.uuid)
 
-        for fechamento_periodo in fechamentos_periodo:
+    saldo_anterior_total = 0
+    for acao_associacao in acoes_associacao:
+        fechamento_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(acao_associacao=acao_associacao,
+                                                                              periodo=periodo,
+                                                                              conta_associacao=conta_associacao).first()
+        if fechamento_periodo:
             saldo_anterior_total += fechamento_periodo.saldo_anterior
-        return saldo_anterior_total
+        else:
+            if periodo and periodo.periodo_anterior:
+                fechamentos_acao_periodo_anterior = FechamentoPeriodo.fechamentos_da_acao_no_periodo(
+                    acao_associacao=acao_associacao,
+                    periodo=periodo.periodo_anterior,
+                    conta_associacao=conta_associacao)
+                fechamento_anterior = fechamentos_acao_periodo_anterior.first() if fechamentos_acao_periodo_anterior else None
+                saldo_reprogramado_anterior = fechamento_anterior.saldo_reprogramado if fechamento_anterior else 0
+                saldo_anterior_total += saldo_reprogramado_anterior
+            else:
+                fechamento_anterior = None
 
-    def saldo_posterior_periodo_fechado_sumarizado(fechamentos_periodo):
-        saldo_posterior_total = 0
-        for fechamento_periodo in fechamentos_periodo:
-            saldo_posterior_total += fechamento_periodo.saldo_reprogramado
-        return saldo_posterior_total
-
-    def saldo_periodo_aberto_sumarizado(periodo, conta_associacao):
-
-        if not periodo or not periodo.periodo_anterior:
-            return 0.00
-
-        fechamentos_periodo_anterior = FechamentoPeriodo.fechamentos_da_conta_no_periodo(
-            conta_associacao=conta_associacao,
-            periodo=periodo.periodo_anterior)
-
-        saldo = saldo_posterior_periodo_fechado_sumarizado(fechamentos_periodo_anterior)
-
-        return saldo
-
-    fechamentos_periodo = FechamentoPeriodo.fechamentos_da_conta_no_periodo(conta_associacao=conta_associacao,
-                                                                            periodo=periodo)
-    if fechamentos_periodo:
-        return saldo_anterior_periodo_fechado_sumarizado(fechamentos_periodo)
-    else:
-        return saldo_periodo_aberto_sumarizado(periodo, conta_associacao)
+    return saldo_anterior_total
 
 
 def documentos_de_despesa_nao_conciliados_por_conta_e_acao_no_periodo(conta_associacao, acao_associacao, periodo):
