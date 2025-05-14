@@ -9,7 +9,7 @@ from .motivo_pagamento_antecipado_serializer import MotivoPagamentoAntecipadoSer
 from ..serializers.rateio_despesa_serializer import RateioDespesaCreateSerializer
 from ...models import Despesa, RateioDespesa, TipoDocumento, TipoTransacao
 from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
-from ....core.models import Associacao
+from ....core.models import Associacao, Periodo
 from django.core.exceptions import ValidationError
 
 log = logging.getLogger(__name__)
@@ -464,6 +464,8 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
                                                                     required=False)
 
     informacoes = serializers.SerializerMethodField(method_name='get_informacoes', required=False)
+    
+    periodo_referencia = serializers.SerializerMethodField(method_name="get_periodo_referencia", required=False, allow_null=True)
 
     def get_despesa_de_imposto(self, despesa):
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
@@ -474,13 +476,25 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
 
     def get_informacoes(self, despesa):
         return despesa.tags_de_informacao
+    
+    def get_periodo_referencia(self, despesa):
+        if not despesa.data_documento:
+            return None
+
+        periodo = (
+            Periodo.objects
+            .filter(data_inicio_realizacao_despesas__lte=despesa.data_documento)
+            .filter(data_fim_realizacao_despesas__gte=despesa.data_documento)
+            .first()
+        )
+        return periodo.referencia if periodo else None
 
     class Meta:
         model = Despesa
         fields = (
         'uuid', 'associacao', 'numero_documento', 'status', 'tipo_documento', 'data_documento', 'cpf_cnpj_fornecedor',
         'nome_fornecedor', 'valor_total', 'valor_ptrf', 'data_transacao', 'tipo_transacao', 'documento_transacao',
-        'rateios', 'receitas_saida_do_recurso', 'despesa_geradora_do_imposto', 'despesas_impostos', 'informacoes')
+        'rateios', 'receitas_saida_do_recurso', 'despesa_geradora_do_imposto', 'despesas_impostos', 'informacoes', 'periodo_referencia')
 
 
 class DespesaConciliacaoSerializer(serializers.ModelSerializer):

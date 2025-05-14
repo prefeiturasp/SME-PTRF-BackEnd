@@ -1,0 +1,3 @@
+# flake8: noqa
+from .bem_produzido_serializer import BemProduzidoSerializer
+from .bem_produzido_despesa_serializer import BemProduzidoDespesaSerializer
