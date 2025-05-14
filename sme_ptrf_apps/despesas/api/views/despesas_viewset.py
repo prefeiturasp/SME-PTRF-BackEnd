@@ -125,6 +125,10 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
         if data_inicio is not None and data_fim is not None and data_inicio != '' and data_fim != '':
             qs = qs.filter(data_documento__range=[data_inicio, data_fim])
+        elif data_inicio is not None and data_inicio != '':
+            qs = qs.filter(data_documento__gte=data_inicio)
+        elif data_fim is not None and data_fim != '':
+            qs = qs.filter(data_documento__lte=data_fim)
 
         assoc_uuid = self.request.query_params.get('associacao__uuid')
         if assoc_uuid is not None:

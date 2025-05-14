@@ -145,6 +145,7 @@ def test_api_get_despesas_campos(jwt_authenticated_client_d, associacao, despesa
             'uuid': f'{despesa_fornecedor_a.uuid}',
             'associacao': f'{associacao.uuid}',
             'numero_documento': '123456',
+            'periodo_referencia': None,
             'status': f'{despesa_fornecedor_a.status}',
             'tipo_documento': {
                 'id': tipo_documento.id,
