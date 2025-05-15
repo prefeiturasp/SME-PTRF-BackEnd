@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from django.db.models.query import QuerySet
+from sme_ptrf_apps.core.models.periodo import Periodo
 from sme_ptrf_apps.despesas.services.filtra_despesas_por_tags import filtra_despesas_por_tags
 
 from sme_ptrf_apps.users.permissoes import (
@@ -25,6 +26,7 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Subquery, Sum
 from sme_ptrf_apps.core.models import Associacao
+from django.db.models import Q
 import datetime
 
 DEFAULT_PAGE = 1
@@ -108,8 +110,11 @@ class DespesasViewSet(mixins.CreateModelMixin,
         fornecedor = self.request.query_params.get('fornecedor')
 
         if fornecedor is not None and fornecedor != '':
-            qs = qs.filter(nome_fornecedor__unaccent__icontains=fornecedor)
-
+            if fornecedor:
+                qs = qs.filter(
+                    Q(nome_fornecedor__unaccent__icontains=fornecedor) |
+                    Q(cpf_cnpj_fornecedor__icontains=fornecedor)
+                )
         conta_associacao__uuid = self.request.query_params.get('rateios__conta_associacao__uuid')
 
         if conta_associacao__uuid:
@@ -129,6 +134,19 @@ class DespesasViewSet(mixins.CreateModelMixin,
             qs = qs.filter(data_documento__gte=data_inicio)
         elif data_fim is not None and data_fim != '':
             qs = qs.filter(data_documento__lte=data_fim)
+
+        periodo = self.request.query_params.get('periodo__uuid')
+        
+        if periodo is not None and periodo != '':
+            periodo_obj = Periodo.objects.get(uuid=periodo)
+            filtros = {
+                'data_transacao__gte': periodo_obj.data_inicio_realizacao_despesas,
+            }
+
+            if periodo_obj.data_fim_realizacao_despesas:
+                filtros['data_transacao__lte'] = periodo_obj.data_fim_realizacao_despesas
+
+            qs = qs.filter(**filtros)
 
         assoc_uuid = self.request.query_params.get('associacao__uuid')
         if assoc_uuid is not None:
