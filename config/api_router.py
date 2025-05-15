@@ -112,6 +112,9 @@ from sme_ptrf_apps.users.api.views import (
     UsuariosViewSet,
     GruposViewSet
 )
+from sme_ptrf_apps.situacao_patrimonial.api.views import (
+    BemProduzidoViewSet,
+)
 
 from sme_ptrf_apps.mandatos.api.views import MandatosViewSet, ComposicoesViewSet, OcupantesCargosViewSet, CargosComposicoesViewSet
 
@@ -233,6 +236,7 @@ router.register("fontes-recursos-paa", FonteRecursoPaaViewSet, basename='fonte_r
 router.register("recursos-proprios-paa", RecursoProprioPaaViewSet, basename='recursos_proprios_paa')
 router.register("periodos-paa", PeriodoPaaViewSet, basename='periodos_paa')
 router.register("parametros-paa", ParametrosPaaViewSet, basename='parametros_paa')
+router.register("bens-produzidos", BemProduzidoViewSet, basename='bens-produzidos')
 
 
 app_name = "api"
