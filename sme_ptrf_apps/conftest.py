@@ -57,6 +57,9 @@ from sme_ptrf_apps.paa.fixtures.factories import (
     PaaFactory,
     ParametroPaaFactory
 )
+from sme_ptrf_apps.situacao_patrimonial.fixtures.factories import (
+    BemProduzidoFactory
+)
 
 factories_to_register = [
     DreFactory, UnidadeFactory, AssociacaoFactory, AssociacaoFactoryComPeriodoInicial, ContaAssociacaoFactory,
@@ -76,7 +79,7 @@ factories_to_register = [
     TipoDevolucaoAoTesouroFactory, TipoDocumentoFactory, MotivoPagamentoAntecipadoFactory,
     AcaoPddeFactory, CategoriaPddeFactory, FlagFactory, ReceitaPrevistaPaaFactory,
     FonteRecursoPaaFactory, RecursoProprioPaaFactory, PeriodoPaaFactory, PaaFactory,
-    ParametroPaaFactory
+    ParametroPaaFactory, BemProduzidoFactory
 ]
 
 for factory in factories_to_register:
