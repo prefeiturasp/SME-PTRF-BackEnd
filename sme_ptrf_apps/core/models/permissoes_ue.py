@@ -221,3 +221,16 @@ class FuncUePlanoAnualDeAtividade(models.Model):
             ('access_paa', '[UE] Pode acessar Plano Anual de Atividade.'),
             ('change_paa', '[UE] Pode editar Plano Anual de Atividade".'),
         )
+
+class FuncUeSituacaoPatrimonial(models.Model):
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+
+        verbose_name = "[UE] Situação Patrimonial"
+        verbose_name_plural = "[UE] Situação Patrimonial"
+
+        permissions = (
+            ('access_situacao_patrimonial', '[UE] Pode acessar Situação Patrimonial.'),
+            ('change_situacao_patrimonial', '[UE] Pode editar Situação Patrimonial".'),
+        )
