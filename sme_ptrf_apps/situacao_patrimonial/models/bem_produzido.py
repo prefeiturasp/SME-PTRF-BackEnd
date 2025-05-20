@@ -5,20 +5,20 @@ from auditlog.registry import auditlog
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
-STATUS_COMPLETO = 'COMPLETO'
-STATUS_INCOMPLETO = 'INCOMPLETO'
-
-STATUS_NOMES = {
-    STATUS_COMPLETO: 'Completo',
-    STATUS_INCOMPLETO: 'Rascunho',
-}
-
-STATUS_CHOICES = (
-    (STATUS_COMPLETO, STATUS_NOMES[STATUS_COMPLETO]),
-    (STATUS_INCOMPLETO, STATUS_NOMES[STATUS_INCOMPLETO]),
-)
-
 class BemProduzido(ModeloBase):
+    STATUS_COMPLETO = 'COMPLETO'
+    STATUS_INCOMPLETO = 'INCOMPLETO'
+
+    STATUS_NOMES = {
+        STATUS_COMPLETO: 'Completo',
+        STATUS_INCOMPLETO: 'Rascunho',
+    }
+
+    STATUS_CHOICES = (
+        (STATUS_COMPLETO, STATUS_NOMES[STATUS_COMPLETO]),
+        (STATUS_INCOMPLETO, STATUS_NOMES[STATUS_INCOMPLETO]),
+    )
+    
     history = AuditlogHistoryField()
 
     associacao = models.ForeignKey('core.Associacao', on_delete=models.PROTECT, related_name='bens_produzidos_associacao', blank=True, null=True)
