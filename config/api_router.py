@@ -51,7 +51,6 @@ from sme_ptrf_apps.core.api.views import (
     AcoesPddeViewSet,
     CategoriaPddeViewSet,
     ReceitaPrevistaPaaViewSet,
-    PaaViewSet,
     FonteRecursoPaaViewSet,
     RecursoProprioPaaViewSet
 )
@@ -101,7 +100,9 @@ from sme_ptrf_apps.receitas.api.views import (
     TipoReceitaViewSet
 )
 from sme_ptrf_apps.paa.api.views import (
-    PeriodoPaaViewSet
+    PeriodoPaaViewSet,
+    ParametrosPaaViewSet,
+    PaaViewSet
 )
 from sme_ptrf_apps.users.api.views import (
     EsqueciMinhaSenhaViewSet,
@@ -110,6 +111,9 @@ from sme_ptrf_apps.users.api.views import (
     UserViewSet, # TODO - Remover ao fim da implantação da nova gestão de usuários
     UsuariosViewSet,
     GruposViewSet
+)
+from sme_ptrf_apps.situacao_patrimonial.api.views import (
+    BemProduzidoViewSet,
 )
 
 from sme_ptrf_apps.mandatos.api.views import MandatosViewSet, ComposicoesViewSet, OcupantesCargosViewSet, CargosComposicoesViewSet
@@ -231,6 +235,8 @@ router.register("paa", PaaViewSet, basename='paa')
 router.register("fontes-recursos-paa", FonteRecursoPaaViewSet, basename='fonte_recurso_paa')
 router.register("recursos-proprios-paa", RecursoProprioPaaViewSet, basename='recursos_proprios_paa')
 router.register("periodos-paa", PeriodoPaaViewSet, basename='periodos_paa')
+router.register("parametros-paa", ParametrosPaaViewSet, basename='parametros_paa')
+router.register("bens-produzidos", BemProduzidoViewSet, basename='bens-produzidos')
 
 
 app_name = "api"
