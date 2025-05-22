@@ -35,8 +35,7 @@ from sme_ptrf_apps.core.fixtures.factories import (
     SolicitacaoAcertoLancamentoFactory, ProcessoAssociacaoFactory,
     PrestacaoContaReprovadaNaoApresentacaoFactory, DemonstrativoFinanceiroFactory,
     ItemResumoPorAcaoFactory, ItemDespesaFactory, ItemCreditoFactory, ArquivoDownloadFactory,
-    TipoDevolucaoAoTesouroFactory, AcaoPddeFactory, CategoriaPddeFactory, FlagFactory,
-    ReceitaPrevistaPaaFactory, FonteRecursoPaaFactory, RecursoProprioPaaFactory
+    TipoDevolucaoAoTesouroFactory, FlagFactory
 )
 from sme_ptrf_apps.users.fixtures.factories import (
     UsuarioFactory, UnidadeEmSuporteFactory, GrupoAcessoFactory, VisaoFactory,
@@ -53,9 +52,8 @@ from sme_ptrf_apps.receitas.fixtures.factories import (
     TipoReceitaFactory
 )
 from sme_ptrf_apps.paa.fixtures.factories import (
-    PeriodoPaaFactory,
-    PaaFactory,
-    ParametroPaaFactory
+    PeriodoPaaFactory, PaaFactory, ParametroPaaFactory, ReceitaPrevistaPaaFactory,
+    FonteRecursoPaaFactory, RecursoProprioPaaFactory, AcaoPddeFactory, ProgramaPddeFactory,
 )
 
 factories_to_register = [
@@ -74,7 +72,7 @@ factories_to_register = [
     RelatorioRelacaoBensFactory, ItemRelatorioRelacaoDeBensFactory,
     SolicitacaoEncerramentoContaAssociacaoFactory, ArquivoDownloadFactory,
     TipoDevolucaoAoTesouroFactory, TipoDocumentoFactory, MotivoPagamentoAntecipadoFactory,
-    AcaoPddeFactory, CategoriaPddeFactory, FlagFactory, ReceitaPrevistaPaaFactory,
+    AcaoPddeFactory, ProgramaPddeFactory, FlagFactory, ReceitaPrevistaPaaFactory,
     FonteRecursoPaaFactory, RecursoProprioPaaFactory, PeriodoPaaFactory, PaaFactory,
     ParametroPaaFactory
 ]

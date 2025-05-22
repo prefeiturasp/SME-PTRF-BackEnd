@@ -10,7 +10,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
-from sme_ptrf_apps.core.services.paa_service import gerar_arquivo_pdf_levantamento_prioridades_paa
+# from sme_ptrf_apps.core.services.paa_service import gerar_arquivo_pdf_levantamento_prioridades_paa
+from sme_ptrf_apps.paa.services.paa_service import PaaService
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import (
@@ -64,7 +65,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             "data": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
             "ano": datetime.now().year
         }
-        return gerar_arquivo_pdf_levantamento_prioridades_paa(dados)
+        return PaaService.gerar_arquivo_pdf_levantamento_prioridades_paa(dados)
 
     def destroy(self, request, *args, **kwargs):
         from django.db.models.deletion import ProtectedError

@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from ..serializers.acao_serializer import AcaoSerializer
 from ..serializers.associacao_serializer import AssociacaoSerializer, AssociacaoListSerializer
-from ..serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
+from sme_ptrf_apps.paa.api.serializers import ReceitaPrevistaPaaSerializer
 from ...models import AcaoAssociacao, Associacao, Acao
 
 
