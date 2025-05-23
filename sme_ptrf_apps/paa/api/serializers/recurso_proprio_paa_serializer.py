@@ -21,7 +21,7 @@ class RecursoProprioPaaCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecursoProprioPaa
-        fields = ('id', 'uuid', 'associacao', 'fonte_recurso', 'data_prevista', 'descricao', 'valor')
+        fields = ('id', 'paa', 'uuid', 'associacao', 'fonte_recurso', 'data_prevista', 'descricao', 'valor')
 
 
 class RecursoProprioPaaListSerializer(serializers.ModelSerializer):
@@ -35,4 +35,4 @@ class RecursoProprioPaaListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RecursoProprioPaa
-        fields = ('id', 'uuid', 'associacao', 'fonte_recurso', 'data_prevista', 'descricao', 'valor')
+        fields = ('id', 'paa', 'uuid', 'associacao', 'fonte_recurso', 'data_prevista', 'descricao', 'valor')
