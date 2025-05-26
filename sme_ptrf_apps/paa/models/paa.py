@@ -5,7 +5,7 @@ from auditlog.registry import auditlog
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.core.models import Associacao
-from sme_ptrf_apps.paa.models import PeriodoPaa
+from sme_ptrf_apps.paa.models.periodo_paa import PeriodoPaa
 
 
 class Paa(ModeloBase):
