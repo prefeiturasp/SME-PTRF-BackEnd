@@ -1,11 +1,8 @@
 import logging
 
-from django.db.models import Q
 from waffle.mixins import WaffleFlagMixin
-from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
-from django.core.exceptions import ValidationError
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import (

@@ -2,7 +2,8 @@ from datetime import date
 from calendar import monthrange
 from typing import List
 
-def ajustar_data_inicial_e_final(data_inicial: date, data_final: date)-> List[date]:
+
+def ajustar_data_inicial_e_final(data_inicial: date, data_final: date) -> List[date]:
     """
     Ajusta a data inicial e final de um período para o primeiro e último dia do mês, respectivamente.
 
@@ -30,5 +31,5 @@ def validar_data_final(data_inicial: date, data_final: date) -> bool:
     """
     if data_inicial.month == data_final.month and data_inicial.year == data_final.year:
         return False, "Data final deve ser maior que a data inicial"
-    
+
     return data_final >= data_inicial, "Data final deve ser maior que a data inicial"
