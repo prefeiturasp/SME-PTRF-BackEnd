@@ -54,6 +54,7 @@ from sme_ptrf_apps.receitas.fixtures.factories import (
 from sme_ptrf_apps.paa.fixtures.factories import (
     PeriodoPaaFactory, PaaFactory, ParametroPaaFactory, ReceitaPrevistaPaaFactory,
     FonteRecursoPaaFactory, RecursoProprioPaaFactory, AcaoPddeFactory, ProgramaPddeFactory,
+    ReceitaPrevistaPddeFactory
 )
 from sme_ptrf_apps.situacao_patrimonial.fixtures.factories import (
     BemProduzidoFactory
@@ -77,7 +78,7 @@ factories_to_register = [
     TipoDevolucaoAoTesouroFactory, TipoDocumentoFactory, MotivoPagamentoAntecipadoFactory,
     AcaoPddeFactory, ProgramaPddeFactory, FlagFactory, ReceitaPrevistaPaaFactory,
     FonteRecursoPaaFactory, RecursoProprioPaaFactory, PeriodoPaaFactory, PaaFactory,
-    ParametroPaaFactory, BemProduzidoFactory
+    ParametroPaaFactory, BemProduzidoFactory, ReceitaPrevistaPddeFactory
 ]
 
 for factory in factories_to_register:
@@ -3119,7 +3120,7 @@ def task_celery_criada_2(periodo_2020_1, associacao):
 
 
 @pytest.fixture
-def receita_prevista_paa(acao_associacao):
+def receita_prevista_paa(acao_associacao, paa):
     """
     Fixture para criar instancia de teste de 'ReceitaPrevistaPaa' associada à Ação e
     Associação por meio da instância AcaoAssociacao.
@@ -3146,6 +3147,7 @@ def receita_prevista_paa(acao_associacao):
 
     return baker.make(
         'ReceitaPrevistaPaa',
+        paa=paa,
         acao_associacao=acao_associacao,
         previsao_valor_custeio=1000.0,
         previsao_valor_capital=2000.0,

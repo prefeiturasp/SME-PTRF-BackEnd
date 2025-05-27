@@ -7,7 +7,6 @@ from rest_framework.response import Response
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 
-from django.db.models import Sum
 import django_filters
 
 from waffle.mixins import WaffleFlagMixin

@@ -31,8 +31,9 @@ def test_obter_recurso_proprio_paa_404(jwt_authenticated_client_sme, flag_paa, r
 
 
 @pytest.mark.django_db
-def test_cria_recurso_proprio_paa(jwt_authenticated_client_sme, flag_paa, associacao, fonte_recurso_paa):
+def test_cria_recurso_proprio_paa(jwt_authenticated_client_sme, flag_paa, associacao, fonte_recurso_paa, paa):
     data = {
+        "paa": str(paa.uuid),
         "fonte_recurso": str(fonte_recurso_paa.uuid),
         "associacao": str(associacao.uuid),
         "data_prevista": "2024-04-04",

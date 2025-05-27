@@ -10,7 +10,6 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
-# from sme_ptrf_apps.core.services.paa_service import gerar_arquivo_pdf_levantamento_prioridades_paa
 from sme_ptrf_apps.paa.services.paa_service import PaaService
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
@@ -39,7 +38,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         associacao = self.request.query_params.get('associacao_uuid', None)
 
         if associacao is not None:
-            qs = qs.filter(associacao=associacao)
+            qs = qs.filter(associacao__uuid=associacao)
 
         return qs
 

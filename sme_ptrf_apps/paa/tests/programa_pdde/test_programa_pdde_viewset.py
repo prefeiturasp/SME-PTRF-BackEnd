@@ -120,7 +120,8 @@ def test_altera_programa_para_duplicado_existente_case_sensitive(jwt_authenticat
 
 @pytest.mark.django_db
 def test_exclui_programa_erro(jwt_authenticated_client_sme, acao_pdde, acao_pdde_2, flag_paa):
-    response = jwt_authenticated_client_sme.delete(f"/api/programas-pdde/{acao_pdde.programa.uuid}/?acao_pdde_uuid={acao_pdde_2.uuid}")
+    response = jwt_authenticated_client_sme.delete(
+        f"/api/programas-pdde/{acao_pdde.programa.uuid}/?acao_pdde_uuid={acao_pdde_2.uuid}")
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["erro"] == "ProtectedError"
@@ -132,45 +133,89 @@ def test_exclui_programa_erro(jwt_authenticated_client_sme, acao_pdde, acao_pdde
 
 @pytest.mark.django_db
 def test_exclui_programa_sem_acao(jwt_authenticated_client_sme, acao_pdde, programa_pdde_3, flag_paa):
-    response = jwt_authenticated_client_sme.delete(f"/api/programas-pdde/{programa_pdde_3.uuid}/?acao_pdde_uuid={acao_pdde.uuid}")
+    response = jwt_authenticated_client_sme.delete(
+        f"/api/programas-pdde/{programa_pdde_3.uuid}/?acao_pdde_uuid={acao_pdde.uuid}")
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert not ProgramaPdde.objects.filter(uuid=programa_pdde_3.uuid).exists()
 
 
-# @pytest.mark.django_db
-# def test_obtem_programas_somatorio(jwt_authenticated_client_sme, flag_paa, programa_pdde, programa_pdde_2, programa_pdde_3, acao_pdde_factory):
-#     acao_pdde_factory.create(categoria=programa_pdde, aceita_capital=True, aceita_custeio=True, aceita_livre_aplicacao=True,
-#                              saldo_valor_custeio=110.00, saldo_valor_capital=150.00, saldo_valor_livre_aplicacao=200.00,
-#                              previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre_aplicacao=415.00)
-#     acao_pdde_factory.create(categoria=programa_pdde, aceita_capital=True, aceita_custeio=True, aceita_livre_aplicacao=True,
-#                              saldo_valor_custeio=110.00, saldo_valor_capital=150.00, saldo_valor_livre_aplicacao=200.00,
-#                              previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre_aplicacao=415.00)
-#     acao_pdde_factory.create(categoria=programa_pdde_2, aceita_capital=True, aceita_custeio=True, aceita_livre_aplicacao=True, 
-#                              saldo_valor_custeio=110.00, saldo_valor_capital=150.00, saldo_valor_livre_aplicacao=200.00,
-#                              previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre_aplicacao=415.00)
-#     acao_pdde_factory.create(categoria=programa_pdde_2, aceita_capital=True, aceita_custeio=True, aceita_livre_aplicacao=True, 
-#                              saldo_valor_custeio=110.00, saldo_valor_capital=150.00, saldo_valor_livre_aplicacao=200.00,
-#                              previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre_aplicacao=415.00)
-#     acao_pdde_factory.create(categoria=programa_pdde_3, aceita_capital=True, aceita_custeio=True, aceita_livre_aplicacao=True,
-#                              saldo_valor_custeio=110.00, saldo_valor_capital=150.00, saldo_valor_livre_aplicacao=200.00,
-#                              previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre_aplicacao=415.00)
-#     acao_pdde_factory.create(categoria=programa_pdde_3, aceita_capital=True, aceita_custeio=True, aceita_livre_aplicacao=True,
-#                              saldo_valor_custeio=110.00, saldo_valor_capital=150.00, saldo_valor_livre_aplicacao=200.00,
-#                              previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre_aplicacao=415.00)
+@pytest.mark.django_db
+def test_obtem_programas_somatorio(jwt_authenticated_client_sme,
+                                   flag_paa,
+                                   programa_pdde,
+                                   programa_pdde_2,
+                                   programa_pdde_3,
+                                   acao_pdde_factory,
+                                   paa,
+                                   receita_prevista_pdde_factory
+                                   ):
+    acao_pdde1 = acao_pdde_factory.create(
+        programa=programa_pdde,
+        aceita_capital=True,
+        aceita_custeio=True,
+        aceita_livre_aplicacao=True)
+    acao_pdde2 = acao_pdde_factory.create(
+        programa=programa_pdde_2,
+        aceita_capital=True,
+        aceita_custeio=True,
+        aceita_livre_aplicacao=True)
+    acao_pdde3 = acao_pdde_factory.create(
+        programa=programa_pdde_2,
+        aceita_capital=True,
+        aceita_custeio=True,
+        aceita_livre_aplicacao=True)
+    acao_pdde4 = acao_pdde_factory.create(
+        programa=programa_pdde_3,
+        aceita_capital=True,
+        aceita_custeio=True,
+        aceita_livre_aplicacao=True)
+    acao_pdde5 = acao_pdde_factory.create(
+        programa=programa_pdde_3,
+        aceita_capital=True,
+        aceita_custeio=True,
+        aceita_livre_aplicacao=True)
 
-#     response = jwt_authenticated_client_sme.get(f"/api/programas-pdde/totais/")
+    receita_prevista_pdde_factory.create(
+        paa=paa, acao_pdde=acao_pdde1,
+        saldo_custeio=110.00, saldo_capital=150.00, saldo_livre=200.00,
+        previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre=415.00)
+    receita_prevista_pdde_factory.create(
+        paa=paa, acao_pdde=acao_pdde1,
+        saldo_custeio=110.00, saldo_capital=150.00, saldo_livre=200.00,
+        previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre=415.00)
+    receita_prevista_pdde_factory.create(
+        paa=paa, acao_pdde=acao_pdde2,
+        saldo_custeio=110.00, saldo_capital=150.00, saldo_livre=200.00,
+        previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre=415.00)
+    receita_prevista_pdde_factory.create(
+        paa=paa, acao_pdde=acao_pdde3,
+        saldo_custeio=110.00, saldo_capital=150.00, saldo_livre=200.00,
+        previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre=415.00)
+    receita_prevista_pdde_factory.create(
+        paa=paa, acao_pdde=acao_pdde4,
+        saldo_custeio=110.00, saldo_capital=150.00, saldo_livre=200.00,
+        previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre=415.00)
+    receita_prevista_pdde_factory.create(
+        paa=paa, acao_pdde=acao_pdde5,
+        saldo_custeio=110.00, saldo_capital=150.00, saldo_livre=200.00,
+        previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre=415.00)
 
-#     assert response.status_code == status.HTTP_200_OK
-#     assert 'categorias' in response.data
-#     assert 'total' in response.data
-#     assert response.data["total"] == {
-#         "total_valor_custeio": 1500.00,
-#         "total_valor_capital": 2772.00,
-#         "total_valor_livre_aplicacao": 3690.00,
-#         "total": 7962.00
-#     }
-#     assert response.data["categorias"][0]["nome"] == "Programa PDDE Teste"
-#     assert response.data["categorias"][0]["total_valor_custeio"] == 500.00
-#     assert response.data["categorias"][1]["nome"] == "Programa PDDE Teste 2"
-#     assert response.data["categorias"][1]["total_valor_custeio"] == 500.00
+    response = jwt_authenticated_client_sme.get(f"/api/programas-pdde/totais/?paa_uuid={paa.uuid}")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert 'programas' in response.data
+    assert 'total' in response.data
+    total_custeios = (6 * 110) + (140 * 6)
+    total_capital = (6 * 150) + (312 * 6)
+    total_livre = (6 * 200) + (415 * 6)
+    assert response.data["total"] == {
+        "total_valor_custeio": total_custeios,
+        "total_valor_capital": total_capital,
+        "total_valor_livre_aplicacao": total_livre,
+        "total": total_custeios + total_capital + total_livre
+    }
+    assert response.data["programas"][0]["nome"] == "Programa PDDE Teste"
+    assert response.data["programas"][0]["total_valor_custeio"] == 500.
+    assert response.data["programas"][0]["total_valor_capital"] == 924.
+    assert response.data["programas"][0]["total_valor_livre_aplicacao"] == 1230.
