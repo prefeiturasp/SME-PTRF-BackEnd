@@ -27,16 +27,15 @@ class PeriodoPaaSerializer(serializers.ModelSerializer):
                 'non_field_errors': mensagem
             })
 
-        if PeriodoPaa.objects.filter(
-            referencia=referencia,
-            data_inicial__year=data_inicial_ajustada.year,
-            data_inicial__month=data_inicial_ajustada.month,
-            data_final__year=data_final_ajustada.year,
-            data_final__month=data_final_ajustada.month,
-            ).exists():
+        if PeriodoPaa.objects.filter(referencia=referencia,
+                                     data_inicial__year=data_inicial_ajustada.year,
+                                     data_inicial__month=data_inicial_ajustada.month,
+                                     data_final__year=data_final_ajustada.year,
+                                     data_final__month=data_final_ajustada.month,
+                                     ).exists():
             raise serializers.ValidationError({
                 'non_field_errors': 'Referência do PAA já existe.'
-                })
+            })
 
         validated_data['data_inicial'] = data_inicial_ajustada
         validated_data['data_final'] = data_final_ajustada
@@ -58,15 +57,15 @@ class PeriodoPaaSerializer(serializers.ModelSerializer):
                 'non_field_errors': mensagem
             })
 
-        if PeriodoPaa.objects.filter(
-            referencia=referencia,
-            data_inicial__year=data_inicial_ajustada.year,
-            data_inicial__month=data_inicial_ajustada.month,
-            data_final__year=data_final_ajustada.year,
-            data_final__month=data_final_ajustada.month,).exclude(pk=self.instance.pk).exists():
+        if PeriodoPaa.objects.filter(referencia=referencia,
+                                     data_inicial__year=data_inicial_ajustada.year,
+                                     data_inicial__month=data_inicial_ajustada.month,
+                                     data_final__year=data_final_ajustada.year,
+                                     data_final__month=data_final_ajustada.month
+                                     ).exclude(pk=self.instance.pk).exists():
             raise serializers.ValidationError({
                 'non_field_errors': 'Referência do PAA já existe.'
-                })
+            })
 
         validated_data['data_inicial'] = data_inicial_ajustada
         validated_data['data_final'] = data_final_ajustada
