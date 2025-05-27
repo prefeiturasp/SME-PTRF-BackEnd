@@ -15,7 +15,7 @@ class DespesaSituacaoPatrimonialSerializer(serializers.ModelSerializer):
 
     tipo_documento = TipoDocumentoListSerializer()
     tipo_transacao = TipoTransacaoSerializer()
-    rateios = RateioSituacaoPatrimonialSerializer(many=True)
+    rateios = serializers.SerializerMethodField()
     
     periodo_referencia = serializers.SerializerMethodField(method_name="get_periodo_referencia", required=False, allow_null=True)
     
@@ -29,6 +29,17 @@ class DespesaSituacaoPatrimonialSerializer(serializers.ModelSerializer):
     class Meta:
         model = Despesa
         fields = (
-        'uuid', 'associacao', 'numero_documento', 'status', 'tipo_documento', 'data_documento', 'cpf_cnpj_fornecedor',
-        'nome_fornecedor', 'valor_total', 'valor_ptrf', 'data_transacao', 'tipo_transacao', 'documento_transacao',
-        'rateios', 'periodo_referencia')
+            'uuid', 'associacao', 'numero_documento', 'status', 'tipo_documento', 
+            'data_documento', 'cpf_cnpj_fornecedor', 'nome_fornecedor', 'valor_total', 
+            'valor_ptrf', 'data_transacao', 'tipo_transacao', 'documento_transacao',
+            'rateios', 'periodo_referencia'
+        )
+
+    def get_rateios(self, despesa):
+        rateios = despesa.rateios.all()
+        serializer = RateioSituacaoPatrimonialSerializer(
+            rateios,
+            many=True,
+            context=self.context
+        )
+        return serializer.data

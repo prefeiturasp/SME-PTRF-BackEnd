@@ -17,11 +17,28 @@ class RateioSituacaoPatrimonialSerializer(serializers.ModelSerializer):
     valor_disponivel = serializers.SerializerMethodField()
     valor_utilizado = serializers.SerializerMethodField('get_valor_utilizado')
     tipo_documento_nome = serializers.SerializerMethodField('get_tipo_documento_nome')
+    bem_produzido_rateio_uuid = serializers.SerializerMethodField()
 
     class Meta:
         model = RateioDespesa
-        fields = ['valor_disponivel', 'valor_rateio', 'valor_utilizado', 'aplicacao_recurso',
-                  'conta_associacao', 'acao_associacao', 'especificacao_material_servico', 'tipo_documento_nome']
+        fields = [
+            'bem_produzido_rateio_uuid','valor_disponivel', 'valor_rateio', 'valor_utilizado', 'aplicacao_recurso',
+            'conta_associacao', 'acao_associacao', 'especificacao_material_servico', 
+            'tipo_documento_nome'
+        ]
+
+    def get_bem_produzido_rateio_uuid(self, rateio):
+        bem_produzido_uuid = self.context.get('bem_produzido_uuid')
+        if bem_produzido_uuid:
+            try:
+                bem_produzido_rateio = BemProduzidoRateio.objects.get(
+                    bem_produzido_despesa__bem_produzido__uuid=bem_produzido_uuid,
+                    rateio=rateio
+                )
+                return str(bem_produzido_rateio.uuid)
+            except BemProduzidoRateio.DoesNotExist:
+                return None
+        return None
 
     def _get_total_utilizado(self, rateio):
         cache_attr = f'_total_utilizado_{rateio.pk}'
@@ -40,3 +57,4 @@ class RateioSituacaoPatrimonialSerializer(serializers.ModelSerializer):
 
     def get_tipo_documento_nome(self, rateio):
         return rateio.despesa.tipo_documento.nome if rateio.despesa.tipo_documento else ''
+
