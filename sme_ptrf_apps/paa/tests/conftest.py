@@ -1,12 +1,14 @@
-from datetime import date
 import pytest
+from datetime import date
 
 from django.contrib.admin.sites import site
-from rest_framework.test import APIClient
 
-from sme_ptrf_apps.paa.admin import PeriodoPaaAdmin, PaaAdmin, ParametroPaaAdmin
-from sme_ptrf_apps.paa.models import PeriodoPaa, Paa, ParametroPaa
-from datetime import date
+from sme_ptrf_apps.paa.admin import (
+    PeriodoPaaAdmin, PaaAdmin, ParametroPaaAdmin
+)
+from sme_ptrf_apps.paa.models import (
+    PeriodoPaa, Paa, ParametroPaa
+)
 
 
 @pytest.fixture

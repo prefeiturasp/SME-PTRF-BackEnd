@@ -1,4 +1,3 @@
-from datetime import date
 import json
 import pytest
 
@@ -15,8 +14,8 @@ def test_patch_sucesso(jwt_authenticated_client_sme, flag_paa, periodo_paa_1):
         "referencia": "Periodo 007 04/2025 a 10/2025"
     }
     response = jwt_authenticated_client_sme.patch(f'/api/periodos-paa/{periodo_paa_1.uuid}/',
-                                                 content_type='application/json',
-                                                 data=json.dumps(payload))
+                                                  content_type='application/json',
+                                                  data=json.dumps(payload))
 
     assert response.status_code == status.HTTP_200_OK
     periodos_paa = PeriodoPaa.objects.first()
@@ -30,8 +29,8 @@ def test_patch_erro_duplicado(jwt_authenticated_client_sme, flag_paa, periodo_pa
         "data_final": "2025-12-31"
     }
     response = jwt_authenticated_client_sme.patch(f'/api/periodos-paa/{periodo_paa_1.uuid}/',
-                                                 content_type='application/json',
-                                                 data=json.dumps(payload))
+                                                  content_type='application/json',
+                                                  data=json.dumps(payload))
 
     content = json.loads(response.content)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -46,8 +45,8 @@ def test_patch_erro_datas_mesmo_mes_e_ano(jwt_authenticated_client_sme, flag_paa
         "data_final": "2025-04-30"
     }
     response = jwt_authenticated_client_sme.patch(f'/api/periodos-paa/{periodo_paa_1.uuid}/',
-                                                 content_type='application/json',
-                                                 data=json.dumps(payload))
+                                                  content_type='application/json',
+                                                  data=json.dumps(payload))
 
     content = json.loads(response.content)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -61,8 +60,8 @@ def test_patch_erro_data_final_menor_inicial(jwt_authenticated_client_sme, flag_
         "data_final": "2025-03-30"
     }
     response = jwt_authenticated_client_sme.patch(f'/api/periodos-paa/{periodo_paa_1.uuid}/',
-                                                 content_type='application/json',
-                                                 data=json.dumps(payload))
+                                                  content_type='application/json',
+                                                  data=json.dumps(payload))
 
     content = json.loads(response.content)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -73,8 +72,8 @@ def test_patch_404(jwt_authenticated_client_sme, flag_paa, periodo_paa_1):
     payload = {
         "referencia": "Periodo 007 04/2025 a 10/2025"
     }
-    response = jwt_authenticated_client_sme.patch(f'/api/periodos-paa/b737979c-66e2-4d38-b266-652aa1f0fe5d/',
-                                                 content_type='application/json',
-                                                 data=json.dumps(payload))
+    response = jwt_authenticated_client_sme.patch('/api/periodos-paa/b737979c-66e2-4d38-b266-652aa1f0fe5d/',
+                                                  content_type='application/json',
+                                                  data=json.dumps(payload))
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
