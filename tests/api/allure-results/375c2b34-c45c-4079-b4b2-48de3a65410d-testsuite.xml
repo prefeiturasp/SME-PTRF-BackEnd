@@ -1,0 +1,29 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1708956344215' stop='1708956361672'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1708956344216' status='broken' stop='1708956361662'>
+            <name>CT03-Prestacoes_de_Contas_Recebidas_Status_Nao_Recebida</name>
+            <title>CT03-Prestacoes_de_Contas_Recebidas_Status_Nao_Recebida</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+            <failure>
+                <message>`cy.click()` can only be called on a single element. Your subject contained 5 elements. Pass `{ multiple: true }` if you want to serially click each element.
+                
+                https://on.cypress.io/click</message>
+                <stack-trace>CypressError: `cy.click()` can only be called on a single element. Your subject contained 5 elements. Pass `{ multiple: true }` if you want to serially click each element.
+                
+                https://on.cypress.io/click
+                    at mouseAction (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:111493:68)
+                    at Context.click (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:111657:14)
+                    at wrapped (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:138518:19)
+                From Your Spec Code:
+                    at AcompanhamentoPcPagina.validarPrestacoesContasRecebidasStatusNaoRecebida (webpack://cypress-ptrf/./cypress/support/Paginas/AcompanhamentoPcPagina.js:43:46)
+                    at Context.eval (webpack://cypress-ptrf/./cypress/e2e/PTRF/Acompanhamento_de_PC/CT03-Prestacoes_de_Contas_Recebidas_Status_Nao_Recebida.cy.js:27:21)</stack-trace>
+            </failure>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

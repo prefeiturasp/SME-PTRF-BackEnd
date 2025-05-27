@@ -1,0 +1,22 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1705602989041' stop='1705603034473'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1705602989041' status='failed' stop='1705603034454'>
+            <name>CT03-Geracao_Documentos_Atas_Prestacao_Contas_Previa</name>
+            <title>CT03-Geracao_Documentos_Atas_Prestacao_Contas_Previa</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+            <failure>
+                <message>Timed out retrying after 4000ms: Expected to find content: 'Voltar para ata' within the element: &lt;strong> but never did.</message>
+                <stack-trace>AssertionError: Timed out retrying after 4000ms: Expected to find content: 'Voltar para ata' within the element: &lt;strong> but never did.
+                    at PrestacaoContasElementos.eval [as botaoVoltarParaAta] (webpack://cypress-ptrf/./cypress/support/Elementos/PrestacaoContasElementos.js:16:72)
+                    at GeracaoDocumentosPagina.realizarAtasPrestacaoContasPrevia (webpack://cypress-ptrf/./cypress/support/Paginas/GeracaoDocumentosPagina.js:58:28)
+                    at Context.eval (webpack://cypress-ptrf/./cypress/e2e/PTRF/Prestacao_Contas/Geracao_Documentos/CT03-Geracao_Documentos_Atas_Prestacao_Contas_Previa.cy.js:31:24)</stack-trace>
+            </failure>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

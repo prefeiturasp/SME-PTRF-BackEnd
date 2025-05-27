@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1705602637751' stop='1705602666863'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1705602637751' status='passed' stop='1705602666862'>
+            <name>CT27-Cadastro_Gastos_Escola_Nfse_Doc_Custeio_Ptrf_Basico</name>
+            <title>CT27-Cadastro_Gastos_Escola_Nfse_Doc_Custeio_Ptrf_Basico</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

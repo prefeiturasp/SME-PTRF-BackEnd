@@ -1,0 +1,22 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1705601127281' stop='1705601146282'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1705601127282' status='failed' stop='1705601146276'>
+            <name>CT03-Prestacoes_de_Contas_Recebidas_Status_Nao_Recebida</name>
+            <title>CT03-Prestacoes_de_Contas_Recebidas_Status_Nao_Recebida</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+            <failure>
+                <message>Timed out retrying after 4000ms: Expected to find element: `:nth-child(9) > div > .btn`, but never found it.</message>
+                <stack-trace>AssertionError: Timed out retrying after 4000ms: Expected to find element: `:nth-child(9) > div > .btn`, but never found it.
+                    at AcompanhamentoPCElementos.eval [as campoAcoesRecebida] (webpack://cypress-ptrf/./cypress/support/Elementos/AcompanhamentoPcElementos.js:34:43)
+                    at AcompanhamentoPcPagina.validarPrestacoesContasRecebidasStatusNaoRecebida (webpack://cypress-ptrf/./cypress/support/Paginas/AcompanhamentoPcPagina.js:43:25)
+                    at Context.eval (webpack://cypress-ptrf/./cypress/e2e/PTRF/Acompanhamento_de_PC/CT03-Prestacoes_de_Contas_Recebidas_Status_Nao_Recebida.cy.js:27:21)</stack-trace>
+            </failure>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

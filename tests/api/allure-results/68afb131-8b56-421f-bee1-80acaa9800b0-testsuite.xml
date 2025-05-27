@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1705601929267' stop='1705601959095'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1705601929267' status='passed' stop='1705601959095'>
+            <name>CT06-Cadastro_Gastos_Escola_Comprovante_Transferencia_Contas_Bb_Custeio_Incompleto_Nao</name>
+            <title>CT06-Cadastro_Gastos_Escola_Comprovante_Transferencia_Contas_Bb_Custeio_Incompleto_Nao</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

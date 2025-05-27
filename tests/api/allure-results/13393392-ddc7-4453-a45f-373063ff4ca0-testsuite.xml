@@ -1,0 +1,25 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1705603787474' stop='1705603807749'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1705603787474' status='failed' stop='1705603807734'>
+            <name>CT15-Consulta_Gastos_Escola_Informacao_Imposto</name>
+            <title>CT15-Consulta_Gastos_Escola_Informacao_Imposto</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+            <failure>
+                <message>Timed out retrying after 4000ms: Expected to find element: `[title="Imposto"]`, but never found it. Queried from:
+                
+                              > cy.get(.ant-select-dropdown)</message>
+                <stack-trace>AssertionError: Timed out retrying after 4000ms: Expected to find element: `[title="Imposto"]`, but never found it. Queried from:
+                
+                              > cy.get(.ant-select-dropdown)
+                    at GastosEscolaPagina.selecionarInformacaoImposto (webpack://cypress-ptrf/./cypress/support/Paginas/GastosEscolaPagina.js:182:48)
+                    at Context.eval (webpack://cypress-ptrf/./cypress/e2e/PTRF/Gastos_da_Escola/Consulta/CT15-Consulta_Gastos_Escola_Informacao_Imposto.cy.js:32:11)</stack-trace>
+            </failure>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

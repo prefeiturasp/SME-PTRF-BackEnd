@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1705603334320' stop='1705603357202'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1705603334320' status='passed' stop='1705603357201'>
+            <name>CT11-Editar_Gastos_Escola_Cadastro_Estorno_Campo_Obrigatorio</name>
+            <title>CT11-Editar_Gastos_Escola_Cadastro_Estorno_Campo_Obrigatorio</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

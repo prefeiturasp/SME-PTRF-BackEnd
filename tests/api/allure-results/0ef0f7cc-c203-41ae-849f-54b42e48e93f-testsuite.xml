@@ -1,0 +1,59 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1708959366736' stop='1708959393471'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1708959366736' status='broken' stop='1708959393458'>
+            <name>CT12-Editar_Gastos_Escola_Cadastro_Estorno_Salvar_Data</name>
+            <title>CT12-Editar_Gastos_Escola_Cadastro_Estorno_Salvar_Data</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+            <failure>
+                <message>Timed out retrying after 4000ms: `cy.type()` failed because this element:
+                
+                `&lt;input data-qa="" name="data" class="form-control" value="30/09/2023" data-gtm-form-interact-field-id="0">`
+                
+                is being covered by another element:
+                
+                `&lt;div role="dialog" aria-modal="true" class="fade modal show" tabindex="-1" style="display: block;">...&lt;/div>`
+                
+                Fix this problem, or use {force: true} to disable error checking.
+                
+                https://on.cypress.io/element-cannot-be-interacted-with</message>
+                <stack-trace>CypressError: Timed out retrying after 4000ms: `cy.type()` failed because this element:
+                
+                `&lt;input data-qa="" name="data" class="form-control" value="30/09/2023" data-gtm-form-interact-field-id="0">`
+                
+                is being covered by another element:
+                
+                `&lt;div role="dialog" aria-modal="true" class="fade modal show" tabindex="-1" style="display: block;">...&lt;/div>`
+                
+                Fix this problem, or use {force: true} to disable error checking.
+                
+                https://on.cypress.io/element-cannot-be-interacted-with
+                    at ensureIsDescendent (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:111897:68)
+                    at ensureDescendents (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:111948:5)
+                    at ensureDescendentsAndScroll (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:111954:14)
+                    at ensureElIsNotCovered (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:112085:5)
+                    at runAllChecks (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:112284:52)
+                    at retryActionability (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:112321:16)
+                    at tryCatcher (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1807:23)
+                    at Promise.attempt.Promise.try (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:4315:29)
+                    at whenStable (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:144144:68)
+                    at &lt;unknown> (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:144085:14)
+                    at tryCatcher (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1807:23)
+                    at Promise._settlePromiseFromHandler (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1519:31)
+                    at Promise._settlePromise (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1576:18)
+                    at Promise._settlePromise0 (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1621:10)
+                    at Promise._settlePromises (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1701:18)
+                    at Promise._fulfill (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1645:18)
+                    at &lt;unknown> (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:5450:46)
+                From Your Spec Code:
+                    at GastosEscolaPagina.realizaEdicaoGastosEscolaCadastroEstornoSalvarData (webpack://cypress-ptrf/./cypress/support/Paginas/GastosEscolaPagina.js:1495:37)
+                    at Context.eval (webpack://cypress-ptrf/./cypress/e2e/PTRF/Gastos_da_Escola/Editar_Gastos_Escola/CT12-Editar_Gastos_Escola_Cadastro_Estorno_Salvar_Data.cy.js:30:11)</stack-trace>
+            </failure>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

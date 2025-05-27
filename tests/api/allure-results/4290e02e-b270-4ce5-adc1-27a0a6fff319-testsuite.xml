@@ -1,0 +1,22 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1708957542365' stop='1708957572416'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1708957542365' status='failed' stop='1708957572403'>
+            <name>CT18-Cadastro_Gastos_Escola_Cupom_Fiscal_Capital_Salas_Espacos_Leitura</name>
+            <title>CT18-Cadastro_Gastos_Escola_Cupom_Fiscal_Capital_Salas_Espacos_Leitura</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+            <failure>
+                <message>Timed out retrying after 4000ms: Expected to find element: `[data-qa="modal-checar-despesa-existente-btn-Sim, salvar"]`, but never found it.</message>
+                <stack-trace>AssertionError: Timed out retrying after 4000ms: Expected to find element: `[data-qa="modal-checar-despesa-existente-btn-Sim, salvar"]`, but never found it.
+                    at GastosEscolaElementos.eval [as botaoDespesaCastradaSim] (webpack://cypress-ptrf/./cypress/support/Elementos/GastosEscolaElementos.js:23:48)
+                    at GastosEscolaPagina.validarCadastroDespesaCupomFiscalCapitalSalasEspacosLeitura (webpack://cypress-ptrf/./cypress/support/Paginas/GastosEscolaPagina.js:874:15)
+                    at Context.eval (webpack://cypress-ptrf/./cypress/e2e/PTRF/Gastos_da_Escola/Cadastro/CT18-Cadastro_Gastos_Escola_Cupom_Fiscal_Capital_Salas_Espacos_Leitura.cy.js:32:11)</stack-trace>
+            </failure>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

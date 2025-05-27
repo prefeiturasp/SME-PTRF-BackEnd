@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1708959789305' stop='1708959810411'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1708959789305' status='passed' stop='1708959810411'>
+            <name>CT03-Consulta_Mais_Filtros_Estorno_Cartao</name>
+            <title>CT03-Consulta_Mais_Filtros_Estorno_Cartao</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1708957094363' stop='1708957122581'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1708957094363' status='passed' stop='1708957122578'>
+            <name>CT04-Cadastro_Gastos_Escola_Comprovante_Tributos_Tarifas_Material_Complementar</name>
+            <title>CT04-Cadastro_Gastos_Escola_Comprovante_Tributos_Tarifas_Material_Complementar</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

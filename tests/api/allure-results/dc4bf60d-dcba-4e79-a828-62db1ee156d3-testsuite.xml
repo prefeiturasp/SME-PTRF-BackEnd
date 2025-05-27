@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1705601665778' stop='1705601702005'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1705601665778' status='passed' stop='1705601702004'>
+            <name>CT01-Editar_Cadastro_de_Credito_Rendimento</name>
+            <title>CT01-Editar_Cadastro_de_Credito_Rendimento</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1708959417394' stop='1708959440304'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1708959417395' status='passed' stop='1708959440303'>
+            <name>CT02-Geracao_Documentos_Relacao_Bens_Adquiridos_Ou_Produzidos_Previa</name>
+            <title>CT02-Geracao_Documentos_Relacao_Bens_Adquiridos_Ou_Produzidos_Previa</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

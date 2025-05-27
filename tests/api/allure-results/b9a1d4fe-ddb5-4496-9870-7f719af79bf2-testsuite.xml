@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1705601010789' stop='1705601021380'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1705601010789' status='passed' stop='1705601021379'>
+            <name>CT07-Parametrizacao-PesquisarPeriodo</name>
+            <title>CT07-Parametrizacao-PesquisarPeriodo</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1708956363864' stop='1708956384077'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1708956363864' status='passed' stop='1708956384076'>
+            <name>CT04-Prestacoes_de_Contas_Recebidas_Status_Pc_Analisar</name>
+            <title>CT04-Prestacoes_de_Contas_Recebidas_Status_Pc_Analisar</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

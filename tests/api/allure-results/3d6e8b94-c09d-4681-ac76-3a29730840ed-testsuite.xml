@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1705601597185' stop='1705601628658'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1705601597185' status='passed' stop='1705601628658'>
+            <name>CT08-Cadastro_de_Credito_Repasse_Valor_Custeio</name>
+            <title>CT08-Cadastro_de_Credito_Repasse_Valor_Custeio</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

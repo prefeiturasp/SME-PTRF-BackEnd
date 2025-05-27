@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1708958085831' stop='1708958110667'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1708958085831' status='passed' stop='1708958110664'>
+            <name>CT34-Cadastro_Gastos_Escola_Incompleto_Boletim_Ocorrencia_Nao_Preenchido</name>
+            <title>CT34-Cadastro_Gastos_Escola_Incompleto_Boletim_Ocorrencia_Nao_Preenchido</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

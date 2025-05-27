@@ -1,0 +1,66 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1708959442239' stop='1708959481937'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1708959442239' status='broken' stop='1708959481919'>
+            <name>CT03-Geracao_Documentos_Atas_Prestacao_Contas_Previa</name>
+            <title>CT03-Geracao_Documentos_Atas_Prestacao_Contas_Previa</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+            <failure>
+                <message>`cy.type()` failed because it requires a valid typeable element.
+                
+                The element typed into was:
+                
+                  > `&lt;div class="col-3">...&lt;/div>`
+                
+                  A typeable element matches one of the following selectors:
+                  `a[href]`
+                  `area[href]`
+                  `input`
+                  `select`
+                  `textarea`
+                  `button`
+                  `iframe`
+                  `[tabindex]`
+                  `[contenteditable]`
+                
+                https://on.cypress.io/type</message>
+                <stack-trace>CypressError: `cy.type()` failed because it requires a valid typeable element.
+                
+                The element typed into was:
+                
+                  > `&lt;div class="col-3">...&lt;/div>`
+                
+                  A typeable element matches one of the following selectors:
+                  `a[href]`
+                  `area[href]`
+                  `input`
+                  `select`
+                  `textarea`
+                  `button`
+                  `iframe`
+                  `[tabindex]`
+                  `[contenteditable]`
+                
+                https://on.cypress.io/type
+                    at &lt;unknown> (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:114746:76)
+                    at tryCatcher (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1807:23)
+                    at Promise._settlePromiseFromHandler (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1519:31)
+                    at Promise._settlePromise (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1576:18)
+                    at Promise._settlePromise0 (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1621:10)
+                    at Promise._settlePromises (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1701:18)
+                    at _drainQueueStep (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:2407:12)
+                    at _drainQueue (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:2400:9)
+                    at Async._drainQueues (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:2416:5)
+                    at Async.drainQueues (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:2286:14)
+                From Your Spec Code:
+                    at GeracaoDocumentosPagina.realizarAtasPrestacaoContasPrevia (webpack://cypress-ptrf/./cypress/support/Paginas/GeracaoDocumentosPagina.js:53:78)
+                    at Context.eval (webpack://cypress-ptrf/./cypress/e2e/PTRF/Prestacao_Contas/Geracao_Documentos/CT03-Geracao_Documentos_Atas_Prestacao_Contas_Previa.cy.js:31:24)</stack-trace>
+            </failure>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

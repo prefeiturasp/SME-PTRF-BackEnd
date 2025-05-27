@@ -1,0 +1,29 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1705603566846' stop='1705603577720'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1705603566847' status='broken' stop='1705603577708'>
+            <name>CT07-Consulta_Gastos_Escola_Acao_Ptrf</name>
+            <title>CT07-Consulta_Gastos_Escola_Acao_Ptrf</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+            <failure>
+                <message>`cy.select()` can only be called on a `&lt;select>`. Your subject is a: `&lt;input type="text" name="login" id="login" class="form-control " maxlength="60" value="08596150498" data-gtm-form-interact-field-id="0">`
+                
+                https://on.cypress.io/select</message>
+                <stack-trace>CypressError: `cy.select()` can only be called on a `&lt;select>`. Your subject is a: `&lt;input type="text" name="login" id="login" class="form-control " maxlength="60" value="08596150498" data-gtm-form-interact-field-id="0">`
+                
+                https://on.cypress.io/select
+                    at Context.select (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:113063:70)
+                    at wrapped (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:138518:19)
+                From Your Spec Code:
+                    at ComumElementosPTRF.eval [as selecaoCeuVilaAlpina] (webpack://cypress-ptrf/./cypress/support/Elementos/ComumElementosPTRF.js:13:69)
+                    at ComumPaginaPTRF.selecionarCeuVilaAlpina (webpack://cypress-ptrf/./cypress/support/Paginas/ComumPaginaPTRF.js:41:14)
+                    at Context.eval (webpack://cypress-ptrf/./cypress/e2e/PTRF/Gastos_da_Escola/Consulta/CT07-Consulta_Gastos_Escola_Acao_Ptrf.cy.js:26:10)</stack-trace>
+            </failure>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

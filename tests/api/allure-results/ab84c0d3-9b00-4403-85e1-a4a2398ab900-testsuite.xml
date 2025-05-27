@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1705602262745' stop='1705602289256'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1705602262746' status='passed' stop='1705602289255'>
+            <name>CT16-Cadastro_Gastos_Escola_Cupom_Fiscal_Transferencia_Contas_Bb_Custeio_Incompleto_Nao</name>
+            <title>CT16-Cadastro_Gastos_Escola_Cupom_Fiscal_Transferencia_Contas_Bb_Custeio_Incompleto_Nao</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

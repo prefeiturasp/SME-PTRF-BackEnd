@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1705604740094' stop='1705604761074'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1705604740095' status='passed' stop='1705604761073'>
+            <name>CT04-Consulta_Mais_Filtros_Recurso_Externo_Cheque</name>
+            <title>CT04-Consulta_Mais_Filtros_Recurso_Externo_Cheque</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

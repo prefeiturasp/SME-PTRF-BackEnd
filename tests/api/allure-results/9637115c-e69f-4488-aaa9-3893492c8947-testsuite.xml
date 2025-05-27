@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1708957914004' stop='1708957947926'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1708957914005' status='passed' stop='1708957947926'>
+            <name>CT29-Cadastro_Gastos_Escola_Danfe_Cheque_Capital_Ptrf_Basico</name>
+            <title>CT29-Cadastro_Gastos_Escola_Danfe_Cheque_Capital_Ptrf_Basico</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

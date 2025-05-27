@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1708956581553' stop='1708956614335'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1708956581553' status='passed' stop='1708956614333'>
+            <name>CT03-Cadastro_de_Credito_Rendimento_Cheque_Livre_Aplicacao</name>
+            <title>CT03-Cadastro_de_Credito_Rendimento_Cheque_Livre_Aplicacao</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

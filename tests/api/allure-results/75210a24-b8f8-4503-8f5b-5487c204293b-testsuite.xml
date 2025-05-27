@@ -1,0 +1,48 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1708956386214' stop='1708956409089'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1708956386214' status='broken' stop='1708956409076'>
+            <name>CT05-Prestacoes_de_Contas_Em_Analise_Status_Recebida</name>
+            <title>CT05-Prestacoes_de_Contas_Em_Analise_Status_Recebida</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+            <failure>
+                <message>Timed out retrying after 4050ms: `cy.click()` failed because it requires a DOM element, window or document.
+                
+                No elements in the current DOM matched your query:
+                
+                  > cy.get(.modal-footer > .btn-success).contains(Confirmar)</message>
+                <stack-trace>CypressError: Timed out retrying after 4050ms: `cy.click()` failed because it requires a DOM element, window or document.
+                
+                No elements in the current DOM matched your query:
+                
+                  > cy.get(.modal-footer > .btn-success).contains(Confirmar)
+                    at isElement (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:145361:62)
+                    at validateType (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:145219:14)
+                    at Object.isType (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:145250:7)
+                    at Array.&lt;anonymous> (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:132492:22)
+                    at $Cy.getSubjectFromChain (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:139017:34)
+                    at _actionability__WEBPACK_IMPORTED_MODULE_6__.default.verify.subjectFn (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:111606:51)
+                    at retryActionability (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:112309:27)
+                    at tryCatcher (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1807:23)
+                    at Promise.attempt.Promise.try (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:4315:29)
+                    at whenStable (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:144144:68)
+                    at &lt;unknown> (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:144085:14)
+                    at tryCatcher (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1807:23)
+                    at Promise._settlePromiseFromHandler (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1519:31)
+                    at Promise._settlePromise (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1576:18)
+                    at Promise._settlePromise0 (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1621:10)
+                    at Promise._settlePromises (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1701:18)
+                    at Promise._fulfill (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:1645:18)
+                    at &lt;unknown> (https://test-sig-escola.sme.prefeitura.sp.gov.br/__cypress/runner/cypress_runner.js:5450:46)
+                From Your Spec Code:
+                    at AcompanhamentoPcPagina.validarPrestacoesContasEmAnaliseStatusRecebida (webpack://cypress-ptrf/./cypress/support/Paginas/AcompanhamentoPcPagina.js:73:49)
+                    at Context.eval (webpack://cypress-ptrf/./cypress/e2e/PTRF/Acompanhamento_de_PC/CT05-Prestacoes_de_Contas_Em_Analise_Status_Recebida.cy.js:27:21)</stack-trace>
+            </failure>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

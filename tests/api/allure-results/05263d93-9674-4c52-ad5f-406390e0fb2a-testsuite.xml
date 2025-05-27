@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1705603906206' stop='1705603935850'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1705603906206' status='passed' stop='1705603935848'>
+            <name>CT19-Consulta_Gastos_Escola_Informacao_Sem_Comprovacao_Fiscal</name>
+            <title>CT19-Consulta_Gastos_Escola_Informacao_Sem_Comprovacao_Fiscal</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

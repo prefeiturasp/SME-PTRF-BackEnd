@@ -1,0 +1,15 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1705603508535' stop='1705603535034'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1705603508535' status='passed' stop='1705603535033'>
+            <name>CT05-Consulta_Gastos_Escola_Aplicacao_Capital</name>
+            <title>CT05-Consulta_Gastos_Escola_Aplicacao_Capital</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>

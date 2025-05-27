@@ -1,0 +1,22 @@
+<?xml version='1.0'?>
+<ns2:test-suite xmlns:ns2='urn:model.allure.qatools.yandex.ru' start='1705601239949' stop='1705601258476'>
+    <name>PTRF</name>
+    <title>PTRF</title>
+    <test-cases>
+        <test-case start='1705601239949' status='failed' stop='1705601258471'>
+            <name>CT08-Prestacoes_de_Contas_Em_Analise_Status_Reprovar</name>
+            <title>CT08-Prestacoes_de_Contas_Em_Analise_Status_Reprovar</title>
+            <labels/>
+            <parameters/>
+            <steps/>
+            <attachments/>
+            <failure>
+                <message>Timed out retrying after 4000ms: Expected to find element: `:nth-child(1) > :nth-child(9) > div > .btn`, but never found it.</message>
+                <stack-trace>AssertionError: Timed out retrying after 4000ms: Expected to find element: `:nth-child(1) > :nth-child(9) > div > .btn`, but never found it.
+                    at AcompanhamentoPCElementos.eval [as campoAcoesEmAnalise] (webpack://cypress-ptrf/./cypress/support/Elementos/AcompanhamentoPcElementos.js:35:44)
+                    at AcompanhamentoPcPagina.validarPrestacoesContasEmAnaliseStatusReprovar (webpack://cypress-ptrf/./cypress/support/Paginas/AcompanhamentoPcPagina.js:119:25)
+                    at Context.eval (webpack://cypress-ptrf/./cypress/e2e/PTRF/Acompanhamento_de_PC/CT08-Prestacoes_de_Contas_Em_Analise_Status_Reprovar.cy.js:27:21)</stack-trace>
+            </failure>
+        </test-case>
+    </test-cases>
+</ns2:test-suite>
