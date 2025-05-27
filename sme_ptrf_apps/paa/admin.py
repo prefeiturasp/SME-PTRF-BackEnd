@@ -94,7 +94,7 @@ class RecursoProprioPaaAdmin(admin.ModelAdmin):
     list_display = ('fonte_recurso', 'associacao', 'data_prevista', 'descricao', 'valor',)
     search_fields = ('fonte_recurso__nome', 'associacao__nome',)
     list_filter = ('associacao',)
-    raw_id_fields = ('paa','associacao', 'fonte_recurso')
+    raw_id_fields = ('paa', 'associacao', 'fonte_recurso')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 

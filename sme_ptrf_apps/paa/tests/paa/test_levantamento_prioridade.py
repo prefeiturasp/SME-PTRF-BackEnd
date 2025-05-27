@@ -1,6 +1,8 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from django.http import HttpResponse
+from rest_framework import status
+
 from sme_ptrf_apps.paa.services.paa_service import PaaService
 
 
@@ -24,3 +26,15 @@ def test_gerar_arquivo_pdf_levantamento_prioridades_paa():
         assert response["Content-Type"] == "application/pdf"
         assert response["Content-Disposition"] == 'attachment; filename="paa_levantamento_prioridades.pdf"'
         assert response.content == b"mocked_pdf_content"
+
+
+@pytest.mark.django_db
+def test_get_download(jwt_authenticated_client_sme, flag_paa, associacao):
+    response = jwt_authenticated_client_sme.get(
+        f'/api/paa/download-pdf-levantamento-prioridades/?associacao_uuid={associacao.uuid}')
+
+    assert response.status_code == status.HTTP_200_OK
+    assert [t[1] for t in list(response.items()) if t[0] ==
+            'Content-Disposition'][0] == 'attachment; filename="paa_levantamento_prioridades.pdf"'
+    assert [t[1] for t in list(response.items()) if t[0] ==
+            'Content-Type'][0] == 'application/pdf'

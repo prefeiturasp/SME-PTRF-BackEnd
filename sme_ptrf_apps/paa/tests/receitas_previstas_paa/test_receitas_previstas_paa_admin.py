@@ -12,7 +12,7 @@ def test_search_fields(receitas_previstas_paa_admin):
 
 
 def test_raw_id_fields(receitas_previstas_paa_admin):
-    assert receitas_previstas_paa_admin.raw_id_fields == ('acao_associacao',)
+    assert receitas_previstas_paa_admin.raw_id_fields == ('acao_associacao', 'paa')
 
 
 def test_list_filter(receitas_previstas_paa_admin):
