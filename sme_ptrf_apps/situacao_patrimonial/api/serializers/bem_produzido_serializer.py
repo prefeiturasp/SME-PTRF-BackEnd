@@ -3,6 +3,7 @@ from rest_framework import serializers
 from django.db.models import Sum
 from sme_ptrf_apps.despesas.api.serializers.especificacao_material_servico_serializer import EspecificacaoMaterialServicoSerializer
 from sme_ptrf_apps.despesas.models.despesa import Despesa
+from sme_ptrf_apps.despesas.models.rateio_despesa import RateioDespesa
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido, BemProduzidoDespesa, BemProduzidoRateio
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.situacao_patrimonial.api.serializers.bem_produzido_despesa_serializer import BemProduzidoDespesaSerializer
@@ -16,25 +17,30 @@ class BemProduzidoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BemProduzido
-        fields = ('uuid','associacao', 'num_processo_incorporacao', 'quantidade', 'valor_individual', 'status', 'despesas', 'especificacao_do_bem')
+        fields = ('uuid', 'associacao', 'num_processo_incorporacao', 'quantidade',
+                  'valor_individual', 'status', 'despesas', 'especificacao_do_bem')
         read_only_fields = ['despesas']
-        
+
     def get_despesas(self, obj):
         despesas = obj.despesas.all()
         serializer = BemProduzidoDespesaSerializer(
-            despesas, 
+            despesas,
             many=True,
             context={'bem_produzido_uuid': obj.uuid}
         )
         return serializer.data
-        
+
+
 class RateioUpdateSerializer(serializers.Serializer):
-    uuid = serializers.UUIDField()
+    uuid = serializers.SlugRelatedField(queryset=RateioDespesa.objects.all(), slug_field='uuid')
+    bem_produzido_despesa = serializers.SlugRelatedField(queryset=BemProduzidoDespesa.objects.all(), slug_field='uuid')
     valor_utilizado = serializers.DecimalField(max_digits=12, decimal_places=2)
+
 
 class BemProduzidoCreateSerializer(serializers.ModelSerializer):
     associacao = serializers.SlugRelatedField(queryset=Associacao.objects.all(), slug_field='uuid')
-    especificacao_do_bem = serializers.SlugRelatedField(queryset=EspecificacaoMaterialServico.objects.all(), slug_field='uuid', required=False, allow_null=True)
+    especificacao_do_bem = serializers.SlugRelatedField(
+        queryset=EspecificacaoMaterialServico.objects.all(), slug_field='uuid', required=False, allow_null=True)
     despesas = serializers.ListField(
         child=serializers.UUIDField(),
         write_only=True
@@ -70,7 +76,7 @@ class BemProduzidoCreateSerializer(serializers.ModelSerializer):
                 bem_produzido=bem_produzido,
                 despesa=despesa
             )
-            
+
             rateios = despesa.rateios.all()
 
             for rateio in rateios:
@@ -81,7 +87,7 @@ class BemProduzidoCreateSerializer(serializers.ModelSerializer):
                 )
 
         return bem_produzido
-    
+
     from django.db.models import Sum
 
     def update(self, instance, validated_data):
@@ -93,7 +99,10 @@ class BemProduzidoCreateSerializer(serializers.ModelSerializer):
 
         for rateio_info in rateios_data:
             try:
-                rateio_instance = BemProduzidoRateio.objects.get(uuid=rateio_info['uuid'])
+                rateio_instance, _ = BemProduzidoRateio.objects.get_or_create(
+                    rateio=rateio_info['uuid'],
+                    bem_produzido_despesa=rateio_info['bem_produzido_despesa']
+                )
 
                 total_utilizado = BemProduzidoRateio.objects.filter(
                     rateio=rateio_instance.rateio
