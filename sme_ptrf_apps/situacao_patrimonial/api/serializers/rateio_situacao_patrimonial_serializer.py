@@ -1,14 +1,12 @@
 from rest_framework import serializers
-
 from django.db.models import Sum
 
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoSerializer
-from sme_ptrf_apps.core.models.associacao import Associacao
 from sme_ptrf_apps.despesas.api.serializers.especificacao_material_servico_serializer import EspecificacaoMaterialServicoSerializer
-from sme_ptrf_apps.despesas.api.serializers.tipo_custeio_serializer import TipoCusteioSerializer
 from sme_ptrf_apps.despesas.models.rateio_despesa import RateioDespesa
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoRateio
+
 
 class RateioSituacaoPatrimonialSerializer(serializers.ModelSerializer):
     conta_associacao = ContaAssociacaoSerializer()
@@ -22,8 +20,8 @@ class RateioSituacaoPatrimonialSerializer(serializers.ModelSerializer):
     class Meta:
         model = RateioDespesa
         fields = [
-            'bem_produzido_rateio_uuid','valor_disponivel', 'valor_rateio', 'valor_utilizado', 'aplicacao_recurso',
-            'conta_associacao', 'acao_associacao', 'especificacao_material_servico', 
+            'uuid', 'bem_produzido_rateio_uuid', 'valor_disponivel', 'valor_rateio', 'valor_utilizado', 'aplicacao_recurso',
+            'conta_associacao', 'acao_associacao', 'especificacao_material_servico',
             'tipo_documento_nome'
         ]
 
@@ -57,4 +55,3 @@ class RateioSituacaoPatrimonialSerializer(serializers.ModelSerializer):
 
     def get_tipo_documento_nome(self, rateio):
         return rateio.despesa.tipo_documento.nome if rateio.despesa.tipo_documento else ''
-
