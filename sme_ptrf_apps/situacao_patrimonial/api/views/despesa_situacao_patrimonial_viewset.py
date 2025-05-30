@@ -132,4 +132,4 @@ class DespesaSituacaoPatrimonialViewSet(WaffleFlagMixin, ModelViewSet):
             ).filter(restante__gt=0)
         )
 
-        return qs
+        return qs.distinct("uuid")
