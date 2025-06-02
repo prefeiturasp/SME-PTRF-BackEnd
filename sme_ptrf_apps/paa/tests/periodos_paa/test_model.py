@@ -10,7 +10,6 @@ def test_periodo_vigente(periodo_paa_1, periodo_paa_2):
 
 
 def test_validacao_datas():
-    
     with pytest.raises(ValidationError) as e:
         PeriodoPaa.objects.create(
             referencia="Periodo 01/2025 a 03/2025",
@@ -21,7 +20,6 @@ def test_validacao_datas():
 
 
 def test_validacao_data_final():
-    
     with pytest.raises(ValidationError) as e:
         PeriodoPaa.objects.create(
             referencia="Periodo 01/2025 a 03/2025",
