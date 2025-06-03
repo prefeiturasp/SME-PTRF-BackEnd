@@ -1,5 +1,4 @@
-from datetime import date, timedelta
-from dateutil.relativedelta import relativedelta
+from datetime import date
 import json
 import pytest
 
