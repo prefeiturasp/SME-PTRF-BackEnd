@@ -37,6 +37,22 @@ Você pode encontrar mais informações sobre o projeto e instruções detalhada
 
 ---
 
+### 🤖 Comandos Makefile
+Além dos comandos `make` neste documento, é possível obter mais detalhes no comando abaixo:
+
+    $ make help
+
+Para executar comandos no modo Docker:
+    
+    $ make <comando> MODE=docker
+
+Para executar comandos no modo Local:
+    
+    $ make <comando>
+
+---
+
+
 ### 🔧 Configuração do Ambiente
 
 #### 1. Criar arquivo `ENV`
@@ -98,29 +114,29 @@ PGADMIN_DEFAULT_PASSWORD=
 
 - Subir o driver de rede do arquivo `docker-compose.yml`:
 
-    $ docker network create ptrf-network
+        $ docker network create ptrf-network
 
 - Subir o container de Banco de Dados:
 
-    $ docker-compose up -d db
+        $ make up-db
 
 - Para confirmar se o banco de dados subiu corretamente, o container será listado no console:
 
-    $ docker-compose ps
+        $ make ps
 
 ##### 2.4 Execução de migrations:
 Aplicar as migrações no banco de dados:
 
-    $ python manage.py migrate
+    $ make migrate
 
 ##### 2.5 Coleção de arquivos estáticos:
 
-    $ python manage.py collectstatic
+    $ make collect
 
 ##### 2.6 Criação de superusuário:
 Após o comando abaixo, será exigida a senha e a confirmação de senha para o usuário admin
 
-    $ python manage.py createsuperuser --username=admin --email=admin@admin.com
+    $ make superuser
 
 ##### 2.7 Execução de Celery
 Execução local do Celery Worker
@@ -138,7 +154,7 @@ Importante: Certifique-se de que esteja no mesmo diretório do arquivo *manage.p
 
 
 ##### 2.8 Executa o servidor:
-    $ python manage.py runserver
+    $ make run
 
 O Django Admin ficará acessível em [localhost](`http://localhost:8000/admin/`)
 
@@ -158,19 +174,19 @@ REDIS_URL=redis://redis_ptrf:6379/0
 ##### 3.2 Criação de Superusuário
 Se necessário, para criar superusuário com o backend executando em container:
 ```shell
-docker-compose exec api_ptrf python manage.py createsuperuser --username=admin --email=admin@admin.com
+make superuser MODE=docker
 ```
 De forma similar ao tópico `2.6`, será exigido a senha e a confirmação de senha para o superusuário.
 
 ##### 3.3 Subir os container`s
 ```shell
-docker-compose build
-docker-compose up
+make build
+make up
 ```
 
 Também é possível verificar se todos os container`s subiram corretamente.
 ```shell
-docker-compose ps
+make ps
 ```
 Deverá listar os services `api-ptrf`, `db`, `redis_ptrf` e `celery_ptrf`.
 
@@ -183,9 +199,18 @@ Observe que, conforme a porta definida no `docker-compose.yml`, a aplicação es
 #### 4. Execução de testes unitários
 
 ##### 4.1 Cobertura de testes com relatório.
-    $ coverage run -m pytest
-    $ coverage html
-    $ open htmlcov/index.html
+Executar a cobertura:
+
+    $ make coverage
+
+Gerar o relatório HTML. O relatório de cobertura dos testes podem ser visualizados no arquivo `index.html` da pasta `htmlcov` (na raiz do projeto).
+
+    $ make coverage-html 
+
+Gerar o relatório no próprio terminal:
+
+    $ make coverage-report
+
 
 ##### 4.2 Execução de testes sem cobertura.
     $ pytest

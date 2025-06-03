@@ -14,4 +14,3 @@ def test_get_parametro_mes(jwt_authenticated_client_sme, flag_paa, parametro_paa
     assert response.status_code == status.HTTP_200_OK
     assert 'detail' in content
     assert content['detail'] == parametro_paa.mes_elaboracao_paa
-

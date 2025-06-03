@@ -39,7 +39,7 @@ class PaaSerializer(serializers.ModelSerializer):
         if existe_paa:
             raise serializers.ValidationError({
                 'non_field_errors': ['Já existe um PAA para a Associação informada.']
-                })
+            })
 
         instance = super().create(validated_data)
         return instance
