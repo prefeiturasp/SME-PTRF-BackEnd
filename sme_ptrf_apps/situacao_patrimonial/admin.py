@@ -15,7 +15,7 @@ class BemProduzidoRateioInline(admin.TabularInline):
 @admin.register(BemProduzido)
 class BemProduzidoAdmin(admin.ModelAdmin):
     list_display = [
-        'id',
+        '__str__',
         'status',
         'especificacao_do_bem',
         'num_processo_incorporacao',
@@ -36,6 +36,7 @@ class BemProduzidoAdmin(admin.ModelAdmin):
 @admin.register(BemProduzidoDespesa)
 class BemProduzidoDespesaAdmin(admin.ModelAdmin):
     list_display = [
+        '__str__',
         'id',
         'despesa',
     ]
@@ -47,3 +48,18 @@ class BemProduzidoDespesaAdmin(admin.ModelAdmin):
 
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     inlines = [BemProduzidoRateioInline, ]
+
+@admin.register(BemProduzidoRateio)
+class BemProduzidoRateioAdmin(admin.ModelAdmin):
+    list_display = [
+        '__str__',
+        'id',
+        'rateio',
+    ]
+
+    raw_id_fields = (
+        'rateio',
+        'bem_produzido_despesa'
+    )
+
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')

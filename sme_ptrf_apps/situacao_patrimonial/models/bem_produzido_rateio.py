@@ -30,4 +30,4 @@ class BemProduzidoRateio(ModeloBase):
         verbose_name_plural = 'Rateios de despesa de bem produzido'
 
     def __str__(self):
-        return f"Rateio {self.rateio.id} da despesa do bem produzido {self.bem_produzido_despesa}"
+        return f"Rateio {self.id} - ({self.rateio.id}) da {self.bem_produzido_despesa}"
