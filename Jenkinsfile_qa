@@ -49,14 +49,17 @@ pipeline {
 
         stage('Executar') {
             steps {
-                script {
-                    sh '''
-                        NO_COLOR=1 npx cypress run \
-                            --headless \
-                            --spec cypress/e2e/**/* \
-                            --reporter mocha-allure-reporter \
-                            --browser chrome
-                    '''
+                dir("${CONFIG_PATH}") {
+                    script {
+                        sh '''
+                            NO_COLOR=1 npx cypress run \
+                                --headless \
+                                --config-file ../../cypress.config.js \
+                                --spec cypress/e2e/**/* \
+                                --reporter mocha-allure-reporter \
+                                --browser chrome
+                        '''
+                    }
                 }
             }
         }
