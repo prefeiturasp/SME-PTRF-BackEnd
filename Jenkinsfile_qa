@@ -16,7 +16,7 @@ pipeline {
 
     environment {
         WORKSPACE_DIR = "${env.WORKSPACE}"
-        TEST_DIR = "SME-PTRF-BackEnd/tests/api/cypress"
+        TEST_DIR = "tests/api/cypress"
     }
 
     stages {
