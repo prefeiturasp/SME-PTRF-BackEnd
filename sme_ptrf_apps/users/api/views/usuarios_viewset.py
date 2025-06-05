@@ -18,7 +18,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import SearchFilter
 
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiResponse
 
 from brazilnum.cpf import format_cpf
 
@@ -173,7 +173,8 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
             if visao_consulta == 'DRE':
                 unidades_da_dre = Unidade.dres.get(
                     uuid=uuid_unidade_base).unidades_da_dre.values_list("uuid", flat=True)
-                return qs.filter(Q(unidades__uuid=uuid_unidade_base) | Q(unidades__uuid__in=unidades_da_dre)).distinct('name', 'id')
+                return qs.filter(
+                    Q(unidades__uuid=uuid_unidade_base) | Q(unidades__uuid__in=unidades_da_dre)).distinct('name', 'id')
 
     @extend_schema(parameters=[
         OpenApiParameter(
@@ -334,7 +335,8 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
 
     # TODO Extrair validações para um serializer
     @extend_schema(request=None)
-    @action(detail=True, methods=['put'], url_path=f'remover-acessos-unidade-base/(?P<unidade_uuid>{UUID_OR_SME_REGEX})')
+    @action(detail=True, methods=['put'],
+            url_path=f'remover-acessos-unidade-base/(?P<unidade_uuid>{UUID_OR_SME_REGEX})')
     def remover_acessos(self, request, unidade_uuid, id=None):
         usuario = self.get_object()
         unidade = None
@@ -362,6 +364,18 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
                 logger.error('Erro ao remover acessos: %r', e)
                 return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='username', description='username do Usuário', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='uuid_unidade', description='UUID da Unidade', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='visao_base', description='Visão', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=["SME", "DRE", "UE"]),
+        ],
+        responses={200: OpenApiTypes.OBJECT},
+        description="Retorna lista de unidades do usuários."
+    )
     @action(detail=False, methods=['get'], url_path='unidades-do-usuario')
     def unidades_do_usuario(self, request):
         from ....core.models import Unidade
@@ -420,6 +434,27 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
 
         return Response(response, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='username', description='username do Usuário', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='search', description='Pesquisa pelo código EOL ou nome da Unidade', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'tipo_unidade': {'type': 'string'},
+                        'nome': {'type': 'string'},
+                    },
+                }
+            }
+        )},
+        description="Retorna lista de unidades disponíveis para inclusão do usuários."
+    )
     @action(detail=False, methods=['get'], url_path='unidades-disponiveis-para-inclusao')
     def unidades_disponiveis_para_inclusao(self, request):
         from sme_ptrf_apps.users.api.validations.usuario_validations import UnidadesDisponiveisInclusaoSerializer
@@ -486,13 +521,15 @@ def pode_acessar_unidade(username, e_servidor, visao_base, unidade, flag_histori
                 return False, 'Servidor em exercício em outra unidade.', info_exercicio
 
         if visao_base == 'UE':
-            e_membro_associacao = eh_membro_associacao(visao_base, username, unidade, eh_servidor=True, flag_historico_de_membros=flag_historico_de_membros)
+            e_membro_associacao = eh_membro_associacao(
+                visao_base, username, unidade, eh_servidor=True, flag_historico_de_membros=flag_historico_de_membros)
 
             em_exercicio_na_unidade = unidade_servidor == unidade.codigo_eol
 
             if not em_exercicio_na_unidade and e_membro_associacao:
                 logger.info('Servidor é membro da associação da unidade, mas não está em exercício nesta unidade.')
-                return False, 'O usuário é membro da associação, porém não está em exercício nesta unidade. Favor entrar em contato com a DRE.', info_exercicio
+                return False, ('O usuário é membro da associação, porém não está em exercício nesta unidade. '
+                               'Favor entrar em contato com a DRE.'), info_exercicio
 
             if not em_exercicio_na_unidade and not e_membro_associacao:
                 logger.info('Servidor não está em exercício nesta unidade e não é membro da associação.')
@@ -512,7 +549,8 @@ def pode_acessar_unidade(username, e_servidor, visao_base, unidade, flag_histori
             'UE': 'Usuário não é membro da associação.',
         }
 
-        e_membro_associacao = eh_membro_associacao(visao_base, codigo_membro, unidade, eh_servidor=False, flag_historico_de_membros=flag_historico_de_membros)
+        e_membro_associacao = eh_membro_associacao(
+            visao_base, codigo_membro, unidade, eh_servidor=False, flag_historico_de_membros=flag_historico_de_membros)
 
         if not e_membro_associacao and visao_base in mensagens_nao_membro:
             return False, mensagens_nao_membro[visao_base], ''
@@ -559,9 +597,10 @@ def eh_membro_associacao_v2(visao_base, codigo_membro, unidade, eh_servidor):
     if visao_base == 'DRE':
         return CargoComposicao.objects.filter(
             ocupante_do_cargo__cpf_responsavel=codigo_membro,
-            composicao__associacao__unidade__codigo_eol__in=unidade.unidades_da_dre.values_list("codigo_eol", flat=True),
-            data_inicio_no_cargo__lte = datetime.date.today(),
-            data_fim_no_cargo__gte = datetime.date.today()
+            composicao__associacao__unidade__codigo_eol__in=unidade.unidades_da_dre.values_list(
+                "codigo_eol", flat=True),
+            data_inicio_no_cargo__lte=datetime.date.today(),
+            data_fim_no_cargo__gte=datetime.date.today()
         ).exists()
 
     if visao_base == 'SME':
@@ -602,6 +641,7 @@ def eh_membro_associacao_v1(visao_base, codigo_membro, unidade, eh_servidor):
         return MembroAssociacao.objects.filter(cpf=codigo_membro).exists()
 
     return False
+
 
 # TODO Mover para um service
 # TODO Criar testes unitários
