@@ -15,8 +15,8 @@ pipeline {
     }
 
     environment {
-        TEST_DIR = 'SME-PTRF-BackEnd/tests/api/cypress'
-        CONFIG_PATH = 'SME-PTRF-BackEnd/tests/api/cypress.config.js'
+        TEST_DIR = 'tests/api/cypress'
+        CONFIG_PATH = 'tests/api/cypress.config.js'
         WORKSPACE_DIR = "${env.WORKSPACE}"
     }
 
