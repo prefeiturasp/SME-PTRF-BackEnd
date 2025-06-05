@@ -53,6 +53,7 @@ pipeline {
                         sh '''
                             NO_COLOR=1 npx cypress run \
                                 --headless \
+                                --config-file cypress.config.js \
                                 --spec cypress/e2e/**/* \
                                 --reporter mocha-allure-reporter \
                                 --browser chrome
@@ -61,6 +62,7 @@ pipeline {
                 }
             }
         }
+
 
         stage('Generate Allure Report') {
             steps {
