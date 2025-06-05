@@ -15,7 +15,7 @@ pipeline {
     }
 
     environment {
-        TEST_DIR = 'tests/api/cypress'
+        TEST_DIR = 'tests/api'
         CONFIG_PATH = 'tests/api/cypress.config.js'
         WORKSPACE_DIR = "${env.WORKSPACE}"
     }
