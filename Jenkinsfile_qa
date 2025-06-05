@@ -15,8 +15,9 @@ pipeline {
     }
 
     environment {
+        TEST_DIR = 'SME-PTRF-BackEnd/tests/api/cypress'
+        CONFIG_PATH = 'SME-PTRF-BackEnd/tests/api/cypress.config.js'
         WORKSPACE_DIR = "${env.WORKSPACE}"
-        TEST_DIR = "tests/api/cypress"
     }
 
     stages {
@@ -53,7 +54,7 @@ pipeline {
                         sh '''
                             NO_COLOR=1 npx cypress run \
                                 --headless \
-                                --config-file cypress.config.js \
+                                --config-file ../../cypress.config.js \
                                 --spec cypress/e2e/**/* \
                                 --reporter mocha-allure-reporter \
                                 --browser chrome
@@ -62,7 +63,6 @@ pipeline {
                 }
             }
         }
-
 
         stage('Generate Allure Report') {
             steps {
@@ -114,7 +114,7 @@ pipeline {
         }
 
         aborted {
-            sendTelegram ("😥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Aborted \nLog: \n${env.BUILD_URL}console")
+            sendTelegram("😥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Aborted \nLog: \n${env.BUILD_URL}console")
         }
     }
 }
