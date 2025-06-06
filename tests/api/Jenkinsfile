@@ -16,6 +16,8 @@ pipeline {
 
     environment {
         WORKSPACE_DIR = "${env.WORKSPACE}" // Pega dinamicamente o path correto
+        TEST_DIR = 'tests/api'
+
     }
 
     stages {
@@ -28,7 +30,7 @@ pipeline {
         stage('Instalar Dependências') {
             steps {
                 script {
-                    dir('tests/api') {
+                    dir("${TEST_DIR}") {
                     sh '''
                         rm -rf node_modules package-lock.json
                         npm cache clean --force
@@ -49,14 +51,14 @@ pipeline {
         stage('Executar') {
             steps {
                 script {
-                    dir('tests/api') {
-                    sh '''
-                        NO_COLOR=1 npx cypress run \
-                            --headless \
-                            --spec cypress/e2e/**/* \
-                            --reporter mocha-allure-reporter \
-                            --browser chrome                    '''
-                    }
+                    dir("${TEST_DIR}") {
+                        sh '''
+                            NO_COLOR=1 npx cypress run \
+                                --headless \
+                                --spec cypress/e2e/**/* \
+                                --reporter mocha-allure-reporter \
+                                --browser chrome                    '''
+                        }
                 }
             }
         }
@@ -64,20 +66,22 @@ pipeline {
         stage('Generate Allure Report') {
             steps {
                 script {
-                    sh '''
-                        java -version
-                        export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
-                        export PATH=$JAVA_HOME/bin:/usr/local/bin:$PATH
-                        echo "JAVA_HOME=$JAVA_HOME"
-                        echo "PATH=$PATH"
-                        npm install -g allure-commandline --save-dev
-                        chmod -R 777 $WORKSPACE_DIR/allure-results || true
-                        allure generate $WORKSPACE_DIR/allure-results --clean --output $WORKSPACE_DIR/allure-report
-                        if [ -f $WORKSPACE_DIR/allure-report.zip ]; then
-                            rm -f $WORKSPACE_DIR/allure-report.zip
-                        fi
-                        cd $WORKSPACE_DIR && zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
-                    '''
+                    dir("${TEST_DIR}") {
+                        sh '''
+                            java -version
+                            export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+                            export PATH=$JAVA_HOME/bin:/usr/local/bin:$PATH
+                            echo "JAVA_HOME=$JAVA_HOME"
+                            echo "PATH=$PATH"
+                            npm install -g allure-commandline --save-dev
+                            chmod -R 777 $WORKSPACE_DIR/allure-results || true
+                            allure generate $WORKSPACE_DIR/allure-results --clean --output $WORKSPACE_DIR/allure-report
+                            if [ -f $WORKSPACE_DIR/allure-report.zip ]; then
+                                rm -f $WORKSPACE_DIR/allure-report.zip
+                            fi
+                            cd $WORKSPACE_DIR && zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
+                        '''
+                    }
                 }
             }
         }
