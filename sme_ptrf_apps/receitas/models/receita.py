@@ -88,7 +88,7 @@ class Receita(ModeloBase):
     motivos_estorno = models.ManyToManyField('MotivoEstorno', blank=True, related_name='receitas_do_motivo')
 
     outros_motivos_estorno = models.TextField('Outros motivos para estorno', blank=True,
-                                                           default='')
+                                              default='')
 
     status = models.CharField(
         'status',
@@ -169,13 +169,17 @@ class Receita(ModeloBase):
 
     @classmethod
     def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None,
-                                               categoria_receita=None):
-        if periodo.data_fim_realizacao_despesas:
+                                               categoria_receita=None, data_fim=None):
+        if data_fim:
             dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
-                data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
+                data__gte=periodo.data_inicio_realizacao_despesas, data__lte=data_fim, )
         else:
-            dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
-                data__gte=periodo.data_inicio_realizacao_despesas)
+            if periodo.data_fim_realizacao_despesas:
+                dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
+                    data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
+            else:
+                dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
+                    data__gte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:
             dataset = dataset.filter(conferido=conferido)
