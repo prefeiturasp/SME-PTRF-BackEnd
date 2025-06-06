@@ -1,5 +1,9 @@
+from django.db import transaction
 from django.core.exceptions import ValidationError
-from ..models import Associacao, AcaoAssociacao
+from sme_ptrf_apps.core.models import Associacao, AcaoAssociacao
+from sme_ptrf_apps.core.models.periodo import Periodo
+from sme_ptrf_apps.paa.models import ReceitaPrevistaPaa
+from sme_ptrf_apps.core.services.resumo_rescursos_service import ResumoRecursosService
 
 
 def associacoes_nao_vinculadas_a_acao(acao):
@@ -20,19 +24,74 @@ def validate_acao_associacao(associacao, acao, instance=None):
 
 
 def obter_saldos_periodo_atual(acao_associacao):
-    from sme_ptrf_apps.core.services.painel_resumo_recursos_service import PainelResumoRecursosService
-    from ..models import Periodo
-
     periodo = Periodo.periodo_atual()
-    painel = PainelResumoRecursosService.painel_resumo_recursos(
-        acao_associacao.associacao,
-        periodo
+
+    resumo = ResumoRecursosService.resumo_recursos(
+        periodo=periodo,
+        acao_associacao=acao_associacao,
     )
-    info_da_acao_associacao = next(filter(lambda x: x.acao_associacao_uuid == acao_associacao.uuid, painel.info_acoes), None)
-    saldos = {}
-    saldos["saldo_atual_total"] = info_da_acao_associacao.saldo_atual_total
-    saldos["saldo_atual_capital"] = info_da_acao_associacao.saldo_atual_capital
-    saldos["saldo_atual_custeio"] = info_da_acao_associacao.saldo_atual_custeio
-    saldos["saldo_atual_livre"] = info_da_acao_associacao.saldo_atual_livre
+
+    saldos = {
+        "saldo_atual_custeio": resumo.saldo_posterior.total_custeio,
+        "saldo_atual_capital": resumo.saldo_posterior.total_capital,
+        "saldo_atual_livre": resumo.saldo_posterior.total_livre,
+    }
 
     return saldos
+
+
+class SaldosPorAcaoPaaService:
+    def __init__(self, paa, associacao):
+        self.paa = paa
+        self.associacao = associacao
+
+    @transaction.atomic
+    def descongelar_saldos(self):
+        self.paa.set_descongelar_saldo()
+
+        receitas_previstas = []
+        acoes_associacao = Associacao.acoes_da_associacao(associacao_uuid=self.associacao.uuid)
+
+        for acao in acoes_associacao:
+            receita_prevista, _ = ReceitaPrevistaPaa.objects.update_or_create(
+                paa=self.paa,
+                acao_associacao=acao,
+                defaults={
+                    "saldo_congelado_custeio": None,
+                    "saldo_congelado_capital": None,
+                    "saldo_congelado_livre": None,
+                }
+            )
+
+            receitas_previstas.append(receita_prevista)
+
+        return receitas_previstas
+
+    @transaction.atomic
+    def congelar_saldos(self):
+        self.paa.set_congelar_saldo()
+        self.periodo = Periodo.da_data(self.paa.saldo_congelado_em)
+
+        receitas_previstas = []
+        acoes_associacao = Associacao.acoes_da_associacao(associacao_uuid=self.associacao.uuid)
+
+        for acao in acoes_associacao:
+            resumo = ResumoRecursosService.resumo_recursos(
+                periodo=self.periodo,
+                acao_associacao=acao,
+                data_fim=self.paa.saldo_congelado_em
+            )
+
+            receita_prevista, _ = ReceitaPrevistaPaa.objects.update_or_create(
+                paa=self.paa,
+                acao_associacao=acao,
+                defaults={
+                    "saldo_congelado_custeio": resumo.saldo_posterior.total_custeio,
+                    "saldo_congelado_capital": resumo.saldo_posterior.total_capital,
+                    "saldo_congelado_livre": resumo.saldo_posterior.total_livre,
+                }
+            )
+
+            receitas_previstas.append(receita_prevista)
+
+        return receitas_previstas
