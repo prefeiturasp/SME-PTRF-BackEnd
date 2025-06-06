@@ -60,8 +60,7 @@ pipeline {
                                 --config-file ../../cypress.config.js \
                                 --spec cypress/e2e/**/* \
                                 --reporter mocha-allure-reporter \
-                                --browser chrome \
-                                --config-file tests/api/cypress.config.js
+                                --browser chrome
                         '''
                     }
                 }
