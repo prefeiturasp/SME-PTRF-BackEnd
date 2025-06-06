@@ -74,8 +74,8 @@ pipeline {
                             echo "JAVA_HOME=$JAVA_HOME"
                             echo "PATH=$PATH"
                             npm install -g allure-commandline --save-dev
-                            chmod -R 777 $WORKSPACE_DIR/$TEST_DIR/allure-results || true
-                            allure generate $WORKSPACE_DIR/$TEST_DIR/allure-results --clean --output $WORKSPACE_DIR/tests/api/allure-report
+                            chmod -R 777 $WORKSPACE_DIR/tests/api/allure-results || true
+                            allure generate $WORKSPACE_DIR/tests/api/allure-results --clean --output $WORKSPACE_DIR/tests/api/allure-report
                             if [ -f $WORKSPACE_DIR/tests/api/allure-report.zip ]; then
                                 rm -f $WORKSPACE_DIR/tests/api/allure-report.zip
                             fi
