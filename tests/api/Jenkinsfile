@@ -40,9 +40,6 @@ pipeline {
                         npm install
                         npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev
                         echo "Listando arquivos em $(pwd):"
-                        ls -l
-                        echo "Listando arquivos em tests/api:"
-                        echo "Listando arquivos em tests/api/cypress:"
                     '''
                     }
                 }
@@ -52,6 +49,7 @@ pipeline {
         stage('Executar') {
             steps {
                 script {
+                    dir('tests/api') {
                     sh '''
                         NO_COLOR=1 npx cypress run \
                             --headless \
@@ -60,6 +58,7 @@ pipeline {
                             --browser chrome \
                             --config-file tests/api/cypress.config.js
                     '''
+                    }
                 }
             }
         }
