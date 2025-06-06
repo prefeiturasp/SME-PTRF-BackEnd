@@ -28,6 +28,7 @@ pipeline {
         stage('Instalar Dependências') {
             steps {
                 script {
+                    dir('tests/api') {
                     sh '''
                         rm -rf node_modules package-lock.json
                         npm cache clean --force
@@ -44,8 +45,8 @@ pipeline {
                         ls -l tests/api
                         echo "Listando arquivos em tests/api/cypress:"
                         ls -l tests/api/cypress
-                        --config-file tests/api/cypress.config.js
                     '''
+                    }
                 }
             }
         }
@@ -59,6 +60,7 @@ pipeline {
                             --spec cypress/e2e/**/* \
                             --reporter mocha-allure-reporter \
                             --browser chrome \
+                            --config-file tests/api/cypress.config.js
                     '''
                 }
             }
