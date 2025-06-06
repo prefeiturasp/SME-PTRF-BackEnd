@@ -22,4 +22,4 @@ class BemProduzidoDespesa(ModeloBase):
         verbose_name_plural = 'Despesas de bens produzidos'
 
     def __str__(self):
-        return f"Despesa {self.despesa.id} do bem produzido {self.bem_produzido}"
+        return f"Despesa {self.id} - ({self.despesa.id}) do {self.bem_produzido}"

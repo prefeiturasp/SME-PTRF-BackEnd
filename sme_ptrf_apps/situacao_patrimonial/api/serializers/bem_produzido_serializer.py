@@ -72,19 +72,10 @@ class BemProduzidoCreateSerializer(serializers.ModelSerializer):
         despesas = Despesa.objects.filter(uuid__in=despesas_uuids)
 
         for despesa in despesas:
-            bem_produzido_despesa = BemProduzidoDespesa.objects.create(
+            BemProduzidoDespesa.objects.create(
                 bem_produzido=bem_produzido,
                 despesa=despesa
             )
-
-            rateios = despesa.rateios.all()
-
-            for rateio in rateios:
-                BemProduzidoRateio.objects.create(
-                    bem_produzido_despesa=bem_produzido_despesa,
-                    rateio=rateio,
-                    valor_utilizado=0
-                )
 
         return bem_produzido
 
