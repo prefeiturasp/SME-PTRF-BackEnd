@@ -74,12 +74,12 @@ pipeline {
                             echo "JAVA_HOME=$JAVA_HOME"
                             echo "PATH=$PATH"
                             npm install -g allure-commandline --save-dev
-                            chmod -R 777 $WORKSPACE_DIR/allure-results || true
-                            allure generate $WORKSPACE_DIR/allure-results --clean --output $WORKSPACE_DIR/allure-report
-                            if [ -f $WORKSPACE_DIR/allure-report.zip ]; then
-                                rm -f $WORKSPACE_DIR/allure-report.zip
+                            chmod -R 777 $WORKSPACE_DIR/$TEST_DIR/allure-results || true
+                            allure generate $WORKSPACE_DIR/$TEST_DIR/allure-results --clean --output $WORKSPACE_DIR/$TEST_DIR/allure-report
+                            if [ -f $WORKSPACE_DIR/$TEST_DIR/allure-report.zip ]; then
+                                rm -f $WORKSPACE_DIR/$TEST_DIR/allure-report.zip
                             fi
-                            cd $WORKSPACE_DIR && zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
+                            cd $WORKSPACE_DIR/$TEST_DIR && zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
                         '''
                     }
                 }
@@ -90,7 +90,7 @@ pipeline {
     post {
         always {
             script {
-                sh 'chmod -R 777 $WORKSPACE_DIR'
+                sh 'chmod -R 777 $WORKSPACE_DIR/$TEST_DIR'
                 if (currentBuild.result == 'SUCCESS' || currentBuild.result == 'FAILURE') {
                     allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
                     archiveArtifacts artifacts: 'allure-results-*.zip', fingerprint: true
