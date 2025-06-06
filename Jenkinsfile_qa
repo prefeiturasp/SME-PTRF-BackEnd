@@ -52,7 +52,7 @@ pipeline {
 
         stage('Executar') {
             steps {
-                dir("${CONFIG_PATH}") {
+                dir("${TEST_DIR}") {
                     script {
                         sh '''
                             NO_COLOR=1 npx cypress run \
