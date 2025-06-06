@@ -47,13 +47,17 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        NO_COLOR=1 npx cypress run \
-                            --headless \
-                            --spec cypress/e2e/**/* \
-                            --reporter mocha-allure-reporter \
-                            --browser chrome \
-                            --config-file tests/api/cypress.config.js
-                    '''
+                    echo "Listando arquivos em $(pwd):"
+                    ls -l
+                    echo "Listando arquivos em tests/api:"
+                    ls -l tests/api
+                    echo "Listando arquivos em tests/api/cypress:"
+                    ls -l tests/api/cypress
+                    NO_COLOR=1 npx cypress run \
+                        --headless \
+                        --spec cypress/e2e/**/* \
+                        --reporter mocha-allure-reporter \
+                        --browser chrome                    '''
                 }
             }
         }
