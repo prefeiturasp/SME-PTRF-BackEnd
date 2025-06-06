@@ -52,18 +52,18 @@ pipeline {
 
         stage('Executar') {
             steps {
-                dir("${CONFIG_PATH}") {
+                // dir("${TEST_DIR}") {
                     script {
                         sh '''
                             NO_COLOR=1 npx cypress run \
                                 --headless \
-                                --config-file ../../cypress.config.js \
+                                --config-file tests/api/cypress.config.js \
                                 --spec cypress/e2e/**/* \
                                 --reporter mocha-allure-reporter \
-                                --browser chrome
+                                --browser chrome \
                         '''
                     }
-                }
+                // }
             }
         }
 
