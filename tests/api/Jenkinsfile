@@ -15,8 +15,7 @@ pipeline {
     }
 
     environment {
-        WORKSPACE_DIR = "/home/jenkins/agent/workspace/PTRF-Testes-backend/tests/api/"
-        // WORKSPACE_DIR = "${env.WORKSPACE}" // Pega dinamicamente o path correto
+        WORKSPACE_DIR = "${env.WORKSPACE}" // Pega dinamicamente o path correto
     }
 
     stages {
@@ -47,15 +46,14 @@ pipeline {
         stage('Executar') {
             steps {
                 script {
-                    // dir('tests/api') {
-                        sh '''
-                            NO_COLOR=1 npx cypress run \
-                                --headless \
-                                --spec cypress/e2e/**/* \
-                                --reporter mocha-allure-reporter \
-                                --browser chrome
-                        '''
-                    // }
+                    sh '''
+                        NO_COLOR=1 npx cypress run \
+                            --headless \
+                            --spec cypress/e2e/**/* \
+                            --reporter mocha-allure-reporter \
+                            --browser chrome \
+                            --config-file tests/api/cypress.config.js
+                    '''
                 }
             }
         }
