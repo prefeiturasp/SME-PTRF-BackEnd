@@ -41,6 +41,12 @@ pipeline {
                             apt update && apt install -y default-jre openjdk-17-jdk zip
                             npm install
                             npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev
+                            echo "Listando arquivos em $(pwd):"
+                            ls -l
+                            echo "Listando arquivos em tests/api:"
+                            ls -l tests/api
+                            echo "Listando arquivos em tests/api/cypress:"
+                            ls -l tests/api/cypress
                         '''
                     }
                 }
@@ -57,7 +63,8 @@ pipeline {
                                 --config-file ../../cypress.config.js \
                                 --spec cypress/e2e/**/* \
                                 --reporter mocha-allure-reporter \
-                                --browser chrome
+                                --browser chrome \
+                                --config-file tests/api/cypress.config.js
                         '''
                     }
                 }
