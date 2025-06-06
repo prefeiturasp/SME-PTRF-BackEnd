@@ -42,9 +42,7 @@ pipeline {
                         echo "Listando arquivos em $(pwd):"
                         ls -l
                         echo "Listando arquivos em tests/api:"
-                        ls -l tests/api
                         echo "Listando arquivos em tests/api/cypress:"
-                        ls -l tests/api/cypress
                     '''
                     }
                 }
