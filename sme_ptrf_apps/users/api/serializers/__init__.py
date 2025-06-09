@@ -17,4 +17,5 @@ from .usuario_serializer import (
 
 from .grupo_serializer import (
     GrupoSerializer,
+    DocAPIResponseGruposSerializer
 )
