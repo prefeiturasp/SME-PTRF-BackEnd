@@ -25,7 +25,7 @@ def test_retrieve_acao_associacao(
             'saldo_atual_capital': 0.0,
             'saldo_atual_custeio': 0.0,
             'saldo_atual_livre': 0.0,
-            'saldo_atual_total': 0.0
+
         },
         'associacao': {
             'uuid': f'{acao_associacao.associacao.uuid}',
@@ -62,6 +62,7 @@ def test_retrieve_acao_associacao(
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
 
+
 def test_retrieve_acao_associacao_saldo_atual(
     jwt_authenticated_client_a,
     acao_associacao_charli_bravo_000086_x
@@ -71,7 +72,6 @@ def test_retrieve_acao_associacao_saldo_atual(
         content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
-    assert 'saldo_atual_total' in response.data
     assert 'saldo_atual_capital' in response.data
     assert 'saldo_atual_custeio' in response.data
     assert 'saldo_atual_livre' in response.data

@@ -13,3 +13,6 @@ def test_receita_prevista_serializer_list_serializer(receita_prevista_paa):
     assert 'previsao_valor_custeio' in serializer.data
     assert 'previsao_valor_capital' in serializer.data
     assert 'previsao_valor_livre' in serializer.data
+    assert 'saldo_congelado_custeio' in serializer.data
+    assert 'saldo_congelado_capital' in serializer.data
+    assert 'saldo_congelado_livre' in serializer.data
