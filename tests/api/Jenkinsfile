@@ -69,7 +69,7 @@ pipeline {
                     dir("${TEST_DIR}") {
                         sh '''
                             echo "Conteúdo de allure-results:"
-                            ls -l allure-results || echo "Diretório não existe"
+                            ls -l /tests/api/allure-results || echo "Diretório não existe"
                             java -version
                             export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
                             export PATH=$JAVA_HOME/bin:/usr/local/bin:$PATH
@@ -92,10 +92,10 @@ pipeline {
     post {
         always {
             script {
-                sh 'chmod -R 777 $WORKSPACE_DIR/$TEST_DIR'
+                sh 'chmod -R 777 $WORKSPACE_DIR/tests/api/'
                 if (currentBuild.result == 'SUCCESS' || currentBuild.result == 'FAILURE') {
-                    allure includeProperties: false, jdk: '', results: [[path: '$TEST_DIR/allure-results']]
-                    archiveArtifacts artifacts: 'allure-results-*.zip', fingerprint: true
+                    allure includeProperties: false, jdk: '', results: [[path: '/tests/api/allure-results']]
+                    archiveArtifacts artifacts: '/tests/api/allure-results-*.zip', fingerprint: true
                 }
             }
         }
