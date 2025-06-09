@@ -21,7 +21,7 @@ from sme_ptrf_apps.paa.api.serializers.paa_serializer import PaaSerializer
 from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
 from sme_ptrf_apps.paa.models import Paa
 from sme_ptrf_apps.core.models import Associacao
-from sme_ptrf_apps.core.services.acoes_associacoes_service import SaldosPorAcaoPaaService
+from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
 
 logger = logging.getLogger(__name__)
 
