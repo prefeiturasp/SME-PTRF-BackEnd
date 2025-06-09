@@ -66,10 +66,10 @@ pipeline {
         stage('Generate Allure Report') {
             steps {
                 script {
-                    dir("${TEST_DIR}") {
+                    // dir("${TEST_DIR}") {
                         sh '''
                             echo "Conteúdo de allure-results:"
-                            ls -l /tests/api/allure-results || echo "Diretório não existe"
+                            ls -l allure-results || echo "Diretório não existe"
                             java -version
                             export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
                             export PATH=$JAVA_HOME/bin:/usr/local/bin:$PATH
@@ -83,7 +83,7 @@ pipeline {
                             fi
                             cd $WORKSPACE_DIR/tests/api && zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
                         '''
-                    }
+                    // }
                 }
             }
         }
