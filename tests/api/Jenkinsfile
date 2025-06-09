@@ -68,6 +68,8 @@ pipeline {
                 script {
                     dir("${TEST_DIR}") {
                         sh '''
+                            echo "Conteúdo de allure-results:"
+                            ls -l allure-results || echo "Diretório não existe"
                             java -version
                             export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
                             export PATH=$JAVA_HOME/bin:/usr/local/bin:$PATH
