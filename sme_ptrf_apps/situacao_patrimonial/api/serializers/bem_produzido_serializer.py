@@ -1,24 +1,21 @@
+from decimal import Decimal
 from rest_framework import serializers
 
 from django.db.models import Sum
-from sme_ptrf_apps.despesas.api.serializers.especificacao_material_servico_serializer import EspecificacaoMaterialServicoSerializer
 from sme_ptrf_apps.despesas.models.despesa import Despesa
 from sme_ptrf_apps.despesas.models.rateio_despesa import RateioDespesa
-from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido, BemProduzidoDespesa, BemProduzidoRateio
+from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido, BemProduzidoDespesa, BemProduzidoItem, BemProduzidoRateio
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.situacao_patrimonial.api.serializers.bem_produzido_despesa_serializer import BemProduzidoDespesaSerializer
-from sme_ptrf_apps.despesas.models import EspecificacaoMaterialServico
 
 
 class BemProduzidoSerializer(serializers.ModelSerializer):
     associacao = serializers.SlugRelatedField(queryset=Associacao.objects.all(), slug_field='uuid')
-    especificacao_do_bem = EspecificacaoMaterialServicoSerializer(read_only=True)
     despesas = serializers.SerializerMethodField()
 
     class Meta:
         model = BemProduzido
-        fields = ('uuid', 'associacao', 'num_processo_incorporacao', 'quantidade',
-                  'valor_individual', 'status', 'despesas', 'especificacao_do_bem')
+        fields = ('uuid', 'associacao', 'status', 'despesas')
         read_only_fields = ['despesas']
 
     def get_despesas(self, obj):
@@ -36,28 +33,31 @@ class RateioUpdateSerializer(serializers.Serializer):
     bem_produzido_despesa = serializers.SlugRelatedField(queryset=BemProduzidoDespesa.objects.all(), slug_field='uuid')
     valor_utilizado = serializers.DecimalField(max_digits=12, decimal_places=2)
 
+class RecursoProprioSerializer(serializers.Serializer):
+    valor_recurso_proprio_utilizado = serializers.DecimalField(max_digits=10, decimal_places=2)
+    bem_produzido_despesa = serializers.UUIDField()
+
 
 class BemProduzidoCreateSerializer(serializers.ModelSerializer):
     associacao = serializers.SlugRelatedField(queryset=Associacao.objects.all(), slug_field='uuid')
-    especificacao_do_bem = serializers.SlugRelatedField(
-        queryset=EspecificacaoMaterialServico.objects.all(), slug_field='uuid', required=False, allow_null=True)
+    
     despesas = serializers.ListField(
         child=serializers.UUIDField(),
         write_only=True
     )
+
     rateios = RateioUpdateSerializer(many=True, write_only=True, required=False)
+    
+    recurso_proprio = RecursoProprioSerializer(many=True, write_only=True, required=False)
 
     class Meta:
         model = BemProduzido
         fields = (
             'uuid',
             'associacao',
-            'num_processo_incorporacao',
-            'quantidade',
-            'valor_individual',
-            'especificacao_do_bem',
             'despesas',
-            'rateios'
+            'rateios',
+            'recurso_proprio'
         )
 
     def create(self, validated_data):
@@ -77,12 +77,17 @@ class BemProduzidoCreateSerializer(serializers.ModelSerializer):
                 despesa=despesa
             )
 
+        BemProduzidoItem.objects.create(
+            bem_produzido=bem_produzido,
+        )
+
         return bem_produzido
 
     from django.db.models import Sum
 
     def update(self, instance, validated_data):
         rateios_data = validated_data.pop('rateios', [])
+        recursos_proprios_data = validated_data.pop('recurso_proprio', [])
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -103,7 +108,7 @@ class BemProduzidoCreateSerializer(serializers.ModelSerializer):
 
                 valor_disponivel = rateio_instance.rateio.valor_rateio - total_utilizado
 
-                if rateio_info['valor_utilizado'] > valor_disponivel:
+                if Decimal(str(rateio_info['valor_utilizado'])) > valor_disponivel:
                     raise serializers.ValidationError(
                         f"O valor utilizado ({rateio_info['valor_utilizado']}) excede o valor disponível ({valor_disponivel}) para o rateio {rateio_info['uuid']}."
                     )
@@ -112,5 +117,34 @@ class BemProduzidoCreateSerializer(serializers.ModelSerializer):
                 rateio_instance.save()
             except BemProduzidoRateio.DoesNotExist:
                 raise serializers.ValidationError(f"BemProduzidoRateio com UUID {rateio_info['uuid']} não encontrado.")
+
+        for recurso_data in recursos_proprios_data:
+            try:
+                bem = BemProduzidoDespesa.objects.get(uuid=recurso_data['bem_produzido_despesa'])
+
+                valor_a_utilizar = Decimal(str(recurso_data['valor_recurso_proprio_utilizado']))
+
+                # Soma de todos os recursos próprios utilizados relacionados à mesma despesa, exceto este bem
+                soma_outros = BemProduzidoDespesa.objects.filter(
+                    despesa=bem.despesa
+                ).exclude(uuid=bem.uuid).aggregate(
+                    total=Sum('valor_recurso_proprio_utilizado')
+                )['total'] or Decimal('0.00')
+
+                valor_total_utilizado = soma_outros + valor_a_utilizar
+
+                if valor_total_utilizado > bem.despesa.valor_recursos_proprios:
+                    raise serializers.ValidationError(
+                        f"O valor total de recurso próprio utilizado ({valor_total_utilizado}) excede o valor disponível "
+                        f"({bem.despesa.valor_recursos_proprios}) para a despesa {bem.despesa.uuid}."
+                    )
+
+                bem.valor_recurso_proprio_utilizado = valor_a_utilizar
+                bem.save()
+
+            except BemProduzidoDespesa.DoesNotExist:
+                raise serializers.ValidationError(
+                    f"BemProduzidoDespesa com UUID {recurso_data['bem_produzido_despesa']} não encontrado."
+                )
 
         return instance
