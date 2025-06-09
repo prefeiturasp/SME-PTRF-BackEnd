@@ -3,7 +3,7 @@ import logging
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from requests import ConnectTimeout, ReadTimeout
-from rest_framework import serializers, status, exceptions
+from rest_framework import serializers, status
 from rest_framework.fields import SerializerMethodField
 from rest_framework.response import Response
 
@@ -78,6 +78,7 @@ class UserSerializer(serializers.ModelSerializer):
     def get_url(self, instance):
         path = reverse("api:usuarios-detail", kwargs={"id": instance.id})
         return self.context["request"].build_absolute_uri(path)
+
 
 class UserRetrieveSerializer(serializers.ModelSerializer):
     visoes = VisaoSerializer(many=True)
