@@ -17,6 +17,7 @@ pipeline {
     environment {
         TEST_DIR = 'tests/api'
         CONFIG_PATH = 'tests/api/cypress.config.js'
+        EXEC_PATH = 'tests/api/cypress'
         WORKSPACE_DIR = "${env.WORKSPACE}"
     }
 
@@ -41,9 +42,6 @@ pipeline {
                             apt update && apt install -y default-jre openjdk-17-jdk zip
                             npm install
                             npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev
-                            echo "Listando arquivos em $(pwd):"
-                            ls -l
-                            echo "Listando arquivos em tests/api:"
                         '''
                     }
                 }
@@ -52,18 +50,18 @@ pipeline {
 
         stage('Executar') {
             steps {
-                // dir("${TEST_DIR}") {
+                dir("${CONFIG_PATH}") {
                     script {
                         sh '''
                             NO_COLOR=1 npx cypress run \
                                 --headless \
-                                --config-file tests/api/cypress.config.js \
+                                --config-file ../../cypress.config.js \
                                 --spec cypress/e2e/**/* \
                                 --reporter mocha-allure-reporter \
-                                --browser chrome \
+                                --browser chrome
                         '''
                     }
-                // }
+                }
             }
         }
 
@@ -77,17 +75,18 @@ pipeline {
                         echo "JAVA_HOME=$JAVA_HOME"
                         echo "PATH=$PATH"
                         npm install -g allure-commandline --save-dev
-                        chmod -R 777 $WORKSPACE_DIR/allure-results || true
-                        allure generate $WORKSPACE_DIR/allure-results --clean --output $WORKSPACE_DIR/allure-report
-                        if [ -f $WORKSPACE_DIR/allure-report.zip ]; then
-                            rm -f $WORKSPACE_DIR/allure-report.zip
+                        chmod -R 777 $WORKSPACE/allure-results || true
+                        allure generate $WORKSPACE/allure-results --clean --output $WORKSPACE/allure-report
+                        if [ -f $WORKSPACE/allure-report.zip ]; then
+                            rm -f $WORKSPACE/allure-report.zip
                         fi
-                        cd $WORKSPACE_DIR && zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
+                        cd $WORKSPACE && zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
                     '''
                 }
             }
         }
     }
+
 
 //     post {
 //         always {
