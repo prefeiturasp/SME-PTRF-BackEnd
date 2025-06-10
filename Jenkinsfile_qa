@@ -74,18 +74,22 @@ pipeline {
                         export PATH=$JAVA_HOME/bin:/usr/local/bin:$PATH
                         echo "JAVA_HOME=$JAVA_HOME"
                         echo "PATH=$PATH"
-                        npm install -g allure-commandline --save-dev
-                        chmod -R 777 $WORKSPACE/allure-results || true
-                        allure generate $WORKSPACE/allure-results --clean --output $WORKSPACE/allure-report
-                        if [ -f $WORKSPACE/allure-report.zip ]; then
-                            rm -f $WORKSPACE/allure-report.zip
+
+                        npm install -g allure-commandline
+
+                        chmod -R 777 tests/api/allure-results || true
+
+                        allure generate tests/api/allure-results --clean --output tests/api/allure-report
+
+                        if [ -f SME-PTRF-BackEnd/tests/api/allure-report.zip ]; then
+                            rm -f SME-PTRF-BackEnd/tests/api/allure-report.zip
                         fi
-                        cd $WORKSPACE && zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
+
+                        cd tests/api && zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
                     '''
                 }
             }
         }
-    }
 
 
 //     post {
