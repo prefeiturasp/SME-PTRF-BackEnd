@@ -77,19 +77,23 @@ pipeline {
 
                         npm install -g allure-commandline
 
-                        chmod -R 777 tests/api/allure-results || true
+                        # Copia os resultados para o local esperado
+                        mkdir -p allure-results
+                        cp -r SME-PTRF-BackEnd/tests/api/allure-results/* allure-results/
 
-                        allure generate tests/api/allure-results --clean --output tests/api/allure-report
+                        # Gera o relatório
+                        allure generate allure-results --clean --output allure-report
 
-                        if [ -f SME-PTRF-BackEnd/tests/api/allure-report.zip ]; then
-                            rm -f SME-PTRF-BackEnd/tests/api/allure-report.zip
-                        fi
-
-                        cd tests/api && zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
+                        # Compacta os resultados, se quiser
+                        zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
                     '''
                 }
             }
         }
+
+    }
+
+
 
 
 //     post {
