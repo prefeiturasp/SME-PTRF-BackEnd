@@ -17,20 +17,14 @@ class BemProduzidoAdmin(admin.ModelAdmin):
     list_display = [
         '__str__',
         'status',
-        'especificacao_do_bem',
-        'num_processo_incorporacao',
-        'quantidade',
-        'valor_individual',
     ]
 
     raw_id_fields = (
-        'especificacao_do_bem',
-        'associacao'
+        'associacao',
     )
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
-    search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome',
-                     'especificacao_do_bem__descricao', 'num_processo_incorporacao')
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
 
 
 @admin.register(BemProduzidoDespesa)
