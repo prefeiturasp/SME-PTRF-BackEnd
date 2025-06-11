@@ -21,7 +21,6 @@ pipeline {
         CONFIG_PATH = 'tests/api/cypress.config.js'
         EXEC_PATH = 'tests/api/cypress'
         ALLURE_PATH = 'tests/api/allure-results'
-        WORKSPACE_DIR = "${env.WORKSPACE}"
     }
 
     stages {
@@ -53,7 +52,7 @@ pipeline {
 
         stage('Executar') {
             steps {
-                dir("${TEST_DIR}") {
+                dir("${CONFIG_PATH}") {
                     script {
                         sh '''
                             NO_COLOR=1 npx cypress run \
