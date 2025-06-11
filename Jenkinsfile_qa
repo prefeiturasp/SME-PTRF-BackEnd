@@ -18,8 +18,6 @@ pipeline {
 
     environment {
         TEST_DIR = 'tests/api'
-        CONFIG_PATH = 'tests/api/cypress.config.js'
-        EXEC_PATH = 'tests/api/cypress'
         ALLURE_PATH = 'tests/api/allure-results'
     }
 
@@ -58,7 +56,7 @@ pipeline {
                             set +e
                             NO_COLOR=1 npx cypress run \
                                 --headless \
-                                --config-file ../../cypress.config.js \
+                                --config-file=../../cypress.config.js \
                                 --spec cypress/e2e/**/* \
                                 --reporter mocha-allure-reporter \
                                 --browser chrome
@@ -87,7 +85,7 @@ pipeline {
                             allure generate allure-results --clean --output allure-report
                             zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
                         else
-                            echo "⚠️ Diretório ${ALLURE_PATH} não existe ou está vazio. Relatório não será gerado."
+                            echo "Diretório ${ALLURE_PATH} não existe ou está vazio. Relatório não será gerado."
                         fi
                     '''
                 }
