@@ -1,5 +1,7 @@
 pipeline {
-    triggers { cron('30 20 * * 0-5') }
+    triggers {
+        cron('30 20 * * 0-5')
+    }
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20'))
@@ -50,7 +52,7 @@ pipeline {
 
         stage('Executar') {
             steps {
-                dir("${CONFIG_PATH}") {
+                dir("${TEST_DIR}") {
                     script {
                         sh '''
                             NO_COLOR=1 npx cypress run \
@@ -77,48 +79,39 @@ pipeline {
 
                         npm install -g allure-commandline
                         mkdir -p allure-results
-                        cp -r tests/api/allure-results/* allure-results/
+                        cp -r tests/api/allure-results/* allure-results/ || echo "Nenhum arquivo para copiar."
 
-                        # Gera o relatório
                         allure generate allure-results --clean --output allure-report
-
-                        # Compacta os resultados, se quiser
                         zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
                     '''
                 }
             }
         }
-
     }
-
-
-
 
 //     post {
 //         always {
 //             script {
 //                 sh 'chmod -R 777 $WORKSPACE_DIR'
-//                 if (currentBuild.result == 'SUCCESS' || currentBuild.result == 'FAILURE') {
-//                     allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
-//                     archiveArtifacts artifacts: 'allure-results-*.zip', fingerprint: true
-//                 }
+//                 allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
+//                 archiveArtifacts artifacts: 'allure-results-*.zip', fingerprint: true
 //             }
 //         }
 
 //         success {
-//             sendTelegram("☑️ Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Success \nLog: \n${env.BUILD_URL}allure")
+//             sendTelegram("\u2705 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Success \nLog: \n${env.BUILD_URL}allure")
 //         }
 
 //         unstable {
-//             sendTelegram("💣 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Unstable \nLog: \n${env.BUILD_URL}allure")
+//             sendTelegram("\ud83d\udca3 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Unstable \nLog: \n${env.BUILD_URL}allure")
 //         }
 
 //         failure {
-//             sendTelegram("💥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Failure \nLog: \n${env.BUILD_URL}allure")
+//             sendTelegram("\ud83d\udca5 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Failure \nLog: \n${env.BUILD_URL}allure")
 //         }
 
 //         aborted {
-//             sendTelegram ("😥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Aborted \nLog: \n${env.BUILD_URL}console")
+//             sendTelegram("\ud83d\ude25 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Aborted \nLog: \n${env.BUILD_URL}console")
 //         }
 //     }
 // }
@@ -138,4 +131,4 @@ pipeline {
 //         )
 //         return response
 //     }
-}
+// }
