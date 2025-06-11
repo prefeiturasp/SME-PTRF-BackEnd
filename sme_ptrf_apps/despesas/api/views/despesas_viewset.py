@@ -239,8 +239,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
         if despesa.rateios.filter(conta_associacao__status=ContaAssociacao.STATUS_INATIVA).exists():
             erro = {
                 'erro': 'rateio_com_conta_status_inativa',
-                'mensagem': f'Não é permitido deletar despesa com rateios com conta associação status {
-                    ContaAssociacao.STATUS_INATIVA}'
+                'mensagem': f'Não é permitido deletar despesa com rateios com conta associação status {ContaAssociacao.STATUS_INATIVA}'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
