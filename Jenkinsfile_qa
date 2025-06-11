@@ -76,10 +76,8 @@ pipeline {
                         echo "PATH=$PATH"
 
                         npm install -g allure-commandline
-
-                        # Copia os resultados para o local esperado
                         mkdir -p allure-results
-                        cp -r SME-PTRF-BackEnd/tests/api/allure-results/* allure-results/
+                        cp -r tests/api/allure-results/* allure-results/
 
                         # Gera o relatório
                         allure generate allure-results --clean --output allure-report
