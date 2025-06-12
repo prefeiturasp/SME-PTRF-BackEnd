@@ -14,10 +14,11 @@ class BemProduzidoSerializer(serializers.ModelSerializer):
     associacao = serializers.SlugRelatedField(queryset=Associacao.objects.all(), slug_field='uuid')
     despesas = serializers.SerializerMethodField()
     items = BemProduzidoItemSerializer(many=True)
+    valor_total_informado = serializers.SerializerMethodField()
 
     class Meta:
         model = BemProduzido
-        fields = ('uuid', 'associacao', 'status', 'despesas', 'items')
+        fields = ('uuid', 'associacao', 'status', 'despesas', 'items', 'valor_total_informado')
         read_only_fields = ['despesas']
 
     def get_despesas(self, obj):
@@ -29,6 +30,18 @@ class BemProduzidoSerializer(serializers.ModelSerializer):
         )
         return serializer.data
 
+    def get_valor_total_informado(self, obj):
+        total_recursos_proprios = BemProduzidoDespesa.objects.filter(bem_produzido=obj).aggregate(
+            total=Sum('valor_recurso_proprio_utilizado')
+        )['total'] or Decimal('0.00')
+        
+        total_rateios = BemProduzidoRateio.objects.filter(bem_produzido_despesa__bem_produzido=obj).aggregate(
+            total=Sum('valor_utilizado')
+        )['total'] or Decimal('0.00')
+        
+        total = total_rateios + total_recursos_proprios
+        
+        return total
 
 class RateioUpdateSerializer(serializers.Serializer):
     uuid = serializers.SlugRelatedField(queryset=RateioDespesa.objects.all(), slug_field='uuid')
