@@ -7,15 +7,17 @@ from sme_ptrf_apps.despesas.models.rateio_despesa import RateioDespesa
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido, BemProduzidoDespesa, BemProduzidoItem, BemProduzidoRateio
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.situacao_patrimonial.api.serializers.bem_produzido_despesa_serializer import BemProduzidoDespesaSerializer
+from sme_ptrf_apps.situacao_patrimonial.api.serializers.bem_produzido_item_serializer import BemProduzidoItemSerializer
 
 
 class BemProduzidoSerializer(serializers.ModelSerializer):
     associacao = serializers.SlugRelatedField(queryset=Associacao.objects.all(), slug_field='uuid')
     despesas = serializers.SerializerMethodField()
+    items = BemProduzidoItemSerializer(many=True)
 
     class Meta:
         model = BemProduzido
-        fields = ('uuid', 'associacao', 'status', 'despesas')
+        fields = ('uuid', 'associacao', 'status', 'despesas', 'items')
         read_only_fields = ['despesas']
 
     def get_despesas(self, obj):
@@ -33,6 +35,7 @@ class RateioUpdateSerializer(serializers.Serializer):
     bem_produzido_despesa = serializers.SlugRelatedField(queryset=BemProduzidoDespesa.objects.all(), slug_field='uuid')
     valor_utilizado = serializers.DecimalField(max_digits=12, decimal_places=2)
 
+
 class RecursoProprioSerializer(serializers.Serializer):
     valor_recurso_proprio_utilizado = serializers.DecimalField(max_digits=10, decimal_places=2)
     bem_produzido_despesa = serializers.UUIDField()
@@ -40,14 +43,14 @@ class RecursoProprioSerializer(serializers.Serializer):
 
 class BemProduzidoCreateSerializer(serializers.ModelSerializer):
     associacao = serializers.SlugRelatedField(queryset=Associacao.objects.all(), slug_field='uuid')
-    
+
     despesas = serializers.ListField(
         child=serializers.UUIDField(),
         write_only=True
     )
 
     rateios = RateioUpdateSerializer(many=True, write_only=True, required=False)
-    
+
     recurso_proprio = RecursoProprioSerializer(many=True, write_only=True, required=False)
 
     class Meta:
