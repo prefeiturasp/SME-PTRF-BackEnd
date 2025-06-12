@@ -71,28 +71,27 @@ pipeline {
         }
 
         stage('Generate Allure Report') {
-                    steps {
-                        script {
-                                sh '''
-                                    echo "Conteúdo de allure-results:"
-                                    ls -l allure-results || echo "Diretório não existe"
-                                    java -version
-                                    export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
-                                    export PATH=$JAVA_HOME/bin:/usr/local/bin:$PATH
-                                    echo "JAVA_HOME=$JAVA_HOME"
-                                    echo "PATH=$PATH"
-                                    npm install $WORKSPACE_DIR/tests/api/ -g allure-commandline --save-dev
-                                    chmod -R 777 $WORKSPACE_DIR/tests/api/allure-results || true
-                                    allure generate $WORKSPACE_DIR/tests/api/allure-results --clean --output $WORKSPACE_DIR/tests/api/allure-report
-                                    if [ -f $WORKSPACE_DIR/tests/api/allure-report.zip ]; then
-                                        rm -f $WORKSPACE_DIR/tests/api/allure-report.zip
-                                    fi
-                                    cd $WORKSPACE_DIR/tests/api && zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
-                                '''
+            steps {
+                script {
+                    sh '''
+                        export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+                        export PATH=$JAVA_HOME/bin:/usr/local/bin:$PATH
 
-                    }
+                        INPUT_RESULTS="SME-PTRF-BackEnd/tests/api/allure-results"
+                        OUTPUT_REPORT="allure-report"
+
+                        echo "Verificando existência de ${INPUT_RESULTS}"
+                        if [ -d "${INPUT_RESULTS}" ] && [ "$(ls -A ${INPUT_RESULTS})" ]; then
+                            npm install -g allure-commandline
+                            allure generate "${INPUT_RESULTS}" --clean --output "${OUTPUT_REPORT}"
+                            zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip "${INPUT_RESULTS}"
+                        else
+                            echo "Diretório ${INPUT_RESULTS} não existe ou está vazio. Relatório não será gerado."
+                        fi
+                    '''
                 }
             }
+        }
 
 //     post {
 //         always {
