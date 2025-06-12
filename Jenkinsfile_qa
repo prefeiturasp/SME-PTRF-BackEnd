@@ -18,6 +18,7 @@ pipeline {
 
     environment {
         TEST_DIR = 'tests/api'
+        ALLURE_PATH = 'tests/api/allure-results'
         WORKSPACE_DIR = "${env.WORKSPACE}" 
     }
 
@@ -76,17 +77,14 @@ pipeline {
                     sh '''
                         export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
                         export PATH=$JAVA_HOME/bin:/usr/local/bin:$PATH
-
-                        INPUT_RESULTS="SME-PTRF-BackEnd/tests/api/allure-results"
                         OUTPUT_REPORT="allure-report"
-
-                        echo "Verificando existência de ${INPUT_RESULTS}"
-                        if [ -d "${INPUT_RESULTS}" ] && [ "$(ls -A ${INPUT_RESULTS})" ]; then
+                        echo "Verificando existência de ${ALLURE_PATH}"
+                        if [ -d "${ALLURE_PATH}" ] && [ "$(ls -A ${ALLURE_PATH})" ]; then
                             npm install -g allure-commandline
-                            allure generate "${INPUT_RESULTS}" --clean --output "${OUTPUT_REPORT}"
-                            zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip "${INPUT_RESULTS}"
+                            allure generate "${ALLURE_PATH}" --clean --output "${OUTPUT_REPORT}"
+                            zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip "${ALLURE_PATH}"
                         else
-                            echo "Diretório ${INPUT_RESULTS} não existe ou está vazio. Relatório não será gerado."
+                            echo "Diretório ${ALLURE_PATH} não existe ou está vazio. Relatório não será gerado."
                         fi
                     '''
                 }
