@@ -78,6 +78,10 @@ class BemProduzidoCreateSerializer(serializers.ModelSerializer):
             )
 
         BemProduzidoItem.objects.create(
+            valor_individual=None,
+            quantidade=None,
+            num_processo_incorporacao='',
+            especificacao_do_bem=None,
             bem_produzido=bem_produzido,
         )
 
