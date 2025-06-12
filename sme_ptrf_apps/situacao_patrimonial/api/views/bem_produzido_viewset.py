@@ -65,10 +65,11 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
             'mensagem': f'{quantidade} despesas removidas do bem produzido.'
         }, status=status.HTTP_200_OK)
         
-    @action(detail=True, methods=['post'], url_path='cadastrar-bem', permission_classes=[IsAuthenticated & PermissaoApiUe])
+    @action(detail=True, methods=['patch'], url_path='cadastrar-bem', permission_classes=[IsAuthenticated & PermissaoApiUe])
     def cadastrar_bem(self, request, *args, **kwargs):
         bem_produzido = self.get_object()
         itens_data = request.data.get('itens', [])
+        completar_status = request.data.get('completar_status', True)
 
         itens_uuids = []
         for item in itens_data:
@@ -147,11 +148,14 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
         for instance, serializer in itens_para_atualizar:
             serializer.save()
 
-        # Atualiza status para COMPLETO
-        bem_produzido.status = BemProduzido.STATUS_COMPLETO
-        bem_produzido.save(update_fields=["status"])
+        if completar_status:
+            # Atualiza status para COMPLETO
+            bem_produzido.status = BemProduzido.STATUS_COMPLETO
+            bem_produzido.save(update_fields=["status"])
 
-        return Response({'mensagem': 'Itens processados com sucesso. Bem Produzido marcado como completo.'}, status=status.HTTP_201_CREATED)
+            return Response({'mensagem': 'Itens processados com sucesso. Bem Produzido marcado como completo.'}, status=status.HTTP_201_CREATED)
+        
+        return Response({'mensagem': 'Itens processados com sucesso. Rascunho do bem produzido salvo com sucesso.'}, status=status.HTTP_201_CREATED)
     
     @action(detail=True, methods=['post'], url_path='adicionar-despesas-bem', permission_classes=[IsAuthenticated & PermissaoApiUe])
     def adicionar_em_lote(self, request, *args, **kwargs):
