@@ -53,17 +53,13 @@ pipeline {
                 dir("${TEST_DIR}") {
                     script {
                         sh '''
-                            set +e
                             NO_COLOR=1 npx cypress run \
                                 --headless \
-                                --config-file=../../cypress.config.js \
+                                --config-file cypress.config.js \
                                 --spec cypress/e2e/**/* \
-                                --reporter mocha-allure-reporter \
+                                --reporter @shelex/allure-mocha \
+                                --reporter-options outputDir=allure-results,clean=true \
                                 --browser chrome
-                            CYPRESS_EXIT_CODE=$?
-                            echo "Cypress finalizado com código: $CYPRESS_EXIT_CODE"
-                            set -e
-                            exit $CYPRESS_EXIT_CODE
                         '''
                     }
                 }
@@ -72,26 +68,26 @@ pipeline {
 
         stage('Generate Allure Report') {
             steps {
-                script {
-                    sh '''
-                        export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
-                        export PATH=$JAVA_HOME/bin:/usr/local/bin:$PATH
+                dir("${TEST_DIR}") {
+                    script {
+                        sh '''
+                            java -version
+                            export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+                            export PATH=$JAVA_HOME/bin:/usr/local/bin:$PATH
+                            echo "JAVA_HOME=$JAVA_HOME"
+                            echo "PATH=$PATH"
 
-                        echo "Verificando existência de ${ALLURE_PATH}"
-                        if [ -d "${ALLURE_PATH}" ] && [ "$(ls -A ${ALLURE_PATH})" ]; then
                             npm install -g allure-commandline
-                            mkdir -p allure-results
-                            cp -r ${ALLURE_PATH}/* allure-results/
-                            allure generate allure-results --clean --output allure-report
+                            ls -la allure-results || echo "Pasta allure-results vazia ou não encontrada"
+
+                            allure generate allure-results --clean --output allure-report || echo "Erro ao gerar relatório"
+
                             zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
-                        else
-                            echo "Diretório ${ALLURE_PATH} não existe ou está vazio. Relatório não será gerado."
-                        fi
-                    '''
+                        '''
+                    }
                 }
             }
         }
-    }
 
 //     post {
 //         always {
