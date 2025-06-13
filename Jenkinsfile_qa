@@ -19,7 +19,7 @@ pipeline {
     environment {
         TEST_DIR = 'tests/api'
         ALLURE_PATH = 'tests/api/allure-results'
-        WORKSPACE_DIR = "${env.WORKSPACE}" 
+        WORKSPACE_DIR = "${env.WORKSPACE}"
     }
 
     stages {
@@ -63,8 +63,8 @@ pipeline {
                                 --browser chrome
                             CYPRESS_EXIT_CODE=$?
                             echo "Cypress finalizado com código: $CYPRESS_EXIT_CODE"
+                            echo $CYPRESS_EXIT_CODE > ../../cypress_exit_code.txt
                             set -e
-                            exit $CYPRESS_EXIT_CODE
                         '''
                     }
                 }
@@ -77,24 +77,38 @@ pipeline {
                     sh '''
                         export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
                         export PATH=$JAVA_HOME/bin:/usr/local/bin:$PATH
-                        OUTPUT_REPORT="allure-report"
-                        echo "Verificando existência de ${ALLURE_PATH}"
-                        if [ -d "${ALLURE_PATH}" ] && [ "$(ls -A ${ALLURE_PATH})" ]; then
+
+                        echo "Copiando resultados para o local esperado..."
+                        cp -r tests/api/allure-results/ allure-results/
+
+                        if [ -d "allure-results" ] && [ "$(ls -A allure-results)" ]; then
                             npm install -g allure-commandline
-                            allure generate "${ALLURE_PATH}" --clean --output "${OUTPUT_REPORT}"
-                            zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip "${ALLURE_PATH}"
+                            allure generate allure-results --clean --output allure-report
+                            zip -r allure-results-${BUILD_NUMBER}-$(date +"%d-%m-%Y").zip allure-results
                         else
-                            echo "Diretório ${ALLURE_PATH} não existe ou está vazio. Relatório não será gerado."
+                            echo "Diretório allure-results não existe ou está vazio. Relatório não será gerado."
                         fi
                     '''
                 }
             }
         }
 
+
 //     post {
 //         always {
 //             script {
-//                 sh 'chmod -R 777 $WORKSPACE'
+//                 sh '''
+//                     chmod -R 777 $WORKSPACE
+//                     CYPRESS_EXIT_CODE=$(cat cypress_exit_code.txt || echo 0)
+//                     echo "Código de saída do Cypress: $CYPRESS_EXIT_CODE"
+
+//                     if [ "$CYPRESS_EXIT_CODE" != "0" ]; then
+//                         echo "Build marcado como UNSTABLE devido a falhas nos testes."
+//                         currentBuild.result = 'UNSTABLE'
+//                     fi
+//                 '''
+
+//                 // Executa publicação do relatório
 //                 allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
 //                 archiveArtifacts artifacts: 'allure-results-*.zip', fingerprint: true
 //             }
@@ -113,7 +127,7 @@ pipeline {
 //         }
 
 //         aborted {
-//             sendTelegram ("😥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Aborted \nLog: \n${env.BUILD_URL}console")
+//             sendTelegram("😥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Aborted \nLog: \n${env.BUILD_URL}console")
 //         }
 //     }
 // }
@@ -124,13 +138,12 @@ pipeline {
 //         string(credentialsId: 'telegramTokensigpae', variable: 'TOKEN'),
 //         string(credentialsId: 'telegramChatIdsigpae', variable: 'CHAT_ID')
 //     ]) {
-//         response = httpRequest (
+//         httpRequest (
 //             consoleLogResponseBody: true,
 //             contentType: 'APPLICATION_JSON',
 //             httpMode: 'GET',
 //             url: "https://api.telegram.org/bot${TOKEN}/sendMessage?text=${encodedMessage}&chat_id=${CHAT_ID}&disable_web_page_preview=true",
 //             validResponseCodes: '200'
 //         )
-//         return response
 //     }
 // }
