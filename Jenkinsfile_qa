@@ -1,38 +1,37 @@
-pipeline {
-    triggers {
-        cron('30 20 * * 0-5')
-    }
-
-    options {
-        buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20'))
-        disableConcurrentBuilds()
-        skipDefaultCheckout()
-    }
-
-    agent {
-        kubernetes {
-            label 'cypress'
-            defaultContainer 'cypress-13-6-6'
+    pipeline {
+        triggers {
+            cron('30 20 * * 0-5')
         }
-    }
 
-    environment {
-        TEST_DIR = 'tests/api'
-        ALLURE_PATH = 'tests/api/allure-results'
-        WORKSPACE_DIR = "${env.WORKSPACE}"
-    }
+        options {
+            buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20'))
+            disableConcurrentBuilds()
+            skipDefaultCheckout()
+        }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
+        agent {
+            kubernetes {
+                label 'cypress'
+                defaultContainer 'cypress-13-6-6'
             }
         }
 
-        stage('Instalar Dependências') {
-            steps {
-                dir("${TEST_DIR}") {
-                    script {
+        environment {
+            TEST_DIR = 'tests/api'
+            ALLURE_PATH = 'tests/api/allure-results'
+            WORKSPACE_DIR = "${env.WORKSPACE}"
+        }
+
+        stages {
+            stage('Checkout') {
+                steps {
+                    checkout scm
+                }
+            }
+
+            stage('Instalar Dependências') {
+                steps {
+                    dir("${TEST_DIR}") {
                         sh '''
                             rm -rf node_modules package-lock.json
                             npm cache clean --force
@@ -47,72 +46,66 @@ pipeline {
                     }
                 }
             }
-        }
 
-        stage('Executar') {
-            steps {
-                dir("${TEST_DIR}") {
-                    script {
+            stage('Executar') {
+                steps {
+                    dir("${TEST_DIR}") {
                         sh '''
                             set +e
                             NO_COLOR=1 npx cypress run \
                                 --headless \
-                                --config-file=../../cypress.config.js \
                                 --spec cypress/e2e/**/* \
-                                --reporter mocha-allure-reporter \
-                                --browser chrome
-                            CYPRESS_EXIT_CODE=$?
-                            echo "Cypress finalizado com código: $CYPRESS_EXIT_CODE"
-                            echo $CYPRESS_EXIT_CODE > ../../cypress_exit_code.txt
+                                --browser chrome \
+                                --reporter mocha-allure-reporter
+                            echo $? > ../../cypress_exit_code.txt
                             set -e
                         '''
                     }
                 }
             }
+
+            stage('Generate Allure Report') {
+                steps {
+                    script {
+                        sh """
+                            echo "Conteúdo de ${ALLURE_PATH}:"
+                            ls -l ${ALLURE_PATH} || echo "Diretório não existe"
+
+                            export JAVA_HOME=\$(dirname \$(dirname \$(readlink -f \$(which java))))
+                            export PATH=\$JAVA_HOME/bin:/usr/local/bin:\$PATH
+
+                            if [ -d "${ALLURE_PATH}" ] && [ "\$(ls -A ${ALLURE_PATH})" ]; then
+                                echo "Gerando relatório Allure..."
+                                allure generate ${ALLURE_PATH} --clean --output tests/api/allure-report
+                                cd tests/api
+                                zip -r allure-results-${BUILD_NUMBER}-\$(date +"%d-%m-%Y").zip allure-results
+                            else
+                                echo "Diretório ${ALLURE_PATH} não existe ou está vazio. Relatório não será gerado."
+                            fi
+                        """
+                    }
+                }
+            }
         }
 
-        stage('Generate Allure Report') {
-            steps {
+        post {
+            always {
                 script {
-                    sh """
-                        export JAVA_HOME=\$(dirname \$(dirname \$(readlink -f \$(which java))))
-                        export PATH=\$JAVA_HOME/bin:/usr/local/bin:\$PATH
+                    sh 'chmod -R 777 $WORKSPACE/tests/api || true'
+                    def exitCode = sh(script: 'cat cypress_exit_code.txt || echo 0', returnStdout: true).trim()
+                    echo "Código de saída do Cypress: ${exitCode}"
+                    if (exitCode != "0") {
+                        currentBuild.result = 'UNSTABLE'
+                    }
 
-                        echo "Copiando resultados para o local esperado..."
-                        cp -r ${ALLURE_PATH}/ allure-results/
-
-                        if [ -d "allure-results" ] && [ "\$(ls -A allure-results)" ]; then
-                            npm install -g allure-commandline
-                            allure generate allure-results --clean --output allure-report
-                            zip -r allure-results-\${BUILD_NUMBER}-\$(date +"%d-%m-%Y").zip allure-results
-                        else
-                            echo "Diretório allure-results não existe ou está vazio. Relatório não será gerado."
-                        fi
-                    """
+                    // Caminho relativo para o plugin do Allure
+                    allure includeProperties: false, jdk: '', results: [[path: "${ALLURE_PATH}"]]
+                    archiveArtifacts artifacts: 'tests/api/allure-results-*.zip', fingerprint: true
                 }
             }
         }
     }
 
-    post {
-        always {
-            script {
-                sh '''
-                    chmod -R 777 $WORKSPACE
-                    CYPRESS_EXIT_CODE=$(cat cypress_exit_code.txt || echo 0)
-                    echo "Código de saída do Cypress: $CYPRESS_EXIT_CODE"
-
-                    if [ "$CYPRESS_EXIT_CODE" != "0" ]; then
-                        echo "Build marcado como UNSTABLE devido a falhas nos testes."
-                        currentBuild.result = 'UNSTABLE'
-                    fi
-                '''
-
-                // Publica o relatório Allure usando a variável
-                allure includeProperties: false, jdk: '', results: [[path: "${ALLURE_PATH}"]]
-                archiveArtifacts artifacts: 'allure-results-*.zip', fingerprint: true
-            }
-        }
 
         // Você pode reativar essas seções conforme necessário:
         /*
