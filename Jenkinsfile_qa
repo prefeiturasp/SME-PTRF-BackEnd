@@ -1,111 +1,110 @@
-    pipeline {
-        triggers {
-            cron('30 20 * * 0-5')
-        }
+pipeline {
+    triggers {
+        cron('30 20 * * 0-5')
+    }
 
-        options {
-            buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20'))
-            disableConcurrentBuilds()
-            skipDefaultCheckout()
-        }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20'))
+        disableConcurrentBuilds()
+        skipDefaultCheckout()
+    }
 
-        agent {
-            kubernetes {
-                label 'cypress'
-                defaultContainer 'cypress-13-6-6'
+    agent {
+        kubernetes {
+            label 'cypress'
+            defaultContainer 'cypress-13-6-6'
+        }
+    }
+
+    environment {
+        TEST_DIR = 'tests/api'
+        ALLURE_PATH = 'tests/api/allure-results'
+        WORKSPACE_DIR = "${env.WORKSPACE}"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
             }
         }
 
-        environment {
-            TEST_DIR = 'tests/api'
-            ALLURE_PATH = 'tests/api/allure-results'
-            WORKSPACE_DIR = "${env.WORKSPACE}"
-        }
-
-        stages {
-            stage('Checkout') {
-                steps {
-                    checkout scm
+        stage('Instalar Dependências') {
+            steps {
+                dir("${TEST_DIR}") {
+                    sh '''
+                        rm -rf node_modules package-lock.json
+                        npm cache clean --force
+                        mkdir -p /home/jenkins/.cache/Cypress
+                        chmod -R 777 /home/jenkins/.cache/Cypress
+                        wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | tee /etc/apt/trusted.gpg.d/google.asc >/dev/null
+                        mkdir -p /usr/share/man/man1/
+                        apt update && apt install -y default-jre openjdk-17-jdk zip
+                        npm install
+                        npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev
+                    '''
                 }
             }
+        }
 
-            stage('Instalar Dependências') {
-                steps {
-                    dir("${TEST_DIR}") {
-                        sh '''
-                            rm -rf node_modules package-lock.json
-                            npm cache clean --force
-                            mkdir -p /home/jenkins/.cache/Cypress
-                            chmod -R 777 /home/jenkins/.cache/Cypress
-                            wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | tee /etc/apt/trusted.gpg.d/google.asc >/dev/null
-                            mkdir -p /usr/share/man/man1/
-                            apt update && apt install -y default-jre openjdk-17-jdk zip
-                            npm install
-                            npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev
-                        '''
-                    }
-                }
-            }
-
-            stage('Executar') {
-                steps {
-                    dir("${TEST_DIR}") {
-                        sh '''
-                            set +e
-                            NO_COLOR=1 npx cypress run \
-                                --headless \
-                                --spec cypress/e2e/**/* \
-                                --browser chrome \
-                                --reporter mocha-allure-reporter
-                            echo $? > ../../cypress_exit_code.txt
-                            set -e
-                        '''
-                    }
-                }
-            }
-
-            stage('Generate Allure Report') {
-                steps {
+        stage('Executar') {
+            steps {
+                dir("${TEST_DIR}") {
                     script {
-                        sh """
-                            echo "Conteúdo de ${ALLURE_PATH}:"
-                            ls -l ${ALLURE_PATH} || echo "Diretório não existe"
+                        catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                            sh '''
+                                NO_COLOR=1 npx cypress run \
+                                    --headless \
+                                    --spec cypress/e2e/**/* \
+                                    --browser chrome \
+                                    --reporter mocha-allure-reporter
+                            '''
+                        }
+                    }
+                }
+            }
+        }
 
+        stage('Generate Allure Report') {
+            steps {
+                script {
+                    def hasResults = fileExists("${ALLURE_PATH}") && sh(script: "ls -A ${ALLURE_PATH} | wc -l", returnStdout: true).trim() != "0"
+
+                    if (hasResults) {
+                        echo "Gerando relatório Allure..."
+                        sh """
                             export JAVA_HOME=\$(dirname \$(dirname \$(readlink -f \$(which java))))
                             export PATH=\$JAVA_HOME/bin:/usr/local/bin:\$PATH
 
-                            if [ -d "${ALLURE_PATH}" ] && [ "\$(ls -A ${ALLURE_PATH})" ]; then
-                                echo "Gerando relatório Allure..."
-                                allure generate ${ALLURE_PATH} --clean --output tests/api/allure-report
-                                cd tests/api
-                                zip -r allure-results-${BUILD_NUMBER}-\$(date +"%d-%m-%Y").zip allure-results
-                            else
-                                echo "Diretório ${ALLURE_PATH} não existe ou está vazio. Relatório não será gerado."
-                            fi
+                            allure generate ${ALLURE_PATH} --clean --output tests/api/allure-report
+                            cd tests/api
+                            zip -r allure-results-${BUILD_NUMBER}-\$(date +"%d-%m-%Y").zip allure-results
                         """
+                    } else {
+                        echo "⚠️ Diretório ${ALLURE_PATH} está ausente ou vazio. Pulando geração do relatório."
                     }
-                }
-            }
-        }
-
-        post {
-            always {
-                script {
-                    sh 'chmod -R 777 $WORKSPACE/tests/api || true'
-                    def exitCode = sh(script: 'cat cypress_exit_code.txt || echo 0', returnStdout: true).trim()
-                    echo "Código de saída do Cypress: ${exitCode}"
-                    if (exitCode != "0") {
-                        currentBuild.result = 'UNSTABLE'
-                    }
-
-                    // Caminho relativo para o plugin do Allure
-                    allure includeProperties: false, jdk: '', results: [[path: "${ALLURE_PATH}"]]
-                    archiveArtifacts artifacts: 'tests/api/allure-results-*.zip', fingerprint: true
                 }
             }
         }
     }
 
+    post {
+        always {
+            script {
+                sh 'chmod -R 777 $WORKSPACE/tests/api || true'
+
+                // Isso evita que o plugin Allure falhe se os resultados não existirem
+                if (fileExists("${ALLURE_PATH}") && sh(script: "ls -A ${ALLURE_PATH} | wc -l", returnStdout: true).trim() != "0") {
+                    allure includeProperties: false, jdk: '', results: [[path: "${ALLURE_PATH}"]]
+                } else {
+                    echo "⚠️ Resultados do Allure não encontrados ou estão vazios, não serão enviados ao plugin Jenkins."
+                }
+
+                archiveArtifacts artifacts: 'tests/api/allure-results-*.zip', fingerprint: true
+            }
+        }
+    }
+}
 
         // Você pode reativar essas seções conforme necessário:
         /*
