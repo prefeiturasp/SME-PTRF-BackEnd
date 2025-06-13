@@ -116,29 +116,30 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
             else:
                 itens_para_criar.append(serializer)
 
-        # Soma dos rateios
-        valor_rateios = BemProduzidoRateio.objects.filter(
-            bem_produzido_despesa__bem_produzido=bem_produzido
-        ).aggregate(
-            total=Sum('valor_utilizado')
-        )['total'] or Decimal('0')
+        if completar_status:
+            # Soma dos rateios
+            valor_rateios = BemProduzidoRateio.objects.filter(
+                bem_produzido_despesa__bem_produzido=bem_produzido
+            ).aggregate(
+                total=Sum('valor_utilizado')
+            )['total'] or Decimal('0')
 
-        # Soma dos recursos próprios
-        valor_recurso_proprio = BemProduzidoDespesa.objects.filter(
-            bem_produzido=bem_produzido
-        ).aggregate(
-            total=Sum('valor_recurso_proprio_utilizado')
-        )['total'] or Decimal('0')
+            # Soma dos recursos próprios
+            valor_recurso_proprio = BemProduzidoDespesa.objects.filter(
+                bem_produzido=bem_produzido
+            ).aggregate(
+                total=Sum('valor_recurso_proprio_utilizado')
+            )['total'] or Decimal('0')
 
-        valor_total_esperado = valor_rateios + valor_recurso_proprio
+            valor_total_esperado = valor_rateios + valor_recurso_proprio
 
-        # Validação de correspondência dos valores
-        if valor_total_itens != valor_total_esperado:
-            return Response({
-                'mensagem': 'A soma dos valores dos itens não bate com o valor total disponível.',
-                'valor_total_itens': float(valor_total_itens),
-                'valor_total_esperado': float(valor_total_esperado)
-            }, status=status.HTTP_400_BAD_REQUEST)
+            # Validação de correspondência dos valores
+            if valor_total_itens != valor_total_esperado:
+                return Response({
+                    'mensagem': 'A soma dos valores dos itens não bate com o valor total disponível.',
+                    'valor_total_itens': float(valor_total_itens),
+                    'valor_total_esperado': float(valor_total_esperado)
+                }, status=status.HTTP_400_BAD_REQUEST)
 
         # Cria novos itens
         for serializer in itens_para_criar:
