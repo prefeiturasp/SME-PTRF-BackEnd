@@ -2,7 +2,8 @@ from django.contrib import admin
 from sme_ptrf_apps.situacao_patrimonial.models import (
     BemProduzido,
     BemProduzidoDespesa,
-    BemProduzidoRateio
+    BemProduzidoRateio,
+    BemProduzidoItem
 )
 
 
@@ -54,6 +55,24 @@ class BemProduzidoRateioAdmin(admin.ModelAdmin):
     raw_id_fields = (
         'rateio',
         'bem_produzido_despesa'
+    )
+
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+@admin.register(BemProduzidoItem)
+class BemProduzidoItemAdmin(admin.ModelAdmin):
+    list_display = [
+        '__str__',
+        'bem_produzido',
+        'especificacao_do_bem',
+        'num_processo_incorporacao',
+        'quantidade',
+        'valor_individual',
+    ]
+
+    raw_id_fields = (
+        'bem_produzido',
+        'especificacao_do_bem'
     )
 
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
