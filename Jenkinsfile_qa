@@ -94,25 +94,26 @@ pipeline {
         }
 
 
-//     post {
-//         always {
-//             script {
-//                 sh '''
-//                     chmod -R 777 $WORKSPACE
-//                     CYPRESS_EXIT_CODE=$(cat cypress_exit_code.txt || echo 0)
-//                     echo "Código de saída do Cypress: $CYPRESS_EXIT_CODE"
+    post {
+        always {
+            script {
+                sh '''
+                    chmod -R 777 $WORKSPACE
+                    CYPRESS_EXIT_CODE=$(cat cypress_exit_code.txt || echo 0)
+                    echo "Código de saída do Cypress: $CYPRESS_EXIT_CODE"
 
-//                     if [ "$CYPRESS_EXIT_CODE" != "0" ]; then
-//                         echo "Build marcado como UNSTABLE devido a falhas nos testes."
-//                         currentBuild.result = 'UNSTABLE'
-//                     fi
-//                 '''
+                    if [ "$CYPRESS_EXIT_CODE" != "0" ]; then
+                        echo "Build marcado como UNSTABLE devido a falhas nos testes."
+                        currentBuild.result = 'UNSTABLE'
+                    fi
+                '''
 
-//                 // Executa publicação do relatório
-//                 allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
-//                 archiveArtifacts artifacts: 'allure-results-*.zip', fingerprint: true
-//             }
-//         }
+                // Executa publicação do relatório
+                allure includeProperties: false, jdk: '', results: [[path: 'allure-results']]
+                //allure includeProperties: false, jdk: '', report: 'PTRF-Testes-backend-QA/tests/api/allure-results', results: [[path: 'PTRF-Testes-backend-QA/tests/api/allure-results']]
+                archiveArtifacts artifacts: 'allure-results-*.zip', fingerprint: true
+            }
+        }
 
 //         success {
 //             sendTelegram("☑️ Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Success \nLog: \n${env.BUILD_URL}allure")
