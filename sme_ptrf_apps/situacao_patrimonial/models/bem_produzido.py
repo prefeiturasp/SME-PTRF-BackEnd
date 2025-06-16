@@ -23,14 +23,6 @@ class BemProduzido(ModeloBase):
 
     associacao = models.ForeignKey('core.Associacao', on_delete=models.PROTECT, related_name='bens_produzidos_associacao', blank=True, null=True)
 
-    especificacao_do_bem = models.ForeignKey('despesas.EspecificacaoMaterialServico', on_delete=models.PROTECT, blank=True, null=True)
-
-    num_processo_incorporacao = models.CharField('Nº do processo de incorporação', max_length=100, default='', blank=True, null=True)
-
-    quantidade = models.IntegerField('Quantidade', default=0, blank=True, null=True)
-
-    valor_individual = models.DecimalField('Valor individual', max_digits=10, decimal_places=2, default=0, blank=True, null=True)
-
     status = models.CharField(
         'status',
         max_length=15,

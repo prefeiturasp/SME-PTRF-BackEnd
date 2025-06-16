@@ -88,6 +88,7 @@ class AcaoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
 
     def get_saldos(self, obj):
         return obj.saldo_atual()
+
     class Meta:
         model = AcaoAssociacao
         fields = ('uuid', 'id', 'associacao', 'data_de_encerramento_associacao',

@@ -29,8 +29,10 @@ class ReceitaPrevistaPaaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReceitaPrevistaPaa
         fields = ('id', 'uuid', 'paa', 'acao_associacao', 'acao_associacao_objeto',
-                  'previsao_valor_capital', 'previsao_valor_custeio', 'previsao_valor_livre')
-        read_only_fields = ('uuid', 'acao_associacao_objeto', 'criado_em', 'alterado_em')
+                  'previsao_valor_capital', 'previsao_valor_custeio', 'previsao_valor_livre',
+                  'saldo_congelado_custeio', 'saldo_congelado_capital', 'saldo_congelado_livre', )
+        read_only_fields = ('uuid', 'saldo_congelado_custeio', 'saldo_congelado_capital',
+                            'saldo_congelado_livre', 'acao_associacao_objeto', 'criado_em', 'alterado_em')
 
     def validate(self, attrs):
         if not attrs.get('paa') and not self.instance:

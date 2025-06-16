@@ -15,7 +15,7 @@ class EspecificacaoMaterialServicoSerializer(serializers.ModelSerializer):
 class EspecificacaoMaterialServicoLookUpSerializer(serializers.ModelSerializer):
     class Meta:
         model = EspecificacaoMaterialServico
-        fields = ('id', 'descricao', 'aplicacao_recurso', 'tipo_custeio', 'ativa')
+        fields = ('id', 'uuid', 'descricao', 'aplicacao_recurso', 'tipo_custeio', 'ativa')
 
 
 class EspecificacaoMaterialServicoListaSerializer(serializers.ModelSerializer):
