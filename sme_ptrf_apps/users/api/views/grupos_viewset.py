@@ -7,10 +7,11 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.filters import SearchFilter
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiResponse
 
 from ..serializers import GrupoSerializer
 from ...models import Grupo, User, Unidade
+
 
 class GruposViewSet(mixins.ListModelMixin, GenericViewSet):
     # TODO: Voltar a usar IsAuthenticated
@@ -36,7 +37,7 @@ class GruposViewSet(mixins.ListModelMixin, GenericViewSet):
         qs = self.queryset
         qs = qs.exclude(visoes=None)
 
-        visao_base= self.request.query_params.get('visao_base')
+        visao_base = self.request.query_params.get('visao_base')
 
         if visao_base and visao_base not in ['SME', 'DRE', 'UE']:
             raise ValidationError({"visao_base": "O valor do parâmetro visao_base deve ser SME, DRE ou UE"})
@@ -44,10 +45,10 @@ class GruposViewSet(mixins.ListModelMixin, GenericViewSet):
         if not visao_base or visao_base == 'SME':
             return qs
 
-        if visao_base  == 'UE':
+        if visao_base == 'UE':
             return qs.filter(visoes__nome=visao_base)
 
-        if visao_base  == 'DRE':
+        if visao_base == 'DRE':
             return qs.filter(visoes__nome__in=['DRE', 'UE'])
 
     @extend_schema(parameters=[
@@ -62,10 +63,36 @@ class GruposViewSet(mixins.ListModelMixin, GenericViewSet):
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='username', description='username do Usuário', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='uuid_unidade', description='UUID da Unidade', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='visao_base', description='Visão', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=["SME", "DRE", "UE"]),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'id': {'type': 'integer'},
+                        'grupo': {'type': 'string'},
+                        'descricao': {'type': 'string'},
+                        'possui_acesso': {'type': 'boolean'},
+                    },
+                }
+            }
+        )},
+        description="Retorna lista de grupos disponíveis por acesso Visão."
+    )
     @action(detail=False, methods=['get'], url_path='grupos-disponiveis-por-acesso-visao')
     def grupos_disponiveis_por_acesso_visao(self, request):
         from sme_ptrf_apps.users.services.gestao_usuario_service import GestaoUsuarioService
-        from sme_ptrf_apps.users.api.validations.grupos_acesso_validations import GruposDisponiveisPorAcessoVisaoSerializer
+        from sme_ptrf_apps.users.api.validations.grupos_acesso_validations import \
+            GruposDisponiveisPorAcessoVisaoSerializer
 
         query = GruposDisponiveisPorAcessoVisaoSerializer(data=request.query_params)
         query.is_valid(raise_exception=True)
@@ -77,7 +104,7 @@ class GruposViewSet(mixins.ListModelMixin, GenericViewSet):
         qs = qs.exclude(visoes=None)
 
         usuario = User.objects.get(username=request.query_params.get('username'))
-        visao_base= self.request.query_params.get('visao_base')
+        visao_base = self.request.query_params.get('visao_base')
 
         if visao_base is None or (visao_base not in ['SME', 'DRE', 'UE']):
             raise ValidationError({"visao_base": "O valor do parâmetro visao_base deve ser SME, DRE ou UE."})
@@ -87,14 +114,14 @@ class GruposViewSet(mixins.ListModelMixin, GenericViewSet):
             grupos_acesso_usuario.append(group.id)
 
         gestao_usuario = GestaoUsuarioService(usuario=usuario)
-        tipos_unidades_usuario_tem_acesso = gestao_usuario.tipos_unidades_usuario_tem_acesso(unidade_base=unidade, visao_base=visao_base)
+        tipos_unidades_usuario_tem_acesso = gestao_usuario.tipos_unidades_usuario_tem_acesso(
+            unidade_base=unidade, visao_base=visao_base)
         lista_tipos_unidades_usuario_tem_acesso = list(tipos_unidades_usuario_tem_acesso)
 
         if visao_base == 'UE':
             acessos_disponiveis = qs.filter(visoes__nome="UE").distinct()
         else:
             acessos_disponiveis = qs.filter(visoes__nome__in=lista_tipos_unidades_usuario_tem_acesso).distinct()
-
 
         acessos_disponiveis_usuario = []
         for acesso in acessos_disponiveis:

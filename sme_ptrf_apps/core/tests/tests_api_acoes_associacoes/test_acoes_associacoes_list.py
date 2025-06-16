@@ -30,7 +30,7 @@ def test_api_list_acoes_associacoes_todas(
                     'saldo_atual_capital': 0.0,
                     'saldo_atual_custeio': 0.0,
                     'saldo_atual_livre': 0.0,
-                    'saldo_atual_total': 0.0
+
                 },
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
@@ -91,7 +91,7 @@ def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
                     'saldo_atual_capital': 0.0,
                     'saldo_atual_custeio': 0.0,
                     'saldo_atual_livre': 0.0,
-                    'saldo_atual_total': 0.0
+
                 },
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
@@ -151,7 +151,7 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
                     'saldo_atual_capital': 0.0,
                     'saldo_atual_custeio': 0.0,
                     'saldo_atual_livre': 0.0,
-                    'saldo_atual_total': 0.0
+
                 },
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
@@ -211,7 +211,6 @@ def test_api_list_associacoes_pelo_eol_escola(jwt_authenticated_client_a,
                     'saldo_atual_capital': 0.0,
                     'saldo_atual_custeio': 0.0,
                     'saldo_atual_livre': 0.0,
-                    'saldo_atual_total': 0.0
                 },
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
@@ -273,7 +272,6 @@ def test_api_list_associacoes_por_acao(jwt_authenticated_client_a,
                     'saldo_atual_capital': 0.0,
                     'saldo_atual_custeio': 0.0,
                     'saldo_atual_livre': 0.0,
-                    'saldo_atual_total': 0.0
                 },
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
@@ -336,7 +334,6 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
                     'saldo_atual_capital': 0.0,
                     'saldo_atual_custeio': 0.0,
                     'saldo_atual_livre': 0.0,
-                    'saldo_atual_total': 0.0
                 },
                 'associacao': {
                     'uuid': f'{acao_associacao.associacao.uuid}',
@@ -374,11 +371,12 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
     assert response.status_code == status.HTTP_200_OK
     assert result['results'] == resultado_esperado
 
+
 def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_authenticated_client_a,
                                                                           acao_associacao_charli_bravo_000086_x,
                                                                           acao_associacao_charli_bingo_000086_x,
                                                                           acao_x
-                                                                        ):
+                                                                          ):
 
     response = jwt_authenticated_client_a.get(f'/api/acoes-associacoes/?filtro_informacoes=ENCERRADAS,NAO_ENCERRADAS',
                                               content_type='application/json')
@@ -393,7 +391,6 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
                 'saldo_atual_capital': 0.0,
                 'saldo_atual_custeio': 0.0,
                 'saldo_atual_livre': 0.0,
-                'saldo_atual_total': 0.0
             },
             'associacao': {
                 'uuid': f'{acao_associacao_charli_bingo_000086_x.associacao.uuid}',
@@ -435,7 +432,6 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
                 'saldo_atual_capital': 0.0,
                 'saldo_atual_custeio': 0.0,
                 'saldo_atual_livre': 0.0,
-                'saldo_atual_total': 0.0
             },
             'associacao': {
                 'uuid': f'{acao_associacao_charli_bravo_000086_x.associacao.uuid}',
@@ -473,10 +469,11 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
     assert response.status_code == status.HTTP_200_OK
     assert result['results'] == resultado_esperado
 
+
 def test_api_list_associacoes_por_associacoes_somente_encerradas(jwt_authenticated_client_a,
                                                                  acao_associacao_charli_bingo_000086_x,
                                                                  acao_x
-                                                                ):
+                                                                 ):
 
     response = jwt_authenticated_client_a.get(f'/api/acoes-associacoes/?filtro_informacoes=ENCERRADAS',
                                               content_type='application/json')
@@ -491,7 +488,6 @@ def test_api_list_associacoes_por_associacoes_somente_encerradas(jwt_authenticat
                 'saldo_atual_capital': 0.0,
                 'saldo_atual_custeio': 0.0,
                 'saldo_atual_livre': 0.0,
-                'saldo_atual_total': 0.0
             },
             'associacao': {
                 'uuid': f'{acao_associacao_charli_bingo_000086_x.associacao.uuid}',
@@ -529,10 +525,11 @@ def test_api_list_associacoes_por_associacoes_somente_encerradas(jwt_authenticat
     assert response.status_code == status.HTTP_200_OK
     assert result['results'] == resultado_esperado
 
+
 def test_api_list_associacoes_por_associacoes_somente_nao_encerradas(jwt_authenticated_client_a,
                                                                      acao_associacao_charli_bravo_000086_x,
                                                                      acao_x
-                                                                    ):
+                                                                     ):
 
     response = jwt_authenticated_client_a.get(f'/api/acoes-associacoes/?filtro_informacoes=NAO_ENCERRADAS',
                                               content_type='application/json')
@@ -547,7 +544,6 @@ def test_api_list_associacoes_por_associacoes_somente_nao_encerradas(jwt_authent
                 'saldo_atual_capital': 0.0,
                 'saldo_atual_custeio': 0.0,
                 'saldo_atual_livre': 0.0,
-                'saldo_atual_total': 0.0
             },
             'associacao': {
                 'uuid': f'{acao_associacao_charli_bravo_000086_x.associacao.uuid}',

@@ -22,6 +22,22 @@ def periodo_paa_admin():
 
 
 @pytest.fixture
+def periodo_2025_1(periodo_factory):
+    return periodo_factory.create(
+        referencia='2025.1',
+        data_inicio_realizacao_despesas=date(2025, 1, 1),
+        data_fim_realizacao_despesas=date(2025, 4, 30),
+    )
+
+
+@pytest.fixture
+def periodo_paa_2025_1(periodo_paa_factory, periodo_2025_1):
+    return periodo_paa_factory.create(referencia="Periodo 04/2025 a 10/2025",
+                                      data_inicial=date(2025, 1, 1),
+                                      data_final=date(2025, 4, 30))
+
+
+@pytest.fixture
 def periodo_paa_1(periodo_paa_factory):
     return periodo_paa_factory.create(referencia="Periodo 04/2025 a 10/2025",
                                       data_inicial=date(2025, 4, 1),

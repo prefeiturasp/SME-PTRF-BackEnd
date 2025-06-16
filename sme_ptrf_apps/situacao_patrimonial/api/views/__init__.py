@@ -1,3 +1,4 @@
 # flake8: noqa
 from .bem_produzido_viewset import BemProduzidoViewSet
 from .despesa_situacao_patrimonial_viewset import DespesaSituacaoPatrimonialViewSet
+from .bem_produzido_item_viewset import BemProduzidoItemViewSet

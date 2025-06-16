@@ -30,7 +30,7 @@ class DespesaSituacaoPatrimonialSerializer(serializers.ModelSerializer):
         model = Despesa
         fields = (
             'uuid', 'associacao', 'numero_documento', 'status', 'tipo_documento', 
-            'data_documento', 'cpf_cnpj_fornecedor', 'nome_fornecedor', 'valor_total', 
+            'data_documento', 'cpf_cnpj_fornecedor', 'nome_fornecedor', 'valor_total',
             'valor_ptrf', 'data_transacao', 'tipo_transacao', 'documento_transacao',
             'rateios', 'periodo_referencia'
         )

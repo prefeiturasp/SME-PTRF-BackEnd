@@ -18,8 +18,10 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe
 )
 from sme_ptrf_apps.paa.api.serializers.paa_serializer import PaaSerializer
+from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
 from sme_ptrf_apps.paa.models import Paa
 from sme_ptrf_apps.core.models import Associacao
+from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +67,32 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             "ano": datetime.now().year
         }
         return PaaService.gerar_arquivo_pdf_levantamento_prioridades_paa(dados)
+
+    @action(detail=True, methods=['post'], url_path='desativar-atualizacao-saldo',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def desativar_atualizacao_saldo(self, request, uuid):
+        instance = self.get_object()
+        associacao = instance.associacao
+
+        saldos_por_acao_paa_service = SaldosPorAcaoPaaService(paa=instance, associacao=associacao)
+        receitas_previstas = saldos_por_acao_paa_service.congelar_saldos()
+
+        serializer = ReceitaPrevistaPaaSerializer(receitas_previstas, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='ativar-atualizacao-saldo',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def ativar_atualizacao_saldo(self, request, uuid):
+        instance = self.get_object()
+        associacao = instance.associacao
+
+        saldos_por_acao_paa_service = SaldosPorAcaoPaaService(paa=instance, associacao=associacao)
+        receitas_previstas = saldos_por_acao_paa_service.descongelar_saldos()
+
+        serializer = ReceitaPrevistaPaaSerializer(receitas_previstas, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         from django.db.models.deletion import ProtectedError
