@@ -1,3 +1,4 @@
+import '@shelex/cypress-allure-plugin';
 import postgreSQL from "cypress-postgresql";
 postgreSQL.loadDBCommands();
 
