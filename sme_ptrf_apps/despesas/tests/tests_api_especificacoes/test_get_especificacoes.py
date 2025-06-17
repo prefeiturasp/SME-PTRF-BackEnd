@@ -45,6 +45,7 @@ def json_especificacao_custeio_material_eletrico(especificacao_custeio_material_
         'aplicacao_recurso': especificacao_custeio_material_eletrico.aplicacao_recurso,
         'tipo_custeio': especificacao_custeio_material_eletrico.tipo_custeio.id,
         'ativa': True,
+        'uuid': str(especificacao_custeio_material_eletrico.uuid)
 
     }
 
@@ -57,6 +58,7 @@ def json_especificacao_custeio_servico_instalacao_eletrica(especificacao_custeio
         'aplicacao_recurso': especificacao_custeio_servico_instalacao_eletrica.aplicacao_recurso,
         'tipo_custeio': especificacao_custeio_servico_instalacao_eletrica.tipo_custeio.id,
         'ativa': True,
+        'uuid': str(especificacao_custeio_servico_instalacao_eletrica.uuid)
     }
 
 
@@ -68,6 +70,7 @@ def json_especificacao_capital_ar_condicionado(especificacao_capital_ar_condicio
         'aplicacao_recurso': especificacao_capital_ar_condicionado.aplicacao_recurso,
         'tipo_custeio': None,
         'ativa': True,
+        'uuid': str(especificacao_capital_ar_condicionado.uuid)
     }
 
 

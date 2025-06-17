@@ -24,8 +24,7 @@ def test_retrieve_acao_associacao(
         'saldos': {
             'saldo_atual_capital': 0.0,
             'saldo_atual_custeio': 0.0,
-            'saldo_atual_livre': 0.0,
-
+            'saldo_atual_livre': 0.0
         },
         'associacao': {
             'uuid': f'{acao_associacao.associacao.uuid}',
