@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
+from sme_ptrf_apps.situacao_patrimonial.api.serializers.bem_produzido_serializer import BemProduzidoRascunhoSerializer
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido, BemProduzidoItem, BemProduzidoDespesa, BemProduzidoRateio
@@ -69,7 +70,6 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
     def cadastrar_bem(self, request, *args, **kwargs):
         bem_produzido = self.get_object()
         itens_data = request.data.get('itens', [])
-        completar_status = request.data.get('completar_status', True)
 
         itens_uuids = []
         for item in itens_data:
@@ -116,30 +116,29 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
             else:
                 itens_para_criar.append(serializer)
 
-        if completar_status:
-            # Soma dos rateios
-            valor_rateios = BemProduzidoRateio.objects.filter(
-                bem_produzido_despesa__bem_produzido=bem_produzido
-            ).aggregate(
-                total=Sum('valor_utilizado')
-            )['total'] or Decimal('0')
+        # Soma dos rateios
+        valor_rateios = BemProduzidoRateio.objects.filter(
+            bem_produzido_despesa__bem_produzido=bem_produzido
+        ).aggregate(
+            total=Sum('valor_utilizado')
+        )['total'] or Decimal('0')
 
-            # Soma dos recursos próprios
-            valor_recurso_proprio = BemProduzidoDespesa.objects.filter(
-                bem_produzido=bem_produzido
-            ).aggregate(
-                total=Sum('valor_recurso_proprio_utilizado')
-            )['total'] or Decimal('0')
+        # Soma dos recursos próprios
+        valor_recurso_proprio = BemProduzidoDespesa.objects.filter(
+            bem_produzido=bem_produzido
+        ).aggregate(
+            total=Sum('valor_recurso_proprio_utilizado')
+        )['total'] or Decimal('0')
 
-            valor_total_esperado = valor_rateios + valor_recurso_proprio
+        valor_total_esperado = valor_rateios + valor_recurso_proprio
 
-            # Validação de correspondência dos valores
-            if valor_total_itens != valor_total_esperado:
-                return Response({
-                    'mensagem': 'A soma dos valores dos itens não bate com o valor total disponível.',
-                    'valor_total_itens': float(valor_total_itens),
-                    'valor_total_esperado': float(valor_total_esperado)
-                }, status=status.HTTP_400_BAD_REQUEST)
+        # Validação de correspondência dos valores
+        if valor_total_itens != valor_total_esperado:
+            return Response({
+                'mensagem': 'A soma dos valores dos itens não bate com o valor total disponível.',
+                'valor_total_itens': float(valor_total_itens),
+                'valor_total_esperado': float(valor_total_esperado)
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         # Cria novos itens
         for serializer in itens_para_criar:
@@ -149,14 +148,12 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
         for instance, serializer in itens_para_atualizar:
             serializer.save()
 
-        if completar_status:
-            # Atualiza status para COMPLETO
-            bem_produzido.status = BemProduzido.STATUS_COMPLETO
-            bem_produzido.save(update_fields=["status"])
+        # Atualiza status para COMPLETO
+        bem_produzido.status = BemProduzido.STATUS_COMPLETO
+        bem_produzido.save(update_fields=["status"])
 
-            return Response({'mensagem': 'Itens processados com sucesso. Bem Produzido marcado como completo.'}, status=status.HTTP_201_CREATED)
-        
-        return Response({'mensagem': 'Itens processados com sucesso. Rascunho do bem produzido salvo com sucesso.'}, status=status.HTTP_201_CREATED)
+        return Response({'mensagem': 'Itens processados com sucesso. Bem Produzido marcado como completo.'}, status=status.HTTP_201_CREATED)
+
     
     @action(detail=True, methods=['post'], url_path='adicionar-despesas-bem', permission_classes=[IsAuthenticated & PermissaoApiUe])
     def adicionar_em_lote(self, request, *args, **kwargs):
@@ -181,3 +178,21 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
         return Response({
             'mensagem': f'{atualizadas} despesas associadas ao bem produzido com sucesso.'
         }, status=status.HTTP_200_OK)
+
+class BemProduzidoRascunhoViewSet(WaffleFlagMixin, ModelViewSet):
+    waffle_flag = "situacao-patrimonial"
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
+    lookup_field = 'uuid'
+    queryset = BemProduzido.objects.all().order_by('id')
+    serializer_class = BemProduzidoRascunhoSerializer
+    pagination_class = CustomPagination
+    http_method_names = ['post', 'put', 'patch', 'delete']
+
+    def get_queryset(self):
+        qs = self.queryset
+        associacao = self.request.query_params.get('associacao_uuid', None)
+
+        if associacao is not None:
+            qs = qs.filter(associacao__uuid=associacao)
+
+        return qs
