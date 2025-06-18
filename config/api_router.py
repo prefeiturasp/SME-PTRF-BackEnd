@@ -115,6 +115,7 @@ from sme_ptrf_apps.users.api.views import (
 )
 from sme_ptrf_apps.situacao_patrimonial.api.views import (
     BemProduzidoViewSet,
+    BemProduzidoRascunhoViewSet,
     DespesaSituacaoPatrimonialViewSet,
     BemProduzidoItemViewSet,
 )
@@ -262,6 +263,7 @@ router.register("recursos-proprios-paa", RecursoProprioPaaViewSet, basename='rec
 router.register("periodos-paa", PeriodoPaaViewSet, basename='periodos_paa')
 router.register("parametros-paa", ParametrosPaaViewSet, basename='parametros_paa')
 router.register("bens-produzidos", BemProduzidoViewSet, basename='bens-produzidos')
+router.register("bens-produzidos-rascunho", BemProduzidoRascunhoViewSet, basename='bens-produzidos-rascunho')
 router.register("despesa-situacao-patrimonial", DespesaSituacaoPatrimonialViewSet, basename="despesa-situacao-patrimonial")
 router.register("bem-produzido-items", BemProduzidoItemViewSet, basename="bem-produzido-items")
 

@@ -7,7 +7,7 @@ from sme_ptrf_apps.despesas.models.rateio_despesa import RateioDespesa
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido, BemProduzidoDespesa, BemProduzidoItem, BemProduzidoRateio
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.situacao_patrimonial.api.serializers.bem_produzido_despesa_serializer import BemProduzidoDespesaSerializer
-from sme_ptrf_apps.situacao_patrimonial.api.serializers.bem_produzido_item_serializer import BemProduzidoItemSerializer
+from sme_ptrf_apps.situacao_patrimonial.api.serializers.bem_produzido_item_serializer import BemProduzidoItemSerializer, BemProduzidoRascunhoItemSerializer
 
 
 class BemProduzidoSerializer(serializers.ModelSerializer):
@@ -168,3 +168,45 @@ class BemProduzidoCreateSerializer(serializers.ModelSerializer):
                 )
 
         return instance
+
+class BemProduzidoRascunhoSerializer(serializers.ModelSerializer):
+    items = BemProduzidoRascunhoItemSerializer(many=True)
+
+    class Meta:
+        model = BemProduzido
+        fields = (
+            'uuid',
+            'status',
+            'associacao',
+            'items',
+        )
+
+    def update(self, instance, validated_data):
+        items_data = validated_data.pop('items', [])
+
+        # Atualiza o próprio BemProduzido
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        received_uuids = [item.get('uuid') for item in items_data if item.get('uuid')]
+
+        # Apagar itens que não estão na lista recebida
+        instance.items.exclude(uuid__in=received_uuids).delete()
+
+        # Atualizar ou criar os itens enviados
+        for item_data in items_data:
+            item_uuid = item_data.get('uuid')
+            if item_uuid:
+                try:
+                    item_instance = instance.items.get(uuid=item_uuid)
+                    for attr, value in item_data.items():
+                        setattr(item_instance, attr, value)
+                    item_instance.save()
+                except BemProduzidoItem.DoesNotExist:
+                    continue
+            else:
+                BemProduzidoItem.objects.create(bem_produzido=instance, **item_data)
+
+        return instance
+
