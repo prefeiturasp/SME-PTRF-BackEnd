@@ -5,7 +5,7 @@ const Comum = new ComumElementosPTRF();
 
 class ComumPaginaPTRF {
   visitarPaginaPTRF() {
-    cy.visit(Cypress.config("baseUrlPTRFHomol"));
+    cy.visit(Cypress.config("baseUrlPTRF"));
   }
 
   login(Usuario, Senha) {
