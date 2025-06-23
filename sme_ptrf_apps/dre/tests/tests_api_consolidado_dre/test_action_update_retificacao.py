@@ -85,3 +85,4 @@ def test_update_retificacao_consolidado_dre_sem_informar_motivo_deve_retornar_40
     )
 
     assert response.status_code == status.HTTP_200_OK
+
