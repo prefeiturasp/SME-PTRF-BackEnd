@@ -38,7 +38,7 @@ class RecursoProprioPaaViewSet(WaffleFlagMixin, ModelViewSet):
         except ProtectedError:
             content = {
                 'erro': 'ProtectedError',
-                'mensagem': 'Essa operação não pode ser realizada. Há dados vinculados a esse Recuro'
+                'mensagem': 'Essa operação não pode ser realizada. Há dados vinculados a esse Recurso'
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 

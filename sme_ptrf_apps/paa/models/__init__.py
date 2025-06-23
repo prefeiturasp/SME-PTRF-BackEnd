@@ -8,3 +8,4 @@ from .parametro_paa import ParametroPaa
 from .recurso_proprio_paa import RecursoProprioPaa
 from .receita_prevista_paa import ReceitaPrevistaPaa
 from .receita_prevista_pdde import ReceitaPrevistaPdde
+from .prioridade_paa import PrioridadePaa

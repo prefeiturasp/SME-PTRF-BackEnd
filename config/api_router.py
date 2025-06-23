@@ -103,13 +103,14 @@ from sme_ptrf_apps.paa.api.views import (
     ReceitaPrevistaPaaViewSet,
     ReceitaPrevistaPddeViewSet,
     FonteRecursoPaaViewSet,
-    RecursoProprioPaaViewSet
+    RecursoProprioPaaViewSet,
+    PrioridadePaaViewSet
 )
 from sme_ptrf_apps.users.api.views import (
     EsqueciMinhaSenhaViewSet,
     LoginView,
     RedefinirSenhaViewSet,
-    UserViewSet, # TODO - Remover ao fim da implantação da nova gestão de usuários
+    UserViewSet,  # TODO - Remover ao fim da implantação da nova gestão de usuários
     UsuariosViewSet,
     GruposViewSet
 )
@@ -134,6 +135,7 @@ from sme_ptrf_apps.logging.simulador_de_logs.simulador_de_logs_view import (
     SimuladorDeLogsSecundarioAsyncView,
 )
 
+
 @api_view()
 def versao(request):
     versao = __version__
@@ -153,7 +155,8 @@ if settings.DEBUG:
 else:
     router = SimpleRouter()
 
-router.register("usuarios", UserViewSet, basename="usuarios") # TODO - Remover ao fim da implantação da nova gestão de usuários
+# TODO - Remover ao fim da implantação da nova gestão de usuários
+router.register("usuarios", UserViewSet, basename="usuarios")
 router.register("usuarios-v2", UsuariosViewSet, basename="usuarios-v2")
 router.register("grupos", GruposViewSet, basename="grupos")
 router.register("despesas", DespesasViewSet, basename="despesas")
@@ -262,9 +265,11 @@ router.register("fontes-recursos-paa", FonteRecursoPaaViewSet, basename='fonte_r
 router.register("recursos-proprios-paa", RecursoProprioPaaViewSet, basename='recursos_proprios_paa')
 router.register("periodos-paa", PeriodoPaaViewSet, basename='periodos_paa')
 router.register("parametros-paa", ParametrosPaaViewSet, basename='parametros_paa')
+router.register("prioridades-paa", PrioridadePaaViewSet, basename='prioridades-paa')
 router.register("bens-produzidos", BemProduzidoViewSet, basename='bens-produzidos')
 router.register("bens-produzidos-rascunho", BemProduzidoRascunhoViewSet, basename='bens-produzidos-rascunho')
-router.register("despesa-situacao-patrimonial", DespesaSituacaoPatrimonialViewSet, basename="despesa-situacao-patrimonial")
+router.register("despesa-situacao-patrimonial", DespesaSituacaoPatrimonialViewSet,
+                basename="despesa-situacao-patrimonial")
 router.register("bem-produzido-items", BemProduzidoItemViewSet, basename="bem-produzido-items")
 
 
