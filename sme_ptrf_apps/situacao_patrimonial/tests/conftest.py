@@ -77,3 +77,14 @@ def bem_produzido_despesa_3(bem_produzido_despesa_factory, bem_produzido_2, desp
 @pytest.fixture
 def bem_produzido_despesa_4(bem_produzido_despesa_factory, bem_produzido_2, despesa_4):
     return bem_produzido_despesa_factory.create(bem_produzido=bem_produzido_2, despesa=despesa_4)
+
+@pytest.fixture
+def especificacao_material_servico_1(especificacao_material_servico_factory):
+    return especificacao_material_servico_factory.create(
+        nome="Especificação do Bem Produzido 1",
+        uuid="1487c2e8-ff06-42d7-8115-33e036aaf6cc"
+    )
+
+@pytest.fixture
+def bem_produzido_item_1(bem_produzido_item_factory, bem_produzido_1, despesa_1, especificacao_material_servico_1):
+    return bem_produzido_item_factory.create(bem_produzido=bem_produzido_1, despesa=despesa_1, especificacao_material_servico=especificacao_material_servico_1)
