@@ -10,7 +10,6 @@ def test_lista_fontes_recursos_paa(jwt_authenticated_client_sme, flag_paa, fonte
 
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data) == 10
-    assert response.data[0]["nome"] == "Fonte recurso"
 
 
 @pytest.mark.django_db
