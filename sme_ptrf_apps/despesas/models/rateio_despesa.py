@@ -367,6 +367,12 @@ class RateioDespesa(ModeloBase):
 
         return dataset.all()
 
+    @classmethod
+    def rateios_completos_de_capital(cls):
+        dataset = cls.completos.filter(aplicacao_recurso=APLICACAO_CAPITAL)
+
+        return dataset.all()
+
     def marcar_conferido(self, periodo_conciliacao=None):
         self.update_conferido = True
         self.conferido = True
