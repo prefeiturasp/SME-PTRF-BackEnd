@@ -1,0 +1,181 @@
+version: '3'
+
+networks:
+    ptrf-cypress-network:
+        external: false
+
+services:
+# Postgres
+  postgres:
+    container_name: "postgres"
+    hostname: "postgres"
+    image: "postgres:14.5-alpine"
+    stop_signal: SIGINT
+    volumes:
+      - "./volumes/postgresql_dump/1_users.sql:/docker-entrypoint-initdb.d/1_users.sql"
+      - "./volumes/postgresql_dump/dump.sql:/docker-entrypoint-initdb.d/dump.sql"
+    ports: 
+      - "5432:5432"
+    environment: 
+      POSTGRES_PASSWORD : 12345qw
+      POSTGRES_DB : db_ptrf
+      POSTGRES_USER : postgres
+    networks:
+      - ptrf-cypress-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+#Postgres dump coreSSO
+  postgres_coreSSO:
+    container_name: "postgres_coreSSO"
+    hostname: "postgres_coreSSO"
+    image: "postgres:latest"
+    stop_signal: SIGINT
+    volumes:
+      - "./volumes/postgresql_dump_coresso/1_users.sql:/docker-entrypoint-initdb.d/1_users.sql"
+      - "./volumes/postgresql_dump_coresso/dump_coresso.sql:/docker-entrypoint-initdb.d/dump_coresso.sql"
+    ports: 
+      - "5433:5432"
+    environment: 
+      POSTGRES_PASSWORD : pNbPrJhgY96G
+      POSTGRES_DB : db_autentica_coresso
+      POSTGRES_USER : postgres
+    networks:
+      - ptrf-cypress-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  
+  coreSSO:
+    container_name: "coreSSO"
+    hostname: "coreSSO"
+    image: "registry.sme.prefeitura.sp.gov.br/homolog/sme-autentica-coresso:latest"
+    ports: 
+      - "8000:8000"
+    environment: 
+      CORESSO_DB : CoreSSO
+      CORESSO_HOST : 10.49.19.159
+      CORESSO_USER : UserCoreSSO
+      CORESSO_PASSWD : Sgp1234
+      POSTGRES_HOST : postgres_coreSSO
+      POSTGRES_PORT : 5432
+      POSTGRES_PASSWORD : pNbPrJhgY96G
+      POSTGRES_DB : db_autentica_coresso
+      POSTGRES_USER : usr_coresso
+      REDIS_LOCATION : redis://redis
+      REDIS_URL : redis://redis
+      SENTRY : 'True'
+      SENTRY_ENVIRONMENT : Tests
+      SENTRY_URL : https://386d02d40f7f46b0bbb7b305d188f1ce@sentry.sme.prefeitura.sp.gov.br/15
+      DATABASE_URL : postgresql://usr_coresso:pNbPrJhgY96G@postgres_coreSSO:5432/db_autentica_coresso
+    networks:
+      - ptrf-cypress-network
+    command:
+      /bin/sh -c 'python manage.py migrate && python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind=0.0.0.0:8000 -w 8'
+    depends_on: 
+      postgres:
+        condition: service_healthy
+      postgres_coreSSO:
+        condition: service_healthy
+  
+  # Reddis:
+  redis:
+    container_name: redis
+    hostname: redis
+    image: "bitnami/redis:5.0.8-debian-10-r33"
+    ports:
+      - "6379:6379"
+    # command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    networks:
+      - ptrf-cypress-network
+    depends_on: 
+      postgres:
+        condition: service_healthy
+    environment:
+      ALLOW_EMPTY_PASSWORD : 'yes'
+
+  ####PTRF
+  ptrf-backend:
+    container_name: ptrf-backend
+    hostname: ptrf-backend
+    image: registry.sme.prefeitura.sp.gov.br/homolog/ptrf-backend:latest
+    #build: ./dockerfiles/ptrf/
+    ports:
+      - 8001:8001
+    networks:
+      - ptrf-cypress-network
+    depends_on: 
+      postgres:
+        condition: service_healthy
+    command:
+      /bin/sh -c 'python manage.py migrate && python manage.py collectstatic --noinput && gunicorn config.wsgi:application --bind=0.0.0.0:8001 --timeout 4000 --graceful-timeout 4000 -w 8'
+    environment: 
+      DJANGO_SETTINGS_MODULE : config.settings.production
+      EOL_API_TERCEIRIZADAS_URL : https://hom-cieduapi.sme.prefeitura.sp.gov.br/terceirizadas/
+      AUTENTICA_CORESSO_API_URL : http://coreSSO:8000/sme-autentica/api
+      AUTENTICA_CORESSO_API_TOKEN : '4978acb1b3e7e1670f6fcef6262ba4366b737398'
+      POSTGRES_DB : db_ptrf
+      POSTGRES_HOST : postgres
+      POSTGRES_PORT : 5432
+      POSTGRES_USER : postgres
+      REDIS_LOCATION : redis://redis
+      REDIS_URL : redis://redis
+      SENTRY_ENVIRONMENT : Tests
+      SENTRY_URL : https://69f4cb70fb324fc281a4fb38846381cc@sentry.sme.prefeitura.sp.gov.br/15
+      SERVER_NAME : hom-sig-escola.sme.prefeitura.sp.gov.br
+      SME_INTEGRACAO_URL : https://hom-smeintegracaoapi.sme.prefeitura.sp.gov.br
+      SYS_GRUPO_ID_DRE : 4EDBEDFC-12FC-EA11-BF09-782BCB3D2D76
+      SYS_GRUPO_ID_PTRF : DDA7FE96-266A-EA11-87D9-00155DC1C2E2
+      SYS_GRUPO_ID_SME : 4FDBEDFC-12FC-EA11-BF09-782BCB3D2D76
+      SYS_GRUPO_ID_UE : 4DDBEDFC-12FC-EA11-BF09-782BCB3D2D76
+      USE_DOCKER : 'no'
+      DJANGO_SECRET_KEY : 'IywCEE8GWBhxPxlUb9nnxqpPhzdZDAZt'
+      EOL_API_TERCEIRIZADAS_TOKEN : '280e143c20d6c9be10ddd02bb26562a8b2d9a861'
+      POSTGRES_PASSWORD : '12345qw'
+      SME_INTEGRACAO_TOKEN : 'fe8c65abfac596a39c40b8d88302cb7341c8ec99'
+
+  ####PTRF
+  ptrf-frontend:
+    container_name: ptrf-frontend
+    hostname: ptrf-frontend
+    image: registry.sme.prefeitura.sp.gov.br/homolog/ptrf-frontend:latest
+    #build: ./dockerfiles/ptrf/
+    ports:
+      - 80:80
+    networks:
+      - ptrf-cypress-network
+    depends_on: 
+      postgres:
+        condition: service_healthy
+    environment: 
+      API_URL : http://ptrf-backend:8001
+      DSN_SENTRY : https://2f9ae64c32c048f3acf44d67b330745c@sentry.sme.prefeitura.sp.gov.br/16
+      SENTRY_ENVIRONMENT : Tests
+      SENTRY_URL : https://2f9ae64c32c048f3acf44d67b330745c@sentry.sme.prefeitura.sp.gov.br/16
+      SERVER_NAME : hom-sig-escola.sme.prefeitura.sp.gov.br
+      REACT_APP_EDITOR_KEY : 'og6fxp5ykgdqwm8hexad0osv4s5iqbeyock2j8fj8ilud0gq'
+
+
+  # ###########################################################Cypress
+  cypress:
+    container_name: "cypress"
+    hostname: "cypress"
+    image: "cypress/included:11.2.0"
+    working_dir: /var/lib/cypress-docker
+    command: "--browser chrome"
+    environment:
+      NO_COLOR: 1
+    volumes:
+      - "./volumes/cypress-docker:/var/lib/cypress-docker"
+    ports: 
+      - "1234:1234"
+    networks:
+      - ptrf-cypress-network
+    depends_on: 
+      - ptrf-backend
+      - ptrf-frontend
