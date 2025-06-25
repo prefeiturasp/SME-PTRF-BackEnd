@@ -119,6 +119,7 @@ from sme_ptrf_apps.situacao_patrimonial.api.views import (
     BemProduzidoRascunhoViewSet,
     DespesaSituacaoPatrimonialViewSet,
     BemProduzidoItemViewSet,
+    BemAdquiridoProduzidoViewSet
 )
 
 from sme_ptrf_apps.mandatos.api.views import (
@@ -267,6 +268,7 @@ router.register("periodos-paa", PeriodoPaaViewSet, basename='periodos_paa')
 router.register("parametros-paa", ParametrosPaaViewSet, basename='parametros_paa')
 router.register("prioridades-paa", PrioridadePaaViewSet, basename='prioridades-paa')
 router.register("bens-produzidos", BemProduzidoViewSet, basename='bens-produzidos')
+router.register("bens-produzidos-e-adquiridos", BemAdquiridoProduzidoViewSet, basename='bens-produzidos-e-adquiridos')
 router.register("bens-produzidos-rascunho", BemProduzidoRascunhoViewSet, basename='bens-produzidos-rascunho')
 router.register("despesa-situacao-patrimonial", DespesaSituacaoPatrimonialViewSet,
                 basename="despesa-situacao-patrimonial")
