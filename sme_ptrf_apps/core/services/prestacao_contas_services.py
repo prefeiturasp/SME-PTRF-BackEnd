@@ -1140,7 +1140,7 @@ def __cria_analise_lancamento_solicitacao_acerto(analise_prestacao, lancamento):
 
     return analise_lancamento
 
-
+@transaction.atomic
 def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atualizacao_em_lote):
     logging.info(
         f'Verificando quais solicitações de ajustes existentes devem ser apagadas para a análise de lançamento {analise_lancamento.uuid}.')
@@ -1190,6 +1190,9 @@ def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atual
                     status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE
                 )
 
+                if not SolicitacaoAcertoLancamento.objects.filter(uuid=solicitacao_criada.uuid).exists():
+                    raise ValidationError("Falha ao criar SolicitacaoAcertoLancamento.")
+
                 logging.info(f"Solicitação criada: {solicitacao_criada}.")
 
                 keep_solicitacoes.append(solicitacao_criada.uuid)
@@ -1204,6 +1207,10 @@ def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atual
                     valor=solicitacao_acerto['devolucao_tesouro']['valor'],
                     motivo=solicitacao_acerto['detalhamento']
                 )
+
+                if not SolicitacaoDevolucaoAoTesouro.objects.filter(uuid=solicitacao_devolucao_ao_tesouro.uuid).exists():
+                    raise ValidationError("Falha ao criar SolicitacaoDevolucaoAoTesouro.")
+
                 logging.info(f"Solicitação de devolução ao tesouro criada: {solicitacao_devolucao_ao_tesouro}.")
 
     if not atualizacao_em_lote:
@@ -1219,7 +1226,7 @@ def __atualiza_analise_lancamento_para_acerto(analise_lancamento):
         analise_lancamento.save()
     return analise_lancamento
 
-
+@transaction.atomic
 def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes_acerto):
     atualizacao_em_lote = len(lancamentos) > 1
     logging.info(
@@ -1237,6 +1244,11 @@ def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes
                 )
             else:
                 __atualiza_analise_lancamento_para_acerto(analise_lancamento=analise_lancamento)
+
+        if not analise_lancamento:
+            lancamento_uuid = lancamento.get('lancamento_uuid', 'UUID não informado')
+            lancamento_tipo = lancamento.get('tipo_lancamento', 'tipo não informado')
+            raise Exception(f"Análise de lançamento não encontrada para o lançamento {lancamento_uuid} (tipo: {lancamento_tipo})")
 
         __analisa_solicitacoes_acerto(
             solicitacoes_acerto=solicitacoes_acerto,

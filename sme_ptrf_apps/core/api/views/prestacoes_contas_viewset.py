@@ -1,5 +1,7 @@
 import logging
 
+from django.db import transaction
+
 from django.db.models import Q
 from django.db.utils import IntegrityError
 from django_filters import rest_framework as filters
@@ -1217,6 +1219,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response({"message": "Lançamentos marcados como não conferidos."}, status=status.HTTP_200_OK)
 
+    @transaction.atomic
     @action(detail=True, methods=['post'], url_path="solicitacoes-de-acerto",
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def solicitacoes_acerto(self, request, uuid):
@@ -1270,11 +1273,20 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        solicita_acertos_de_lancamentos(
-            analise_prestacao=analise_prestacao,
-            lancamentos=lancamentos,
-            solicitacoes_acerto=solicitacoes_acerto
-        )
+        try:
+            solicita_acertos_de_lancamentos(
+                analise_prestacao=analise_prestacao,
+                lancamentos=lancamentos,
+                solicitacoes_acerto=solicitacoes_acerto
+            )
+        except Exception as e:
+            erro = {
+                'uuid': f'{uuid}',
+                'erro': 'solicita_acertos_de_lancamentos',
+                'operacao': 'solicitacoes-de-acertos',
+                'mensagem': str(e)
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"message": "Solicitações de acerto gravadas para os lançamentos."}, status=status.HTTP_200_OK)
 
