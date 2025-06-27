@@ -50,7 +50,7 @@ class MembroAssociacao(ModeloBase):
 
     class Meta:
         verbose_name = "Membro da Associação"
-        verbose_name_plural = "07.3) Membros das Associações"
+        verbose_name_plural = "07.4) Membros das Associações"
 
     def __str__(self):
         return f"<Nome: {self.nome}, Representacao: {self.representacao}>"
