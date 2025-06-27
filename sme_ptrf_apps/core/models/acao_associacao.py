@@ -92,7 +92,7 @@ class AcaoAssociacao(ModeloBase):
 
     class Meta:
         verbose_name = "Ação de Associação"
-        verbose_name_plural = "07.2) Ações de Associações"
+        verbose_name_plural = "07.3) Ações de Associações"
 
 
 auditlog.register(AcaoAssociacao)
