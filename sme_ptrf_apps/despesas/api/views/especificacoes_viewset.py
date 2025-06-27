@@ -4,7 +4,7 @@ from rest_framework import viewsets, status, mixins, exceptions
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
-
+from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CHOICES
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
@@ -52,7 +52,8 @@ class ParametrizacaoEspecificacoesMaterialServicoViewSet(mixins.CreateModelMixin
             OpenApiParameter(name='descricao', description='Descrição da especificação', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
             OpenApiParameter(name='aplicacao_recurso', description='Custeio ou Capital', required=False,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=['CAPITAL', 'CUSTEIO']),
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=[i[0] for i in APLICACAO_CHOICES]),
             OpenApiParameter(name='tipo_custeio', description='UUID do tipo de despesa custeio', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
         ],

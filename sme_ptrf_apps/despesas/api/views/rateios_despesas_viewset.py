@@ -11,7 +11,8 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-
+from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CHOICES
+from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_CHOICES
 from sme_ptrf_apps.despesas.services.filtra_despesas_por_tags import filtra_despesas_por_tags
 
 from sme_ptrf_apps.users.permissoes import (
@@ -174,12 +175,13 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
             OpenApiParameter(name='associacao__uuid', description='UUID da Associação', required=True,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
             OpenApiParameter(name='aplicacao_recurso', description='Tipo de Aplicação', required=False,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=["CUSTEIO", "CAPITAL"]),
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=[i[0] for i in APLICACAO_CHOICES]),
             OpenApiParameter(name='acao_associacao__uuid', description='UUID da Ação Associação', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
             OpenApiParameter(name='despesa__status', description='Status de despesas', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
-                             enum=['COMPLETO', 'INCOMPLETO', 'INATIVO']),
+                             enum=[i[0] for i in STATUS_CHOICES]),
             OpenApiParameter(name='associacao__uuid', description='UUID da Associação', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
             OpenApiParameter(name='conferido', description='Conferido?', required=False,
