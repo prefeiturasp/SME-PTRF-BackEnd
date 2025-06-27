@@ -1191,8 +1191,8 @@ def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atual
                     status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE
                 )
 
-                if not SolicitacaoAcertoLancamento.objects.filter(uuid=solicitacao_criada.uuid).exists():
-                    raise ValidationError("Falha ao criar SolicitacaoAcertoLancamento.")
+                if not solicitacao_criada:
+                    raise ValidationError("Falha ao criar Solicitacao Acerto Lancamento.")
 
                 logging.info(f"Solicitação criada: {solicitacao_criada}.")
 
@@ -1209,8 +1209,8 @@ def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atual
                     motivo=solicitacao_acerto['detalhamento']
                 )
 
-                if not SolicitacaoDevolucaoAoTesouro.objects.filter(uuid=solicitacao_devolucao_ao_tesouro.uuid).exists():
-                    raise ValidationError("Falha ao criar SolicitacaoDevolucaoAoTesouro.")
+                if not solicitacao_devolucao_ao_tesouro:
+                    raise ValidationError("Falha ao criar Solicitacao Devolucao Ao Tesouro.")
 
                 logging.info(f"Solicitação de devolução ao tesouro criada: {solicitacao_devolucao_ao_tesouro}.")
 
