@@ -99,7 +99,7 @@ def test_get_lista_adquiridos_e_produzidos_com_filtro_periodo(jwt_authenticated_
     response = jwt_authenticated_client_sme.get(
         f'/api/bens-produzidos-e-adquiridos/?'
         f'associacao_uuid={associacao_1.uuid}&'
-        f'periodo_uuid={periodo_2025_1.uuid}'
+        f'periodos_uuid={periodo_2025_1.uuid}'
     )
     content = json.loads(response.content)
 
