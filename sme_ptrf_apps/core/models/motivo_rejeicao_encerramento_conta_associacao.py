@@ -11,7 +11,7 @@ class MotivoRejeicaoEncerramentoContaAssociacao(ModeloIdNome):
 
     class Meta:
         verbose_name = "Motivo de rejeição de encerramento de conta de associação"
-        verbose_name_plural = "07.5) Motivos de rejeição de encerramento de conta de associação"
+        verbose_name_plural = "07.6) Motivos de rejeição de encerramento de conta de associação"
         unique_together = ['nome', ]
 
 
