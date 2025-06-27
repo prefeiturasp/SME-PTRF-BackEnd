@@ -1,8 +1,8 @@
-import datetime
 import logging
 
 from django.db.models import Q
 from django_filters import rest_framework as filters
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
-from sme_ptrf_apps.core.api.serializers import TipoContaSerializer
+from sme_ptrf_apps.core.api.serializers import TipoContaSerializer, UnidadeLookUpSerializer
 from sme_ptrf_apps.receitas.api.serializers import (
     TipoReceitaListaSerializer,
     TipoReceitaCreateSerializer,
@@ -38,7 +38,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
     serializer_class = TipoReceitaListaSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_fields = ('e_repasse', 'e_rendimento', 'e_devolucao', 'e_estorno', 'aceita_capital', 'aceita_custeio',
-                     'aceita_livre', 'e_recursos_proprios', 'tipos_conta__uuid')
+                        'aceita_livre', 'e_recursos_proprios', 'tipos_conta__uuid')
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     pagination_class = CustomPagination
 
@@ -74,7 +74,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         except ProtectedError:
             content = {
                 'erro': 'ProtectedError',
-                'mensagem': 'Esse tipo de crédito não pode ser excluído pois existem receitas cadastradas com esse tipo.'
+                'mensagem': 'Esse tipo de crédito não pode ser excluído pois existem receitas cadastradas com esse tipo.'  # noqa
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
@@ -104,10 +104,18 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         return Response(result, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='dre', description='UUID da DRE', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='nome_ou_codigo', description='Nome da Unidade ou Código EOL', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: UnidadeLookUpSerializer()},
+    )
     @action(detail=True, url_path='unidades-vinculadas',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def unidades_vinculadas(self, request, *args, **kwargs):
-        from sme_ptrf_apps.core.api.serializers import UnidadeLookUpSerializer
         uuid_dre = self.request.query_params.get('dre')
         nome_ou_codigo = self.request.query_params.get('nome_ou_codigo')
 
@@ -118,8 +126,9 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             unidades_qs = unidades_qs.filter(dre__uuid=uuid_dre)
 
         if nome_ou_codigo is not None:
-            unidades_qs = unidades_qs.filter(Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo) | Q(
-                nome__unaccent__icontains=nome_ou_codigo))
+            unidades_qs = unidades_qs.filter(
+                Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo) | Q(
+                    nome__unaccent__icontains=nome_ou_codigo))
 
         serializer = UnidadeLookUpSerializer(unidades_qs, many=True)
 
@@ -128,10 +137,18 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         return paginator.get_paginated_response(paginated_unidades)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='dre', description='UUID da DRE', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='nome_ou_codigo', description='Nome da Unidade ou Código EOL', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: UnidadeLookUpSerializer()},
+    )
     @action(detail=True, url_path='unidades-nao-vinculadas',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def unidades_nao_vinculadas(self, request, *args, **kwargs):
-        from sme_ptrf_apps.core.api.serializers import UnidadeLookUpSerializer
         from sme_ptrf_apps.core.models.unidade import Unidade
         uuid_dre = self.request.query_params.get('dre')
         nome_ou_codigo = self.request.query_params.get('nome_ou_codigo')
@@ -149,8 +166,9 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
                 unidades_nao_vinculadas = unidades_nao_vinculadas.filter(dre__uuid=uuid_dre)
 
             if nome_ou_codigo is not None:
-                unidades_nao_vinculadas = unidades_nao_vinculadas.filter(Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo) | Q(
-                    nome__unaccent__icontains=nome_ou_codigo))
+                unidades_nao_vinculadas = unidades_nao_vinculadas.filter(
+                    Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo) | Q(
+                        nome__unaccent__icontains=nome_ou_codigo))
 
         serializer = UnidadeLookUpSerializer(unidades_nao_vinculadas, many=True)
 
@@ -172,7 +190,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         if instance.pode_restringir_unidades([unidade_uuid]):
             instance.unidades.remove(unidade)
         else:
-            return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST) # noqa
 
         return Response({"mensagem": "Unidade desvinculada com sucesso!"}, status=200)
 
@@ -191,12 +209,14 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         unidades = Unidade.objects.filter(uuid__in=unidade_uuids)
 
         if not unidades.exists():
-            return Response({"erro": "Nenhuma unidade encontrada ou já desvinculada."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"erro": "Nenhuma unidade encontrada ou já desvinculada."},
+                status=status.HTTP_404_NOT_FOUND)
 
         if instance.pode_restringir_unidades(unidade_uuids):
             instance.unidades.remove(*unidades)
         else:
-            return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)  # noqa
 
         return Response({"mensagem": "Unidades desvinculadas com sucesso!"}, status=status.HTTP_200_OK)
 
@@ -212,7 +232,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         if instance.pode_restringir_unidades([unidade_uuid]):
             instance.unidades.add(unidade)
         else:
-            return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)  # noqa
 
         return Response({"mensagem": "Unidade vinculada com sucesso!"}, status=200)
 
@@ -236,6 +256,6 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         if instance.pode_restringir_unidades(unidade_uuids):
             instance.unidades.add(*unidades)
         else:
-            return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)  # noqa
 
         return Response({"mensagem": "Unidades vinculadas com sucesso!"}, status=status.HTTP_200_OK)

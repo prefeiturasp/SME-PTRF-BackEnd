@@ -3,7 +3,8 @@ from rest_framework.response import Response
 from rest_framework import viewsets, status, mixins, exceptions
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import IsAuthenticated
-
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CHOICES
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
@@ -31,19 +32,35 @@ class EspecificacaoMaterialServicoViewSet(viewsets.ReadOnlyModelViewSet):
         return EspecificacaoMaterialServicoLookUpSerializer
 
 
-class ParametrizacaoEspecificacoesMaterialServicoViewSet(
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.ListModelMixin,
-    mixins.UpdateModelMixin,
-    mixins.DestroyModelMixin,
-    viewsets.GenericViewSet):
+class ParametrizacaoEspecificacoesMaterialServicoViewSet(mixins.CreateModelMixin,
+                                                         mixins.RetrieveModelMixin,
+                                                         mixins.ListModelMixin,
+                                                         mixins.UpdateModelMixin,
+                                                         mixins.DestroyModelMixin,
+                                                         viewsets.GenericViewSet):
 
     lookup_field = 'uuid'
     queryset = EspecificacaoMaterialServico.objects.all().order_by('id')
     permission_classes = [IsAuthenticated]
     serializer_class = EspecificacaoMaterialServicoSerializer
     pagination_class = CustomPagination
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='ativa', description='Status da especificação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=['0', '1']),
+            OpenApiParameter(name='descricao', description='Descrição da especificação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='aplicacao_recurso', description='Custeio ou Capital', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=[i[0] for i in APLICACAO_CHOICES]),
+            OpenApiParameter(name='tipo_custeio', description='UUID do tipo de despesa custeio', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: EspecificacaoMaterialServicoSerializer()},
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     @action(detail=False, methods=['GET'], url_path='tabelas', permission_classes=[IsAuthenticated])
     def tabelas(self, request):
@@ -135,8 +152,8 @@ class ParametrizacaoEspecificacoesMaterialServicoViewSet(
             self.perform_destroy(obj)
         except ProtectedError:
             raise exceptions.ValidationError({
-                    'erro': 'ProtectedError',
-                    'mensagem': 'Essa operação não pode ser realizada. Há despesas vinculadas à esta especificação'
-                })
+                'erro': 'ProtectedError',
+                'mensagem': 'Essa operação não pode ser realizada. Há despesas vinculadas à esta especificação'
+            })
 
         return Response(status=status.HTTP_204_NO_CONTENT)

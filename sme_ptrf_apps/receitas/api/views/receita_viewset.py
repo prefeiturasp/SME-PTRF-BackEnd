@@ -3,6 +3,7 @@ import logging
 
 from django.db.models import Q
 from django_filters import rest_framework as filters
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiResponse
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
@@ -23,7 +24,7 @@ from sme_ptrf_apps.users.permissoes import (
 from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoReceitaEDetalhesSerializer
 from ...services import atualiza_repasse_para_pendente, get_total_receita_sem_filtro, get_total_receita_com_filtro
 from ...tipos_aplicacao_recurso_receitas import aplicacoes_recurso_to_json
-from ....core.models import Associacao, Periodo, PrestacaoConta
+from ....core.models import Associacao, Periodo
 from ....despesas.models import Despesa
 
 logger = logging.getLogger(__name__)
@@ -40,7 +41,8 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     serializer_class = ReceitaListaSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data',)
-    filterset_fields = ('associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid', 'conferido')
+    filterset_fields = (
+        'associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid', 'conferido')
     permission_classes = [IsAuthenticated & PermissaoApiUe]
 
     def get_serializer_class(self):
@@ -73,12 +75,21 @@ class ReceitaViewSet(mixins.CreateModelMixin,
 
         return qs
 
-
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao_uuid', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        description="Retorna lista de períodos",
+        responses={200: PeriodoLookUpSerializer(many=True)}
+    )
     @action(detail=False, url_path='periodos-validos-associacao-encerrada', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def periodos_validos_associacao_encerrada(self, request):
 
-        from ..serializers.validation_serializers.receitas_validate_serializer import ValidarPeriodosAssociacaoEncerradaValidationSerializer
+        from ..serializers.validation_serializers.receitas_validate_serializer import (
+            ValidarPeriodosAssociacaoEncerradaValidationSerializer
+        )
         from ...services.receita_service import ValidaPeriodosReceitaAssociacaoEncerrada
 
         query = ValidarPeriodosAssociacaoEncerradaValidationSerializer(data=self.request.query_params)
@@ -91,12 +102,32 @@ class ReceitaViewSet(mixins.CreateModelMixin,
 
         return Response(PeriodoLookUpSerializer(qs, many=True).data, status=status.HTTP_200_OK)
 
-
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao_uuid', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='data_da_receita', description='Data da Receita', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        description="Valida data de receita",
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'erro_data_da_receita': {'type': 'boolean'},
+                    'data_de_encerramento': {'type': 'string'},
+                    'sucesso': {'type': 'string'},
+                    'mensagem': {'type': 'string'},
+                },
+            }
+        )},
+    )
     @action(detail=False, url_path='validar-data-da-receita-associacao-encerrada', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def validar_data_da_receita_associacao_encerrada(self, request):
 
-        from ..serializers.validation_serializers.receitas_validate_serializer import ValidarDataDaReceitaAssociacaoEncerradaValidationSerializer
+        from ..serializers.validation_serializers.receitas_validate_serializer import (
+            ValidarDataDaReceitaAssociacaoEncerradaValidationSerializer)
         from ...services.receita_service import ValidaDataDaReceitaAssociacaoEncerrada
 
         query = ValidarDataDaReceitaAssociacaoEncerradaValidationSerializer(data=self.request.query_params)
@@ -109,13 +140,30 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         data_da_receita = datetime.datetime.strptime(data_da_receita, '%Y-%m-%d')
         data_da_receita = data_da_receita.date()
 
-        response = ValidaDataDaReceitaAssociacaoEncerrada(data_da_receita=data_da_receita, associacao=associacao).response
+        response = ValidaDataDaReceitaAssociacaoEncerrada(
+            data_da_receita=data_da_receita, associacao=associacao).response
 
         status_response = response.pop("status")
 
         return Response(response, status=status_response)
 
-
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao_uuid', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        description="Valida data de receita",
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'associacao_uuid': {'type': 'string'},
+                    'total_receitas_sem_filtro': {'type': 'number'},
+                    'total_receitas_com_filtro': {'type': 'number'},
+                },
+            }
+        )},
+    )
     @action(detail=False, url_path='totais', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def totais(self, request):
@@ -140,6 +188,25 @@ class ReceitaViewSet(mixins.CreateModelMixin,
 
         return Response(result)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao_uuid', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        description="Retorna valores de tabelas",
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'tipos_receita': {'type': 'number'},
+                    'categorias_receita': {'type': 'number'},
+                    'acoes_associacao': {'type': 'number'},
+                    'contas_associacao': {'type': 'number'},
+                    'periodos': {'type': 'number'},
+                },
+            }
+        )},
+    )
     @action(detail=False, url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, request):
@@ -195,6 +262,14 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             self.perform_destroy(instance)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        description="Concilia receita marcando \"conferido\" como True",
+        responses={200: ReceitaListaSerializer()},
+    )
     @action(detail=True, methods=['patch'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def conciliar(self, request, uuid):
@@ -228,6 +303,13 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         return Response(ReceitaListaSerializer(receita_desconciliada, many=False).data,
                         status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='despesa_uuid', description='UUID da Despesa', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: ReceitaListaSerializer()},
+    )
     @action(detail=True, url_path='atrelar-saida-recurso', methods=['patch'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def atrelar_saida_do_recurso(self, request, uuid):
@@ -265,7 +347,6 @@ class ReceitaViewSet(mixins.CreateModelMixin,
 
         return Response(ReceitaListaSerializer(receita_atrelada, many=False).data,
                         status=status.HTTP_200_OK)
-
 
     @action(detail=False, url_path='tags-informacoes',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
