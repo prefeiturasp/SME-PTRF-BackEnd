@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoRateio
+from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoDespesa
 from sme_ptrf_apps.core.models.periodo import Periodo
 
 
@@ -11,21 +11,31 @@ class BemProduzidoRateioSerializer(serializers.Serializer):
     valor = serializers.CharField()
     valor_utilizado = serializers.CharField()
     recursos_proprios = serializers.CharField()
+    acao = serializers.CharField()
 
     def to_representation(self, instance):
         return {
             'num_documento': instance.rateio.despesa.numero_documento,
             'data_documento': instance.rateio.despesa.data_documento,
+            'acao': instance.rateio.acao_associacao.acao.nome,
             'especificacao_do_bem': instance.rateio.especificacao_material_servico.descricao if instance.rateio.especificacao_material_servico else None,
             'valor': instance.rateio.valor_rateio,
             'valor_utilizado': instance.valor_utilizado,
-            'recursos_proprios': instance.bem_produzido_despesa.valor_recurso_proprio_utilizado
         }
+
+
+class BemProduzidoDespesaSerializer(serializers.ModelSerializer):
+    rateios = BemProduzidoRateioSerializer(many=True)
+
+    class Meta:
+        model = BemProduzidoDespesa
+        fields = '__all__'
 
 
 class BemProduzidoEAdquiridoSerializer(serializers.Serializer):
     id = serializers.IntegerField()
     tipo = serializers.CharField()
+    status = serializers.CharField()
     numero_documento = serializers.CharField()
     especificacao_do_bem = serializers.CharField()
     data_aquisicao_producao = serializers.CharField()
@@ -44,6 +54,7 @@ class BemProduzidoEAdquiridoSerializer(serializers.Serializer):
         if hasattr(instance, 'despesa'):  # É RateioDespesa
             return {
                 'uuid': instance.uuid,
+                'status': instance.status,
                 'numero_documento': instance.despesa.numero_documento,
                 'especificacao_do_bem': instance.especificacao_material_servico.descricao if instance.especificacao_material_servico else None,
                 'data_aquisicao_producao': instance.despesa.data_documento,
@@ -54,9 +65,9 @@ class BemProduzidoEAdquiridoSerializer(serializers.Serializer):
                 'tipo': 'Adquirido'
             }
         else:  # É BemProduzidoItem
-            rateios = BemProduzidoRateio.objects.filter(bem_produzido_despesa__bem_produzido=instance.bem_produzido)
             return {
                 'uuid': instance.uuid,
+                'status': instance.bem_produzido.status,
                 'numero_documento': self.get_num_documentos(instance),
                 'especificacao_do_bem': instance.especificacao_do_bem.descricao if instance.especificacao_do_bem else None,
                 'data_aquisicao_producao': instance.criado_em,
@@ -64,6 +75,6 @@ class BemProduzidoEAdquiridoSerializer(serializers.Serializer):
                 'periodo': Periodo.da_data(instance.criado_em).referencia if Periodo.da_data(instance.criado_em) else None,
                 'quantidade': instance.quantidade,
                 'valor_total': instance.valor_total,
-                'rateios': BemProduzidoRateioSerializer(rateios, many=True).data,
+                'despesas': BemProduzidoDespesaSerializer(instance.bem_produzido.despesas.all(), many=True).data,
                 'tipo': 'Produzido'
             }
