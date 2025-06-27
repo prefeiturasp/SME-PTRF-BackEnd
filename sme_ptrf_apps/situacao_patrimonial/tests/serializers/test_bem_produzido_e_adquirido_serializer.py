@@ -16,7 +16,7 @@ def test_bem_produzido_e_adquirido_serializer(bem_produzido_item_1, rateio_1):
     assert serializer.data['periodo'] is None
     assert serializer.data['quantidade']
     assert serializer.data['valor_total']
-    assert 'rateios' in serializer.data
+    assert 'despesas' in serializer.data
     assert 'tipo' in serializer.data and serializer.data['tipo'] == 'Produzido'
 
     serializer = BemProduzidoEAdquiridoSerializer(rateio_1)
@@ -30,5 +30,5 @@ def test_bem_produzido_e_adquirido_serializer(bem_produzido_item_1, rateio_1):
     assert serializer.data['periodo'] is None
     assert serializer.data['quantidade']
     assert serializer.data['valor_total']
-    assert 'rateios' not in serializer.data
+    assert 'despesas' not in serializer.data
     assert 'tipo' in serializer.data and serializer.data['tipo'] == 'Adquirido'

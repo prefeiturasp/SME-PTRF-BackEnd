@@ -30,6 +30,11 @@ class PeriodosViewSet(mixins.ListModelMixin,
         if referencia is not None:
             qs = qs.filter(referencia__icontains=referencia)
 
+        somente_com_pcs_entregues = self.request.query_params.get('somente_com_pcs_entregues')
+
+        if somente_com_pcs_entregues == "true":
+            qs = qs.filter(prestacoes_de_conta__isnull=False).distinct()
+
         return qs.order_by('-referencia')
 
     def get_serializer_class(self):
@@ -105,7 +110,8 @@ class PeriodosViewSet(mixins.ListModelMixin,
 
         result = valida_datas_periodo(
             data_inicio_realizacao_despesas=datetime.strptime(data_inicio_realizacao_despesas, '%Y-%m-%d').date(),
-            data_fim_realizacao_despesas=datetime.strptime(data_fim_realizacao_despesas, '%Y-%m-%d').date() if data_fim_realizacao_despesas else None,
+            data_fim_realizacao_despesas=datetime.strptime(
+                data_fim_realizacao_despesas, '%Y-%m-%d').date() if data_fim_realizacao_despesas else None,
             periodo_anterior=periodo_anterior,
             periodo_uuid=periodo_uuid
         )
