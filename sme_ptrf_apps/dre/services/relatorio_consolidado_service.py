@@ -1165,17 +1165,6 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
             totais = _totaliza_previsoes_repasses_sme(associacao, periodo, tipo_conta, totais)
 
             """
-                Corrige exibição de conta sem valores quando uma associação
-                tiver 02 contas, porém valor cadastrado em apenas uma delas
-                e tiver devoluções ao tesouro cadastrada.
-            """
-            totais_sem_devolucao_ao_tesouro = totais.copy()
-            key_to_remove = 'devolucoes_ao_tesouro_no_periodo_total'
-            totais_sem_devolucao_ao_tesouro.pop(key_to_remove, None)  # No `KeyError` here
-
-            soma_dos_totais = sum(totais_sem_devolucao_ao_tesouro.values())
-
-            """
                 Verificando se existe algum valor para incluir os dados no resultado
                 Não devem ser exibidas as linhas de contas que tenham valores zerados em todas as colunas.
                 Não devem ser exibidas associações que tenham valores zerados em todas as colunas de todas as contas.
