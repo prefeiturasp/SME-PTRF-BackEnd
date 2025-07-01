@@ -8,4 +8,4 @@ from .fonte_recurso_paa_factory import *
 from .recurso_proprio_paa_factory import *
 from .programa_pdde_factory import *
 from .receitas_previstas_pdde_factory import *
-# from .prioridade_paa_factory import *
+from .prioridade_paa_factory import *
