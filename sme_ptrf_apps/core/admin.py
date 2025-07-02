@@ -525,7 +525,7 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(ProcessoAssociacao)
 class ProcessoAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('associacao', 'numero_processo', 'ano', 'periodos_str')
-    search_fields = ('uuid', 'numero_processo', 'associacao__nome')
+    search_fields = ('uuid', 'numero_processo', 'associacao__nome', 'associacao__unidade__codigo_eol')
     list_filter = ('ano', 'associacao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     filter_horizontal = ('periodos',)

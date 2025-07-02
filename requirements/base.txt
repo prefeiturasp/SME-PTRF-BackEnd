@@ -52,10 +52,10 @@ openpyxl==3.0.10
 python-slugify==8.0.1
 pytz==2025.1
 rcssmin==1.1.2
-sentry-sdk==1.14.0
-whitenoise==5.0.1
+sentry-sdk==2.29.1
+whitenoise==6.8.2
 
 # Gerador de PDF
 # ------------------------------------------------------------------------------
-WeasyPrint==52.2
-django-weasyprint==1.0.2
+WeasyPrint==64.1
+django-weasyprint==2.3.1

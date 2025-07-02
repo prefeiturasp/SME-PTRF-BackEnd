@@ -110,7 +110,7 @@ class SolicitacaoEncerramentoContaAssociacao(ModeloBase):
 
     class Meta:
         verbose_name = "Solicitação de Encerramento de Conta de Associação"
-        verbose_name_plural = "07.4) Solicitações de Encerramento de Conta de Associação"
+        verbose_name_plural = "07.5) Solicitações de Encerramento de Conta de Associação"
 
 @receiver(post_save, sender=SolicitacaoEncerramentoContaAssociacao)
 def on_save(sender, instance, **kwargs):

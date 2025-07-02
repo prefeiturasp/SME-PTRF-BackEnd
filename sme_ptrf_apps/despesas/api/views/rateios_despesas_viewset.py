@@ -4,14 +4,15 @@ from datetime import datetime
 
 from django.db.models import Sum
 from django_filters import rest_framework as filters
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from sme_ptrf_apps.despesas.models.despesa import Despesa
-
+from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CHOICES
+from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_CHOICES
 from sme_ptrf_apps.despesas.services.filtra_despesas_por_tags import filtra_despesas_por_tags
 
 from sme_ptrf_apps.users.permissoes import (
@@ -38,13 +39,22 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     ordering_fields = ('data_documento',)
-    filterset_fields = ('aplicacao_recurso', 'acao_associacao__uuid', 'despesa__status', 'associacao__uuid', 'conferido', 'conta_associacao__uuid', 'tag__uuid')
+    filterset_fields = (
+        'aplicacao_recurso',
+        'acao_associacao__uuid',
+        'despesa__status',
+        'associacao__uuid',
+        'conferido',
+        'conta_associacao__uuid',
+        'tag__uuid'
+    )
 
     def get_queryset(self):
         if self.action == 'retrieve':
             return RateioDespesa.objects.filter(uuid=self.kwargs['uuid'])
 
-        associacao_uuid = self.request.query_params.get('associacao_uuid') or self.request.query_params.get('associacao__uuid')
+        associacao_uuid = self.request.query_params.get('associacao_uuid') \
+            or self.request.query_params.get('associacao__uuid')
         if associacao_uuid is None:
             erro = {
                 'erro': 'parametros_requerido',
@@ -72,6 +82,15 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
     def get_serializer_class(self):
         return RateioDespesaListaSerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='uuid', description='UUID do Rateio despesa', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.PATH),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        description="Conciliação de despesas."
+    )
     @action(detail=True, methods=['patch'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def conciliar(self, request, uuid):
@@ -107,6 +126,13 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
         return Response(RateioDespesaListaSerializer(rateio_despesa_desconciliado, many=False).data,
                         status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='despesa_uuid', description='UUID da despesa para exclude', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        description="Verifica Saldos"
+    )
     @action(detail=False, url_path='verificar-saldos', methods=['post'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def verificar_saldos(self, request):
@@ -144,6 +170,29 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
 
         return Response(result)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao__uuid', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='aplicacao_recurso', description='Tipo de Aplicação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=[i[0] for i in APLICACAO_CHOICES]),
+            OpenApiParameter(name='acao_associacao__uuid', description='UUID da Ação Associação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='despesa__status', description='Status de despesas', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=[i[0] for i in STATUS_CHOICES]),
+            OpenApiParameter(name='associacao__uuid', description='UUID da Associação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conferido', description='Conferido?', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=['True', 'False']),
+            OpenApiParameter(name='conta_associacao__uuid', description='UUID da Conta Associação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='tag__uuid', description='UUID da Tag', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        description="Valores totais"
+    )
     @action(detail=False, url_path='totais', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def totais(self, request):
@@ -158,18 +207,20 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
 
         associacao = Associacao.by_uuid(associacao__uuid)
 
-        queryset = RateioDespesa.objects.filter(associacao=associacao).exclude(despesa__status='INATIVO').all().order_by('-despesa__data_documento')
+        queryset = RateioDespesa.objects \
+            .filter(associacao=associacao).exclude(despesa__status='INATIVO').all().order_by('-despesa__data_documento')
         filtered_queryset = self.get_queryset()
         for field in self.filterset_fields:
             filter_value = request.query_params.get(field)
             if filter_value:
                 filtered_queryset = filtered_queryset.exclude(despesa__status='INATIVO').filter(**{field: filter_value})
-         
+
         filtro_informacoes = self.request.query_params.get('filtro_informacoes')
         filtro_informacoes_list = filtro_informacoes.split(',') if filtro_informacoes else []
 
         if filtro_informacoes_list:
-            ids_para_excluir = [item.id for item in filtered_queryset if filtra_despesas_por_tags(item, filtro_informacoes_list)]
+            ids_para_excluir = [
+                item.id for item in filtered_queryset if filtra_despesas_por_tags(item, filtro_informacoes_list)]
             filtered_queryset = filtered_queryset.exclude(id__in=ids_para_excluir)
 
         filtro_vinculo_atividades = self.request.query_params.get('filtro_vinculo_atividades')
@@ -187,6 +238,3 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
             "total_despesas_com_filtro": total_despesas_com_filtro
         }
         return Response(result)
-
-
-
