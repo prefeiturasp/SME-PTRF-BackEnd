@@ -12,3 +12,7 @@ from .programa_pdde_serializer import (
     TotalGeralSerializer,
     ProgramasPddeSomatorioTotalSerializer
 )
+from .prioridade_paa_serializer import (
+    PrioridadePaaCreateSerializer,
+    PrioridadePaaListSerializer
+)

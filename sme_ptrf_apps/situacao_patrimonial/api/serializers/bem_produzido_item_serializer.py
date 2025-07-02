@@ -33,3 +33,24 @@ class BemProduzidoItemCreateSerializer(serializers.ModelSerializer):
             'valor_individual',
             'especificacao_do_bem',
         )
+
+class BemProduzidoRascunhoItemSerializer(serializers.Serializer):
+    especificacao_do_bem = serializers.SlugRelatedField(
+        queryset=EspecificacaoMaterialServico.objects.all(),
+        slug_field='uuid',
+        required=False,
+        allow_null=True
+    )
+    num_processo_incorporacao = serializers.CharField(required=False, allow_blank=True)
+    quantidade = serializers.IntegerField(required=False, allow_null=True)
+    valor_individual = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+
+    class Meta:
+        model = BemProduzidoItem
+        fields = (
+            'uuid',
+            'num_processo_incorporacao',
+            'quantidade',
+            'valor_individual',
+            'especificacao_do_bem',
+        )

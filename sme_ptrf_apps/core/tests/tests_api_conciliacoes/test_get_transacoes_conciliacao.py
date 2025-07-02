@@ -59,6 +59,7 @@ def monta_result_esperado(transacoes_esperadas, periodo, conta):
                     "aplicacao_recurso": rateio.aplicacao_recurso,
                     "tipo_custeio": rateio.tipo_custeio.id,
                     "ativa": True,
+                    "uuid": str(rateio.especificacao_material_servico.uuid)
                 },
                 "notificar_dias_nao_conferido": rateio.notificar_dias_nao_conferido,
                 'estorno': {'categoria_receita': None,
