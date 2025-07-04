@@ -3,6 +3,8 @@
 import ComumElementosPTRF from "../Elementos/ComumElementosPTRF";
 const Comum = new ComumElementosPTRF();
 
+var esperar = 2000;
+
 class ComumPaginaPTRF {
   visitarPaginaPTRF() {
     cy.visit(Cypress.config("baseUrlPTRF"));
@@ -13,7 +15,7 @@ class ComumPaginaPTRF {
     Comum.textoSenha().type(Senha);
     Comum.botaoAcessar().click();
 
-    cy.wait(3000);
+    cy.wait(esperar);
   }
 
   selecionarFiltroPrincipal() {
@@ -25,24 +27,24 @@ class ComumPaginaPTRF {
   }
 
   selecionarCeuEmefMariaClara() {
-    cy.wait(3000);
+    cy.wait(esperar);
     Comum.selecaoCeuEmefMariaClara().should("be.visible");
   }
 
   selecionarCeuEmefMarioFittipaldi() {
-    cy.wait(3000);
+    cy.wait(esperar);
     Comum.selecaoCeuEmefMarioFittipaldi().should("be.visible");
   }
 
   selecionarCeuVilaAlpina() {
-    cy.wait(3000);
+    cy.wait(esperar);
     Comum.selecaoCeuVilaAlpina().should("be.visible");
   }
 
   selecionarDre() {
-    cy.wait(3000);
+    cy.wait(esperar);
     Comum.selecaoDRE().should("be.visible");
-    cy.wait(3000);
+    cy.wait(esperar);
   }
 
   selecionarItemMenuNavegacao() {
@@ -58,7 +60,7 @@ class ComumPaginaPTRF {
   }
 
   logout() {
-    cy.wait(3000);
+    cy.wait(esperar);
     Comum.botaoSair().click({ force: true });
     // Comum.botaoSairSistema().click();
   }

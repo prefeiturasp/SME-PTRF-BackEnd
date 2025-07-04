@@ -9,7 +9,8 @@ module.exports = defineConfig({
       require("./cypress/plugin/index")(on, config);
       return config;
     },
-    baseUrlPTRF: "https://hom-sig-escola.sme.prefeitura.sp.gov.br/login",
+    baseUrlPTRF:
+      "https://hom-sig-escola.sme.prefeitura.sp.gov.br/login-suporte",
     baseUrlPTRFHomol: "https://hom-sig-escola.sme.prefeitura.sp.gov.br/",
     usuario_homol_sme: process.env.USUARIO_HOMOL_SME,
     usuario_homol_dre: process.env.USUARIO_HOMOL_DRE,
