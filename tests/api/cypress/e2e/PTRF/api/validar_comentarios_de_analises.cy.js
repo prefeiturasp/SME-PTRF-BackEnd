@@ -23,7 +23,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
   context(
     "Casos de teste para a rota de Get /api/comentarios-de-analises/{uuid}/",
     () => {
-      it.only("Validar Get no endpoint /api/comentarios-de-analises/{uuid}/ com sucesso", () => {
+      it("Validar Get no endpoint /api/comentarios-de-analises/{uuid}/ com sucesso", () => {
         var id = "";
         cy.validar_comentarios_de_analises(id).then((response) => {
           expect(response.status).to.eq(200);
