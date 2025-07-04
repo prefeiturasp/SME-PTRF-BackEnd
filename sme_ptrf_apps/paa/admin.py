@@ -11,6 +11,7 @@ from sme_ptrf_apps.paa.models import (
     ReceitaPrevistaPdde,
     Paa,
     PrioridadePaa)
+from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 
 
 @admin.register(PeriodoPaa)
@@ -118,16 +119,15 @@ class ReceitaPrevistaPddeAdmin(admin.ModelAdmin):
 @admin.register(PrioridadePaa)
 class PrioridadePaaAdmin(admin.ModelAdmin):
     list_display = (
-        'paa',
+        'nome',
         'prioridade',
         'recurso',
-        'acao_associacao',
-        'programa_pdde',
-        'acao_pdde',
         'tipo_aplicacao',
+        'programa_pdde',
         'tipo_despesa_custeio',
         'especificacao_material',
-        'valor_total'
+        'valor_total',
+        'paa',
     )
     list_filter = ('recurso', 'prioridade', 'tipo_aplicacao', 'programa_pdde', 'acao_pdde',)
     raw_id_fields = ('paa', 'acao_pdde', 'acao_associacao', 'programa_pdde', 'tipo_despesa_custeio',
@@ -135,3 +135,7 @@ class PrioridadePaaAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('acao_associacao__acao__nome', 'acao_associacao__associacao__nome', 'programa_pdde__nome',
                      'acao_pdde__nome', 'tipo_despesa_custeio__nome', 'especificacao_material__descricao')
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return queryset_prioridades_paa(qs)
