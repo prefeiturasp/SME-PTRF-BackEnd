@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.db.models import Sum
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
@@ -31,3 +31,29 @@ class BemProduzidoRateio(ModeloBase):
 
     def __str__(self):
         return f"Rateio {self.id} - ({self.rateio.id}) da {self.bem_produzido_despesa}"
+
+    @staticmethod
+    def valor_disponivel_por_rateio(rateio, bem_produzido_rateio=None):
+        bem_produzido_rateios = BemProduzidoRateio.objects.filter(rateio=rateio)
+
+        if bem_produzido_rateio:
+            bem_produzido_rateios = bem_produzido_rateios.exclude(uuid=bem_produzido_rateio.uuid)
+
+        total_utilizado = bem_produzido_rateios.aggregate(
+            total=Sum('valor_utilizado')
+        )['total'] or 0
+
+        return rateio.valor_rateio - total_utilizado
+
+    @staticmethod
+    def valor_total_utilizado(bem_produzido):
+        bem_produzido_rateios = BemProduzidoRateio.objects.filter(bem_produzido_despesa__bem_produzido=bem_produzido)
+
+        total_utilizado = bem_produzido_rateios.aggregate(
+            total=Sum('valor_utilizado')
+        )['total'] or 0
+
+        return total_utilizado
+
+
+auditlog.register(BemProduzidoRateio)
