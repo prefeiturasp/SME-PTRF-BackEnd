@@ -30,10 +30,10 @@ class PeriodosViewSet(mixins.ListModelMixin,
         if referencia is not None:
             qs = qs.filter(referencia__icontains=referencia)
 
-        somente_com_pcs_entregues = self.request.query_params.get('somente_com_pcs_entregues')
+        associacao_uuid = self.request.query_params.get('associacao_uuid')
 
-        if somente_com_pcs_entregues == "true":
-            qs = qs.filter(prestacoes_de_conta__isnull=False).distinct()
+        if associacao_uuid:
+            qs = qs.filter(prestacoes_de_conta__associacao__uuid=associacao_uuid).distinct()
 
         return qs.order_by('-referencia')
 
