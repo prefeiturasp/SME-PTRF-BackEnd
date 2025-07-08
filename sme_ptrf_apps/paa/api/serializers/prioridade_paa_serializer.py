@@ -5,6 +5,9 @@ from sme_ptrf_apps.paa.models.prioridade_paa import SimNaoChoices
 from sme_ptrf_apps.core.models import AcaoAssociacao
 from sme_ptrf_apps.despesas.models import TipoCusteio, EspecificacaoMaterialServico
 from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
+from sme_ptrf_apps.paa.api import serializers as serializers_paa
+from sme_ptrf_apps.despesas.api.serializers import especificacao_material_servico_serializer as especif_serializer
+from sme_ptrf_apps.despesas.api.serializers import tipo_custeio_serializer
 
 
 class PrioridadePaaCreateSerializer(serializers.ModelSerializer):
@@ -133,6 +136,40 @@ class PrioridadePaaCreateSerializer(serializers.ModelSerializer):
 
 
 class PrioridadePaaListSerializer(serializers.ModelSerializer):
+    paa = serializers.SlugRelatedField(slug_field='uuid', queryset=Paa.objects.all())
+    especificacao_material = especif_serializer.EspecificacaoMaterialServicoSimplesSerializer()
+
+    tipo_despesa_custeio = tipo_custeio_serializer.TipoCusteioSimplesSerializer()
+    acao_pdde = serializers_paa.AcaoPddeSimplesSerializer()
+    programa_pdde = serializers_paa.ProgramaPddeSimplesSerializer()
+
+    prioridade = serializers.SerializerMethodField()
+    recurso = serializers.SerializerMethodField()
+    tipo_aplicacao = serializers.SerializerMethodField()
+    acao_associacao = serializers.SerializerMethodField()
+
+    def get_acao_associacao(self, obj):
+        if obj.acao_associacao:
+            return {
+                'uuid': obj.acao_associacao.uuid,
+                'nome': obj.acao_associacao.acao.nome
+            }
+
+    def get_recurso(self, obj):
+        return {
+            'name': RecursoOpcoesEnum[obj.recurso].name,
+            'value': RecursoOpcoesEnum[obj.recurso].value,
+        }
+
+    def get_tipo_aplicacao(self, obj):
+        return {
+            'name': TipoAplicacaoOpcoesEnum[obj.tipo_aplicacao].name,
+            'value': TipoAplicacaoOpcoesEnum[obj.tipo_aplicacao].value,
+        }
+
+    def get_prioridade(self, obj):
+        return list(filter(lambda x: x.get('key') == obj.prioridade, SimNaoChoices.to_dict()))[0]
+
     class Meta:
         model = PrioridadePaa
         fields = ('uuid', 'paa', 'prioridade', 'recurso', 'acao_associacao', 'programa_pdde', 'acao_pdde',

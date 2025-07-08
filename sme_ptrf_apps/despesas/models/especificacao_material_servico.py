@@ -24,6 +24,9 @@ class EspecificacaoMaterialServico(ModeloBase):
     def __str__(self):
         return f"{self.descricao}"
 
+    def nome(self):
+        return self.descricao
+
     class Meta:
         verbose_name = "Especificação de material ou serviço"
         verbose_name_plural = "Especificações de materiais ou serviços"
