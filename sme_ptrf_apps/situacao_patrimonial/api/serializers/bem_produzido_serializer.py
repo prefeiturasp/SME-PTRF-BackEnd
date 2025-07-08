@@ -48,7 +48,8 @@ class BemProduzidoSerializer(serializers.ModelSerializer):
 
 
 class BemProduzidoItemSerializer(serializers.Serializer):
-    uuid = serializers.SlugRelatedField(queryset=BemProduzidoItem.objects.all(), slug_field='uuid')
+    uuid = serializers.SlugRelatedField(queryset=BemProduzidoItem.objects.all(),
+                                        slug_field='uuid', required=False, allow_null=True)
     especificacao_do_bem = serializers.SlugRelatedField(
         queryset=EspecificacaoMaterialServico.objects.all(), slug_field='uuid')
     num_processo_incorporacao = serializers.CharField()
@@ -67,11 +68,11 @@ class RecursoProprioSerializer(serializers.Serializer):
 
 
 class BemProduzidoSaveSerializer(serializers.ModelSerializer):
-    associacao = serializers.SlugRelatedField(queryset=Associacao.objects.all(), slug_field='uuid')
-    despesas = serializers.ListField(child=serializers.UUIDField(), write_only=True)
-    rateios = BemProduzidoRateioSerializer(many=True, write_only=True, required=False)
-    itens = BemProduzidoItemSerializer(many=True, write_only=True, required=False)
-    recursos_proprios = RecursoProprioSerializer(many=True, write_only=True, required=False)
+    associacao = serializers.SlugRelatedField(queryset=Associacao.objects.all(), slug_field='uuid', required=True)
+    despesas = serializers.ListField(child=serializers.UUIDField(), write_only=True, required=True)
+    rateios = BemProduzidoRateioSerializer(many=True, write_only=True, required=True)
+    itens = BemProduzidoItemSerializer(many=True, write_only=True, required=True)
+    recursos_proprios = RecursoProprioSerializer(many=True, write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = BemProduzido
@@ -114,7 +115,7 @@ class BemProduzidoSaveSerializer(serializers.ModelSerializer):
         recursos_proprios = validated_data.pop("recursos_proprios", [])
 
         self._handle_despesas(instance, despesas)
-        self._handle_rateios(instance, rateios, update=True)
+        self._handle_rateios(instance, rateios)
         self._handle_recursos_proprios(instance, recursos_proprios)
         self._handle_itens(instance, itens, update=True)
         self._validate_valor_total_itens(instance, itens)
@@ -135,7 +136,7 @@ class BemProduzidoSaveSerializer(serializers.ModelSerializer):
                 despesa=despesa
             )
 
-    def _handle_rateios(self, bem_produzido, rateios, update=False):
+    def _handle_rateios(self, bem_produzido, rateios):
         for rateio_payload in rateios:
             rateio = rateio_payload['uuid']
             try:
@@ -144,22 +145,15 @@ class BemProduzidoSaveSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     f"Bem Produzido Despesa com despesa UUID {rateio.despesa.uuid} não encontrado.")
 
-            if update:
-                bem_produzido_rateio, _ = bem_produzido_despesa.rateios.get_or_create(rateio=rateio)
+            bem_produzido_rateio, _ = bem_produzido_despesa.rateios.get_or_create(rateio=rateio)
 
-                valor_disponivel = BemProduzidoRateio.valor_disponivel_por_rateio(rateio, bem_produzido_rateio)
-                if rateio_payload['valor_utilizado'] > valor_disponivel:
-                    raise serializers.ValidationError(
-                        {"message": f"O valor utilizado ({rateio_payload['valor_utilizado']}) excede o valor disponível ({valor_disponivel}) para o rateio {rateio.uuid}."})
+            valor_disponivel = BemProduzidoRateio.valor_disponivel_por_rateio(rateio, bem_produzido_rateio)
+            if rateio_payload['valor_utilizado'] > valor_disponivel:
+                raise serializers.ValidationError(
+                    {"mensagem": f"O valor utilizado ({rateio_payload['valor_utilizado']}) excede o valor disponível ({valor_disponivel}) para o rateio {rateio.uuid}."})
 
-                bem_produzido_rateio.valor_utilizado = rateio_payload['valor_utilizado']
-                bem_produzido_rateio.save()
-            else:
-                BemProduzidoRateio.objects.create(
-                    bem_produzido_despesa=bem_produzido_despesa,
-                    rateio=rateio,
-                    valor_utilizado=rateio_payload["valor_utilizado"]
-                )
+            bem_produzido_rateio.valor_utilizado = rateio_payload['valor_utilizado']
+            bem_produzido_rateio.save()
 
     def _handle_itens(self, bem_produzido, itens, update=False):
         for item_payload in itens:
@@ -182,7 +176,7 @@ class BemProduzidoSaveSerializer(serializers.ModelSerializer):
 
             if recurso_data['valor_recurso_proprio_utilizado'] > valor_disponivel:
                 raise serializers.ValidationError(
-                    {"message": f"O valor utilizado ({recurso_data['valor_recurso_proprio_utilizado']}) excede o valor disponível ({valor_disponivel}) de recursos próprios da despesa {despesa.uuid}."})
+                    {"mensagem": f"O valor utilizado ({recurso_data['valor_recurso_proprio_utilizado']}) excede o valor disponível ({valor_disponivel}) de recursos próprios da despesa {despesa.uuid}."})
 
             bem_produzido_despesa.valor_recurso_proprio_utilizado = recurso_data['valor_recurso_proprio_utilizado']
             bem_produzido_despesa.save()
@@ -207,7 +201,7 @@ class BemProduzidoSaveRacunhoSerializer(serializers.ModelSerializer):
     despesas = serializers.ListField(child=serializers.UUIDField(), write_only=True)
     rateios = BemProduzidoRateioSerializer(many=True, write_only=True, required=False)
     itens = BemProduzidoItemSerializer(many=True, write_only=True, required=False)
-    recursos_proprios = RecursoProprioSerializer(many=True, write_only=True, required=False)
+    recursos_proprios = RecursoProprioSerializer(many=True, write_only=True, required=False, allow_null=True)
 
     class Meta:
         model = BemProduzido
@@ -249,7 +243,7 @@ class BemProduzidoSaveRacunhoSerializer(serializers.ModelSerializer):
         recursos_proprios = validated_data.pop("recursos_proprios", [])
 
         self._handle_despesas(instance, despesas)
-        self._handle_rateios(instance, rateios, update=True)
+        self._handle_rateios(instance, rateios)
         self._handle_recursos_proprios(instance, recursos_proprios)
         self._handle_itens(instance, itens, update=True)
 
@@ -269,7 +263,7 @@ class BemProduzidoSaveRacunhoSerializer(serializers.ModelSerializer):
                 despesa=despesa
             )
 
-    def _handle_rateios(self, bem_produzido, rateios, update=False):
+    def _handle_rateios(self, bem_produzido, rateios):
         for rateio_payload in rateios:
             rateio = rateio_payload['uuid']
             try:
@@ -278,22 +272,15 @@ class BemProduzidoSaveRacunhoSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     f"Bem Produzido Despesa com despesa UUID {rateio.despesa.uuid} não encontrado.")
 
-            if update:
-                bem_produzido_rateio, _ = bem_produzido_despesa.rateios.get_or_create(rateio=rateio)
+            bem_produzido_rateio, _ = bem_produzido_despesa.rateios.get_or_create(rateio=rateio)
 
-                valor_disponivel = BemProduzidoRateio.valor_disponivel_por_rateio(rateio, bem_produzido_rateio)
-                if rateio_payload['valor_utilizado'] > valor_disponivel:
-                    raise serializers.ValidationError(
-                        {"message": f"O valor utilizado ({rateio_payload['valor_utilizado']}) excede o valor disponível ({valor_disponivel}) para o rateio {rateio.uuid}."})
+            valor_disponivel = BemProduzidoRateio.valor_disponivel_por_rateio(rateio, bem_produzido_rateio)
+            if rateio_payload['valor_utilizado'] > valor_disponivel:
+                raise serializers.ValidationError(
+                    {"mensagem": f"O valor utilizado ({rateio_payload['valor_utilizado']}) excede o valor disponível ({valor_disponivel}) para o rateio {rateio.uuid}."})
 
-                bem_produzido_rateio.valor_utilizado = rateio_payload['valor_utilizado']
-                bem_produzido_rateio.save()
-            else:
-                BemProduzidoRateio.objects.create(
-                    bem_produzido_despesa=bem_produzido_despesa,
-                    rateio=rateio,
-                    valor_utilizado=rateio_payload["valor_utilizado"]
-                )
+            bem_produzido_rateio.valor_utilizado = rateio_payload['valor_utilizado']
+            bem_produzido_rateio.save()
 
     def _handle_itens(self, bem_produzido, itens, update=False):
         for item_payload in itens:
@@ -320,17 +307,3 @@ class BemProduzidoSaveRacunhoSerializer(serializers.ModelSerializer):
 
             bem_produzido_despesa.valor_recurso_proprio_utilizado = recurso_data['valor_recurso_proprio_utilizado']
             bem_produzido_despesa.save()
-
-    def _validate_valor_total_itens(self, instance, itens):
-        valor_total_itens = sum([
-            item['quantidade'] * item['valor_individual'] for item in itens
-        ])
-
-        valor_total_esperado = instance.valor_total_utilizado()
-
-        if valor_total_itens != valor_total_esperado:
-            raise serializers.ValidationError({
-                'mensagem': 'A soma dos valores dos itens não bate com o valor total disponível.',
-                'valor_total_itens': float(valor_total_itens),
-                'valor_total_esperado': float(valor_total_esperado)
-            })
