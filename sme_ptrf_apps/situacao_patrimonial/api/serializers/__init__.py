@@ -1,5 +1,5 @@
 # flake8: noqa
-from .bem_produzido_serializer import BemProduzidoSerializer, BemProduzidoCreateSerializer
+from .bem_produzido_serializer import BemProduzidoSerializer, BemProduzidoSaveRacunhoSerializer, BemProduzidoSaveSerializer
 from .bem_produzido_despesa_serializer import BemProduzidoDespesaSerializer
 from .despesa_situacao_patrimonial_serializer import DespesaSituacaoPatrimonialSerializer
 from .rateio_situacao_patrimonial_serializer import RateioSituacaoPatrimonialSerializer
