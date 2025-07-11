@@ -1,0 +1,37 @@
+Testes de Interface em Cypress(versão 10 ou superior)
+
+    Teste 1: O objetivo é testar a utilização de componentes básicos, bem como a afirmação dos dados nestes armazenados.
+
+        - Visite a URL https://itera-qa.azurewebsites.net/home/automation
+        - Digite Nome, Número de celular, Endereço de e-mail, Senha, Endereço (Usar localizador de ID)
+        - Afirme que o Nome digitado está correto
+        - Clique no botão Enviar (Usar localizador de nome)
+        - Selecione o Sexo (Usar localizador de ID)
+        - Afirme que o sexo que marcado, está marcado, e que o outro está desmarcado
+        - Marque a caixa de seleção "Tuesday" e "Friday" para a categoria 
+'Which days of the week are best to start something new?'(Use o localizador de ID)
+        - Afirme que "Tuesday" está marcado e "Monday" não está marcado
+        - Selecione "Malta" na categoria "Para onde você planeja viajar este ano?" (Use o método de seleção)
+        - Afirme que o valor apresentado na ComboBox anterior seja "Malta"
+
+    Teste 2: Num sistema real, simplesmente simule a ação do usuário ao navegar até a página desejada.
+        - Visite a URL https://test-conf-novosgp.sme.prefeitura.sp.gov.br/login
+        - Realize o Login utilizando os seguintes parametros:
+            Usuario: 7410051
+            Senha: Sgp@1234
+        - No menu lateral esquerdo, clique em "Diário de Classe"
+        - No submenu, agora aberto, clique em "Listão"
+        - Na tela de Listão, selecione o bimestre com o valor "3º bimestre"
+        - Deverá ser apresentado uma tabela de turmas. Na linha da turma "EF - 5A - 5º ANO", clique no ícone de "Frequência".
+        - Na tela de operações, selecione o período "18/09/22 - 23/09/22".
+        - Afirme que o nome da primeira estudante "AGATHA SARA CAMILO DUARTE" deve estar visível
+
+    Desafio Extra:
+        - Visite a URL https://test-conf-novosgp.sme.prefeitura.sp.gov.br/login
+        - Realize o Login utilizando os seguintes parametros:
+            Usuario: 7410051
+            Senha: Sgp@1234
+        No canto superior direito, há 3 botões. O segundo botão, é responsável pela troca de perfil do usuário.
+Troque o perfil para "Professor CJ", clicando no segundo botão do canto superior direito, 
+e após isso, clicando na opção desejada
+        
