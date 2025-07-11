@@ -1164,22 +1164,6 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
 
             totais = _totaliza_previsoes_repasses_sme(associacao, periodo, tipo_conta, totais)
 
-            """
-                Corrige exibição de conta sem valores quando uma associação
-                tiver 02 contas, porém valor cadastrado em apenas uma delas
-                e tiver devoluções ao tesouro cadastrada.
-            """
-            totais_sem_devolucao_ao_tesouro = totais.copy()
-            key_to_remove = 'devolucoes_ao_tesouro_no_periodo_total'
-            totais_sem_devolucao_ao_tesouro.pop(key_to_remove, None)  # No `KeyError` here
-
-            soma_dos_totais = sum(totais_sem_devolucao_ao_tesouro.values())
-
-            """
-                Verificando se existe algum valor para incluir os dados no resultado
-                Não devem ser exibidas as linhas de contas que tenham valores zerados em todas as colunas.
-                Não devem ser exibidas associações que tenham valores zerados em todas as colunas de todas as contas.
-            """
             dado = {
                 'unidade': {
                     'uuid': f'{associacao.unidade.uuid}',
@@ -1198,19 +1182,11 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
             conta_encerrada_em_periodos_anteriores = conta_associacao.conta_encerrada_em_periodos_anteriores(periodo=periodo)
 
             if not conta_encerrada_em_periodos_anteriores:
-
-                if soma_dos_totais: # Verifica se existe valores, senão será exibida mensagem Não houve movimentação financeira por conta
-                    objeto_tipo_de_conta.append({
-                        'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
-                        'encerrada_em': data_encerramento,
-                        'valores': totais,
-                    })
-                else:
-                    objeto_tipo_de_conta.append({
-                        'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
-                        'encerrada_em': data_encerramento,
-                        'valores': None,
-                    })
+                objeto_tipo_de_conta.append({
+                    'tipo_conta': tipo_conta.nome if tipo_conta.nome else '',
+                    'encerrada_em': data_encerramento,
+                    'valores': totais,
+                })
 
             dado['por_tipo_de_conta'] = objeto_tipo_de_conta
 

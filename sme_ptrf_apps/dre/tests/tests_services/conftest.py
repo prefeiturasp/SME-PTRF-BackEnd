@@ -160,7 +160,8 @@ def consolidado_dre_teste_service_consolidado_dre_com_pc(
     consolidado_dre_teste_service_consolidado_dre,
     prestacao_conta_aprovada_teste_service_pc_aprovada_info_pc
 ):
-    consolidado_dre_teste_service_consolidado_dre.pcs_do_consolidado.add(prestacao_conta_aprovada_teste_service_pc_aprovada_info_pc)
+    consolidado_dre_teste_service_consolidado_dre.pcs_do_consolidado.add(
+        prestacao_conta_aprovada_teste_service_pc_aprovada_info_pc)
     consolidado_dre_teste_service_consolidado_dre.save()
     return consolidado_dre_teste_service_consolidado_dre
 
@@ -170,7 +171,8 @@ def consolidado_dre_teste_service_consolidado_dre_com_pc_publicada(
     consolidado_dre_teste_service_consolidado_dre,
     prestacao_conta_reprovada_teste_service_publicada
 ):
-    consolidado_dre_teste_service_consolidado_dre.pcs_do_consolidado.add(prestacao_conta_reprovada_teste_service_publicada)
+    consolidado_dre_teste_service_consolidado_dre.pcs_do_consolidado.add(
+        prestacao_conta_reprovada_teste_service_publicada)
     consolidado_dre_teste_service_consolidado_dre.save()
     return consolidado_dre_teste_service_consolidado_dre
 
@@ -307,6 +309,20 @@ def conta_associacao_teste_service_02(associacao_teste_service, tipo_conta_carta
 
 
 @pytest.fixture
+def conta_associacao_teste_service_02_inicio_2022_1(associacao_teste_service, tipo_conta_cartao_teste_service):
+    return baker.make(
+        'ContaAssociacao',
+        associacao=associacao_teste_service,
+        tipo_conta=tipo_conta_cartao_teste_service,
+        banco_nome='Banco do Brasil',
+        agencia='12345',
+        numero_conta='123456-x',
+        numero_cartao='534653264523',
+        data_inicio=date(2022, 1, 1),
+    )
+
+
+@pytest.fixture
 def unidade_teste_service(dre_teste_service_consolidado_dre):
     return baker.make(
         'Unidade',
@@ -346,7 +362,7 @@ def unidade_teste_service_02(dre_teste_service_consolidado_dre):
 
 @pytest.fixture
 def associacao_teste_service(unidade_teste_service, periodo_anterior_teste_service_consolidado_dre):
-    
+
     return baker.make(
         'Associacao',
         nome='Escola Teste',
@@ -372,6 +388,7 @@ def associacao_teste_service_02(unidade_teste_service_02, periodo_teste_service_
         processo_regularidade='123458'
     )
 
+
 @pytest.fixture
 def associacao_teste_service_03(unidade_teste_service_02, periodo_teste_service_consolidado_dre):
     return baker.make(
@@ -394,7 +411,6 @@ def prestacao_conta_aprovada_teste_service(periodo_teste_service_consolidado_dre
         associacao=associacao_teste_service,
         data_recebimento=date(2022, 1, 2),
         status=PrestacaoConta.STATUS_APROVADA,
-
     )
 
 
@@ -475,10 +491,11 @@ def prestacao_conta_reprovada_teste_service_publicada(periodo_teste_service_cons
         consolidado_dre=consolidado_dre_teste_service_consolidado_dre
     )
 
+
 @pytest.fixture
 def prestacao_conta_reprovada_teste_service_nao_publicada(periodo_teste_service_consolidado_dre,
-                                                      associacao_teste_service_03,
-                                                      consolidado_dre_teste_service_consolidado_dre):
+                                                          associacao_teste_service_03,
+                                                          consolidado_dre_teste_service_consolidado_dre):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_teste_service_consolidado_dre,
@@ -507,8 +524,8 @@ def prestacao_conta_aprovada_teste_service_pc_aprovada_info_pc(periodo_teste_ser
 
 @pytest.fixture
 def prestacao_conta_aprovada_teste_service_pc_aprovada_info_pc_nao_publicada(periodo_teste_service_consolidado_dre,
-                                                               associacao_teste_service_03,
-                                                               consolidado_dre_teste_service_consolidado_dre):
+                                                                             associacao_teste_service_03,
+                                                                             consolidado_dre_teste_service_consolidado_dre):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_teste_service_consolidado_dre,
@@ -518,4 +535,3 @@ def prestacao_conta_aprovada_teste_service_pc_aprovada_info_pc_nao_publicada(per
         publicada=False,
         consolidado_dre=consolidado_dre_teste_service_consolidado_dre
     )
-

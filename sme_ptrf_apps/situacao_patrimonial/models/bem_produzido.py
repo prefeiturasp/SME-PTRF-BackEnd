@@ -1,9 +1,11 @@
 from django.db import models
-
+from django.db.models import Sum
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.situacao_patrimonial.models.bem_produzido_rateio import BemProduzidoRateio
+
 
 class BemProduzido(ModeloBase):
     STATUS_COMPLETO = 'COMPLETO'
@@ -18,18 +20,11 @@ class BemProduzido(ModeloBase):
         (STATUS_COMPLETO, STATUS_NOMES[STATUS_COMPLETO]),
         (STATUS_INCOMPLETO, STATUS_NOMES[STATUS_INCOMPLETO]),
     )
-    
+
     history = AuditlogHistoryField()
 
-    associacao = models.ForeignKey('core.Associacao', on_delete=models.PROTECT, related_name='bens_produzidos_associacao', blank=True, null=True)
-
-    especificacao_do_bem = models.ForeignKey('despesas.EspecificacaoMaterialServico', on_delete=models.PROTECT, blank=True, null=True)
-
-    num_processo_incorporacao = models.CharField('Nº do processo de incorporação', max_length=100, default='', blank=True, null=True)
-
-    quantidade = models.IntegerField('Quantidade', default=0, blank=True, null=True)
-
-    valor_individual = models.DecimalField('Valor individual', max_digits=10, decimal_places=2, default=0, blank=True, null=True)
+    associacao = models.ForeignKey('core.Associacao', on_delete=models.PROTECT,
+                                   related_name='bens_produzidos_associacao', blank=True, null=True)
 
     status = models.CharField(
         'status',
@@ -44,6 +39,39 @@ class BemProduzido(ModeloBase):
 
     def __str__(self):
         return f"Bem produzido {self.pk}"
+
+    def completar(self):
+        if self.status != BemProduzido.STATUS_COMPLETO:
+            self.status = BemProduzido.STATUS_COMPLETO
+            self.save(update_fields=["status"])
+
+    def rascunhar(self):
+        if self.status != BemProduzido.STATUS_INCOMPLETO:
+            self.status = BemProduzido.STATUS_INCOMPLETO
+            self.save(update_fields=["status"])
+
+    def valor_total_utilizado(self):
+        """
+        Calcula o valor total utilizado somando os valores de rateios
+        e os recursos próprios utilizados.
+        """
+
+        # Total dos valores utilizados nos rateios
+        total_rateios_utilizados = (
+            BemProduzidoRateio.objects
+            .filter(bem_produzido_despesa__bem_produzido=self)
+            .aggregate(total=Sum('valor_utilizado'))
+            .get('total') or 0
+        )
+
+        # Total dos valores utilizados de recursos próprios
+        total_recursos_proprios_utilizados = (
+            self.despesas
+            .aggregate(total=Sum('valor_recurso_proprio_utilizado'))
+            .get('total') or 0
+        )
+
+        return total_rateios_utilizados + total_recursos_proprios_utilizados
 
 
 auditlog.register(BemProduzido)

@@ -61,12 +61,7 @@ from .models import (
     ItemResumoPorAcao,
     ItemCredito,
     ItemDespesa,
-    PrestacaoContaReprovadaNaoApresentacao,
-    CategoriaPdde,
-    AcaoPdde,
-    ReceitaPrevistaPaa,
-    FonteRecursoPaa,
-    RecursoProprioPaa
+    PrestacaoContaReprovadaNaoApresentacao
 )
 
 from django.db.models import Count
@@ -530,7 +525,7 @@ class TagAdmin(admin.ModelAdmin):
 @admin.register(ProcessoAssociacao)
 class ProcessoAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('associacao', 'numero_processo', 'ano', 'periodos_str')
-    search_fields = ('uuid', 'numero_processo', 'associacao__nome')
+    search_fields = ('uuid', 'numero_processo', 'associacao__nome', 'associacao__unidade__codigo_eol')
     list_filter = ('ano', 'associacao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     filter_horizontal = ('periodos',)
@@ -1849,45 +1844,6 @@ class PrestacaoContaReprovadaNaoApresentacaoAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
     raw_id_fields = ('periodo', 'associacao',)
-
-
-@admin.register(CategoriaPdde)
-class CategoriaPddeAdmin(admin.ModelAdmin):
-    list_display = ('nome',)
-    search_fields = ('nome',)
-    list_filter = ('nome',)
-    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
-
-
-@admin.register(AcaoPdde)
-class AcaoPddeAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'categoria')
-    search_fields = ('nome', 'categoria__nome')
-    list_filter = ('categoria__nome',)
-    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
-
-
-@admin.register(ReceitaPrevistaPaa)
-class ReceitaPrevistaPaaAdmin(admin.ModelAdmin):
-    list_display = ('acao_associacao', 'previsao_valor_custeio', 'previsao_valor_capital', 'previsao_valor_livre')
-    search_fields = ('acao_associacao__acao__nome', 'acao_associacao__associacao__nome')
-    list_filter = ('acao_associacao__associacao',)
-    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
-    raw_id_fields = ('acao_associacao',)
-
-
-@admin.register(FonteRecursoPaa)
-class FonteRecursoPaaAdmin(admin.ModelAdmin):
-    list_display = ('nome',)
-    search_fields = ('nome',)
-
-
-@admin.register(RecursoProprioPaa)
-class RecursoProprioPaaAdmin(admin.ModelAdmin):
-    list_display = ('fonte_recurso', 'associacao', 'data_prevista', 'descricao', 'valor',)
-    search_fields = ('fonte_recurso__nome', 'associacao__nome',)
-    list_filter = ('associacao',)
-    raw_id_fields = ('associacao', 'fonte_recurso')
 
 
 # Ajustes para o LogEntryAdmin não subir excessao de timezone/localtime

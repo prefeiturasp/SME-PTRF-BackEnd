@@ -128,14 +128,18 @@ class RateioDespesa(ModeloBase):
 
     @classmethod
     def rateios_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None,
-                                              exclude_despesa=None, aplicacao_recurso=None):
-        if periodo.data_fim_realizacao_despesas:
+                                              exclude_despesa=None, aplicacao_recurso=None, data_fim=None):
+        if data_fim:
             dataset = cls.completos.filter(acao_associacao=acao_associacao).filter(
-                despesa__data_transacao__range=(
-                    periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
+                despesa__data_transacao__gte=periodo.data_inicio_realizacao_despesas, despesa__data_transacao__lte=data_fim)
         else:
-            dataset = cls.completos.filter(acao_associacao=acao_associacao).filter(
-                despesa__data_transacao__gte=periodo.data_inicio_realizacao_despesas)
+            if periodo.data_fim_realizacao_despesas:
+                dataset = cls.completos.filter(acao_associacao=acao_associacao).filter(
+                    despesa__data_transacao__range=(
+                        periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
+            else:
+                dataset = cls.completos.filter(acao_associacao=acao_associacao).filter(
+                    despesa__data_transacao__gte=periodo.data_inicio_realizacao_despesas)
 
         # Para determinar se a despesa está ou não conciliada é necessário considera-se o período de conciliação
         if conferido is not None:
@@ -360,6 +364,12 @@ class RateioDespesa(ModeloBase):
 
         if aplicacao_recurso:
             dataset = dataset.filter(aplicacao_recurso=aplicacao_recurso)
+
+        return dataset.all()
+
+    @classmethod
+    def rateios_completos_de_capital(cls):
+        dataset = cls.completos.filter(aplicacao_recurso=APLICACAO_CAPITAL)
 
         return dataset.all()
 

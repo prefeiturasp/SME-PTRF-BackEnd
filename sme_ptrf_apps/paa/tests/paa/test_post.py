@@ -1,5 +1,4 @@
 from datetime import date, timedelta
-from dateutil.relativedelta import relativedelta
 import json
 import pytest
 
@@ -7,7 +6,6 @@ from rest_framework import status
 
 from sme_ptrf_apps.paa.models import Paa, PeriodoPaa
 from sme_ptrf_apps.paa.fixtures.factories.parametro_paa import ParametroPaaFactory
-from sme_ptrf_apps.paa.fixtures.factories.paa import PaaFactory
 from sme_ptrf_apps.paa.fixtures.factories.periodo_paa import PeriodoPaaFactory
 
 
@@ -16,8 +14,8 @@ pytestmark = pytest.mark.django_db
 
 def test_create_sucesso_mes_elaboracao_atual(jwt_authenticated_client_sme, flag_paa, associacao):
     PeriodoPaaFactory.create(referencia="Periodo Teste",
-                                      data_inicial=date.today() - timedelta(weeks=5),
-                                      data_final=date.today() + timedelta(weeks=5))
+                             data_inicial=date.today() - timedelta(weeks=5),
+                             data_final=date.today() + timedelta(weeks=5))
     ParametroPaaFactory.create(mes_elaboracao_paa=date.today().month)
     payload = {
         "associacao": str(associacao.uuid),
@@ -32,7 +30,7 @@ def test_create_sucesso_mes_elaboracao_atual(jwt_authenticated_client_sme, flag_
 
 
 def test_create_mes_nao_liberado_para_elaboracao(jwt_authenticated_client_sme, flag_paa, associacao):
-    ParametroPaaFactory.create(mes_elaboracao_paa=date.today().month+1)
+    ParametroPaaFactory.create(mes_elaboracao_paa=date.today().month + 1)
     payload = {
         "associacao": str(associacao.uuid),
     }
@@ -86,9 +84,9 @@ def test_create_sem_periodo_vigente_encontrado(jwt_authenticated_client_sme, fla
         "associacao": str(associacao.uuid),
     }
     response = jwt_authenticated_client_sme.post('/api/paa/',
-                                                content_type='application/json',
-                                                data=json.dumps(payload))
+                                                 content_type='application/json',
+                                                 data=json.dumps(payload))
     content = json.loads(response.content)
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST, response.content
-    assert content['non_field_errors'] == ['Nenhum Período vigente foi encontrado.']
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert content['non_field_errors'] == ['Nenhum Período vigente foi encontrado.'], content

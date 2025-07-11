@@ -22,7 +22,7 @@ import datetime
 
 from pytest_factoryboy import register
 
-from sme_ptrf_apps.fixtures import *
+from sme_ptrf_apps.fixtures import *  # noqa
 
 from sme_ptrf_apps.core.fixtures.factories import (
     DreFactory, UnidadeFactory, AssociacaoFactory, AssociacaoFactoryComPeriodoInicial, ContaAssociacaoFactory,
@@ -35,8 +35,7 @@ from sme_ptrf_apps.core.fixtures.factories import (
     SolicitacaoAcertoLancamentoFactory, ProcessoAssociacaoFactory,
     PrestacaoContaReprovadaNaoApresentacaoFactory, DemonstrativoFinanceiroFactory,
     ItemResumoPorAcaoFactory, ItemDespesaFactory, ItemCreditoFactory, ArquivoDownloadFactory,
-    TipoDevolucaoAoTesouroFactory, AcaoPddeFactory, CategoriaPddeFactory, FlagFactory,
-    ReceitaPrevistaPaaFactory, FonteRecursoPaaFactory, RecursoProprioPaaFactory
+    TipoDevolucaoAoTesouroFactory, FlagFactory
 )
 from sme_ptrf_apps.users.fixtures.factories import (
     UsuarioFactory, UnidadeEmSuporteFactory, GrupoAcessoFactory, VisaoFactory,
@@ -47,18 +46,21 @@ from sme_ptrf_apps.mandatos.fixtures.factories import (
 )
 from sme_ptrf_apps.despesas.fixtures.factories import (
     DespesaFactory, RateioDespesaFactory, TipoTransacaoFactory, TipoDocumentoFactory,
-    MotivoPagamentoAntecipadoFactory
+    MotivoPagamentoAntecipadoFactory, EspecificacaoMaterialServicoFactory
 )
 from sme_ptrf_apps.receitas.fixtures.factories import (
     TipoReceitaFactory
 )
 from sme_ptrf_apps.paa.fixtures.factories import (
-    PeriodoPaaFactory,
-    PaaFactory,
-    ParametroPaaFactory
+    PeriodoPaaFactory, PaaFactory, ParametroPaaFactory, ReceitaPrevistaPaaFactory,
+    FonteRecursoPaaFactory, RecursoProprioPaaFactory, AcaoPddeFactory, ProgramaPddeFactory,
+    ReceitaPrevistaPddeFactory, PrioridadePaaFactory
 )
 from sme_ptrf_apps.situacao_patrimonial.fixtures.factories import (
-    BemProduzidoFactory
+    BemProduzidoFactory,
+    BemProduzidoDespesaFactory,
+    BemProduzidoRateioFactory,
+    BemProduzidoItemFactory
 )
 
 factories_to_register = [
@@ -77,9 +79,11 @@ factories_to_register = [
     RelatorioRelacaoBensFactory, ItemRelatorioRelacaoDeBensFactory,
     SolicitacaoEncerramentoContaAssociacaoFactory, ArquivoDownloadFactory,
     TipoDevolucaoAoTesouroFactory, TipoDocumentoFactory, MotivoPagamentoAntecipadoFactory,
-    AcaoPddeFactory, CategoriaPddeFactory, FlagFactory, ReceitaPrevistaPaaFactory,
+    AcaoPddeFactory, ProgramaPddeFactory, FlagFactory, ReceitaPrevistaPaaFactory,
     FonteRecursoPaaFactory, RecursoProprioPaaFactory, PeriodoPaaFactory, PaaFactory,
-    ParametroPaaFactory, BemProduzidoFactory
+    ParametroPaaFactory, BemProduzidoFactory, ReceitaPrevistaPddeFactory, BemProduzidoDespesaFactory,
+    BemProduzidoRateioFactory, BemProduzidoItemFactory, EspecificacaoMaterialServicoFactory,
+    PrioridadePaaFactory
 ]
 
 for factory in factories_to_register:
@@ -239,7 +243,8 @@ def valores_reprogramados_correcao_ue(associacao_status_correcao_ue, conta_assoc
 
 
 @pytest.fixture
-def valores_reprogramados_correcao_ue_com_valores_iguais(associacao_status_correcao_ue, conta_associacao, acao_associacao):
+def valores_reprogramados_correcao_ue_com_valores_iguais(associacao_status_correcao_ue,
+                                                         conta_associacao, acao_associacao):
     return baker.make(
         'ValoresReprogramados',
         associacao=associacao_status_correcao_ue,
@@ -267,7 +272,8 @@ def valores_reprogramados_conferencia_dre(associacao_status_conferencia_dre, con
 
 
 @pytest.fixture
-def valores_reprogramados_conferencia_dre_com_valores_iguais(associacao_status_conferencia_dre, conta_associacao, acao_associacao):
+def valores_reprogramados_conferencia_dre_com_valores_iguais(associacao_status_conferencia_dre,
+                                                             conta_associacao, acao_associacao):
     return baker.make(
         'ValoresReprogramados',
         associacao=associacao_status_conferencia_dre,
@@ -847,7 +853,6 @@ def periodo_2021_2(periodo_2021_1):
         data_fim_realizacao_despesas=None,
         periodo_anterior=periodo_2021_1,
     )
-
 
 
 @pytest.fixture
@@ -1456,7 +1461,8 @@ def receita_teste_valida_data_de_encerramento(associacao, conta_associacao, acao
 
 
 @pytest.fixture
-def receita_teste_valida_data_de_encerramento_associacao_02(associacao_02, conta_associacao, acao_associacao, tipo_receita, periodo):
+def receita_teste_valida_data_de_encerramento_associacao_02(associacao_02, conta_associacao,
+                                                            acao_associacao, tipo_receita, periodo):
     return baker.make(
         'Receita',
         associacao=associacao_02,
@@ -2314,7 +2320,8 @@ def devolucao_prestacao_conta_2019_2(prestacao_conta_devolvida):
 
 
 @pytest.fixture
-def analise_conta_prestacao_conta_2020_1_solicitar_envio_do_comprovante_do_saldo_da_conta(prestacao_conta_2020_1_conciliada, conta_associacao_cheque):
+def analise_conta_prestacao_conta_2020_1_solicitar_envio_do_comprovante_do_saldo_da_conta(
+        prestacao_conta_2020_1_conciliada, conta_associacao_cheque):
     return baker.make(
         'AnaliseContaPrestacaoConta',
         prestacao_conta=prestacao_conta_2020_1_conciliada,
@@ -2322,7 +2329,8 @@ def analise_conta_prestacao_conta_2020_1_solicitar_envio_do_comprovante_do_saldo
         data_extrato=date(2020, 7, 1),
         saldo_extrato=100.00,
         solicitar_envio_do_comprovante_do_saldo_da_conta=True,
-        observacao_solicitar_envio_do_comprovante_do_saldo_da_conta='Observação de solicitação de envio de comprovante de saldo conta cheque',
+        observacao_solicitar_envio_do_comprovante_do_saldo_da_conta=('Observação de solicitação de envio de comprovante'
+                                                                     ' de saldo conta cheque'),
     )
 
 
@@ -2338,7 +2346,8 @@ def analise_conta_prestacao_conta_2020_1(prestacao_conta_2020_1_conciliada, cont
 
 
 @pytest.fixture
-def analise_conta_prestacao_conta_2019_2(prestacao_conta_devolvida, conta_associacao_cheque, analise_prestacao_conta_2019_2):
+def analise_conta_prestacao_conta_2019_2(
+        prestacao_conta_devolvida, conta_associacao_cheque, analise_prestacao_conta_2019_2):
     return baker.make(
         'AnaliseContaPrestacaoConta',
         prestacao_conta=prestacao_conta_devolvida,
@@ -2401,7 +2410,8 @@ def analise_lancamento_receita_prestacao_conta_2020_1(analise_prestacao_conta_20
 
 
 @pytest.fixture
-def analise_lancamento_receita_prestacao_conta_2020_1_com_justificativa(analise_prestacao_conta_2020_1, receita_no_periodo_2020_1):
+def analise_lancamento_receita_prestacao_conta_2020_1_com_justificativa(
+        analise_prestacao_conta_2020_1, receita_no_periodo_2020_1):
     return baker.make(
         'AnaliseLancamentoPrestacaoConta',
         analise_prestacao_conta=analise_prestacao_conta_2020_1,
@@ -2445,7 +2455,8 @@ def tipo_devolucao_ao_tesouro_teste():
 
 
 @pytest.fixture
-def devolucao_ao_tesouro_parcial(prestacao_conta_2020_1_conciliada, tipo_devolucao_ao_tesouro_teste, despesa_no_periodo_2020_1):
+def devolucao_ao_tesouro_parcial(
+        prestacao_conta_2020_1_conciliada, tipo_devolucao_ao_tesouro_teste, despesa_no_periodo_2020_1):
     return baker.make(
         'DevolucaoAoTesouro',
         prestacao_conta=prestacao_conta_2020_1_conciliada,
@@ -3121,7 +3132,7 @@ def task_celery_criada_2(periodo_2020_1, associacao):
 
 
 @pytest.fixture
-def receita_prevista_paa(acao_associacao):
+def receita_prevista_paa(acao_associacao, paa):
     """
     Fixture para criar instancia de teste de 'ReceitaPrevistaPaa' associada à Ação e
     Associação por meio da instância AcaoAssociacao.
@@ -3148,6 +3159,7 @@ def receita_prevista_paa(acao_associacao):
 
     return baker.make(
         'ReceitaPrevistaPaa',
+        paa=paa,
         acao_associacao=acao_associacao,
         previsao_valor_custeio=1000.0,
         previsao_valor_capital=2000.0,

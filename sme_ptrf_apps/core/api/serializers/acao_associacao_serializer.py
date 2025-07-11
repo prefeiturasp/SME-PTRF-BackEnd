@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from ..serializers.acao_serializer import AcaoSerializer
 from ..serializers.associacao_serializer import AssociacaoSerializer, AssociacaoListSerializer
-from ..serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
+from sme_ptrf_apps.paa.api.serializers import ReceitaPrevistaPaaSerializer
 from ...models import AcaoAssociacao, Associacao, Acao
 
 
@@ -88,6 +88,7 @@ class AcaoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
 
     def get_saldos(self, obj):
         return obj.saldo_atual()
+
     class Meta:
         model = AcaoAssociacao
         fields = ('uuid', 'id', 'associacao', 'data_de_encerramento_associacao',

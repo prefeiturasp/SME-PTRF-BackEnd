@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from django.db.models.query import QuerySet
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiResponse
 from sme_ptrf_apps.core.models.periodo import Periodo
 from sme_ptrf_apps.despesas.services.filtra_despesas_por_tags import filtra_despesas_por_tags
 
@@ -24,7 +25,7 @@ from ..serializers.tipo_documento_serializer import TipoDocumentoSerializer
 from ..serializers.tipo_transacao_serializer import TipoTransacaoSerializer
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import PageNumberPagination
-from django.db.models import Subquery, Sum
+from django.db.models import Subquery
 from sme_ptrf_apps.core.models import Associacao
 from django.db.models import Q
 import datetime
@@ -63,7 +64,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
     serializer_class = DespesaSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter, OrderingFilter)
     filterset_fields = ('associacao__uuid', 'cpf_cnpj_fornecedor', 'tipo_documento__uuid',
-                     'numero_documento', 'tipo_documento__id', 'status')
+                        'numero_documento', 'tipo_documento__id', 'status')
     pagination_class = CustomPagination
 
     def get_queryset(self):
@@ -74,7 +75,9 @@ class DespesasViewSet(mixins.CreateModelMixin,
         if search is not None and search != '':
             qs = qs.filter(
                 pk__in=Subquery(
-                    qs.filter(rateios__especificacao_material_servico__descricao__unaccent__icontains=search).distinct("uuid").values('pk')
+                    qs.filter(
+                        rateios__especificacao_material_servico__descricao__unaccent__icontains=search
+                    ).distinct("uuid").values('pk')
                 )
             )
 
@@ -136,7 +139,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
             qs = qs.filter(data_documento__lte=data_fim)
 
         periodo = self.request.query_params.get('periodo__uuid')
-        
+
         if periodo is not None and periodo != '':
             periodo_obj = Periodo.objects.get(uuid=periodo)
             filtros = {
@@ -166,7 +169,8 @@ class DespesasViewSet(mixins.CreateModelMixin,
         filtro_informacoes_list = filtro_informacoes.split(',') if filtro_informacoes else []
 
         if filtro_informacoes_list:
-            ids_para_excluir = [despesa.id for despesa in qs if filtra_despesas_por_tags(despesa, filtro_informacoes_list, False)]
+            ids_para_excluir = [despesa.id for despesa in qs if filtra_despesas_por_tags(
+                despesa, filtro_informacoes_list, False)]
             qs = qs.exclude(id__in=ids_para_excluir)
 
         # Ordenação
@@ -195,7 +199,8 @@ class DespesasViewSet(mixins.CreateModelMixin,
             lista_argumentos_ordenacao.append('-valor_total')
 
         if ordenar_por_imposto == 'true':
-            # Cria uma lista com os impostos ordenados. Passo os demais argumentos de ordenação e já retorna ordenada por todos
+            # Cria uma lista com os impostos ordenados. Passo os demais argumentos de ordenação e
+            # já retorna ordenada por todos
             qs = ordena_despesas_por_imposto(qs, lista_argumentos_ordenacao)
 
             # Cria uma lista com os ids dos importos ordenados na ordem correta
@@ -208,7 +213,9 @@ class DespesasViewSet(mixins.CreateModelMixin,
                 select={'ordering': ordering}, order_by=('ordering',))
 
         # Caso nenhum argumento de ordenação seja passado, ordenamos por -data_documento
-        if not ordenar_por_imposto == 'true': # Caso tenha sido solicitado ordenar por imposto já é retornada ordenada por todos os argumentos, além do imposto
+        if not ordenar_por_imposto == 'true':
+            # Caso tenha sido solicitado ordenar por imposto já
+            # é retornada ordenada por todos os argumentos, além do imposto
             if not lista_argumentos_ordenacao:
                 qs = qs.order_by('-data_documento', 'id')
             else:
@@ -267,8 +274,12 @@ class DespesasViewSet(mixins.CreateModelMixin,
                         if isinstance(excecao, QuerySet):
                             for ex in excecao:
                                 if isinstance(ex, DevolucaoAoTesouro):
-                                    erros.append(
-                                        f'{ex._meta.verbose_name}: {ex.data.strftime("%d/%m/%Y") if ex.data else "Sem data"} - {ex.tipo}')
+                                    err = '{}: {} - {}'.format(
+                                        ex._meta.verbose_name,
+                                        ex.data.strftime("%d/%m/%Y") if ex.data else "Sem data",
+                                        ex.tipo
+                                    )
+                                    erros.append(err)
                                 else:
                                     erros.append(f'{ex._meta.verbose_name}: {ex}')
 
@@ -283,6 +294,27 @@ class DespesasViewSet(mixins.CreateModelMixin,
                 }
                 return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao_uuid', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'tipos_aplicacao_recurso': {'type': 'object'},
+                    'tipos_custeio': {'type': 'object'},
+                    'tipos_documento': {'type': 'object'},
+                    'tipos_transacao': {'type': 'object'},
+                    'acoes_associacao': {'type': 'object'},
+                    'contas_associacao': {'type': 'object'},
+                    'tags': {'type': 'object'},
+                },
+            }
+        )},
+        description="Retorna tabela de dados relacionados as associações, conforme parâmetro do endpoint."
+    )
     @action(detail=False, url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, request):
@@ -312,6 +344,21 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
         return Response(result)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='tipo_documento', description='ID do tipo de documento', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='numero_documento', description='Número de documento', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='cpf_cnpj_fornecedor', description='CPF/CNPJ do Fornecedor', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='associacao__uuid', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='despesa_uuid', description='UUID da Despesa', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        description="Retorna lista de despesas por filtro aplicado."
+    )
     @action(detail=False, url_path='ja-lancada',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def ja_lancada(self, request):
@@ -337,7 +384,8 @@ class DespesasViewSet(mixins.CreateModelMixin,
         if cpf_cnpj_fornecedor is None:
             erro = {
                 'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar a o número do documento como parâmetro. Ex: cpf_cnpj_fornecedor=455..'
+                'mensagem': ('É necessário enviar a o número do documento '
+                             'como parâmetro. Ex: cpf_cnpj_fornecedor=455..')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -345,7 +393,8 @@ class DespesasViewSet(mixins.CreateModelMixin,
         if associacao__uuid is None:
             erro = {
                 'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar a o uuid da associação como parâmetro. Ex: associacao__uuid=GSDHH3434..'
+                'mensagem': ('É necessário enviar a o uuid da '
+                             'associação como parâmetro. Ex: associacao__uuid=GSDHH3434..')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -371,6 +420,26 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
         return Response(result)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='data', description='Data', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='associacao_uuid', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'erro_data_da_despesa': {'type': 'string'},
+                    'data_de_encerramento': {'type': 'string'},
+                    'mensagem': {'type': 'string'},
+                    'status': {'type': 'integer'},
+                },
+            }
+        )},
+        description="Valida data de despesa."
+    )
     @action(detail=False, url_path='validar-data-da-despesa', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def valida_data_da_despesa(self, request):

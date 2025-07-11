@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
-from sme_ptrf_apps.core.services.paa_service import gerar_arquivo_pdf_levantamento_prioridades_paa
+from sme_ptrf_apps.paa.services.paa_service import PaaService
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import (
@@ -18,8 +18,10 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe
 )
 from sme_ptrf_apps.paa.api.serializers.paa_serializer import PaaSerializer
+from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
 from sme_ptrf_apps.paa.models import Paa
 from sme_ptrf_apps.core.models import Associacao
+from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +40,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         associacao = self.request.query_params.get('associacao_uuid', None)
 
         if associacao is not None:
-            qs = qs.filter(associacao=associacao)
+            qs = qs.filter(associacao__uuid=associacao)
 
         return qs
 
@@ -64,7 +66,33 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             "data": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
             "ano": datetime.now().year
         }
-        return gerar_arquivo_pdf_levantamento_prioridades_paa(dados)
+        return PaaService.gerar_arquivo_pdf_levantamento_prioridades_paa(dados)
+
+    @action(detail=True, methods=['post'], url_path='desativar-atualizacao-saldo',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def desativar_atualizacao_saldo(self, request, uuid):
+        instance = self.get_object()
+        associacao = instance.associacao
+
+        saldos_por_acao_paa_service = SaldosPorAcaoPaaService(paa=instance, associacao=associacao)
+        receitas_previstas = saldos_por_acao_paa_service.congelar_saldos()
+
+        serializer = ReceitaPrevistaPaaSerializer(receitas_previstas, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='ativar-atualizacao-saldo',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def ativar_atualizacao_saldo(self, request, uuid):
+        instance = self.get_object()
+        associacao = instance.associacao
+
+        saldos_por_acao_paa_service = SaldosPorAcaoPaaService(paa=instance, associacao=associacao)
+        receitas_previstas = saldos_por_acao_paa_service.descongelar_saldos()
+
+        serializer = ReceitaPrevistaPaaSerializer(receitas_previstas, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
         from django.db.models.deletion import ProtectedError

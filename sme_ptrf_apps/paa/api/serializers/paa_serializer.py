@@ -13,7 +13,7 @@ class PaaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Paa
-        fields = ('uuid', 'periodo_paa', 'associacao', 'periodo_paa_objeto')
+        fields = ('uuid', 'periodo_paa', 'associacao', 'periodo_paa_objeto', 'saldo_congelado_em')
         read_only_fields = ('periodo_paa_objeto', 'periodo_paa')
 
     def validate(self, attrs):
@@ -39,7 +39,7 @@ class PaaSerializer(serializers.ModelSerializer):
         if existe_paa:
             raise serializers.ValidationError({
                 'non_field_errors': ['Já existe um PAA para a Associação informada.']
-                })
+            })
 
         instance = super().create(validated_data)
         return instance

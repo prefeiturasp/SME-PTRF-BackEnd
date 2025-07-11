@@ -23,8 +23,9 @@ class ResumoSaldo:
 
 
 class ResumoDespesas:
-    def __init__(self, periodo, acao_associacao, conta_associacao, fechamentos_no_periodo):
+    def __init__(self, periodo, acao_associacao, conta_associacao, fechamentos_no_periodo, data_fim=None):
         self.periodo = periodo
+        self.data_fim = data_fim
         self.acao_associacao = acao_associacao
         self.conta_associacao = conta_associacao
         self.total_custeio = Decimal(0.00)
@@ -56,6 +57,7 @@ class ResumoDespesas:
             acao_associacao=self.acao_associacao,
             conta_associacao=self.conta_associacao,
             periodo=self.periodo,
+            data_fim=self.data_fim
         )
 
         totais_despesa_por_aplicacao = despesas.values('aplicacao_recurso').order_by('aplicacao_recurso').annotate(
@@ -72,8 +74,9 @@ class ResumoDespesas:
 
 
 class ResumoReceitas:
-    def __init__(self, periodo, acao_associacao, conta_associacao, fechamentos_no_periodo):
+    def __init__(self, periodo, acao_associacao, conta_associacao, fechamentos_no_periodo, data_fim=None):
         self.periodo = periodo
+        self.data_fim = data_fim
         self.acao_associacao = acao_associacao
         self.conta_associacao = conta_associacao
 
@@ -125,6 +128,7 @@ class ResumoReceitas:
             acao_associacao=self.acao_associacao,
             conta_associacao=self.conta_associacao,
             periodo=self.periodo,
+            data_fim=self.data_fim
         )
         for receita in receitas.all():
             if receita.categoria_receita not in ['CUSTEIO', 'CAPITAL', 'LIVRE']:
@@ -147,8 +151,9 @@ class ResumoReceitas:
 
 class ResumoRecursos:
 
-    def __init__(self, periodo, acao_associacao, conta_associacao):
+    def __init__(self, periodo, acao_associacao, conta_associacao, data_fim=None):
         self.periodo = periodo
+        self.data_fim = data_fim
         self.acao_associacao = acao_associacao
         self.conta_associacao = conta_associacao
 
@@ -158,8 +163,10 @@ class ResumoRecursos:
             conta_associacao=self.conta_associacao,
         )
 
-        self.receitas = ResumoReceitas(periodo, acao_associacao, conta_associacao, fechamentos_no_periodo=self.fechamentos_no_periodo)
-        self.despesas = ResumoDespesas(periodo, acao_associacao, conta_associacao, fechamentos_no_periodo=self.fechamentos_no_periodo)
+        self.receitas = ResumoReceitas(periodo, acao_associacao, conta_associacao,
+                                       fechamentos_no_periodo=self.fechamentos_no_periodo, data_fim=self.data_fim)
+        self.despesas = ResumoDespesas(periodo, acao_associacao, conta_associacao,
+                                       fechamentos_no_periodo=self.fechamentos_no_periodo, data_fim=self.data_fim)
 
         self.__set_saldos()
 
@@ -214,20 +221,20 @@ class ResumoRecursos:
             self.saldo_anterior = saldo_zerado
 
         saldo_posterior_custeio = (
-            self.saldo_anterior.total_custeio
-            + self.receitas.total_custeio
-            - self.despesas.total_custeio
+            self.saldo_anterior.total_custeio +
+            self.receitas.total_custeio -
+            self.despesas.total_custeio
         )
 
         saldo_posterior_capital = (
-            self.saldo_anterior.total_capital
-            + self.receitas.total_capital
-            - self.despesas.total_capital
+            self.saldo_anterior.total_capital +
+            self.receitas.total_capital -
+            self.despesas.total_capital
         )
 
         saldo_posterior_livre = (
-            self.saldo_anterior.total_livre
-            + self.receitas.total_livre
+            self.saldo_anterior.total_livre +
+            self.receitas.total_livre
         )
 
         # O saldo de livre aplicação deve compensar saldos negativos de capital
@@ -252,6 +259,5 @@ class ResumoRecursos:
 
 class ResumoRecursosService:
     @classmethod
-    def resumo_recursos(cls, periodo, acao_associacao, conta_associacao=None):
-        return ResumoRecursos(periodo=periodo, acao_associacao=acao_associacao, conta_associacao=conta_associacao)
-
+    def resumo_recursos(cls, periodo, acao_associacao, conta_associacao=None, data_fim=None):
+        return ResumoRecursos(periodo=periodo, acao_associacao=acao_associacao, conta_associacao=conta_associacao, data_fim=data_fim)
