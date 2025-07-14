@@ -5,13 +5,15 @@ from django.db import transaction
 from django.db.models import Q
 from django.db.utils import IntegrityError
 from django_filters import rest_framework as filters
-from rest_framework import mixins, status
+from rest_framework import mixins, status, serializers
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import (
+    extend_schema, OpenApiParameter, OpenApiTypes, OpenApiResponse, inline_serializer, OpenApiExample)
+
 from waffle import flag_is_active
 
 from sme_ptrf_apps.users.permissoes import (
@@ -64,9 +66,15 @@ from ..serializers import (
     AnaliseDocumentoPrestacaoContaRetrieveSerializer,
     AnalisePrestacaoContaRetrieveSerializer
 )
-from sme_ptrf_apps.core.api.serializers.validation_serializers.prestacoes_contas_concluir_validate_serializer import PrestacoesContasConcluirValidateSerializer
+from ..serializers.conta_associacao_serializer import ContaAssociacaoDadosSerializer
+from sme_ptrf_apps.core.api.serializers.validation_serializers \
+    .prestacoes_contas_concluir_validate_serializer import PrestacoesContasConcluirValidateSerializer
 
-from sme_ptrf_apps.core.tasks import gerar_previa_relatorio_acertos_async, concluir_prestacao_de_contas_async, gerar_relatorio_apos_acertos_async
+from sme_ptrf_apps.core.tasks import (
+    concluir_prestacao_de_contas_async,
+    gerar_relatorio_apos_acertos_async
+)
+from sme_ptrf_apps.core.choices.tipos_unidade import TIPOS_CHOICE
 from ...services.analise_prestacao_conta_service import _criar_documento_final_relatorio_acertos
 
 from django.core.exceptions import ValidationError
@@ -161,6 +169,15 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         else:
             return PrestacaoContaLookUpSerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao_uuid', description='UUID da Associação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo_uuid', description='UUID do Período', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: PrestacaoContaLookUpSerializer()},
+    )
     @action(detail=False, url_path='por-associacao-e-periodo',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def por_associacao_e_periodo(self, request):
@@ -182,9 +199,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao],
     )
     def concluir_v2(self, request):
-        from sme_ptrf_apps.core.api.serializers.validation_serializers.prestacoes_contas_concluir_validate_serializer import (
-            PrestacoesContasConcluirValidateSerializer,
-        )  # noqa
+        from sme_ptrf_apps.core.api.serializers.validation_serializers \
+            .prestacoes_contas_concluir_validate_serializer import PrestacoesContasConcluirValidateSerializer
         from sme_ptrf_apps.core.services.prestacao_conta_service import PrestacaoContaService
 
         if not flag_is_active(request, "novo-processo-pc"):
@@ -230,6 +246,15 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaLookUpSerializer(pc, many=False).data, status=status.HTTP_200_OK)
 
     # TODO: Remover essa action quando a feature flag 'novo-processo-pc' for removida
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao_uuid', description='UUID da Associação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo_uuid', description='UUID do Período', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: PrestacaoContaLookUpSerializer()},
+    )
     @action(
         detail=False,
         methods=["post"],
@@ -373,7 +398,11 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                     'uuid': f'{uuid}',
                     'erro': 'prestacao_de_contas_posteriores',
                     'operacao': 'reabrir',
-                    'mensagem': 'Essa prestação de contas não pode ser devolvida, ou reaberta porque há prestação de contas dessa associação de um período posterior. Se necessário, reabra ou devolva primeiro a prestação de contas mais recente.'
+                    'mensagem': (
+                        'Essa prestação de contas não pode ser devolvida, ou reaberta porque há prestação de contas '
+                        'dessa associação de um período posterior. Se necessário, reabra ou devolva primeiro a '
+                        'prestação de contas mais recente.'
+                    )
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -444,7 +473,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         if flag_is_active(request, "periodos-processo-sei"):
             trata_processo_sei_ao_receber_pc_v2(prestacao_conta=prestacao_conta,
-                                             processo_sei=processo_sei, acao_processo_sei=acao_processo_sei)
+                                                processo_sei=processo_sei, acao_processo_sei=acao_processo_sei)
         else:
             trata_processo_sei_ao_receber_pc(prestacao_conta=prestacao_conta,
                                              processo_sei=processo_sei, acao_processo_sei=acao_processo_sei)
@@ -485,7 +514,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'erro': 'status_nao_permite_operacao',
                 'status': prestacao_conta.status,
                 'operacao': 'analisar',
-                'mensagem': 'Você não pode analisar uma prestação de contas com status diferente de RECEBIDA ou DEVOLVIDA_RECEBIDA.'
+                'mensagem': (
+                    'Você não pode analisar uma prestação de contas com status diferente de RECEBIDA ou '
+                    'DEVOLVIDA_RECEBIDA.'
+                )
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -500,7 +532,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         prestacao_conta = self.get_object()
 
         if prestacao_conta.em_retificacao:
-            return Response({'erro': 'Impossível desfazer análise de uma PC em retificação.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'erro': 'Impossível desfazer análise de uma PC em retificação.'},
+                            status=status.HTTP_403_FORBIDDEN)
 
         if prestacao_conta.status != PrestacaoConta.STATUS_EM_ANALISE:
             response = {
@@ -528,7 +561,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'erro': 'status_nao_permite_operacao',
                 'status': prestacao_conta.status,
                 'operacao': 'salvar-analise',
-                'mensagem': 'Você não pode salvar análise de uma prestação de contas com status diferente de EM_ANALISE.'
+                'mensagem': (
+                    'Você não pode salvar análise de uma prestação de contas com status diferente de EM_ANALISE.')
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -544,13 +578,18 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         devolucoes_ao_tesouro_da_prestacao = request.data.get('devolucoes_ao_tesouro_da_prestacao', [])
 
-        if prestacao_conta.status not in [PrestacaoConta.STATUS_EM_ANALISE, PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA]:
+        if prestacao_conta.status not in [PrestacaoConta.STATUS_EM_ANALISE,
+                                          PrestacaoConta.STATUS_DEVOLVIDA,
+                                          PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA]:
             response = {
                 'uuid': f'{uuid}',
                 'erro': 'status_nao_permite_operacao',
                 'status': prestacao_conta.status,
                 'operacao': 'salvar-devolucoes-ao-tesouro',
-                'mensagem': 'Você não pode salvar devoluções ao tesouro de uma prestação de contas com status diferente de EM_ANALISE ou DEVOLVIDA.'
+                'mensagem': (
+                    'Você não pode salvar devoluções ao tesouro de uma prestação de contas com status diferente de '
+                    'EM_ANALISE ou DEVOLVIDA.'
+                )
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -567,13 +606,18 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         devolucoes_ao_tesouro_a_apagar = request.data.get('devolucoes_ao_tesouro_a_apagar', [])
 
-        if prestacao_conta.status not in [PrestacaoConta.STATUS_EM_ANALISE, PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA]:
+        if prestacao_conta.status not in [PrestacaoConta.STATUS_EM_ANALISE,
+                                          PrestacaoConta.STATUS_DEVOLVIDA,
+                                          PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA]:
             response = {
                 'uuid': f'{uuid}',
                 'erro': 'status_nao_permite_operacao',
                 'status': prestacao_conta.status,
                 'operacao': 'apagar-devolucoes-ao-tesouro',
-                'mensagem': 'Você não pode apagar devoluções ao tesouro de uma prestação de contas com status diferente de EM_ANALISE ou DEVOLVIDA.'
+                'mensagem': (
+                    'Você não pode apagar devoluções ao tesouro de uma prestação de contas com status diferente de '
+                    'EM_ANALISE ou DEVOLVIDA.'
+                )
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -605,7 +649,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'erro': 'resultado_analise_invalido',
                 'status': resultado_analise,
                 'operacao': 'concluir-analise',
-                'mensagem': 'Resultado inválido. Resultados possíveis: APROVADA, APROVADA_RESSALVA, REPROVADA, DEVOLVIDA.'
+                'mensagem': (
+                    'Resultado inválido. Resultados possíveis: APROVADA, APROVADA_RESSALVA, REPROVADA, DEVOLVIDA.')
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -625,19 +670,23 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'erro': 'status_nao_permite_operacao',
                 'status': prestacao_conta.status,
                 'operacao': 'concluir-analise',
-                'mensagem': 'Você não pode concluir análise de uma prestação de contas com status diferente de EM_ANALISE.'
+                'mensagem': (
+                    'Você não pode concluir análise de uma prestação de contas com status diferente de EM_ANALISE.')
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         outros_motivos_aprovacao_ressalva = request.data.get('outros_motivos_aprovacao_ressalva', '')
         motivos_aprovacao_ressalva_uuid = request.data.get('motivos_aprovacao_ressalva', [])
 
-        if resultado_analise == PrestacaoConta.STATUS_APROVADA_RESSALVA and not motivos_aprovacao_ressalva_uuid and not outros_motivos_aprovacao_ressalva:
+        if resultado_analise == PrestacaoConta.STATUS_APROVADA_RESSALVA and not motivos_aprovacao_ressalva_uuid and not outros_motivos_aprovacao_ressalva:  # noqa
             response = {
                 'uuid': f'{uuid}',
                 'erro': 'falta_de_informacoes',
                 'operacao': 'concluir-analise',
-                'mensagem': 'Para concluir como APROVADO_RESSALVA é necessário informar motivos_aprovacao_ressalva ou outros_motivos_aprovacao_ressalva.'
+                'mensagem': (
+                    'Para concluir como APROVADO_RESSALVA é necessário informar motivos_aprovacao_ressalva ou '
+                    'outros_motivos_aprovacao_ressalva.'
+                )
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -649,7 +698,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             except MotivoAprovacaoRessalva.DoesNotExist:
                 erro = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto motivo de aprovação com ressalva para o uuid {motivo_uuid} não foi encontrado na base."
+                    'mensagem': (
+                        f"O objeto motivo de aprovação com ressalva para o uuid {motivo_uuid} não foi encontrado "
+                        "na base."
+                    )
                 }
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -657,12 +709,15 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         motivos_reprovacao_uuid = request.data.get('motivos_reprovacao', [])
         outros_motivos_reprovacao = request.data.get('outros_motivos_reprovacao', '')
 
-        if resultado_analise == PrestacaoConta.STATUS_REPROVADA and not motivos_reprovacao_uuid and not outros_motivos_reprovacao:
+        if resultado_analise == PrestacaoConta.STATUS_REPROVADA and not motivos_reprovacao_uuid and not outros_motivos_reprovacao: # noqa
             response = {
                 'uuid': f'{uuid}',
                 'erro': 'falta_de_informacoes',
                 'operacao': 'concluir-analise',
-                'mensagem': 'Para concluir como Reprovada é necessário informar o campo motivos_reprovacao ou outros_motivos_reprovacao.'
+                'mensagem': (
+                    'Para concluir como Reprovada é necessário informar o campo motivos_reprovacao ou '
+                    'outros_motivos_reprovacao.'
+                )
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -708,7 +763,11 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                     'uuid': f'{uuid}',
                     'erro': 'prestacao_de_contas_posteriores',
                     'operacao': 'concluir-analise',
-                    'mensagem': 'Essa prestação de contas não pode ser devolvida, ou reaberta porque há prestação de contas dessa associação de um período posterior. Se necessário, reabra ou devolva primeiro a prestação de contas mais recente.'
+                    'mensagem': (
+                        'Essa prestação de contas não pode ser devolvida, ou reaberta porque há prestação de contas '
+                        'dessa associação de um período posterior. Se necessário, reabra ou devolva primeiro a '
+                        'prestação de contas mais recente.'
+                    )
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -743,7 +802,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'erro': 'status_nao_permite_operacao',
                 'status': prestacao_conta.status,
                 'operacao': 'desfazer-conclusao-analise',
-                'mensagem': 'Impossível desfazer conclusão de análise de uma PC com status diferente de APROVADA, APROVADA_RESSALVA ou REPROVADA.'
+                'mensagem': (
+                    'Impossível desfazer conclusão de análise de uma PC com status diferente de APROVADA, '
+                    'APROVADA_RESSALVA ou REPROVADA.'
+                )
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -860,6 +922,21 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response({'detail': 'Salvo com sucesso'}, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='dre_uuid', description='UUID da Associação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo_uuid', description='UUID do Período', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='add_aprovadas_ressalvadas', enum=['SIM'],
+                             description='SIM, se quer incluir as aprovadas e ressalvadas',
+                             required=False, type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='add_reprovadas_nao_apresentacao', enum=['SIM'],
+                             description='SIM, se quer incluir as reprovadas não apresentadas',
+                             required=False, type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: PrestacaoContaLookUpSerializer()},
+    )
     @action(detail=False, methods=['get'], url_path="dashboard",
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def dashboard(self, request):
@@ -907,6 +984,44 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         }
         return Response(result)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao__unidade__dre__uuid', description='UUID da DRE', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo_uuid', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='nome', description='Código EOL, Nome da Associação ou Nome da Unidade',
+                             required=False, type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='tipo_unidade', description='UUID do Período', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=[i[0] for i in TIPOS_CHOICE]),
+            OpenApiParameter(name='status', description='Status de Prestação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=[i[0] for i in PrestacaoConta.STATUS_CHOICES]),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'periodo_uuid': {'type': 'string'},
+                        'data_recebimento': {'type': 'string'},
+                        'data_ultima_analise': {'type': 'string'},
+                        'processo_sei': {'type': 'string'},
+                        'status': {'type': 'string'},
+                        'tecnico_responsavel': {'type': 'string'},
+                        'unidade_eol': {'type': 'string'},
+                        'unidade_nome': {'type': 'string'},
+                        'unidade_tipo_unidade': {'type': 'string'},
+                        'uuid': {'type': 'string'},
+                        'associacao_uuid': {'type': 'string'},
+                        'devolucao_ao_tesouro': {'type': 'string'},
+                        'associacao': {'type': 'object'},
+                    },
+                }
+            }
+        )},
+    )
     @action(detail=False, url_path='nao-recebidas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def nao_recebidas(self, request):
@@ -965,7 +1080,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 erro = {
                     'erro': 'status-invalido',
                     'operacao': 'nao-recebidas',
-                    'mensagem': 'Esse endpoint só aceita o filtro por status para os status NAO_APRESENTADA e NAO_RECEBIDA.'
+                    'mensagem': (
+                        'Esse endpoint só aceita o filtro por status para os status NAO_APRESENTADA e NAO_RECEBIDA.')
                 }
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -975,10 +1091,48 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                                                          filtro_nome=nome,
                                                          filtro_tipo_unidade=tipo_unidade,
                                                          filtro_status=status_pc_list,
-                                                         periodos_processo_sei=flag_is_active(request,'periodos-processo-sei')
-                                                        )
+                                                         periodos_processo_sei=flag_is_active(
+                                                             request, 'periodos-processo-sei'))
         return Response(result)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao__unidade__dre__uuid', description='UUID da DRE', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo_uuid', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='nome', description='Código EOL, Nome da Associação ou Nome da Unidade',
+                             required=False, type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='tipo_unidade', description='UUID do Período', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=[i[0] for i in TIPOS_CHOICE]),
+            OpenApiParameter(name='status', description='Status de Prestação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=[i[0] for i in PrestacaoConta.STATUS_CHOICES]),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'periodo_uuid': {'type': 'string'},
+                        'data_recebimento': {'type': 'string'},
+                        'data_ultima_analise': {'type': 'string'},
+                        'processo_sei': {'type': 'string'},
+                        'status': {'type': 'string'},
+                        'tecnico_responsavel': {'type': 'string'},
+                        'unidade_eol': {'type': 'string'},
+                        'unidade_nome': {'type': 'string'},
+                        'unidade_tipo_unidade': {'type': 'string'},
+                        'uuid': {'type': 'string'},
+                        'associacao_uuid': {'type': 'string'},
+                        'devolucao_ao_tesouro': {'type': 'string'},
+                        'associacao': {'type': 'object'},
+                    },
+                }
+            }
+        )},
+    )
     @action(detail=False, url_path='todos-os-status',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def todos_os_status(self, request):
@@ -1056,6 +1210,45 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         )
         return Response(result)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='periodo_uuid', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='unificar_pcs_apresentadas_nao_recebidas',
+                             description='Unifica as prestações de contas apresentadas e não recebidas', required=False,
+                             type=OpenApiTypes.BOOL, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'status': {
+                            'type': 'object',
+                            'properties': {
+                                'status_txt': {'type': 'string'},
+                                'cor_idx': {'type': 'integer'},
+                                'status': {'type': 'string'},
+                            },
+                        },
+                        'cards': {
+                            'type': 'array',
+                            'items': {
+                                'type': 'object',
+                                'properties': {
+                                    'titulo': {'type': 'string'},
+                                    'quantidade_prestacoes': {'type': 'integer'},
+                                    'status': {'type': 'string'},
+                                },
+                            }
+                        },
+                        'resumo_por_dre': {'type': 'string'},
+                    },
+                }
+            }
+        )},
+    )
     @action(detail=False, methods=['get'], url_path="dashboard-sme",
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def dashboard_sme(self, request):
@@ -1088,10 +1281,79 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(dashboard)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='analise_prestacao', description='UUID da Análise de Prestação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conta_associacao', description='UUID da Conta daAssociação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='acao_associacao', description='UUID da Ação da Associação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='tipo', description='Tipo', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=['CREDITOS', 'GASTOS']),
+            OpenApiParameter(name='ordenar_por_imposto', description='Ordenar por imposto', required=False,
+                             type=OpenApiTypes.BOOL, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='filtrar_por_numero_de_documento', description='Número do Documento', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='filtrar_por_data_inicio', description='Data de início', required=False,
+                             type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='filtrar_por_data_fim', description='Data de término', required=False,
+                             type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='filtrar_por_tipo_de_documento', description='UUID do Tipo de Documento',
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, required=False),
+            OpenApiParameter(name='filtrar_por_tipo_de_pagamento', description='UUID do Tipo de Transação',
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, required=False),
+            OpenApiParameter(name='filtrar_por_nome_fornecedor', description='Nome do fornecedor', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='filtrar_por_informacoes', description='Informações (separadas por virgula)',
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, required=False),
+            OpenApiParameter(name='filtrar_por_conferencia', description='Conferência (separadas por virgula)',
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, required=False,
+                             enum=[i.get('nome') for i in AnaliseLancamentoPrestacaoConta
+                                   .get_tags_informacoes_de_conferencia_list()]),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'periodo': {'type': 'string'},
+                        'conta': {'type': 'string'},
+                        'data': {'type': 'string'},
+                        'tipo_transacao': {'type': 'string'},
+                        'numero_documento': {'type': 'string'},
+                        'descricao': {'type': 'string'},
+                        'valor_transacao_total': {'type': 'integer'},
+                        'valor_transacao_na_conta': {'type': 'integer'},
+                        'valores_por_conta': {'type': 'array'},
+                        'conferido': {'type': 'boolean'},
+                        'documento_mestre': {'type': 'object'},
+                        'rateios': {'type': 'array'},
+                        'notificar_dias_nao_conferido': {'type': 'boolean'},
+                        'analise_lancamento': {
+                            'type': 'object',
+                            'properties': {
+                                'resultado': {'type': 'string'},
+                                'uuid': {'type': 'string'},
+                                'houve_considerados_corretos_automaticamente': {'type': 'boolean'},
+                            }
+                        },
+                        'despesa_geradora_do_imposto': {'type': 'object'},
+                        'despesas_impostos': {'type': 'object'},
+
+                        'informacoes': {'type': 'array'},
+                        'informacoes_ordenamento': {'type': 'array'},
+                        'is_repasse': {'type': 'boolean'},
+                    },
+                }
+            }
+        )},
+    )
     @action(detail=True, methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def lancamentos(self, request, uuid):
-        from sme_ptrf_apps.core.api.serializers.validation_serializers.prestacoes_contas_lancamentos_validate_serializer import PrestacoesContasLancamentosValidateSerializer
+        from sme_ptrf_apps.core.api.serializers.validation_serializers.prestacoes_contas_lancamentos_validate_serializer import PrestacoesContasLancamentosValidateSerializer  # noqa
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
 
         filtro_informacoes = self.request.query_params.get('filtrar_por_informacoes')
@@ -1112,10 +1374,12 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             tipo_transacao=request.query_params.get('tipo'),
             ordenar_por_imposto=request.query_params.get('ordenar_por_imposto'),
             numero_de_documento=request.query_params.get('filtrar_por_numero_de_documento'),
-            tipo_de_documento=TipoDocumento.by_id(request.query_params.get(
-                'filtrar_por_tipo_de_documento')) if request.query_params.get('filtrar_por_tipo_de_documento') else None,
-            tipo_de_pagamento=TipoTransacao.by_id(request.query_params.get(
-                'filtrar_por_tipo_de_pagamento')) if request.query_params.get('filtrar_por_tipo_de_pagamento') else None,
+            tipo_de_documento=TipoDocumento.by_id(
+                request.query_params.get('filtrar_por_tipo_de_documento')
+            ) if request.query_params.get('filtrar_por_tipo_de_documento') else None,
+            tipo_de_pagamento=TipoTransacao.by_id(
+                request.query_params.get('filtrar_por_tipo_de_pagamento')
+            ) if request.query_params.get('filtrar_por_tipo_de_pagamento') else None,
             filtrar_por_data_inicio=request.query_params.get('filtrar_por_data_inicio'),
             filtrar_por_data_fim=request.query_params.get('filtrar_por_data_fim'),
             filtrar_por_nome_fornecedor=request.query_params.get('filtrar_por_nome_fornecedor'),
@@ -1145,7 +1409,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         except AnalisePrestacaoConta.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1153,7 +1419,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if analise_prestacao.prestacao_conta != prestacao_conta:
             erro = {
                 'erro': 'Análise de prestação inválida.',
-                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+                'mensagem': (
+                    f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1192,7 +1460,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         except AnalisePrestacaoConta.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1200,7 +1470,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if analise_prestacao.prestacao_conta != prestacao_conta:
             erro = {
                 'erro': 'Análise de prestação inválida.',
-                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+                'mensagem': (
+                    f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1219,6 +1491,31 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response({"message": "Lançamentos marcados como não conferidos."}, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='uuid', location=OpenApiParameter.PATH,
+                             type=OpenApiTypes.UUID, description='UUID da análise de prestação.'),
+        ],
+        request=inline_serializer(
+            name='InlinePayload',
+            fields={
+                'analise_prestacao': serializers.UUIDField(),
+                'lancamentos': serializers.ListField(child=serializers.UUIDField()),
+                'solicitacoes_acerto': serializers.ListField(child=serializers.UUIDField()),
+            }
+        ),
+        responses={
+            200: OpenApiResponse(
+                examples=[
+                    OpenApiExample(
+                        name="Mensagem de sucesso",
+                        value={"message": "Solicitações de acerto gravadas para os lançamentos."},
+                        response_only=True
+                    )
+                ]
+            )
+        }
+    )
     @transaction.atomic
     @action(detail=True, methods=['post'], url_path="solicitacoes-de-acerto",
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
@@ -1240,7 +1537,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         except AnalisePrestacaoConta.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1248,7 +1547,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if analise_prestacao.prestacao_conta != prestacao_conta:
             erro = {
                 'erro': 'Análise de prestação inválida.',
-                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+                'mensagem': (
+                    f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1290,6 +1591,13 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response({"message": "Solicitações de acerto gravadas para os lançamentos."}, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='analise_lancamento', description='UUID da Análise de Lançamento', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer()},
+    )
     @action(detail=True, methods=['get'], url_path="analises-de-lancamento",
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def analises_de_lancamento(self, request, uuid):
@@ -1312,7 +1620,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         except AnaliseLancamentoPrestacaoConta.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto analise-lancamento-prestacao-conta para o uuid {analise_lancamento_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto analise-lancamento-prestacao-conta para o uuid {analise_lancamento_uuid} não foi "
+                    "encontrado na base."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1320,13 +1631,51 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if analise_lancamento.analise_prestacao_conta.prestacao_conta != prestacao_conta:
             erro = {
                 'erro': 'Análise de prestação inválida.',
-                'mensagem': f"A análise de lançamento {analise_lancamento_uuid} não pertence à Prestação de Contas {uuid}."
+                'mensagem': (
+                    f"A análise de lançamento {analise_lancamento_uuid} não pertence à Prestação de Contas {uuid}."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer(analise_lancamento).data, status=status.HTTP_200_OK)
+        return Response(
+            AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer(analise_lancamento).data,
+            status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='analise_prestacao', description='UUID da Análise de Prestação de Contas',
+                             required=True, type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'tipo_documento_prestacao_conta': {
+                            'type': 'object',
+                            'properties': {
+                                'uuid': {'type': 'string'},
+                                'nome': {'type': 'string'},
+                                'documento_por_conta': {'type': 'string'},
+                                'conta_associacao': {'type': 'string'},
+                            }
+                        },
+                        'analise_documento': {
+                            'type': 'object',
+                            'properties': {
+                                'resultado': {'type': 'string'},
+                                'uuid': {'type': 'string'},
+                                'tipo_conta': {'type': 'string'},
+                                'conta_associacao': {'type': 'string'},
+                            }
+                        },
+                    },
+                }
+            }
+        )},
+    )
     @action(detail=True, methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def documentos(self, request, uuid):
@@ -1347,7 +1696,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         except AnalisePrestacaoConta.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1355,7 +1706,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if analise_prestacao.prestacao_conta != prestacao_conta:
             erro = {
                 'erro': 'Análise de prestação inválida.',
-                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+                'mensagem': (
+                    f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1364,6 +1717,27 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(documentos, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[],
+        request=inline_serializer(
+            name='InlinePayload',
+            fields={
+                'analise_prestacao': serializers.UUIDField(),
+                'documentos_corretos': serializers.ListField(child=serializers.UUIDField()),
+            }
+        ),
+        responses={
+            200: OpenApiResponse(
+                examples=[
+                    OpenApiExample(
+                        name="Mensagem de sucesso",
+                        value={"message": "Documentos marcados como corretos."},
+                        response_only=True
+                    )
+                ]
+            )
+        }
+    )
     @action(detail=True, methods=['post'], url_path="documentos-corretos",
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def documentos_corretos(self, request, uuid):
@@ -1384,7 +1758,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         except AnalisePrestacaoConta.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1392,7 +1768,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if analise_prestacao.prestacao_conta != prestacao_conta:
             erro = {
                 'erro': 'Análise de prestação inválida.',
-                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+                'mensagem': (
+                    f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1411,6 +1789,27 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response({"message": "Documentos marcados como corretos."}, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[],
+        request=inline_serializer(
+            name='InlinePayload',
+            fields={
+                'analise_prestacao': serializers.UUIDField(),
+                'documentos_nao_conferidos': serializers.ListField(child=serializers.UUIDField()),
+            }
+        ),
+        responses={
+            200: OpenApiResponse(
+                examples=[
+                    OpenApiExample(
+                        name="Mensagem de sucesso",
+                        value={"message": "Documentos marcados como não conferidos."},
+                        response_only=True
+                    )
+                ]
+            )
+        }
+    )
     @action(detail=True, methods=['post'], url_path="documentos-nao-conferidos",
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def documentos_nao_conferidos(self, request, uuid):
@@ -1431,7 +1830,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         except AnalisePrestacaoConta.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1439,7 +1840,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if analise_prestacao.prestacao_conta != prestacao_conta:
             erro = {
                 'erro': 'Análise de prestação inválida.',
-                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+                'mensagem': (
+                    f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}.")
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1458,6 +1860,28 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response({"message": "Documentos marcados como não conferidos."}, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[],
+        request=inline_serializer(
+            name='InlinePayload',
+            fields={
+                'analise_prestacao': serializers.UUIDField(),
+                'documentos': serializers.ListField(child=serializers.UUIDField()),
+                'solicitacoes_acerto': serializers.ListField(child=serializers.UUIDField()),
+            }
+        ),
+        responses={
+            200: OpenApiResponse(
+                examples=[
+                    OpenApiExample(
+                        name="Mensagem de sucesso",
+                        value={"message": "Solicitações de acerto gravadas para os documentos."},
+                        response_only=True
+                    )
+                ]
+            )
+        }
+    )
     @action(detail=True, methods=['post'], url_path="solicitacoes-de-acerto-documento",
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def solicitacoes_acerto_documento(self, request, uuid):
@@ -1478,7 +1902,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         except AnalisePrestacaoConta.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1486,7 +1912,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if analise_prestacao.prestacao_conta != prestacao_conta:
             erro = {
                 'erro': 'Análise de prestação inválida.',
-                'mensagem': f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+                'mensagem': (
+                    f"A análise de prestação {analise_prestacao_uuid} não pertence à Prestação de Contas {uuid}."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1519,6 +1947,13 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response({"message": "Solicitações de acerto gravadas para os documentos."}, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='analise_documento', description='UUID da Análise de Documento',
+                             required=True, type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: AnaliseDocumentoPrestacaoContaRetrieveSerializer()},
+    )
     @action(detail=True, methods=['get'], url_path="analises-de-documento",
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def analises_de_documento(self, request, uuid):
@@ -1541,7 +1976,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         except AnaliseLancamentoPrestacaoConta.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto analise-documento-prestacao-conta para o uuid {analise_documento_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto analise-documento-prestacao-conta para o uuid {analise_documento_uuid} não "
+                    "foi encontrado na base."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1549,12 +1987,16 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if analise_documento.analise_prestacao_conta.prestacao_conta != prestacao_conta:
             erro = {
                 'erro': 'Análise de prestação inválida.',
-                'mensagem': f"A análise de documento {analise_documento_uuid} não pertence à Prestação de Contas {uuid}."
+                'mensagem': (
+                    f"A análise de documento {analise_documento_uuid} não pertence à Prestação de Contas {uuid}."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(AnaliseDocumentoPrestacaoContaRetrieveSerializer(analise_documento).data, status=status.HTTP_200_OK)
+        return Response(
+            AnaliseDocumentoPrestacaoContaRetrieveSerializer(analise_documento).data,
+            status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], url_path="devolucoes",
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
@@ -1563,12 +2005,25 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         devolucoes = prestacao_conta.analises_da_prestacao.filter(status='DEVOLVIDA').order_by('id')
         return Response(AnalisePrestacaoContaRetrieveSerializer(devolucoes, many=True).data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'], url_path="ultima-analise-pc", permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
+    @action(detail=True, methods=['get'], url_path="ultima-analise-pc",
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def ultima_analise_da_pc(self, request, uuid):
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
         ultima_analise_pc = prestacao_conta.analises_da_prestacao.order_by('id').last()
-        return Response(AnalisePrestacaoContaRetrieveSerializer(ultima_analise_pc, many=False).data, status=status.HTTP_200_OK)
+        return Response(
+            AnalisePrestacaoContaRetrieveSerializer(ultima_analise_pc, many=False).data,
+            status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[],
+        request=inline_serializer(
+            name='InlinePayload',
+            fields={
+                'data_recebimento_apos_acertos': serializers.DateField(),
+            }
+        ),
+        responses={200: PrestacaoContaRetrieveSerializer()},
+    )
     @action(detail=True, methods=['patch'], url_path="receber-apos-acertos",
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def receber_apos_acertos(self, request, uuid):
@@ -1580,7 +2035,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'uuid': f'{uuid}',
                 'erro': 'falta_de_informacoes',
                 'operacao': 'receber-apos-acertos',
-                'mensagem': 'Faltou informar a data de recebimento da Prestação de Contas. data_recebimento_apos_acertos'
+                'mensagem': (
+                    'Faltou informar a data de recebimento da Prestação de Contas. data_recebimento_apos_acertos'
+                )
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1590,7 +2047,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'erro': 'status_nao_permite_operacao',
                 'status': prestacao_conta.status,
                 'operacao': 'receber-apos-acertos',
-                'mensagem': 'Você não pode receber após acertos uma prestação de contas com status diferente de DEVOLVIDA_RETORNADA.'
+                'mensagem': (
+                    'Você não pode receber após acertos uma prestação de contas com status diferente de '
+                    'DEVOLVIDA_RETORNADA.'
+                )
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1599,6 +2059,11 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_recebida, many=False).data,
                         status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[],
+        request=None,
+        responses={200: PrestacaoContaRetrieveSerializer()},
+    )
     @action(detail=True, methods=['patch'], url_path='desfazer-recebimento-apos-acertos',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def desfazer_recebimento_apos_acertos(self, request, uuid):
@@ -1610,7 +2075,9 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'erro': 'status_nao_permite_operacao',
                 'status': prestacao_conta.status,
                 'operacao': 'desfazer-recebimento-apos-acertos',
-                'mensagem': 'Impossível desfazer recebimento após acertos de uma PC com status diferente de DEVOLVIDA_RECEBIDA.'
+                'mensagem': (
+                    'Impossível desfazer recebimento após acertos de uma PC com status diferente de DEVOLVIDA_RECEBIDA.'
+                )
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1619,6 +2086,42 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(PrestacaoContaRetrieveSerializer(prestacao_atualizada, many=False).data,
                         status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'associacao': {'type': 'object'},
+                    'periodo_uuid': {'type': 'string'},
+                    'status': {'type': 'string'},
+                    'uuid': {'type': 'string'},
+                    'tecnico_responsavel': {'type': 'string'},
+                    'data_recebimento': {'type': 'string'},
+                    'data_recebimento_apos_acertos': {'type': 'string'},
+                    'devolucoes_da_prestacao': {'type': 'array'},
+                    'processo_sei': {'type': 'string'},
+                    'data_ultima_analise': {'type': 'string'},
+                    'devolucao_ao_tesouro': {'type': 'string'},
+                    'analises_de_conta_da_prestacao': {'type': 'array'},
+                    'permite_analise_valores_reprogramados': {'type': 'boolean'},
+                    'motivos_aprovacao_ressalva': {'type': 'array'},
+                    'outros_motivos_aprovacao_ressalva': {'type': 'string'},
+                    'motivos_reprovacao': {'type': 'array'},
+                    'outros_motivos_reprovacao': {'type': 'string'},
+                    'recomendacoes': {'type': 'string'},
+                    'devolucoes_ao_tesouro_da_prestacao': {'type': 'array'},
+                    'arquivos_referencia': {'type': 'array'},
+                    'analise_atual': {'type': 'object'},
+                },
+            }
+        )},
+    )
     @action(detail=False, methods=['get'], url_path="previa",
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def previa_pc(self, request):
@@ -1668,6 +2171,100 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(previa_pc)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'array',
+                'items': {
+                    'type': 'object',
+                    'properties': {
+                        'uuid': {'type': 'string'},
+                        'contas': {
+                            'type': 'array',
+                            'items': {
+                                'type': 'object',
+                                'properties': {
+                                    'conta_associacao': {
+                                        'type': 'object',
+                                        'properties': {
+                                            'uuid': {'type': 'string'},
+                                            'nome': {'type': 'string'},
+                                            'banco_nome': {'type': 'string'},
+                                            'agencia': {'type': 'string'},
+                                            'numero_conta': {'type': 'string'},
+                                        }
+                                    }
+                                },
+                            }
+                        },
+                        'acoes': {
+                            'type': 'array',
+                            'items': {
+                                'type': 'object',
+                                'properties': {
+                                    'acao_associacao_uuid': {'type': 'string'},
+                                    'acao_associacao_nome': {'type': 'string'},
+                                    'saldo_reprogramado': {'type': 'number'},
+                                    'saldo_reprogramado_capital': {'type': 'number'},
+                                    'saldo_reprogramado_custeio': {'type': 'number'},
+                                    'saldo_reprogramado_livre': {'type': 'number'},
+                                    'receitas_no_periodo': {'type': 'number'},
+                                    'receitas_devolucao_no_periodo': {'type': 'number'},
+                                    'receitas_devolucao_no_periodo_custeio': {'type': 'number'},
+                                    'receitas_devolucao_no_periodo_capital': {'type': 'number'},
+                                    'receitas_devolucao_no_periodo_livre': {'type': 'number'},
+                                    'repasses_no_periodo': {'type': 'number'},
+                                    'repasses_no_periodo_capital': {'type': 'number'},
+                                    'repasses_no_periodo_custeio': {'type': 'number'},
+                                    'repasses_no_periodo_livre': {'type': 'number'},
+                                    'outras_receitas_no_periodo': {'type': 'number'},
+                                    'outras_receitas_no_periodo_capital': {'type': 'number'},
+                                    'outras_receitas_no_periodo_custeio': {'type': 'number'},
+                                    'outras_receitas_no_periodo_livre': {'type': 'number'},
+                                    'despesas_no_periodo': {'type': 'number'},
+                                    'despesas_no_periodo_capital': {'type': 'number'},
+                                    'despesas_no_periodo_custeio': {'type': 'number'},
+                                    'despesas_nao_conciliadas': {'type': 'number'},
+                                    'despesas_nao_conciliadas_capital': {'type': 'number'},
+                                    'despesas_nao_conciliadas_custeio': {'type': 'number'},
+                                    'despesas_nao_conciliadas_anteriores_capital': {'type': 'number'},
+                                    'despesas_nao_conciliadas_anteriores_custeio': {'type': 'number'},
+                                    'despesas_nao_conciliadas_anteriores': {'type': 'number'},
+                                    'despesas_conciliadas': {'type': 'number'},
+                                    'despesas_conciliadas_capital': {'type': 'number'},
+                                    'despesas_conciliadas_custeio': {'type': 'number'},
+                                    'receitas_nao_conciliadas': {'type': 'number'},
+                                    'receitas_nao_conciliadas_capital': {'type': 'number'},
+                                    'receitas_nao_conciliadas_custeio': {'type': 'number'},
+                                    'receitas_nao_conciliadas_livre': {'type': 'number'},
+                                    'saldo_atual_custeio': {'type': 'number'},
+                                    'saldo_atual_capital': {'type': 'number'},
+                                    'saldo_atual_livre': {'type': 'number'},
+                                    'saldo_atual_total': {'type': 'number'},
+                                    'especificacoes_despesas_capital': {'type': 'number'},
+                                    'especificacoes_despesas_custeio': {'type': 'number'},
+                                    'repasses_nao_realizados_capital': {'type': 'number'},
+                                    'repasses_nao_realizados_custeio': {'type': 'number'},
+                                    'repasses_nao_realizados_livre': {'type': 'number'},
+                                    'saldo_bancario_custeio': {'type': 'number'},
+                                    'saldo_bancario_capital': {'type': 'number'},
+                                    'saldo_bancario_livre': {'type': 'number'},
+                                    'saldo_bancario_total': {'type': 'number'},
+                                }
+                            }
+                        },
+                        'totais': {'type': 'number'}
+                    },
+                }
+            }
+        )},
+    )
     @action(detail=False, methods=['get'], url_path="previa-info-para-ata",
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def get_previa_info_para_ata(self, request):
@@ -1716,6 +2313,16 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         previa_info = previa_informacoes_financeiras_para_atas(associacao=associacao, periodo=periodo)
         return Response(previa_info)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: AtaLookUpSerializer()},
+        request=None
+    )
     @action(detail=False, methods=['post'], url_path='iniciar-previa-ata',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def iniciar_previa_ata(self, request):
@@ -1774,30 +2381,49 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(AtaLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='uuid', description='UUID da Prestação de Conta', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.PATH),
+        ],
+        responses={200: ContaAssociacaoDadosSerializer(many=True)},
+    )
     @action(detail=True, methods=['get'], url_path='contas-com-movimento',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def contas_com_movimento(self, request, uuid):
-        from ..serializers.conta_associacao_serializer import ContaAssociacaoDadosSerializer
-
         prestacao_conta: PrestacaoConta = self.get_object()
         contas = prestacao_conta.get_contas_com_movimento()
 
         return Response(ContaAssociacaoDadosSerializer(contas, many=True).data)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='uuid', description='UUID da Prestação de Conta', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.PATH),
+        ],
+        responses={200: ContaAssociacaoDadosSerializer(many=True)},
+    )
     @action(detail=True, methods=['get'], url_path='contas-com-movimento-despesas-periodos-anteriores',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def contas_com_movimento_despesas_periodos_anteriores(self, request, uuid):
-        from ..serializers.conta_associacao_serializer import ContaAssociacaoDadosSerializer
-
         prestacao_conta: PrestacaoConta = self.get_object()
         contas = prestacao_conta.get_contas_com_movimento_em_periodos_anteriores()
 
         return Response(ContaAssociacaoDadosSerializer(contas, many=True).data)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='uuid', description='UUID da Prestação de Conta', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.PATH),
+        ],
+        responses={204: OpenApiResponse()},
+        request=None
+    )
     @action(detail=True, methods=['post'], url_path='notificar/pendencia_geracao_ata_apresentacao',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def notificar_pendencia_geracao_ata_apresentacao(self, request, uuid):
-        from sme_ptrf_apps.core.services.notificacao_services.notificacao_pendencia_geracao_ata import notificar_pendencia_geracao_ata_apresentacao
+        from sme_ptrf_apps.core.services.notificacao_services\
+            .notificacao_pendencia_geracao_ata import notificar_pendencia_geracao_ata_apresentacao
         prestacao_contas = self.get_object()
 
         if not prestacao_contas.ata_apresentacao_gerada():
@@ -1805,10 +2431,46 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='analise_prestacao', description='UUID da Análise de Prestação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conta_associacao', description='UUID da Conta daAssociação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='acao_associacao', description='UUID da Ação da Associação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='tipo', description='Tipo', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=['CREDITOS', 'GASTOS']),
+            OpenApiParameter(name='ordenar_por_imposto', description='Ordenar por imposto', required=False,
+                             type=OpenApiTypes.BOOL, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='filtrar_por_numero_de_documento', description='Número do Documento', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='filtrar_por_data_inicio', description='Data de início', required=False,
+                             type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='filtrar_por_data_fim', description='Data de término', required=False,
+                             type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='filtrar_por_tipo_de_documento', description='UUID do Tipo de Documento',
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, required=False),
+            OpenApiParameter(name='filtrar_por_tipo_de_pagamento', description='UUID do Tipo de Transação',
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, required=False),
+            OpenApiParameter(name='filtrar_por_nome_fornecedor', description='Nome do fornecedor', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='filtrar_por_informacoes', description='Informações (separadas por virgula)',
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, required=False),
+            OpenApiParameter(name='filtrar_por_conferencia', description='Conferência (separadas por virgula)',
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, required=False,
+                             enum=[i.get('nome') for i in AnaliseLancamentoPrestacaoConta
+                                   .get_tags_informacoes_de_conferencia_list()]),
+        ],
+        responses={200: OpenApiResponse(
+            response={'type': 'array', 'items': {'type': 'object'}},
+        )},
+    )
     @action(detail=True, methods=['get'], url_path="despesas-periodos-anteriores",
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def despesas_periodos_anteriores(self, request, uuid):
-        from sme_ptrf_apps.core.api.serializers.validation_serializers.prestacoes_contas_lancamentos_validate_serializer import PrestacoesContasLancamentosValidateSerializer
+        from sme_ptrf_apps.core.api.serializers.validation_serializers \
+            .prestacoes_contas_lancamentos_validate_serializer import PrestacoesContasLancamentosValidateSerializer
         prestacao_conta = PrestacaoConta.by_uuid(uuid)
 
         filtro_informacoes = self.request.query_params.get('filtrar_por_informacoes')
@@ -1830,10 +2492,12 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             apenas_despesas_de_periodos_anteriores=True,
             ordenar_por_imposto=request.query_params.get('ordenar_por_imposto'),
             numero_de_documento=request.query_params.get('filtrar_por_numero_de_documento'),
-            tipo_de_documento=TipoDocumento.by_id(request.query_params.get(
-                'filtrar_por_tipo_de_documento')) if request.query_params.get('filtrar_por_tipo_de_documento') else None,
-            tipo_de_pagamento=TipoTransacao.by_id(request.query_params.get(
-                'filtrar_por_tipo_de_pagamento')) if request.query_params.get('filtrar_por_tipo_de_pagamento') else None,
+            tipo_de_documento=TipoDocumento.by_id(
+                request.query_params.get('filtrar_por_tipo_de_documento')
+            ) if request.query_params.get('filtrar_por_tipo_de_documento') else None,
+            tipo_de_pagamento=TipoTransacao.by_id(
+                request.query_params.get('filtrar_por_tipo_de_pagamento')
+            ) if request.query_params.get('filtrar_por_tipo_de_pagamento') else None,
             filtrar_por_data_inicio=request.query_params.get('filtrar_por_data_inicio'),
             filtrar_por_data_fim=request.query_params.get('filtrar_por_data_fim'),
             filtrar_por_nome_fornecedor=request.query_params.get('filtrar_por_nome_fornecedor'),
