@@ -1,8 +1,6 @@
-from datetime import datetime
-
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
+from rest_framework.status import HTTP_400_BAD_REQUEST
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins, status
@@ -15,8 +13,16 @@ from ...models.repasse import StatusRepasse
 from ....core.models import Periodo, TipoConta, Acao
 
 from ..serializers import RepasseSerializer, RepasseCreateSerializer, RepasseListSerializer
-from ....core.api.serializers import PeriodoSerializer, TipoContaSerializer, AcaoSerializer, ContaAssociacaoLookUpSerializer, AcaoAssociacaoLookUpSerializer
+from ....core.api.serializers import (
+    PeriodoSerializer,
+    TipoContaSerializer,
+    AcaoSerializer,
+    ContaAssociacaoLookUpSerializer,
+    AcaoAssociacaoLookUpSerializer
+)
 from ....core.api.utils.pagination import CustomPagination
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+from ...models.repasse import STATUS_CHOICES
 
 
 class RepasseViewSet(
@@ -32,6 +38,28 @@ class RepasseViewSet(
     permission_classes = [IsAuthenticated & (PermissaoApiUe | PermissaoApiSME)]
     serializer_class = RepasseSerializer
     pagination_class = CustomPagination
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='search',
+                description='Parâmetro de pesquisa para o Código EOL, Nome da Associação ou Nome da Unidade',
+                required=False,
+                type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conta', description='UUID da Conta', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='acao', description='UUID da Ação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='status', description='Status do Repasse', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=[i[0] for i in STATUS_CHOICES]),
+        ],
+        responses={200: RepasseSerializer()},
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -102,6 +130,13 @@ class RepasseViewSet(
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: RepasseSerializer()},
+    )
     @action(detail=False, methods=['GET'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def pendentes(self, request, *args, **kwargs):
@@ -123,7 +158,7 @@ class RepasseViewSet(
     @action(detail=False, methods=['GET'], url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, request):
-        
+
         periodos_ordenados = Periodo.objects.all().order_by('-referencia')
 
         result = {
@@ -135,6 +170,13 @@ class RepasseViewSet(
 
         return Response(result, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao_uuid', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: RepasseSerializer()},
+    )
     @action(detail=False, methods=['GET'], url_path='tabelas-por-associacao',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas_por_associacao(self, request):
