@@ -5,8 +5,9 @@ from datetime import date
 
 from model_bakery import baker
 from rest_framework import status
+from unittest import mock
 
-from ...models import PrestacaoConta
+from ...models import PrestacaoConta, DevolucaoPrestacaoConta, AnalisePrestacaoConta
 
 pytestmark = pytest.mark.django_db
 
@@ -18,7 +19,25 @@ def prestacao_conta_em_analise(periodo, associacao):
         periodo=periodo,
         associacao=associacao,
         data_recebimento=date(2020, 10, 1),
-        status=PrestacaoConta.STATUS_EM_ANALISE
+        status=PrestacaoConta.STATUS_EM_ANALISE,
+    )
+
+@pytest.fixture
+def devolucao_prestacao(prestacao_conta_em_analise):
+    return baker.make(
+        'DevolucaoPrestacaoConta',
+        prestacao_conta=prestacao_conta_em_analise,
+        data=date(2020, 7, 1),
+        data_limite_ue=date(2020, 8, 1),
+        data_retorno_ue=None
+    )
+
+@pytest.fixture
+def analise_prestacao_conta_2020_1(prestacao_conta_em_analise, devolucao_prestacao):
+    return baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=prestacao_conta_em_analise,
+        devolucao_prestacao_conta=devolucao_prestacao
     )
 
 
@@ -153,3 +172,62 @@ def test_api_conclui_analise_prestacao_conta_valida_resultado_aanalise(jwt_authe
     }
 
     assert result == result_esperado, "Deveria ter retornado erro resultado_analise_invalido."
+
+@pytest.mark.django_db
+def test_concluir_analise_rollback_quando_devolver_falha_em_devolver(jwt_authenticated_client_a,
+                                                         prestacao_conta_em_analise,
+                                                         conta_associacao,
+                                                         devolucao_prestacao,
+                                                         analise_prestacao_conta_2020_1):
+    payload = {
+        'analises_de_conta_da_prestacao': [],
+        'resultado_analise': PrestacaoConta.STATUS_DEVOLVIDA,
+        'data_limite_ue': '2025-12-31',
+        'motivos_reprovacao': [],
+        'outros_motivos_reprovacao': '',
+        'motivos_aprovacao_ressalva': [],
+        'outros_motivos_aprovacao_ressalva': '',
+        'recomendacoes': ''
+    }
+
+    url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
+
+    status_inicial = prestacao_conta_em_analise.status
+
+    with mock.patch.object(PrestacaoConta, 'devolver', side_effect=Exception("Erro simulado no devolver")):
+        with pytest.raises(Exception, match="Erro simulado no devolver"):
+            jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
+
+    prestacao_conta_em_analise.refresh_from_db()
+
+    assert prestacao_conta_em_analise.status == status_inicial, "Status deveria ter sido revertido ao valor inicial"
+
+@pytest.mark.django_db
+def test_concluir_analise_rollback_quando_devolver_falha_em_salvar_analise(jwt_authenticated_client_a,
+                                                         prestacao_conta_em_analise,
+                                                         conta_associacao,
+                                                         devolucao_prestacao,
+                                                         analise_prestacao_conta_2020_1):
+    payload = {
+        'analises_de_conta_da_prestacao': [],
+        'resultado_analise': PrestacaoConta.STATUS_DEVOLVIDA,
+        'data_limite_ue': '2025-12-31',
+        'motivos_reprovacao': [],
+        'outros_motivos_reprovacao': '',
+        'motivos_aprovacao_ressalva': [],
+        'outros_motivos_aprovacao_ressalva': '',
+        'recomendacoes': ''
+    }
+
+    url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
+
+    status_inicial = prestacao_conta_em_analise.status
+
+    with mock.patch.object(PrestacaoConta, 'salvar_analise', side_effect=Exception("Erro simulado no salvar_analise")):
+        with pytest.raises(Exception, match="Erro simulado no salvar_analise"):
+            jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
+
+    prestacao_conta_em_analise.refresh_from_db()
+
+    assert prestacao_conta_em_analise.status == status_inicial, "Status deveria ter sido revertido ao valor inicial"
+
