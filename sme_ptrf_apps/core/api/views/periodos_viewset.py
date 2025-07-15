@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from ..serializers.periodo_serializer import (PeriodoSerializer, PeriodoLookUpSerializer, PeriodoRetrieveSerializer,
                                               PeriodoCreateSerializer)
@@ -22,6 +23,18 @@ class PeriodosViewSet(mixins.ListModelMixin,
     lookup_field = 'uuid'
     queryset = Periodo.objects.all().order_by('-referencia')
     serializer_class = PeriodoSerializer
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='referencia', description='Referência', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='associacao_uuid', description='UUID da Associação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: PeriodoSerializer()},
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     def get_queryset(self):
         qs = Periodo.objects.all()
@@ -74,6 +87,19 @@ class PeriodosViewSet(mixins.ListModelMixin,
             self.queryset.filter(data_inicio_realizacao_despesas__lte=datetime.today()).order_by('-referencia'),
             many=True).data)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='data_inicio_realizacao_despesas',
+                             description='Data iníco de realização de despesas', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='data_fim_realizacao_despesas',
+                             description='Data fim de realização de despesas', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo_anterior_uuid', description='UUID do período anterior', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: PeriodoSerializer()},
+    )
     @action(detail=False, url_path='verificar-datas')
     def verificar_datas(self, request):
         """Recebe um payload com as datas (inicial e final) de realização de despesas e
@@ -85,7 +111,8 @@ class PeriodosViewSet(mixins.ListModelMixin,
             erro = {
                 'erro': 'falta_de_informacoes',
                 'operacao': 'verificar-datas',
-                'mensagem': 'Faltou informar a data de inicio de realização de despesas. ?data_inicio_realizacao_despesas= '
+                'mensagem': (
+                    'Faltou informar a data de inicio de realização de despesas. ?data_inicio_realizacao_despesas= ')
             }
 
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
