@@ -30,6 +30,15 @@ class DespesaSituacaoPatrimonialViewSet(WaffleFlagMixin, ModelViewSet):
     pagination_class = CustomPagination
     http_method_names = ['get']
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        bem_produzido_uuid = self.request.query_params.get('bem_produzido_uuid')
+        if not bem_produzido_uuid:
+            bem_produzido_uuid = self.kwargs.get('bem_produzido_uuid')
+        if bem_produzido_uuid:
+            context['bem_produzido_uuid'] = bem_produzido_uuid
+        return context
+
     def get_queryset(self):
         qs = Despesa.objects.exclude(status='INATIVO').all()
         
