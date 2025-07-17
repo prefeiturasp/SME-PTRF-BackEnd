@@ -48,13 +48,19 @@ class BemProduzidoSerializer(serializers.ModelSerializer):
 
 
 class BemProduzidoItemSerializer(serializers.Serializer):
-    uuid = serializers.SlugRelatedField(queryset=BemProduzidoItem.objects.all(),
-                                        slug_field='uuid', required=False, allow_null=True)
+    uuid = serializers.UUIDField(required=False, allow_null=True)
     especificacao_do_bem = serializers.SlugRelatedField(
         queryset=EspecificacaoMaterialServico.objects.all(), slug_field='uuid')
     num_processo_incorporacao = serializers.CharField()
     quantidade = serializers.IntegerField()
     valor_individual = serializers.DecimalField(max_digits=12, decimal_places=2)
+
+    def to_internal_value(self, data):
+        if 'especificacao_do_bem' in data and isinstance(data['especificacao_do_bem'], dict):
+            data = data.copy()
+            data['especificacao_do_bem'] = data['especificacao_do_bem'].get('uuid')
+        
+        return super().to_internal_value(data)
 
 
 class BemProduzidoRateioSerializer(serializers.Serializer):
@@ -156,11 +162,28 @@ class BemProduzidoSaveSerializer(serializers.ModelSerializer):
             bem_produzido_rateio.save()
 
     def _handle_itens(self, bem_produzido, itens, update=False):
+        if update:
+            uuids_enviados = [item.get("uuid") for item in itens if item.get("uuid")]
+            itens_existentes = BemProduzidoItem.objects.filter(bem_produzido=bem_produzido)
+            
+            itens_para_remover = itens_existentes.exclude(uuid__in=uuids_enviados)
+            itens_para_remover.delete()
+        
         for item_payload in itens:
             item_uuid = item_payload.get("uuid")
             if update and item_uuid:
-                continue
-            BemProduzidoItem.objects.create(bem_produzido=bem_produzido, **item_payload)
+                # Atualizar item existente
+                try:
+                    item = BemProduzidoItem.objects.get(uuid=item_uuid, bem_produzido=bem_produzido)
+                    for field, value in item_payload.items():
+                        if field != 'uuid':  # Não atualizar o uuid
+                            setattr(item, field, value)
+                    item.save()
+                except BemProduzidoItem.DoesNotExist:
+                    raise serializers.ValidationError(f"Item com UUID {item_uuid} não encontrado.")
+            else:
+                # Criar novo item
+                BemProduzidoItem.objects.create(bem_produzido=bem_produzido, **item_payload)
 
     def _handle_recursos_proprios(self, bem_produzido, recursos_proprios):
         for recurso_data in recursos_proprios:
@@ -200,7 +223,7 @@ class BemProduzidoSaveRacunhoSerializer(serializers.ModelSerializer):
     associacao = serializers.SlugRelatedField(queryset=Associacao.objects.all(), slug_field='uuid')
     despesas = serializers.ListField(child=serializers.UUIDField(), write_only=True)
     rateios = BemProduzidoRateioSerializer(many=True, write_only=True, required=False)
-    itens = BemProduzidoItemSerializer(many=True, write_only=True, required=False)
+    itens = BemProduzidoRascunhoItemSerializer(many=True, write_only=True, required=False)
     recursos_proprios = RecursoProprioSerializer(many=True, write_only=True, required=False, allow_null=True)
 
     class Meta:
@@ -225,6 +248,8 @@ class BemProduzidoSaveRacunhoSerializer(serializers.ModelSerializer):
         bem_produzido = BemProduzido.objects.create(
             associacao=validated_data['associacao']
         )
+
+        BemProduzidoItem.objects.create(bem_produzido=bem_produzido)
 
         self._handle_despesas(bem_produzido, despesas)
         self._handle_rateios(bem_produzido, rateios)
@@ -283,11 +308,35 @@ class BemProduzidoSaveRacunhoSerializer(serializers.ModelSerializer):
             bem_produzido_rateio.save()
 
     def _handle_itens(self, bem_produzido, itens, update=False):
+        if update:
+            uuids_enviados = [item.get("uuid") for item in itens if item.get("uuid")]
+            itens_existentes = BemProduzidoItem.objects.filter(bem_produzido=bem_produzido)
+
+            itens_para_remover = itens_existentes.exclude(uuid__in=uuids_enviados)
+            itens_para_remover.delete()
+        
         for item_payload in itens:
+            if not item_payload or (
+                not item_payload.get('especificacao_do_bem') and
+                not item_payload.get('num_processo_incorporacao') and
+                not item_payload.get('quantidade') and
+                not item_payload.get('valor_individual')
+            ):
+                continue
             item_uuid = item_payload.get("uuid")
             if update and item_uuid:
-                continue
-            BemProduzidoItem.objects.create(bem_produzido=bem_produzido, **item_payload)
+                # Atualizar item existente
+                try:
+                    item = BemProduzidoItem.objects.get(uuid=item_uuid, bem_produzido=bem_produzido)
+                    for field, value in item_payload.items():
+                        if field != 'uuid':  # Não atualizar o uuid
+                            setattr(item, field, value)
+                    item.save()
+                except BemProduzidoItem.DoesNotExist:
+                    raise serializers.ValidationError(f"Item com UUID {item_uuid} não encontrado.")
+            else:
+                # Criar novo item
+                BemProduzidoItem.objects.create(bem_produzido=bem_produzido, **item_payload)
 
     def _handle_recursos_proprios(self, bem_produzido, recursos_proprios):
         for recurso_data in recursos_proprios:
