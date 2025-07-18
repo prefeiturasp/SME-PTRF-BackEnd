@@ -120,6 +120,13 @@ class BemProduzidoSaveSerializer(serializers.ModelSerializer):
         itens = validated_data.pop("itens", [])
         recursos_proprios = validated_data.pop("recursos_proprios", [])
 
+        uuids_enviados = set(despesas)
+        despesas_existentes = instance.despesas.all()
+        for bem_produzido_despesa in despesas_existentes:
+            if str(bem_produzido_despesa.despesa.uuid) not in uuids_enviados:
+                bem_produzido_despesa.rateios.all().delete()
+                bem_produzido_despesa.delete()
+
         self._handle_despesas(instance, despesas)
         self._handle_rateios(instance, rateios)
         self._handle_recursos_proprios(instance, recursos_proprios)
