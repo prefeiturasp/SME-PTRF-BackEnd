@@ -6,7 +6,7 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_get_lista_adquiridos_e_produzidos(jwt_authenticated_client_sme, associacao_1, bem_produzido_item_1, rateio_capital_1, rateio_custeio_1):
+def test_get_lista_adquiridos_e_produzidos(jwt_authenticated_client_sme, flag_situacao_patrimonial, associacao_1, bem_produzido_item_1, rateio_capital_1, rateio_custeio_1):
 
     response = jwt_authenticated_client_sme.get(
         f'/api/bens-produzidos-e-adquiridos/?associacao_uuid={associacao_1.uuid}')
@@ -17,7 +17,7 @@ def test_get_lista_adquiridos_e_produzidos(jwt_authenticated_client_sme, associa
 
 
 @freeze_time('2025-01-01')
-def test_get_lista_adquiridos_e_produzidos_com_filtro_acao_e_conta(jwt_authenticated_client_sme, associacao_1, despesa_factory, rateio_despesa_factory, conta_associacao_factory, acao_associacao_factory):
+def test_get_lista_adquiridos_e_produzidos_com_filtro_acao_e_conta(jwt_authenticated_client_sme, flag_situacao_patrimonial, associacao_1, despesa_factory, rateio_despesa_factory, conta_associacao_factory, acao_associacao_factory):
     conta_associacao = conta_associacao_factory(associacao=associacao_1)
     acao_associacao = acao_associacao_factory(associacao=associacao_1)
     despesa_2025_1 = despesa_factory(associacao=associacao_1, data_documento='2025-01-01', nome_fornecedor='teste')
@@ -39,7 +39,7 @@ def test_get_lista_adquiridos_e_produzidos_com_filtro_acao_e_conta(jwt_authentic
 
 
 @freeze_time('2025-01-01')
-def test_get_lista_adquiridos_e_produzidos_com_filtro_fornecedor(jwt_authenticated_client_sme, associacao_1, despesa_factory, rateio_despesa_factory):
+def test_get_lista_adquiridos_e_produzidos_com_filtro_fornecedor(jwt_authenticated_client_sme, flag_situacao_patrimonial, associacao_1, despesa_factory, rateio_despesa_factory):
     despesa_2025_1 = despesa_factory(associacao=associacao_1, data_documento='2025-01-01', nome_fornecedor='teste')
     _ = rateio_despesa_factory(
         associacao=associacao_1, despesa=despesa_2025_1, aplicacao_recurso="CAPITAL")
@@ -59,7 +59,7 @@ def test_get_lista_adquiridos_e_produzidos_com_filtro_fornecedor(jwt_authenticat
 
 
 @freeze_time('2025-01-01')
-def test_get_lista_adquiridos_e_produzidos_com_filtro_especificacao(jwt_authenticated_client_sme, associacao_1, bem_produzido_1, despesa_factory, bem_produzido_item_factory, rateio_despesa_factory, especificacao_material_servico_1):
+def test_get_lista_adquiridos_e_produzidos_com_filtro_especificacao(jwt_authenticated_client_sme, flag_situacao_patrimonial, associacao_1, bem_produzido_1, despesa_factory, bem_produzido_item_factory, rateio_despesa_factory, especificacao_material_servico_1):
     _ = bem_produzido_item_factory(bem_produzido=bem_produzido_1, especificacao_do_bem=especificacao_material_servico_1)
     _ = bem_produzido_item_factory(bem_produzido=bem_produzido_1, especificacao_do_bem=especificacao_material_servico_1)
     _ = bem_produzido_item_factory(bem_produzido=bem_produzido_1, especificacao_do_bem=especificacao_material_servico_1)
@@ -82,7 +82,7 @@ def test_get_lista_adquiridos_e_produzidos_com_filtro_especificacao(jwt_authenti
 
 
 @freeze_time('2025-01-01')
-def test_get_lista_adquiridos_e_produzidos_com_filtro_periodo(jwt_authenticated_client_sme, associacao_1, bem_produzido_1, despesa_factory, bem_produzido_item_factory, rateio_despesa_factory, periodo_2025_1, periodo_2024_1):
+def test_get_lista_adquiridos_e_produzidos_com_filtro_periodo(jwt_authenticated_client_sme, flag_situacao_patrimonial, associacao_1, bem_produzido_1, despesa_factory, bem_produzido_item_factory, rateio_despesa_factory, periodo_2025_1, periodo_2024_1):
     _ = bem_produzido_item_factory(bem_produzido=bem_produzido_1)
     _ = bem_produzido_item_factory(bem_produzido=bem_produzido_1)
     _ = bem_produzido_item_factory(bem_produzido=bem_produzido_1)

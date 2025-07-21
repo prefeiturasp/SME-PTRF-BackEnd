@@ -27,6 +27,8 @@ class BemProduzidoAdmin(admin.ModelAdmin):
 
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
 
+    search_help_text = 'Pesquise por: código eol da associação, nome da associação, nome da unidade'
+
 
 @admin.register(BemProduzidoDespesa)
 class BemProduzidoDespesaAdmin(admin.ModelAdmin):
@@ -42,7 +44,14 @@ class BemProduzidoDespesaAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+    search_fields = ('despesa__associacao__unidade__codigo_eol', 'despesa__associacao__nome',
+                     'despesa__associacao__unidade__nome', 'despesa__uuid')
+
     inlines = [BemProduzidoRateioInline, ]
+
+    search_help_text = 'Pesquise por: uuid da despesa, código eol da associação, nome da associação, nome da unidade'
+
 
 @admin.register(BemProduzidoRateio)
 class BemProduzidoRateioAdmin(admin.ModelAdmin):
@@ -58,6 +67,12 @@ class BemProduzidoRateioAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+    search_fields = ('rateio__uuid', 'rateio__despesa__associacao__unidade__codigo_eol', 'rateio__despesa__associacao__nome',
+                     'rateio__despesa__associacao__unidade__nome', 'rateio__despesa__uuid')
+
+    search_help_text = 'Pesquise por: uuid do rateio, uuid da despesa, código eol da associação, nome da associação, nome da unidade'
+
 
 @admin.register(BemProduzidoItem)
 class BemProduzidoItemAdmin(admin.ModelAdmin):
@@ -76,3 +91,8 @@ class BemProduzidoItemAdmin(admin.ModelAdmin):
     )
 
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+    search_fields = ('bem_produzido__uuid', 'bem_produzido__associacao__unidade__codigo_eol', 'bem_produzido__associacao__nome',
+                     'bem_produzido__associacao__unidade__nome')
+
+    search_help_text = 'Pesquise por: uuid do bem produzido, código eol da associação, nome da associação, nome da unidade'

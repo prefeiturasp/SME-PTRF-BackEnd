@@ -4,6 +4,12 @@ from ..serializers.tipo_custeio_serializer import TipoCusteioSerializer
 from ...models import EspecificacaoMaterialServico
 
 
+class EspecificacaoMaterialServicoSimplesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EspecificacaoMaterialServico
+        fields = ('uuid', 'nome')
+
+
 class EspecificacaoMaterialServicoSerializer(serializers.ModelSerializer):
     tipo_custeio_objeto = TipoCusteioSerializer(read_only=True, source='tipo_custeio')
 

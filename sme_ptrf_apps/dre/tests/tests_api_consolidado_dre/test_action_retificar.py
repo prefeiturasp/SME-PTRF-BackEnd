@@ -85,3 +85,4 @@ def test_retificar_consolidado_dre_sem_informar_motivo_deve_retornar_400__motivo
     )
 
     assert response.status_code == status.HTTP_200_OK
+

@@ -2,7 +2,6 @@ import pytest
 
 from sme_ptrf_apps.paa.api.serializers import ProgramaPddeSerializer
 
-
 pytestmark = pytest.mark.django_db
 
 

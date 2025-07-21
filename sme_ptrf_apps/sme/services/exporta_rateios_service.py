@@ -1,4 +1,5 @@
 import csv
+import copy
 from datetime import datetime
 import logging
 
@@ -8,6 +9,7 @@ from django.core.files import File
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.core.models.ambiente import Ambiente
 from sme_ptrf_apps.despesas.models.rateio_despesa import RateioDespesa
+from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_NOMES
 from sme_ptrf_apps.core.services.arquivo_download_service import (
     gerar_arquivo_download
 )
@@ -41,7 +43,7 @@ CABECALHO_RATEIOS = [
         ('Número do processo de incorporação', 'numero_processo_incorporacao_capital'),
         ('Valor', 'valor_rateio'),
         ('Valor realizado', 'valor_original'),
-        ('Status do rateio', 'status'),
+        ('Status do rateio', 'despesa__status'),
         ('Conferido', 'conferido'),
         ('Referência do período de conciliação', 'periodo_conciliacao__referencia'),
         ('Descrição da tag', 'tag__nome'),
@@ -236,9 +238,11 @@ class ExportacoesRateiosService:
                     linha_horizontal.append(valor_original)
                     continue
 
-                if campo == "status":
+                if campo == "despesa__status":
                     campo = get_recursive_attr(instance, campo)
-                    status = "Completo" if campo == "COMPLETO" else "Rascunho"
+                    status_dict = copy.deepcopy(STATUS_NOMES)
+                    status_dict["INCOMPLETO"] = "Incompleto"
+                    status = status_dict.get(campo, campo)
                     linha_horizontal.append(status)
                     continue
 

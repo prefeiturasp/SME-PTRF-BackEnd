@@ -76,5 +76,6 @@ class BemProduzidoEAdquiridoSerializer(serializers.Serializer):
                 'quantidade': instance.quantidade,
                 'valor_total': instance.valor_total,
                 'despesas': BemProduzidoDespesaSerializer(instance.bem_produzido.despesas.all(), many=True).data,
-                'tipo': 'Produzido'
+                'tipo': 'Produzido',
+                'bem_produzido_uuid': instance.bem_produzido.uuid
             }

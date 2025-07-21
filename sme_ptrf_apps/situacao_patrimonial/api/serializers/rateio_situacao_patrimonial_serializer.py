@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.db.models import Sum
+from decimal import Decimal
 
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoSerializer
@@ -16,11 +17,12 @@ class RateioSituacaoPatrimonialSerializer(serializers.ModelSerializer):
     valor_utilizado = serializers.SerializerMethodField('get_valor_utilizado')
     tipo_documento_nome = serializers.SerializerMethodField('get_tipo_documento_nome')
     bem_produzido_rateio_uuid = serializers.SerializerMethodField()
+    bem_produzido_rateio_valor_utilizado = serializers.SerializerMethodField()
 
     class Meta:
         model = RateioDespesa
         fields = [
-            'uuid', 'bem_produzido_rateio_uuid', 'valor_disponivel', 'valor_rateio', 'valor_utilizado', 'aplicacao_recurso',
+            'uuid', 'bem_produzido_rateio_uuid', 'bem_produzido_rateio_valor_utilizado', 'valor_disponivel', 'valor_rateio', 'valor_utilizado', 'aplicacao_recurso',
             'conta_associacao', 'acao_associacao', 'especificacao_material_servico',
             'tipo_documento_nome'
         ]
@@ -34,6 +36,19 @@ class RateioSituacaoPatrimonialSerializer(serializers.ModelSerializer):
                     rateio=rateio
                 )
                 return str(bem_produzido_rateio.uuid)
+            except BemProduzidoRateio.DoesNotExist:
+                return None
+        return None
+    
+    def get_bem_produzido_rateio_valor_utilizado(self, rateio):
+        bem_produzido_uuid = self.context.get('bem_produzido_uuid')
+        if bem_produzido_uuid:
+            try:
+                bem_produzido_rateio = BemProduzidoRateio.objects.get(
+                    bem_produzido_despesa__bem_produzido__uuid=bem_produzido_uuid,
+                    rateio=rateio
+                )
+                return str(bem_produzido_rateio.valor_utilizado)
             except BemProduzidoRateio.DoesNotExist:
                 return None
         return None

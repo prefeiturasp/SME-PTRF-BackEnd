@@ -15,6 +15,7 @@ from sme_ptrf_apps.paa.api.serializers import (
     PrioridadePaaListSerializer
 )
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
+from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 
 
 class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
@@ -26,7 +27,23 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
     http_method_names = ["get", "post", "patch", "delete"]
     pagination_class = CustomPagination
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
-    filterset_fields = ('acao_associacao__uuid',)
+    filterset_fields = (
+        'acao_associacao__uuid',
+        'paa__uuid',
+        'recurso',
+        'prioridade',  # 0 (False) ou 1 (True)
+        'programa_pdde__uuid',
+        'acao_pdde__uuid',
+        'tipo_aplicacao',
+        'tipo_despesa_custeio__uuid',
+        'especificacao_material__uuid',
+    )
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = queryset_prioridades_paa(qs)
+
+        return qs
 
     def get_serializer_class(self):
         if self.action == 'list':
