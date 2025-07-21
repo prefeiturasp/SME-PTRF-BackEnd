@@ -16,6 +16,7 @@ from sme_ptrf_apps.situacao_patrimonial.api.serializers import BemProduzidoItemS
 
 logger = logging.getLogger(__name__)
 
+
 class BemProduzidoItemViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "situacao-patrimonial"
     permission_classes = [IsAuthenticated & PermissaoApiUe]

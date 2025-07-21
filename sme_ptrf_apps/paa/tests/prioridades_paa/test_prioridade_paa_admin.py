@@ -1,16 +1,15 @@
 
 def test_list_display(prioridade_paa_admin):
     assert prioridade_paa_admin.list_display == (
-        'paa',
+        'nome',
         'prioridade',
         'recurso',
-        'acao_associacao',
-        'programa_pdde',
-        'acao_pdde',
         'tipo_aplicacao',
+        'programa_pdde',
         'tipo_despesa_custeio',
         'especificacao_material',
-        'valor_total'
+        'valor_total',
+        'paa',
     )
 
 

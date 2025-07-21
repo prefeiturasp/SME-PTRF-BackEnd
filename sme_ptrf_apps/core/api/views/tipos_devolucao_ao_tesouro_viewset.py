@@ -14,6 +14,7 @@ class TiposDevolucaoAoTesouroViewSet(mixins.ListModelMixin,
                                      mixins.CreateModelMixin,
                                      mixins.UpdateModelMixin,
                                      mixins.DestroyModelMixin,
+
                                      GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'

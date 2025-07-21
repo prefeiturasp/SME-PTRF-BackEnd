@@ -66,8 +66,6 @@ def test_filtra_tipo_devolucao_ao_tesouro_por_nome(jwt_authenticated_client_sme,
 def test_excluir_tipo_devolucao_ao_tesouro_sem_devolucao(jwt_authenticated_client_sme, tipo_devolucao_ao_tesouro):
     url = f"/api/tipos-devolucao-ao-tesouro/{tipo_devolucao_ao_tesouro.uuid}/"
     response = jwt_authenticated_client_sme.delete(url)
-
-
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
 

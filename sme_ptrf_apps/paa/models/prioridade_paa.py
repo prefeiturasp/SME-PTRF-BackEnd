@@ -57,5 +57,17 @@ class PrioridadePaa(ModeloBase):
         verbose_name = "Prioridade do PAA"
         verbose_name_plural = "Prioridades do PAA"
 
+    def nome(self):
+        """
+            Exibição unificada em um campo, no admin, de acordo com a condição abaixo
+        """
+        if self.acao_associacao:
+            return self.acao_associacao.acao.nome
+        elif self.acao_pdde:
+            return self.acao_pdde.nome
+        else:
+            return 'Recursos Próprios'
+    nome.short_description = 'Ação'
+
 
 auditlog.register(PrioridadePaa)

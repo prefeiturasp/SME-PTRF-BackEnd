@@ -3,6 +3,13 @@ from rest_framework import serializers
 from sme_ptrf_apps.paa.models import ProgramaPdde
 
 
+class ProgramaPddeSimplesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = ProgramaPdde
+        fields = ('uuid', 'nome')
+
+
 class ProgramaPddeSerializer(serializers.ModelSerializer):
     pode_ser_excluida = serializers.SerializerMethodField()
 

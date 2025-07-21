@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "cypress": "^10.9.0",
+    "cypress-real-events": "^1.7.1",
+    "cypress-xpath": "^2.0.1"
+  }
+}

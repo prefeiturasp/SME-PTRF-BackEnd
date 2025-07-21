@@ -30,6 +30,15 @@ class DespesaSituacaoPatrimonialViewSet(WaffleFlagMixin, ModelViewSet):
     pagination_class = CustomPagination
     http_method_names = ['get']
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        bem_produzido_uuid = self.request.query_params.get('bem_produzido_uuid')
+        if not bem_produzido_uuid:
+            bem_produzido_uuid = self.kwargs.get('bem_produzido_uuid')
+        if bem_produzido_uuid:
+            context['bem_produzido_uuid'] = bem_produzido_uuid
+        return context
+
     def get_queryset(self):
         qs = Despesa.objects.exclude(status='INATIVO').all()
         
@@ -115,36 +124,5 @@ class DespesaSituacaoPatrimonialViewSet(WaffleFlagMixin, ModelViewSet):
                     qs.filter(rateios__tag__id__in=filtro_vinculo_atividades_list).distinct("uuid").values('pk')
                 )
             )
-        
-        bem_produzido_rateio_sum = BemProduzidoRateio.objects.filter(
-            rateio=OuterRef('pk')
-        ).values('rateio').annotate(
-            total_utilizado=Sum('valor_utilizado')
-        ).values('total_utilizado')[:1]
 
-        bem_produzido_despesa_sum = BemProduzidoDespesa.objects.filter(
-            despesa=OuterRef('pk')
-        ).values('despesa').annotate(
-            total_utilizado=Sum('valor_recurso_proprio_utilizado')
-        ).values('total_utilizado')[:1]
-
-        qs = qs.annotate(
-            total_utilizado_despesa=Subquery(bem_produzido_despesa_sum, output_field=DecimalField()),
-            restante_recursos_proprios=ExpressionWrapper(
-                F('valor_recursos_proprios') - Coalesce(F('total_utilizado_despesa'), 0),
-                output_field=DecimalField()
-            )
-        ).filter(
-            Q(  # se houver recurso próprio restante na despesa
-                restante_recursos_proprios__gt=0
-            ) | Q(  # ou se algum rateio ainda tiver valor a ser utilizado
-                rateios__in=RateioDespesa.objects.annotate(
-                    total_utilizado=Subquery(bem_produzido_rateio_sum, output_field=DecimalField()),
-                    restante=ExpressionWrapper(
-                        F('valor_rateio') - Coalesce(F('total_utilizado'), 0),
-                        output_field=DecimalField()
-                    )
-                ).filter(restante__gt=0)
-            )
-        ) 
         return qs.distinct("uuid")
