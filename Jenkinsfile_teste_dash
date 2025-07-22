@@ -45,6 +45,7 @@ pipeline {
             steps {
                 dir("${TEST_DIR}") {
                     sh '''
+                        docker container ls
                         NO_COLOR=1 npx cypress-cloud run \
                             --spec cypress/e2e/**/* \
                             --browser chrome \
