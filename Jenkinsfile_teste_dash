@@ -40,7 +40,6 @@ pipeline {
                                     npx cypress-cloud run \
                                         --browser chrome \
                                         --headed true \
-                                        --spec cypress/e2e/**/* \
                                         --record \
                                         --key somekey \
                                         --reporter mocha-allure-reporter \
@@ -54,14 +53,14 @@ pipeline {
             steps {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                        def hasResults = fileExists("${ALLURE_PATH}") && sh(script: "ls -A ${ALLURE_PATH} | wc -l", returnStdout: true).trim() != "0"
+                        def hasResults = fileExists("${WORKSPACE}/${ALLURE_PATH}") && sh(script: "ls -A ${ALLURE_PATH} | wc -l", returnStdout: true).trim() != "0"
 
                         if (hasResults) {
                             echo "Gerando relatório Allure..."
                             sh """
                                 export JAVA_HOME=\$(dirname \$(dirname \$(readlink -f \$(which java)))); \
                                 export PATH=\$JAVA_HOME/bin:/usr/local/bin:\$PATH; \
-                                allure generate ${ALLURE_PATH} --clean --output tests/api/allure-report; \
+                                allure generate ${WORKSPACE}/${ALLURE_PATH} --clean --output tests/api/allure-report; \
                                 cd tests/api; \
                                 zip -r allure-results-${BUILD_NUMBER}-\$(date +"%d-%m-%Y").zip allure-results
                             """
@@ -77,7 +76,7 @@ pipeline {
     post {
         always {
             script {
-                sh 'chmod -R 777 $WORKSPACE/tests/api || true'
+                sh 'sudo chmod -R 777 $WORKSPACE/tests/api || true'
 
                 if (fileExists("${ALLURE_PATH}") && sh(script: "ls -A ${ALLURE_PATH} | wc -l", returnStdout: true).trim() != "0") {
                     allure includeProperties: false, jdk: '', results: [[path: "${ALLURE_PATH}"]]
