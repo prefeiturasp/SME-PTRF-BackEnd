@@ -29,22 +29,24 @@ pipeline {
 
         stage('Executar') {
             steps {
-                sh '''
-                    docker run \
-                        --rm \
-                        -v "tests/api:/app" \
-                        -w /app \
-                        registry.sme.prefeitura.sp.gov.br/devops/cypress-agent:14.5.2 \
-                        sh -c "npm install && npm install cypress@14.5.2 cypress-cloud@beta && \
-                                npx cypress-cloud run \
-                                    --browser chrome \
-                                    --headed true \
-                                    --spec cypress/e2e/**/* \
-                                    --record \
-                                    --key somekey \
-                                    --reporter mocha-allure-reporter \
-                                    --ci-build-id PTRF-BACKEND-${BUILD_NUMBER}"
-                '''
+                withDockerRegistry(credentialsId: 'jenkins_registry', url: 'https://registry.sme.prefeitura.sp.gov.br/repository/sme-registry/') {
+                    sh '''
+                        docker run \
+                            --rm \
+                            -v "tests/api:/app" \
+                            -w /app \
+                            registry.sme.prefeitura.sp.gov.br/devops/cypress-agent:14.5.2 \
+                            sh -c "npm install && npm install cypress@14.5.2 cypress-cloud@beta && \
+                                    npx cypress-cloud run \
+                                        --browser chrome \
+                                        --headed true \
+                                        --spec cypress/e2e/**/* \
+                                        --record \
+                                        --key somekey \
+                                        --reporter mocha-allure-reporter \
+                                        --ci-build-id PTRF-BACKEND-${BUILD_NUMBER}"
+                    '''
+                }
             }
         }
 
