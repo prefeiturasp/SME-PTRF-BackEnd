@@ -1,4 +1,6 @@
 pipeline {
+    node('cypress-node')
+
     // triggers {
     //     cron('30 20 * * 0-5')
     // }
@@ -8,13 +10,6 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20'))
         disableConcurrentBuilds()
         skipDefaultCheckout()
-    }
-
-    agent {
-        kubernetes {
-            label 'cypress-14-5-2'
-            defaultContainer 'cypress-14-5-2'
-        }
     }
 
     environment {
@@ -30,33 +25,24 @@ pipeline {
             }
         }
 
-        stage('Instalar Dependências') {
-            steps {
-                dir("${TEST_DIR}") {
-                    sh '''
-                        npm install --silent
-                        npm install cypress@14.5.2 cypress-cloud@beta
-                    '''
-                }
-            }
-        }
-
         stage('Executar') {
             steps {
-                dir("${TEST_DIR}") {
-                    sh '''
-                        docker container ls
-                        NO_COLOR=1 npx cypress-cloud run \
-                            --spec cypress/e2e/**/* \
-                            --browser chrome \
-                            --headed true \
-                            --record \
-                            --key somekey \
-                            --ci-build-id PTRF-BACKEND-${BUILD_NUMBER} \
-                            --cloud-config-file currents.config.js \
-                            --reporter mocha-allure-reporter
-                    '''
-                }
+                sh '''
+                    docker run \
+                        --rm \
+                        -v "tests/api:/app" \
+                        -w /app \
+                        registry.sme.prefeitura.sp.gov.br/devops/cypress-agent:14.5.2 \
+                        sh -c "npm install && npm install cypress@14.5.2 cypress-cloud@beta && \
+                                npx cypress-cloud run \
+                                    --browser chrome \
+                                    --headed true \
+                                    --spec cypress/e2e/**/* \
+                                    --record \
+                                    --key somekey \
+                                    --reporter mocha-allure-reporter \
+                                    --ci-build-id PTRF-BACKEND-${BUILD_NUMBER}"
+                '''
             }
         }
 
