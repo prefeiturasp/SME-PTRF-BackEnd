@@ -34,6 +34,7 @@ pipeline {
             steps {
                 dir("${TEST_DIR}") {
                     sh '''
+                        id
                         npm install && npm install cypress@14.5.2 cypress-cloud@beta
                     '''
                 }
