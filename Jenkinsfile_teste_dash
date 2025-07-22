@@ -11,8 +11,8 @@ pipeline {
 
     agent {
         kubernetes {
-            label 'cypress'
-            defaultContainer 'cypress-13-6-6'
+            label 'cypress-14-5-2'
+            defaultContainer 'cypress-14-5-2'
         }
     }
 
