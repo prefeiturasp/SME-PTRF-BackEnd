@@ -33,7 +33,7 @@ pipeline {
                     sh '''#!/bin/bash
                         docker run \
                             --rm \
-                            -v "tests/api:/app" \
+                            -v "$WORKSPACE/tests/api:/app"   \
                             -w /app \
                             registry.sme.prefeitura.sp.gov.br/devops/cypress-agent:14.5.2 \
                             sh -c "npm install && npm install cypress@14.5.2 cypress-cloud@beta && \
