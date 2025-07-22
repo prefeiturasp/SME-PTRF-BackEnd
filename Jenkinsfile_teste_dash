@@ -34,7 +34,7 @@ pipeline {
             steps {
                 dir("${TEST_DIR}") {
                     sh '''
-                        apt update && apt install -y default-jre openjdk-17-jdk zip
+                        rm -rf node_modules package-lock.json
                         npm install
                         npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev
                         npm install cypress@14.5.2 cypress-cloud@beta
@@ -47,12 +47,13 @@ pipeline {
             steps {
                 dir("${TEST_DIR}") {
                     sh '''
-                        npx cypress-cloud run \
+                        NO_COLOR=1 npx cypress-cloud run \
                             --spec cypress/e2e/**/* \
                             --browser chrome \
+                            --headed true \
                             --record \
                             --key somekey \
-                            --ci-build-id  PTRF-BACKEND-${BUILD_NUMBER} \
+                            --ci-build-id PTRF-BACKEND-${BUILD_NUMBER} \
                             --reporter mocha-allure-reporter
                     '''
                 }
