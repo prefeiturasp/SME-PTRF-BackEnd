@@ -30,7 +30,7 @@ pipeline {
         stage('Executar') {
             steps {
                 withDockerRegistry(credentialsId: 'jenkins_registry', url: 'https://registry.sme.prefeitura.sp.gov.br/repository/sme-registry/') {
-                    sh '''
+                    sh '''#!/bin/bash
                         docker run \
                             --rm \
                             -v "tests/api:/app" \
