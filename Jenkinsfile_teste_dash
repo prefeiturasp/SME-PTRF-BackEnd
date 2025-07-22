@@ -92,8 +92,6 @@ pipeline {
                     echo "⚠️ Nenhum .zip de Allure encontrado para arquivamento. Pulando archiveArtifacts."
                 }
             }
-            
-            cleanWs(patterns: [[pattern: '*.zip', type: 'EXCLUDE']])
         }
 
     //     success {
