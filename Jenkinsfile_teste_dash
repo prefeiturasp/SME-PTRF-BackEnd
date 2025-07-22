@@ -34,8 +34,8 @@ pipeline {
             steps {
                 dir("${TEST_DIR}") {
                     sh '''
-                        id
-                        npm install && npm install cypress@14.5.2 cypress-cloud@beta
+                        npm install --silent
+                        npm install cypress@14.5.2 cypress-cloud@beta
                     '''
                 }
             }
@@ -52,6 +52,7 @@ pipeline {
                             --record \
                             --key somekey \
                             --ci-build-id PTRF-BACKEND-${BUILD_NUMBER} \
+                            --cloud-config-file currents.config.js \
                             --reporter mocha-allure-reporter
                     '''
                 }
