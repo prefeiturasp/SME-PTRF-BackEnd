@@ -1,5 +1,7 @@
 pipeline {
-    node('cypress-node')
+    agent {
+        label 'cypress-node'
+    }
 
     // triggers {
     //     cron('30 20 * * 0-5')
