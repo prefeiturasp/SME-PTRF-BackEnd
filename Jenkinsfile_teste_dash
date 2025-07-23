@@ -40,7 +40,6 @@ pipeline {
                                     npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev && \
                                     rm -rf allure-results/ && \
                                     npx cypress-cloud run \
-                                        --spec cypress/e2e/**/* \
                                         --browser chrome \
                                         --headed true \
                                         --record \
