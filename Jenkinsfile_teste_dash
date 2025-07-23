@@ -82,24 +82,15 @@ pipeline {
     post {
         always {
             script {
-                echo "🧹 Cleanup"
-                sh '''
-                    find . -mindepth 1 -maxdepth 1 \
-                        ! -name "allure-results" \
-                        ! -name "/tests/api/node_modules" \
-                        ! -name "*allure-results-${BUILD_NUMBER}-*.zip" \
-                        -exec rm -rf {} +
-                '''
-
                 if (fileExists("${ALLURE_PATH}") && sh(script: "ls -A ${ALLURE_PATH} | wc -l", returnStdout: true).trim() != "0") {
                     allure includeProperties: false, jdk: '', results: [[path: "${ALLURE_PATH}"]]
                 } else {
                     echo "⚠️ Resultados do Allure não encontrados ou vazios, plugin Allure não será acionado."
                 }
 
-                def zipExists = sh(script: "ls tests/api/allure-results-*.zip 2>/dev/null || true", returnStdout: true).trim()
+                def zipExists = sh(script: "ls tests/api/allure-results-${BUILD_NUMBER}-*.zip 2>/dev/null || true", returnStdout: true).trim()
                 if (zipExists) {
-                    archiveArtifacts artifacts: 'tests/api/allure-results-*.zip', fingerprint: true
+                    archiveArtifacts artifacts: 'tests/api/allure-results-${BUILD_NUMBER}-*.zip', fingerprint: true
                 } else {
                     echo "⚠️ Nenhum .zip de Allure encontrado para arquivamento. Pulando archiveArtifacts."
                 }
