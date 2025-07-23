@@ -33,6 +33,8 @@ pipeline {
                     rm -rf $WORKSPACE_DIR/$ALLURE_PATH/*
                     rm -rf $$WORKSPACE_DIR/$TEST_DIR/node_modules/ $$WORKSPACE_DIR/$TEST_DIR/package-lock.json
 
+                    cd $WORKSPACE_DIR/$TEST_DIR
+
                     npm install
                     npm install cypress@14.5.2 cypress-cloud@beta
                     npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev
