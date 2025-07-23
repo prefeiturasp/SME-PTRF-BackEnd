@@ -82,8 +82,15 @@ pipeline {
     post {
         always {
             script {
-                cleanWs(patterns: [[pattern: '**/*/allure-results-${BUILD_NUMBER}-*.zip', type: 'EXCLUDE']])
-                
+                echo "🧹 Cleanup"
+                sh '''
+                    find . -mindepth 1 -maxdepth 1 \
+                        ! -name "allure-results" \
+                        ! -name "/tests/api/node_modules" \
+                        ! -name "*allure-results-${BUILD_NUMBER}-*.zip" \
+                        -exec rm -rf {} +
+                '''
+
                 if (fileExists("${ALLURE_PATH}") && sh(script: "ls -A ${ALLURE_PATH} | wc -l", returnStdout: true).trim() != "0") {
                     allure includeProperties: false, jdk: '', results: [[path: "${ALLURE_PATH}"]]
                 } else {
