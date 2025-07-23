@@ -38,7 +38,7 @@ pipeline {
                             registry.sme.prefeitura.sp.gov.br/devops/cypress-agent:14.5.2 \
                             sh -c "npm install && npm install cypress@14.5.2 cypress-cloud@beta && \
                                     npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev && \
-                                    rm -rf $WORKSPACE_DIR/$ALLURE_PATH/* && \
+                                    rm -rf allure-results/ && \
                                     npx cypress-cloud run \
                                         --spec cypress/e2e/**/* \
                                         --browser chrome \
