@@ -73,6 +73,8 @@ pipeline {
                     } else {
                         echo "⚠️ Diretório ${ALLURE_PATH} está ausente ou vazio. Pulando geração do relatório."
                     }
+
+                    sh 'chmod -R 777 $WORKSPACE/tests/api || true'
                 }
             }
         }
@@ -82,8 +84,6 @@ pipeline {
     post {
         always {
             script {
-                // sh 'chmod -R 777 $WORKSPACE/tests/api || true'
-
                 if (fileExists("${ALLURE_PATH}") && sh(script: "ls -A ${ALLURE_PATH} | wc -l", returnStdout: true).trim() != "0") {
                     allure includeProperties: false, jdk: '', results: [[path: "${ALLURE_PATH}"]]
                 } else {
