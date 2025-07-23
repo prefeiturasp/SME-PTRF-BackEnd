@@ -82,6 +82,8 @@ pipeline {
     post {
         always {
             script {
+                cleanWs(patterns: [[pattern: '**/*/allure-results-${BUILD_NUMBER}-*.zip', type: 'EXCLUDE']])
+                
                 if (fileExists("${ALLURE_PATH}") && sh(script: "ls -A ${ALLURE_PATH} | wc -l", returnStdout: true).trim() != "0") {
                     allure includeProperties: false, jdk: '', results: [[path: "${ALLURE_PATH}"]]
                 } else {
@@ -94,8 +96,6 @@ pipeline {
                 } else {
                     echo "⚠️ Nenhum .zip de Allure encontrado para arquivamento. Pulando archiveArtifacts."
                 }
-
-                cleanWs(patterns: [[pattern: '**/*/allure-results-${BUILD_NUMBER}-*.zip', type: 'EXCLUDE']])
             }
         }
 
