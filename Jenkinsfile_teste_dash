@@ -47,7 +47,8 @@ pipeline {
             steps {
                 dir("${TEST_DIR}") {
                     sh '''
-                        npx cypress-cloud run \
+                        unset CI
+                        NO_COLOR=1  npx cypress-cloud run \
                             --browser chrome \
                             --headed true \
                             --record \
