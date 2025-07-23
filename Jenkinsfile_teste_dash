@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'cypress'
+        label 'cypress-node'
     }
 
     // triggers {
@@ -29,28 +29,27 @@ pipeline {
 
         stage('Executar') {
             steps {
-                dir("${TEST_DIR}") {
-                    sh '''#!/bin/bash
-                        rm -rf $ALLURE_PATH/*
-                        rm -rf $TEST_DIR/node_modules/ $TEST_DIR/package-lock.json
-
-                        export NVM_DIR="$HOME/.nvm"
-                        source "$NVM_DIR/nvm.sh"
-                        nvm use 24
-
-                        npm install
-                        npm install cypress@14.5.2 cypress-cloud@beta
-                        npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev
-
-                        npx cypress-cloud run \
-                            --spec cypress/e2e/**/* \
-                            --browser chrome \
-                            --headed true \
-                            --record \
-                            --key somekey \
-                            --reporter mocha-allure-reporter \
-                            --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER}
+                withDockerRegistry(credentialsId: 'jenkins_registry', url: 'https://registry.sme.prefeitura.sp.gov.br/repository/sme-registry/') {
+                    sh '''
+                        docker run \
+                            --rm \
+                            -v "$WORKSPACE/tests/api:/app"   \
+                            -w /app \
+                            registry.sme.prefeitura.sp.gov.br/devops/cypress-agent:14.5.2 \
+                            sh -c "npm install && npm install cypress@14.5.2 cypress-cloud@beta && \
+                                    npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev && \
+                                    rm -rf $WORKSPACE_DIR/$ALLURE_PATH/* && \
+                                    npx cypress-cloud run \
+                                        --spec cypress/e2e/**/* \
+                                        --browser chrome \
+                                        --headed true \
+                                        --record \
+                                        --key somekey \
+                                        --reporter mocha-allure-reporter \
+                                        --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER}" && \
+                                    chmod 777 $WORKSPACE_DIR/$ALLURE_PATH -R
                     '''
+                    echo "Fim dos testes!"
                 }
             }
         }
@@ -75,8 +74,6 @@ pipeline {
                     } else {
                         echo "⚠️ Diretório ${ALLURE_PATH} está ausente ou vazio. Pulando geração do relatório."
                     }
-
-                    sh 'chmod -R 777 $WORKSPACE_DIR/tests/api || true'
                 }
             }
         }
