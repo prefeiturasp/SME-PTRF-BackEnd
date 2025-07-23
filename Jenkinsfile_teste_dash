@@ -29,7 +29,7 @@ pipeline {
 
         stage('Executar') {
             steps {
-                sh """
+                sh '''#!/bin/bash
                     rm -rf $WORKSPACE_DIR/$ALLURE_PATH/*
                     rm -rf $$WORKSPACE_DIR/$TEST_DIR/node_modules/ $$WORKSPACE_DIR/$TEST_DIR/package-lock.json
 
@@ -47,7 +47,7 @@ pipeline {
                         --key somekey \
                         --reporter mocha-allure-reporter \
                         --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER}
-                """
+                '''
             }
         }
 
