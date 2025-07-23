@@ -30,7 +30,7 @@ pipeline {
         stage('Executar') {
             steps {
                 dir("${TEST_DIR}") {
-                    sh '''
+                    sh '''#!/bin/bash
                         rm -rf $ALLURE_PATH/*
                         rm -rf $TEST_DIR/node_modules/ $TEST_DIR/package-lock.json
 
