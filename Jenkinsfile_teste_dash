@@ -32,11 +32,6 @@ pipeline {
                 script {
                     withDockerRegistry(credentialsId: 'jenkins_registry', url: 'https://registry.sme.prefeitura.sp.gov.br/repository/sme-registry/') {
                         sh '''
-                            set +x
-                            info() { echo "\033[1;33m[Info] \033[0m $1" }
-
-                            info "INICIO DOS TESTES COM CYPRESS!"
-
                             docker run \
                                 --rm \
                                 -v "$WORKSPACE/tests/api:/app"   \
@@ -54,9 +49,8 @@ pipeline {
                                             --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER} && \
                                         chmod 777 * -R"
                             
-                            info "FIM DOS TESTES!"
-                            set -x
-                        '''   
+                        '''
+                        echo "FIM DOS TESTES!"  
                     }
                 }
             }
