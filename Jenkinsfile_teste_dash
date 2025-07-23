@@ -46,8 +46,7 @@ pipeline {
                                         --record \
                                         --key somekey \
                                         --reporter mocha-allure-reporter \
-                                        --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER}" && \
-                                    chmod 777 $WORKSPACE_DIR/$ALLURE_PATH -R
+                                        --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER}"
                     '''
                     echo "Fim dos testes!"
                 }
