@@ -31,7 +31,7 @@ pipeline {
             steps {
                 withDockerRegistry(credentialsId: 'jenkins_registry', url: 'https://registry.sme.prefeitura.sp.gov.br/repository/sme-registry/') {
                     sh '''
-                        sudo rm -rf $WORKSPACE/$ALLURE_PATH/*.*
+                        rm -rf $WORKSPACE/$ALLURE_PATH/*.*
                         
                         docker run \
                             --rm \
