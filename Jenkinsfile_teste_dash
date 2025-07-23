@@ -1,4 +1,8 @@
 pipeline {
+    agent {
+        label 'cypress-node'
+    }
+
     // triggers {
     //     cron('30 20 * * 0-5')
     // }
@@ -8,13 +12,6 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20'))
         disableConcurrentBuilds()
         skipDefaultCheckout()
-    }
-
-    agent {
-        kubernetes {
-            label 'cypress-14-5-2'
-            defaultContainer 'cypress-14-5-2'
-        }
     }
 
     environment {
@@ -30,31 +27,25 @@ pipeline {
             }
         }
 
-        stage('Instalar Dependências') {
-            steps {
-                dir("${TEST_DIR}") {
-                    sh '''
-                        rm -rf node_modules package-lock.json
-                        npm install
-                        npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev
-                        npm install cypress@14.5.2 cypress-cloud@beta
-                    '''
-                }
-            }
-        }
-
         stage('Executar') {
             steps {
-                dir("${TEST_DIR}") {
+                withDockerRegistry(credentialsId: 'jenkins_registry', url: 'https://registry.sme.prefeitura.sp.gov.br/repository/sme-registry/') {
                     sh '''
-                        unset CI
-                        NO_COLOR=1  npx cypress-cloud run \
-                            --browser chrome \
-                            --headed true \
-                            --record \
-                            --key somekey \
-                            --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER} \
-                            --reporter mocha-allure-reporter
+                        docker run \
+                            --rm \
+                            -v "$WORKSPACE/tests/api:/app"   \
+                            -w /app \
+                            registry.sme.prefeitura.sp.gov.br/devops/cypress-agent:14.5.2 \
+                            sh -c "npm install && npm install cypress@14.5.2 cypress-cloud@beta && \
+                                    npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev && \
+                                    npx cypress-cloud run \
+                                        --spec cypress/e2e/**/* \
+                                        --browser chrome \
+                                        --headed true \
+                                        --record \
+                                        --key somekey \
+                                        --reporter mocha-allure-reporter \
+                                        --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER}"
                     '''
                 }
             }
@@ -64,14 +55,14 @@ pipeline {
             steps {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
-                        def hasResults = fileExists("${ALLURE_PATH}") && sh(script: "ls -A ${ALLURE_PATH} | wc -l", returnStdout: true).trim() != "0"
+                        def hasResults = fileExists("${WORKSPACE}/${ALLURE_PATH}") && sh(script: "ls -A ${ALLURE_PATH} | wc -l", returnStdout: true).trim() != "0"
 
                         if (hasResults) {
                             echo "Gerando relatório Allure..."
                             sh """
                                 export JAVA_HOME=\$(dirname \$(dirname \$(readlink -f \$(which java)))); \
                                 export PATH=\$JAVA_HOME/bin:/usr/local/bin:\$PATH; \
-                                allure generate ${ALLURE_PATH} --clean --output tests/api/allure-report; \
+                                allure generate ${WORKSPACE}/${ALLURE_PATH} --clean --output tests/api/allure-report; \
                                 cd tests/api; \
                                 zip -r allure-results-${BUILD_NUMBER}-\$(date +"%d-%m-%Y").zip allure-results
                             """
@@ -87,7 +78,7 @@ pipeline {
     post {
         always {
             script {
-                sh 'chmod -R 777 $WORKSPACE/tests/api || true'
+                // sh 'chmod -R 777 $WORKSPACE/tests/api || true'
 
                 if (fileExists("${ALLURE_PATH}") && sh(script: "ls -A ${ALLURE_PATH} | wc -l", returnStdout: true).trim() != "0") {
                     allure includeProperties: false, jdk: '', results: [[path: "${ALLURE_PATH}"]]
@@ -102,23 +93,25 @@ pipeline {
                     echo "⚠️ Nenhum .zip de Allure encontrado para arquivamento. Pulando archiveArtifacts."
                 }
             }
+            
+            cleanWs(patterns: [[pattern: 'tests/api/allure-results-*.zip', type: 'EXCLUDE']])
         }
 
-        // success {
-        //     sendTelegram("☑️ Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Success \nLog: \n${env.BUILD_URL}allure")
-        // }
+    //     success {
+    //         sendTelegram("☑️ Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Success \nLog: \n${env.BUILD_URL}allure")
+    //     }
 
-        // unstable {
-        //     sendTelegram("💣 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Unstable \nLog: \n${env.BUILD_URL}allure")
-        // }
+    //     unstable {
+    //         sendTelegram("💣 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Unstable \nLog: \n${env.BUILD_URL}allure")
+    //     }
 
-        // failure {
-        //     sendTelegram("💥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Failure \nLog: \n${env.BUILD_URL}allure")
-        // }
+    //     failure {
+    //         sendTelegram("💥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Failure \nLog: \n${env.BUILD_URL}allure")
+    //     }
 
-        // aborted {
-        //     sendTelegram("😥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Aborted \nLog: \n${env.BUILD_URL}console")
-        // }
+    //     aborted {
+    //         sendTelegram("😥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Aborted \nLog: \n${env.BUILD_URL}console")
+    //     }
     }
 }
 
