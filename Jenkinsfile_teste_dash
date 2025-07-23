@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        label 'cypress-node'
+        label 'cypress'
     }
 
     // triggers {
