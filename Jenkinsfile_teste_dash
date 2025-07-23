@@ -32,6 +32,11 @@ pipeline {
                 script {
                     withDockerRegistry(credentialsId: 'jenkins_registry', url: 'https://registry.sme.prefeitura.sp.gov.br/repository/sme-registry/') {
                         sh '''
+                            set +x
+                            info() { echo "\033[1;33m[Info] \033[0m $1" }
+
+                            info "INICIO DOS TESTES COM CYPRESS!"
+
                             docker run \
                                 --rm \
                                 -v "$WORKSPACE/tests/api:/app"   \
@@ -41,7 +46,6 @@ pipeline {
                                         npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev && \
                                         rm -rf allure-results/ && \
                                         npx cypress-cloud run \
-                                            --spec cypress/e2e/**/* \
                                             --browser chrome \
                                             --headed true \
                                             --record \
@@ -49,9 +53,10 @@ pipeline {
                                             --reporter mocha-allure-reporter \
                                             --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER} && \
                                         chmod 777 * -R"
-                        '''
-                        
-                        echo "Fim dos testes!"
+                            
+                            info "FIM DOS TESTES!"
+                            set -x
+                        '''   
                     }
                 }
             }
