@@ -52,7 +52,7 @@ pipeline {
                             --headed true \
                             --record \
                             --key somekey \
-                            --ci-build-id PTRF-BACKEND-${env.BRANCH_NAME}-${BUILD_NUMBER} \
+                            --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER} \
                             --reporter mocha-allure-reporter
                     '''
                 }
