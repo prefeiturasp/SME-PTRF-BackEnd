@@ -29,28 +29,29 @@ pipeline {
 
         stage('Executar') {
             steps {
-                sh '''
-                    rm -rf $WORKSPACE_DIR/$ALLURE_PATH/*
-                    rm -rf $$WORKSPACE_DIR/$TEST_DIR/node_modules/ $$WORKSPACE_DIR/$TEST_DIR/package-lock.json
+                dir("${TEST_DIR}") {
+                    sh '''
+                        rm -rf $ALLURE_PATH/*
+                        rm -rf $TEST_DIR/node_modules/ $TEST_DIR/package-lock.json
 
-                    cd $WORKSPACE_DIR/$TEST_DIR
+                        export NVM_DIR="$HOME/.nvm"
+                        source "$NVM_DIR/nvm.sh"
+                        nvm use 24
 
-                    NPM_PATH="$HOME/.nvm/versions/node/v24.4.1/bin/npm"
-                    NPX_PATH="$HOME/.nvm/versions/node/v24.4.1/bin/npx"
+                        npm install
+                        npm install cypress@14.5.2 cypress-cloud@beta
+                        npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev
 
-                    $NPM_PATH install
-                    $NPM_PATH install cypress@14.5.2 cypress-cloud@beta
-                    $NPM_PATH install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev
-
-                    $NPX_PATH cypress-cloud run \
-                        --spec cypress/e2e/**/* \
-                        --browser chrome \
-                        --headed true \
-                        --record \
-                        --key somekey \
-                        --reporter mocha-allure-reporter \
-                        --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER}
-                '''
+                        npx cypress-cloud run \
+                            --spec cypress/e2e/**/* \
+                            --browser chrome \
+                            --headed true \
+                            --record \
+                            --key somekey \
+                            --reporter mocha-allure-reporter \
+                            --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER}
+                    '''
+                }
             }
         }
 
