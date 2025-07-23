@@ -35,11 +35,14 @@ pipeline {
 
                     cd $WORKSPACE_DIR/$TEST_DIR
 
-                    npm install
-                    npm install cypress@14.5.2 cypress-cloud@beta
-                    npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev
+                    NPM_PATH="$HOME/.nvm/versions/node/v24.4.1/bin/npm"
+                    NPX_PATH="$HOME/.nvm/versions/node/v24.4.1/bin/npx"
 
-                    npx cypress-cloud run \
+                    $NPM_PATH npm install
+                    $NPM_PATH npm install cypress@14.5.2 cypress-cloud@beta
+                    $NPM_PATH npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev
+
+                    $NPX_PATH npx cypress-cloud run \
                         --spec cypress/e2e/**/* \
                         --browser chrome \
                         --headed true \
