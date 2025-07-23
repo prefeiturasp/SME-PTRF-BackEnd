@@ -1,4 +1,5 @@
-from factory import DjangoModelFactory, SubFactory, Sequence, LazyFunction
+from factory import SubFactory, Sequence, LazyFunction
+from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.paa.models import PrioridadePaa
 from sme_ptrf_apps.paa.fixtures.factories import AcaoPddeFactory, ProgramaPddeFactory, PaaFactory

@@ -1,4 +1,5 @@
-from factory import DjangoModelFactory, SubFactory, Sequence
+from factory import SubFactory, Sequence
+from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.core.models.unidade import Unidade
 from ..providers.unidade_provider import provider_tipos_de_unidades_desconsiderando_tipo_dre, provider_anos_dre_designacao_ano
@@ -7,6 +8,7 @@ import random
 fake = Faker("pt_BR")
 fake.add_provider(provider_anos_dre_designacao_ano)
 fake.add_provider(provider_tipos_de_unidades_desconsiderando_tipo_dre)
+
 
 class DreFactory(DjangoModelFactory):
     class Meta:
@@ -18,10 +20,11 @@ class DreFactory(DjangoModelFactory):
     sigla = Sequence(lambda n: fake.unique.lexify(text="??", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
     dre_cnpj = Sequence(lambda n: fake.unique.cnpj())
     dre_diretor_regional_rf = Sequence(lambda n: str(fake.unique.random_int(min=1000000, max=9999999)))
-    dre_diretor_regional_nome = Sequence(lambda n:fake.unique.name().upper())
+    dre_diretor_regional_nome = Sequence(lambda n: fake.unique.name().upper())
     dre_designacao_portaria = Sequence(lambda n: f"{fake.random_number(digits=4)}/{fake.random_number(digits=4)}")
     dre_designacao_ano = fake.provider_anos_dre_designacao_ano()
-    
+
+
 class UnidadeFactory(DjangoModelFactory):
     class Meta:
         model = Unidade
