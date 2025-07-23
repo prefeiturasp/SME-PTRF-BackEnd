@@ -31,7 +31,7 @@ pipeline {
             steps {
                 withDockerRegistry(credentialsId: 'jenkins_registry', url: 'https://registry.sme.prefeitura.sp.gov.br/repository/sme-registry/') {
                     sh '''
-                        rm -rf $WORKSPACE/$ALLURE_PATH/*.*
+                        rm -rf $WORKSPACE_DIR/$ALLURE_PATH/*
                         
                         docker run \
                             --rm \
@@ -49,6 +49,8 @@ pipeline {
                                         --reporter mocha-allure-reporter \
                                         --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER}"
                     '''
+
+                    echo "Fim dos testes!"
                 }
             }
         }
@@ -74,7 +76,7 @@ pipeline {
                         echo "⚠️ Diretório ${ALLURE_PATH} está ausente ou vazio. Pulando geração do relatório."
                     }
 
-                    sh 'chmod -R 777 $WORKSPACE/tests/api || true'
+                    sh 'chmod -R 777 $WORKSPACE_DIR/tests/api || true'
                 }
             }
         }
