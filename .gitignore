@@ -289,3 +289,5 @@ sme_ptrf_apps/media/
 
 ### Redis dump.rdb file
 dump.rdb
+
+**/*testsuite.xml

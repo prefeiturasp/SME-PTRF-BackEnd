@@ -35,6 +35,8 @@ import "./commands_api/commands_faq_categorias";
 
 import "@shelex/cypress-allure-plugin";
 
+import "cypress-cloud/support";
+
 // Hide fetch/XHR requests
 const app = window.top;
 if (!app.document.head.querySelector("[data-hide-command-log-request]")) {
