@@ -1,9 +1,10 @@
-from factory import DjangoModelFactory, SubFactory, Sequence
-from sme_ptrf_apps.users.fixtures.factories.visao_factory import VisaoFactory
+from factory import Sequence
+from factory.django import DjangoModelFactory
 from sme_ptrf_apps.users.models import Grupo
 from faker import Faker
 
 fake = Faker("pt_BR")
+
 
 class GrupoAcessoFactory(DjangoModelFactory):
     class Meta:
@@ -19,5 +20,5 @@ class GrupoAcessoFactory(DjangoModelFactory):
 
         if visoes is not None:
             grupo.visoes.set(visoes)
-            
+
         return grupo

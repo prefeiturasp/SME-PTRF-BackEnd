@@ -1,4 +1,5 @@
-from factory import DjangoModelFactory, SubFactory
+from factory import SubFactory
+from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido
 from sme_ptrf_apps.core.fixtures.factories.associacao_factory import AssociacaoFactory

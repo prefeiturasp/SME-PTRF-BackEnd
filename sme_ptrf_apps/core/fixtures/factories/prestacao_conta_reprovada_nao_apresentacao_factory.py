@@ -1,5 +1,6 @@
 from datetime import datetime
-from factory import DjangoModelFactory, SubFactory
+from factory import SubFactory
+from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.core.models.prestacao_conta_reprovada_nao_apresentacao import PrestacaoContaReprovadaNaoApresentacao
 from . import AssociacaoFactory

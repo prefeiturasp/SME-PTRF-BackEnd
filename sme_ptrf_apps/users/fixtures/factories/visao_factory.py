@@ -1,6 +1,8 @@
-from factory import DjangoModelFactory, Sequence
+from factory import Sequence
+from factory.django import DjangoModelFactory
 from sme_ptrf_apps.users.models import Visao
 import random
+
 
 class VisaoFactory(DjangoModelFactory):
     class Meta:

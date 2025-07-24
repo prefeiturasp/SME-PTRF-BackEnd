@@ -1,6 +1,7 @@
-from factory import DjangoModelFactory, Sequence, LazyAttribute
-from faker import Faker
 from sme_ptrf_apps.core.models.tipo_acerto_lancamento import TipoAcertoLancamento
+from faker import Faker
+from factory import Sequence, LazyAttribute
+from factory.django import DjangoModelFactory
 
 fake = Faker("pt_BR")
 

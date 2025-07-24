@@ -1,9 +1,11 @@
-from factory import DjangoModelFactory, SubFactory, Sequence
+from factory import SubFactory, Sequence
+from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.core.models.proccessos_associacao import ProcessoAssociacao
 from .associacao_factory import AssociacaoFactory
 
 fake = Faker("pt_BR")
+
 
 class ProcessoAssociacaoFactory(DjangoModelFactory):
     class Meta:

@@ -1,10 +1,12 @@
-from factory import DjangoModelFactory, SubFactory, LazyFunction, Sequence, LazyAttribute
+from factory import SubFactory, LazyFunction, Sequence, LazyAttribute
+from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.core.models import RelacaoBens, RelatorioRelacaoBens, ItemRelatorioRelacaoDeBens
 from .conta_associacao_factory import ContaAssociacaoFactory
 from .periodo_factory import PeriodoFactory
 
 fake = Faker("pt_BR")
+
 
 class RelacaoBensFactory(DjangoModelFactory):
     class Meta:
@@ -36,10 +38,10 @@ class RelatorioRelacaoBensFactory(DjangoModelFactory):
     nome_unidade = Sequence(lambda n: fake.name())
     nome_associacao = Sequence(lambda n: fake.name())
     cnpj_associacao = Sequence(lambda n: fake.unique.cnpj())
-    codigo_eol_associacao = Sequence(lambda n:fake.random_number(digits=6))
+    codigo_eol_associacao = Sequence(lambda n: fake.random_number(digits=6))
     nome_dre_associacao = Sequence(lambda n: fake.name())
-    presidente_diretoria_executiva = Sequence(lambda n:fake.name())
-    cargo_substituto_presidente_ausente = Sequence(lambda n:fake.name())
+    presidente_diretoria_executiva = Sequence(lambda n: fake.name())
+    cargo_substituto_presidente_ausente = Sequence(lambda n: fake.name())
     data_geracao = fake.date_time()
 
     valor_total = Sequence(lambda n: fake.random_number(digits=3))
@@ -49,7 +51,7 @@ class ItemRelatorioRelacaoDeBensFactory(DjangoModelFactory):
     class Meta:
         model = ItemRelatorioRelacaoDeBens
 
-    tipo_documento = Sequence(lambda n:fake.name())
+    tipo_documento = Sequence(lambda n: fake.name())
     numero_documento = Sequence(lambda n: fake.name())
     data_documento = Sequence(lambda n: fake.date())
     especificacao_material = Sequence(lambda n: fake.sentences(1))

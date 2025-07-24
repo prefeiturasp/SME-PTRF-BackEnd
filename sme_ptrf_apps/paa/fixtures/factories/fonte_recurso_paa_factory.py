@@ -1,4 +1,4 @@
-from factory import DjangoModelFactory
+from factory.django import DjangoModelFactory
 from sme_ptrf_apps.paa.models import FonteRecursoPaa
 
 
