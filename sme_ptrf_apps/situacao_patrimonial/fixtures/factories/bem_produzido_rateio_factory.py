@@ -1,4 +1,5 @@
-from factory import DjangoModelFactory, SubFactory, Sequence
+from factory import SubFactory, Sequence
+from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.despesas.fixtures.factories.rateio_despesa_factory import RateioDespesaFactory
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoRateio

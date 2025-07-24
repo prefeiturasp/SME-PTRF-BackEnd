@@ -1,4 +1,5 @@
-from factory import DjangoModelFactory, Sequence, SubFactory
+from factory import Sequence, SubFactory
+from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.paa.models import AcaoPdde
 from sme_ptrf_apps.paa.fixtures.factories.programa_pdde_factory import ProgramaPddeFactory

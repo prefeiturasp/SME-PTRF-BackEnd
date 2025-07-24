@@ -1,4 +1,5 @@
-from factory import DjangoModelFactory, SubFactory, Sequence
+from factory import SubFactory, Sequence
+from factory.django import DjangoModelFactory
 from faker import Faker
 
 from sme_ptrf_apps.core.fixtures.factories.associacao_factory import AssociacaoFactory
@@ -8,6 +9,7 @@ from .tipo_transacao_factory import TipoTransacaoFactory
 from .tipo_documento_factory import TipoDocumentoFactory
 
 fake = Faker("pt_BR")
+
 
 class DespesaFactory(DjangoModelFactory):
     class Meta:

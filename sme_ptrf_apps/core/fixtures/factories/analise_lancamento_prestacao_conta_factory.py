@@ -1,10 +1,10 @@
 import factory
-from datetime import datetime
+from factory.django import DjangoModelFactory
 from sme_ptrf_apps.core.models.analise_lancamento_prestacao_conta import AnaliseLancamentoPrestacaoConta
 from .analise_prestacao_conta_factory import AnalisePrestacaoContaFactory
 
 
-class AnaliseLancamentoPrestacaoContaFactory(factory.django.DjangoModelFactory):
+class AnaliseLancamentoPrestacaoContaFactory(DjangoModelFactory):
     class Meta:
         model = AnaliseLancamentoPrestacaoConta
 

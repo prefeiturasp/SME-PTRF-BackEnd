@@ -1,7 +1,9 @@
-from factory import DjangoModelFactory, SubFactory, LazyAttribute
+from factory import SubFactory, LazyAttribute
+from factory.django import DjangoModelFactory
 from faker import Faker
-from sme_ptrf_apps.despesas.fixtures.factories.despesa_factory import DespesaFactory
-from sme_ptrf_apps.despesas.fixtures.factories.especificacao_material_servico_factory import EspecificacaoMaterialServicoFactory
+from sme_ptrf_apps.despesas.fixtures.factories.especificacao_material_servico_factory import (
+    EspecificacaoMaterialServicoFactory
+)
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoItem
 from sme_ptrf_apps.situacao_patrimonial.fixtures.factories import BemProduzidoFactory
 
