@@ -2,5 +2,5 @@
 module.exports = {
   projectId: "SME-PTRF", // the projectId, can be any values for sorry-cypress users
   recordKey: "somekey", // the record key, can be any value for sorry-cypress users
-  cloudServiceUrl: "https://cypress-dashboard.sme.prefeitura.sp.gov.br/director",   // Sorry Cypress users - set the director service URL
+  cloudServiceUrl: "http://10.50.1.202:1234",   // Sorry Cypress users - set the director service URL
 };
