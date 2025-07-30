@@ -245,22 +245,14 @@ class AssociacoesViewSet(ModelViewSet):
         if prestacao_conta:
             gerar_previas = pc_requer_geracao_documentos(prestacao_conta)
 
-        # TODO código comentado propositalmente em função da história 102412 - Sprint 73 (Conciliação Bancária: Retirar validação e obrigatoriedade de preenchimento dos campos do Saldo bancário da conta ao concluir acerto/período) - que entrou como Hotfix
-        # TODO Remover quando implementado solução definitiva
         pendencias_dados = associacao.pendencias_dados_da_associacao()
         pendencias_conciliacao = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(
             periodo)
 
-        # if pendencias_dados or pendencias_conciliacao:
-        #     pendencias_cadastrais = {
-        #         'dados_associacao': pendencias_dados,
-        #         'conciliacao_bancaria': pendencias_conciliacao,
-        #     }
-
-        if pendencias_dados:
+        if pendencias_dados or pendencias_conciliacao:
             pendencias_cadastrais = {
                 'dados_associacao': pendencias_dados,
-                'conciliacao_bancaria': None,
+                'conciliacao_bancaria': pendencias_conciliacao,
             }
         else:
             pendencias_cadastrais = None
