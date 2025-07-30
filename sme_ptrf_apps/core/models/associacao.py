@@ -352,8 +352,8 @@ class Associacao(ModeloIdNome):
             pendencia_novo_mandato = False
 
         pendencia_cadastro = not self.nome or not self.ccm
-        pendencia_contas =  self.contas.filter(Q(banco_nome__exact='') | Q(agencia__exact='') | Q(numero_conta__exact='',
-                                               status=ContaAssociacao.STATUS_ATIVA)).exists()
+        pendencia_contas = self.contas.filter(Q(banco_nome__exact='') | Q(agencia__exact='') | Q(numero_conta__exact='',
+                                                                                                 status=ContaAssociacao.STATUS_ATIVA)).exists()
         if pendencia_cadastro or pendencia_membros or pendencia_contas or pendencia_novo_mandato:
             pendencias = {
                 'pendencia_cadastro': pendencia_cadastro,
@@ -368,17 +368,46 @@ class Associacao(ModeloIdNome):
 
     def pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(self, periodo):
         from ..services import info_resumo_conciliacao
+        from sme_ptrf_apps.core.services.conciliacao_services import transacoes_para_conciliacao
 
         pendencias = {
             'contas_pendentes': []
         }
 
-        contas = self.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
+        contas = self.contas.all()
         observacoes = self.observacoes_conciliacao_da_associacao.filter(periodo=periodo)
         for conta in contas:
             resumo = info_resumo_conciliacao(periodo, conta)
             observacao = observacoes.filter(conta_associacao=conta).first()
-            if observacao is None or not (observacao.data_extrato and ((resumo['saldo_posterior_total'] > 0 and observacao.comprovante_extrato) or resumo['saldo_posterior_total'] == 0)):
+            saldo_posterior = resumo.get('saldo_posterior_total', 0)
+
+            transacoes_pendentes_conciliacao = transacoes_para_conciliacao(
+                periodo=periodo,
+                conta_associacao=conta,
+                conferido=False,
+            )
+
+            saldo_extrato = getattr(observacao, "saldo_extrato", None)
+            data_extrato = getattr(observacao, "data_extrato", None)
+            comprovante_extrato = getattr(observacao, "comprovante_extrato", None)
+            texto_observacao = getattr(observacao, "texto", None)
+
+            pendente_observacao = observacao is None or (data_extrato is None or saldo_extrato is None)
+
+            pendente_justificativa = (
+                not pendente_observacao and
+                (saldo_posterior - saldo_extrato) != 0 and
+                not transacoes_pendentes_conciliacao and
+                not texto_observacao
+            )
+
+            pendente_extrato = (
+                not pendente_observacao and
+                saldo_posterior != 0 and
+                not comprovante_extrato
+            )
+
+            if pendente_observacao or pendente_justificativa or pendente_extrato:
                 pendencias['contas_pendentes'].append(conta.uuid)
 
         if not pendencias['contas_pendentes']:

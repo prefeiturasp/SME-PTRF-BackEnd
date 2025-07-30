@@ -487,7 +487,7 @@ class ConciliacoesViewSet(GenericViewSet):
                 'saldo_encerramewnto': info_solicitacao["saldo"],
                 'possui_solicitacao_encerramento': info_solicitacao["possui_solicitacao_encerramento"],
                 'data_extrato': observacao.data_extrato if observacao else None,
-                'saldo_extrato': observacao.saldo_extrato if observacao else None,
+                'saldo_extrato': observacao.saldo_extrato if observacao else info_solicitacao["data_encerramento"],
                 'observacao_uuid': observacao.uuid if observacao else None,
                 'observacao': observacao.texto if observacao else None,
                 'comprovante_extrato': comprovante_extrato_nome if observacao else None,
@@ -501,6 +501,7 @@ class ConciliacoesViewSet(GenericViewSet):
         )
 
         result['permite_editar_campos_extrato'] = permite_editar
+        result['data_extrato'] = periodo.data_fim_realizacao_despesas
 
         return Response(result, status=status.HTTP_200_OK)
 
