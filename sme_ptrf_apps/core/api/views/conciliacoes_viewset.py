@@ -311,7 +311,7 @@ class ConciliacoesViewSet(GenericViewSet):
     @action(detail=False, methods=['get'], url_path='observacoes',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def observacoes(self, request):
-        
+
         # Define a Associacao
         associacao_uuid = self.request.query_params.get('associacao')
 
@@ -331,7 +331,7 @@ class ConciliacoesViewSet(GenericViewSet):
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Define o período de conciliação
         periodo_uuid = self.request.query_params.get('periodo')
 
@@ -380,7 +380,7 @@ class ConciliacoesViewSet(GenericViewSet):
             comprovante_extrato_nome = observacao.comprovante_extrato.name
 
         result = {}
-        
+
         if observacao:
             result = {
                 'observacao_uuid': observacao.uuid,
@@ -399,21 +399,22 @@ class ConciliacoesViewSet(GenericViewSet):
                 'saldo_encerramewnto': info_solicitacao["saldo"],
                 'possui_solicitacao_encerramento': info_solicitacao["possui_solicitacao_encerramento"],
                 'data_extrato': observacao.data_extrato if observacao else None,
-                'saldo_extrato': observacao.saldo_extrato if observacao else None,
+                'saldo_extrato': observacao.saldo_extrato if observacao else info_solicitacao["data_encerramento"],
                 'observacao_uuid': observacao.uuid if observacao else None,
                 'observacao': observacao.texto if observacao else None,
                 'comprovante_extrato': comprovante_extrato_nome if observacao else None,
                 'data_atualizacao_comprovante_extrato': observacao.data_atualizacao_comprovante_extrato if observacao else None,
             }
-            
+
         permite_editar = permite_editar_campos_extrato(
             associacao,
             periodo,
             conta_associacao
         )
-        
+
         result['permite_editar_campos_extrato'] = permite_editar
-            
+        result['data_extrato'] = periodo.data_fim_realizacao_despesas
+
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='download-extrato-bancario',
@@ -804,4 +805,3 @@ class ConciliacoesViewSet(GenericViewSet):
         }
 
         return Response(result, status=status.HTTP_200_OK)
-
