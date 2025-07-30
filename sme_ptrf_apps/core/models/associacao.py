@@ -352,8 +352,8 @@ class Associacao(ModeloIdNome):
             pendencia_novo_mandato = False
 
         pendencia_cadastro = not self.nome or not self.ccm
-        pendencia_contas =  self.contas.filter(Q(banco_nome__exact='') | Q(agencia__exact='') | Q(numero_conta__exact='',
-                                               status=ContaAssociacao.STATUS_ATIVA)).exists()
+        pendencia_contas = self.contas.filter(Q(banco_nome__exact='') | Q(agencia__exact='') | Q(numero_conta__exact='',
+                                                                                                 status=ContaAssociacao.STATUS_ATIVA)).exists()
         if pendencia_cadastro or pendencia_membros or pendencia_contas or pendencia_novo_mandato:
             pendencias = {
                 'pendencia_cadastro': pendencia_cadastro,
@@ -373,7 +373,7 @@ class Associacao(ModeloIdNome):
             'contas_pendentes': []
         }
 
-        contas = self.contas.filter(status=ContaAssociacao.STATUS_ATIVA)
+        contas = self.contas.all()
         observacoes = self.observacoes_conciliacao_da_associacao.filter(periodo=periodo)
         for conta in contas:
             resumo = info_resumo_conciliacao(periodo, conta)
