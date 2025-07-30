@@ -46,8 +46,14 @@ pipeline {
                                             --record \
                                             --key somekey \
                                             --reporter mocha-allure-reporter \
-                                            --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER} && \
-                                        chmod 777 * -R"
+                                            --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER}"
+                            
+                            docker run \
+                                --rm \
+                                -v "$WORKSPACE/tests/api:/app"   \
+                                -w /app \
+                                registry.sme.prefeitura.sp.gov.br/devops/cypress-agent:14.5.2 \
+                                sh -c "chmod 777 * -R"
                         '''
                     }
                 }
