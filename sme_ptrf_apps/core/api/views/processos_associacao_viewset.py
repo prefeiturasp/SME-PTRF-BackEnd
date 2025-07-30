@@ -6,8 +6,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
 from rest_framework import status
-from sme_ptrf_apps.core.api.serializers import ProcessoAssociacaoCreateSerializer, ProcessoAssociacaoRetrieveSerializer, \
-    PeriodoLookUpSerializer
+from sme_ptrf_apps.core.api.serializers import (
+    ProcessoAssociacaoCreateSerializer,
+    ProcessoAssociacaoRetrieveSerializer,
+    PeriodoLookUpSerializer)
 from sme_ptrf_apps.core.models import ProcessoAssociacao, Periodo
 from sme_ptrf_apps.users.permissoes import PermissaoApiDre
 
@@ -34,7 +36,8 @@ class ProcessosAssociacaoViewSet(mixins.RetrieveModelMixin,
         if instance.e_o_ultimo_processo_do_ano_com_pcs_vinculada:
             msg = {
                 'erro': 'possui_prestacao_de_conta_vinculada',
-                'mensagem': 'Não é possível excluir o número desse processo SEI, pois este já está vinculado a uma prestação de contas. Caso necessário, é possível editá-lo.'
+                'mensagem': ('Não é possível excluir o número desse processo SEI, pois este já está vinculado a'
+                             ' uma prestação de contas. Caso necessário, é possível editá-lo.')
             }
             return Response(msg, status=status.HTTP_400_BAD_REQUEST)
 
@@ -74,7 +77,8 @@ class ProcessosAssociacaoViewSet(mixins.RetrieveModelMixin,
             processos_associacao_query = processos_associacao_query.exclude(uuid=processo_uuid)
 
         # Exclui os períodos já vinculados a outros processos da associação.
-        periodos_ja_vinculados = [uuid for uuid in processos_associacao_query.values_list('periodos__uuid', flat=True).distinct() if uuid is not None]
+        periodos_ja_vinculados = [uuid for uuid in processos_associacao_query.values_list(
+            'periodos__uuid', flat=True).distinct() if uuid is not None]
         periodos_disponiveis = periodos_query.exclude(uuid__in=periodos_ja_vinculados)
 
         serializer = PeriodoLookUpSerializer(periodos_disponiveis, many=True)
