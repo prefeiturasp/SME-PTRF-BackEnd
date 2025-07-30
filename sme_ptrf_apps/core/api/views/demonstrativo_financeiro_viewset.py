@@ -7,6 +7,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from drf_spectacular.utils import (
+    extend_schema, OpenApiParameter, OpenApiTypes, OpenApiResponse, OpenApiExample)
+
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
     PermissaoAPITodosComLeituraOuGravacao,
@@ -34,6 +37,26 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
     lookup_field = 'uuid'
     queryset = DemonstrativoFinanceiro.objects.all()
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='conta-associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='data_inicio', description='Data de início', required=True,
+                             type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='data_fim', description='Data fim', required=True,
+                             type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: 'Arquivo na fila para processamento.'},
+        examples=[
+            OpenApiExample(
+                'Resposta',
+                value={'mensagem': 'Arquivo na fila para processamento.'}
+            )
+        ],
+        description='Envia demonstrativo financeiro para processamento.'
+    )
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def previa(self, request):
@@ -81,6 +104,22 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='conta-associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='formato_arquivo', description='Formato de arquivo', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=['XLSX', 'PDF']),
+        ],
+        responses={
+            (200, 'application/pdf'): OpenApiTypes.BINARY,
+            (200, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'): OpenApiTypes.BINARY,
+        },
+        description="Retorna um arquivo PDF ou Excel para download, dependendo do parâmetro `formato_arquivo`."
+    )
     @action(detail=False, methods=['get'], url_path='documento-final',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def documento_final(self, request):
@@ -159,6 +198,22 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         return response
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='conta-associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='formato_arquivo', description='Formato de arquivo', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=['XLSX', 'PDF']),
+        ],
+        responses={
+            (200, 'application/pdf'): OpenApiTypes.BINARY,
+            (200, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'): OpenApiTypes.BINARY,
+        },
+        description="Retorna um arquivo PDF ou Excel para download, dependendo do parâmetro `formato_arquivo`."
+    )
     @action(detail=False, methods=['get'], url_path='documento-previa',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def documento_previa(self, request):
@@ -236,6 +291,79 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         return response
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao_uuid', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo_uuid', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conta-associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'info_acoes': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'acao_associacao_uuid': {'type': 'string'},
+                                'acao_associacao_nome': {'type': 'string'},
+                                'saldo_reprogramado': {'type': 'integer'},
+                                'saldo_reprogramado_capital': {'type': 'integer'},
+                                'saldo_reprogramado_custeio': {'type': 'integer'},
+                                'saldo_reprogramado_livre': {'type': 'integer'},
+                                'receitas_no_periodo': {'type': 'integer'},
+                                'receitas_devolucao_no_periodo': {'type': 'integer'},
+                                'receitas_devolucao_no_periodo_custeio': {'type': 'integer'},
+                                'receitas_devolucao_no_periodo_capital': {'type': 'integer'},
+                                'receitas_devolucao_no_periodo_livre': {'type': 'integer'},
+                                'repasses_no_periodo': {'type': 'integer'},
+                                'repasses_no_periodo_capital': {'type': 'integer'},
+                                'repasses_no_periodo_custeio': {'type': 'integer'},
+                                'repasses_no_periodo_livre': {'type': 'integer'},
+                                'outras_receitas_no_periodo': {'type': 'integer'},
+                                'outras_receitas_no_periodo_capital': {'type': 'integer'},
+                                'outras_receitas_no_periodo_custeio': {'type': 'integer'},
+                                'outras_receitas_no_periodo_livre': {'type': 'integer'},
+                                'despesas_no_periodo': {'type': 'integer'},
+                                'despesas_no_periodo_capital': {'type': 'integer'},
+                                'despesas_no_periodo_custeio': {'type': 'integer'},
+                                'despesas_nao_conciliadas': {'type': 'integer'},
+                                'despesas_nao_conciliadas_capital': {'type': 'integer'},
+                                'despesas_nao_conciliadas_custeio': {'type': 'integer'},
+                                'despesas_nao_conciliadas_anteriores_capital': {'type': 'integer'},
+                                'despesas_nao_conciliadas_anteriores_custeio': {'type': 'integer'},
+                                'despesas_nao_conciliadas_anteriores': {'type': 'integer'},
+                                'despesas_conciliadas': {'type': 'integer'},
+                                'despesas_conciliadas_capital': {'type': 'integer'},
+                                'despesas_conciliadas_custeio': {'type': 'integer'},
+                                'receitas_nao_conciliadas': {'type': 'integer'},
+                                'receitas_nao_conciliadas_capital': {'type': 'integer'},
+                                'receitas_nao_conciliadas_custeio': {'type': 'integer'},
+                                'receitas_nao_conciliadas_livre': {'type': 'integer'},
+                                'saldo_atual_custeio': {'type': 'integer'},
+                                'saldo_atual_capital': {'type': 'integer'},
+                                'saldo_atual_livre': {'type': 'integer'},
+                                'saldo_atual_total': {'type': 'integer'},
+                                'especificacoes_despesas_capital': {'type': 'integer'},
+                                'especificacoes_despesas_custeio': {'type': 'integer'},
+                                'repasses_nao_realizados_capital': {'type': 'integer'},
+                                'repasses_nao_realizados_custeio': {'type': 'integer'},
+                                'repasses_nao_realizados_livre': {'type': 'integer'},
+                                'saldo_bancario_custeio': {'type': 'integer'},
+                                'saldo_bancario_capital': {'type': 'integer'},
+                                'saldo_bancario_livre': {'type': 'integer'},
+                                'saldo_bancario_total': {'type': 'integer'}
+                            },
+                        }
+                    }
+                }
+            }
+        )},
+    )
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def acoes(self, request):
@@ -264,11 +392,22 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
                                                       conta=conta_associacao)
         result = {
             'info_acoes': [info for info in info_acoes if
-                           info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo'] or info['despesas_nao_conciliadas_anteriores']]
+                           info['saldo_reprogramado'] or info['receitas_no_periodo'] or info['despesas_no_periodo'] or info['despesas_nao_conciliadas_anteriores']]  # noqa
         }
 
         return Response(result)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conta-associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={
+            200: OpenApiResponse(response={'type': 'string'})
+        }
+    )
     @action(detail=False, methods=['get'], url_path='demonstrativo-info',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def demonstrativo_info(self, request):
@@ -296,6 +435,12 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
 
         return Response(msg)
 
+    @extend_schema(
+        responses={
+            (200, 'application/pdf'): OpenApiTypes.BINARY,
+        },
+        description="Retorna um arquivo PDF Demonstrativo financeiro."
+    )
     @action(detail=True, methods=['get'], url_path='pdf',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def pdf(self, request, uuid):

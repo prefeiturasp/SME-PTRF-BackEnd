@@ -9,7 +9,8 @@ from rest_framework.filters import SearchFilter
 
 from sme_ptrf_apps.core.api.serializers import MembroAssociacaoCreateSerializer, MembroAssociacaoListSerializer
 from sme_ptrf_apps.core.models import MembroAssociacao
-from sme_ptrf_apps.core.services import TerceirizadasException, TerceirizadasService, SmeIntegracaoApiService, SmeIntegracaoApiException
+from sme_ptrf_apps.core.services import (
+    TerceirizadasException, TerceirizadasService, SmeIntegracaoApiService, SmeIntegracaoApiException)
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComLeituraOuGravacao
 
 

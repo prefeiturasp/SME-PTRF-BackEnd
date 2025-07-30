@@ -6,6 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from drf_spectacular.utils import (
+    extend_schema, OpenApiParameter, OpenApiTypes, OpenApiResponse)
+
 from django.http import HttpResponse
 
 from sme_ptrf_apps.users.permissoes import (
@@ -43,6 +46,36 @@ class ConciliacoesViewSet(GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     queryset = ObservacaoConciliacao.objects.all()
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='conta_associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'saldo_anterior': {'type': 'number'},
+                    'saldo_anterior_conciliado': {'type': 'number'},
+                    'saldo_anterior_nao_conciliado': {'type': 'number'},
+                    'receitas_total': {'type': 'number'},
+                    'receitas_conciliadas': {'type': 'number'},
+                    'receitas_nao_conciliadas': {'type': 'number'},
+                    'despesas_total': {'type': 'number'},
+                    'despesas_conciliadas': {'type': 'number'},
+                    'despesas_nao_conciliadas': {'type': 'number'},
+                    'despesas_outros_periodos': {'type': 'number'},
+                    'despesas_outros_periodos_conciliadas': {'type': 'number'},
+                    'despesas_outros_periodos_nao_conciliadas': {'type': 'number'},
+                    'saldo_posterior_total': {'type': 'number'},
+                    'saldo_posterior_conciliado': {'type': 'number'},
+                    'saldo_posterior_nao_conciliado': {'type': 'number'},
+                },
+            }
+        )},
+    )
     @action(detail=False, methods=['get'], url_path='tabela-valores-pendentes',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabela_valores_pendentes(self, request):
@@ -79,6 +112,19 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response(result, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='conta_associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='acao_associacao', description='UUID da Ação Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conferido', description='Conferido?', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=['True', 'False']),
+        ],
+        responses={200: ReceitaListaSerializer(many=True)},
+    )
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def receitas(self, request):
@@ -162,6 +208,19 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response(ReceitaListaSerializer(receitas, many=True).data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conta_associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='acao_associacao', description='UUID da Ação Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conferido', description='Conferido?', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=['True', 'False']),
+        ],
+        responses={200: RateioDespesaListaSerializer(many=True)},
+    )
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def despesas(self, request):
@@ -308,6 +367,35 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response({'mensagem': 'Informações gravadas'}, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conta_associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conferido', description='Conferido?', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=['True', 'False']),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'data_encerramento': {'type': 'string', 'format': 'date'},
+                    'saldo_encerramewnto': {'type': 'number'},
+                    'possui_solicitacao_encerramento': {'type': 'boolean'},
+                    'data_extrato': {'type': 'string', 'format': 'date'},
+                    'saldo_extrato': {'type': 'number'},
+                    'observacao_uuid': {'type': 'string'},
+                    'observacao': {'type': 'string'},
+                    'comprovante_extrato': {'type': 'string'},
+                    'data_atualizacao_comprovante_extrato': {'type': 'string', 'format': 'date'},
+                    'permite_editar_campos_extrato': {'type': 'boolean'},
+                },
+            }
+        )},
+    )
     @action(detail=False, methods=['get'], url_path='observacoes',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def observacoes(self, request):
@@ -403,7 +491,7 @@ class ConciliacoesViewSet(GenericViewSet):
                 'observacao_uuid': observacao.uuid if observacao else None,
                 'observacao': observacao.texto if observacao else None,
                 'comprovante_extrato': comprovante_extrato_nome if observacao else None,
-                'data_atualizacao_comprovante_extrato': observacao.data_atualizacao_comprovante_extrato if observacao else None,
+                'data_atualizacao_comprovante_extrato': observacao.data_atualizacao_comprovante_extrato if observacao else None,  # noqa
             }
 
         permite_editar = permite_editar_campos_extrato(
@@ -417,6 +505,13 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response(result, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='observacao_uuid', description='UUID da Observação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: OpenApiTypes.BINARY},
+    )
     @action(detail=False, methods=['get'], url_path='download-extrato-bancario',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao]
             )
