@@ -9,6 +9,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from drf_spectacular.utils import (
+    extend_schema, OpenApiParameter, OpenApiTypes, OpenApiResponse, OpenApiExample)
+
 from sme_ptrf_apps.core.models import ContaAssociacao, Periodo, PrestacaoConta, RelacaoBens
 
 from sme_ptrf_apps.despesas.models import RateioDespesa
@@ -30,6 +33,26 @@ class RelacaoBensViewSet(GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     queryset = RelacaoBens.objects.all()
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='conta-associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='data_inicio', description='Data de início', required=True,
+                             type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='data_fim', description='Data fim', required=True,
+                             type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: 'Arquivo na fila para processamento.'},
+        examples=[
+            OpenApiExample(
+                'Resposta',
+                value={'mensagem': 'Arquivo na fila para processamento.'}
+            )
+        ],
+        description='Envia demonstrativo financeiro para processamento.'
+    )
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def previa(self, request):
@@ -57,7 +80,7 @@ class RelacaoBensViewSet(GenericViewSet):
         periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
 
         if periodo.data_fim_realizacao_despesas and datetime.strptime(data_fim,
-                                                                      "%Y-%m-%d").date() > periodo.data_fim_realizacao_despesas:
+                                                                      "%Y-%m-%d").date() > periodo.data_fim_realizacao_despesas:  # noqa
             erro = {
                 'erro': 'erro_nas_datas',
                 'mensagem': 'Data fim não pode ser maior que a data fim da realização as despesas do periodo.'
@@ -73,6 +96,22 @@ class RelacaoBensViewSet(GenericViewSet):
 
         return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='conta-associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='formato_arquivo', description='Formato de arquivo', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=['XLSX', 'PDF']),
+        ],
+        responses={
+            (200, 'application/pdf'): OpenApiTypes.BINARY,
+            (200, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'): OpenApiTypes.BINARY,
+        },
+        description="Retorna um arquivo PDF ou Excel para download, dependendo do parâmetro `formato_arquivo`."
+    )
     @action(detail=False, methods=['get'], url_path='documento-final',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def documento_final(self, request):
@@ -137,6 +176,22 @@ class RelacaoBensViewSet(GenericViewSet):
 
         return response
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='conta-associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='formato_arquivo', description='Formato de arquivo', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=['XLSX', 'PDF']),
+        ],
+        responses={
+            (200, 'application/pdf'): OpenApiTypes.BINARY,
+            (200, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'): OpenApiTypes.BINARY,
+        },
+        description="Retorna um arquivo PDF ou Excel para download, dependendo do parâmetro `formato_arquivo`."
+    )
     @action(detail=False, methods=['get'], url_path='documento-previa',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def documento_previa(self, request):
@@ -195,6 +250,17 @@ class RelacaoBensViewSet(GenericViewSet):
 
         return response
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conta-associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={
+            200: OpenApiResponse(response={'type': 'string'})
+        }
+    )
     @action(detail=False, methods=['get'], url_path='relacao-bens-info',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def relacao_bens_info(self, request):
@@ -234,7 +300,14 @@ class RelacaoBensViewSet(GenericViewSet):
 
         return Response(msg)
 
-    @action(detail=True, methods=['get'], url_path='pdf', permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
+    @extend_schema(
+        responses={
+            (200, 'application/pdf'): OpenApiTypes.BINARY,
+        },
+        description="Retorna um arquivo PDF Demonstrativo financeiro."
+    )
+    @action(detail=True, methods=['get'], url_path='pdf',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def pdf(self, request, uuid):
         """/api/relacao-bens/{uuid}/pdf"""
         relacao_bens = RelacaoBens.by_uuid(uuid)
@@ -263,4 +336,3 @@ class RelacaoBensViewSet(GenericViewSet):
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
         return response
-

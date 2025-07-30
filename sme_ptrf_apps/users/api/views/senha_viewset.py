@@ -57,7 +57,3 @@ class RedefinirSenhaViewSet(viewsets.ModelViewSet):
             logger.error(f'Erro ao alterar a senha: {result}')
             return result
         return Response({'detail': 'Senha redefinida com sucesso'}, status=status.HTTP_200_OK)
-
-
-
-
