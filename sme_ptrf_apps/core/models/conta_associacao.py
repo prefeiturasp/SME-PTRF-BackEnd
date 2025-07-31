@@ -16,11 +16,11 @@ class ContasAtivasComSolicitacaoEmAberto(models.Manager):
             super(ContasAtivasComSolicitacaoEmAberto, self)
             .get_queryset()
             .filter(
-                Q(status=ContaAssociacao.STATUS_ATIVA)
-                | Q(
+                Q(status=ContaAssociacao.STATUS_ATIVA) |
+                Q(
                     solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE
-                )
-                | Q(
+                ) |
+                Q(
                     solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA
                 )
             )
@@ -44,9 +44,9 @@ class ContasEncerradas(models.Manager):
             super(ContasEncerradas, self)
             .get_queryset()
             .filter(
-                Q(status=ContaAssociacao.STATUS_INATIVA)
-                & Q(solicitacao_encerramento__isnull=False)
-                & Q(
+                Q(status=ContaAssociacao.STATUS_INATIVA) &
+                Q(solicitacao_encerramento__isnull=False) &
+                Q(
                     solicitacao_encerramento__status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA
                 )
             )
@@ -185,8 +185,8 @@ class ContaAssociacao(ModeloBase):
                 periodo_data_encerramento = Periodo.da_data(data_encerramento)
 
                 return (
-                    periodo_data_encerramento.data_inicio_realizacao_despesas
-                    < periodo.data_inicio_realizacao_despesas
+                    periodo_data_encerramento.data_inicio_realizacao_despesas <
+                    periodo.data_inicio_realizacao_despesas
                 )
 
         return None
@@ -205,9 +205,9 @@ class ContaAssociacao(ModeloBase):
 
                 if origem_relatorio_consolidado:
                     if (
-                        periodo_data_encerramento == periodo
-                        or periodo_data_encerramento.data_inicio_realizacao_despesas
-                        > periodo.data_inicio_realizacao_despesas
+                        periodo_data_encerramento == periodo or
+                        periodo_data_encerramento.data_inicio_realizacao_despesas >
+                        periodo.data_inicio_realizacao_despesas
                     ):
                         if adiciona_prefixo:
                             return f"Conta encerrada em {data_encerramento.strftime('%d/%m/%Y')}"
@@ -256,8 +256,8 @@ class ContaAssociacao(ModeloBase):
 
         if hasattr(self, "solicitacao_encerramento"):
             if (
-                self.solicitacao_encerramento.status
-                == SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA
+                self.solicitacao_encerramento.status ==
+                SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA
             ):
                 return True
 
@@ -345,8 +345,8 @@ class ContaAssociacao(ModeloBase):
         qtde_lista_valores = len(lista_de_valores_reprogramados)
 
         if (
-            qtde_esperado == qtde_lista_valores
-            and qtde_esperado == valores_reprogramados_preenchidos.count()
+            qtde_esperado == qtde_lista_valores and
+            qtde_esperado == valores_reprogramados_preenchidos.count()
         ):
             return True
 
@@ -440,8 +440,7 @@ class ContaAssociacao(ModeloBase):
 
         if hasattr(self, "solicitacao_encerramento"):
             if (
-                self.solicitacao_encerramento.status
-                != SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA
+                self.solicitacao_encerramento.status != SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA
             ):
                 data_encerramento = (
                     self.solicitacao_encerramento.data_de_encerramento_na_agencia
