@@ -116,7 +116,7 @@ pipeline {
     //     aborted {
     //         sendTelegram("😥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Aborted \nLog: \n${env.BUILD_URL}console")
     //     }
-    // }
+    }
 }
 
 // def sendTelegram(message) {
