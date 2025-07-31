@@ -34,10 +34,12 @@ pipeline {
                         sh '''
                             docker run \
                                 --rm \
+                                -u $(id -u):$(id -g) \
                                 -v "$WORKSPACE/tests/api:/app"   \
                                 -w /app \
                                 registry.sme.prefeitura.sp.gov.br/devops/cypress-agent:14.5.2 \
-                                sh -c "npm install && npm install cypress@14.5.2 cypress-cloud@beta && \
+                                sh -c "npx cypress@14.5.2 install && \
+                                        npm install && npm install cypress@14.5.2 cypress-cloud@beta && \
                                         npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev && \
                                         rm -rf allure-results/ && \
                                         npx cypress-cloud run \
@@ -47,18 +49,11 @@ pipeline {
                                             --key somekey \
                                             --reporter mocha-allure-reporter \
                                             --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER}"
-                            
-                            docker run \
-                                --rm \
-                                -v "$WORKSPACE/tests/api:/app"   \
-                                -w /app \
-                                registry.sme.prefeitura.sp.gov.br/devops/cypress-agent:14.5.2 \
-                                sh -c "chmod 777 * -R"
                         '''
                     }
-                }
 
-                echo "FIM DOS TESTES!"
+                    echo "FIM DOS TESTES!"
+                }
             }
         }
 
