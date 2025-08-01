@@ -460,19 +460,9 @@ class ContaAssociacao(ModeloBase):
             return False
 
         periodo_da_data = Periodo.da_data(self.data_inicio)
-        if periodo_da_data == periodo:
-            return True
 
-        periodos_anteriores = Periodo.objects.filter(
-            data_inicio_realizacao_despesas__lt=periodo.data_inicio_realizacao_despesas
-        ).order_by("-referencia")
-
-        if periodo_da_data:
-            if periodo_da_data in list(periodos_anteriores):
-                return True
-        else:
-            # Período não está cadastrado no sistema.
-            return self.data_inicio < periodo.data_inicio_realizacao_despesas
+        if periodo_da_data and periodo.data_fim_realizacao_despesas:
+            return self.data_inicio <= periodo.data_fim_realizacao_despesas
 
         return False
 
