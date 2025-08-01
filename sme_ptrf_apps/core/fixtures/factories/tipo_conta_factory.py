@@ -10,8 +10,7 @@ class TipoContaFactory(DjangoModelFactory):
     class Meta:
         model = TipoConta
 
-    nome = Sequence(lambda n: fake.unique.word())
-    banco_nome = Sequence(lambda n: f"Banco {fake.unique.name()}")
-    agencia = Sequence(lambda n: f"{str(fake.unique.random_int(min=1000, max=9999))}-{fake.random_number(digits=1)}")
-    numero_conta = Sequence(
-        lambda n: f"{str(fake.unique.random_int(min=10, max=99))}.{str(fake.unique.random_int(min=100, max=999))}-{fake.random_number(digits=1)}")
+    nome = Sequence(lambda n: f"{fake.word()}_{n:06d}")
+    banco_nome = Sequence(lambda n: f"Banco {fake.first_name()} {n:04d}")
+    agencia = Sequence(lambda n: f"{(n % 9000) + 1000:04d}-{n % 10}")
+    numero_conta = Sequence(lambda n: f"{(n % 90) + 10:02d}.{(n % 900) + 100:03d}-{n % 10}")

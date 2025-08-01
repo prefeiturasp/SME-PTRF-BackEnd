@@ -255,7 +255,7 @@ def test_status_periodo_pendencias_cadastrais_com_contas_pendentes(
 
     pendencias_cadastrais_esperado = {
         'conciliacao_bancaria': {
-            'contas_pendentes': [f'{observacao_conciliacao_campos_nao_preenchidos.conta_associacao.uuid}', f'{observacao_conciliacao_campos_nao_preenchidos_002.conta_associacao.uuid}',],
+            'contas_pendentes': [f'{observacao_conciliacao_campos_nao_preenchidos_002.conta_associacao.uuid}', f'{observacao_conciliacao_campos_nao_preenchidos.conta_associacao.uuid}',],
         },
         'dados_associacao': {
             'pendencia_cadastro': False,
