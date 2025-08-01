@@ -607,7 +607,8 @@ def conta_associacao_tipo_cheque(associacao, tipo_conta_cheque):
         banco_nome='Banco do Brasil',
         agencia='12345',
         numero_conta='123456-x',
-        numero_cartao='534653264523'
+        numero_cartao='534653264523',
+        data_inicio=date(2019, 1, 1)
     )
 
 
@@ -631,6 +632,7 @@ def conta_associacao_incompleta(associacao_cadastro_incompleto, tipo_conta_carta
         'ContaAssociacao',
         associacao=associacao_cadastro_incompleto,
         tipo_conta=tipo_conta_cartao,
+        data_inicio='2020-01-01'
     )
 
 
@@ -1108,6 +1110,7 @@ def prestacao_conta_2019_2_conciliada(periodo_2019_2, associacao):
         associacao=associacao,
         status=PrestacaoConta.STATUS_NAO_RECEBIDA
     )
+
 
 @pytest.fixture
 def prestacao_conta_2019_2_aprovada_associacao_encerrada(periodo_2019_2, associacao_encerrada_2020_1):

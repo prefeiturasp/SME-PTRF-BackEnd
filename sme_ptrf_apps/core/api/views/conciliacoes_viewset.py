@@ -479,6 +479,7 @@ class ConciliacoesViewSet(GenericViewSet):
             'observacao_uuid': observacao.uuid if observacao else None,
             'observacao': observacao.texto if observacao else None,
             'saldo_extrato': observacao.saldo_extrato if observacao else None,
+            'data_extrato': observacao.data_extrato if observacao else None,
             'comprovante_extrato': comprovante_extrato_nome if observacao else None,
             'data_atualizacao_comprovante_extrato': observacao.data_atualizacao_comprovante_extrato if observacao else None,
             'data_encerramento': info_solicitacao["data_encerramento"] if info_solicitacao["possui_solicitacao_encerramento"] else None,
@@ -487,21 +488,19 @@ class ConciliacoesViewSet(GenericViewSet):
             'permite_editar_campos_extrato': permite_editar
         }
 
-        """
-            Regr US #129997
-            1º: Data de encerramento da conta, caso tenha solicitação de encerramento.
-            2º: Última dia do período selecionado.
-            3º: Data extrato
-        """
+        # Regra US #129997
+        # 1º: Data de encerramento da conta, caso tenha solicitação de encerramento.
+        # 2º: Última dia do período selecionado.
+        # 3º: Data extrato
 
-        if observacao and observacao.data_extrato:
-            result['data_extrato'] = observacao.data_extrato
-        elif info_solicitacao["possui_solicitacao_encerramento"]:
-            result['data_extrato'] = info_solicitacao["data_encerramento"]
-        elif periodo.data_fim_realizacao_despesas:
-            result['data_extrato'] = periodo.data_fim_realizacao_despesas
-        else:
-            result['data_extrato'] = None
+        # if observacao and observacao.data_extrato:
+        #     result['data_extrato'] = observacao.data_extrato
+        # elif info_solicitacao["possui_solicitacao_encerramento"]:
+        #     result['data_extrato'] = info_solicitacao["data_encerramento"]
+        # elif periodo.data_fim_realizacao_despesas:
+        #     result['data_extrato'] = periodo.data_fim_realizacao_despesas
+        # else:
+        #     result['data_extrato'] = None
 
         return Response(result, status=status.HTTP_200_OK)
 
