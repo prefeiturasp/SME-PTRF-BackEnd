@@ -249,10 +249,10 @@ class AssociacoesViewSet(ModelViewSet):
         pendencias_conciliacao = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(
             periodo)
 
-        if pendencias_dados or pendencias_conciliacao:
+        if pendencias_dados:
             pendencias_cadastrais = {
                 'dados_associacao': pendencias_dados,
-                'conciliacao_bancaria': pendencias_conciliacao,
+                'conciliacao_bancaria': None,
             }
         else:
             pendencias_cadastrais = None

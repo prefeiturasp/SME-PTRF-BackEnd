@@ -388,7 +388,11 @@ class Associacao(ModeloIdNome):
                 )
 
             observacoes = self.observacoes_conciliacao_da_associacao.filter(periodo=periodo)
+
             for conta in contas:
+                if not conta.conta_criada_no_periodo_ou_periodo_anteriores(periodo):
+                    continue
+
                 resumo = info_resumo_conciliacao(periodo, conta)
                 observacao = observacoes.filter(conta_associacao=conta).first()
                 saldo_posterior = resumo.get('saldo_posterior_total', 0)
