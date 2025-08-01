@@ -108,9 +108,9 @@ def test_api_list_periodos_por_referencia(jwt_authenticated_client, periodo_2020
     assert result == expected_results
 
 
-def test_api_list_periodos_por_somente_com_pcs_entregues(jwt_authenticated_client, prestacao_conta_2021_1_aprovada_associacao_encerrada, periodo_2021_1, periodo_2021_2):
+def test_api_list_periodos_por_associacao(jwt_authenticated_client, prestacao_conta_2021_1_aprovada_associacao_encerrada, periodo_2021_1, periodo_2021_2):
     response = jwt_authenticated_client.get(
-        '/api/periodos/?somente_com_pcs_entregues=true', content_type='application/json')
+        f'/api/periodos/?associacao_uuid={prestacao_conta_2021_1_aprovada_associacao_encerrada.associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
     periodos = [periodo_2021_1]
