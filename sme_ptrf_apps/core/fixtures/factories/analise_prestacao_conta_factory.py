@@ -1,5 +1,6 @@
 from datetime import datetime
-from factory import DjangoModelFactory, SubFactory, LazyAttribute
+from factory import SubFactory, LazyAttribute
+from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.core.models.analise_prestacao_conta import AnalisePrestacaoConta
 from .prestacao_conta_factory import PrestacaoContaFactory

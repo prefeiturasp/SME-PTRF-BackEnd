@@ -6,6 +6,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from drf_spectacular.utils import (
+    extend_schema, OpenApiParameter, OpenApiTypes, OpenApiResponse)
+
 from django.http import HttpResponse
 
 from sme_ptrf_apps.users.permissoes import (
@@ -43,6 +46,36 @@ class ConciliacoesViewSet(GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     queryset = ObservacaoConciliacao.objects.all()
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='conta_associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'saldo_anterior': {'type': 'number'},
+                    'saldo_anterior_conciliado': {'type': 'number'},
+                    'saldo_anterior_nao_conciliado': {'type': 'number'},
+                    'receitas_total': {'type': 'number'},
+                    'receitas_conciliadas': {'type': 'number'},
+                    'receitas_nao_conciliadas': {'type': 'number'},
+                    'despesas_total': {'type': 'number'},
+                    'despesas_conciliadas': {'type': 'number'},
+                    'despesas_nao_conciliadas': {'type': 'number'},
+                    'despesas_outros_periodos': {'type': 'number'},
+                    'despesas_outros_periodos_conciliadas': {'type': 'number'},
+                    'despesas_outros_periodos_nao_conciliadas': {'type': 'number'},
+                    'saldo_posterior_total': {'type': 'number'},
+                    'saldo_posterior_conciliado': {'type': 'number'},
+                    'saldo_posterior_nao_conciliado': {'type': 'number'},
+                },
+            }
+        )},
+    )
     @action(detail=False, methods=['get'], url_path='tabela-valores-pendentes',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabela_valores_pendentes(self, request):
@@ -79,6 +112,19 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response(result, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='conta_associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='acao_associacao', description='UUID da Ação Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conferido', description='Conferido?', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=['True', 'False']),
+        ],
+        responses={200: ReceitaListaSerializer(many=True)},
+    )
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def receitas(self, request):
@@ -162,6 +208,19 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response(ReceitaListaSerializer(receitas, many=True).data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conta_associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='acao_associacao', description='UUID da Ação Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conferido', description='Conferido?', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=['True', 'False']),
+        ],
+        responses={200: RateioDespesaListaSerializer(many=True)},
+    )
     @action(detail=False, methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def despesas(self, request):
@@ -308,10 +367,39 @@ class ConciliacoesViewSet(GenericViewSet):
 
         return Response({'mensagem': 'Informações gravadas'}, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao', description='UUID da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conta_associacao', description='UUID da Conta da Associação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conferido', description='Conferido?', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=['True', 'False']),
+        ],
+        responses={200: OpenApiResponse(
+            response={
+                'type': 'object',
+                'properties': {
+                    'data_encerramento': {'type': 'string', 'format': 'date'},
+                    'saldo_encerramewnto': {'type': 'number'},
+                    'possui_solicitacao_encerramento': {'type': 'boolean'},
+                    'data_extrato': {'type': 'string', 'format': 'date'},
+                    'saldo_extrato': {'type': 'number'},
+                    'observacao_uuid': {'type': 'string'},
+                    'observacao': {'type': 'string'},
+                    'comprovante_extrato': {'type': 'string'},
+                    'data_atualizacao_comprovante_extrato': {'type': 'string', 'format': 'date'},
+                    'permite_editar_campos_extrato': {'type': 'boolean'},
+                },
+            }
+        )},
+    )
     @action(detail=False, methods=['get'], url_path='observacoes',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def observacoes(self, request):
-        
+
         # Define a Associacao
         associacao_uuid = self.request.query_params.get('associacao')
 
@@ -331,7 +419,7 @@ class ConciliacoesViewSet(GenericViewSet):
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Define o período de conciliação
         periodo_uuid = self.request.query_params.get('periodo')
 
@@ -379,43 +467,50 @@ class ConciliacoesViewSet(GenericViewSet):
         if observacao and observacao.comprovante_extrato and observacao.comprovante_extrato.name:
             comprovante_extrato_nome = observacao.comprovante_extrato.name
 
-        result = {}
-        
-        if observacao:
-            result = {
-                'observacao_uuid': observacao.uuid,
-                'observacao': observacao.texto,
-                'data_extrato': observacao.data_extrato,
-                'saldo_extrato': observacao.saldo_extrato,
-                'comprovante_extrato': comprovante_extrato_nome,
-                'data_atualizacao_comprovante_extrato': observacao.data_atualizacao_comprovante_extrato,
-            }
-
         info_solicitacao = conta_associacao.get_info_solicitacao_encerramento()
 
-        if info_solicitacao["possui_solicitacao_encerramento"]:
-            result = {
-                'data_encerramento': info_solicitacao["data_encerramento"],
-                'saldo_encerramewnto': info_solicitacao["saldo"],
-                'possui_solicitacao_encerramento': info_solicitacao["possui_solicitacao_encerramento"],
-                'data_extrato': observacao.data_extrato if observacao else None,
-                'saldo_extrato': observacao.saldo_extrato if observacao else None,
-                'observacao_uuid': observacao.uuid if observacao else None,
-                'observacao': observacao.texto if observacao else None,
-                'comprovante_extrato': comprovante_extrato_nome if observacao else None,
-                'data_atualizacao_comprovante_extrato': observacao.data_atualizacao_comprovante_extrato if observacao else None,
-            }
-            
         permite_editar = permite_editar_campos_extrato(
             associacao,
             periodo,
             conta_associacao
         )
-        
-        result['permite_editar_campos_extrato'] = permite_editar
-            
+
+        result = {
+            'observacao_uuid': observacao.uuid if observacao else None,
+            'observacao': observacao.texto if observacao else None,
+            'saldo_extrato': observacao.saldo_extrato if observacao else None,
+            'data_extrato': observacao.data_extrato if observacao else None,
+            'comprovante_extrato': comprovante_extrato_nome if observacao else None,
+            'data_atualizacao_comprovante_extrato': observacao.data_atualizacao_comprovante_extrato if observacao else None,
+            'data_encerramento': info_solicitacao["data_encerramento"] if info_solicitacao["possui_solicitacao_encerramento"] else None,
+            'saldo_encerramewnto': info_solicitacao["saldo"] if info_solicitacao["possui_solicitacao_encerramento"] else None,
+            'possui_solicitacao_encerramento': info_solicitacao["possui_solicitacao_encerramento"],
+            'permite_editar_campos_extrato': permite_editar
+        }
+
+        # Regra US #129997
+        # 1º: Data de encerramento da conta, caso tenha solicitação de encerramento.
+        # 2º: Última dia do período selecionado.
+        # 3º: Data extrato
+
+        # if observacao and observacao.data_extrato:
+        #     result['data_extrato'] = observacao.data_extrato
+        # elif info_solicitacao["possui_solicitacao_encerramento"]:
+        #     result['data_extrato'] = info_solicitacao["data_encerramento"]
+        # elif periodo.data_fim_realizacao_despesas:
+        #     result['data_extrato'] = periodo.data_fim_realizacao_despesas
+        # else:
+        #     result['data_extrato'] = None
+
         return Response(result, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='observacao_uuid', description='UUID da Observação', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: OpenApiTypes.BINARY},
+    )
     @action(detail=False, methods=['get'], url_path='download-extrato-bancario',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao]
             )
@@ -804,4 +899,3 @@ class ConciliacoesViewSet(GenericViewSet):
         }
 
         return Response(result, status=status.HTTP_200_OK)
-

@@ -11,7 +11,7 @@ from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.paa.models import PrioridadePaa
 from sme_ptrf_apps.paa.models.prioridade_paa import SimNaoChoices
 from sme_ptrf_apps.paa.api.serializers import (
-    PrioridadePaaCreateSerializer,
+    PrioridadePaaCreateUpdateSerializer,
     PrioridadePaaListSerializer
 )
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
@@ -23,7 +23,7 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
     permission_classes = [PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = PrioridadePaa.objects.all()
-    serializer_class = PrioridadePaaCreateSerializer
+    serializer_class = PrioridadePaaCreateUpdateSerializer
     http_method_names = ["get", "post", "patch", "delete"]
     pagination_class = CustomPagination
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
@@ -49,7 +49,7 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
         if self.action == 'list':
             return PrioridadePaaListSerializer
         else:
-            return PrioridadePaaCreateSerializer
+            return PrioridadePaaCreateUpdateSerializer
 
     @action(detail=False, methods=['get'], url_path='tabelas',
             permission_classes=[PermissaoApiUe])
