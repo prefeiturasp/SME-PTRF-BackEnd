@@ -177,7 +177,7 @@ def test_patch_bem_produzido_com_especificacao_objeto(
     from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoItem
     itens = BemProduzidoItem.objects.filter(bem_produzido=bem_produzido_1)
     assert itens.count() == 1
-    assert itens.first().especificacao_do_bem.uuid == especificacao_material_servico_1.uuid
+    assert str(itens.first().especificacao_do_bem.uuid) == str(especificacao_material_servico_1.uuid)
 
 
 def test_patch_bem_produzido(

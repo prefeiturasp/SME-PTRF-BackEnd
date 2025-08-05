@@ -1,4 +1,5 @@
-from factory import DjangoModelFactory, SubFactory, Sequence
+from factory import SubFactory, Sequence
+from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.core.models import (
     ArquivoDownload

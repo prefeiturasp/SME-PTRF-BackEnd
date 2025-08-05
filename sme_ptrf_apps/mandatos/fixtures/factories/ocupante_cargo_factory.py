@@ -1,4 +1,5 @@
-from factory import DjangoModelFactory, Sequence
+from factory import Sequence
+from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.mandatos.models import OcupanteCargo
 from ..providers.ocupante_cargo_provider import provider_representacao

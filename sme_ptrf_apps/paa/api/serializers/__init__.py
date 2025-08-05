@@ -14,6 +14,6 @@ from .programa_pdde_serializer import (
     ProgramasPddeSomatorioTotalSerializer
 )
 from .prioridade_paa_serializer import (
-    PrioridadePaaCreateSerializer,
+    PrioridadePaaCreateUpdateSerializer,
     PrioridadePaaListSerializer
 )

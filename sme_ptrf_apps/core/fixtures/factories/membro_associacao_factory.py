@@ -1,5 +1,6 @@
 from faker import Faker
-from factory import DjangoModelFactory, SubFactory, Sequence
+from factory.django import DjangoModelFactory
+from factory import SubFactory, Sequence
 from factory.fuzzy import FuzzyChoice
 from sme_ptrf_apps.core.models.membro_associacao import MembroAssociacao
 from sme_ptrf_apps.core.choices.membro_associacao import MembroEnum, RepresentacaoCargo

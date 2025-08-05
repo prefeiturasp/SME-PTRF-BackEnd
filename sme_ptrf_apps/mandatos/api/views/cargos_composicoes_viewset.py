@@ -16,6 +16,8 @@ from rest_framework.response import Response
 
 from ...services.cargo_composicao_service import ServicoCargosDaComposicao, ServicoCargosDaDiretoriaExecutiva, ServicoCargosOcupantesComposicao
 
+from django.core.exceptions import MultipleObjectsReturned
+
 
 class CargosComposicoesViewSet(
     WaffleFlagMixin,
@@ -80,8 +82,13 @@ class CargosComposicoesViewSet(
                 data_inicial__lte=data,
                 data_final__gte=data
             )
-        except ValueError:
-            return Response("Composição não encontrada.", status=status.HTTP_400_BAD_REQUEST)
+        except Composicao.DoesNotExist:
+            return Response({"erro": "Composição não encontrada."}, status=status.HTTP_404_NOT_FOUND)
+        except MultipleObjectsReturned:
+            return Response(
+                {"erro": "Mais de uma composição encontrada para a data informada."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         
         servico_cargos_da_composicao = ServicoCargosOcupantesComposicao()
         

@@ -7,7 +7,7 @@ from freezegun import freeze_time
 from model_bakery import baker
 from rest_framework import status
 
-from ...models import PrestacaoConta, Periodo
+from sme_ptrf_apps.core.models import PrestacaoConta
 
 pytestmark = pytest.mark.django_db
 
@@ -15,7 +15,7 @@ pytestmark = pytest.mark.django_db
 @freeze_time('2020-01-10 10:11:12')
 def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, periodo_fim_em_aberto):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-10',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
     esperado = {
         'associacao': f'{associacao.uuid}',
@@ -57,7 +57,7 @@ def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, per
 @freeze_time('2020-07-10 10:20:00')
 def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo_fim_em_2020_06_30):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-10',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
     esperado = {
         'associacao': f'{associacao.uuid}',
@@ -98,7 +98,7 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
 
 def test_chamada_sem_passar_data(jwt_authenticated_client_a, associacao, periodo_2020_1, prestacao_conta_2020_1_conciliada):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     esperado = {
@@ -112,7 +112,7 @@ def test_chamada_sem_passar_data(jwt_authenticated_client_a, associacao, periodo
 
 def test_chamada_data_sem_periodo(jwt_authenticated_client_a, associacao, periodo_2020_1):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2000-01-10',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     esperado = {
@@ -146,7 +146,7 @@ def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prest
     periodo = prestacao_conta_2020_1_conciliada.periodo
 
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo.data_inicio_realizacao_despesas}',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
     esperado = {
         'associacao': f'{associacao.uuid}',
@@ -185,7 +185,6 @@ def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prest
     assert result == esperado
 
 
-
 @pytest.fixture
 def _prestacao_conta_devolvida(periodo, associacao):
     return baker.make(
@@ -203,7 +202,7 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
     periodo = _prestacao_conta_devolvida.periodo
 
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo.data_inicio_realizacao_despesas}',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     esperado = {
@@ -242,6 +241,7 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
 
+
 @freeze_time('2020-07-10 10:20:00')
 def test_status_periodo_pendencias_cadastrais_com_contas_pendentes(
     jwt_authenticated_client_a, associacao,
@@ -249,11 +249,8 @@ def test_status_periodo_pendencias_cadastrais_com_contas_pendentes(
     observacao_conciliacao_campos_nao_preenchidos_002,
     periodo_2020_1
 ):
-    # TODO código comentado propositalmente em função da história 102412 - Sprint 73 (Conciliação Bancária: Retirar validação e obrigatoriedade de preenchimento dos campos do Saldo bancário da conta ao concluir acerto/período) - que entrou como Hotfix
-    # TODO Remover quando implementado solução definitiva
-
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     pendencias_cadastrais_esperado = {
@@ -272,6 +269,7 @@ def test_status_periodo_pendencias_cadastrais_com_contas_pendentes(
     assert response.status_code == status.HTTP_200_OK
     assert result['pendencias_cadastrais'] == pendencias_cadastrais_esperado
 
+
 @freeze_time('2020-07-10 10:20:00')
 def test_status_periodo_pendencias_cadastrais_somente_uma_conta_pendente(
     jwt_authenticated_client_a, associacao,
@@ -280,11 +278,8 @@ def test_status_periodo_pendencias_cadastrais_somente_uma_conta_pendente(
     periodo_2020_1
 ):
 
-    # TODO código comentado propositalmente em função da história 102412 - Sprint 73 (Conciliação Bancária: Retirar validação e obrigatoriedade de preenchimento dos campos do Saldo bancário da conta ao concluir acerto/período) - que entrou como Hotfix
-    # TODO Remover quando implementado solução definitiva
-
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     pendencias_cadastrais_esperado = {
@@ -303,6 +298,7 @@ def test_status_periodo_pendencias_cadastrais_somente_uma_conta_pendente(
     assert response.status_code == status.HTTP_200_OK
     assert result['pendencias_cadastrais'] == pendencias_cadastrais_esperado
 
+
 @freeze_time('2020-07-10 10:20:00')
 def test_status_periodo_pendencias_cadastrais_sem_contas_pendentes(
     jwt_authenticated_client_a,
@@ -311,7 +307,7 @@ def test_status_periodo_pendencias_cadastrais_sem_contas_pendentes(
 ):
 
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     pendencias_cadastrais_esperado = {
@@ -327,6 +323,7 @@ def test_status_periodo_pendencias_cadastrais_sem_contas_pendentes(
     assert response.status_code == status.HTTP_200_OK
     assert result['pendencias_cadastrais'] == pendencias_cadastrais_esperado
 
+
 @freeze_time('2020-07-10 10:20:00')
 def test_status_periodo_pendencias_cadastrais_somente_dados_associacao_com_pendencia_cadastro_e_pendencia_membros(
     jwt_authenticated_client_a,
@@ -335,7 +332,7 @@ def test_status_periodo_pendencias_cadastrais_somente_dados_associacao_com_pende
 ):
 
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao_cadastro_incompleto.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     pendencias_cadastrais_esperado = {
@@ -351,18 +348,15 @@ def test_status_periodo_pendencias_cadastrais_somente_dados_associacao_com_pende
     assert response.status_code == status.HTTP_200_OK
     assert result['pendencias_cadastrais'] == pendencias_cadastrais_esperado
 
+
 @freeze_time('2020-07-10 10:20:00')
 def test_status_periodo_todas_as_pendencias_cadastrais(
     jwt_authenticated_client_a,
     conta_associacao_incompleta,
     periodo_2020_1,
 ):
-
-    # TODO código comentado propositalmente em função da história 102412 - Sprint 73 (Conciliação Bancária: Retirar validação e obrigatoriedade de preenchimento dos campos do Saldo bancário da conta ao concluir acerto/período) - que entrou como Hotfix
-    # TODO Remover quando implementado solução definitiva
-
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{conta_associacao_incompleta.associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     pendencias_cadastrais_esperado = {
@@ -372,7 +366,7 @@ def test_status_periodo_todas_as_pendencias_cadastrais(
             'pendencia_contas': True,
             'pendencia_novo_mandato': False
         },
-        'conciliacao_bancaria': None,
+        'conciliacao_bancaria': None
         # 'conciliacao_bancaria': {
         #     'contas_pendentes': [f'{conta_associacao_incompleta.uuid}']
         # },
@@ -392,12 +386,13 @@ def test_status_periodo_com_conta_encerrada_com_saldo(
     receita_conta_encerrada
 ):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{conta_associacao_encerramento_conta.associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
     assert 'tem_conta_encerrada_com_saldo' in result
-    assert result['tem_conta_encerrada_com_saldo'] == True
+    assert result['tem_conta_encerrada_com_saldo'] is True
+
 
 @freeze_time('2020-07-10 10:20:00')
 def test_status_periodo_anterior_com_conta_encerrada_com_saldo(
@@ -409,12 +404,13 @@ def test_status_periodo_anterior_com_conta_encerrada_com_saldo(
     receita_conta_encerrada
 ):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{conta_associacao_encerramento_conta.associacao.uuid}/status-periodo/?data={periodo_aberto.data_inicio_realizacao_despesas}',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
     assert 'tem_conta_encerrada_com_saldo' in result
-    assert result['tem_conta_encerrada_com_saldo'] == False
+    assert result['tem_conta_encerrada_com_saldo'] is False
+
 
 @freeze_time('2020-07-10 10:20:00')
 def test_status_periodo_com_conta_encerrada_sem_saldo(
@@ -424,11 +420,9 @@ def test_status_periodo_com_conta_encerrada_sem_saldo(
     solicitacao_encerramento_conta_aprovada,
 ):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{conta_associacao_encerramento_conta.associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
     assert 'tem_conta_encerrada_com_saldo' in result
-    assert result['tem_conta_encerrada_com_saldo'] == False
-
-
+    assert result['tem_conta_encerrada_com_saldo'] is False

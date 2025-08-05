@@ -1,4 +1,5 @@
-from factory import DjangoModelFactory, SubFactory, LazyFunction, Sequence, LazyAttribute
+from factory import SubFactory, LazyFunction, Sequence, LazyAttribute
+from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.core.models import (
     DemonstrativoFinanceiro,
