@@ -69,5 +69,21 @@ class PrioridadePaa(ModeloBase):
             return 'Recursos Próprios'
     nome.short_description = 'Ação'
 
+    @classmethod
+    def excluir_em_lote(cls, lista_uuids):
+        erros = []
+        for item_uuid in lista_uuids:
+            try:
+                obj = cls.objects.get(uuid=item_uuid)
+                obj.delete()
+            except cls.DoesNotExist:
+                erros.append(
+                    {
+                        'erro': 'Objeto não encontrado.',
+                        'mensagem': f'O objeto Prioridade {item_uuid} não foi encontrado na base de dados.'
+                    }
+                )
+        return erros
+
 
 auditlog.register(PrioridadePaa)
