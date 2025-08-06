@@ -18,5 +18,5 @@ class AcaoPddeSerializer(serializers.ModelSerializer):
     class Meta:
         model = AcaoPdde
         fields = ('id', 'uuid', 'nome', 'programa', 'programa_objeto',
-                  'aceita_capital', 'aceita_custeio', 'aceita_livre_aplicacao')
+                  'aceita_capital', 'aceita_custeio', 'aceita_livre_aplicacao', 'status')
         read_only_fields = ('id', 'uuid', 'programa', 'programa_objeto')
