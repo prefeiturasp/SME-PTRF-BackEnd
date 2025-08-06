@@ -366,7 +366,7 @@ def test_altera_prioridade_nao_encontrada(jwt_authenticated_client_sme, flag_paa
     # campos retornados
     assert result.keys() == {'mensagem'}
 
-    assert result['mensagem'] == "Prioridade já foi removida da base de dados."
+    assert result['mensagem'] == "Prioridade não encontrada ou já foi removida da base de dados."
 
 
 @pytest.mark.django_db
