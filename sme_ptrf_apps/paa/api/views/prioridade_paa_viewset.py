@@ -113,6 +113,6 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
             return super().update(request, *args, **kwargs)
         except (Http404, NotFound):
             return Response(
-                {"mensagem": "Prioridade já foi removida da base de dados."},
+                {"mensagem": "Prioridade não encontrada ou já foi removida da base de dados."},
                 status=status.HTTP_404_NOT_FOUND
             )
