@@ -221,6 +221,7 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
   padding: 2px 4px;
   word-wrap: break-word !important;
   /* word-break: break-all !important; */
+  /* width: auto; */
 }
 
 .tabela-bloco-4 {

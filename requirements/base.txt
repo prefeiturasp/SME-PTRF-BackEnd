@@ -59,5 +59,8 @@ whitenoise==6.8.2
 # ------------------------------------------------------------------------------
 # WeasyPrint==56
 # django-weasyprint==2.3.0
-WeasyPrint==56
-django-weasyprint==2.3.0
+# WeasyPrint==56
+# django-weasyprint==2.3.0
+WeasyPrint==66
+django-weasyprint==2.4.0
+
