@@ -26,7 +26,7 @@
   @top-center {
     content: element(heading);
   }
-    @bottom-right {
+  @bottom-right {
     color: #000;
     content: counter(page) "/" counter(pages);
     font-size: 9pt;
@@ -51,7 +51,8 @@
 }
 
 @media print {
-  body, page {
+  body,
+  page {
     margin: 0;
   }
 }
@@ -66,10 +67,12 @@ html {
 body {
   font-family: Roboto;
   font-style: normal;
+  margin: 0;
 }
 
-html body section#cabecalho, header {
-  background: #EEEEEE;
+html body section#cabecalho,
+header {
+  background: #eeeeee;
   margin: 0;
   padding: 0 0 0.5cm 0.5cm;
   width: 100%;
@@ -82,13 +85,16 @@ header {
   margin: 0 0 0.7cm 3.5cm;
 }
 
-html body section#cabecalho .titulo, html body section#cabecalho .subtitulo, html body header .subtitulo {
+html body section#cabecalho .titulo,
+html body section#cabecalho .subtitulo,
+html body header .subtitulo {
   font-weight: bold;
   color: #0c0c0c;
   font-family: Roboto, serif;
 }
 
-html body section#cabecalho .subtitulo, html body header .subtitulo {
+html body section#cabecalho .subtitulo,
+html body header .subtitulo {
   font-family: Roboto, serif;
   font-style: normal;
 }
@@ -140,16 +146,16 @@ html body section#cabecalho .subtitulo, html body header .subtitulo {
 }
 
 .borda-box-cabecalho-left {
-  border-top: solid 1px #A4A4A4;
-  border-bottom: solid 1px #A4A4A4;
-  border-left: solid 1px #A4A4A4;
+  border-top: solid 1px #a4a4a4;
+  border-bottom: solid 1px #a4a4a4;
+  border-left: solid 1px #a4a4a4;
 }
 
 .borda-box-cabecalho-right {
-  border-top: solid 1px #A4A4A4;
-  border-bottom: solid 1px #A4A4A4;
-  border-left: solid 1px #A4A4A4;
-  border-right: solid 1px #A4A4A4;
+  border-top: solid 1px #a4a4a4;
+  border-bottom: solid 1px #a4a4a4;
+  border-left: solid 1px #a4a4a4;
+  border-right: solid 1px #a4a4a4;
 }
 
 .conteudo {
@@ -165,13 +171,16 @@ html body .conteudo .tabela-resumo-por-acao {
   width: auto;
 }
 
-html body .conteudo .tabela-quebra-palavra{
+html body .conteudo .tabela-quebra-palavra {
   table-layout: fixed;
   width: auto;
 }
 
-html body .conteudo .tabela-resumo-por-acao thead th, html body .conteudo .tabela-resumo-por-acao thead th.align-top, html body .conteudo .tabela-resumo-por-acao thead th.sem-borda, html body .conteudo .tabela-resumo-por-acao tbody td.total {
-  background-color: #F5F6F8 !important;
+html body .conteudo .tabela-resumo-por-acao thead th,
+html body .conteudo .tabela-resumo-por-acao thead th.align-top,
+html body .conteudo .tabela-resumo-por-acao thead th.sem-borda,
+html body .conteudo .tabela-resumo-por-acao tbody td.total {
+  background-color: #f5f6f8 !important;
   font-weight: normal !important;
   vertical-align: middle;
   width: auto;
@@ -192,7 +201,6 @@ html body .conteudo .nao-quebra-linha tbody tr {
   break-after: avoid !important;
 }
 
-
 html body .conteudo .tabela-resumo-por-acao tbody td.sem-borda {
   border: none !important;
   width: auto;
@@ -204,23 +212,22 @@ html body .conteudo .tabela-resumo-por-acao tbody td.sem-borda-direita {
 }
 
 html body .conteudo .tabela-resumo-por-acao tbody td.fundo-cinza {
-  background-color: #DADADA !important;
+  background-color: #dadada !important;
   width: auto;
 }
 
 html body .conteudo .tabela-resumo-por-acao tbody td {
   vertical-align: middle;
-  padding: 2px 5px;
+  padding: 2px 4px;
   word-wrap: break-word !important;
-  word-break: break-all !important;
-  width: auto;
+  /* word-break: break-all !important; */
 }
 
-.tabela-bloco-4{
+.tabela-bloco-4 {
   width: 100% !important;
 }
 
-.container-texto-justificativas{
+.container-texto-justificativas {
   min-height: 64px;
 }
 
@@ -260,5 +267,5 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
 }
 
 #conta-encerrada {
-  color: #42474A
+  color: #42474a;
 }
