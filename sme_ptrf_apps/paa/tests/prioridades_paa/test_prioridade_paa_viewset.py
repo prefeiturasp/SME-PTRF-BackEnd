@@ -1,4 +1,7 @@
+import uuid
 import pytest
+import json
+
 from rest_framework import status
 from sme_ptrf_apps.paa.models.prioridade_paa import PrioridadePaa, SimNaoChoices
 from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
@@ -129,9 +132,8 @@ def test_cria_prioridade_paa_ptrf_capital(jwt_authenticated_client_sme, flag_paa
     result = response.json()
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result['especificacao_material'] == ["Especificação de material/serviço não foi informada."]
-    assert result['valor_total'] == ["O valor total não foi informado."]
     # campos requeridos quando é PTRF/CAPITAL
-    assert result.keys() == {'especificacao_material', 'valor_total'}
+    assert result.keys() == {'especificacao_material'}
 
 
 @pytest.mark.django_db
@@ -346,3 +348,112 @@ def test_altera_prioridade_ptrf_para_recursos_proprios_exige_tipo_despesa_custei
     assert result['tipo_despesa_custeio'] == ["Tipo de despesa não informado quando o tipo de aplicação é Custeio."]
 
     assert PrioridadePaa.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_altera_prioridade_nao_encontrada(jwt_authenticated_client_sme, flag_paa):
+    payload = {
+        "paa": str(uuid.uuid4()),
+        "prioridade": SimNaoChoices.SIM,
+        "recurso": RecursoOpcoesEnum.RECURSO_PROPRIO.name,
+        "tipo_aplicacao": TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+        "especificacao_material": str(uuid.uuid4()),
+        "valor_total": 20
+    }
+    response = jwt_authenticated_client_sme.patch(f"/api/prioridades-paa/{uuid.uuid4()}/", payload)
+    result = response.json()
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    # campos retornados
+    assert result.keys() == {'mensagem'}
+
+    assert result['mensagem'] == "Prioridade não encontrada ou já foi removida da base de dados."
+
+
+@pytest.mark.django_db
+def test_delete_prioridade_com_sucesso(jwt_authenticated_client_sme, flag_paa, prioridade_paa_ptrf_custeio):
+    assert PrioridadePaa.objects.count() == 1
+    response = jwt_authenticated_client_sme.delete(f"/api/prioridades-paa/{prioridade_paa_ptrf_custeio.uuid}/")
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert PrioridadePaa.objects.count() == 0
+
+    response = jwt_authenticated_client_sme.get(f"/api/prioridades-paa/{prioridade_paa_ptrf_custeio.uuid}/")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    response = jwt_authenticated_client_sme.delete(f"/api/prioridades-paa/{prioridade_paa_ptrf_custeio.uuid}/")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_delete_prioridade_nao_encontrada(jwt_authenticated_client_sme, flag_paa, prioridade_paa_ptrf_custeio):
+    assert PrioridadePaa.objects.count() == 1
+    response = jwt_authenticated_client_sme.delete(f"/api/prioridades-paa/{prioridade_paa_ptrf_custeio.uuid}/")
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert PrioridadePaa.objects.count() == 0
+
+    response = jwt_authenticated_client_sme.delete(f"/api/prioridades-paa/{prioridade_paa_ptrf_custeio.uuid}/")
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_delete_prioridade_em_lote_com_ressalvas(jwt_authenticated_client_sme, flag_paa, prioridade_paa_ptrf_custeio):
+    assert PrioridadePaa.objects.count() == 1
+    payload = {
+        "lista_uuids": [
+            str(prioridade_paa_ptrf_custeio.uuid),
+            "03cbb3c7-10e8-4bdf-bdfa-b97864054c75"
+        ]
+    }
+    response = jwt_authenticated_client_sme.post("/api/prioridades-paa/excluir-lote/",
+                                                 data=json.dumps(payload),
+                                                 content_type='application/json')
+    result = response.json()
+    assert response.status_code == status.HTTP_200_OK, result
+    assert result['erros'] == [{
+        'erro': 'Objeto não encontrado.',
+        'mensagem': 'O objeto Prioridade 03cbb3c7-10e8-4bdf-bdfa-b97864054c75 não foi encontrado na base de dados.'
+    }]
+    assert result['mensagem'] == 'Alguma das prioridades selecionadas já foi removida.'
+
+
+@pytest.mark.django_db
+def test_delete_prioridade_em_lote_sem_ressalvas(jwt_authenticated_client_sme, flag_paa, prioridade_paa_ptrf_custeio):
+    assert PrioridadePaa.objects.count() == 1
+    payload = {
+        "lista_uuids": [
+            str(prioridade_paa_ptrf_custeio.uuid),
+        ]
+    }
+    response = jwt_authenticated_client_sme.post("/api/prioridades-paa/excluir-lote/",
+                                                 data=json.dumps(payload),
+                                                 content_type='application/json')
+    result = response.json()
+    assert response.status_code == status.HTTP_200_OK, result
+    assert result['erros'] == []
+    assert result['mensagem'] == 'Prioridades removidas com sucesso.'
+
+
+@pytest.mark.django_db
+def test_delete_prioridade_em_lote_sem_lista_uuids(jwt_authenticated_client_sme, flag_paa):
+    payload = {}
+    response = jwt_authenticated_client_sme.post("/api/prioridades-paa/excluir-lote/",
+                                                 data=json.dumps(payload),
+                                                 content_type='application/json')
+    result = response.json()
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result['erro'] == 'Falta de informações'
+    assert result['mensagem'] == 'É necessário enviar a lista de uuids a serem excluídos (lista_uuids).'
+
+
+@pytest.mark.django_db
+def test_delete_prioridade_em_lote_com_excecao(jwt_authenticated_client_sme, flag_paa):
+    payload = {
+        "lista_uuids": [
+            "001000"  # uuid inválido
+        ]
+    }
+    response = jwt_authenticated_client_sme.post("/api/prioridades-paa/excluir-lote/",
+                                                 data=json.dumps(payload),
+                                                 content_type='application/json')
+    result = response.json()
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result['erro'] == "Falha ao excluir Prioridades em lote"

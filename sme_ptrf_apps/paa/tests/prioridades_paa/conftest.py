@@ -28,7 +28,9 @@ def acao_pdde():
 
 @pytest.fixture
 def prioridade_paa_ptrf_custeio(paa, acao_associacao, especificacao_material_servico, tipo_custeio):
+    import uuid
     return baker.make('PrioridadePaa',
+                      uuid=uuid.uuid4(),
                       paa=paa,
                       prioridade=1,
                       recurso=RecursoOpcoesEnum.PTRF.name,
