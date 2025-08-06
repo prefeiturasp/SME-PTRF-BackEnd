@@ -1,172 +1,153 @@
 pipeline {
-    environment {
-      branchname =  env.BRANCH_NAME.toLowerCase()
-      kubeconfig = getKubeconf(env.branchname)
-      registryCredential = 'jenkins_registry'
-      namespace = "${env.branchname == 'develop' ? 'sme-ptrf-dev' : env.branchname == 'homolog' ? 'sme-ptrf-hom' : env.branchname == 'homolog-r2' ? 'sme-ptrf-hom2' : 'sme-ptrf' }"
+    agent {
+        label 'cypress-node'
     }
-    agent { kubernetes { 
-                  label 'builder'
-                  defaultContainer 'builder'
-                }
-              } 
 
+    triggers {
+        cron('30 20 * * 0-5')
+    }
 
     options {
-      buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '5'))
-      disableConcurrentBuilds()
-      skipDefaultCheckout()
+        ansiColor('xterm')
+        buildDiscarder(logRotator(numToKeepStr: '20', artifactNumToKeepStr: '20'))
+        disableConcurrentBuilds()
+        skipDefaultCheckout()
+    }
+
+    environment {
+        TEST_DIR = 'tests/api'
+        ALLURE_PATH = 'tests/api/allure-results'
+        WORKSPACE_DIR = "${env.WORKSPACE}"
     }
 
     stages {
-
-        stage('CheckOut') {
-            steps { checkout scm }
-        }
-
-        stage('Testes Lint') {
-          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython_'; branch 'homolog_' } }
-          agent {
-               kubernetes {
-                   label 'python311'
-                   defaultContainer 'python311'
-                }
-              }
-          steps {
-            checkout scm
-            sh 'pip install --user pipenv -r requirements/local.txt' //instalação das dependências
-	    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                  sh '''
-                    pwd
-		    export PATH=$PATH:/root/.local/bin
-                    python manage.py collectstatic --noinput
-		    flake8 --format=pylint --exit-zero --exclude migrations,__pycache__,manage.py,settings.py,.env,__tests__,tests --output-file=flake8-output.txt
-                    '''
-                }	  
-          }
-
-        }
-            stage('Testes Unitarios') {
-              when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython_'; branch 'homolog_' } }
-              agent {
-               kubernetes {
-                   label 'python311'
-                   defaultContainer 'python311'
-                }
-              }
-              steps {
-                   checkout scm
-                   sh 'pip install --user pipenv -r requirements/local.txt' //instalação das dependências
-                   sh '''
-                   export PATH=$PATH:/root/.local/bin
-                   python manage.py collectstatic --noinput
-		   coverage run -m pytest
-                   coverage xml
-                   '''
-              }
-              
-            }
-
-        stage('AnaliseCodigo') {
-          when { anyOf { branch 'master'; branch 'develop'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
-          agent { kubernetes { 
-                  label 'python311'
-                  defaultContainer 'builder'
-                }
-              } 
-          steps {
-                withSonarQubeEnv('sonarqube-local'){
-                  sh 'echo "[ INFO ] Iniciando analise Sonar..." && sonar-scanner \
-                  -Dsonar.projectKey=SME-PTRF-BackEnd \
-                  -Dsonar.python.coverage.reportPaths=*.xml'
-              }
-            }
-        }
-
-
-        stage('Build') {
-          when { anyOf { branch 'master'; branch 'main'; branch "story/*"; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
-          steps {
-            script {
-              imagename1 = "registry.sme.prefeitura.sp.gov.br/${env.branchname}/ptrf-backend"
-              dockerImage1 = docker.build(imagename1, "-f Dockerfile .")
-              docker.withRegistry( 'https://registry.sme.prefeitura.sp.gov.br', registryCredential ) {
-              dockerImage1.push()
-              
-              }
-              sh "docker rmi $imagename1"
-               }
-          }
-        }
-
-        stage('Deploy'){
-            when { anyOf {  branch 'master'; branch 'main'; branch 'development'; branch 'develop'; branch 'release'; branch 'homolog'; branch 'homolog-r2'; branch 'pre-release'; branch 'atualizarpython' } }
+        stage('Checkout') {
             steps {
-              script{
-                if ( env.branchname == 'main' ||  env.branchname == 'master' || env.branchname == 'homolog' || env.branchname == 'release' ) {
-
-                  withCredentials([string(credentialsId: 'aprovadores-ptrf', variable: 'aprovadores')]) {
-                    timeout(time: 24, unit: "HOURS") {
-                      input message: 'Deseja realizar o deploy?', ok: 'SIM', submitter: "${aprovadores}"
-                    }
-                  }
-                }
-                  withCredentials([file(credentialsId: "${kubeconfig}", variable: 'config')]){
-                    if( env.branchname == 'atualizarpython' ){
-			                  sh('rm -f '+"$home"+'/.kube/config')
-                        sh('cp $config '+"$home"+'/.kube/config')
-                        sh 'kubectl rollout restart deployment/sigescolapre-backend -n sme-sigescola-pre'
-                        sh 'kubectl rollout restart deployment/sigescolapre-celery -n sme-sigescola-pre'
-                        sh 'kubectl rollout restart deployment/sigescolapre-flower -n sme-sigescola-pre'
-			                  sh('rm -f '+"$home"+'/.kube/config')
-                    } else {
-			                  sh('rm -f '+"$home"+'/.kube/config')
-                        sh('cp $config '+"$home"+'/.kube/config')
-			                  sh "echo ${namespace}"
-                        sh "kubectl rollout restart deployment/ptrf-backend -n ${namespace}"
-                        sh "kubectl rollout restart deployment/ptrf-celery -n ${namespace}"
-                        sh "kubectl rollout restart deployment/ptrf-flower -n ${namespace}"
-					    }
-                  }
-                }
-              }
+                checkout scm
             }
+        }
 
-        stage('Deploy Treino'){
-              when { anyOf {  branch 'master'; branch 'main' } }
-                steps {
-                  withCredentials([file(credentialsId: "config_release", variable: 'config')]){
-	          sh('rm -f '+"$home"+'/.kube/config')
-                  sh('cp $config '+"$home"+'/.kube/config')	
-                  sh 'kubectl rollout restart deployment/treinamento-backend -n sme-ptrf-treino'
-                  sh 'kubectl rollout restart deployment/treinamento-celery -n sme-ptrf-treino'
-                  sh 'kubectl rollout restart deployment/treinamento-flower -n sme-ptrf-treino'
-		        sh('rm -f '+"$home"+'/.kube/config')
-                }
-                }
-               }
-        stage('Deploy QA'){
-              when { anyOf {  branch 'homolog' } }
-                steps {
-                  withCredentials([file(credentialsId: "config_release", variable: 'config')]){
-	          sh('rm -f '+"$home"+'/.kube/config')
-                  sh('cp $config '+"$home"+'/.kube/config')	
-                  sh 'kubectl rollout restart deployment/qa-backend -n sme-ptrf-qa'
-            sh('rm -f '+"$home"+'/.kube/config')
-                }
-                }
-               }
-      }
-      }
+        stage('Executar') {
+            steps {
+                script {
+                    withDockerRegistry(credentialsId: 'jenkins_registry', url: 'https://registry.sme.prefeitura.sp.gov.br/repository/sme-registry/') {
+                        sh '''
+                            docker pull registry.sme.prefeitura.sp.gov.br/devops/cypress-agent:14.5.2
+                            docker run \
+                                --rm \
+                                -v "$WORKSPACE/tests/api:/app" \
+                                -w /app \
+                                registry.sme.prefeitura.sp.gov.br/devops/cypress-agent:14.5.2 \
+                                sh -c "npm install && npm install cypress@14.5.2 cypress-cloud@beta && \
+                                        npm install @shelex/cypress-allure-plugin allure-mocha crypto-js@4.1.1 --save-dev && \
+                                        rm -rf allure-results/ && \
+                                        npx cypress-cloud run \
+                                            --parallel \
+                                            --browser chrome \
+                                            --headed true \
+                                            --record \
+                                            --key somekey \
+                                            --reporter mocha-allure-reporter \
+                                            --ci-build-id PTRF-BACKEND_JENKINS-BUILD-${BUILD_NUMBER} && \
+                                        chown 1001:1001 * -R
+                                        chmod 777 * -R"
+                        '''
+                    }
 
-def getKubeconf(branchName) {
-    if("main".equals(branchName)) { return "config_prd"; }
-    else if ("master".equals(branchName)) { return "config_prd"; }
-    else if ("homolog".equals(branchName)) { return "config_release"; }   
-    else if ("homolog-r2".equals(branchName)) { return "config_release"; } 
-    else if ("release".equals(branchName)) { return "config_release"; }      
-    else if ("development".equals(branchName)) { return "config_release"; }    
-    else if ("develop".equals(branchName)) { return "config_release"; }    
-    else if ("pre-release".equals(branchName)) { return "config_prd"; }
-    else if ("atualizarpython".equals(branchName)) { return "config_prd"; }
+                    echo "FIM DOS TESTES!"
+                }
+            }
+        }
+
+        stage('Generate Allure Report') {
+            steps {
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
+                        def hasResults = fileExists("${ALLURE_PATH}") && sh(script: "ls -A ${ALLURE_PATH} | wc -l", returnStdout: true).trim() != "0"
+
+                        if (hasResults) {
+                            echo "Gerando relatório Allure..."
+                            sh """
+                                export JAVA_HOME=\$(dirname \$(dirname \$(readlink -f \$(which java)))); \
+                                export PATH=\$JAVA_HOME/bin:/usr/local/bin:\$PATH; \
+                                allure generate ${ALLURE_PATH} --clean --output tests/api/allure-report; \
+                                cd tests/api; \
+                                zip -r allure-results-${BUILD_NUMBER}-\$(date +"%d-%m-%Y").zip allure-results
+                            """
+                        } else {
+                            echo "⚠️ Diretório ${ALLURE_PATH} está ausente ou vazio. Pulando geração do relatório."
+                        }
+                    }
+                }
+            }
+        }
     }
+
+    post {
+        always {
+            script {
+                withDockerRegistry(credentialsId: 'jenkins_registry', url: 'https://registry.sme.prefeitura.sp.gov.br/repository/sme-registry/') {
+                    sh '''
+                        docker pull registry.sme.prefeitura.sp.gov.br/devops/cypress-agent:14.5.2
+                        docker run \
+                            --rm \
+                            -v "$WORKSPACE:/app" \
+                            -w /app \
+                            registry.sme.prefeitura.sp.gov.br/devops/cypress-agent:14.5.2 \
+                            sh -c "rm -rf package-lock.json node_modules/ || true && chown 1001:1001 * -R || true  && chmod 777 * -R || true"
+                    '''
+                }
+                
+                if (fileExists("${ALLURE_PATH}") && sh(script: "ls -A ${ALLURE_PATH} | wc -l", returnStdout: true).trim() != "0") {
+                    allure includeProperties: false, jdk: '', results: [[path: "${ALLURE_PATH}"]]
+                } else {
+                    echo "⚠️ Resultados do Allure não encontrados ou vazios, plugin Allure não será acionado."
+                }
+
+                def zipExists = sh(script: "ls tests/api/allure-results-*.zip 2>/dev/null || true", returnStdout: true).trim()
+                if (zipExists) {
+                    archiveArtifacts artifacts: 'tests/api/allure-results-*.zip', fingerprint: true
+                } else {
+                    echo "⚠️ Nenhum .zip de Allure encontrado para arquivamento. Pulando archiveArtifacts."
+                }
+
+                cleanWs(
+                    patterns: [[pattern: '**/allure-results-*.zip', type: 'EXCLUDE']]
+                )
+            }
+        }
+
+        success {
+            sendTelegram("☑️ Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Success \nLog: \n${env.BUILD_URL}allure")
+        }
+
+        unstable {
+            sendTelegram("💣 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Unstable \nLog: \n${env.BUILD_URL}allure")
+        }
+
+        failure {
+            sendTelegram("💥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Failure \nLog: \n${env.BUILD_URL}allure")
+        }
+
+        aborted {
+            sendTelegram("😥 Job Name: ${JOB_NAME} \nBuild: ${BUILD_DISPLAY_NAME} \nStatus: Aborted \nLog: \n${env.BUILD_URL}console")
+        }
+    }
+}
+
+def sendTelegram(message) {
+    def encodedMessage = URLEncoder.encode(message, "UTF-8")
+    withCredentials([
+        string(credentialsId: 'telegramTokensigpae', variable: 'TOKEN'),
+        string(credentialsId: 'telegramChatIdsigpae', variable: 'CHAT_ID')
+    ]) {
+        response = httpRequest (
+            consoleLogResponseBody: true,
+            contentType: 'APPLICATION_JSON',
+            httpMode: 'GET',
+            url: "https://api.telegram.org/bot${TOKEN}/sendMessage?text=${encodedMessage}&chat_id=${CHAT_ID}&disable_web_page_preview=true",
+            validResponseCodes: '200'
+        )
+        return response
+    }
+}
