@@ -22,6 +22,7 @@
 @page {
   size: A4 landscape;
   margin: 3cm -2mm 2cm -2mm;
+  background-color: red;
   padding: 0;
   @top-center {
     content: element(heading);
@@ -31,7 +32,7 @@
     content: counter(page) "/" counter(pages);
     font-size: 9pt;
     padding: 0 1cm;
-    margin: 1.4cm 0;
+    margin: 1.5cm 0;
     font-weight: bold;
     font-style: italic;
   }
@@ -68,6 +69,7 @@ body {
   font-family: Roboto;
   font-style: normal;
   margin: 0;
+  background-color: blue;
 }
 
 html body section#cabecalho,
@@ -197,9 +199,9 @@ html body .conteudo .tabela-resumo-por-acao thead th.sem-borda {
 }
 
 /*Resolve o Problema de quebrar a linha em 02 páginas!!*/
-html body .conteudo .nao-quebra-linha tbody tr {
+/* html body .conteudo .nao-quebra-linha tbody tr {
   break-after: avoid !important;
-}
+} */
 
 html body .conteudo .tabela-resumo-por-acao tbody td.sem-borda {
   border: none !important;
@@ -219,9 +221,12 @@ html body .conteudo .tabela-resumo-por-acao tbody td.fundo-cinza {
 html body .conteudo .tabela-resumo-por-acao tbody td {
   vertical-align: middle;
   padding: 2px 4px;
-  word-wrap: break-word !important;
-  /* word-break: break-all !important; */
-  /* width: auto; */
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
+
+  page-break-inside: auto;
+  break-inside: auto;
 }
 
 .tabela-bloco-4 {
