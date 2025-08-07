@@ -5,6 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
+from django.http import Http404
+from django.core.exceptions import ObjectDoesNotExist
 
 import django_filters
 from waffle.mixins import WaffleFlagMixin
@@ -169,7 +171,7 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
                 status=status.HTTP_200_OK
             )
             
-        except AcaoPdde.DoesNotExist:
+        except (Http404, ObjectDoesNotExist, AcaoPdde.DoesNotExist):
             return Response(
                 {"detail": "Ação PDDE não encontrada."},
                 status=status.HTTP_404_NOT_FOUND
