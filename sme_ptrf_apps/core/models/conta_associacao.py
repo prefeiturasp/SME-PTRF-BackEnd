@@ -461,6 +461,17 @@ class ContaAssociacao(ModeloBase):
 
         periodo_da_data = Periodo.da_data(self.data_inicio)
 
+        if not periodo_da_data:
+            primeiro_periodo = Periodo.objects.order_by('data_inicio_realizacao_despesas').first()
+            if primeiro_periodo and self.data_inicio < primeiro_periodo.data_inicio_realizacao_despesas:
+                return True
+
+            ultimo_periodo = Periodo.objects.order_by('-data_inicio_realizacao_despesas').first()
+            if ultimo_periodo and self.data_inicio > ultimo_periodo.data_fim_realizacao_despesas:
+                return False
+
+            return False
+
         if periodo_da_data and periodo.data_fim_realizacao_despesas:
             return self.data_inicio <= periodo.data_fim_realizacao_despesas
 
