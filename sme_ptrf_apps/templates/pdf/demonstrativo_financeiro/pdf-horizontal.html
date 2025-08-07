@@ -158,7 +158,7 @@
 
 
       {% for acoes in dados.resumo_por_acao.resumo_acoes %}
-        <tbody style="border-top: none !important;">
+        <tbody style="border-top: none !important;" class="nao-quebra-linha">
         <tr>
           <td rowSpan="6"><strong>{{ acoes.acao_associacao }}</strong></td>
           <td rowSpan="2" style="width: 2%; padding: 5px 0 5px 5px">C</td>
@@ -217,7 +217,7 @@
         </tbody>
       {% endfor %}
 
-      <tbody style="border-top: none !important;">
+      <tbody style="border-top: none !important;" class="nao-quebra-linha">
       <tr>
         <td rowSpan="6" class="total"><strong>TOTAL GERAL***</strong></td>
         <td rowSpan="2" style="width: 2%; padding: 5px 0 5px 5px" class="total">C</td>
@@ -505,7 +505,7 @@
       </thead>
 
       {% for despesa in dados.despesas_nao_demonstradas.linhas %}
-        <tbody>
+        <tbody class="nao-quebra-linha">
 
         <tr>
           {% if despesa.despesas_impostos|length > 0 %}
