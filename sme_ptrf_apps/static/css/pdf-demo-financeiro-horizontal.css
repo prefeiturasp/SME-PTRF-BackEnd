@@ -22,7 +22,6 @@
 @page {
   size: A4 landscape;
   margin: 3cm -2mm 2cm -2mm;
-  background-color: red;
   padding: 0;
   @top-center {
     content: element(heading);
@@ -69,7 +68,6 @@ body {
   font-family: Roboto;
   font-style: normal;
   margin: 0;
-  background-color: blue;
 }
 
 html body section#cabecalho,
