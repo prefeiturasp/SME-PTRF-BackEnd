@@ -9,7 +9,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter
 import django_filters
 from waffle.mixins import WaffleFlagMixin
 
-from sme_ptrf_apps.paa.models import AcaoPdde, ReceitaPrevistaPdde
+from sme_ptrf_apps.paa.models import AcaoPdde, ReceitaPrevistaPdde, Paa, PeriodoPaa
 from ..serializers.acao_pdde_serializer import AcaoPddeSerializer
 from ..serializers.receita_prevista_pdde_serializer import ReceitasPrevistasPDDEValoresSerializer
 
@@ -42,7 +42,7 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated, PermissaoAPIApenasSmeComLeituraOuGravacao]
     lookup_field = 'uuid'
-    queryset = AcaoPdde.objects.all().order_by('nome')
+    queryset = AcaoPdde.objects.all().filter(status=AcaoPdde.STATUS_ATIVA).order_by('nome')
     serializer_class = AcaoPddeSerializer
     pagination_class = CustomPagination
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
@@ -135,3 +135,47 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
             # ao atualizar uma Ação PDDE
             pass
         return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """ Método para inativar uma Ação PDDE com validações específicas """
+        try:
+            obj = self.get_object()
+
+            # Verificar se a ação está sendo usada na PAA mais atual (período vigente)
+            periodo_vigente = PeriodoPaa.periodo_vigente()
+            
+            if periodo_vigente:
+                # Verificar se existe PAA para o período vigente
+                paa_vigente = Paa.objects.filter(periodo_paa=periodo_vigente).first()
+                
+                if paa_vigente:
+                    # Verificar se a ação está sendo usada em receitas previstas da PAA vigente
+                    receitas_vinculadas_paa_vigente = ReceitaPrevistaPdde.objects.filter(
+                        acao_pdde=obj,
+                        paa=paa_vigente
+                    ).exists()
+                    
+                    if receitas_vinculadas_paa_vigente:
+                        return Response(
+                            {"detail": "Esta ação PDDE não pode ser excluída porque está sendo utilizada em um Plano Anual de Atividades (PAA)."},
+                            status=status.HTTP_409_CONFLICT
+                        )
+
+            obj.status = AcaoPdde.STATUS_INATIVA
+            obj.save()
+            
+            return Response(
+                {"detail": "Ação PDDE excluída com sucesso."},
+                status=status.HTTP_200_OK
+            )
+            
+        except AcaoPdde.DoesNotExist:
+            return Response(
+                {"detail": "Ação PDDE não encontrada."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"detail": f"Erro ao inativar Ação PDDE: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
