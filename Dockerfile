@@ -1,4 +1,4 @@
-FROM python:3.12.9-bookworm
+FROM python:3.12.9-bullseye
 ENV PYTHONUNBUFFERED=1
 ADD . /code
 WORKDIR /code
