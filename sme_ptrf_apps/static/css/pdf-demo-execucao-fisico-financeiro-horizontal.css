@@ -154,12 +154,6 @@ html body .conteudo .tabela-relatorio-dre thead th.sem-borda {
   border: none !important;
   width: auto;
 }
-
-/*Resolve o Problema de quebrar a linha em 02 páginas!!*/
-html body .conteudo #bloco-4 .nao-quebra-linha tbody tr, html body .conteudo #bloco-2 .nao-quebra-linha tbody tr {
-  break-after: avoid !important;
-}
-
 html body .conteudo .tabela-relatorio-dre tbody td.sem-borda {
   border: none !important;
   width: auto;
@@ -187,12 +181,30 @@ html body .conteudo .tabela-assinaturas thead th.fundo-th-cinza {
   background-color: #F5F6F8 !important;
 }
 
+/* html body .conteudo #bloco-4 .nao-quebra-linha tbody tr,
+html body .conteudo #bloco-2 .nao-quebra-linha tbody tr {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+} */
+
 html body .conteudo .tabela-relatorio-dre tbody td {
-  vertical-align: middle;
+  /* vertical-align: middle;
   padding: 2px 5px;
   word-wrap: break-word !important;
   word-break: break-all !important;
-  width: auto;
+  width: auto; */
+  vertical-align: middle;
+  padding: 2px 5px;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+}
+
+html body .conteudo .tabela-relatorio-dre tbody th {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
 }
 
 html body .conteudo .tabela-relatorio-dre thead th.separacao-de-colunas-da-tabela, html body .conteudo .tabela-relatorio-dre tbody td.separacao-de-colunas-da-tabela{
