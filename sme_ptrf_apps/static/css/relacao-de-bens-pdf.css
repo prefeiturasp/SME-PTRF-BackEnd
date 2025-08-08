@@ -6,6 +6,19 @@
   src: url(../fonts/Roboto-Regular.ttf);
 }
 
+@font-face {
+  font-family: Roboto;
+  font-weight: 700;
+  src: url(../fonts/Roboto-Bold.ttf);
+}
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  font-style: italic;
+  src: url(../fonts/Roboto-Italic.ttf);
+}
+
 @page {
   size: A4 landscape;
   padding: 1cm 0 0 0;
@@ -160,8 +173,9 @@ html body .conteudo .tabela-relacao-de-bens tbody td.fundo-cinza {
 html body .conteudo .tabela-relacao-de-bens tbody td {
   vertical-align: middle;
   padding: 2px 5px;
-  word-wrap: break-word !important;
-  word-break: break-all !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
 }
 
 .data-geracao{
