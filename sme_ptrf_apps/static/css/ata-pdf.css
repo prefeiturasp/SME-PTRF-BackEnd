@@ -233,4 +233,5 @@ header {
 
 html body .conteudo .nao-quebra-linha tbody tr {
   break-after: avoid !important;
+  break-inside: avoid !important;
 }

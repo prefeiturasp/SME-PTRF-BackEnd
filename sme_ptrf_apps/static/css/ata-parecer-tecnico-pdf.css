@@ -6,6 +6,19 @@
   src: url(../fonts/Roboto-Regular.ttf);
 }
 
+@font-face {
+  font-family: Roboto;
+  font-weight: 700;
+  src: url(../fonts/Roboto-Bold.ttf);
+}
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  font-style: italic;
+  src: url(../fonts/Roboto-Italic.ttf);
+}
+
 @page {
   size: A4 landscape;
   margin: 3cm -2mm 2cm -2mm;
@@ -38,7 +51,8 @@
 }
 
 @media print {
-  body, page {
+  body,
+  page {
     margin: 0;
   }
 }
@@ -55,8 +69,9 @@ body {
   font-style: normal;
 }
 
-html body section#cabecalho, header {
-  background: #EEEEEE;
+html body section#cabecalho,
+header {
+  background: #eeeeee;
   margin: 0;
   padding: 0 0 0.5cm 0.5cm;
   width: 100%;
@@ -69,17 +84,19 @@ header {
   margin: 0 0 0.7cm 3.5cm;
 }
 
-html body section#cabecalho .titulo, html body section#cabecalho .subtitulo, html body header .subtitulo {
+html body section#cabecalho .titulo,
+html body section#cabecalho .subtitulo,
+html body header .subtitulo {
   font-weight: bold;
   color: #0c0c0c;
   font-family: Roboto, serif;
 }
 
-html body section#cabecalho .subtitulo, html body header .subtitulo {
+html body section#cabecalho .subtitulo,
+html body header .subtitulo {
   font-family: Roboto, serif;
   font-style: normal;
 }
-
 
 #nome-associacao-rodape {
   position: running(nome-associacao);
@@ -128,16 +145,16 @@ html body section#cabecalho .subtitulo, html body header .subtitulo {
 }
 
 .borda-box-cabecalho-left {
-  border-top: solid 1px #A4A4A4;
-  border-bottom: solid 1px #A4A4A4;
-  border-left: solid 1px #A4A4A4;
+  border-top: solid 1px #a4a4a4;
+  border-bottom: solid 1px #a4a4a4;
+  border-left: solid 1px #a4a4a4;
 }
 
 .borda-box-cabecalho-right {
-  border-top: solid 1px #A4A4A4;
-  border-bottom: solid 1px #A4A4A4;
-  border-left: solid 1px #A4A4A4;
-  border-right: solid 1px #A4A4A4;
+  border-top: solid 1px #a4a4a4;
+  border-bottom: solid 1px #a4a4a4;
+  border-left: solid 1px #a4a4a4;
+  border-right: solid 1px #a4a4a4;
 }
 
 .conteudo {
@@ -158,8 +175,11 @@ html body .conteudo .tabela-quebra-palavra {
   width: auto;
 }
 
-html body .conteudo .tabela-resumo-por-acao thead th, html body .conteudo .tabela-resumo-por-acao thead th.align-top, html body .conteudo .tabela-resumo-por-acao thead th.sem-borda, html body .conteudo .tabela-resumo-por-acao tbody td.total {
-  background-color: #F5F6F8 !important;
+html body .conteudo .tabela-resumo-por-acao thead th,
+html body .conteudo .tabela-resumo-por-acao thead th.align-top,
+html body .conteudo .tabela-resumo-por-acao thead th.sem-borda,
+html body .conteudo .tabela-resumo-por-acao tbody td.total {
+  background-color: #f5f6f8 !important;
   font-weight: normal !important;
   vertical-align: middle;
   width: auto;
@@ -175,11 +195,9 @@ html body .conteudo .tabela-resumo-por-acao thead th.sem-borda {
   width: auto;
 }
 
-/*Resolve o Problema de quebrar a linha em 02 páginas!!*/
-html body .conteudo .nao-quebra-linha tbody tr {
-  break-after: avoid !important;
+.nao-quebra-linha {
+  break-inside: avoid !important;
 }
-
 
 html body .conteudo .tabela-resumo-por-acao tbody td.sem-borda {
   border: none !important;
@@ -192,16 +210,16 @@ html body .conteudo .tabela-resumo-por-acao tbody td.sem-borda-direita {
 }
 
 html body .conteudo .tabela-resumo-por-acao tbody td.fundo-cinza {
-  background-color: #DADADA !important;
+  background-color: #dadada !important;
   width: auto;
 }
 
 html body .conteudo .tabela-resumo-por-acao tbody td {
   vertical-align: middle;
   padding: 2px 5px;
-  word-wrap: break-word !important;
-  word-break: break-all !important;
-  width: auto;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
 }
 
 .tabela-bloco-4 {
@@ -214,57 +232,58 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
 
 /*Nova implementações*/
 .texto-verde {
-  color: #2B7D83;
+  color: #2b7d83;
 }
 
 .titulo-tabelas {
   font-size: 12px;
-  color: #42474A;
+  color: #42474a;
 }
 
 .titulo-tabelas-aprovadas {
-  color: #297805
+  color: #297805;
 }
 
 .titulo-tabelas-reprovadas {
-    color: #b40c02;
+  color: #b40c02;
 }
 
 .titulo-assinaturas {
-    color: #42474A;
+  color: #42474a;
 }
 
 html body .conteudo .tabela-status-pc tbody:nth-child(odd) {
-    background-color: #F3F3F3 !important;
+  background-color: #f3f3f3 !important;
 }
 
 .box-assinaturas {
-    border: 1px solid #A4A4A4;
-    border-radius: 4px;
-    font-size: 12px;
-    color: #42474A;
+  border: 1px solid #a4a4a4;
+  border-radius: 4px;
+  font-size: 12px;
+  color: #42474a;
 }
 
 .linha-assinatura {
-    border-top: 1px solid #A4A4A4 !important;
+  border-top: 1px solid #a4a4a4 !important;
 }
 
 html body .conteudo .tabela-status-pc {
   font-size: 10px;
 }
 
-html body .conteudo .tabela-status-pc thead tr th, html body .conteudo .tabela-assinaturas thead tr th {
-  background-color: #F5F6F8 !important;
+html body .conteudo .tabela-status-pc thead tr th,
+html body .conteudo .tabela-assinaturas thead tr th {
+  background-color: #f5f6f8 !important;
   font-size: 10px;
 }
-html body .conteudo .tabela-status-pc tbody td, html body .conteudo .tabela-status-pc tbody td.fundo-cinza {
+html body .conteudo .tabela-status-pc tbody td,
+html body .conteudo .tabela-status-pc tbody td.fundo-cinza {
   vertical-align: middle;
   padding: 2px 5px;
 }
 
-
 html body .conteudo .tabela-status-pc tbody td.fundo-cinza {
-  background-color: #DADADA !important;
+  background-color: #dadada !important;
 }
 
 /* Resolve a quebra de colunas */
