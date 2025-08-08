@@ -3,7 +3,6 @@
 {% load formata_string %}
 
 {% if dados.dados_lancamentos %}
-  <article class="mt-4">
     {% for conta in dados.dados_lancamentos %}
       <table class="table table-bordered tabela-resumo-por-acao nao-quebra-linha">
         <thead class="">
@@ -114,5 +113,4 @@
         {% endfor %} {% comment %}End for lancamento{% endcomment %}
       </table>
     {% endfor %} {% comment %}End for conta{% endcomment %}
-  </article>
 {% endif %}
