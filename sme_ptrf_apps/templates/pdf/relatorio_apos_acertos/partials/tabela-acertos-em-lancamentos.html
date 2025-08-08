@@ -66,11 +66,11 @@
                     <td rowspan="1" class="sem-borda pb-4"></td>
                     <td colspan="5" class="sem-borda border-bottom pb-4">
 
-                      <div class="row mt-2">
-                          <div class='col-2'>
+                      <div class="d-flex mt-2">
+                          <div class='col-1 pr-0 pl-0'>
                               <span class="item font-12"><strong>Item {{ acerto.ordem }}</strong></span>
                           </div>
-
+                          
                           <div class='col-8'>
                             <p class="font-12 mb-0"><strong>Tipo de acerto</strong></p>
                             <p class="font-12">{{ acerto.tipo_acerto.nome }}</p>
@@ -122,7 +122,7 @@
                             {% endif %}
 
                           </div>
-
+                          
                           <div class='col-3'>
                             <p class="font-12 mb-0"><strong>Status</strong></p>
                             {% if acerto.status_realizacao == 'PENDENTE' %}
