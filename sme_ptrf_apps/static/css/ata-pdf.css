@@ -6,6 +6,19 @@
   src: url(../fonts/Roboto-Regular.ttf);
 }
 
+@font-face {
+  font-family: Roboto;
+  font-weight: 700;
+  src: url(../fonts/Roboto-Bold.ttf);
+}
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  font-style: italic;
+  src: url(../fonts/Roboto-Italic.ttf);
+}
+
 @page {
   size: A4;
   padding: 1cm 0 0 0;
@@ -40,20 +53,24 @@ html {
   font-size: 10pt;
 }
 
-html body section#cabecalho, header {
-  background: #EEEEEE;
+html body section#cabecalho,
+header {
+  background: #eeeeee;
   width: 215mm;
   padding: 1cm 1cm 0.5cm 0.5cm;
   margin: 0;
 }
 
-html body section#cabecalho .titulo, html body section#cabecalho .subtitulo, html body header .subtitulo {
+html body section#cabecalho .titulo,
+html body section#cabecalho .subtitulo,
+html body header .subtitulo {
   font-weight: bold;
   color: #0c0c0c;
   font-family: Roboto, serif;
 }
 
-html body section#cabecalho .subtitulo, html body header .subtitulo {
+html body section#cabecalho .subtitulo,
+html body header .subtitulo {
   font-family: Roboto, serif;
   font-style: normal;
 }
@@ -67,7 +84,7 @@ header {
 }
 
 .border-rigth-logo {
-  border-right: 1px solid #A4A4A4;
+  border-right: 1px solid #a4a4a4;
 }
 
 .font-18 {
@@ -121,16 +138,16 @@ header {
   width: calc(100% / 5) !important;
 }
 
-.tabela-despesas-com-pagamento-antecipado{
+.tabela-despesas-com-pagamento-antecipado {
   width: 100% !important;
 }
 
 .tabela-acoes .td-livre-aplicacao-ausente {
-  background-color: #E5E5E5 !important;
+  background-color: #e5e5e5 !important;
 }
 
 .tabela-totais .td-livre-aplicacao-ausente {
-  background-color: #E5E5E5 !important;
+  background-color: #e5e5e5 !important;
 }
 
 .titulo-visualizacao-da-ata {
@@ -138,40 +155,49 @@ header {
   font-weight: bold;
 }
 
-.titulo-tabela-acoes, .titulo-tabela-despesas-com-pagamento-antecipado {
-  color: #00585E;
+.titulo-tabela-acoes,
+.titulo-tabela-despesas-com-pagamento-antecipado {
+  color: #00585e;
   font-weight: bold;
   font-size: 11px;
 }
 
-.tabela-acoes, .tabela-totais, .tabela-devolucoes-ao-tesouro, .tabela-despesas-com-pagamento-antecipado{
+.tabela-acoes,
+.tabela-totais,
+.tabela-devolucoes-ao-tesouro,
+.tabela-despesas-com-pagamento-antecipado {
   max-width: 100%;
   color: #000 !important;
   font-size: 8pt !important;
 }
 
-.tabela-acoes th, .tabela-assinaturas th, .tabela-devolucoes-ao-tesouro th, .tabela-despesas-com-pagamento-antecipado th{
+.tabela-acoes th,
+.tabela-assinaturas th,
+.tabela-devolucoes-ao-tesouro th,
+.tabela-despesas-com-pagamento-antecipado th {
   padding: 5px !important;
-  background-color: #F5F6F8 !important;
+  background-color: #f5f6f8 !important;
 }
 
-.tabela-totais th{
-    padding: 5px !important;
-  background-color: #2B7D83 !important;
+.tabela-totais th {
+  padding: 5px !important;
+  background-color: #2b7d83 !important;
   color: #fff !important;
 }
 
-.tabela-devolucoes-ao-tesouro th{
-  background-color: #A4A4A4 !important;
-  color: #fff !important;;
+.tabela-devolucoes-ao-tesouro th {
+  background-color: #a4a4a4 !important;
+  color: #fff !important;
 }
 
-.tabela-acoes td, .tabela-totais td, .tabela-devolucoes-ao-tesouro td{
+.tabela-acoes td,
+.tabela-totais td,
+.tabela-devolucoes-ao-tesouro td {
   padding: 3px !important;
 }
-.tr-titulo{
-  background-color: #E0F7F9;
- color: #000;
+.tr-titulo {
+  background-color: #e0f7f9;
+  color: #000;
 }
 
 .texto-despesas-titulo {
@@ -181,35 +207,30 @@ header {
 }
 
 .texto-despesas-valor {
-   font-family: Roboto, serif;
+  font-family: Roboto, serif;
   font-style: normal;
   color: #00585e;
   font-weight: bold;
 }
 
-
-
-#parecer-do-conselho-fiscal-quebra-de-pagina{
-  page-break-before: always
+#parecer-do-conselho-fiscal-quebra-de-pagina {
+  page-break-before: always;
 }
 
-.titulo-membros-conselho-fiscal{
-  color: #2B7D83;
+.titulo-membros-conselho-fiscal {
+  color: #2b7d83;
   font-weight: bold;
   text-transform: uppercase;
 }
 
-.tabela-membros-conselho-fiscal thead{
+.tabela-membros-conselho-fiscal thead {
   background-color: #0c4309;
 }
 
-.texto-justificado{
+.texto-justificado {
   text-align: justify;
 }
 
 html body .conteudo .nao-quebra-linha tbody tr {
   break-after: avoid !important;
 }
-
-
-
