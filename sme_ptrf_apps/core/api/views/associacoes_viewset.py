@@ -14,7 +14,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from weasyprint import HTML
+from weasyprint import HTML, CSS
 
 from sme_ptrf_apps.paa.models import PeriodoPaa
 from sme_ptrf_apps.paa.api.serializers import PaaSerializer
@@ -557,7 +557,7 @@ class AssociacoesViewSet(ModelViewSet):
     @action(detail=True, methods=['get'], url_path='exportar-pdf',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def exportarpdf(self, _, uuid=None):
-
+        from django.contrib.staticfiles.storage import staticfiles_storage
         data_atual = datetime.date.today().strftime("%d-%m-%Y")
         usuario_logado = self.request.user
         associacao = Associacao.by_uuid(uuid)
@@ -568,7 +568,8 @@ class AssociacoesViewSet(ModelViewSet):
             'associacao': associacao,
             'contas': contas,
             'dataAtual': data_atual,
-            'usuarioLogado': usuario_logado
+            'usuarioLogado': usuario_logado,
+            'base_static_url': staticfiles_storage.location
         }
 
         if flag_is_active(self.request, "historico-de-membros"):
@@ -580,7 +581,8 @@ class AssociacoesViewSet(ModelViewSet):
             request=self.request  # Inclua o request aqui
         ).encode(encoding="UTF-8")
 
-        html_pdf = HTML(string=html_string, base_url=self.request.build_absolute_uri()).write_pdf()
+        html_pdf = HTML(string=html_string, base_url=staticfiles_storage.location).write_pdf(
+            stylesheets=[CSS(staticfiles_storage.location + '/css/pdf.css')])
 
         response = HttpResponse(
             html_pdf,
