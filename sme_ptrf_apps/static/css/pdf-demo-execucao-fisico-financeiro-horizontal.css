@@ -26,7 +26,7 @@
   @top-center {
     content: element(heading);
   }
-    @bottom-right {
+  @bottom-right {
     color: #000;
     content: counter(page) "/" counter(pages);
     font-size: 9pt;
@@ -51,7 +51,8 @@
 }
 
 @media print {
-  body, page {
+  body,
+  page {
     margin: 0;
   }
 }
@@ -68,8 +69,9 @@ body {
   font-style: normal;
 }
 
-html body section#cabecalho, header {
-  background: #EEEEEE;
+html body section#cabecalho,
+header {
+  background: #eeeeee;
   margin: 0;
   padding: 0 0 0.5cm 0.5cm;
   width: 100%;
@@ -82,13 +84,16 @@ header {
   margin: 0 0 0.7cm 3.5cm;
 }
 
-html body section#cabecalho .titulo, html body section#cabecalho .subtitulo, html body header .subtitulo {
+html body section#cabecalho .titulo,
+html body section#cabecalho .subtitulo,
+html body header .subtitulo {
   font-weight: bold;
   color: #0c0c0c;
   font-family: Roboto, serif;
 }
 
-html body section#cabecalho .subtitulo, html body header .subtitulo {
+html body section#cabecalho .subtitulo,
+html body header .subtitulo {
   font-family: Roboto, serif;
   font-style: normal;
 }
@@ -104,16 +109,16 @@ html body section#cabecalho .subtitulo, html body header .subtitulo {
 }
 
 .borda-box-cabecalho-left {
-  border-top: solid 1px #A4A4A4;
-  border-bottom: solid 1px #A4A4A4;
-  border-left: solid 1px #A4A4A4;
+  border-top: solid 1px #a4a4a4;
+  border-bottom: solid 1px #a4a4a4;
+  border-left: solid 1px #a4a4a4;
 }
 
 .borda-box-cabecalho-right {
-  border-top: solid 1px #A4A4A4;
-  border-bottom: solid 1px #A4A4A4;
-  border-left: solid 1px #A4A4A4;
-  border-right: solid 1px #A4A4A4;
+  border-top: solid 1px #a4a4a4;
+  border-bottom: solid 1px #a4a4a4;
+  border-left: solid 1px #a4a4a4;
+  border-right: solid 1px #a4a4a4;
 }
 
 .conteudo {
@@ -121,7 +126,7 @@ html body section#cabecalho .subtitulo, html body header .subtitulo {
   width: 280mm;
   font-family: Roboto, serif;
   font-style: normal;
-  color: #42474A !important;
+  color: #42474a !important;
 }
 
 .titulo {
@@ -138,8 +143,11 @@ html body .conteudo .tabela-assinaturas {
   font-size: 7pt !important;
 }
 
-html body .conteudo .tabela-relatorio-dre thead th, html body .conteudo .tabela-relatorio-dre thead th.align-top, html body .conteudo .tabela-relatorio-dre thead th.sem-borda, html body .conteudo .tabela-relatorio-dre tbody td.total {
-  background-color: #F5F6F8 !important;
+html body .conteudo .tabela-relatorio-dre thead th,
+html body .conteudo .tabela-relatorio-dre thead th.align-top,
+html body .conteudo .tabela-relatorio-dre thead th.sem-borda,
+html body .conteudo .tabela-relatorio-dre tbody td.total {
+  background-color: #f5f6f8 !important;
   font-weight: normal !important;
   vertical-align: middle;
   width: auto;
@@ -154,12 +162,6 @@ html body .conteudo .tabela-relatorio-dre thead th.sem-borda {
   border: none !important;
   width: auto;
 }
-
-/*Resolve o Problema de quebrar a linha em 02 páginas!!*/
-html body .conteudo #bloco-4 .nao-quebra-linha tbody tr, html body .conteudo #bloco-2 .nao-quebra-linha tbody tr {
-  break-after: avoid !important;
-}
-
 html body .conteudo .tabela-relatorio-dre tbody td.sem-borda {
   border: none !important;
   width: auto;
@@ -171,31 +173,43 @@ html body .conteudo .tabela-relatorio-dre tbody td.sem-borda-direita {
 }
 
 html body .conteudo .tabela-relatorio-dre tbody td.fundo-cinza {
-  background-color: #F5F6F8 !important;
+  background-color: #f5f6f8 !important;
   width: auto;
 }
 
 html body .conteudo .tabela-relatorio-dre thead th.fundo-th-cinza {
-  background-color: #F5F6F8 !important;
+  background-color: #f5f6f8 !important;
 }
 
-html body .conteudo .tabela-relatorio-dre thead th.th-fundo-branco, html body .conteudo .tabela-relatorio-dre tbody td.td-fundo-branco {
-  background-color: #FFFFFF !important;
+html body .conteudo .tabela-relatorio-dre thead th.th-fundo-branco,
+html body .conteudo .tabela-relatorio-dre tbody td.td-fundo-branco {
+  background-color: #ffffff !important;
 }
 
 html body .conteudo .tabela-assinaturas thead th.fundo-th-cinza {
-  background-color: #F5F6F8 !important;
+  background-color: #f5f6f8 !important;
 }
 
 html body .conteudo .tabela-relatorio-dre tbody td {
   vertical-align: middle;
   padding: 2px 5px;
-  word-wrap: break-word !important;
-  word-break: break-all !important;
-  width: auto;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
 }
 
-html body .conteudo .tabela-relatorio-dre thead th.separacao-de-colunas-da-tabela, html body .conteudo .tabela-relatorio-dre tbody td.separacao-de-colunas-da-tabela{
+html
+  body
+  .conteudo
+  .tabela-relatorio-dre
+  thead
+  th.separacao-de-colunas-da-tabela,
+html
+  body
+  .conteudo
+  .tabela-relatorio-dre
+  tbody
+  td.separacao-de-colunas-da-tabela {
   width: 5px !important;
   border: none !important;
   background-color: #ffffff !important;
@@ -252,4 +266,8 @@ html body .conteudo .tabela-relatorio-dre thead th.separacao-de-colunas-da-tabel
   transform: translate(-50%, -50%);
   opacity: 0.5;
   z-index: 99;
+}
+
+.nao-quebra-linha {
+  break-inside: avoid !important;
 }
