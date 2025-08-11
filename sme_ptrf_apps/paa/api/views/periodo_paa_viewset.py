@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
+from django.http import Http404
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import (
@@ -37,7 +38,7 @@ class PeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     def destroy(self, request, *args, **kwargs):    
         try:
             # Obtém o período que será excluído
-            periodo = self.get_object()
+            periodo = self.get_object()                
             tem_paa_vinculado = Paa.objects.filter(periodo_paa=periodo).exists()
             
             # Verifica se o período está vinculado a algum PAA
@@ -52,6 +53,13 @@ class PeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
             # Se não estiver vinculado, exclui normalmente
             return super().destroy(request, *args, **kwargs)
 
+        except Http404:
+            return Response(
+                {
+                    "mensagem": "Período não encontrado."
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
         except Exception as e:
             return Response(
                 {"mensagem": str(e)},
