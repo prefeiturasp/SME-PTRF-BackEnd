@@ -67,7 +67,7 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
             raise serializers.ValidationError({"non_field_errors": "PAA não foi informado."})
 
         # Lista ações PDDE com os totais de receitas previstas PDDE de acordo com o PAA
-        qs_acoes_pdde = AcaoPdde.objects.all()
+        qs_acoes_pdde = AcaoPdde.objects.filter(status=AcaoPdde.STATUS_ATIVA)
 
         # Paginação na action
         page = self.paginate_queryset(qs_acoes_pdde)
