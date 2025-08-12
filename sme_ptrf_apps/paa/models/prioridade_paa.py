@@ -50,8 +50,10 @@ class PrioridadePaa(ModeloBase):
     especificacao_material = models.ForeignKey(EspecificacaoMaterialServico, on_delete=models.PROTECT,
                                                null=True, blank=True)
 
-    valor_total = models.DecimalField(max_digits=12, decimal_places=2, default=0., blank=False, null=False,
+    valor_total = models.DecimalField(max_digits=12, decimal_places=2, blank=False, null=True,
                                       validators=[MinValueValidator(0, message='Valor total não pode ser negativo.')])
+
+    copia_de = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         verbose_name = "Prioridade do PAA"

@@ -5,15 +5,25 @@ from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum
 def queryset_prioridades_paa(qs):
     # Definição da ordenação customizada definida em história AB#127464
     PRIORIDADEPAA_ORDENACAO_PRIORIDADE_RECURSO = Case(
+        # Prioridade Sim Sem Valor - Para os casos de duplicidades, aparecerem no topo da tabela
+        When(valor_total__isnull=True, prioridade=True, recurso=RecursoOpcoesEnum.PTRF.name, then=Value(1)),
+        When(valor_total__isnull=True, prioridade=True, recurso=RecursoOpcoesEnum.PDDE.name, then=Value(2)),
+        When(valor_total__isnull=True, prioridade=True, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name, then=Value(3)),
+
+        # Prioridade Não Sem Valor - Para os casos de duplicidades, aparecerem no topo da tabela
+        When(valor_total__isnull=True, prioridade=False, recurso=RecursoOpcoesEnum.PTRF.name, then=Value(4)),
+        When(valor_total__isnull=True, prioridade=False, recurso=RecursoOpcoesEnum.PDDE.name, then=Value(5)),
+        When(valor_total__isnull=True, prioridade=False, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name, then=Value(6)),
+
         # Prioridade Sim
-        When(prioridade=True, recurso=RecursoOpcoesEnum.PTRF.name, then=Value(1)),
-        When(prioridade=True, recurso=RecursoOpcoesEnum.PDDE.name, then=Value(2)),
-        When(prioridade=True, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name, then=Value(3)),
+        When(prioridade=True, recurso=RecursoOpcoesEnum.PTRF.name, then=Value(7)),
+        When(prioridade=True, recurso=RecursoOpcoesEnum.PDDE.name, then=Value(8)),
+        When(prioridade=True, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name, then=Value(9)),
 
         # Prioridade Não
-        When(prioridade=False, recurso=RecursoOpcoesEnum.PTRF.name, then=Value(4)),
-        When(prioridade=False, recurso=RecursoOpcoesEnum.PDDE.name, then=Value(5)),
-        When(prioridade=False, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name, then=Value(6)),
+        When(prioridade=False, recurso=RecursoOpcoesEnum.PTRF.name, then=Value(10)),
+        When(prioridade=False, recurso=RecursoOpcoesEnum.PDDE.name, then=Value(11)),
+        When(prioridade=False, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name, then=Value(12)),
         default=Value(99),
         output_field=IntegerField()
     )
@@ -40,4 +50,9 @@ def queryset_prioridades_paa(qs):
     )
 
     return qs.annotate(ordem_customizada=PRIORIDADEPAA_ORDENACAO_PRIORIDADE_RECURSO) \
-        .order_by('ordem_customizada', PRIORIDADEPAA_ORDENACAO_NOME)
+        .order_by(
+            'ordem_customizada',
+            PRIORIDADEPAA_ORDENACAO_NOME,
+            'tipo_aplicacao',
+            'tipo_despesa_custeio__nome',
+            'especificacao_material__descricao')

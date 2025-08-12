@@ -116,3 +116,40 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
                 {"mensagem": "Prioridade não encontrada ou já foi removida da base de dados."},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+    @action(detail=True, methods=['post'], url_path='duplicar')
+    def duplicar(self, request, uuid=None):
+        """
+        Duplicar uma PrioridadePaa existente, criando um novo registro com os mesmos dados.
+        O campo `valor_total` não informado
+        """
+        try:
+            original = self.get_object()
+        except (Http404, NotFound):
+            return Response(
+                {"mensagem": "Prioridade não encontrada ou já foi removida da base de dados."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        original_data = {
+            'paa': str(original.paa.uuid) if original.paa else None,
+            'prioridade': int(original.prioridade),
+            'recurso': original.recurso,
+            'acao_associacao': str(original.acao_associacao.uuid) if original.acao_associacao else None,
+            'programa_pdde': str(original.programa_pdde.uuid) if original.programa_pdde else None,
+            'acao_pdde': str(original.acao_pdde.uuid) if original.acao_pdde else None,
+            'tipo_aplicacao': original.tipo_aplicacao,
+            'tipo_despesa_custeio': str(original.tipo_despesa_custeio.uuid) if original.tipo_despesa_custeio else None,
+            'especificacao_material': (
+                str(original.especificacao_material.uuid) if original.especificacao_material else None),
+            'valor_total': None,
+            'copia_de': str(original.uuid),
+        }
+        original_data = {k: v for k, v in original_data.items() if v is not None}
+
+        serializer = PrioridadePaaCreateUpdateSerializer(data=original_data)
+
+        serializer.is_valid(raise_exception=True)
+        nova_prioridade = serializer.save()
+
+        return Response(PrioridadePaaCreateUpdateSerializer(nova_prioridade).data, status=status.HTTP_201_CREATED)
