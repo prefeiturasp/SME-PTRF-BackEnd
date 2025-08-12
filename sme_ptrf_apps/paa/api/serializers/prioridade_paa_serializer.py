@@ -10,7 +10,7 @@ from sme_ptrf_apps.despesas.api.serializers import especificacao_material_servic
 from sme_ptrf_apps.despesas.api.serializers import tipo_custeio_serializer
 
 
-class PrioridadePaaCreateSerializer(serializers.ModelSerializer):
+class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
     prioridade = serializers.ChoiceField(
         choices=SimNaoChoices.choices,
         error_messages={
@@ -137,40 +137,80 @@ class PrioridadePaaCreateSerializer(serializers.ModelSerializer):
 
 class PrioridadePaaListSerializer(serializers.ModelSerializer):
     paa = serializers.SlugRelatedField(slug_field='uuid', queryset=Paa.objects.all())
-    especificacao_material = especif_serializer.EspecificacaoMaterialServicoSimplesSerializer()
+    especificacao_material = serializers.SlugRelatedField(
+        slug_field='uuid', queryset=EspecificacaoMaterialServico.objects.all())
+    especificacao_material_objeto = especif_serializer.EspecificacaoMaterialServicoSimplesSerializer(
+        source='especificacao_material')
 
-    tipo_despesa_custeio = tipo_custeio_serializer.TipoCusteioSimplesSerializer()
-    acao_pdde = serializers_paa.AcaoPddeSimplesSerializer()
-    programa_pdde = serializers_paa.ProgramaPddeSimplesSerializer()
+    tipo_despesa_custeio = serializers.SlugRelatedField(
+        slug_field='uuid', queryset=TipoCusteio.objects.all())
+    tipo_despesa_custeio_objeto = tipo_custeio_serializer.TipoCusteioSimplesSerializer(
+        source='tipo_despesa_custeio')
 
-    prioridade = serializers.SerializerMethodField()
-    recurso = serializers.SerializerMethodField()
-    tipo_aplicacao = serializers.SerializerMethodField()
+    acao_pdde = serializers.SlugRelatedField(
+        slug_field='uuid', queryset=AcaoPdde.objects.all())
+    acao_pdde_objeto = serializers_paa.AcaoPddeSimplesSerializer(
+        source='acao_pdde')
+
+    programa_pdde = serializers.SlugRelatedField(
+        slug_field='uuid', queryset=ProgramaPdde.objects.all())
+    programa_pdde_objeto = serializers_paa.ProgramaPddeSimplesSerializer(
+        source='programa_pdde')
+
+    prioridade_objeto = serializers.SerializerMethodField()
+    recurso_objeto = serializers.SerializerMethodField()
+
+    tipo_aplicacao_objeto = serializers.SerializerMethodField()
+
     acao_associacao = serializers.SerializerMethodField()
+    acao_associacao_objeto = serializers.SerializerMethodField()
 
     def get_acao_associacao(self, obj):
+        if obj.acao_associacao:
+            return obj.acao_associacao.uuid
+
+    def get_acao_associacao_objeto(self, obj):
         if obj.acao_associacao:
             return {
                 'uuid': obj.acao_associacao.uuid,
                 'nome': obj.acao_associacao.acao.nome
             }
 
-    def get_recurso(self, obj):
+    def get_recurso_objeto(self, obj):
         return {
             'name': RecursoOpcoesEnum[obj.recurso].name,
             'value': RecursoOpcoesEnum[obj.recurso].value,
         }
 
-    def get_tipo_aplicacao(self, obj):
+    def get_tipo_aplicacao_objeto(self, obj):
         return {
             'name': TipoAplicacaoOpcoesEnum[obj.tipo_aplicacao].name,
             'value': TipoAplicacaoOpcoesEnum[obj.tipo_aplicacao].value,
         }
 
-    def get_prioridade(self, obj):
+    def get_prioridade_objeto(self, obj):
         return list(filter(lambda x: x.get('key') == obj.prioridade, SimNaoChoices.to_dict()))[0]
 
     class Meta:
         model = PrioridadePaa
-        fields = ('uuid', 'paa', 'prioridade', 'recurso', 'acao_associacao', 'programa_pdde', 'acao_pdde',
-                  'tipo_aplicacao', 'tipo_despesa_custeio', 'especificacao_material', 'valor_total')
+        fields = (
+            'uuid',
+            'paa',
+            'prioridade',
+            'prioridade_objeto',
+            'recurso',
+            'recurso_objeto',
+            'acao_associacao',
+            'acao_associacao_objeto',
+            'programa_pdde',
+            'programa_pdde_objeto',
+            'acao_pdde',
+            'acao_pdde_objeto',
+            'tipo_aplicacao',
+            'tipo_aplicacao_objeto',
+            'tipo_despesa_custeio',
+            'tipo_despesa_custeio_objeto',
+            'especificacao_material',
+            'especificacao_material_objeto',
+            'valor_total'
+        )

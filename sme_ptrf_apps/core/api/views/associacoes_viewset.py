@@ -14,7 +14,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from weasyprint import HTML
+from weasyprint import HTML, CSS
 
 from sme_ptrf_apps.paa.models import PeriodoPaa
 from sme_ptrf_apps.paa.api.serializers import PaaSerializer
@@ -245,17 +245,9 @@ class AssociacoesViewSet(ModelViewSet):
         if prestacao_conta:
             gerar_previas = pc_requer_geracao_documentos(prestacao_conta)
 
-        # TODO código comentado propositalmente em função da história 102412 - Sprint 73 (Conciliação Bancária: Retirar validação e obrigatoriedade de preenchimento dos campos do Saldo bancário da conta ao concluir acerto/período) - que entrou como Hotfix
-        # TODO Remover quando implementado solução definitiva
         pendencias_dados = associacao.pendencias_dados_da_associacao()
         pendencias_conciliacao = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(
             periodo)
-
-        # if pendencias_dados or pendencias_conciliacao:
-        #     pendencias_cadastrais = {
-        #         'dados_associacao': pendencias_dados,
-        #         'conciliacao_bancaria': pendencias_conciliacao,
-        #     }
 
         if pendencias_dados:
             pendencias_cadastrais = {
@@ -565,7 +557,7 @@ class AssociacoesViewSet(ModelViewSet):
     @action(detail=True, methods=['get'], url_path='exportar-pdf',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def exportarpdf(self, _, uuid=None):
-
+        from django.contrib.staticfiles.storage import staticfiles_storage
         data_atual = datetime.date.today().strftime("%d-%m-%Y")
         usuario_logado = self.request.user
         associacao = Associacao.by_uuid(uuid)
@@ -576,7 +568,8 @@ class AssociacoesViewSet(ModelViewSet):
             'associacao': associacao,
             'contas': contas,
             'dataAtual': data_atual,
-            'usuarioLogado': usuario_logado
+            'usuarioLogado': usuario_logado,
+            'base_static_url': staticfiles_storage.location
         }
 
         if flag_is_active(self.request, "historico-de-membros"):
@@ -588,7 +581,8 @@ class AssociacoesViewSet(ModelViewSet):
             request=self.request  # Inclua o request aqui
         ).encode(encoding="UTF-8")
 
-        html_pdf = HTML(string=html_string, base_url=self.request.build_absolute_uri()).write_pdf()
+        html_pdf = HTML(string=html_string, base_url=staticfiles_storage.location).write_pdf(
+            stylesheets=[CSS(staticfiles_storage.location + '/css/pdf.css')])
 
         response = HttpResponse(
             html_pdf,

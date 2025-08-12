@@ -45,6 +45,141 @@ def test_post_bem_produzido(
     assert response.status_code == status.HTTP_201_CREATED
 
 
+def test_patch_bem_produzido_remove_itens_nao_enviados(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    bem_produzido_1,
+    associacao_1, despesa_factory,
+    rateio_despesa_factory,
+    especificacao_material_servico_1
+):
+    # Criar despesa e rateio
+    despesa_2025_1 = despesa_factory(associacao=associacao_1, data_documento='2025-01-01', nome_fornecedor='teste')
+    rateio_1 = rateio_despesa_factory(associacao=associacao_1, despesa=despesa_2025_1, valor_rateio=400)
+    
+    # Primeiro, criar um bem produzido com 2 itens
+    payload_inicial = {
+        "despesas": [f"{despesa_2025_1.uuid}"],
+        "rateios": [
+            {
+                "uuid": f"{rateio_1.uuid}",
+                "valor_utilizado": 400
+            },
+        ],
+        "itens": [
+            {
+                "num_processo_incorporacao": "1234567890123456",
+                "quantidade": 1,
+                "valor_individual": 200,
+                "especificacao_do_bem": f"{especificacao_material_servico_1.uuid}"
+            },
+            {
+                "num_processo_incorporacao": "6543210987654321",
+                "quantidade": 1,
+                "valor_individual": 200,
+                "especificacao_do_bem": f"{especificacao_material_servico_1.uuid}"
+            }
+        ],
+        "associacao": f"{associacao_1.uuid}"
+    }
+
+    response_inicial = jwt_authenticated_client_sme.patch(f'/api/bens-produzidos/{bem_produzido_1.uuid}/', 
+                                                        data=json.dumps(payload_inicial),
+                                                        content_type='application/json')
+    
+    assert response_inicial.status_code == status.HTTP_200_OK
+    
+    # Verificar que existem 2 itens
+    from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoItem
+    itens_iniciais = BemProduzidoItem.objects.filter(bem_produzido=bem_produzido_1)
+    assert itens_iniciais.count() == 2
+    
+    # Agora enviar um patch com apenas 1 item (o primeiro)
+    payload_atualizado = {
+        "despesas": [f"{despesa_2025_1.uuid}"],
+        "rateios": [
+            {
+                "uuid": f"{rateio_1.uuid}",
+                "valor_utilizado": 200
+            },
+        ],
+        "itens": [
+            {
+                "uuid": str(itens_iniciais.first().uuid),  # Manter apenas o primeiro item
+                "num_processo_incorporacao": "1234567890123456",
+                "quantidade": 1,
+                "valor_individual": 200,
+                "especificacao_do_bem": f"{especificacao_material_servico_1.uuid}"
+            }
+        ],
+        "associacao": f"{associacao_1.uuid}"
+    }
+
+    response_atualizado = jwt_authenticated_client_sme.patch(f'/api/bens-produzidos/{bem_produzido_1.uuid}/', 
+                                                           data=json.dumps(payload_atualizado),
+                                                           content_type='application/json')
+    
+    assert response_atualizado.status_code == status.HTTP_200_OK
+    
+    # Verificar que agora existe apenas 1 item
+    itens_finais = BemProduzidoItem.objects.filter(bem_produzido=bem_produzido_1)
+    assert itens_finais.count() == 1
+    assert itens_finais.first().num_processo_incorporacao == "1234567890123456"
+
+
+def test_patch_bem_produzido_com_especificacao_objeto(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    bem_produzido_1,
+    associacao_1, despesa_factory,
+    rateio_despesa_factory,
+    especificacao_material_servico_1
+):
+    # Criar despesa e rateio
+    despesa_2025_1 = despesa_factory(associacao=associacao_1, data_documento='2025-01-01', nome_fornecedor='teste')
+    rateio_1 = rateio_despesa_factory(associacao=associacao_1, despesa=despesa_2025_1, valor_rateio=200)
+    
+    # Payload com especificação como objeto (simulando o que vem do frontend)
+    payload = {
+        "despesas": [f"{despesa_2025_1.uuid}"],
+        "rateios": [
+            {
+                "uuid": f"{rateio_1.uuid}",
+                "valor_utilizado": 200
+            },
+        ],
+        "itens": [
+            {
+                "num_processo_incorporacao": "1234567890123456",
+                "quantidade": 1,
+                "valor_individual": 200,
+                "especificacao_do_bem": {
+                    "id": 6372,
+                    "uuid": f"{especificacao_material_servico_1.uuid}",
+                    "descricao": "Analisador de voltagem",
+                    "aplicacao_recurso": "CAPITAL",
+                    "tipo_custeio": None,
+                    "tipo_custeio_objeto": None,
+                    "ativa": False
+                }
+            }
+        ],
+        "associacao": f"{associacao_1.uuid}"
+    }
+
+    response = jwt_authenticated_client_sme.patch(f'/api/bens-produzidos-rascunho/{bem_produzido_1.uuid}/', 
+                                                data=json.dumps(payload),
+                                                content_type='application/json')
+    
+    assert response.status_code == status.HTTP_200_OK
+    
+    # Verificar se o item foi criado corretamente
+    from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoItem
+    itens = BemProduzidoItem.objects.filter(bem_produzido=bem_produzido_1)
+    assert itens.count() == 1
+    assert str(itens.first().especificacao_do_bem.uuid) == str(especificacao_material_servico_1.uuid)
+
+
 def test_patch_bem_produzido(
     jwt_authenticated_client_sme,
     flag_situacao_patrimonial,

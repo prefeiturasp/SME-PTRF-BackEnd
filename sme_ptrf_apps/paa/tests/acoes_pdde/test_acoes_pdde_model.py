@@ -18,13 +18,6 @@ def test_str_representation(acao_pdde):
 
 
 @pytest.mark.django_db
-def test_unique_together(acao_pdde):
-
-    with pytest.raises(Exception):
-        AcaoPddeFactory(nome="Ação PDDE Teste", programa=acao_pdde.programa)
-
-
-@pytest.mark.django_db
 def test_acao_pdde_programa_objeto():
     acao = AcaoPddeFactory(nome="Ação PDDE Novo")
 

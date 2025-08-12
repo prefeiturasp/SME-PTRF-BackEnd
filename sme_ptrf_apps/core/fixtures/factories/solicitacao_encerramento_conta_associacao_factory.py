@@ -1,8 +1,11 @@
-from factory import DjangoModelFactory, SubFactory, Sequence
+from factory import SubFactory
+from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.core.fixtures.factories.conta_associacao_factory import ContaAssociacaoFactory
 from sme_ptrf_apps.core.models.solicitacao_encerramento_conta_associacao import SolicitacaoEncerramentoContaAssociacao
-from ..providers.solicitacao_encerramento_conta_associacao_provider import provider_status_solicitacao_encerramento_conta_associacao
+from ..providers.solicitacao_encerramento_conta_associacao_provider import (
+    provider_status_solicitacao_encerramento_conta_associacao
+)
 
 fake = Faker("pt_BR")
 fake.add_provider(provider_status_solicitacao_encerramento_conta_associacao)

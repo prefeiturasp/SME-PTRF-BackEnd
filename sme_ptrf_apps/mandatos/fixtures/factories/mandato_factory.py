@@ -1,9 +1,11 @@
-from factory import DjangoModelFactory, Sequence, LazyAttribute
-from datetime import datetime, timedelta
-from faker import Faker
 from sme_ptrf_apps.mandatos.models import Mandato
+from faker import Faker
+from datetime import datetime, timedelta
+from factory import Sequence, LazyAttribute
+from factory.django import DjangoModelFactory
 
 fake = Faker("pt_BR")
+
 
 class MandatoFactory(DjangoModelFactory):
     class Meta:

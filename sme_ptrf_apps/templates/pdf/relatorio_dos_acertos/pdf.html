@@ -24,20 +24,18 @@
 {# ************************* Cabecalho das páginas *************************  #}
 
 <header>
-  <div class="d-flex p-2 bd-highlight mt-1">
-    <div class="col-6 mt-2">
+  <div class="d-flex bd-highlight">
+    <div class="col-6">
       <p class="subtitulo font-12 mb-0">Prestação de Contas - Relatório de Devolução</p>
       <p class="font-14">Devolução para acertos a Associação</p>
     </div>
-    <div class="col-6">
-      <div class="row">
-        <div class="col-auto borda-box-cabecalho-right ml-5 ml-auto">
+    <div class="col-6 d-flex align-items-center justify-content-end">
+        <div class="borda-box-cabecalho-right px-3">
           <p class="font-10 mb-0">Período de Realização:</p>
           <p class="subtitulo font-10 mb-0 pb-0">{{ dados.info_cabecalho.periodo_referencia }}
             - {{ dados.info_cabecalho.data_inicio_periodo|date:'d/m/Y' }}
             até {{ dados.info_cabecalho.data_fim_periodo|date:'d/m/Y' }}</p>
         </div>
-      </div>
     </div>
   </div>
 </header>
@@ -52,33 +50,31 @@
 
 <section id="cabecalho" class="mt-2">
   <div class="d-flex p-2 bd-highlight">
-    <div class="col-4">
+    <div class="col-4 d-flex align-items-center border-rigth-logo">
       <img src="{{ base_static_url }}/images/logo_PrefSP_sem_fundo_horizontal_colorida.svg" alt="logo">
     </div>
-    <div class="col-8 pr-3 mr-0 mt-2 d-flex align-items-center justify-content-end">
+    <div class="col-8 d-flex align-items-center justify-content-end">
       <p class="titulo font-16">Programa de Transferências de Recursos Financeiros - PTRF</p>
     </div>
   </div>
   <hr class="divisao"/>
-  <div class="d-flex p-2 bd-highlight mt-2">
-    <div class="col-6 mt-2">
+  <div class="d-flex bd-highlight">
+    <div class="col-6">
       <p class="subtitulo font-12 mb-0">Prestação de Contas - Relatório de Devolução</p>
       <p class="font-12">Devolução para acertos a Associação</p>
     </div>
-    <div class="col-6">
-      <div class="row">
-        <div class="col-auto borda-box-cabecalho-right ml-5 ml-auto">
+    <div class="col-6 d-flex align-items-center justify-content-end">
+        <div class="borda-box-cabecalho-right px-3">
           <p class="font-12 mb-0">Período de Realização:</p>
-          <p class="subtitulo font-12">{{ dados.info_cabecalho.periodo_referencia }}
+          <p class="subtitulo font-12 mb-0 pb-0">{{ dados.info_cabecalho.periodo_referencia }}
             - {{ dados.info_cabecalho.data_inicio_periodo|date:'d/m/Y' }}
             até {{ dados.info_cabecalho.data_fim_periodo|date:'d/m/Y' }}</p>
         </div>
-      </div>
     </div>
   </div>
 </section>
 
-<section class="conteudo mt-4">
+<section class="conteudo">
 
   {% comment %} Bloco de identificação {% endcomment %}
   {% include "./bloco-de-identificacao.html" with dados=dados %}

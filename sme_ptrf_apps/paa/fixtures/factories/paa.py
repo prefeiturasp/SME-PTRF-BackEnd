@@ -1,4 +1,5 @@
-from factory import DjangoModelFactory, SubFactory
+from factory import SubFactory
+from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.paa.models import Paa
 from sme_ptrf_apps.paa.fixtures.factories.periodo_paa import PeriodoPaaFactory

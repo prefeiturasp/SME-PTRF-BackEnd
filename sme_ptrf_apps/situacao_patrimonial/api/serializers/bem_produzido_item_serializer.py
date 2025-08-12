@@ -35,15 +35,24 @@ class BemProduzidoItemCreateSerializer(serializers.ModelSerializer):
         )
 
 class BemProduzidoRascunhoItemSerializer(serializers.Serializer):
+    uuid = serializers.UUIDField(required=False, allow_null=True)
     especificacao_do_bem = serializers.SlugRelatedField(
         queryset=EspecificacaoMaterialServico.objects.all(),
         slug_field='uuid',
         required=False,
         allow_null=True
     )
-    num_processo_incorporacao = serializers.CharField(required=False, allow_blank=True)
+    num_processo_incorporacao = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     quantidade = serializers.IntegerField(required=False, allow_null=True)
     valor_individual = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, allow_null=True)
+
+    def to_internal_value(self, data):
+        clean_data = {k: v for k, v in data.items() if v is not None and v != ""}
+
+        if 'especificacao_do_bem' in clean_data and isinstance(clean_data['especificacao_do_bem'], dict):
+            clean_data['especificacao_do_bem'] = clean_data['especificacao_do_bem'].get('uuid')
+        
+        return super().to_internal_value(clean_data)
 
     class Meta:
         model = BemProduzidoItem

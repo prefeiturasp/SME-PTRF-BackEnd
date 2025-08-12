@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from django.http import HttpResponse
+
 from rest_framework import status
 
 from sme_ptrf_apps.paa.services.paa_service import PaaService
@@ -38,3 +39,4 @@ def test_get_download(jwt_authenticated_client_sme, flag_paa, associacao):
             'Content-Disposition'][0] == 'attachment; filename="paa_levantamento_prioridades.pdf"'
     assert [t[1] for t in list(response.items()) if t[0] ==
             'Content-Type'][0] == 'application/pdf'
+

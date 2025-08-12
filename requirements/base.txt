@@ -57,5 +57,5 @@ whitenoise==6.8.2
 
 # Gerador de PDF
 # ------------------------------------------------------------------------------
-WeasyPrint==64.1
-django-weasyprint==2.3.1
+WeasyPrint==66
+django-weasyprint==2.4.0

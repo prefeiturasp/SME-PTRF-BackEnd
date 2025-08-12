@@ -1,6 +1,6 @@
 {% load static %}
 
-<table class="table table-bordered tabela-relatorio-dre">
+<table class="table table-bordered tabela-relatorio-dre nao-quebra-linha">
   <thead>
       <tr>
         <th colspan="16" class="th-fundo-branco py-2 pl-2">
@@ -34,7 +34,7 @@
 
   </thead>
 
-  <tbody>
+  <tbody class="nao-quebra-linha">
     <tr>
       <td class="text-right">{{ dados.execucao_fisica.ues_da_dre }}</td>
       <td class="text-right">{{ dados.execucao_fisica.ues_com_associacao }}</td>
