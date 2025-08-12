@@ -250,7 +250,8 @@ def test_cria_prioridade_paa_recurso_proprio_capital(jwt_authenticated_client_sm
         'tipo_aplicacao',
         'tipo_despesa_custeio',
         'especificacao_material',
-        'valor_total'
+        'valor_total',
+        'copia_de'
     }
     assert PrioridadePaa.objects.count() == 1
 
@@ -285,6 +286,7 @@ def test_altera_prioridade_custeio_para_capital_com_sucesso(jwt_authenticated_cl
         'tipo_despesa_custeio',
         'especificacao_material',
         'valor_total',
+        'copia_de'
     }
 
 
@@ -321,6 +323,7 @@ def test_altera_prioridade_ptrf_para_recursos_proprios_com_sucesso(jwt_authentic
         'tipo_despesa_custeio',
         'especificacao_material',
         'valor_total',
+        'copia_de'
     }
 
 
@@ -457,3 +460,31 @@ def test_delete_prioridade_em_lote_com_excecao(jwt_authenticated_client_sme, fla
     result = response.json()
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result['erro'] == "Falha ao excluir Prioridades em lote"
+
+
+@pytest.mark.django_db
+def test_duplicar_prioridade(jwt_authenticated_client_sme, flag_paa, prioridade_paa_ptrf_custeio):
+    assert PrioridadePaa.objects.count() == 1
+    response = jwt_authenticated_client_sme.post(
+        f"/api/prioridades-paa/{prioridade_paa_ptrf_custeio.uuid}/duplicar/")
+
+    result = response.json()
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert result['uuid'] != str(prioridade_paa_ptrf_custeio.uuid)
+    assert result['paa'] == str(prioridade_paa_ptrf_custeio.paa.uuid)
+    assert result['prioridade'] == int(prioridade_paa_ptrf_custeio.prioridade)
+    assert result['recurso'] == prioridade_paa_ptrf_custeio.recurso
+    assert result['acao_associacao'] == str(prioridade_paa_ptrf_custeio.acao_associacao.uuid)
+
+    # Não considera uuid, pois a factory prioridade_paa_ptrf_custeio não é recurso PDDE
+    assert result['programa_pdde'] == prioridade_paa_ptrf_custeio.programa_pdde
+    assert result['acao_pdde'] == prioridade_paa_ptrf_custeio.acao_pdde
+
+    assert result['tipo_aplicacao'] == prioridade_paa_ptrf_custeio.tipo_aplicacao
+    assert result['tipo_despesa_custeio'] == str(prioridade_paa_ptrf_custeio.tipo_despesa_custeio.uuid)
+    assert result['especificacao_material'] == str(prioridade_paa_ptrf_custeio.especificacao_material.uuid)
+    assert result['valor_total'] is None
+
+    # contem a factory original e a duplicada
+    assert PrioridadePaa.objects.count() == 2
