@@ -124,6 +124,11 @@ class ExportacaoDadosSaldosBancariosService:
                         linha_horizontal.append(alterado_em_formatada)
                         continue
 
+                if campo == "saldo_extrato":
+                    saldo_extrato = str(getattr(instance, campo)).replace(".", ",")
+                    linha_horizontal.append(saldo_extrato)
+                    continue
+
                 if campo == "comprovante_extrato":
                     campo = get_recursive_attr(instance, campo)
                     url = ""
