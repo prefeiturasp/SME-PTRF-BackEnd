@@ -7,7 +7,7 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from django.http import Http404
 from django.core.exceptions import ObjectDoesNotExist
-
+from django.db.models.deletion import ProtectedError
 import django_filters
 from waffle.mixins import WaffleFlagMixin
 
@@ -140,44 +140,39 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         """ Método para inativar uma Ação PDDE com validações específicas """
-        try:
-            obj = self.get_object()
-
-            # Verificar se a ação está sendo usada na PAA mais atual (período vigente)
-            periodo_vigente = PeriodoPaa.periodo_vigente()
-            
-            if periodo_vigente:
-                # Verificar se existe PAA para o período vigente
-                paa_vigente = Paa.objects.filter(periodo_paa=periodo_vigente).first()
+        obj = self.get_object()
+        periodo_vigente = PeriodoPaa.periodo_vigente()
+        receitas_previstas_periodo_vigente = obj.receitaprevistapdde_set.filter(paa__periodo_paa=periodo_vigente).exists()
+        
+        if receitas_previstas_periodo_vigente:
+            return Response(
+                {"detail": "Esta ação PDDE não pode ser excluída porque está sendo utilizada em um Plano Anual de Atividades (PAA)."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        else:
+            try:
+                self.perform_destroy(obj)
+                content = {
+                    'erro': 'ProtectedError',
+                    'mensagem': 'Ação PDDE excluída com sucesso.'
+                }
+                return Response(content, status=status.HTTP_204_NO_CONTENT)
+            except ProtectedError:
+                obj.status = AcaoPdde.STATUS_INATIVA
+                obj.save()
                 
-                if paa_vigente:
-                    # Verificar se a ação está sendo usada em receitas previstas da PAA vigente
-                    receitas_vinculadas_paa_vigente = ReceitaPrevistaPdde.objects.filter(
-                        acao_pdde=obj,
-                        paa=paa_vigente
-                    ).exists()
-                    
-                    if receitas_vinculadas_paa_vigente:
-                        return Response(
-                            {"detail": "Esta ação PDDE não pode ser excluída porque está sendo utilizada em um Plano Anual de Atividades (PAA)."},
-                            status=status.HTTP_409_CONFLICT
-                        )
-
-            obj.status = AcaoPdde.STATUS_INATIVA
-            obj.save()
-            
-            return Response(
-                {"detail": "Ação PDDE excluída com sucesso."},
-                status=status.HTTP_200_OK
-            )
-            
-        except (Http404, ObjectDoesNotExist, AcaoPdde.DoesNotExist):
-            return Response(
-                {"detail": "Ação PDDE não encontrada."},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        except Exception as e:
-            return Response(
-                {"detail": f"Erro ao inativar Ação PDDE: {str(e)}"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+                content = {
+                    'erro': 'ProtectedError',
+                    'mensagem': 'Ação PDDE excluída com sucesso.'
+                }
+                return Response(content, status=status.HTTP_204_NO_CONTENT)
+            except (Http404, ObjectDoesNotExist, AcaoPdde.DoesNotExist):
+                return Response(
+                    {"detail": "Ação PDDE não encontrada."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            except Exception as e:
+                return Response(
+                    {"detail": f"Erro ao inativar Ação PDDE: {str(e)}"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
