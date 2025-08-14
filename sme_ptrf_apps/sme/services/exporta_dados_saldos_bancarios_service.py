@@ -181,6 +181,7 @@ class ExportacaoDadosSaldosBancariosService:
         obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo,
+            self.texto_filtro_aplicado
         )
 
         self.objeto_arquivo_download = obj
