@@ -140,34 +140,34 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         """ Método para inativar uma Ação PDDE com validações específicas """
-        obj = self.get_object()
-        periodo_vigente = PeriodoPaa.periodo_vigente()
-        receitas_previstas_periodo_vigente = obj.receitaprevistapdde_set.filter(paa__periodo_paa=periodo_vigente).exists()
+        try:
+            obj = self.get_object()
+            periodo_vigente = PeriodoPaa.periodo_vigente()
+            receitas_previstas_periodo_vigente = obj.receitaprevistapdde_set.filter(paa__periodo_paa=periodo_vigente).exists()
         
-        if receitas_previstas_periodo_vigente:
-            return Response(
-                {"detail": "Esta ação PDDE não pode ser excluída porque está sendo utilizada em um Plano Anual de Atividades (PAA)."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        else:
-            try:
-                return super().destroy(request, *args, **kwargs)
-            except ProtectedError:
-                obj.status = AcaoPdde.STATUS_INATIVA
-                obj.save()
-                
-                content = {
-                    'erro': 'ProtectedError',
-                    'mensagem': 'Ação PDDE excluída com sucesso.'
-                }
-                return Response(content, status=status.HTTP_204_NO_CONTENT)
-            except (Http404, ObjectDoesNotExist, AcaoPdde.DoesNotExist):
+            if receitas_previstas_periodo_vigente:
                 return Response(
-                    {"detail": "Ação PDDE não encontrada."},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-            except Exception as e:
-                return Response(
-                    {"detail": f"Erro ao inativar Ação PDDE: {str(e)}"},
+                    {"detail": "Esta ação PDDE não pode ser excluída porque está sendo utilizada em um Plano Anual de Atividades (PAA)."},
                     status=status.HTTP_400_BAD_REQUEST
                 )
+            else:
+                return super().destroy(request, *args, **kwargs)
+        except ProtectedError:
+            obj.status = AcaoPdde.STATUS_INATIVA
+            obj.save()
+            
+            content = {
+                'erro': 'ProtectedError',
+                'mensagem': 'Ação PDDE excluída com sucesso.'
+            }
+            return Response(content, status=status.HTTP_204_NO_CONTENT)
+        except (Http404, ObjectDoesNotExist, AcaoPdde.DoesNotExist):
+            return Response(
+                {"detail": "Ação PDDE não encontrada."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"detail": f"Erro ao inativar Ação PDDE: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
