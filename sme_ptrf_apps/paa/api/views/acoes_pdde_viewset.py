@@ -151,12 +151,7 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
             )
         else:
             try:
-                self.perform_destroy(obj)
-                content = {
-                    'erro': 'ProtectedError',
-                    'mensagem': 'Ação PDDE excluída com sucesso.'
-                }
-                return Response(content, status=status.HTTP_204_NO_CONTENT)
+                return super().destroy(request, *args, **kwargs)
             except ProtectedError:
                 obj.status = AcaoPdde.STATUS_INATIVA
                 obj.save()
