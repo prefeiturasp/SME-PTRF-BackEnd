@@ -4,10 +4,13 @@ from rest_framework.permissions import IsAuthenticated
 
 from rest_framework.viewsets import GenericViewSet
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+
 from ..serializers.tipo_devolucao_ao_tesouro_serializer import TipoDevolucaoAoTesouroSerializer
 from ...models import TipoDevolucaoAoTesouro
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 from ..utils.pagination import CustomPagination
+
 
 class TiposDevolucaoAoTesouroViewSet(mixins.ListModelMixin,
                                      mixins.RetrieveModelMixin,
@@ -30,6 +33,16 @@ class TiposDevolucaoAoTesouroViewSet(mixins.ListModelMixin,
 
         return TipoDevolucaoAoTesouro.objects.all()
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='nome', description='Nome', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: TipoDevolucaoAoTesouroSerializer(many=True)},
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
     def destroy(self, request, *args, **kwargs):
         from django.db.models.deletion import ProtectedError
 
@@ -49,11 +62,11 @@ class TiposDevolucaoAoTesouroViewSet(mixins.ListModelMixin,
 
 
 class MotivosDevolucaoAoTesouroViewSet(mixins.ListModelMixin,
-                                     mixins.RetrieveModelMixin,
-                                     mixins.CreateModelMixin,
-                                     mixins.UpdateModelMixin,
-                                     mixins.DestroyModelMixin,
-                                     GenericViewSet):
+                                       mixins.RetrieveModelMixin,
+                                       mixins.CreateModelMixin,
+                                       mixins.UpdateModelMixin,
+                                       mixins.DestroyModelMixin,
+                                       GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = TipoDevolucaoAoTesouro.objects.all()
@@ -68,6 +81,16 @@ class MotivosDevolucaoAoTesouroViewSet(mixins.ListModelMixin,
                     nome__unaccent__icontains=filtrar_nome)
 
         return TipoDevolucaoAoTesouro.objects.all()
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='nome', description='Nome', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: TipoDevolucaoAoTesouroSerializer(many=True)},
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         from django.db.models.deletion import ProtectedError

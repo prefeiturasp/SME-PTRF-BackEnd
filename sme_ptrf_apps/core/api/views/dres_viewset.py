@@ -9,6 +9,7 @@ from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiExample
 
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComLeituraOuGravacao
 
@@ -41,6 +42,22 @@ class DresViewSet(mixins.ListModelMixin,
 
         return qs
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='codigo_eol', description='Código EOL', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='search', description='Pesquisa', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: UnidadeSerializer(many=True)},
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        responses={200: 'Processo de notificação enviado com sucesso.'},
+        examples=[OpenApiExample('Resposta', value={"uuid": 'uuid', "qtd_unidades": 0})],
+    )
     @action(detail=True, url_path='qtd-unidades',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def qtd_unidades(self, request, uuid=None):
