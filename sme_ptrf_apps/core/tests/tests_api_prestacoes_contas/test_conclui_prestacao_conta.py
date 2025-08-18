@@ -78,7 +78,7 @@ def test_concluir_v2_status_invalido_bloqueia(
     pc = prestacao_conta_factory(
         associacao=associacao,
         periodo=periodo,
-        status=PrestacaoConta.STATUS_EM_ANALISE,  # ajuste para um status inválido existente no seu model
+        status=PrestacaoConta.STATUS_EM_ANALISE,
     )
 
     payload = {
@@ -89,7 +89,6 @@ def test_concluir_v2_status_invalido_bloqueia(
     response = jwt_authenticated_client_a.post(url, format="json", data=payload)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    # Como a validação é no validate (objeto), esperamos non_field_errors
     assert "non_field_errors" in response.data
     assert "só pode ser concluída" in " ".join(response.data["non_field_errors"]).lower()
 
