@@ -1,6 +1,6 @@
 const { defineConfig } = require("cypress");
 const allureWriter = require("@shelex/cypress-allure-plugin/writer");
-const { cloudPlugin } = require('cypress-cloud/plugin');
+const { cloudPlugin } = require("cypress-cloud/plugin");
 require("dotenv").config();
 
 module.exports = defineConfig({
@@ -21,7 +21,7 @@ module.exports = defineConfig({
     video: false,
     timeout: 900000,
     videoCompression: 0,
-    retries: 1,
+    retries: 0,
     screenshotOnRunFailure: true,
     chromeWebSecurity: false,
     experimentalRunAllSpecs: true,
