@@ -26,14 +26,6 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
 
         return ultima_analise is not None and (ultima_analise.requer_alteracao_em_lancamentos or ultima_analise.requer_informacao_devolucao_ao_tesouro)
 
-    def pc_tem_solicitacoes_de_acerto_pendentes(prestacao_conta):
-        if not prestacao_conta or prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
-            return False
-
-        ultima_analise = prestacao_conta.analises_da_prestacao.last()
-
-        return ultima_analise is not None and ultima_analise.tem_acertos_pendentes
-
     def pc_requer_geracao_documentos(prestacao_conta):
         # Necessário devido a conflitos no import direto
         from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_geracao_documentos
@@ -125,6 +117,13 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
 
     return status
 
+def pc_tem_solicitacoes_de_acerto_pendentes(prestacao_conta):
+    if not prestacao_conta or prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
+        return False
+
+    ultima_analise = prestacao_conta.analises_da_prestacao.last()
+
+    return ultima_analise is not None and ultima_analise.tem_acertos_pendentes
 
 def valida_datas_periodo(
     data_inicio_realizacao_despesas,

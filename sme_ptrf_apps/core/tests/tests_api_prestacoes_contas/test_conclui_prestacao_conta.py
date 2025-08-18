@@ -1,7 +1,9 @@
 import pytest
 
+from unittest.mock import patch
 from rest_framework import status
 from waffle.testutils import override_flag
+from sme_ptrf_apps.core.models import PrestacaoConta
 
 pytestmark = pytest.mark.django_db
 
@@ -35,3 +37,116 @@ def test_concluir_v2_dev_exigir_os_parametros(
     # Verificando se as mensagens de erro indicam a falta dos parâmetros obrigatórios
     assert "associacao_uuid" in response.data
     assert "periodo_uuid" in response.data
+
+@patch("sme_ptrf_apps.core.services.periodo_services.pc_tem_solicitacoes_de_acerto_pendentes", return_value=False)
+@override_flag("novo-processo-pc", active=True)
+def test_concluir_v2_sem_pc_existente_permite_fluxo(
+    mock_acertos,
+    jwt_authenticated_client_a,
+    associacao_factory,
+    periodo_factory,
+):
+    url = "/api/prestacoes-contas/concluir-v2/"
+    associacao = associacao_factory()
+    periodo = periodo_factory()
+
+    payload = {
+        "associacao_uuid": str(associacao.uuid),
+        "periodo_uuid": str(periodo.uuid),
+    }
+
+    response = jwt_authenticated_client_a.post(url, format="json", data=payload)
+
+    # Como não existe PC, o validate não deve bloquear. Ajuste o status conforme seu endpoint (200/201/etc.).
+    assert response.status_code in {status.HTTP_200_OK, status.HTTP_201_CREATED}
+    assert "non_field_errors" not in response.data
+
+
+@patch("sme_ptrf_apps.core.services.periodo_services.pc_tem_solicitacoes_de_acerto_pendentes", return_value=False)
+@override_flag("novo-processo-pc", active=True)
+def test_concluir_v2_status_invalido_bloqueia(
+    mock_acertos,
+    jwt_authenticated_client_a,
+    associacao_factory,
+    periodo_factory,
+    prestacao_conta_factory,
+):
+    url = "/api/prestacoes-contas/concluir-v2/"
+    associacao = associacao_factory()
+    periodo = periodo_factory()
+    # Cria PC com status NÃO permitido (ex.: qualquer um diferente de NAO_APRESENTADA/DEVOLVIDA)
+    pc = prestacao_conta_factory(
+        associacao=associacao,
+        periodo=periodo,
+        status=PrestacaoConta.STATUS_EM_ANALISE,
+    )
+
+    payload = {
+        "associacao_uuid": str(associacao.uuid),
+        "periodo_uuid": str(periodo.uuid),
+    }
+
+    response = jwt_authenticated_client_a.post(url, format="json", data=payload)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "non_field_errors" in response.data
+    assert "só pode ser concluída" in " ".join(response.data["non_field_errors"]).lower()
+
+
+@patch("sme_ptrf_apps.core.services.periodo_services.pc_tem_solicitacoes_de_acerto_pendentes", return_value=False)
+@override_flag("novo-processo-pc", active=True)
+def test_concluir_v2_status_permitido_sem_acertos_pendentes_permite(
+    mock_acertos,
+    jwt_authenticated_client_a,
+    associacao_factory,
+    periodo_factory,
+    prestacao_conta_factory,
+):
+    url = "/api/prestacoes-contas/concluir-v2/"
+    associacao = associacao_factory()
+    periodo = periodo_factory()
+    prestacao_conta_factory(
+        associacao=associacao,
+        periodo=periodo,
+        status=PrestacaoConta.STATUS_NAO_APRESENTADA,  # permitido
+    )
+
+    payload = {
+        "associacao_uuid": str(associacao.uuid),
+        "periodo_uuid": str(periodo.uuid),
+    }
+
+    response = jwt_authenticated_client_a.post(url, format="json", data=payload)
+
+    assert response.status_code in {status.HTTP_200_OK, status.HTTP_201_CREATED}
+    assert "non_field_errors" not in response.data
+
+
+@patch("sme_ptrf_apps.core.services.periodo_services.pc_tem_solicitacoes_de_acerto_pendentes", return_value=True)
+@override_flag("novo-processo-pc", active=True)
+def test_concluir_v2_status_permitido_com_acertos_pendentes_bloqueia(
+    mock_acertos,
+    jwt_authenticated_client_a,
+    associacao_factory,
+    periodo_factory,
+    prestacao_conta_factory,
+):
+    url = "/api/prestacoes-contas/concluir-v2/"
+    associacao = associacao_factory()
+    periodo = periodo_factory()
+    prestacao_conta_factory(
+        associacao=associacao,
+        periodo=periodo,
+        status=PrestacaoConta.STATUS_DEVOLVIDA,  # permitido, mas com acertos pendentes deve bloquear
+    )
+
+    payload = {
+        "associacao_uuid": str(associacao.uuid),
+        "periodo_uuid": str(periodo.uuid),
+    }
+
+    response = jwt_authenticated_client_a.post(url, format="json", data=payload)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "non_field_errors" in response.data
+    assert "acerto" in " ".join(response.data["non_field_errors"]).lower()
