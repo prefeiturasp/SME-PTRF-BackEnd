@@ -1,5 +1,5 @@
 {% load waffle_tags %}
-
+{% load static %}
 <!DOCTYPE html>
 
 <html>
@@ -7,14 +7,14 @@
   <head>
     <meta charset="UTF-8">
     <title>Ficha cadastral da associação e do presidente</title>
-    <link href="{% static 'css/pdf.css' %}" rel="stylesheet">
+    <link href="{{ base_static_url }}/css/pdf.css" rel="stylesheet">
   </head>
 
   <body>
         <table id="cabecalho">
           <tr>
             <td>
-              <img src="{% static 'images/logo_PrefSP_sem_fundo_horizontal_preto.svg' %}">
+              <img src="{{ base_static_url }}/images/logo_PrefSP_sem_fundo_horizontal_preto.svg">
             </td>
             <td>
               <h1>Programa de Transferências de Recursos Financeiros - PTRF</h1>

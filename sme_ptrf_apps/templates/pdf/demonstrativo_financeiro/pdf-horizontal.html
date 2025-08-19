@@ -58,17 +58,17 @@
 
   <section class="row">
 
-    <article id="bloco-1" class="col">
+    <article id="bloco-1" class="col mb-3">
       <p class="font-14 border-bottom pb-3"><strong>Bloco 1 - Identificação da Associação</strong></p>
       <div class="col-12 border mt-4">
         <div class="row">
           <div class="col-8">
             <p class="pt-2 mb-0"><strong>Nome da Associação:</strong></p>
-            <p class="pb-2">{{ dados.identificacao_apm.nome_associacao }}</p>
+            <p class="pb-2 mb-0">{{ dados.identificacao_apm.nome_associacao }}</p>
           </div>
           <div class="col-4">
             <p class="pt-2 mb-0"><strong>CNPJ:</strong></p>
-            <p class="pb-2">{{ dados.identificacao_apm.cnpj_associacao }}</p>
+            <p class="pb-2 mb-0">{{ dados.identificacao_apm.cnpj_associacao }}</p>
           </div>
         </div>
 
@@ -77,31 +77,31 @@
         <div class="row">
           <div class="col-8">
             <p class="pt-2 mb-0"><strong>Diretoria Regional de Educação:</strong></p>
-            <p class="pb-2">{{ dados.identificacao_apm.nome_dre_associacao }}</p>
+            <p class="pb-2 mb-0">{{ dados.identificacao_apm.nome_dre_associacao }}</p>
           </div>
           <div class="col">
             <p class="pt-2 mb-0 "><strong>Código EOL da UE/CEU:</strong></p>
-            <p class="pb-2">{{ dados.identificacao_apm.codigo_eol_associacao }}</p>
+            <p class="pb-2 mb-0">{{ dados.identificacao_apm.codigo_eol_associacao }}</p>
           </div>
         </div>
       </div>
     </article>
 
-    <article id="bloco-2" class="col">
+    <article id="bloco-2" class="col mb-3">
       <p class="font-14 border-bottom pb-3"><strong>Bloco 2 - Identificação Bancária e Saldo</strong></p>
       <div class="col-12 border mt-4">
         <div class="row">
           <div class="col">
             <p class="pt-2 mb-0"><strong>Banco:</strong></p>
-            <p class="pb-2">{{ dados.identificacao_conta.banco }}</p>
+            <p class="pb-2 mb-0">{{ dados.identificacao_conta.banco }}</p>
           </div>
           <div class="col">
             <p class="pt-2 mb-0"><strong>Agência:</strong></p>
-            <p class="pb-2">{{ dados.identificacao_conta.agencia }}</p>
+            <p class="pb-2 mb-0">{{ dados.identificacao_conta.agencia }}</p>
           </div>
           <div class="col-auto">
             <p class="pt-2 mb-0"><strong>Conta corrente:</strong></p>
-            <p class="pb-2">{{ dados.identificacao_conta.conta }}</p>
+            <p class="pb-2 mb-0">{{ dados.identificacao_conta.conta }}</p>
           </div>
         </div>
       </div>
@@ -109,11 +109,11 @@
         <div class="row">
           <div class="col">
             <p class="pt-2 mb-0"><strong>Data do extrato:</strong></p>
-            <p class="pb-2">{{ dados.identificacao_conta.data_extrato }}</p>
+            <p class="pb-2 mb-0">{{ dados.identificacao_conta.data_extrato }}</p>
           </div>
           <div class="col">
             <p class="pt-2 mb-0"><strong>Saldo do extrato ao final do período:</strong></p>
-            <p class="pb-2">{{ dados.identificacao_conta.saldo_extrato|formata_valor }}</p>
+            <p class="pb-2 mb-0">{{ dados.identificacao_conta.saldo_extrato|formata_valor }}</p>
           </div>
         </div>
       </div>
@@ -158,7 +158,7 @@
 
 
       {% for acoes in dados.resumo_por_acao.resumo_acoes %}
-        <tbody style="border-top: none !important;">
+        <tbody style="border-top: none !important;" class="nao-quebra-linha">
         <tr>
           <td rowSpan="6"><strong>{{ acoes.acao_associacao }}</strong></td>
           <td rowSpan="2" style="width: 2%; padding: 5px 0 5px 5px">C</td>
@@ -217,7 +217,7 @@
         </tbody>
       {% endfor %}
 
-      <tbody style="border-top: none !important;">
+      <tbody style="border-top: none !important;" class="nao-quebra-linha">
       <tr>
         <td rowSpan="6" class="total"><strong>TOTAL GERAL***</strong></td>
         <td rowSpan="2" style="width: 2%; padding: 5px 0 5px 5px" class="total">C</td>
@@ -505,7 +505,7 @@
       </thead>
 
       {% for despesa in dados.despesas_nao_demonstradas.linhas %}
-        <tbody>
+        <tbody class="nao-quebra-linha">
 
         <tr>
           {% if despesa.despesas_impostos|length > 0 %}

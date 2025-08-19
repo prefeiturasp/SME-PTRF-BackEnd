@@ -85,13 +85,18 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
             'required': 'O valor total não foi informado.',
             'null': 'O valor total não foi informado.'
         },
-        required=True
+        required=False
     )
+
+    copia_de = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=PrioridadePaa.objects.all())
 
     class Meta:
         model = PrioridadePaa
         fields = ('uuid', 'paa', 'prioridade', 'recurso', 'acao_associacao', 'programa_pdde', 'acao_pdde',
-                  'tipo_aplicacao', 'tipo_despesa_custeio', 'especificacao_material', 'valor_total')
+                  'tipo_aplicacao', 'tipo_despesa_custeio', 'especificacao_material', 'valor_total', 'copia_de')
 
     def validate(self, attrs):
         if not attrs.get('paa'):

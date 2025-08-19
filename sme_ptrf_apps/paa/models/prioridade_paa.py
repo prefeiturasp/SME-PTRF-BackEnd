@@ -50,8 +50,10 @@ class PrioridadePaa(ModeloBase):
     especificacao_material = models.ForeignKey(EspecificacaoMaterialServico, on_delete=models.PROTECT,
                                                null=True, blank=True)
 
-    valor_total = models.DecimalField(max_digits=12, decimal_places=2, default=0., blank=False, null=False,
+    valor_total = models.DecimalField(max_digits=12, decimal_places=2, blank=False, null=True,
                                       validators=[MinValueValidator(0, message='Valor total não pode ser negativo.')])
+
+    copia_de = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
 
     class Meta:
         verbose_name = "Prioridade do PAA"
@@ -68,6 +70,22 @@ class PrioridadePaa(ModeloBase):
         else:
             return 'Recursos Próprios'
     nome.short_description = 'Ação'
+
+    @classmethod
+    def excluir_em_lote(cls, lista_uuids):
+        erros = []
+        for item_uuid in lista_uuids:
+            try:
+                obj = cls.objects.get(uuid=item_uuid)
+                obj.delete()
+            except cls.DoesNotExist:
+                erros.append(
+                    {
+                        'erro': 'Objeto não encontrado.',
+                        'mensagem': f'O objeto Prioridade {item_uuid} não foi encontrado na base de dados.'
+                    }
+                )
+        return erros
 
 
 auditlog.register(PrioridadePaa)

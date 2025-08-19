@@ -22,7 +22,7 @@
 {# ************************* Cabecalho das páginas *************************  #}
 <header>
   <div class="d-flex">
-    <div class="col-auto d-flex align-items-center border-rigth-logo mr-3 pr-5">
+    <div class="col-3 d-flex align-items-center border-rigth-logo">
       <img src="{{ base_static_url }}/images/logo_PrefSP_sem_fundo_horizontal_colorida.svg" alt="logo">
     </div>
     <div class="col-5 d-flex align-items-center justify-content-center ml-3">
@@ -32,7 +32,7 @@
           class="font-12 mb-0"><strong>{{ dados.cabecalho.subtitulo }} - </strong>Ata de {{ dados.dados_da_ata.get_tipo_ata_display }}</span>
       </p>
     </div>
-    <div class="col-5 d-flex align-items-center justify-content-end">
+    <div class="col-4 d-flex align-items-center justify-content-end">
       <p class="mb-0 font-12 border px-3 py-2">
         <span>Período de Realização:</span><br/>
         <span><strong>{{ dados.cabecalho.periodo_referencia }} - {{ dados.cabecalho.periodo_data_inicio }} a {{ dados.cabecalho.periodo_data_fim }}</strong></span><br/>

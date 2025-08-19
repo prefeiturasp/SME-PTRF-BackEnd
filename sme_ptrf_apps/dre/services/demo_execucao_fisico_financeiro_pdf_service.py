@@ -28,7 +28,8 @@ def gerar_arquivo_demonstrativo_execucao_fisico_financeiro_pdf(dados_demonstrati
 
         tipos_de_conta_list.append(objeto_tipo_de_conta)
 
-    rendered_html = html_template.render({'dados': dados_demonstrativo, 'tipos_de_conta_list': tipos_de_conta_list, 'base_static_url': staticfiles_storage.location})
+    rendered_html = html_template.render(
+        {'dados': dados_demonstrativo, 'tipos_de_conta_list': tipos_de_conta_list, 'base_static_url': staticfiles_storage.location})
 
     LOGGER.info(f'base_url: {os.path.basename(staticfiles_storage.location)}')
     LOGGER.info(f'store: {staticfiles_storage.location}')
@@ -37,10 +38,10 @@ def gerar_arquivo_demonstrativo_execucao_fisico_financeiro_pdf(dados_demonstrati
         string=rendered_html,
         base_url=staticfiles_storage.location
     ).write_pdf(
+        presentational_hints=True,
         stylesheets=[CSS(staticfiles_storage.location + '/css/pdf-demo-execucao-fisico-financeiro-horizontal.css')])
 
     filename = 'demonstrativo_financeiro_pdf_%s.pdf'
 
     demostrativo_financeiro.arquivo = SimpleUploadedFile(filename, pdf_file, content_type='application/pdf')
     demostrativo_financeiro.save()
-

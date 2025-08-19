@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiExample
 
 from sme_ptrf_apps.core.api.serializers import NotificacaoSerializer
 
@@ -66,6 +67,27 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
 
         return qs
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='lido', description='Lido?', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=['True', 'False']),
+            OpenApiParameter(name='tipo', description='Tipo de Notificação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=[i[0] for i in Notificacao.TIPO_NOTIFICACAO_CHOICES]),
+            OpenApiParameter(name='remetente', description='Remetente', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=[i[0] for i in Notificacao.REMETENTE_NOTIFICACAO_CHOICES]),
+            OpenApiParameter(name='categoria', description='Categoria', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
+                             enum=[i[0] for i in Notificacao.CATEGORIA_NOTIFICACAO_CHOICES]),
+            OpenApiParameter(name='data_inicio', description='Data de início', required=False,
+                             type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='data_fim', description='Data fim', required=False,
+                             type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: NotificacaoSerializer(many=True)},
+    )
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         page = self.paginate_queryset(queryset)
@@ -77,7 +99,7 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
             for data in datas:
                 d = {"data": formata_data(data), "infos": NotificacaoSerializer([n for n in page if (
                     n.criado_em.year == data.year and n.criado_em.month == data.month and n.criado_em.day == data.day)],
-                                                                                many=True).data}
+                    many=True).data}
                 lista.append(d)
 
             result = self.get_paginated_response(lista).data
@@ -95,11 +117,18 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
 
         return Response(result)
 
+    @extend_schema(responses={200: NotificacaoSerializer(many=True)})
     @action(detail=False, methods=['get'], url_path='erro-concluir-pc')
     def erro_concluir_pc(self, request):
-        resultado = Notificacao.objects.filter(usuario=self.request.user, categoria="ERRO_AO_CONCLUIR_PC").all().order_by("-criado_em")
+        resultado = Notificacao.objects.filter(
+            usuario=self.request.user,
+            categoria="ERRO_AO_CONCLUIR_PC").all().order_by("-criado_em")
         return Response(NotificacaoSerializer(resultado, many=True).data, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        responses={200: '0'},
+        examples=[OpenApiExample('Resposta', value={'quantidade_nao_lidos': 0})],
+    )
     @action(detail=False, methods=['get'], url_path='quantidade-nao-lidos')
     def quantidade_de_nao_lidos(self, request):
         quantidade_nao = Notificacao.objects.filter(usuario=self.request.user).filter(lido=False).count()
@@ -108,6 +137,10 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
         }
         return Response(data)
 
+    @extend_schema(
+        responses={200: 'Notificação atualizada com sucesso'},
+        examples=[OpenApiExample('Resposta', value={'mensagem': 'Notificação atualizada com sucesso'})],
+    )
     @action(detail=False, methods=['put'], url_path='marcar-lido')
     def marcar_como_lido_nao_lido(self, request):
         dado = self.request.data
@@ -141,6 +174,16 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
 
         return Response(resultado, status=status_code)
 
+    @extend_schema(
+        responses={200: 'Choices'},
+        examples=[OpenApiExample(
+            'Resposta',
+            value={
+                'tipos_notificacao': Notificacao.tipos_to_json(),
+                'remetentes': Notificacao.remetentes_to_json(),
+                'categorias': Notificacao.categorias_to_json()
+            })],
+    )
     @action(detail=False, url_path='tabelas')
     def tabelas(self, _):
         result = {
@@ -151,6 +194,13 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
 
         return Response(result)
 
+    @extend_schema(
+        responses={200: 'Processo de notificação enviado com sucesso.'},
+        examples=[OpenApiExample(
+            'Resposta',
+            value={'mensagem': 'Processo de notificação enviado com sucesso.'})
+        ],
+    )
     @action(detail=False, url_path="notificar", methods=['post'])
     def notificar(self, request):
         dado = self.request.data
@@ -177,11 +227,18 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
 
         return Response({"mensagem": "Processo de notificação enviado com sucesso."})
 
+    @extend_schema(
+        responses={200: 'Processo de notificação finalizado.'},
+        examples=[OpenApiExample(
+            'Resposta',
+            value={'mensagem': 'Processo de notificação finalizado.', "enviada": True})
+        ],
+    )
     @action(detail=False, url_path="notificar-comentarios-de-analise-consolidado-dre", methods=['post'])
     def notificar_comentarios_de_analise_consolidado_dre(self, request):
 
-        from sme_ptrf_apps.dre.services.notificacao_service.class_notificacao_comentario_de_analise_consolidado_dre import \
-            NotificacaoComentarioDeAnaliseConsolidadoDre
+        from sme_ptrf_apps.dre.services.notificacao_service \
+            .class_notificacao_comentario_de_analise_consolidado_dre import NotificacaoComentarioDeAnaliseConsolidadoDre
 
         dado = self.request.data
 
@@ -235,12 +292,26 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
             }
             return Response(resultado, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"mensagem": "Processo de notificação finalizado.", "enviada": notificacao_enviada}, status=status.HTTP_200_OK)
+        return Response(
+            {
+                "mensagem": "Processo de notificação finalizado.",
+                "enviada": notificacao_enviada
+            }, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        responses={200: 'Processo de notificação enviado com sucesso.'},
+        examples=[OpenApiExample(
+            'Resposta',
+            value={'mensagem': 'Processo de notificação enviado com sucesso.'})
+        ],
+    )
     @action(detail=False, url_path="notificar-prestacao-conta-reprovada-nao-apresentacao", methods=['post'])
     def notificar_prestacao_conta_reprovada_nao_apresentacao(self, request):
 
-        from ...services.notificacao_services.notificacao_prestacao_de_contas_reprovada_nao_apresentacao import notificar_prestacao_de_contas_reprovada_nao_apresentacao
+        from ...services.notificacao_services \
+            .notificacao_prestacao_de_contas_reprovada_nao_apresentacao import (
+                notificar_prestacao_de_contas_reprovada_nao_apresentacao
+            )
 
         dado = self.request.data
 
@@ -255,11 +326,14 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
             return Response(resultado, status=status_code)
 
         try:
-            prestacao_conta_reprovada_nao_apresentacao = PrestacaoContaReprovadaNaoApresentacao.by_uuid(dado['prestacao_conta_reprovada_nao_apresentacao'])
+            prestacao_conta_reprovada_nao_apresentacao = PrestacaoContaReprovadaNaoApresentacao.by_uuid(
+                dado['prestacao_conta_reprovada_nao_apresentacao'])
         except (PrestacaoContaReprovadaNaoApresentacao.DoesNotExist, ValidationError):
             resultado = {
                 'erro': 'objeto_nao_encontrado',
-                'mensagem': f"O objeto PrestacaoContaReprovadaNaoApresentacao para o uuid {dado.get('prestacao_conta_reprovada_nao_apresentacao')} não foi encontrado na base"
+                'mensagem': (
+                    "O objeto PrestacaoContaReprovadaNaoApresentacao para o uuid "
+                    f"{dado.get('prestacao_conta_reprovada_nao_apresentacao')} não foi encontrado na base")
             }
             status_code = status.HTTP_400_BAD_REQUEST
             logger.info('Erro: %r', resultado)
