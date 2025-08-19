@@ -25,9 +25,9 @@ class PeriodoPaa(ModeloBase):
 
     @property
     def editavel(self):
-        # O período não pode ser editado pelo usuário se houver um período que o referencia como período anterior
-        # validação futura quando houve o model de Paa
-        return True
+        # O período não pode ser editado se houver PAAs associados a ele
+        from sme_ptrf_apps.paa.models.paa import Paa
+        return not Paa.objects.filter(periodo_paa=self).exists()
 
     @classmethod
     def periodo_vigente(cls):

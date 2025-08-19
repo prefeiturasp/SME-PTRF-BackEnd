@@ -1,10 +1,14 @@
 import logging
 
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+
+from drf_spectacular.utils import (
+    extend_schema, OpenApiParameter, OpenApiTypes, inline_serializer, OpenApiExample
+)
 
 from sme_ptrf_apps.core.models import Periodo, TipoConta, TipoDevolucaoAoTesouro, Unidade
 from sme_ptrf_apps.receitas.models import DetalheTipoReceita
@@ -32,6 +36,10 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiDre]
     queryset = RelatorioConsolidadoDRE.objects.all()
 
+    @extend_schema(
+        responses={200: 'result'},
+        examples=[OpenApiExample('Resposta', value={'detail': "Texto fique de olho"})],
+    )
     @action(detail=False, methods=['get'], url_path='fique-de-olho',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def fique_de_olho(self, request, uuid=None):
@@ -39,6 +47,14 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
         fique_de_olho = ParametroFiqueDeOlhoRelDre.get().fique_de_olho
         return Response({'detail': fique_de_olho}, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value={'detail': "Texto fique de olho"}),
+            OpenApiExample('Requisição', value={'fique_de_olho': "Texto atualizado fique de olho"})
+        ],
+        request=inline_serializer(name='Payload', fields={'fique_de_olho': serializers.CharField()}),
+    )
     @action(detail=False, methods=['patch'], url_path='update-fique-de-olho',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
     def update_fique_de_olho(self, request, uuid=None):
@@ -67,6 +83,27 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response({'detail': 'Salvo com sucesso'}, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='dre', description='UUID da DRE', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='tipo_conta', description='UUID da DRE', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value={
+                'pcs_em_analise': True,
+                'status_geracao': 'NAO_GERADO | GERADO_PARCIAL | GERADO_TOTAL | EM_PROCESSAMENTO',
+                'status_txt': 'Texto do status',
+                'cor_idx': 0,
+                'status_arquivo': 'Texto do status do documento',
+                'versao': '1.0'
+            }),
+        ],
+    )
     @action(detail=False, methods=['get'], url_path='status-relatorio',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def status_relatorio(self, request):
@@ -142,6 +179,26 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response(status)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='dre', description='UUID da DRE', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='consolidado_dre', description='UUID do consolidado DRE', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value={
+                "periodo_referencia": "Ref do Período",
+                "periodo_data_inicio_realizacao_despesas": "2020-01-01",
+                "periodo_data_fim_realizacao_despesas": "2020-01-30",
+                "titulo_parcial": "Título Parcial",
+                "eh_parcial": True,
+            }),
+        ],
+    )
     @action(detail=False, methods=['get'], url_path='info-execucao-financeira',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def info_execucao_financeira(self, request):
@@ -205,10 +262,35 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        info = retorna_informacoes_execucao_financeira_todas_as_contas(dre=dre, periodo=periodo, consolidado_dre=consolidado_dre)
+        info = retorna_informacoes_execucao_financeira_todas_as_contas(
+            dre=dre,
+            periodo=periodo,
+            consolidado_dre=consolidado_dre)
 
         return Response(info)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='dre', description='UUID da DRE', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='tipo_conta', description='UUID do tipo de conta', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value=[
+                {
+                    'tipo_nome': '',
+                    'tipo_uuid': 'uuid4-1234',
+                    'ocorrencias': '',
+                    'valor': 0,
+                    'observacao': '',
+                }
+            ]),
+        ],
+    )
     @action(detail=False, methods=['get'], url_path='info-devolucoes-conta',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def info_devolucoes_conta(self, request):
@@ -284,6 +366,28 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response(info)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='dre', description='UUID da DRE', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='tipo_conta', description='UUID do tipo de conta', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value=[
+                {
+                    'tipo_nome': '',
+                    'tipo_uuid': 'uuid4-1234',
+                    'ocorrencias': '',
+                    'valor': 0,
+                    'observacao': '',
+                }
+            ]),
+        ],
+    )
     @action(detail=False, methods=['get'], url_path='info-devolucoes-ao-tesouro',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def info_devolucoes_ao_tesouro(self, request):
@@ -359,6 +463,38 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
 
         return Response(info)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='dre', description='UUID da DRE', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='tipo_conta', description='UUID do tipo de conta', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value=[
+                {
+                    'unidade': {
+                        'uuid': 'uuid4-1111',
+                        'codigo_eol': '',
+                        'tipo_unidade': '',
+                        'nome': '',
+                        'sigla': '',
+                    },
+                    'status_prestacao_contas': '',
+                    'valores': {
+                        'repasses_previstos_sme_custeio': 0,
+                        'repasses_previstos_sme_capital': 0,
+                        'repasses_previstos_sme_livre': 0,
+                        'repasses_previstos_sme_total': 0,
+                    },
+                    'uuid_pc': 'uuid4-1234',
+                }
+            ]),
+        ],
+    )
     @action(detail=False, methods=['get'], url_path='info-execucao-financeira-unidades',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def info_execucao_financeira_unidades(self, request):
@@ -652,11 +788,11 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
         dados = request.data
 
         if (
-            not dados
-            or not dados.get('dre_uuid')
-            or not dados.get('periodo_uuid')
-            or not dados.get('tipo_conta_uuid')
-            or (dados.get('parcial') is None)
+            not dados or
+            not dados.get('dre_uuid') or
+            not dados.get('periodo_uuid') or
+            not dados.get('tipo_conta_uuid') or
+            (dados.get('parcial') is None)
         ):
             erro = {
                 'erro': 'parametros_requeridos',

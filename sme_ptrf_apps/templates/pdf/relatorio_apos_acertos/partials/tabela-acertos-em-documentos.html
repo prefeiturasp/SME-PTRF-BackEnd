@@ -30,11 +30,11 @@
         <tr class="border-bottom">
           <td rowspan="1" class="sem-borda pb-4"></td>
           <td colspan="5" class="sem-borda border-bottom pb-4">
-            <div class="row mt-2">
-              <div class='col-2'>
+            <div class="d-flex mt-2">
+              <div class='col-1 pr-0 pl-0'>
                   <span class="item font-12"><strong>Item {{ forloop.counter }}</strong></span>
               </div>
-
+              
               <div class='col-8'>
                 <p class="font-12 mb-0"><strong>Tipo de acerto</strong></p>
                 <p class="font-12">{{ acerto.tipo_acerto.nome }}</p>
@@ -58,21 +58,20 @@
                   <p class="font-12">{{ acerto.texto_do_acerto_do_tipo_edicao_de_informacao }}</p>
                 {% endif %}
               </div>
+              
+              <div class='col-3'>
+                <p class="font-12 mb-0"><strong>Status</strong></p>
+                {% if acerto.status_realizacao == 'PENDENTE' %}
+                  <p class="mt-1 font-10 tag-nao-informado">Não Informado</p>
 
-            <div class='col-3'>
-              <p class="font-12 mb-0"><strong>Status</strong></p>
-              {% if acerto.status_realizacao == 'PENDENTE' %}
-                <p class="mt-1 font-10 tag-nao-informado">Não Informado</p>
+                {% elif acerto.status_realizacao == 'REALIZADO' %}
+                  <p class="mt-1 font-10 tag-realizado"> {{ acerto.status_realizacao|capitaliza_string }}</p>
 
-              {% elif acerto.status_realizacao == 'REALIZADO' %}
-                <p class="mt-1 font-10 tag-realizado"> {{ acerto.status_realizacao|capitaliza_string }}</p>
+                {% elif acerto.status_realizacao == 'JUSTIFICADO' %}
+                  <p class="mt-1 font-10 tag-justificativa"> {{ acerto.status_realizacao|capitaliza_string }}</p>
+                {% endif %}
 
-              {% elif acerto.status_realizacao == 'JUSTIFICADO' %}
-                <p class="mt-1 font-10 tag-justificativa"> {{ acerto.status_realizacao|capitaliza_string }}</p>
-              {% endif %}
-
-            </div>
-
+              </div>
             </div>
           </td>
         </tr>

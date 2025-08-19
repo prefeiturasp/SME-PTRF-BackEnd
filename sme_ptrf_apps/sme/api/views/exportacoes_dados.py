@@ -29,7 +29,8 @@ from sme_ptrf_apps.sme.tasks import (
     exportar_dados_membros_apm_legado_async,
     exportar_processos_sei_regularidade_async,
     exportar_processos_sei_prestacao_contas_async,
-    exportar_unidades_async
+    exportar_unidades_async,
+    exportar_saldos_bancarios_async
 )
 
 from sme_ptrf_apps.users.permissoes import (
@@ -44,10 +45,10 @@ logger = logging.getLogger(__name__)
 
 class ExportacoesDadosViewSet(GenericViewSet):
     permission_classes = [
-        IsAuthenticated
-        & (
-            PermissaoAPIApenasSmeComLeituraOuGravacao
-            | PermissaoAPIApenasDreComLeituraOuGravacao
+        IsAuthenticated &
+        (
+            PermissaoAPIApenasSmeComLeituraOuGravacao |
+            PermissaoAPIApenasDreComLeituraOuGravacao
         )
     ]
     lookup_field = "uuid"
@@ -516,6 +517,27 @@ class ExportacoesDadosViewSet(GenericViewSet):
     )
     def associacoes(self, request):
         exportar_associacoes_async.delay(
+            username=request.user.username,
+            dre_uuid=request.query_params.get("dre_uuid"),
+            data_inicio=request.query_params.get("data_inicio"),
+            data_final=request.query_params.get("data_final"),
+        )
+
+        return Response(
+            {
+                "response": "O arquivo está sendo gerado e será enviado para a central de download após conclusão."
+            },
+            status=HTTP_201_CREATED,
+        )
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="saldos-bancarios",
+        permission_classes=permission_classes,
+    )
+    def saldos_bancarios(self, request):
+        exportar_saldos_bancarios_async.delay(
             username=request.user.username,
             dre_uuid=request.query_params.get("dre_uuid"),
             data_inicio=request.query_params.get("data_inicio"),

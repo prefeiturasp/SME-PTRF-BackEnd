@@ -5,11 +5,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
-
+from django.http import Http404
+from django.core.exceptions import ObjectDoesNotExist
+from django.db.models.deletion import ProtectedError
 import django_filters
 from waffle.mixins import WaffleFlagMixin
 
-from sme_ptrf_apps.paa.models import AcaoPdde, ReceitaPrevistaPdde
+from sme_ptrf_apps.paa.models import AcaoPdde, ReceitaPrevistaPdde, Paa, PeriodoPaa
 from ..serializers.acao_pdde_serializer import AcaoPddeSerializer
 from ..serializers.receita_prevista_pdde_serializer import ReceitasPrevistasPDDEValoresSerializer
 
@@ -42,7 +44,7 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated, PermissaoAPIApenasSmeComLeituraOuGravacao]
     lookup_field = 'uuid'
-    queryset = AcaoPdde.objects.all().order_by('nome')
+    queryset = AcaoPdde.objects.all().filter(status=AcaoPdde.STATUS_ATIVA).order_by('nome')
     serializer_class = AcaoPddeSerializer
     pagination_class = CustomPagination
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
@@ -65,7 +67,7 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
             raise serializers.ValidationError({"non_field_errors": "PAA não foi informado."})
 
         # Lista ações PDDE com os totais de receitas previstas PDDE de acordo com o PAA
-        qs_acoes_pdde = AcaoPdde.objects.all()
+        qs_acoes_pdde = AcaoPdde.objects.filter(status=AcaoPdde.STATUS_ATIVA)
 
         # Paginação na action
         page = self.paginate_queryset(qs_acoes_pdde)
@@ -135,3 +137,37 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
             # ao atualizar uma Ação PDDE
             pass
         return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        """ Método para inativar uma Ação PDDE com validações específicas """
+        try:
+            obj = self.get_object()
+            periodo_vigente = PeriodoPaa.periodo_vigente()
+            receitas_previstas_periodo_vigente = obj.receitaprevistapdde_set.filter(paa__periodo_paa=periodo_vigente).exists()
+        
+            if receitas_previstas_periodo_vigente:
+                return Response(
+                    {"detail": "Esta ação PDDE não pode ser excluída porque está sendo utilizada em um Plano Anual de Atividades (PAA)."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            else:
+                return super().destroy(request, *args, **kwargs)
+        except ProtectedError:
+            obj.status = AcaoPdde.STATUS_INATIVA
+            obj.save()
+            
+            content = {
+                'erro': 'ProtectedError',
+                'mensagem': 'Ação PDDE excluída com sucesso.'
+            }
+            return Response(content, status=status.HTTP_204_NO_CONTENT)
+        except (Http404, ObjectDoesNotExist, AcaoPdde.DoesNotExist):
+            return Response(
+                {"detail": "Ação PDDE não encontrada."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        except Exception as e:
+            return Response(
+                {"detail": f"Erro ao inativar Ação PDDE: {str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
