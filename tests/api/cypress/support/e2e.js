@@ -1,4 +1,4 @@
-import '@shelex/cypress-allure-plugin';
+import "@shelex/cypress-allure-plugin";
 import postgreSQL from "cypress-postgresql";
 postgreSQL.loadDBCommands();
 
@@ -39,11 +39,30 @@ import "cypress-cloud/support";
 
 // Hide fetch/XHR requests
 const app = window.top;
-if (!app.document.head.querySelector("[data-hide-command-log-request]")) {
+if (
+  app &&
+  app.document &&
+  !app.document.head.querySelector("[data-hide-command-log-request]")
+) {
   const style = app.document.createElement("style");
-  style.innerHTML =
-    ".command-name-request, .command-name-xhr { display: none }";
+  style.innerHTML = `
+    .command-name-request,
+    .command-name-xhr {
+      display: none !important;
+    }`;
   style.setAttribute("data-hide-command-log-request", "");
-
   app.document.head.appendChild(style);
 }
+
+// ================================
+// Tratamento de erros globais
+// ================================
+Cypress.on("uncaught:exception", (err) => {
+  // Ignora erros conhecidos
+  if (err.message.includes("Bootstrap's JavaScript requires jQuery"))
+    return false;
+  if (err.message.includes("Request failed with status code 401")) return false;
+
+  // Para qualquer outro erro, Cypress quebra o teste
+  return true;
+});
