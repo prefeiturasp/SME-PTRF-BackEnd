@@ -7,6 +7,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiExample
+
 from sme_ptrf_apps.core.api.serializers import ComentarioAnalisePrestacaoRetrieveSerializer
 from sme_ptrf_apps.core.models import ComentarioAnalisePrestacao, PrestacaoConta, Associacao, Periodo
 from sme_ptrf_apps.users.permissoes import PermissaoAPITodosComLeituraOuGravacao
@@ -40,6 +42,26 @@ class ComentariosAnalisesPrestacoesViewSet(viewsets.ModelViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='prestacao_conta__uuid', description='UUID da prestação de contas', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='associacao_uuid', description='UUID da associação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='periodo_uuid', description='UUID do Período', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        description=('Retorna os comentários nao notificados e notificados. '
+                     'Necessário passar o UUID da prestação de contas ou '
+                     'o UUID da associação e o UUID do período.'),
+        responses={200: 'result'},
+        examples=[OpenApiExample(
+            'Resposta',
+            value={
+                'comentarios_nao_notificados': ComentarioAnalisePrestacaoRetrieveSerializer(many=True).data,
+                'comentarios_notificados': ComentarioAnalisePrestacaoRetrieveSerializer(many=True).data
+            })],
+    )
     @action(detail=False, url_path='comentarios', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def comentarios_nao_notificados_e_notificados(self, request):
@@ -54,7 +76,8 @@ class ComentariosAnalisesPrestacoesViewSet(viewsets.ModelViewSet):
         if not (prestacao_conta_uuid or (associacao_uuid and periodo_uuid)):
             erro = {
                 'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar o uuid da prestação de contas ou o uuid da associação e o uuid do período.'
+                'mensagem': (
+                    'É necessário enviar o uuid da prestação de contas ou o uuid da associação e o uuid do período.')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -64,7 +87,8 @@ class ComentariosAnalisesPrestacoesViewSet(viewsets.ModelViewSet):
             except (PrestacaoConta.DoesNotExist, ValidationError):
                 erro = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto prestacao_conta para o uuid {prestacao_conta_uuid} não foi encontrado na base."
+                    'mensagem': (
+                        f"O objeto prestacao_conta para o uuid {prestacao_conta_uuid} não foi encontrado na base.")
                 }
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -118,6 +142,16 @@ class ComentariosAnalisesPrestacoesViewSet(viewsets.ModelViewSet):
 
         return Response(result)
 
+    @extend_schema(
+        responses={200: 'result'},
+        examples=[OpenApiExample(
+            'Resposta',
+            value={
+                'operacao': 'reordenar-comentarios',
+                'mensagem': 'Ordenação de mensagens concluída com sucesso.'
+            })
+        ],
+    )
     @action(detail=False, methods=['patch'], url_path='reordenar-comentarios')
     def reordenar_comentarios(self, request):
         comentarios_de_analise = request.data.get('comentarios_de_analise', None)
@@ -134,7 +168,7 @@ class ComentariosAnalisesPrestacoesViewSet(viewsets.ModelViewSet):
         except ComentarioAnalisePrestacao.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"Algum comentário da lista não foi encontrado pelo uuid informado."
+                'mensagem': "Algum comentário da lista não foi encontrado pelo uuid informado."
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
