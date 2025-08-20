@@ -354,7 +354,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
         var id = response.body.uuid;
         body = {
           nome: "teste automatizado editado",
-          programa: "e397fa11-71fe-44a5-9883-49e29a23e8e4",
+          programa: "ba6fd433-647f-4671-9d60-2bf368ee8883",
           aceita_capital: true,
           aceita_custeio: true,
           aceita_livre_aplicacao: true,
@@ -514,7 +514,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
         var id = response.body.uuid;
         body = {
           nome: "teste automatizado editado",
-          programa: "e397fa11-71fe-44a5-9883-49e29a23e8e4",
+          programa: "ba6fd433-647f-4671-9d60-2bf368ee8883",
           aceita_capital: "",
           aceita_custeio: true,
           aceita_livre_aplicacao: true,
@@ -544,7 +544,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
         var id = response.body.uuid;
         body = {
           nome: "teste automatizado editado",
-          programa: "e397fa11-71fe-44a5-9883-49e29a23e8e4",
+          programa: "ba6fd433-647f-4671-9d60-2bf368ee8883",
           aceita_capital: "fa",
           aceita_custeio: true,
           aceita_livre_aplicacao: true,
@@ -574,7 +574,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
         var id = response.body.uuid;
         body = {
           nome: "teste automatizado editado",
-          programa: "e397fa11-71fe-44a5-9883-49e29a23e8e4",
+          programa: "ba6fd433-647f-4671-9d60-2bf368ee8883",
           aceita_capital: true,
           aceita_custeio: "te",
           aceita_livre_aplicacao: true,
@@ -604,7 +604,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
         var id = response.body.uuid;
         body = {
           nome: "teste automatizado editado",
-          programa: "e397fa11-71fe-44a5-9883-49e29a23e8e4",
+          programa: "ba6fd433-647f-4671-9d60-2bf368ee8883",
           aceita_capital: true,
           aceita_custeio: "",
           aceita_livre_aplicacao: true,
@@ -634,7 +634,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
         var id = response.body.uuid;
         body = {
           nome: "teste automatizado editado",
-          programa: "e397fa11-71fe-44a5-9883-49e29a23e8e4",
+          programa: "ba6fd433-647f-4671-9d60-2bf368ee8883",
           aceita_capital: true,
           aceita_custeio: true,
           aceita_livre_aplicacao: "tr",
@@ -664,7 +664,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
         var id = response.body.uuid;
         body = {
           nome: "teste automatizado editado",
-          programa: "e397fa11-71fe-44a5-9883-49e29a23e8e4",
+          programa: "ba6fd433-647f-4671-9d60-2bf368ee8883",
           aceita_capital: true,
           aceita_custeio: true,
           aceita_livre_aplicacao: "",
@@ -696,7 +696,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
         var id = response.body.uuid;
         body = {
           nome: "teste automatizado editado",
-          programa: "e397fa11-71fe-44a5-9883-49e29a23e8e4",
+          programa: "ba6fd433-647f-4671-9d60-2bf368ee8883",
           aceita_capital: true,
           aceita_custeio: true,
           aceita_livre_aplicacao: true,
@@ -856,7 +856,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
         var id = response.body.uuid;
         body = {
           nome: "teste automatizado editado",
-          programa: "e397fa11-71fe-44a5-9883-49e29a23e8e4",
+          programa: "ba6fd433-647f-4671-9d60-2bf368ee8883",
           aceita_capital: "",
           aceita_custeio: true,
           aceita_livre_aplicacao: true,
@@ -886,7 +886,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
         var id = response.body.uuid;
         body = {
           nome: "teste automatizado editado",
-          programa: "e397fa11-71fe-44a5-9883-49e29a23e8e4",
+          programa: "ba6fd433-647f-4671-9d60-2bf368ee8883",
           aceita_capital: "fa",
           aceita_custeio: true,
           aceita_livre_aplicacao: true,
@@ -916,7 +916,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
         var id = response.body.uuid;
         body = {
           nome: "teste automatizado editado",
-          programa: "e397fa11-71fe-44a5-9883-49e29a23e8e4",
+          programa: "ba6fd433-647f-4671-9d60-2bf368ee8883",
           aceita_capital: true,
           aceita_custeio: "te",
           aceita_livre_aplicacao: true,
@@ -946,7 +946,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
         var id = response.body.uuid;
         body = {
           nome: "teste automatizado editado",
-          programa: "e397fa11-71fe-44a5-9883-49e29a23e8e4",
+          programa: "ba6fd433-647f-4671-9d60-2bf368ee8883",
           aceita_capital: true,
           aceita_custeio: "",
           aceita_livre_aplicacao: true,
@@ -976,7 +976,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
         var id = response.body.uuid;
         body = {
           nome: "teste automatizado editado",
-          programa: "e397fa11-71fe-44a5-9883-49e29a23e8e4",
+          programa: "ba6fd433-647f-4671-9d60-2bf368ee8883",
           aceita_capital: true,
           aceita_custeio: true,
           aceita_livre_aplicacao: "tr",
@@ -996,7 +996,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
     it("Validar Patch no endpoint /api/acoes-pdde/{uuid}/ com aceita livre aplicacao em branco", () => {
       var body = {
         nome: "teste automatizado " + new Date().getTime(),
-        programa: "e397fa11-71fe-44a5-9883-49e29a23e8e4",
+        programa: "ba6fd433-647f-4671-9d60-2bf368ee8883",
         aceita_capital: true,
         aceita_custeio: true,
         aceita_livre_aplicacao: true,
@@ -1006,7 +1006,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
         var id = response.body.uuid;
         body = {
           nome: "teste automatizado editado",
-          programa: "e397fa11-71fe-44a5-9883-49e29a23e8e4",
+          programa: "ba6fd433-647f-4671-9d60-2bf368ee8883",
           aceita_capital: true,
           aceita_custeio: true,
           aceita_livre_aplicacao: "",

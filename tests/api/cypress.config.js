@@ -1,13 +1,14 @@
 const { defineConfig } = require("cypress");
 const allureWriter = require("@shelex/cypress-allure-plugin/writer");
+const { cloudPlugin } = require("cypress-cloud/plugin");
 require("dotenv").config();
 
 module.exports = defineConfig({
   e2e: {
-    setupNodeEvents(on, config) {
+    async setupNodeEvents(on, config) {
       allureWriter(on, config);
       require("./cypress/plugin/index")(on, config);
-      return config;
+      return cloudPlugin(on, config);
     },
     baseUrlPTRF:
       "https://hom-sig-escola.sme.prefeitura.sp.gov.br/login-suporte",
