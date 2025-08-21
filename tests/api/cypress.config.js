@@ -11,8 +11,8 @@ module.exports = defineConfig({
       return cloudPlugin(on, config);
     },
     baseUrlPTRF:
-      "https://hom-sig-escola.sme.prefeitura.sp.gov.br/login-suporte",
-    baseUrlPTRFHomol: "https://hom-sig-escola.sme.prefeitura.sp.gov.br/",
+      "https://qa-sig-escola.sme.prefeitura.sp.gov.br/login-suporte",
+    baseUrlPTRFHomol: "https://qa-sig-escola.sme.prefeitura.sp.gov.br/",
     usuario_homol_sme: process.env.USUARIO_HOMOL_SME,
     usuario_homol_dre: process.env.USUARIO_HOMOL_DRE,
     senha_homol: process.env.SENHA_HOMOL,
