@@ -22,7 +22,7 @@
 @page {
   size: A4;
   padding: 1cm 0 1cm 0;
-  margin: 3cm 1cm 1cm 3cm;
+  margin: 2cm 1cm 1cm 3cm;
   @top-center {
     content: element(cabecalho);
   }
@@ -53,6 +53,11 @@
   }
 }
 
+body {
+  font-family: Roboto;
+  font-style: normal;
+}
+
 .font-10 {
   font-size: 10px;
   font-family: Roboto, serif;
@@ -70,22 +75,8 @@ header {
   position: running(cabecalho);
   background: #eeeeee;
   width: 215mm;
-  padding: 1cm 1cm 0.5cm 0.5cm;
+  padding: 1cm 1.5cm 0.5cm 0.5cm;
   margin: 0;
-}
-
-html body section#cabecalho .titulo,
-html body section#cabecalho .subtitulo,
-html body header .subtitulo {
-  font-weight: bold;
-  color: #0c0c0c;
-  font-family: Roboto, serif;
-}
-
-html body section#cabecalho .subtitulo,
-html body header .subtitulo {
-  font-family: Roboto, serif;
-  font-style: normal;
 }
 
 #nome-associacao-rodape {
@@ -139,27 +130,6 @@ html body header .subtitulo {
   font-family: Roboto, serif;
   font-style: normal;
 }
-
-/* .conteudo {
-  margin: 0 0 0 -2cm;
-  width: 72%;
-  font-family: Roboto, serif;
-  font-style: normal;
-}
-
-.grupo-conteudo {
-  margin: 0 0 0 -2cm;
-  width: 82.2%;
-  font-family: Roboto, serif;
-  font-style: normal;
-}
-
-.grupo-texto {
-  margin: 0 0 0 -2cm;
-  width: 79%;
-  font-family: Roboto, serif;
-  font-style: normal;
-} */
 
 .new-page {
   page-break-before: always;

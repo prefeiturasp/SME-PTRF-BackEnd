@@ -12,37 +12,30 @@
 
   <title>Levantamento de Prioridades</title>
 </head>
-<body style="background-color: red;">
-
+<body>
 {# ************************* Cabecalho das páginas *************************  #}
 <header>
-  <div class="d-flex">
-    <div class="col-1 d-flex align-items-center border-end m-0">
+  <div class="d-flex align-items-center">
+    <div class="col-1 border-end">
       <img src="{{ base_static_url }}/images/logo_PrefSP_sem_fundo_horizontal_colorida.svg" alt="logo">
     </div>
-    <div class="col-7 d-flex border-end m-0">
-      <div class="px-5">
-        <span class="col-12 m-0"><strong>Programa de Transferência de Recursos Financeiros -  PTRF</strong>
-        </span>
-        <br/>
-        <span class="col-12 m-0">
+    <div class="col-7 border-end">
+      <div class="row">
+        <div class="col-12"><strong>Programa de Transferência de Recursos Financeiros -  PTRF</strong>
+        </div>
+        <div class="col-12">
           <strong>Plano anual de atividades</strong>
-        </span>
-        <br/>
-        <span class="col-12 m-0">
+        </div>
+        <div class="col-12">
           <strong>Levantamento de Prioridades para subsidiar Plano de Aplicação dos Recursos Transferidos/Arrecadados</strong>
-        </span>
+        </div>
       </div>
     </div>
-    <div class="col-4 justify-content-end m-0">
-        <span class="m-0">
-          <strong>Vigência do PAA: </strong>{{dados.ano}}
-        </span>
-        <br/>
-        <span class="m-0 white-space-nowrap">
-          <strong>Ano corrente/Próximo ano: </strong>{{dados.ano}}/{{dados.ano|add:1}}
-        </span>
-      </p>
+    <div class="col-4">
+      <div class="row">
+        <div class="col-12"><span><strong>Vigência do PAA: </strong> {{dados.ano}}</span></div>
+        <div class="col-12"><span><strong>Ano corrente/Próximo ano: </strong>{{dados.ano}}/{{dados.ano|add:1}}</span></div>
+      </div>
     </div>
   </div>
 </header>
@@ -55,193 +48,23 @@
 {# ************************* Fim Rodape ************************* #}
 
 {# ************************* Equipe Técnica ************************* #}
-<section class="conteudo mb-3">
-  <article>
-    <div class='d-flex' style="width: 100%;">
-      <div class='col-4 light-grey-box d-flex justify-content-center align-items-center'>
-        <span><strong>Equipe Técnica - {{dados.ano}}</strong></span>
-      </div>
-      <div class='col-8 light-grey-box p-3'>
-        <div class="row d-flex">
-          <div class="col-12">
-            <span><strong>Nome da Associação:</strong></span>
-          </div>
-          <div class="col-12">
-            <p>{{dados.nome_associacao}}</p>
-          </div>
-        </div>
-      </div>
-      </div>
-  </div>
-  </article>
-
-
-  <div class="d-flex mb-2">
-    <div class="col-12 light-grey-box p-0 m-0">
-        <p class="p-3 mb-0 text-left">Relação de serviços e aquisições considerados fundamentais pelos Membros da Equipe Técnica para a melhoria das condições de trabalho, em consonância com o Projeto Político-Pedagógico da Unidade Educacional e que posteriormente, ouvidos os demais segmentos comporão o Plano Anual de Atividades da: {{dados.nome_associacao}}</p>
-    </div>
-  </div>
-
-  {% if dados.tipo_unidade == "CEU" %}
-    <span><strong>ATENÇÃO:</strong> Esta planilha subsidiará as decisões da APMSUAC/Conselho de escola</span>
-  {% else %}
-    <span><strong>ATENÇÃO:</strong> Esta planilha subsidiará as decisões da APM/Conselho de Escola</span>
-  {% endif %}
-
-  {% include "./partials/tabela-prioridades.html" %}
-
-  {% include "./partials/tabela-participantes.html" %}
-
-</section>
+{% include "./partials/bloco-equipe.html" with dados=dados equipe_tipo="Equipe Técnica" texto="Relação de serviços e aquisições considerados fundamentais pelos Membros da Equipe Técnica para a melhoria das condições de trabalho, em consonância com o Projeto Político-Pedagógico da Unidade Educacional e que posteriormente, ouvidos os demais segmentos comporão o Plano Anual de Atividades da: "|add:dados.nome_associacao%}
 {# ************************* FIM Equipe Técnica ************************* #}
 
 {# ************************* Equipe Docente ************************* #}
-<section class="new-page grupo-conteudo mt-3">
-  <div class='row'>
-    <div class='col-4 light-grey-box justify-content-center font-12'>
-      <span><strong>Equipe Docente - {{dados.ano}}</strong></span>
-    </div>
-    <div class='col-8 light-grey-box'>
-      <div class="row">
-        <span class='px-2 pt-2'><strong>Nome da Associação:</strong></span>
-        <span class='px-2 pb-2 mt-1'>{{dados.nome_associacao}}</span>
-      </div>
-    </div>
-  </div>
-  </div>
-</section>
-
-<section class='grupo-texto'>
-  <div class="row">
-    <div class="col-12 light-grey-box">
-      <span class="text-left my-2">Relação de serviços e aquisições considerados fundamentais pelos Membros da Equipe Docente para a melhoria das condições de trabalho, em consonância com o Projeto Político-Pedagógico da Unidade Educacional e que posteriormente, ouvidos os demais segmentos comporão o Plano Anual de Atividades da:  {{dados.nome_associacao}}</span>
-    </div>
-  </div>
-  {% if dados.tipo_unidade == "CEU" %}
-    <span><strong>ATENÇÃO:</strong> Esta planilha subsidiará as decisões da APMSUAC/Conselho de escola</span>
-  {% else %}
-    <span><strong>ATENÇÃO:</strong> Esta planilha subsidiará as decisões da APM/Conselho de Escola</span>
-  {% endif %}
-</section>
-
-<section class="conteudo">
-  {% include "./partials/tabela-prioridades.html" %}
-</section>
-
-<section class="new-page conteudo mt-3">
-  {% include "./partials/tabela-participantes.html" %}
-</section>
+{% include "./partials/bloco-equipe.html" with dados=dados equipe_tipo="Equipe Docente" texto="Relação de serviços e aquisições considerados fundamentais pelos Membros da Equipe Docente para a melhoria das condições de trabalho, em consonância com o Projeto Político-Pedagógico da Unidade Educacional e que posteriormente, ouvidos os demais segmentos comporão o Plano Anual de Atividades da: "|add:dados.nome_associacao%}
 {# ************************* FIM Equipe Docente ************************* #}
 
 {# ************************* Equipe de Apoio ************************* #}
-<section class="new-page grupo-conteudo mt-3">
-  <div class='row'>
-    <div class='col-4 light-grey-box justify-content-center font-12'>
-      <span><strong>Equipe de Apoio - {{dados.ano}}</strong></span>
-    </div>
-    <div class='col-8 light-grey-box'>
-      <div class="row">
-        <span class='px-2 pt-2'><strong>Nome da Associação:</strong></span>
-        <span class='px-2 pb-2 mt-1'>{{dados.nome_associacao}}</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class='grupo-texto'>
-  <div class="row">
-    <div class="col-12 light-grey-box">
-        <span class="text-left my-2">Relação de serviços e aquisições considerados fundamentais pelos Membros da Equipe de Apoio para a melhoria das condições de trabalho, em consonância com o Projeto Político-Pedagógico da Unidade Educacional e que posteriormente, ouvidos os demais segmentos comporão o Plano Anual de Atividades da: {{dados.nome_associacao}}</span>
-    </div>
-  </div>
-  {% if dados.tipo_unidade == "CEU" %}
-    <span><strong>ATENÇÃO:</strong> Esta planilha subsidiará as decisões da APMSUAC/Conselho de escola</span>
-  {% else %}
-    <span><strong>ATENÇÃO:</strong> Esta planilha subsidiará as decisões da APM/Conselho de Escola</span>
-  {% endif %}
-</section>
-
-<section class="conteudo">
-  {% include "./partials/tabela-prioridades.html" %}
-</section>
-
-<section class="new-page conteudo mt-3">
-  {% include "./partials/tabela-participantes.html" %}
-</section>
+{% include "./partials/bloco-equipe.html" with dados=dados equipe_tipo="Equipe de Apoio" texto="Relação de serviços e aquisições considerados fundamentais pelos Membros da Equipe de Apoio para a melhoria das condições de trabalho, em consonância com o Projeto Político-Pedagógico da Unidade Educacional e que posteriormente, ouvidos os demais segmentos comporão o Plano Anual de Atividades da: "|add:dados.nome_associacao%}
 {# ************************* FIM Equipe de Apoio ************************* #}
 
-
 {# ************************* Grêmio Estudantil ************************* #}
-<section class="conteudo">
-  <div class='d-flex'>
-    <div class='col-4 light-grey-box'>
-      <span><strong>Grêmio Estudantil - {{dados.ano}}</strong></span>
-    </div>
-    <div class='col-8 light-grey-box'>
-        <span><strong>Nome da Associação:</strong></span>
-          <p>{{dados.nome_associacao}}</p>
-      </div>
-  </div>
-</section>
-
-<section class='conteudo' style="background-color: red;">
-  <div class="row">
-    <div class="col-12 light-grey-box">
-      <span class="text-left my-2">Relação de serviços e aquisições considerados fundamentais pelos Membros do Grêmio Estudantil para a melhoria das condições de trabalho, em consonância com o Projeto Político-Pedagógico da Unidade Educacional e que posteriormente, ouvidos os demais segmentos comporão o Plano Anual de Atividades da: {{dados.nome_associacao}}</span>
-    </div>
-  </div>
-  {% if dados.tipo_unidade == "CEU" %}
-    <span><strong>ATENÇÃO:</strong> Esta planilha subsidiará as decisões da APMSUAC/Conselho de escola</span>
-  {% else %}
-    <span><strong>ATENÇÃO:</strong> Esta planilha subsidiará as decisões da APM/Conselho de Escola</span>
-  {% endif %}
-</section>
-
-<section class="conteudo">
-  {% include "./partials/tabela-prioridades.html" %}
-</section>
-
-<section class="new-page conteudo mt-3">
-  {% include "./partials/tabela-participantes.html" %}
-</section>
+{% include "./partials/bloco-equipe.html" with dados=dados equipe_tipo="Grêmio Estudantil" texto="Relação de serviços e aquisições considerados fundamentais pelos Membros do Grêmio Estudantil para a melhoria das condições de trabalho, em consonância com o Projeto Político-Pedagógico da Unidade Educacional e que posteriormente, ouvidos os demais segmentos comporão o Plano Anual de Atividades da: "|add:dados.nome_associacao%}
 {# ************************* FIM Grêmio Estudantil ************************* #}
 
 {# ************************* Pais, Responsáveis e Alunos ************************* #}
-<section class="new-page grupo-conteudo mt-3">
-  <div class='row'>
-    <div class='col-4 light-grey-box justify-content-center font-12'>
-      <span><strong>Pais, Responsáveis e Alunos - {{dados.ano}}</strong></span>
-    </div>
-    <div class='col-8 light-grey-box'>
-      <div class="row">
-        <span class='px-2 pt-2'><strong>Nome da Associação:</strong></span>
-        <span class='px-2 pb-2 mt-1'>{{dados.nome_associacao}}</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class='grupo-texto'>
-  <div class="row">
-    <div class="col-12 light-grey-box">
-      <span class="text-left my-2">Relação de serviços e aquisições considerados fundamentais pelos Pais, Responsáveis e Alunos para a melhoria das condições de trabalho, em consonância com o Projeto Político-Pedagógico da Unidade Educacional e que posteriormente, ouvidos os demais segmentos comporão o Plano Anual de Atividades da: {{dados.nome_associacao}}</span>
-    </div>
-  </div>
-  {% if dados.tipo_unidade == "CEU" %}
-    <span><strong>ATENÇÃO:</strong> Esta planilha subsidiará as decisões da APMSUAC/Conselho de escola</span>
-  {% else %}
-    <span><strong>ATENÇÃO:</strong> Esta planilha subsidiará as decisões da APM/Conselho de Escola</span>
-  {% endif %}
-</section>
-
-<section class="conteudo">
-  {% include "./partials/tabela-prioridades.html" %}
-</section>
-
-<section class="new-page conteudo mt-3">
-  {% include "./partials/tabela-participantes.html" %}
-</section>
-
+{% include "./partials/bloco-equipe.html" with dados=dados  equipe_tipo="Pais, Responsáveis e Alunos" texto="Relação de serviços e aquisições considerados fundamentais pelos Pais, Responsáveis e Alunos para a melhoria das condições de trabalho, em consonância com o Projeto Político-Pedagógico da Unidade Educacional e que posteriormente, ouvidos os demais segmentos comporão o Plano Anual de Atividades da: "|add:dados.nome_associacao%}
 {# ************************* FIM Pais, Responsáveis e Alunos ************************* #}
 
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
