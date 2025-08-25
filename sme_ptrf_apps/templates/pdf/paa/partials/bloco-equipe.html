@@ -1,0 +1,38 @@
+<section class="conteudo new-page mb-3">
+  <article>
+    <div class='d-flex justify-content-between mb-3'>
+      <div class='col-3'>
+        <div class="border row d-flex justify-content-center align-items-center p-3" style="height: 50px;">
+          <h5><strong>{{ equipe_tipo }} - {{dados.ano}}</strong></h5>
+        </div>
+      </div>
+      <div class='col-9'>
+        <div class="row d-flex justify-content-center align-items-center border pl-1 pb-3 pt-3" style="height: 50px; margin-left: 0.1em;">
+          <div class="col-12">
+            <span><strong>Nome da Associação:</strong></span>
+          </div>
+          <div class="col-12">
+            <p class="mb-0">{{ dados.nome_associacao  }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <div class="d-flex mb-2">
+    <div class="col-12 light-grey-box p-0 m-0">
+      <p class="p-3 mb-0 text-left">
+        {{ texto }}
+      </p>
+    </div>
+  </div>
+
+  {% if dados.tipo_unidade == "CEU" %}
+    <span><strong>ATENÇÃO:</strong> Esta planilha subsidiará as decisões da APMSUAC/Conselho de escola</span>
+  {% else %}
+    <span><strong>ATENÇÃO:</strong> Esta planilha subsidiará as decisões da APM/Conselho de Escola</span>
+  {% endif %}
+
+  {% include "./tabela-prioridades.html" %}
+  {% include "./tabela-participantes.html" %}
+</section>
