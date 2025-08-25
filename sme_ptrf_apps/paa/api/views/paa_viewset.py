@@ -64,7 +64,8 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             "tipo_unidade": tipo_unidade,
             "username": request.user.username,
             "data": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-            "ano": datetime.now().year
+            "ano": datetime.now().year,
+            "rodape": f"Unidade Educacional: {tipo_unidade} {nome_unidade}. Documento gerado pelo usuário: {request.user.username}, via SIG - Escola, em: {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}"
         }
         return PaaService.gerar_arquivo_pdf_levantamento_prioridades_paa(dados)
 
