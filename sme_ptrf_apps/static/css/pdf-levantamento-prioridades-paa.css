@@ -39,10 +39,10 @@
 
   @bottom-left {
     color: black;
-    /*content: counter(page) "/" counter(pages);*/
     content: element(nome-associacao);
     font-size: 9pt;
     margin: 0 0 0 -2cm;
+    font-style: normal;
   }
 }
 
@@ -55,12 +55,6 @@
 
 body {
   font-family: Roboto;
-  font-style: normal;
-}
-
-.font-10 {
-  font-size: 10px;
-  font-family: Roboto, serif;
   font-style: normal;
 }
 
@@ -81,10 +75,13 @@ header {
 
 #nome-associacao-rodape {
   position: running(nome-associacao);
+  font-style: normal;
 }
 
-.border-rigth-logo {
-  border-right: 1px solid #a4a4a4;
+.font-10 {
+  font-size: 10px;
+  font-family: Roboto, serif;
+  font-style: normal;
 }
 
 .font-18 {
@@ -129,6 +126,10 @@ header {
   margin-right: 0;
   font-family: Roboto, serif;
   font-style: normal;
+}
+
+table {
+  font-weight: normal;
 }
 
 .new-page {
