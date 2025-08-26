@@ -67,5 +67,10 @@ def paa(paa_factory, periodo_paa_1, associacao):
 
 
 @pytest.fixture
+def resumo_paa_2025_1(paa_factory, periodo_paa_2025_1, associacao):
+    return paa_factory.create(periodo_paa=periodo_paa_2025_1, associacao=associacao)
+
+
+@pytest.fixture
 def parametro_paa(parametro_paa_factory):
     return parametro_paa_factory.create(mes_elaboracao_paa=4)
