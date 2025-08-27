@@ -4,6 +4,7 @@ import logging
 from django.utils.timezone import make_aware
 
 from django.core.files import File
+from django.contrib.auth import get_user_model
 from openpyxl import Workbook
 from openpyxl.drawing.image import Image
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
@@ -45,7 +46,6 @@ class ExportacaoConsultaBensProduzidosService:
         self.nome_arquivo = kwargs.get('nome_arquivo', None)
         self.data_inicio = kwargs.get("data_inicio", None)
         self.data_final = kwargs.get("data_final", None)
-        self.user = kwargs.get('user', None)
         self.cabecalho = CABECALHO_BENS
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
@@ -60,7 +60,7 @@ class ExportacaoConsultaBensProduzidosService:
         logger.info(f"Nome arquivo: {self.nome_arquivo}")
         logger.info(f"Data início: {self.data_inicio}")
         logger.info(f"Data final: {self.data_final}")
-        logger.info(f"Usuário: {self.user}")
+        logger.info(f"Usuário: {self.user_id}")
         logger.info(f"Ambiente: {self.ambiente}")
         logger.info(f"Texto filtro: {self.texto_filtro_aplicado}")
         logger.info("ExportacaoConsultaBensProduzidosService inicializado com sucesso")
@@ -443,6 +443,9 @@ class ExportacaoConsultaBensProduzidosService:
                             top=Side(style='thin', color='BFBFBF'),
                             bottom=Side(style='thin', color='BFBFBF')
                         )
+                        
+                        # Merge das colunas G e H
+                        worksheet.merge_cells(start_row=linha_atual, start_column=7, end_row=linha_atual, end_column=8)
                         
                         # I: Valor das despesas (coluna 9) - será mesclada se houver múltiplas linhas
                         cell_i = worksheet.cell(row=linha_atual, column=9)
@@ -1172,12 +1175,14 @@ class ExportacaoConsultaBensProduzidosService:
     def cria_registro_central_download(self):
         """Cria registro na central de download"""
         logger.info("Criando registro na central de download")
-        logger.info(f"Usuário: {self.user}")
+        logger.info(f"Usuário: {self.user_id}")
         logger.info(f"Nome arquivo: {self.nome_arquivo}")
         logger.info(f"Texto filtro: {self.texto_filtro_aplicado}")
-        
+
+        usuario = get_user_model().objects.get(id=self.user_id)
+
         obj = gerar_arquivo_download(
-            self.user,
+            usuario.username,
             self.nome_arquivo,
             self.texto_filtro_aplicado
         )
@@ -1216,13 +1221,13 @@ class ExportacaoConsultaBensProduzidosService:
     def texto_rodape(self):
         """Gera texto do rodapé"""
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
+        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user_id} em {data_hora_geracao}"
         return texto
 
     def texto_info_arquivo_gerado(self):
         """Gera texto de informação do arquivo"""
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
+        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user_id} em {data_hora_geracao}"
         return texto
 
 
