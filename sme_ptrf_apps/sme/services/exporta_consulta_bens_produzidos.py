@@ -100,7 +100,7 @@ class ExportacaoConsultaBensProduzidosService:
             logger.info(f"Texto filtro gerado: {texto}")
             return texto
 
-        texto = "por período: 2025.1"
+        texto = ""
         logger.info(f"Texto filtro padrão: {texto}")
         return texto
 
@@ -598,12 +598,6 @@ class ExportacaoConsultaBensProduzidosService:
         titulo_linha1.fill = PatternFill(start_color='F6F8F9', end_color='F6F8F9', fill_type='solid')
         titulo_linha1.alignment = Alignment(horizontal='left', vertical='center')
         
-        # # Segunda linha: B2:L2
-        # worksheet.merge_cells('B1:L1')
-        # titulo_linha2 = worksheet['B1']
-        # titulo_linha2.fill = PatternFill(start_color='F6F8F9', end_color='F6F8F9', fill_type='solid')
-        # titulo_linha2.alignment = Alignment(horizontal='left', vertical='center')
-
         # Texto descritivo: K1:L1
         worksheet.merge_cells('K1:L1')
         titulo_linha1 = worksheet['K1']
@@ -930,8 +924,7 @@ class ExportacaoConsultaBensProduzidosService:
             
             # 4. Tipo (Documento) - Lista de tipos das despesas
             tipos = []
-            # Crie uma lista de atributos do objeto instance
-                        
+
             if hasattr(instance, 'bem_produzido') and hasattr(instance.bem_produzido, 'despesas'):
                 for bem_produzido_despesa in instance.bem_produzido.despesas.all():
                     tipo_doc = getattr(bem_produzido_despesa.despesa.tipo_documento, 'nome', '') if hasattr(bem_produzido_despesa.despesa, 'tipo_documento') else '-'
@@ -995,7 +988,6 @@ class ExportacaoConsultaBensProduzidosService:
                 datas,
                 acoes,
                 valor_despesas,
-                # f"{valor_total_despesas:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
                 str(quantidade),
                 f"{valor_unitario:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.'),
                 f"{valor_total:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
