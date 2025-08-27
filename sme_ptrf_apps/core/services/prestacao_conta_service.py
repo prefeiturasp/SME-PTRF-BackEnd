@@ -29,6 +29,7 @@ class PrestacaoContaService:
     Classe responsável pelo novo processo de prestação de contas.
     Por hora executado apenas quando a feature flag "novo-processo-pc" está ativa.
     """
+
     def __init__(self, periodo_uuid, associacao_uuid, username="", logger=None):
         try:
             self._periodo = Periodo.by_uuid(uuid=periodo_uuid)
@@ -115,7 +116,7 @@ class PrestacaoContaService:
     def pc_e_devolucao_com_solicitacao_acerto_em_extrato(self):
         if self._e_retorno_devolucao:
             ultima_analise = self._prestacao.analises_da_prestacao.last()
-            return ultima_analise is not None and ultima_analise.requer_acertos_em_extrato
+            return ultima_analise is not None and ultima_analise.acertos_em_extrato_requer_gerar_documentos
         else:
             return False
 
@@ -141,7 +142,7 @@ class PrestacaoContaService:
         Nesses casos, os originais precisam ser apagados para que os novos sejam gerados.
         """
         return self.e_retorno_devolucao and (
-                self.pc_e_devolucao_com_solicitacoes_mudanca_realizadas or self.pc_e_devolucao_com_solicitacao_acerto_em_extrato)
+            self.pc_e_devolucao_com_solicitacoes_mudanca_realizadas or self.pc_e_devolucao_com_solicitacao_acerto_em_extrato)
 
     @property
     def requer_criar_fechamentos(self):
@@ -162,7 +163,7 @@ class PrestacaoContaService:
         Além disso, qualquer prévia de documento deve ser apagada, nas mesmas situações.
         """
         return (not self.e_retorno_devolucao) or (
-                self.pc_e_devolucao_com_solicitacoes_mudanca_realizadas or self.pc_e_devolucao_com_solicitacao_acerto_em_extrato)
+            self.pc_e_devolucao_com_solicitacoes_mudanca_realizadas or self.pc_e_devolucao_com_solicitacao_acerto_em_extrato)
 
     @property
     def analise_atual_id(self):
@@ -234,7 +235,7 @@ class PrestacaoContaService:
 
         return demonstrativo
 
-    def _persiste_dados_relacao_de_bens(self, conta_associacao,  previa=False):
+    def _persiste_dados_relacao_de_bens(self, conta_associacao, previa=False):
         # TODO - Rever implementação para seguir o padrão do demonstrativo financeiro
 
         compras_de_capital = RateioDespesa.rateios_da_conta_associacao_no_periodo(
@@ -348,7 +349,8 @@ class PrestacaoContaService:
 
         self.logger.info(f'Terminando processo da PC...')
 
-        calculo_concluido = self._prestacao.status in [PrestacaoConta.STATUS_CALCULADA, PrestacaoConta.STATUS_DEVOLVIDA_CALCULADA]
+        calculo_concluido = self._prestacao.status in [
+            PrestacaoConta.STATUS_CALCULADA, PrestacaoConta.STATUS_DEVOLVIDA_CALCULADA]
         self.logger.info(f'PC {self._prestacao} está calculada? {calculo_concluido}')
 
         # Verificar se todos os demonstrativos financeiros da prestacao de contas foram concluídos
@@ -361,7 +363,8 @@ class PrestacaoContaService:
                 demonstrativos_concluidos = False
                 break
 
-        self.logger.info(f'Todos os demonstrativos financeiros da PC {self._prestacao} estão concluídos? {demonstrativos_concluidos}')
+        self.logger.info(
+            f'Todos os demonstrativos financeiros da PC {self._prestacao} estão concluídos? {demonstrativos_concluidos}')
 
         # Verificar se todos os relatórios de bens da prestacao de contas foram concluídos
         relatorios_concluidos = True  # Não é obrigatório ter relatórios de bens, mas se tiver, todos devem estar concluídos
@@ -371,7 +374,8 @@ class PrestacaoContaService:
                 relatorios_concluidos = False
                 break
 
-        self.logger.info(f'Todos os relatórios de bens da PC {self._prestacao} estão concluídos? {relatorios_concluidos}')
+        self.logger.info(
+            f'Todos os relatórios de bens da PC {self._prestacao} estão concluídos? {relatorios_concluidos}')
 
         if calculo_concluido and demonstrativos_concluidos and relatorios_concluidos:
             self.logger.info(f'Terminando o processo da PC {self._prestacao}...')
@@ -433,7 +437,8 @@ class PrestacaoContaService:
             prestacao_conta=self._prestacao,
         )
 
-        self.logger.info(f'Criando Celery Chain.', extra={'observacao': f'Parâmetro retorno de devolução = {self.e_retorno_devolucao}'})
+        self.logger.info(f'Criando Celery Chain.', extra={
+                         'observacao': f'Parâmetro retorno de devolução = {self.e_retorno_devolucao}'})
         chain_tasks = chain(
             calcular_prestacao_de_contas_async.s(
                 task_celery_calcular_pc.uuid,

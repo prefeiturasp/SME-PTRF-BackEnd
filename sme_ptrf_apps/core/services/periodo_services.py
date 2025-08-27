@@ -100,7 +100,8 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     else:
         documentos_gerados = False
 
-    pc_requer_conclusao = not prestacao or prestacao.status in (PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_DEVOLVIDA)
+    pc_requer_conclusao = not prestacao or prestacao.status in (
+        PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_DEVOLVIDA)
 
     status = {
         'periodo_encerrado': periodo.encerrado,
@@ -113,9 +114,20 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         'prestacao_de_contas_uuid': prestacao.uuid if prestacao and prestacao.uuid else None,
         'requer_retificacao': pc_requer_ata_retificacao(prestacao),
         'tem_acertos_pendentes': pc_tem_solicitacoes_de_acerto_pendentes(prestacao),
+        'requer_acertos_em_extrato': pc_requer_acertos_em_extrato(prestacao),
     }
 
     return status
+
+
+def pc_requer_acertos_em_extrato(prestacao_conta):
+    if not prestacao_conta or prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
+        return False
+
+    ultima_analise = prestacao_conta.analises_da_prestacao.last()
+
+    return ultima_analise is not None and ultima_analise.requer_acertos_em_extrato
+
 
 def pc_tem_solicitacoes_de_acerto_pendentes(prestacao_conta):
     if not prestacao_conta or prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
@@ -124,6 +136,7 @@ def pc_tem_solicitacoes_de_acerto_pendentes(prestacao_conta):
     ultima_analise = prestacao_conta.analises_da_prestacao.last()
 
     return ultima_analise is not None and ultima_analise.tem_acertos_pendentes
+
 
 def valida_datas_periodo(
     data_inicio_realizacao_despesas,
@@ -150,7 +163,7 @@ def valida_datas_periodo(
             valido = False
     else:
         if (not periodo_uuid and Periodo.objects.exists()) or (
-         periodo_uuid and Periodo.objects.exclude(uuid=periodo_uuid).exists()):
+                periodo_uuid and Periodo.objects.exclude(uuid=periodo_uuid).exists()):
             mensagem = "Período anterior não definido só é permitido para o primeiro período cadastrado."
             valido = False
     result = {

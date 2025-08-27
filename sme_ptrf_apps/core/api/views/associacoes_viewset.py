@@ -252,7 +252,7 @@ class AssociacoesViewSet(ModelViewSet):
         if pendencias_dados:
             pendencias_cadastrais = {
                 'dados_associacao': pendencias_dados,
-                'conciliacao_bancaria': None,
+                'conciliacao_bancaria': pendencias_conciliacao,
             }
         else:
             pendencias_cadastrais = None

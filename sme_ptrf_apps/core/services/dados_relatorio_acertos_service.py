@@ -30,16 +30,17 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
     logger.info(f'Análise de PC {analise_prestacao_conta.id}')
     for analise_conta in analise_prestacao_conta.analises_de_extratos.all():
         logger.info(f'Análise de conta {analise_conta.id}')
-        if analise_conta.data_extrato or analise_conta.saldo_extrato is not None:
-            dados = {
-                'nome_conta': analise_conta.conta_associacao.tipo_conta.nome,
-                'data_extrato': analise_conta.data_extrato,
-                'saldo_extrato': analise_conta.saldo_extrato,
-                'solicitar_envio_do_comprovante_do_saldo_da_conta': analise_conta.solicitar_envio_do_comprovante_do_saldo_da_conta,
-                'observacao_solicitar_envio_do_comprovante_do_saldo_da_conta': analise_conta.observacao_solicitar_envio_do_comprovante_do_saldo_da_conta,
-            }
-            logger.info(f'Ajuste em conta:{dados["nome_conta"]} data:{dados["data_extrato"]} saldo:{dados["saldo_extrato"]}')
-            dados_ajustes_contas.append(dados)
+        dados = {
+            'nome_conta': analise_conta.conta_associacao.tipo_conta.nome,
+            'data_extrato': analise_conta.data_extrato,
+            'saldo_extrato': analise_conta.saldo_extrato,
+            'solicitar_envio_do_comprovante_do_saldo_da_conta': analise_conta.solicitar_envio_do_comprovante_do_saldo_da_conta,
+            'solicitar_correcao_da_data_do_saldo_da_conta': analise_conta.solicitar_correcao_da_data_do_saldo_da_conta,
+            'observacao_solicitar_envio_do_comprovante_do_saldo_da_conta': analise_conta.observacao_solicitar_envio_do_comprovante_do_saldo_da_conta,
+        }
+        logger.info(
+            f'Ajuste em conta:{dados["nome_conta"]} data:{dados["data_extrato"]} saldo:{dados["saldo_extrato"]}')
+        dados_ajustes_contas.append(dados)
 
     dados_lancamentos = []
     for conta in analise_prestacao_conta.prestacao_conta.associacao.contas.all():
@@ -57,9 +58,9 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
             }
 
             dados_lancamentos.append(dados)
-            
+
     dados_despesas_periodos_anteriores = []
-    
+
     flags = get_waffle_flag_model()
     if flags.objects.filter(name='ajustes-despesas-anteriores', everyone=True).exists():
         for conta in analise_prestacao_conta.prestacao_conta.associacao.contas.all():
@@ -70,13 +71,13 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
                 tipo_transacao="GASTOS",
                 apenas_despesas_de_periodos_anteriores=True,
             )
-            
+
             if despesas_periodos_anteriores:
                 dados = {
                     'nome_conta': conta.tipo_conta.nome,
                     'lancamentos': despesas_periodos_anteriores
                 }
-                
+
                 dados_despesas_periodos_anteriores.append(dados)
 
     dados_tecnico = {
@@ -121,7 +122,7 @@ def nome_blocos(dados_ajustes_contas, dados_lancamentos, dados_documentos, dados
     if dados_lancamentos:
         numero_bloco = numero_bloco + 1
         dados[f'acertos_lancamentos'] = f'Bloco {numero_bloco} - Acertos nos lançamentos'
-        
+
     if dados_despesas_periodos_anteriores:
         numero_bloco = numero_bloco + 1
         dados[f'despesas_periodos_anteriores'] = f'Bloco {numero_bloco} - Acertos nas despesas de períodos anteriores'

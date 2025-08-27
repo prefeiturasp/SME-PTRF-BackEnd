@@ -429,7 +429,7 @@ class ContaAssociacao(ModeloBase):
 
         return resultado
 
-    def get_info_solicitacao_encerramento(self):
+    def get_info_solicitacao_encerramento(self, periodo):
         from sme_ptrf_apps.core.models import SolicitacaoEncerramentoContaAssociacao
 
         info = {
@@ -442,14 +442,12 @@ class ContaAssociacao(ModeloBase):
             if (
                 self.solicitacao_encerramento.status != SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA
             ):
-                data_encerramento = (
-                    self.solicitacao_encerramento.data_de_encerramento_na_agencia
-                )
                 saldo = 0
 
-                info["data_encerramento"] = data_encerramento
-                info["saldo"] = saldo
-                info["possui_solicitacao_encerramento"] = True
+                if self.solicitacao_encerramento.data_de_encerramento_na_agencia <= periodo.data_fim_realizacao_despesas:
+                    info["data_encerramento"] = self.solicitacao_encerramento.data_de_encerramento_na_agencia
+                    info["saldo"] = saldo
+                    info["possui_solicitacao_encerramento"] = True
 
         return info
 
