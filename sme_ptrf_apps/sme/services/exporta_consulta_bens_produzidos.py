@@ -524,6 +524,7 @@ class ExportacaoConsultaBensProduzidosService:
             rodape_celula.font = Font(name='Calibri', color='000000', bold=False, size=11)
             rodape_celula.alignment = Alignment(horizontal='left', vertical='center')
             
+            # OBS: Removido temporariamente para que possa ser usado futuramente, quando houver necessidade de exibir os filtros aplicados.
             # Adicionar texto dos filtros na linha 10, colunas B até L (Removido temporariamente)
             # filtros_celula = worksheet['B10']
             # filtros_celula.value = self.filtros_str if self.filtros_str else "Nenhum filtro aplicado"
@@ -717,6 +718,7 @@ class ExportacaoConsultaBensProduzidosService:
             cell = worksheet.cell(row=7, column=col)
             cell.border = borda_cinza
 
+        # OBS: Removido temporariamente para que possa ser usado futuramente, quando houver necessidade de exibir os filtros aplicados.
         # Adicionar "Filtros aplicados:" na linha 10, coluna A (Removido temporariamente)
         # filtros_cabecalho = worksheet['A10']
         # filtros_cabecalho.value = "Filtros aplicados:"
