@@ -160,7 +160,7 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
         data_inicio = request.query_params.get('data_inicio')
         data_fim = request.query_params.get('data_fim')
         user_id = request.user.id
-        # Crie a string de filtros separados por ;
+
         filtros = []
         
         if periodos_uuid:
@@ -202,10 +202,6 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 
         if data_inicio and data_fim:
-            # Formate a data para o formato dd/mm/yyyy
-            print(f"Data de início: {data_inicio}")
-            print(f"Data de fim: {data_fim}")
-
             data_inicio_formatada = datetime.datetime.strptime(data_inicio, '%Y-%m-%d').strftime('%d/%m/%Y')
             data_fim_formatada = datetime.datetime.strptime(data_fim, '%Y-%m-%d').strftime('%d/%m/%Y')
             
