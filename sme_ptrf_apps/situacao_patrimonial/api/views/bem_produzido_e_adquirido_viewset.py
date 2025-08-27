@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
     waffle_flag = "situacao-patrimonial"
-    permission_classes = [PermissaoApiUe]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
 
     def list(self, request):
         associacao_uuid = request.query_params.get('associacao_uuid')
@@ -159,8 +159,7 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
         periodos_uuid = request.query_params.get('periodos_uuid')
         data_inicio = request.query_params.get('data_inicio')
         data_fim = request.query_params.get('data_fim')
-        username = request.user.username
-
+        user_id = request.user.id
         # Crie a string de filtros separados por ;
         filtros = []
         
@@ -235,7 +234,7 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
                 periodos_uuid=periodos_uuid,
                 data_inicio=data_inicio,
                 data_fim=data_fim,
-                username=username,
+                user_id=user_id,
                 filtros_str=filtros_str
             )
 
