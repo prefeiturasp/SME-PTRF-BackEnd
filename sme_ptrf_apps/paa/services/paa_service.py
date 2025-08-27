@@ -51,6 +51,7 @@ class PaaService:
         for qs_programa in qs_programas:
             # Objeto padrão por programa
             programa = {
+                "uuid": str(qs_programa.uuid),
                 "nome": qs_programa.nome,
                 "total_valor_custeio": 0,
                 "total_valor_capital": 0,
