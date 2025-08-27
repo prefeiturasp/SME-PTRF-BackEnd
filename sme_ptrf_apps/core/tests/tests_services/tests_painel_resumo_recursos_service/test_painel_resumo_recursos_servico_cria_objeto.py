@@ -38,6 +38,8 @@ def test_obtem_painel_resumo_recursos_por_associacao_periodo_conta(
         'texto_status': 'Período em andamento. ',
         'requer_retificacao': False,
         'tem_acertos_pendentes': False,
+        'requer_acertos_em_extrato': False
+        
     }
 
     assert isinstance(painel, PainelResumoRecursos)
