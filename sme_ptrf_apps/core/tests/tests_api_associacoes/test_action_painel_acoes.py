@@ -79,6 +79,7 @@ def test_action_painel_acoes(
             'prestacao_de_contas_uuid': None,
             'requer_retificacao': False,
             'tem_acertos_pendentes': False,
+            'requer_acertos_em_extrato': False
 
         }
     }
@@ -159,6 +160,7 @@ def test_action_painel_acoes_por_periodo(
             'prestacao_de_contas_uuid': None,
             'requer_retificacao': False,
             'tem_acertos_pendentes': False,
+            'requer_acertos_em_extrato': False
         },
     }
 
@@ -264,6 +266,7 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
             'prestacao_de_contas_uuid': None,
             'requer_retificacao': False,
             'tem_acertos_pendentes': False,
+            'requer_acertos_em_extrato': False
         },
     }
 
