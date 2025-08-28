@@ -5,6 +5,17 @@ from model_bakery import baker
 
 
 @pytest.fixture
+def periodo_2019_1():
+    return baker.make(
+        'Periodo',
+        referencia='2019.1',
+        data_inicio_realizacao_despesas=datetime.date(2019, 1, 1),
+        data_fim_realizacao_despesas=datetime.date(2019, 6, 30),
+        periodo_anterior=None
+    )
+
+
+@pytest.fixture
 def periodo_2019_2():
     return baker.make(
         'Periodo',
