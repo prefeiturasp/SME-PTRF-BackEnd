@@ -397,8 +397,4 @@ def test_exportar_sem_permissao(jwt_authenticated_client_sme, associacao_1, monk
         f'/api/bens-produzidos-e-adquiridos/exportar/?associacao_uuid={associacao_1.uuid}'
     )
     
-    # Como o sistema de flags pode não estar funcionando nos testes,
-    # vamos verificar se pelo menos a funcionalidade está sendo executada
-    # Se retornar 202, significa que a funcionalidade está funcionando
-    # Se retornar 403 ou 404, significa que está sendo bloqueada
     assert response.status_code in [status.HTTP_202_ACCEPTED, status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND]
