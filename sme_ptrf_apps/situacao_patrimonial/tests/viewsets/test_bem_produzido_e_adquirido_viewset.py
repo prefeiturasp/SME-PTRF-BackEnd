@@ -5,6 +5,9 @@ from rest_framework import status
 
 pytestmark = pytest.mark.django_db
 
+@pytest.fixture
+def flag_situacao_patrimonial(flag_factory):
+    return flag_factory.create(name='situacao-patrimonial')
 
 def test_get_lista_adquiridos_e_produzidos(jwt_authenticated_client_sme, flag_situacao_patrimonial, associacao_1, bem_produzido_item_1, rateio_capital_1, rateio_custeio_1):
 
@@ -386,7 +389,8 @@ def test_exportar_formato_filtros_string(jwt_authenticated_client_sme, flag_situ
 @freeze_time('2025-01-01')
 def test_exportar_sem_permissao(jwt_authenticated_client_sme, associacao_1, monkeypatch):
     """Testa exportação sem a flag de situação patrimonial habilitada"""
-    # Mock para desabilitar a flag
+    # Mock para desabilitar a flag de situação patrimonial
+    # Simula o cenário onde a flag 'situacao-patrimonial' não está habilitada
     monkeypatch.setattr('sme_ptrf_apps.situacao_patrimonial.api.views.bem_produzido_e_adquirido_viewset.WaffleFlagMixin.waffle_flag', 'flag-inexistente')
     
     response = jwt_authenticated_client_sme.get(
