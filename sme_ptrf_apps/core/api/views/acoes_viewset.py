@@ -1,4 +1,7 @@
 from django.db.models.query_utils import Q
+
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+
 from rest_framework import mixins, status
 from rest_framework.decorators import action
 
@@ -35,6 +38,16 @@ class AcoesViewSet(mixins.ListModelMixin,
 
         return qs.order_by('nome')
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='nome', description='nome da Ação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: AcaoSerializer(many=True)},
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
     def destroy(self, request, *args, **kwargs):
         from django.db.models.deletion import ProtectedError
 
@@ -51,6 +64,13 @@ class AcoesViewSet(mixins.ListModelMixin,
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='filtro_informacoes', description='Filtrar por informações. Separado por vírgula',
+                             required=False, type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: AssociacaoListSerializer(many=True)},
+    )
     @action(detail=True, methods=['get'], url_path='associacoes-nao-vinculadas')
     def associacoes_nao_vinculadas(self, request, uuid=None):
         acao = self.get_object()
@@ -74,6 +94,13 @@ class AcoesViewSet(mixins.ListModelMixin,
         result = AssociacaoListSerializer(qs, many=True).data
         return Response(result, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='filtro_informacoes', description='Filtrar por informações. Separado por vírgula',
+                             required=False, type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: AssociacaoListSerializer(many=True)},
+    )
     @action(detail=True, methods=['get'], url_path='associacoes-nao-vinculadas-por-nome/(?P<nome>[^/.]+)')
     def associacoes_nao_vinculadas_por_nome(self, request, nome, uuid=None):
         acao = self.get_object()

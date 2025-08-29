@@ -1,8 +1,10 @@
-from rest_framework.exceptions import ValidationError
 from rest_framework.pagination import PageNumberPagination
 
 from django.db.models import Q
 from django_filters import rest_framework as filters
+
+from drf_spectacular.utils import (
+    extend_schema, OpenApiExample)
 
 from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticated
@@ -19,10 +21,12 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPITodosComLeituraOuGravacao
 )
 
+
 class AcaoAssociacaoPagination(PageNumberPagination):
-    page_size = 10 
-    page_size_query_param = 'page_size' 
+    page_size = 10
+    page_size_query_param = 'page_size'
     max_page_size = 100
+
 
 class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
                             mixins.CreateModelMixin,
@@ -80,12 +84,21 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
         except ProtectedError:
             content = {
                 'erro': 'ProtectedError',
-                'mensagem': 'Essa operação não pode ser realizada. Há dados vinculados a essa ação da referida Associação'
+                'mensagem': (
+                    'Essa operação não pode ser realizada. Há dados vinculados a essa ação da referida Associação'
+                )
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(
+        responses={201: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value={'erro': "", 'mensagem': ""}),
+            OpenApiExample('Payload', value={'lista_uuids': ["uuid1", "uuid2"]}),
+        ],
+    )
     @action(detail=False, methods=['post'], url_path='excluir-lote',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def excluir_em_lote(self, request, *args, **kwrgs):
@@ -99,7 +112,7 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
         try:
             erros = AcaoAssociacao.excluir_em_lote(request.data.get('lista_uuids'))
             if erros:
-                mensagem = f'Alguns vínculos não puderam ser desfeitos por já estarem sendo usados na aplicação.'
+                mensagem = 'Alguns vínculos não puderam ser desfeitos por já estarem sendo usados na aplicação.'
             else:
                 mensagem = 'Unidades desvinculadas da ação com sucesso.'
             return Response({
@@ -115,6 +128,13 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
 
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        responses={201: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value={'erro': "", 'mensagem': ""}),
+            OpenApiExample('Payload', value={'acao_uuid': "uuid0", 'associacoes_uuids': ["uuid1", "uuid2"]}),
+        ]
+    )
     @action(detail=False, methods=['post'], url_path='incluir-lote',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def incluir_lote(self, request, *args, **kwrgs):
@@ -153,7 +173,7 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
         try:
             erros_criacao = AcaoAssociacao.incluir_em_lote(acao=acao, associacoes=associacoes)
             if erros_parametros or erros_criacao:
-                mensagem = f'Alguns vínculos não puderam ser feitos.'
+                mensagem = 'Alguns vínculos não puderam ser feitos.'
             else:
                 mensagem = 'Unidades vinculadas à ação com sucesso.'
             return Response({
@@ -169,6 +189,16 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
 
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value={
+                "saldo_atual_custeio": 0,
+                "saldo_atual_capital": 0,
+                "saldo_atual_livre": 0,
+            }),
+        ]
+    )
     @action(detail=True, methods=['get'], url_path='obter-saldo-atual',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def obter_saldo_atual(self, request, uuid, *args, **kwrgs):

@@ -3,6 +3,9 @@ import logging
 from django.db.models import Q
 from django.http import HttpResponse
 from django_filters import rest_framework as filters
+
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiExample
+
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -38,6 +41,28 @@ class ArquivoViewSet(ModelViewSet):
 
         return qs
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='data_execucao', description='Filtrar por data de execução',
+                             required=False, type=OpenApiTypes.DATE, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='identificador', description='Filtrar por identificador',
+                             required=False, type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: ArquivoSerializer(many=True)},
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value={
+                'status': {},
+                'tipos_cargas': {},
+                'tipos_delimitadores': {}
+            }),
+        ]
+    )
     @action(detail=False, methods=['get'], url_path='tabelas')
     def tabelas(self, _):
         result = {
@@ -47,6 +72,12 @@ class ArquivoViewSet(ModelViewSet):
         }
         return Response(result)
 
+    @extend_schema(
+        responses={
+            (200, 'text/csv'): OpenApiTypes.BINARY,
+        },
+        description="Retorna um arquivo CSV."
+    )
     @action(detail=True, methods=['get'], url_path='download')
     def download(self, request, uuid=None):
         logger.info("Download do arquivo de carga com uuid %s.", uuid)
@@ -85,6 +116,13 @@ class ArquivoViewSet(ModelViewSet):
 
         return response
 
+    @extend_schema(
+        responses={200: 'result'},
+        description="Processa o arquivo de carga.",
+        examples=[
+            OpenApiExample('Resposta', value={'mensagem': 'Arquivo na fila para processamento.'}),
+        ]
+    )
     @action(detail=True, methods=['post'], url_path='processar')
     def processar(self, request, uuid):
         logger.info("Processando arquivo de carga com uuid %s.", uuid)
