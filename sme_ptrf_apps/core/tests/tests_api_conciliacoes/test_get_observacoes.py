@@ -35,13 +35,13 @@ def test_api_get_observacoes_sem_observacoes_e_encerramento(jwt_authenticated_cl
 
 
 def test_api_get_com_observacoes(jwt_authenticated_client_a,
-                                 periodo,
+                                 periodo_2020_1,
                                  conta_associacao,
-                                 observacao_conciliacao
+                                 observacao_conciliacao_periodo_2020_1
                                  ):
     conta_uuid = conta_associacao.uuid
 
-    url = f'/api/conciliacoes/observacoes/?periodo={periodo.uuid}&conta_associacao={conta_uuid}&associacao={conta_associacao.associacao.uuid}'
+    url = f'/api/conciliacoes/observacoes/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&associacao={conta_associacao.associacao.uuid}'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
@@ -50,10 +50,10 @@ def test_api_get_com_observacoes(jwt_authenticated_client_a,
     assert response.status_code == status.HTTP_200_OK
 
     assert result == {
-        'observacao_uuid': f'{observacao_conciliacao.uuid}',
+        'observacao_uuid': f'{observacao_conciliacao_periodo_2020_1.uuid}',
         'observacao': 'Uma bela observação.',
         'saldo_extrato': 1000.0,
-        'data_extrato': '2020-07-01',
+        'data_extrato': '2020-06-30',
         'comprovante_extrato': '',
         'data_atualizacao_comprovante_extrato': None,
         'data_encerramento': None,
