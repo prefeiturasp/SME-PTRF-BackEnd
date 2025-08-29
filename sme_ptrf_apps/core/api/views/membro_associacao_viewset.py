@@ -7,6 +7,8 @@ from rest_framework.viewsets import GenericViewSet
 from django_filters import rest_framework as filters
 from rest_framework.filters import SearchFilter
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiExample
+
 from sme_ptrf_apps.core.api.serializers import MembroAssociacaoCreateSerializer, MembroAssociacaoListSerializer
 from sme_ptrf_apps.core.models import MembroAssociacao
 from sme_ptrf_apps.core.services import (
@@ -47,6 +49,31 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
 
         return qs
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='associacao_uuid', description='UUID da associação',
+                             location=OpenApiParameter.QUERY, type=OpenApiTypes.STR, required=True)
+        ],
+        responses={200: MembroAssociacaoListSerializer(many=True)}
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='associacao_uuid', description='UUID da associação',
+                location=OpenApiParameter.QUERY, type=OpenApiTypes.STR, required=True
+            )
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample(
+                'Resposta',
+                value=[{'uuid': '', 'nome': '', 'cargo_associacao_key': '', 'cargo_associacao_value': ''}],
+            )
+        ]
+    )
     @action(detail=False, methods=['get'], url_path='membros-cargos',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def get_membros_cargos(self, request):
@@ -74,12 +101,42 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
 
         return Response(lista_content)
 
+    @extend_schema(
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample(
+                'Resposta',
+                value=[
+                    {'id': 'VOGAL_1', 'nome': 'Vogal 1'},
+                    {'id': 'VOGAL_2', 'nome': 'Vogal 2'}
+                ],
+            )
+        ]
+    )
     @action(detail=False, url_path='cargos-diretoria-executiva',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def cargos_diretoria_executiva(self, request):
         lista_cargos = MembroAssociacao.cargos_diretoria_executiva_to_json()
         return Response(lista_cargos)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='rf', description='RF do membro', required=True,
+                location=OpenApiParameter.QUERY, type=OpenApiTypes.STR,
+            ),
+            OpenApiParameter(
+                name='codigo-eol', description='Código EOL', required=True,
+                location=OpenApiParameter.QUERY, type=OpenApiTypes.STR,
+            ),
+            OpenApiParameter(
+                name='associacao_uuid', description='UUID da associação', required=False,
+                location=OpenApiParameter.QUERY, type=OpenApiTypes.STR,
+            ),
+        ],
+        responses={200: 'result'},
+        description="Retorna informação de SME Integração ou API Terceirizadas."
+    )
     @action(detail=False, methods=['get'], url_path='codigo-identificacao',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def consulta_codigo_identificacao(self, request):
@@ -118,6 +175,26 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
         except ConnectTimeout:
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='cpf', description='CPF do membro', required=True,
+                location=OpenApiParameter.QUERY, type=OpenApiTypes.STR,
+            ),
+            OpenApiParameter(
+                name='associacao_uuid', description='UUID da associação', required=False,
+                location=OpenApiParameter.QUERY, type=OpenApiTypes.STR,
+            ),
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample(
+                'Resposta',
+                value={'detail': "Pode ser cadastrado."},
+            )
+        ],
+        description="Verifica se o membro pode ser cadastrado na associação."
+    )
     @action(detail=False, methods=['get'], url_path='cpf-responsavel',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def consulta_cpf_responsavel(self, request):
@@ -143,6 +220,16 @@ class MembroAssociacaoViewSet(mixins.RetrieveModelMixin,
         except SmeIntegracaoApiException as e:
             return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='rf', description='RF do membro', required=True,
+                location=OpenApiParameter.QUERY, type=OpenApiTypes.STR,
+            ),
+        ],
+        responses={200: 'result'},
+        description='Retorna dados de informações do servidor de API de Teceirizadas'
+    )
     @action(detail=False, methods=['get'], url_path='lista-cargos',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def lista_cargos(self, request):
