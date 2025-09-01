@@ -404,6 +404,12 @@ class ResumoPrioridadesService:
             )['total'] or 0
             acao['total_valor_capital'] += valores_capital
 
+            # Somar somente livre aplicacao
+            valores_livre = receitas_previstas_pdde.aggregate(
+                total=Sum('saldo_livre') + Sum('previsao_valor_livre')
+            )['total'] or 0
+            acao['total_valor_livre_aplicacao'] += valores_livre
+
             # Node 3 - Valores da Receita (Custeio, Capital, Livre)
             # Valores relacionados aos totais do service de programa_pdde
             receitas = calcula_receitas(acao)

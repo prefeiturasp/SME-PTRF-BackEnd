@@ -104,6 +104,12 @@ def test_calcula_node_pdde(receita_prevista_pdde_resumo_recursos):
     ])
     assert result["children"][0]["capital"] == capital
 
+    livre = sum([
+        receita_prevista_pdde_resumo_recursos.previsao_valor_livre,
+        receita_prevista_pdde_resumo_recursos.saldo_livre
+    ])
+    assert result["children"][0]["livre_aplicacao"] == livre
+
 
 @pytest.mark.django_db
 @patch("sme_ptrf_apps.paa.api.serializers.RecursoProprioPaaListSerializer")
