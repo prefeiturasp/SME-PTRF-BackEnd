@@ -284,8 +284,7 @@ class ResumoPrioridadesService:
         return tipo_recurso_map
 
     def calcula_node_pdde(self) -> dict:
-        from sme_ptrf_apps.paa.api.serializers import ProgramasPddeSomatorioTotalSerializer
-        from sme_ptrf_apps.paa.services.paa_service import PaaService
+        from sme_ptrf_apps.paa.models import AcaoPdde
 
         # Queryset Somente de Prioridades do PAA do recurso PDDE
         prioridades_pdde_qs = self.paa.prioridadepaa_set.filter(
@@ -294,8 +293,7 @@ class ResumoPrioridadesService:
         )
 
         # Obtenção do Service de Programas PDDE
-        pdde_service = PaaService.somatorio_totais_por_programa_pdde(self.paa.uuid)
-        pdde_data = ProgramasPddeSomatorioTotalSerializer(pdde_service).data
+        acoes_PDDE = AcaoPdde.objects.all()
 
         def calcula_receitas(item) -> dict:
             def get_valor_capital(item) -> Decimal:
@@ -332,7 +330,7 @@ class ResumoPrioridadesService:
             # Valores relacionados às "Prioridades do PAA" de uma ação PDDE e tipo CUSTEIO
             despesa_custeio = prioridades_pdde_qs.filter(
                 tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
-                acao_pdde__programa__uuid=item.get('uuid')
+                acao_pdde__uuid=item.get('uuid')
             ).aggregate(
                 total=Sum('valor_total')
             ).get('total') or 0
@@ -340,7 +338,7 @@ class ResumoPrioridadesService:
             # Valores relacionados às "Prioridades do PAA" de uma ação PDDE e tipo CAPITAL
             despesa_capital = prioridades_pdde_qs.filter(
                 tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name,
-                acao_pdde__programa__uuid=item.get('uuid')
+                acao_pdde__uuid=item.get('uuid')
             ).aggregate(
                 total=Sum('valor_total')
             ).get('total') or 0
@@ -380,25 +378,47 @@ class ResumoPrioridadesService:
         }
 
         # Obter a lista de Programas da Associação do PAA, serializada
-        for item in pdde_data.get('programas'):
+        for item in acoes_PDDE:
             # hierarquia filhos do Node Pai
             children = tipo_recurso_map['children']
 
+            receitas_previstas_pdde = item.receitaprevistapdde_set.filter(paa__uuid=self.paa.uuid)
+
+            acao = {
+                "uuid": str(item.uuid),
+                "nome": item.nome,
+                "total_valor_custeio": 0,
+                "total_valor_capital": 0,
+                "total_valor_livre_aplicacao": 0,
+            }
+
+            # Somar somente custeios
+            valores_custeio = receitas_previstas_pdde.aggregate(
+                total=Sum('saldo_custeio') + Sum('previsao_valor_custeio')
+            )['total'] or 0
+            acao['total_valor_custeio'] += valores_custeio
+
+            # Somar somente capital
+            valores_capital = receitas_previstas_pdde.aggregate(
+                total=Sum('saldo_capital') + Sum('previsao_valor_capital')
+            )['total'] or 0
+            acao['total_valor_capital'] += valores_capital
+
             # Node 3 - Valores da Receita (Custeio, Capital, Livre)
             # Valores relacionados aos totais do service de programa_pdde
-            receitas = calcula_receitas(item)
+            receitas = calcula_receitas(acao)
 
             # Node 3 - Valores da Despesas (Custeio, Capital, Livre)
-            despesas = calcula_despesas(item, receitas)
+            despesas = calcula_despesas(acao, receitas)
 
             # Node 3 - Valores Saldo
-            saldo = self.calcula_saldos(item.get('uuid'), receitas, despesas)
+            saldo = self.calcula_saldos(acao.get('uuid'), receitas, despesas)
 
             # Node 2 - Programa PDDE
             node = {
-                'key': item.get('uuid'),
+                'key': acao.get('uuid'),
                 # Manter nome da acao iniciando com "PDDE" (conforme protótipo do frontend)
-                "recurso": ('PDDE ' + item.get('nome')).replace('PDDE PDDE', 'PDDE'),
+                "recurso": ('PDDE ' + acao.get('nome')).replace('PDDE PDDE', 'PDDE'),
                 "custeio": saldo['custeio'],
                 "capital": saldo['capital'],
                 "livre_aplicacao": saldo['livre_aplicacao'],
