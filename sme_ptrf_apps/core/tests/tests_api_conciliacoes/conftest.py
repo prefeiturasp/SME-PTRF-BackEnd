@@ -553,3 +553,16 @@ def fechamento_periodo_2019_2_role_1000(periodo_2019_2, associacao, conta_associ
         total_receitas_capital=1000,
         status='FECHADO'
     )
+
+
+@pytest.fixture
+def observacao_conciliacao_periodo_2020_1(periodo_2020_1, conta_associacao):
+    return baker.make(
+        'ObservacaoConciliacao',
+        periodo=periodo_2020_1,
+        associacao=conta_associacao.associacao,
+        conta_associacao=conta_associacao,
+        texto="Uma bela observação.",
+        data_extrato='2020-05-30',
+        saldo_extrato=1000
+    )
