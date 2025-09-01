@@ -489,10 +489,11 @@ class ConciliacoesViewSet(GenericViewSet):
         }
 
         # Regra US #129997
-        if info_solicitacao["possui_solicitacao_encerramento"]:
-            result['data_extrato'] = info_solicitacao["data_encerramento"]
-        else:
-            result['data_extrato'] = periodo.data_fim_realizacao_despesas
+        if permite_editar:
+            if info_solicitacao["possui_solicitacao_encerramento"]:
+                result['data_extrato'] = info_solicitacao["data_encerramento"]
+            else:
+                result['data_extrato'] = periodo.data_fim_realizacao_despesas
 
         return Response(result, status=status.HTTP_200_OK)
 
