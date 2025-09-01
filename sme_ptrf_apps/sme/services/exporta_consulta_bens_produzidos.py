@@ -72,6 +72,26 @@ class ExportacaoConsultaBensProduzidosService:
         logger.info(f"Ambiente obtido: {prefixo}")
         return prefixo
 
+    @staticmethod
+    def ajustar_altura_celula(cell_value, largura_coluna):
+        texto = str(cell_value) if cell_value else ""
+        if not texto:
+            return 0
+
+        linhas = []
+        linha_atual = ""
+        for palavra in texto.split():
+            if len(linha_atual + " " + palavra) > largura_coluna:
+                linhas.append(linha_atual)
+                linha_atual = palavra
+            else:
+                linha_atual += (" " if linha_atual else "") + palavra
+        linhas.append(linha_atual)
+
+        altura_calculada = 15 * len(linhas)
+        return altura_calculada
+
+    
     def get_texto_filtro_aplicado(self):
         logger.info(f"Gerando texto do filtro - Data início: {self.data_inicio}, Data final: {self.data_final}")
         
@@ -343,7 +363,7 @@ class ExportacaoConsultaBensProduzidosService:
                                 worksheet.merge_cells(start_row=start_row, start_column=col, end_row=end_row, end_column=col)
                                 # Centralizar o conteúdo da célula mesclada
                                 merged_cell = worksheet.cell(row=start_row, column=col)
-                                merged_cell.alignment = Alignment(horizontal='center', vertical='center')
+                                merged_cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
                 
                 else:
                     # Para bens adquiridos, manter o comportamento atual
@@ -507,7 +527,7 @@ class ExportacaoConsultaBensProduzidosService:
                                 worksheet.merge_cells(start_row=start_row, start_column=col, end_row=end_row, end_column=col)
                                 # Centralizar o conteúdo da célula mesclada
                                 merged_cell = worksheet.cell(row=start_row, column=col)
-                                merged_cell.alignment = Alignment(horizontal='center', vertical='center')
+                                merged_cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
             
             # Adicionar texto de rodapé 4 linhas abaixo da última linha de dados
             rodape_linha = linha_atual + 4
@@ -533,10 +553,6 @@ class ExportacaoConsultaBensProduzidosService:
             # filtros_celula.value = self.filtros_str if self.filtros_str else "Nenhum filtro aplicado"
             # filtros_celula.font = Font(name='Calibri', color='000000', bold=False, size=11)
             # filtros_celula.alignment = Alignment(horizontal='left', vertical='center')
-            
-            # Ajustar altura das linhas de dados
-            for row in range(14, linha_atual):
-                worksheet.row_dimensions[row].height = 20
             
             # Fazer merge das colunas GH em todas as linhas de dados (a partir da linha 14)
             if linha_atual > 14:  # Só fazer merge se houver dados
@@ -589,9 +605,11 @@ class ExportacaoConsultaBensProduzidosService:
             
         # Cor de fundo da A1 deve ser F6F8F9
         worksheet.cell(row=1, column=1).fill = PatternFill(start_color='F6F8F9', end_color='F6F8F9', fill_type='solid')
+        
         # Ajustar altura da linha 1 para acomodar a logo
-        worksheet.column_dimensions['A'].width = 144 / 7.0
+        worksheet.column_dimensions['A'].width = 163 / 7.0
         worksheet.row_dimensions[1].height = 110
+        worksheet.cell(row=1, column=1).alignment = Alignment(horizontal='center', vertical='center')
 
         # Criar duas linhas separadas para o título com a mesma cor de fundo
         # Primeira linha: B1:L1
@@ -600,7 +618,7 @@ class ExportacaoConsultaBensProduzidosService:
         titulo_linha1.value = "Programa de Transferência de Recursos Financeiros - PTRF\nInventário de Bens Adquiridos ou Produzidos"
         titulo_linha1.font = Font(name='Calibri', color='000000', bold=True, size=14)
         titulo_linha1.fill = PatternFill(start_color='F6F8F9', end_color='F6F8F9', fill_type='solid')
-        titulo_linha1.alignment = Alignment(horizontal='left', vertical='center')
+        titulo_linha1.alignment = Alignment(horizontal='left', vertical='center', wrap_text=True)
         
         # Texto descritivo: K1:L1
         worksheet.merge_cells('K1:L1')
@@ -642,10 +660,11 @@ class ExportacaoConsultaBensProduzidosService:
 
         worksheet.merge_cells('A5:C5')
         valor_associacao = worksheet['A5']
-        valor_associacao.value = "EMILIO RIBAS, PROFA."
+        valor_associacao.value = ""
         valor_associacao.font = Font(name='Calibri', color='000000', bold=False, size=11)
-        valor_associacao.alignment = Alignment(horizontal='left', vertical='center')
-
+        valor_associacao.alignment = Alignment(horizontal='left', vertical='center', wrap_text=True)
+        worksheet.row_dimensions[5].height = 30
+        
         # DEF: CNPJ
         worksheet.merge_cells('D4:F4')
         cabecalho_cnpj = worksheet['D4']
@@ -655,7 +674,7 @@ class ExportacaoConsultaBensProduzidosService:
 
         worksheet.merge_cells('D5:F5')
         valor_cnpj = worksheet['D5']
-        valor_cnpj.value = "12.123.123/0001-12"
+        valor_cnpj.value = ""
         valor_cnpj.font = Font(name='Calibri', color='000000', bold=False, size=11)
         valor_cnpj.alignment = Alignment(horizontal='left', vertical='center')
 
@@ -668,7 +687,7 @@ class ExportacaoConsultaBensProduzidosService:
 
         worksheet.merge_cells('G5:H5')
         valor_eol = worksheet['G5']
-        valor_eol.value = "200222"
+        valor_eol.value = ""
         valor_eol.font = Font(name='Calibri', color='000000', bold=False, size=11)
         valor_eol.alignment = Alignment(horizontal='left', vertical='center')
 
@@ -681,7 +700,7 @@ class ExportacaoConsultaBensProduzidosService:
 
         worksheet.merge_cells('I5:L5')
         valor_dre = worksheet['I5']
-        valor_dre.value = "GUAIANASES"
+        valor_dre.value = ""
         valor_dre.font = Font(name='Calibri', color='000000', bold=False, size=11)
         valor_dre.alignment = Alignment(horizontal='left', vertical='center')
 
@@ -782,6 +801,10 @@ class ExportacaoConsultaBensProduzidosService:
 
     def criar_cabecalhos_detalhados(self, worksheet):
         """Cria os cabeçalhos detalhados da tabela na linha 11"""
+        
+        # A altura da linha 11 deve ser ajustada para acomodar o texto
+        worksheet.row_dimensions[11].height = 50
+        
         # 1. Especificação dos bens (A11)
         worksheet['A11'].value = "1. Especificação dos bens"
         worksheet['A11'].font = Font(name='Calibri', color='000000', bold=True, size=11)
