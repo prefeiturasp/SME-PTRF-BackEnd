@@ -8,6 +8,7 @@ from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAs
 from sme_ptrf_apps.despesas.api.serializers.especificacao_material_servico_serializer import EspecificacaoMaterialServicoSerializer
 from sme_ptrf_apps.despesas.api.serializers.tipo_custeio_serializer import TipoCusteioSerializer
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoDespesa, BemProduzidoRateio
+from django.db.models import Sum
 
 class RateioDespesaSerializer(serializers.ModelSerializer):
     associacao = AssociacaoSerializer()
@@ -42,6 +43,8 @@ class RateioDespesaSerializer(serializers.ModelSerializer):
 class BemProduzidoDespesaSerializer(serializers.ModelSerializer):
     rateios = serializers.SerializerMethodField()
     despesa_uuid = serializers.SerializerMethodField()
+    total_valor_recurso_proprios_utilizado_todos_os_bens = serializers.SerializerMethodField()
+    valor_original_recurso_proprio = serializers.SerializerMethodField()
 
     def get_rateios(self, instance):
         return RateioDespesaSerializer(
@@ -52,6 +55,20 @@ class BemProduzidoDespesaSerializer(serializers.ModelSerializer):
 
     def get_despesa_uuid(self, instance):
         return getattr(instance.despesa, 'uuid', None)
+    
+    def get_total_valor_recurso_proprios_utilizado_todos_os_bens(self, instance):
+        despesa = instance.despesa
+        
+        soma_utilizado = (
+            BemProduzidoDespesa.objects
+            .filter(despesa=instance.despesa)
+            .aggregate(total=Sum('valor_recurso_proprio_utilizado'))['total'] or 0
+        )
+
+        return soma_utilizado
+    
+    def get_valor_original_recurso_proprio(self, instance):
+        return instance.despesa.valor_recursos_proprios
 
     class Meta:
         model = BemProduzidoDespesa
