@@ -111,6 +111,7 @@ def test_action_painel_acoes_de_uma_conta(
             'prestacao_de_contas_uuid': None,
             'requer_retificacao': False,
             'tem_acertos_pendentes': False,
+            'requer_acertos_em_extrato': False
         },
     }
 
@@ -223,6 +224,7 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
             'prestacao_de_contas_uuid': None,
             'requer_retificacao': False,
             'tem_acertos_pendentes': False,
+            'requer_acertos_em_extrato': False
         },
     }
 

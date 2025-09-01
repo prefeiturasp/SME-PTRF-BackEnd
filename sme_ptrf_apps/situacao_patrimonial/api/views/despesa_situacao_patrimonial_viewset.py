@@ -41,6 +41,19 @@ class DespesaSituacaoPatrimonialViewSet(WaffleFlagMixin, ModelViewSet):
 
     def get_queryset(self):
         qs = Despesa.objects.exclude(status='INATIVO').all()
+
+        bem_produzido_uuid = self.request.query_params.get('bem_produzido_uuid')
+        if not bem_produzido_uuid:
+            bem_produzido_uuid = self.kwargs.get('bem_produzido_uuid')
+        
+        if bem_produzido_uuid:
+            qs = qs.exclude(
+                pk__in=Subquery(
+                    BemProduzidoDespesa.objects.filter(
+                        bem_produzido__uuid=bem_produzido_uuid
+                    ).values('despesa__pk')
+                )
+            )
         
         search = self.request.query_params.get('search')
         if search is not None and search != '':
@@ -125,4 +138,13 @@ class DespesaSituacaoPatrimonialViewSet(WaffleFlagMixin, ModelViewSet):
                 )
             )
 
-        return qs.distinct("uuid")
+        ultimas = (
+            Despesa.objects
+            .filter(uuid=OuterRef("uuid"))
+            .order_by("-data_documento", "-pk")
+            
+        )
+
+        qs = qs.exclude(status='INCOMPLETO').filter(pk=Subquery(ultimas.values("pk")[:1]))
+
+        return qs.order_by("-data_documento")

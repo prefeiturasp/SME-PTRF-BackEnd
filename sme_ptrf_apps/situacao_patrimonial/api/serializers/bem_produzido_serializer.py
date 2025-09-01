@@ -169,14 +169,22 @@ class BemProduzidoSaveSerializer(serializers.ModelSerializer):
             bem_produzido_rateio.save()
 
     def _handle_itens(self, bem_produzido, itens, update=False):
+        # Filtrar itens válidos
+        itens_validos = [item for item in itens if item and (
+            item.get('especificacao_do_bem') or
+            item.get('num_processo_incorporacao') or
+            item.get('quantidade') or
+            item.get('valor_individual')
+        )]
+        
         if update:
-            uuids_enviados = [item.get("uuid") for item in itens if item.get("uuid")]
+            uuids_enviados = [item.get("uuid") for item in itens_validos if item.get("uuid")]
             itens_existentes = BemProduzidoItem.objects.filter(bem_produzido=bem_produzido)
             
             itens_para_remover = itens_existentes.exclude(uuid__in=uuids_enviados)
             itens_para_remover.delete()
         
-        for item_payload in itens:
+        for item_payload in itens_validos:
             item_uuid = item_payload.get("uuid")
             if update and item_uuid:
                 # Atualizar item existente
@@ -256,7 +264,14 @@ class BemProduzidoSaveRacunhoSerializer(serializers.ModelSerializer):
             associacao=validated_data['associacao']
         )
 
-        BemProduzidoItem.objects.create(bem_produzido=bem_produzido)
+        # Criar item vazio apenas se não houver itens válidos
+        if not itens or all(not item or (
+            not item.get('especificacao_do_bem') and
+            not item.get('num_processo_incorporacao') and
+            not item.get('quantidade') and
+            not item.get('valor_individual')
+        ) for item in itens):
+            BemProduzidoItem.objects.create(bem_produzido=bem_produzido)
 
         self._handle_despesas(bem_produzido, despesas)
         self._handle_rateios(bem_produzido, rateios)
@@ -315,21 +330,21 @@ class BemProduzidoSaveRacunhoSerializer(serializers.ModelSerializer):
             bem_produzido_rateio.save()
 
     def _handle_itens(self, bem_produzido, itens, update=False):
+        itens_validos = [item for item in itens if item and (
+            item.get('especificacao_do_bem') or
+            item.get('num_processo_incorporacao') or
+            item.get('quantidade') or
+            item.get('valor_individual')
+        )]
+        
         if update:
-            uuids_enviados = [item.get("uuid") for item in itens if item.get("uuid")]
+            uuids_enviados = [item.get("uuid") for item in itens_validos if item.get("uuid")]
             itens_existentes = BemProduzidoItem.objects.filter(bem_produzido=bem_produzido)
 
             itens_para_remover = itens_existentes.exclude(uuid__in=uuids_enviados)
             itens_para_remover.delete()
         
-        for item_payload in itens:
-            if not item_payload or (
-                not item_payload.get('especificacao_do_bem') and
-                not item_payload.get('num_processo_incorporacao') and
-                not item_payload.get('quantidade') and
-                not item_payload.get('valor_individual')
-            ):
-                continue
+        for item_payload in itens_validos:
             item_uuid = item_payload.get("uuid")
             if update and item_uuid:
                 # Atualizar item existente

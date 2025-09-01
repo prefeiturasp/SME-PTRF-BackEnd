@@ -5,6 +5,17 @@ from model_bakery import baker
 
 
 @pytest.fixture
+def periodo_2019_1():
+    return baker.make(
+        'Periodo',
+        referencia='2019.1',
+        data_inicio_realizacao_despesas=datetime.date(2019, 1, 1),
+        data_fim_realizacao_despesas=datetime.date(2019, 6, 30),
+        periodo_anterior=None
+    )
+
+
+@pytest.fixture
 def periodo_2019_2():
     return baker.make(
         'Periodo',
@@ -541,4 +552,17 @@ def fechamento_periodo_2019_2_role_1000(periodo_2019_2, associacao, conta_associ
         fechamento_anterior=None,
         total_receitas_capital=1000,
         status='FECHADO'
+    )
+
+
+@pytest.fixture
+def observacao_conciliacao_periodo_2020_1(periodo_2020_1, conta_associacao):
+    return baker.make(
+        'ObservacaoConciliacao',
+        periodo=periodo_2020_1,
+        associacao=conta_associacao.associacao,
+        conta_associacao=conta_associacao,
+        texto="Uma bela observação.",
+        data_extrato='2020-05-30',
+        saldo_extrato=1000
     )

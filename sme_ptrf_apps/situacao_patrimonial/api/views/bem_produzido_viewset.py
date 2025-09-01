@@ -43,18 +43,22 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
     @action(detail=True, methods=['post'], url_path='excluir-lote', permission_classes=[IsAuthenticated & PermissaoApiUe])
     def excluir_em_lote(self, request, *args, **kwargs):
         bem_produzido = self.get_object()
-        uuids_para_remover = request.data.get('uuids', [])
+        uuids_despesas = request.data.get('uuids', [])
 
-        if not isinstance(uuids_para_remover, list) or not all(isinstance(u, str) for u in uuids_para_remover):
-            return Response({'mensagem': 'A lista de UUIDs é obrigatória e deve conter apenas strings.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not isinstance(uuids_despesas, list) or not all(isinstance(u, str) for u in uuids_despesas):
+            return Response({'mensagem': 'A lista de UUIDs das despesas é obrigatória e deve conter apenas strings.'}, status=status.HTTP_400_BAD_REQUEST)
 
         despesas_remover = BemProduzidoDespesa.objects.filter(
-            uuid__in=uuids_para_remover,
+            despesa__uuid__in=uuids_despesas,
             bem_produzido=bem_produzido
         )
 
         quantidade = despesas_remover.count()
         despesas_remover.delete()
+
+        if bem_produzido.status == 'COMPLETO':
+            bem_produzido.status = 'RASCUNHO'
+            bem_produzido.save()
 
         return Response({
             'mensagem': f'{quantidade} despesas removidas do bem produzido.'

@@ -140,7 +140,27 @@ class AnalisePrestacaoConta(ModeloBase):
         associacao = prestacao_de_contas.associacao
         contas_da_associacao = associacao.contas.all()
 
-        requer_acertos = AnaliseContaPrestacaoConta.objects.filter(analise_prestacao_conta=self, prestacao_conta=prestacao_de_contas, conta_associacao__in=contas_da_associacao).exists()
+        requer_acertos = AnaliseContaPrestacaoConta.objects.filter(
+            analise_prestacao_conta=self,
+            prestacao_conta=prestacao_de_contas,
+            conta_associacao__in=contas_da_associacao,
+        ).exists()
+
+        return requer_acertos
+
+    @property
+    def acertos_em_extrato_requer_gerar_documentos(self):
+        prestacao_de_contas = self.prestacao_conta
+        associacao = prestacao_de_contas.associacao
+        contas_da_associacao = associacao.contas.all()
+
+        requer_acertos = AnaliseContaPrestacaoConta.objects.filter(
+            (Q(saldo_extrato__isnull=False) |
+             Q(solicitar_correcao_da_data_do_saldo_da_conta=True)),
+            analise_prestacao_conta=self,
+            prestacao_conta=prestacao_de_contas,
+            conta_associacao__in=contas_da_associacao,
+        ).exists()
 
         return requer_acertos
 
@@ -177,11 +197,6 @@ class AnalisePrestacaoConta(ModeloBase):
         ).exists()
 
         return tem_analises_de_lancamentos_pendentes or tem_analises_de_documentos_pendentes
-
-    def tem_acertos_extratos_bancarios(self, conta_associacao):
-        acerto_extrato_bancario = self.analises_de_extratos.filter(conta_associacao=conta_associacao).exists()
-
-        return acerto_extrato_bancario
 
     def __str__(self):
         return f"{self.prestacao_conta.periodo} - Análise #{self.pk}"
@@ -324,7 +339,7 @@ class AnalisePrestacaoConta(ModeloBase):
 
                 if considera_realizacao:
                     solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas = solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas.filter(
-                    status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_REALIZADO)
+                        status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_REALIZADO)
 
                 if solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas.exists():
                     analises_de_lancamentos_requerem_alteracoes = True
@@ -336,10 +351,12 @@ class AnalisePrestacaoConta(ModeloBase):
         )
         if analises_de_documento_que_requerem_alteracoes.exists():
             for analise_de_documento in analises_de_documento_que_requerem_alteracoes:
-                solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas = analise_de_documento.solicitacoes_de_ajuste_da_analise.filter(tipo_acerto__categoria__in=categorias_que_requerem_alteracoes)
+                solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas = analise_de_documento.solicitacoes_de_ajuste_da_analise.filter(
+                    tipo_acerto__categoria__in=categorias_que_requerem_alteracoes)
 
                 if considera_realizacao:
-                    solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas = solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas.filter(status_realizacao=SolicitacaoAcertoDocumento.STATUS_REALIZACAO_REALIZADO)
+                    solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas = solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas.filter(
+                        status_realizacao=SolicitacaoAcertoDocumento.STATUS_REALIZACAO_REALIZADO)
 
                 if solicitacoes_de_ajuste_da_analise_que_requerem_alteracoes_realizadas.exists():
                     analises_de_documentos_requerem_alteracoes = True
@@ -349,7 +366,8 @@ class AnalisePrestacaoConta(ModeloBase):
         logger.debug(f'Análise de Prestação de conta: {self.id}')
         logger.debug(f'analises_de_lancamentos_requerem_alteracoes: {analises_de_lancamentos_requerem_alteracoes}')
         logger.debug(f'analises_de_documentos_requerem_alteracoes: {analises_de_documentos_requerem_alteracoes}')
-        logger.debug(f'É necessário recalcular fechamentos e documentos? {analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes}')
+        logger.debug(
+            f'É necessário recalcular fechamentos e documentos? {analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes}')
         return analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes
 
     @classmethod

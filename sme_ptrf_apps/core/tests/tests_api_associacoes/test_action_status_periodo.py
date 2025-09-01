@@ -35,6 +35,7 @@ def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, per
             'prestacao_de_contas_uuid': None,
             'requer_retificacao': False,
             'tem_acertos_pendentes': False,
+            'requer_acertos_em_extrato': False
         },
         'prestacao_conta': '',
         'pendencias_cadastrais': {
@@ -77,6 +78,7 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
             'prestacao_de_contas_uuid': None,
             'requer_retificacao': False,
             'tem_acertos_pendentes': False,
+            'requer_acertos_em_extrato': False
         },
         'prestacao_conta': '',
         'pendencias_cadastrais': {
@@ -166,6 +168,7 @@ def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prest
             'prestacao_de_contas_uuid': f'{prestacao_conta_2020_1_conciliada.uuid}',
             'requer_retificacao': False,
             'tem_acertos_pendentes': False,
+            'requer_acertos_em_extrato': False
         },
         'prestacao_conta': f'{prestacao_conta_2020_1_conciliada.uuid}',
         'pendencias_cadastrais': {
@@ -223,6 +226,7 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
             'prestacao_de_contas_uuid': f'{_prestacao_conta_devolvida.uuid}',
             'requer_retificacao': False,
             'tem_acertos_pendentes': False,
+            'requer_acertos_em_extrato': False
         },
         'prestacao_conta': f'{_prestacao_conta_devolvida.uuid}',
         'pendencias_cadastrais': {
@@ -254,10 +258,9 @@ def test_status_periodo_pendencias_cadastrais_com_contas_pendentes(
     result = json.loads(response.content)
 
     pendencias_cadastrais_esperado = {
-        # 'conciliacao_bancaria': {
-        #     'contas_pendentes': [f'{observacao_conciliacao_campos_nao_preenchidos.conta_associacao.uuid}', f'{observacao_conciliacao_campos_nao_preenchidos_002.conta_associacao.uuid}',],
-        # },
-        'conciliacao_bancaria': None,
+        'conciliacao_bancaria': {
+            'contas_pendentes': [f'{observacao_conciliacao_campos_nao_preenchidos.conta_associacao.uuid}', f'{observacao_conciliacao_campos_nao_preenchidos_002.conta_associacao.uuid}',],
+        },
         'dados_associacao': {
             'pendencia_cadastro': False,
             'pendencia_contas': False,
@@ -274,7 +277,6 @@ def test_status_periodo_pendencias_cadastrais_com_contas_pendentes(
 def test_status_periodo_pendencias_cadastrais_somente_uma_conta_pendente(
     jwt_authenticated_client_a, associacao,
     observacao_conciliacao_campos_nao_preenchidos_002,
-    observacao_conciliacao_com_saldo_zero,
     periodo_2020_1
 ):
 
@@ -283,10 +285,9 @@ def test_status_periodo_pendencias_cadastrais_somente_uma_conta_pendente(
     result = json.loads(response.content)
 
     pendencias_cadastrais_esperado = {
-        # 'conciliacao_bancaria': {
-        #     'contas_pendentes': [f'{observacao_conciliacao_campos_nao_preenchidos_002.conta_associacao.uuid}',],
-        # },
-        'conciliacao_bancaria': None,
+        'conciliacao_bancaria': {
+            'contas_pendentes': [f'{observacao_conciliacao_campos_nao_preenchidos_002.conta_associacao.uuid}',],
+        },
         'dados_associacao': {
             'pendencia_cadastro': False,
             'pendencia_contas': False,
@@ -366,10 +367,9 @@ def test_status_periodo_todas_as_pendencias_cadastrais(
             'pendencia_contas': True,
             'pendencia_novo_mandato': False
         },
-        'conciliacao_bancaria': None
-        # 'conciliacao_bancaria': {
-        #     'contas_pendentes': [f'{conta_associacao_incompleta.uuid}']
-        # },
+        'conciliacao_bancaria': {
+            'contas_pendentes': [f'{conta_associacao_incompleta.uuid}']
+        },
     }
 
     assert response.status_code == status.HTTP_200_OK

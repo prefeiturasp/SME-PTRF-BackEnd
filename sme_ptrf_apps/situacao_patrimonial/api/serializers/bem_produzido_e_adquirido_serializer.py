@@ -8,6 +8,7 @@ from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAs
 from sme_ptrf_apps.despesas.api.serializers.especificacao_material_servico_serializer import EspecificacaoMaterialServicoSerializer
 from sme_ptrf_apps.despesas.api.serializers.tipo_custeio_serializer import TipoCusteioSerializer
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoDespesa, BemProduzidoRateio
+from django.db.models import Sum
 
 class RateioDespesaSerializer(serializers.ModelSerializer):
     associacao = AssociacaoSerializer()
@@ -42,6 +43,8 @@ class RateioDespesaSerializer(serializers.ModelSerializer):
 class BemProduzidoDespesaSerializer(serializers.ModelSerializer):
     rateios = serializers.SerializerMethodField()
     despesa_uuid = serializers.SerializerMethodField()
+    total_valor_recurso_proprios_utilizado_todos_os_bens = serializers.SerializerMethodField()
+    valor_original_recurso_proprio = serializers.SerializerMethodField()
 
     def get_rateios(self, instance):
         return RateioDespesaSerializer(
@@ -52,6 +55,20 @@ class BemProduzidoDespesaSerializer(serializers.ModelSerializer):
 
     def get_despesa_uuid(self, instance):
         return getattr(instance.despesa, 'uuid', None)
+    
+    def get_total_valor_recurso_proprios_utilizado_todos_os_bens(self, instance):
+        despesa = instance.despesa
+        
+        soma_utilizado = (
+            BemProduzidoDespesa.objects
+            .filter(despesa=instance.despesa)
+            .aggregate(total=Sum('valor_recurso_proprio_utilizado'))['total'] or 0
+        )
+
+        return soma_utilizado
+    
+    def get_valor_original_recurso_proprio(self, instance):
+        return instance.despesa.valor_recursos_proprios
 
     class Meta:
         model = BemProduzidoDespesa
@@ -75,6 +92,30 @@ class BemProduzidoEAdquiridoSerializer(serializers.Serializer):
                 documentos.append(str(despesa.despesa.numero_documento))
         return ', '.join(documentos)
 
+    def get_data_aquisicao_producao(self, instance):
+        """Retorna a data do documento mais recente das despesas relacionadas"""
+        datas_documentos = []
+        for despesa in instance.bem_produzido.despesas.all():
+            if despesa.despesa.data_documento:
+                datas_documentos.append(despesa.despesa.data_documento)
+        
+        if datas_documentos:
+            return max(datas_documentos)
+        return None
+
+    def get_periodo_mais_recente(self, instance):
+        """Retorna o período mais recente das despesas relacionadas (com base em data_transacao)"""
+        periodos = []
+        for bem_prod_desp in instance.bem_produzido.despesas.all():
+            desp = bem_prod_desp.despesa
+            periodo = getattr(desp, 'periodo_da_despesa', None)
+            if periodo:
+                periodos.append(periodo)
+        if periodos:
+            periodo_mais_recente = max(periodos, key=lambda p: p.data_fim_realizacao_despesas)
+            return periodo_mais_recente.referencia
+        return None
+
     def to_representation(self, instance):
         """Normaliza os dados independente do model origem"""
         if hasattr(instance, 'despesa'):  # É RateioDespesa
@@ -97,9 +138,9 @@ class BemProduzidoEAdquiridoSerializer(serializers.Serializer):
                 'status': instance.bem_produzido.status,
                 'numero_documento': self.get_num_documentos(instance),
                 'especificacao_do_bem': instance.especificacao_do_bem.descricao if instance.especificacao_do_bem else None,
-                'data_aquisicao_producao': instance.criado_em,
+                'data_aquisicao_producao': self.get_data_aquisicao_producao(instance),
                 'num_processo_incorporacao': instance.num_processo_incorporacao,
-                'periodo': Periodo.da_data(instance.criado_em).referencia if Periodo.da_data(instance.criado_em) else None,
+                'periodo': self.get_periodo_mais_recente(instance),
                 'quantidade': instance.quantidade,
                 'valor_total': instance.valor_total,
                 'despesas': BemProduzidoDespesaSerializer(instance.bem_produzido.despesas.all(), many=True).data,
