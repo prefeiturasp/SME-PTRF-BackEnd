@@ -9,8 +9,8 @@ from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum
 
 
 @pytest.mark.django_db
-def test_calcula_despesa_livre_aplicacao_sobra(resumo_paa_2025_1):
-    service = ResumoPrioridadesService(paa=resumo_paa_2025_1)
+def test_calcula_despesa_livre_aplicacao_sobra(resumo_recursos_paa):
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
 
     result = service.calcula_despesa_livre_aplicacao(
         despesa_custeio=Decimal("100"),
@@ -24,8 +24,8 @@ def test_calcula_despesa_livre_aplicacao_sobra(resumo_paa_2025_1):
 
 
 @pytest.mark.django_db
-def test_calcula_despesa_livre_aplicacao_sem_excedente(resumo_paa_2025_1):
-    service = ResumoPrioridadesService(paa=resumo_paa_2025_1)
+def test_calcula_despesa_livre_aplicacao_sem_excedente(resumo_recursos_paa):
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
 
     result = service.calcula_despesa_livre_aplicacao(
         despesa_custeio=Decimal("100"),
@@ -39,8 +39,8 @@ def test_calcula_despesa_livre_aplicacao_sem_excedente(resumo_paa_2025_1):
 
 
 @pytest.mark.django_db
-def test_calcula_saldos(resumo_paa_2025_1):
-    service = ResumoPrioridadesService(paa=resumo_paa_2025_1)
+def test_calcula_saldos(resumo_recursos_paa):
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
 
     receitas = {
         "custeio": Decimal("300"),
@@ -64,7 +64,7 @@ def test_calcula_saldos(resumo_paa_2025_1):
 
 @pytest.mark.django_db
 @patch("sme_ptrf_apps.core.api.serializers.AcaoAssociacaoRetrieveSerializer")
-def test_calcula_node_ptrf(mock_serializer, resumo_paa_2025_1):
+def test_calcula_node_ptrf(mock_serializer, resumo_recursos_paa):
     mock_serializer.return_value.data = [
         {
             "uuid": str(uuid.uuid4()),
@@ -73,7 +73,7 @@ def test_calcula_node_ptrf(mock_serializer, resumo_paa_2025_1):
             "saldos": {}
         }
     ]
-    service = ResumoPrioridadesService(paa=resumo_paa_2025_1)
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
 
     result = service.calcula_node_ptrf()
 
@@ -84,36 +84,30 @@ def test_calcula_node_ptrf(mock_serializer, resumo_paa_2025_1):
 
 
 @pytest.mark.django_db
-@patch("sme_ptrf_apps.paa.api.serializers.ProgramasPddeSomatorioTotalSerializer")
-@patch("sme_ptrf_apps.paa.services.paa_service.PaaService.somatorio_totais_por_programa_pdde")
-def test_calcula_node_pdde(mock_service, mock_serializer, resumo_paa_2025_1):
-    mock_service.return_value = {"fake": "data"}
-    mock_serializer.return_value.data = {
-        "programas": [
-            {
-                "uuid": str(uuid.uuid4()),
-                "nome": "Prog 1",
-                "total_valor_capital": 10,
-                "total_valor_custeio": 20,
-                "total_valor_livre_aplicacao": 5
-            }
-        ]
-    }
+def test_calcula_node_pdde(receita_prevista_pdde_resumo_recursos):
 
-    service = ResumoPrioridadesService(paa=resumo_paa_2025_1)
+    service = ResumoPrioridadesService(paa=receita_prevista_pdde_resumo_recursos.paa)
     result = service.calcula_node_pdde()
 
     assert result["key"] == RecursoOpcoesEnum.PDDE.name
     assert result["children"][0]["recurso"].startswith("PDDE")
-    assert result["children"][0]["recurso"] == "PDDE Prog 1"
-    assert result["children"][0]["custeio"] == 20
-    assert result["children"][0]["capital"] == 10
-    assert result["children"][0]["livre_aplicacao"] == 5
+
+    custeio = sum([
+        receita_prevista_pdde_resumo_recursos.previsao_valor_custeio,
+        receita_prevista_pdde_resumo_recursos.saldo_custeio
+    ])
+    assert result["children"][0]["custeio"] == custeio
+
+    capital = sum([
+        receita_prevista_pdde_resumo_recursos.previsao_valor_capital,
+        receita_prevista_pdde_resumo_recursos.saldo_capital
+    ])
+    assert result["children"][0]["capital"] == capital
 
 
 @pytest.mark.django_db
 @patch("sme_ptrf_apps.paa.api.serializers.RecursoProprioPaaListSerializer")
-def test_calcula_node_recursos_proprios(mock_serializer, resumo_paa_2025_1):
+def test_calcula_node_recursos_proprios(mock_serializer, resumo_recursos_paa):
     mock_serializer.return_value.data = [
         {
             "uuid": "rec-1",
@@ -127,7 +121,7 @@ def test_calcula_node_recursos_proprios(mock_serializer, resumo_paa_2025_1):
         }
     ]
 
-    service = ResumoPrioridadesService(paa=resumo_paa_2025_1)
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
     result = service.calcula_node_recursos_proprios()
 
     assert result["key"] == RecursoOpcoesEnum.RECURSO_PROPRIO.name
@@ -141,12 +135,12 @@ def test_calcula_node_recursos_proprios(mock_serializer, resumo_paa_2025_1):
 @patch.object(ResumoPrioridadesService, "calcula_node_ptrf")
 @patch.object(ResumoPrioridadesService, "calcula_node_pdde")
 @patch.object(ResumoPrioridadesService, "calcula_node_recursos_proprios")
-def test_resumo_prioridades(mock_recursos, mock_pdde, mock_ptrf, resumo_paa_2025_1):
+def test_resumo_prioridades(mock_recursos, mock_pdde, mock_ptrf, resumo_recursos_paa):
     mock_ptrf.return_value = {"key": "PTRF"}
     mock_pdde.return_value = {"key": "PDDE"}
     mock_recursos.return_value = {"key": "RECURSO_PROPRIO"}
 
-    service = ResumoPrioridadesService(paa=resumo_paa_2025_1)
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
     result = service.resumo_prioridades()
 
     assert isinstance(result, list)

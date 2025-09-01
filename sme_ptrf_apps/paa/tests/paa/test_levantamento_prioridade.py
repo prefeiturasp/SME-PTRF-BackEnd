@@ -9,7 +9,7 @@ from sme_ptrf_apps.paa.services.paa_service import PaaService
 
 @pytest.mark.django_db
 def test_gerar_arquivo_pdf_levantamento_prioridades_paa():
-    dados_mock = {"chave": "valor"}
+    dados_mock = {"nome_associacao": "valor"}
 
     with patch("django.template.loader.get_template") as mock_get_template, \
         patch("django.contrib.staticfiles.storage.staticfiles_storage.url",
@@ -39,4 +39,3 @@ def test_get_download(jwt_authenticated_client_sme, flag_paa, associacao):
             'Content-Disposition'][0] == 'attachment; filename="paa_levantamento_prioridades.pdf"'
     assert [t[1] for t in list(response.items()) if t[0] ==
             'Content-Type'][0] == 'application/pdf'
-
