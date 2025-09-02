@@ -12,7 +12,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes,
 from sme_ptrf_apps.users.permissoes import PermissaoAPITodosComLeituraOuGravacao
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from ..serializers import ContaAssociacaoCriacaoSerializer, TipoContaSerializer
-from ...models import ContaAssociacao, TipoConta
+from ...models import ContaAssociacao
 
 
 class ContasAssociacoesViewSet(ModelViewSet):
@@ -77,7 +77,7 @@ class ContasAssociacoesViewSet(ModelViewSet):
         responses={200: 'result'},
         examples=[
             OpenApiExample('Resposta', value={
-                "tipos_contas": TipoContaSerializer(TipoConta.objects.all(), many=True).data,
+                "tipos_contas": TipoContaSerializer(many=True).data,
                 "status": ContaAssociacao.STATUS_CHOICES
             }),
         ]
@@ -86,7 +86,7 @@ class ContasAssociacoesViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, request):
         result = {
-            "tipos_contas": TipoContaSerializer(TipoConta.objects.all(), many=True).data,
+            "tipos_contas": TipoContaSerializer(many=True).data,
             "status": ContaAssociacao.STATUS_CHOICES
         }
 
