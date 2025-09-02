@@ -9,7 +9,8 @@ from .conciliacao_services import (
     conciliar_transacao,
     desconciliar_transacao,
     salva_conciliacao_bancaria,
-    permite_editar_campos_extrato
+    permite_editar_campos_extrato,
+    deve_aplicar_nova_regra_data_extrato
 )
 from .exporta_associacao import gerar_planilha
 from .implantacao_saldos_services import implanta_saldos_da_associacao, implantacoes_de_saldo_da_associacao
