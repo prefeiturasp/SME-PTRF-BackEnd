@@ -54,13 +54,13 @@ class ExportacaoConsultaBensProduzidosService:
         self.codigo_eol = kwargs.get('codigo_eol', None)
         self.dre = kwargs.get('dre', None)
         self.filtros_str = kwargs.get('filtros_str', None)
-        self.user_id = kwargs.get('user_id', None)
+        self.identificacao_usuario = kwargs.get('identificacao_usuario', None)
         
         # logger.info(f"Queryset: {self.queryset.count() if self.queryset else 'None'} registros")
         logger.info(f"Nome arquivo: {self.nome_arquivo}")
         logger.info(f"Data início: {self.data_inicio}")
         logger.info(f"Data final: {self.data_final}")
-        logger.info(f"Usuário: {self.user_id}")
+        logger.info(f"Usuário: {self.identificacao_usuario}")
         logger.info(f"Ambiente: {self.ambiente}")
         logger.info(f"Texto filtro: {self.texto_filtro_aplicado}")
         logger.info("ExportacaoConsultaBensProduzidosService inicializado com sucesso")
@@ -539,11 +539,11 @@ class ExportacaoConsultaBensProduzidosService:
             # Obter nome da associação
             nome_associacao = self.associacao.nome if self.associacao and self.associacao.nome else "N/A"
             
-            # Obter ID do usuário
-            user_id = self.user_id if self.user_id else "N/A"
+            # Obter cpf/rf do usuário
+            username = self.identificacao_usuario if self.identificacao_usuario else "N/A"
             
             # Montar texto do rodapé no formato solicitado
-            rodape_celula.value = f"{nome_associacao} - Documento final gerado pelo usuário {user_id}, via SIG - Escola, em: {data_hora_atual}"
+            rodape_celula.value = f"{nome_associacao} - Documento final gerado pelo usuário {username}, via SIG - Escola, em: {data_hora_atual}"
             rodape_celula.font = Font(name='Calibri', color='000000', bold=False, size=11)
             rodape_celula.alignment = Alignment(horizontal='left', vertical='center')
             
@@ -1198,11 +1198,11 @@ class ExportacaoConsultaBensProduzidosService:
     def cria_registro_central_download(self):
         """Cria registro na central de download"""
         logger.info("Criando registro na central de download")
-        logger.info(f"Usuário: {self.user_id}")
+        logger.info(f"Usuário: {self.identificacao_usuario}")
         logger.info(f"Nome arquivo: {self.nome_arquivo}")
         logger.info(f"Texto filtro: {self.texto_filtro_aplicado}")
 
-        usuario = get_user_model().objects.get(id=self.user_id)
+        usuario = get_user_model().objects.get(username=self.identificacao_usuario)
 
         obj = gerar_arquivo_download(
             usuario.username,
@@ -1244,13 +1244,13 @@ class ExportacaoConsultaBensProduzidosService:
     def texto_rodape(self):
         """Gera texto do rodapé"""
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user_id} em {data_hora_geracao}"
+        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.identificacao_usuario} em {data_hora_geracao}"
         return texto
 
     def texto_info_arquivo_gerado(self):
         """Gera texto de informação do arquivo"""
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user_id} em {data_hora_geracao}"
+        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.identificacao_usuario} em {data_hora_geracao}"
         return texto
 
 
