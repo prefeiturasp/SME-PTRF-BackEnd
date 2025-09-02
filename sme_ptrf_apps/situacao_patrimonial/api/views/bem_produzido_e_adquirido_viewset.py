@@ -159,7 +159,7 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
         periodos_uuid = request.query_params.get('periodos_uuid')
         data_inicio = request.query_params.get('data_inicio')
         data_fim = request.query_params.get('data_fim')
-        user_id = request.user.id
+        identificacao_usuario = request.user.username
 
         filtros = []
         
@@ -230,7 +230,7 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
                 periodos_uuid=periodos_uuid,
                 data_inicio=data_inicio,
                 data_fim=data_fim,
-                user_id=user_id,
+                identificacao_usuario=identificacao_usuario,
                 filtros_str=filtros_str
             )
 

@@ -27,7 +27,7 @@ def exportar_bens_produzidos_adquiridos_async(
     periodos_uuid=None, 
     data_inicio=None, 
     data_fim=None, 
-    user_id=None,
+    identificacao_usuario=None,
     filtros_str=None
 ):
     logger.info("Exportando XLSX de bens produzidos e adquiridos em processamento...")
@@ -143,7 +143,7 @@ def exportar_bens_produzidos_adquiridos_async(
             'nome_arquivo': nome_arquivo,
             'data_inicio': data_inicio,
             'data_final': data_fim,
-            'user_id': user_id,
+            'identificacao_usuario': identificacao_usuario,
             'associacao': associacao,
             'codigo_eol': codigo_eol,
             'dre': dre,
