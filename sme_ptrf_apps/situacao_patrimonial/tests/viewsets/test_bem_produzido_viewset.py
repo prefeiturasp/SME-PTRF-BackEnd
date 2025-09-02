@@ -396,8 +396,8 @@ def test_excluir_em_lote_despesas_do_bem_produzido(
     """Testa a exclusão em lote de despesas associadas a um bem produzido."""
     payload = {
         "uuids": [
-            str(bem_produzido_despesa_2.uuid),
-            str(bem_produzido_despesa_3.uuid),
+            str(bem_produzido_despesa_2.despesa.uuid),
+            str(bem_produzido_despesa_3.despesa.uuid),
         ]
     }
 
@@ -411,3 +411,13 @@ def test_excluir_em_lote_despesas_do_bem_produzido(
 
     assert bem_produzido_2.despesas.count(
     ) == 1, f"Esperado 1 despesa associada ao bem produzido, obtido {bem_produzido_2.despesas.count()}"
+
+
+def test_excluir_em_lote_payload_invalido(
+        jwt_authenticated_client_sme,
+        flag_situacao_patrimonial,
+        bem_produzido_2,
+):
+    response = jwt_authenticated_client_sme.post(
+        f'/api/bens-produzidos/{bem_produzido_2.uuid}/excluir-lote/', content_type='application/json', data=json.dumps({"uuids": "nao_lista"}))
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
