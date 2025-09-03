@@ -30,7 +30,8 @@ from ...services import (
     conciliar_transacao,
     desconciliar_transacao,
     salva_conciliacao_bancaria,
-    permite_editar_campos_extrato
+    permite_editar_campos_extrato,
+    deve_aplicar_nova_regra_data_extrato
 )
 from ....despesas.models import Despesa
 from ....receitas.models import Receita
@@ -475,6 +476,12 @@ class ConciliacoesViewSet(GenericViewSet):
             conta_associacao
         )
 
+        aplicar_nova_regra_data_extrato = deve_aplicar_nova_regra_data_extrato(
+            associacao,
+            periodo,
+            conta_associacao
+        )
+
         result = {
             'observacao_uuid': observacao.uuid if observacao else None,
             'observacao': observacao.texto if observacao else None,
@@ -489,7 +496,7 @@ class ConciliacoesViewSet(GenericViewSet):
         }
 
         # Regra US #129997
-        if permite_editar:
+        if aplicar_nova_regra_data_extrato:
             if info_solicitacao["possui_solicitacao_encerramento"]:
                 result['data_extrato'] = info_solicitacao["data_encerramento"]
             else:

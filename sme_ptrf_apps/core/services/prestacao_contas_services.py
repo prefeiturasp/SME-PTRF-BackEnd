@@ -97,6 +97,26 @@ def pc_requer_acerto_em_extrato(prestacao):
         return True
 
 
+def pc_requer_acerto_em_extrato_na_conta(prestacao, conta_associacao):
+
+    if prestacao.status in (
+        PrestacaoConta.STATUS_NAO_RECEBIDA,
+        PrestacaoConta.STATUS_RECEBIDA,
+        PrestacaoConta.STATUS_EM_ANALISE,
+        PrestacaoConta.STATUS_APROVADA,
+        PrestacaoConta.STATUS_APROVADA_RESSALVA,
+        PrestacaoConta.STATUS_REPROVADA,
+        PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA,
+    ):
+        return False
+
+    if prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA:
+        ultima_analise = prestacao.analises_da_prestacao.last()
+        return ultima_analise is not None and ultima_analise.requer_acertos_em_extrato_na_conta_associacao(conta_associacao)
+    else:
+        return True
+
+
 @transaction.atomic
 def concluir_prestacao_de_contas(periodo, associacao, usuario=None, monitoraPc=False):
     prestacao = PrestacaoConta.abrir(periodo=periodo, associacao=associacao)
@@ -1141,6 +1161,7 @@ def __cria_analise_lancamento_solicitacao_acerto(analise_prestacao, lancamento):
 
     return analise_lancamento
 
+
 @transaction.atomic
 def __analisa_solicitacoes_acerto(solicitacoes_acerto, analise_lancamento, atualizacao_em_lote):
     logging.info(
@@ -1227,6 +1248,7 @@ def __atualiza_analise_lancamento_para_acerto(analise_lancamento):
         analise_lancamento.save()
     return analise_lancamento
 
+
 @transaction.atomic
 def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes_acerto):
     atualizacao_em_lote = len(lancamentos) > 1
@@ -1249,7 +1271,8 @@ def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes
         if not analise_lancamento:
             lancamento_uuid = lancamento.get('lancamento_uuid', 'UUID não informado')
             lancamento_tipo = lancamento.get('tipo_lancamento', 'tipo não informado')
-            raise Exception(f"Análise de lançamento não encontrada para o lançamento {lancamento_uuid} (tipo: {lancamento_tipo})")
+            raise Exception(
+                f"Análise de lançamento não encontrada para o lançamento {lancamento_uuid} (tipo: {lancamento_tipo})")
 
         __analisa_solicitacoes_acerto(
             solicitacoes_acerto=solicitacoes_acerto,
