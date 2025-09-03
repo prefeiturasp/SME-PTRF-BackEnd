@@ -148,6 +148,15 @@ class AnalisePrestacaoConta(ModeloBase):
 
         return requer_acertos
 
+    def requer_acertos_em_extrato_na_conta_associacao(self, conta_associacao):
+        requer_acertos = AnaliseContaPrestacaoConta.objects.filter(
+            analise_prestacao_conta=self,
+            prestacao_conta=self.prestacao_conta,
+            conta_associacao=conta_associacao,
+        ).exists()
+
+        return requer_acertos
+
     @property
     def acertos_em_extrato_requer_gerar_documentos(self):
         prestacao_de_contas = self.prestacao_conta

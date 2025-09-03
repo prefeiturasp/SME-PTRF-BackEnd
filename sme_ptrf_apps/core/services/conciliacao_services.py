@@ -683,3 +683,26 @@ def permite_editar_campos_extrato(associacao, periodo, conta_associacao):
     requer_acertos_em_extrato = pc_requer_acerto_em_extrato(prestacao_conta)
 
     return requer_acertos_em_extrato
+
+
+def deve_aplicar_nova_regra_data_extrato(associacao, periodo, conta_associacao):
+    from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_acerto_em_extrato_na_conta
+    prestacao_conta = PrestacaoConta.objects.filter(
+        associacao=associacao,
+        periodo=periodo
+    ).first()
+
+    if not prestacao_conta:
+        return True
+
+    criada_no_periodo = False
+    if periodo and conta_associacao and conta_associacao.data_inicio:
+        criada_no_periodo = periodo == Periodo.da_data(conta_associacao.data_inicio)
+        if criada_no_periodo and (not periodo.encerrado or prestacao_conta.status in [PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_NAO_APRESENTADA]):
+            return True
+
+    if prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
+        return False
+
+    requer_acertos_em_extrato = pc_requer_acerto_em_extrato_na_conta(prestacao_conta, conta_associacao)
+    return requer_acertos_em_extrato
