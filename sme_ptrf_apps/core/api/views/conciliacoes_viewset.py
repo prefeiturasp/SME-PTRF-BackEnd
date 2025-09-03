@@ -30,7 +30,8 @@ from ...services import (
     conciliar_transacao,
     desconciliar_transacao,
     salva_conciliacao_bancaria,
-    permite_editar_campos_extrato
+    permite_editar_campos_extrato,
+    deve_aplicar_nova_regra_data_extrato
 )
 from ....despesas.models import Despesa
 from ....receitas.models import Receita
@@ -467,9 +468,15 @@ class ConciliacoesViewSet(GenericViewSet):
         if observacao and observacao.comprovante_extrato and observacao.comprovante_extrato.name:
             comprovante_extrato_nome = observacao.comprovante_extrato.name
 
-        info_solicitacao = conta_associacao.get_info_solicitacao_encerramento()
+        info_solicitacao = conta_associacao.get_info_solicitacao_encerramento(periodo)
 
         permite_editar = permite_editar_campos_extrato(
+            associacao,
+            periodo,
+            conta_associacao
+        )
+
+        aplicar_nova_regra_data_extrato = deve_aplicar_nova_regra_data_extrato(
             associacao,
             periodo,
             conta_associacao
@@ -489,18 +496,11 @@ class ConciliacoesViewSet(GenericViewSet):
         }
 
         # Regra US #129997
-        # 1º: Data de encerramento da conta, caso tenha solicitação de encerramento.
-        # 2º: Última dia do período selecionado.
-        # 3º: Data extrato
-
-        # if observacao and observacao.data_extrato:
-        #     result['data_extrato'] = observacao.data_extrato
-        # elif info_solicitacao["possui_solicitacao_encerramento"]:
-        #     result['data_extrato'] = info_solicitacao["data_encerramento"]
-        # elif periodo.data_fim_realizacao_despesas:
-        #     result['data_extrato'] = periodo.data_fim_realizacao_despesas
-        # else:
-        #     result['data_extrato'] = None
+        if aplicar_nova_regra_data_extrato:
+            if info_solicitacao["possui_solicitacao_encerramento"]:
+                result['data_extrato'] = info_solicitacao["data_encerramento"]
+            else:
+                result['data_extrato'] = periodo.data_fim_realizacao_despesas
 
         return Response(result, status=status.HTTP_200_OK)
 

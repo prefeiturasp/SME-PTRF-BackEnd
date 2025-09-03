@@ -24,8 +24,9 @@ class AnaliseContaPrestacaoConta(ModeloBase):
 
     solicitar_envio_do_comprovante_do_saldo_da_conta = models.BooleanField("Solicitar envio do comprovante do saldo da conta", default=False)
 
-    observacao_solicitar_envio_do_comprovante_do_saldo_da_conta = models.TextField('Observação solicitação de envio do comprovante do saldo da conta', max_length=600, blank=True, null=True)
+    solicitar_correcao_da_data_do_saldo_da_conta = models.BooleanField("Solicitar correção da data do saldo da conta", default=False)
 
+    observacao_solicitar_envio_do_comprovante_do_saldo_da_conta = models.TextField('Observação solicitação de envio do comprovante do saldo da conta', max_length=600, blank=True, null=True)
 
     def __str__(self):
         return f"{self.conta_associacao} - {self.data_extrato} - {self.saldo_extrato}"

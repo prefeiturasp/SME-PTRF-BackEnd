@@ -22,6 +22,7 @@ from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import Re
 from sme_ptrf_apps.paa.models import Paa
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
+from sme_ptrf_apps.paa.services.resumo_prioridades_service import ResumoPrioridadesService
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +65,8 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             "tipo_unidade": tipo_unidade,
             "username": request.user.username,
             "data": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
-            "ano": datetime.now().year
+            "ano": datetime.now().year,
+            "rodape": f"Unidade Educacional: {tipo_unidade} {nome_unidade}. Documento gerado pelo usuário: {request.user.username}, via SIG - Escola, em: {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}"
         }
         return PaaService.gerar_arquivo_pdf_levantamento_prioridades_paa(dados)
 
@@ -109,3 +111,9 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['get'], url_path='resumo-prioridades',
+            permission_classes=[PermissaoApiUe])
+    def resumo_prioridades(self, request, uuid=None):
+        result = ResumoPrioridadesService(self.get_object()).resumo_prioridades()
+        return Response(result, status=status.HTTP_200_OK)

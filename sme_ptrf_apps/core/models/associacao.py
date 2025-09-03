@@ -419,7 +419,6 @@ class Associacao(ModeloIdNome):
 
                 pendente_extrato = (
                     not pendente_observacao and
-                    saldo_posterior != 0 and
                     not comprovante_extrato
                 )
 

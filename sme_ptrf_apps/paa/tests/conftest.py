@@ -67,5 +67,17 @@ def paa(paa_factory, periodo_paa_1, associacao):
 
 
 @pytest.fixture
+def periodo_paa_resumo_recursos(periodo_paa_factory):
+    return periodo_paa_factory.create(referencia=f"Periodo 01/{date.today().year} a 12/{date.today().year}",
+                                      data_inicial=date(date.today().year, 1, 1),
+                                      data_final=date(date.today().year, 12, 31))
+
+
+@pytest.fixture
+def resumo_recursos_paa(paa_factory, periodo_paa_resumo_recursos, associacao):
+    return paa_factory.create(periodo_paa=periodo_paa_resumo_recursos, associacao=associacao)
+
+
+@pytest.fixture
 def parametro_paa(parametro_paa_factory):
     return parametro_paa_factory.create(mes_elaboracao_paa=4)

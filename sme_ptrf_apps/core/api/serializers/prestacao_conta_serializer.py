@@ -44,7 +44,7 @@ class PrestacaoContaListSerializer(serializers.ModelSerializer):
 
     def get_processo_sei(self, obj):
         request = self.context.get('request', None)
-        return get_processo_sei_da_prestacao(prestacao_contas=obj,  periodos_processo_sei=flag_is_active(request, 'periodos-processo-sei'))
+        return get_processo_sei_da_prestacao(prestacao_contas=obj, periodos_processo_sei=flag_is_active(request, 'periodos-processo-sei'))
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid if obj.periodo else ''
@@ -123,7 +123,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
 
     def get_processo_sei(self, obj):
         request = self.context.get('request', None)
-        return get_processo_sei_da_prestacao(prestacao_contas=obj,  periodos_processo_sei=flag_is_active(request, 'periodos-processo-sei'))
+        return get_processo_sei_da_prestacao(prestacao_contas=obj, periodos_processo_sei=flag_is_active(request, 'periodos-processo-sei'))
 
     def get_devolucao_ao_tesouro(self, obj):
         return obj.total_devolucao_ao_tesouro_str
@@ -239,6 +239,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
                     "saldo_extrato": analise.saldo_extrato,
                     "analise_prestacao_conta": f'{analise.analise_prestacao_conta.uuid}',
                     'solicitar_envio_do_comprovante_do_saldo_da_conta': analise.solicitar_envio_do_comprovante_do_saldo_da_conta,
+                    'solicitar_correcao_da_data_do_saldo_da_conta': analise.solicitar_correcao_da_data_do_saldo_da_conta,
                     'observacao_solicitar_envio_do_comprovante_do_saldo_da_conta': analise.observacao_solicitar_envio_do_comprovante_do_saldo_da_conta,
                 }
             )
@@ -249,7 +250,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
         return obj.get_referencia_do_consolidado
 
     def get_referencia_consolidado_dre_original(self, obj):
-        if(obj.consolidado_dre and obj.consolidado_dre.id):
+        if (obj.consolidado_dre and obj.consolidado_dre.id):
             consolidado_vinculado_id = obj.consolidado_dre.id
 
             while consolidado_vinculado_id:
@@ -308,7 +309,8 @@ class PrestacaoContaListRetificaveisSerializer(serializers.ModelSerializer):
     unidade_tipo_unidade = serializers.SerializerMethodField('get_unidade_tipo_unidade')
 
     pode_desfazer_retificacao = serializers.SerializerMethodField('get_pode_desfazer_retificacao')
-    tooltip_nao_pode_desfazer_retificacao = serializers.SerializerMethodField('get_tooltip_nao_pode_desfazer_retificacao')
+    tooltip_nao_pode_desfazer_retificacao = serializers.SerializerMethodField(
+        'get_tooltip_nao_pode_desfazer_retificacao')
 
     def get_unidade_eol(self, obj):
         return obj.associacao.unidade.codigo_eol if obj.associacao and obj.associacao.unidade else ''
@@ -335,4 +337,3 @@ class PrestacaoContaListRetificaveisSerializer(serializers.ModelSerializer):
             'pode_desfazer_retificacao',
             'tooltip_nao_pode_desfazer_retificacao',
         )
-

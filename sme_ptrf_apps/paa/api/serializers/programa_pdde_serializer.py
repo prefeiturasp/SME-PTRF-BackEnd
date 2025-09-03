@@ -25,6 +25,7 @@ class ProgramaPddeComTotaisSerializer(serializers.Serializer):
     """
         Serializer referente ao dados de totais de um Programa
     """
+    uuid = serializers.UUIDField(read_only=True)
     nome = serializers.CharField(max_length=255, read_only=True)
     total_valor_custeio = serializers.FloatField(read_only=True)
     total_valor_capital = serializers.FloatField(read_only=True)
