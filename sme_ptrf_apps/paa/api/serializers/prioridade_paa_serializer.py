@@ -8,7 +8,7 @@ from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
 from sme_ptrf_apps.paa.api import serializers as serializers_paa
 from sme_ptrf_apps.despesas.api.serializers import especificacao_material_servico_serializer as especif_serializer
 from sme_ptrf_apps.despesas.api.serializers import tipo_custeio_serializer
-from sme_ptrf_apps.paa.services.prioridade_paa_service import PrioridadePaaService
+from sme_ptrf_apps.paa.services.resumo_prioridades_service import ResumoPrioridadesService
 
 
 class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
@@ -140,7 +140,13 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
                 {'especificacao_material': 'Especificação de Material e Serviço não informado.'})
         
         # Valida se o valor da prioridade não excede os recursos disponíveis
-        PrioridadePaaService.validar_valor_prioridade(attrs)
+        if attrs.get('valor_total') and attrs.get('acao_associacao') and attrs.get('tipo_aplicacao'):
+            resumo_service = ResumoPrioridadesService(attrs.get('paa'))
+            resumo_service.validar_valor_prioridade(
+                attrs.get('valor_total'),
+                str(attrs.get('acao_associacao').uuid),
+                attrs.get('tipo_aplicacao')
+            )
         
         return super().validate(attrs)
 
