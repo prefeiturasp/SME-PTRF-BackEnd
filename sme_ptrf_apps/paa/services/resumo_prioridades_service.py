@@ -668,6 +668,10 @@ class ResumoPrioridadesService:
             serializers.ValidationError: Se o valor exceder os recursos disponíveis
         """
         if not valor_total or not acao_uuid or not tipo_aplicacao or not recurso:
+            logger.error(
+                f"Erro ao validar valor da prioridade: {str(e)} | "
+                f"Parâmetros: valor_total={valor_total}, acao_uuid={acao_uuid}, tipo_aplicacao={tipo_aplicacao}, recurso={recurso}"
+            )
             return
             
         try:
