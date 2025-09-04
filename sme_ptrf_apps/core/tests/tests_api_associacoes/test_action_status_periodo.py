@@ -1,7 +1,7 @@
 import json
 import pytest
-
-from datetime import date
+from django.core.files.uploadedfile import SimpleUploadedFile
+from datetime import date, datetime
 
 from freezegun import freeze_time
 from model_bakery import baker
@@ -374,6 +374,103 @@ def test_status_periodo_todas_as_pendencias_cadastrais(
 
     assert response.status_code == status.HTTP_200_OK
     assert result['pendencias_cadastrais'] == pendencias_cadastrais_esperado
+
+
+@freeze_time('2020-07-10 10:20:00')
+def test_status_periodo_saldo_zerado_sem_justificativa(
+    jwt_authenticated_client_a,
+    associacao,
+    conta_associacao,
+    observacao_conciliacao_factory,
+    periodo_factory,
+    membro_associacao_factory
+):
+    from sme_ptrf_apps.core.choices import MembroEnum
+
+    for key in MembroEnum:
+        membro_associacao_factory.create(
+            associacao=associacao,
+            cargo_associacao=key.name
+        )
+
+    comprovante = SimpleUploadedFile('comprovante.pdf', bytes('CONTEUDO TESTE TESTE TESTE', encoding="utf-8"))
+    periodo_2020_1 = periodo_factory.create(data_inicio_realizacao_despesas=datetime(2020, 1, 1),
+                                            data_fim_realizacao_despesas=datetime(2020, 5, 30))
+    observacao_conciliacao_factory.create(data_extrato=periodo_2020_1.data_fim_realizacao_despesas, saldo_extrato=0,
+                                          periodo=periodo_2020_1, associacao=associacao, conta_associacao=conta_associacao,
+                                          comprovante_extrato=comprovante, texto=None)
+
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-01',
+                                              content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['pendencias_cadastrais'] is None
+
+
+@freeze_time('2020-07-10 10:20:00')
+def test_status_periodo_saldo_diferente_de_zero_sem_justificativa(
+    jwt_authenticated_client_a,
+    associacao,
+    conta_associacao,
+    observacao_conciliacao_factory,
+    periodo_factory,
+    membro_associacao_factory
+):
+    from sme_ptrf_apps.core.choices import MembroEnum
+
+    for key in MembroEnum:
+        membro_associacao_factory.create(
+            associacao=associacao,
+            cargo_associacao=key.name
+        )
+
+    comprovante = SimpleUploadedFile('comprovante.pdf', bytes('CONTEUDO TESTE TESTE TESTE', encoding="utf-8"))
+    periodo_2020_1 = periodo_factory.create(data_inicio_realizacao_despesas=datetime(2020, 1, 1),
+                                            data_fim_realizacao_despesas=datetime(2020, 5, 30))
+    observacao_conciliacao_factory.create(data_extrato=periodo_2020_1.data_fim_realizacao_despesas, saldo_extrato=1000,
+                                          periodo=periodo_2020_1, associacao=associacao, conta_associacao=conta_associacao,
+                                          comprovante_extrato=comprovante, texto=None)
+
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-01',
+                                              content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['pendencias_cadastrais'] == {'conciliacao_bancaria': {
+        'contas_pendentes': [f"{conta_associacao.uuid}"]}, 'dados_associacao': None}
+
+
+@freeze_time('2020-07-10 10:20:00')
+def test_status_periodo_sem_pendencias(
+    jwt_authenticated_client_a,
+    associacao,
+    conta_associacao,
+    observacao_conciliacao_factory,
+    periodo_factory,
+    membro_associacao_factory
+):
+    from sme_ptrf_apps.core.choices import MembroEnum
+
+    for key in MembroEnum:
+        membro_associacao_factory.create(
+            associacao=associacao,
+            cargo_associacao=key.name
+        )
+
+    comprovante = SimpleUploadedFile('comprovante.pdf', bytes('CONTEUDO TESTE TESTE TESTE', encoding="utf-8"))
+    periodo_2020_1 = periodo_factory.create(data_inicio_realizacao_despesas=datetime(2020, 1, 1),
+                                            data_fim_realizacao_despesas=datetime(2020, 5, 30))
+    observacao_conciliacao_factory.create(data_extrato=periodo_2020_1.data_fim_realizacao_despesas, saldo_extrato=1000,
+                                          periodo=periodo_2020_1, associacao=associacao, conta_associacao=conta_associacao,
+                                          comprovante_extrato=comprovante)
+
+    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-01',
+                                              content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['pendencias_cadastrais'] is None
 
 
 @freeze_time('2020-07-10 10:20:00')
