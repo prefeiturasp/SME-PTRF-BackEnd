@@ -249,10 +249,13 @@ class AssociacoesViewSet(ModelViewSet):
         pendencias_conciliacao = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(
             periodo)
 
-        pendencias_cadastrais = {
-            'dados_associacao': pendencias_dados,
-            'conciliacao_bancaria': pendencias_conciliacao,
-        }
+        if pendencias_dados or pendencias_conciliacao:
+            pendencias_cadastrais = {
+                'dados_associacao': pendencias_dados,
+                'conciliacao_bancaria': pendencias_conciliacao,
+            }
+        else:
+            pendencias_cadastrais = None
 
         from sme_ptrf_apps.core.services.conta_associacao_service import checa_se_tem_conta_encerrada_com_saldo_no_periodo
 
