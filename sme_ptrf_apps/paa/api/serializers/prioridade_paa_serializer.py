@@ -140,12 +140,25 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
                 {'especificacao_material': 'Especificação de Material e Serviço não informado.'})
         
         # Valida se o valor da prioridade não excede os recursos disponíveis
-        if attrs.get('valor_total') and attrs.get('acao_associacao') and attrs.get('tipo_aplicacao'):
+        # Para recursos PTRF e PDDE
+        if (attrs.get('valor_total') and 
+            attrs.get('tipo_aplicacao') and
+            ((attrs.get('recurso') == RecursoOpcoesEnum.PTRF.name and attrs.get('acao_associacao')) or
+             (attrs.get('recurso') == RecursoOpcoesEnum.PDDE.name and attrs.get('acao_pdde')))):
+            
             resumo_service = ResumoPrioridadesService(attrs.get('paa'))
+            
+            # Determina o UUID da ação baseado no tipo de recurso
+            if attrs.get('recurso') == RecursoOpcoesEnum.PTRF.name:
+                acao_uuid = str(attrs.get('acao_associacao').uuid)
+            else:  # PDDE
+                acao_uuid = str(attrs.get('acao_pdde').uuid)
+            
             resumo_service.validar_valor_prioridade(
                 attrs.get('valor_total'),
-                str(attrs.get('acao_associacao').uuid),
-                attrs.get('tipo_aplicacao')
+                acao_uuid,
+                attrs.get('tipo_aplicacao'),
+                attrs.get('recurso')
             )
         
         return super().validate(attrs)
