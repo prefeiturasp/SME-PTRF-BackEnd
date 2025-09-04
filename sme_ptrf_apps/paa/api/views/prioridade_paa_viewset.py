@@ -7,7 +7,6 @@ from django.http import Http404
 import logging
 import django_filters
 from waffle.mixins import WaffleFlagMixin
-from decimal import Decimal
 
 from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
@@ -19,7 +18,6 @@ from sme_ptrf_apps.paa.api.serializers import (
 )
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComGravacao
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
-from sme_ptrf_apps.core.api.serializers import AcaoAssociacaoRetrieveSerializer
 
 logger = logging.getLogger(__name__)
 class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
@@ -116,11 +114,6 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
-        # Verifica se o valor da prioridade não excede os recursos disponíveis
-        validation_error = self._validar_valor_prioridade(serializer.validated_data)
-        if validation_error:
-            return validation_error
-        
         prioridade = serializer.save()
                 
         return Response(
@@ -142,11 +135,6 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
             # Valida os dados de entrada
             serializer = self.get_serializer(instance, data=request.data, partial=kwargs.get('partial', False))
             serializer.is_valid(raise_exception=True)
-            
-            # Verifica se o valor da prioridade não excede os recursos disponíveis
-            validation_error = self._validar_valor_prioridade(serializer.validated_data)
-            if validation_error:
-                return validation_error
             
             # Salva as alterações
             prioridade = serializer.save()
@@ -198,161 +186,3 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
         nova_prioridade = serializer.save()
 
         return Response(PrioridadePaaCreateUpdateSerializer(nova_prioridade).data, status=status.HTTP_201_CREATED)
-
-    def _validar_valor_prioridade(self, validated_data):
-        """
-        Valida se o valor da prioridade não excede os valores disponíveis de receita.
-        Retorna um Response de erro se a validação falhar, ou None se passar.
-        """
-        valor_total = validated_data.get('valor_total')
-        acao_associacao = validated_data.get('acao_associacao')
-        tipo_aplicacao = validated_data.get('tipo_aplicacao')
-        
-        if valor_total and acao_associacao and tipo_aplicacao:
-            try:
-                # Obter dados da ação associação para cálculo dos valores disponíveis
-                acao_associacao_data = AcaoAssociacaoRetrieveSerializer(acao_associacao).data
-                
-                if acao_associacao_data:
-                    # Calcula os valores disponíveis para todos os tipos de aplicação
-                    valor_custeio = self._calcular_valor_disponivel(acao_associacao_data, TipoAplicacaoOpcoesEnum.CUSTEIO.name)
-                    valor_capital = self._calcular_valor_disponivel(acao_associacao_data, TipoAplicacaoOpcoesEnum.CAPITAL.name)
-                    valor_livre = self._calcular_valor_livre(acao_associacao_data)
-                    
-                    valor_prioridade = Decimal(str(valor_total))
-                    
-                    # Calcula o valor disponível baseado no tipo de aplicação
-                    if tipo_aplicacao == TipoAplicacaoOpcoesEnum.CUSTEIO.name:
-                        valor_disponivel = valor_custeio
-                    elif tipo_aplicacao == TipoAplicacaoOpcoesEnum.CAPITAL.name:
-                        valor_disponivel = valor_capital
-                    else:
-                        valor_disponivel = Decimal('0')
-                    
-                    # Calcula o valor total disponível (custeio + capital + livre aplicação)
-                    valor_total_disponivel = valor_custeio + valor_capital + valor_livre
-                    
-                    # Verifica se o valor da prioridade excede o valor total disponível
-                    if valor_prioridade > valor_total_disponivel:
-                        return Response(
-                            {"mensagem": "O valor indicado para a prioridade excede o valor disponível de receita prevista."},
-                            status=status.HTTP_400_BAD_REQUEST
-                        )
-                    
-                    # Verifica se o valor da prioridade excede o valor disponível no tipo específico
-                    if valor_prioridade > valor_disponivel:
-                        # Se não há saldo suficiente no tipo específico, verifica se há saldo suficiente em livre aplicação
-                        if tipo_aplicacao in [TipoAplicacaoOpcoesEnum.CUSTEIO.name, TipoAplicacaoOpcoesEnum.CAPITAL.name]:
-                            # Calcula quanto precisa ser usado da livre aplicação
-                            valor_necessario_livre = valor_prioridade - valor_disponivel
-                            
-                            if valor_livre >= valor_necessario_livre:
-                                # Há saldo suficiente em livre aplicação, permite o cadastro
-                                pass
-                            else:
-                                # Não há saldo suficiente em livre aplicação, rejeita
-                                return Response(
-                                    {"mensagem": "O valor indicado para a prioridade excede o valor disponível de receita prevista."},
-                                    status=status.HTTP_400_BAD_REQUEST
-                                )
-                        else:
-                            # Para outros tipos, rejeita se não há saldo suficiente
-                            return Response(
-                                {"mensagem": "O valor indicado para a prioridade excede o valor disponível de receita prevista."},
-                                status=status.HTTP_400_BAD_REQUEST
-                            )
-                        
-            except Exception as e:
-                logger.error(f"Erro ao validar valor da prioridade: {str(e)}")
-                # Em caso de erro na validação, permite a operação mas registra o erro
-                pass
-        
-        return None
-
-    def _calcular_valor_livre(self, acao_associacao_data):
-        """
-        Calcula o valor de livre aplicação disponível para uma ação associação.
-        Usa a mesma lógica do serviço de resumo de prioridades.
-        """
-        def get_receita_prevista_da_acao_associacao(acao_associacao_data):
-            """Busca as receitas previstas da ação associação"""
-            receitas_previstas_paa = acao_associacao_data.get('receitas_previstas_paa', [])
-            return receitas_previstas_paa[0] if len(receitas_previstas_paa) else {}
-
-        def calcular_saldos_congelado_atual_previsao(congelado, atual, previsao):
-            """Soma saldo congelado (ou atual) com previsão"""
-            previsao_valor = Decimal(previsao)
-            saldo_congelado = Decimal(congelado)
-            saldo_atual = Decimal(atual)
-            return (saldo_congelado or saldo_atual) + previsao_valor
-
-        def get_valor_livre(acao_associacao_data):
-            """Calcula o valor de livre aplicação baseado nos saldos e previsões"""
-            receitas_previstas_paa = get_receita_prevista_da_acao_associacao(acao_associacao_data)
-            saldos = acao_associacao_data.get('saldos', {})
-
-            previsao_valor = Decimal(receitas_previstas_paa.get('previsao_valor_livre', None) or 0)
-            saldo_congelado = Decimal(receitas_previstas_paa.get('saldo_congelado_livre', None) or 0)
-            saldo_atual = Decimal(saldos.get('saldo_atual_livre', None) or 0)
-
-            return calcular_saldos_congelado_atual_previsao(saldo_congelado, saldo_atual, previsao_valor)
-
-        return get_valor_livre(acao_associacao_data)
-
-    def _calcular_valor_disponivel(self, acao_associacao_data, tipo_aplicacao):
-        """
-        Calcula o valor disponível para uma ação associação baseado no tipo de aplicação.
-        Usa a mesma lógica do serviço de resumo de prioridades.
-        """
-        def get_receita_prevista_da_acao_associacao(acao_associacao_data):
-            """Busca as receitas previstas da ação associação"""
-            receitas_previstas_paa = acao_associacao_data.get('receitas_previstas_paa', [])
-            return receitas_previstas_paa[0] if len(receitas_previstas_paa) else {}
-
-        def calcular_saldos_congelado_atual_previsao(congelado, atual, previsao):
-            """Soma saldo congelado (ou atual) com previsão"""
-            previsao_valor = Decimal(previsao)
-            saldo_congelado = Decimal(congelado)
-            saldo_atual = Decimal(atual)
-            return (saldo_congelado or saldo_atual) + previsao_valor
-
-        def get_valor_custeio(acao_associacao_data):
-            """Calcula o valor de custeio disponível"""
-            receitas_previstas_paa = get_receita_prevista_da_acao_associacao(acao_associacao_data)
-            saldos = acao_associacao_data.get('saldos', {})
-
-            previsao_valor = Decimal(receitas_previstas_paa.get('previsao_valor_custeio', None) or 0)
-            saldo_congelado = Decimal(receitas_previstas_paa.get('saldo_congelado_custeio', None) or 0)
-            saldo_atual = Decimal(saldos.get('saldo_atual_custeio', None) or 0)
-
-            return calcular_saldos_congelado_atual_previsao(saldo_congelado, saldo_atual, previsao_valor)
-
-        def get_valor_capital(acao_associacao_data):
-            """Calcula o valor de capital disponível"""
-            receitas_previstas_paa = get_receita_prevista_da_acao_associacao(acao_associacao_data)
-            saldos = acao_associacao_data.get('saldos', {})
-
-            previsao_valor = Decimal(receitas_previstas_paa.get('previsao_valor_capital', None) or 0)
-            saldo_congelado = Decimal(receitas_previstas_paa.get('saldo_congelado_capital', None) or 0)
-            saldo_atual = Decimal(saldos.get('saldo_atual_capital', None) or 0)
-
-            return calcular_saldos_congelado_atual_previsao(saldo_congelado, saldo_atual, previsao_valor)
-
-        def get_valor_livre(acao_associacao_data):
-            """Calcula o valor de livre aplicação disponível"""
-            receitas_previstas_paa = get_receita_prevista_da_acao_associacao(acao_associacao_data)
-            saldos = acao_associacao_data.get('saldos', {})
-
-            previsao_valor = Decimal(receitas_previstas_paa.get('previsao_valor_livre', None) or 0)
-            saldo_congelado = Decimal(receitas_previstas_paa.get('saldo_congelado_livre', None) or 0)
-            saldo_atual = Decimal(saldos.get('saldo_atual_livre', None) or 0)
-
-            return calcular_saldos_congelado_atual_previsao(saldo_congelado, saldo_atual, previsao_valor)
-
-        # Retorna o valor disponível baseado no tipo de aplicação
-        if tipo_aplicacao == TipoAplicacaoOpcoesEnum.CUSTEIO.name:
-            return get_valor_custeio(acao_associacao_data)
-        elif tipo_aplicacao == TipoAplicacaoOpcoesEnum.CAPITAL.name:
-            return get_valor_capital(acao_associacao_data)
-        else:
-            return Decimal('0')
