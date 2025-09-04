@@ -104,45 +104,17 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
             }
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
-    def create(self, request, *args, **kwargs):
-        """
-        Cria uma nova PrioridadePaa.
-        
-        Valida os dados através do serializer e cria o objeto.
-        Retorna os dados da prioridade criada ou erros de validação.
-        """
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        
-        prioridade = serializer.save()
-                
-        return Response(
-            PrioridadePaaCreateUpdateSerializer(prioridade).data,
-            status=status.HTTP_201_CREATED
-        )
-
     def update(self, request, *args, **kwargs):
         """
+        Cenário de exceção: quando tentar atualizar uma prioridade que já foi removida
         Atualiza uma PrioridadePaa existente.
         
         Valida os dados através do serializer e aplica a validação de valor.
         Retorna os dados da prioridade atualizada ou erros de validação.
         """
         try:
-            # Verifica se a prioridade existe
-            instance = self.get_object()
-            
-            # Valida os dados de entrada
-            serializer = self.get_serializer(instance, data=request.data, partial=kwargs.get('partial', False))
-            serializer.is_valid(raise_exception=True)
-            
-            # Salva as alterações
-            prioridade = serializer.save()
-            
-            return Response(
-                PrioridadePaaCreateUpdateSerializer(prioridade).data,
-                status=status.HTTP_200_OK
-            )
+            self.get_object()
+            return super().update(request, *args, **kwargs)
             
         except (Http404, NotFound):
             return Response(
