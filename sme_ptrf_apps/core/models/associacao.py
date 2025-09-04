@@ -1,3 +1,4 @@
+from decimal import Decimal
 import logging
 import datetime
 from django.db import models
@@ -412,7 +413,7 @@ class Associacao(ModeloIdNome):
 
                 pendente_justificativa = (
                     not pendente_observacao and
-                    (saldo_posterior - saldo_extrato) != 0 and
+                    (Decimal(saldo_posterior) - saldo_extrato) != 0 and
                     not transacoes_pendentes_conciliacao and
                     not texto_observacao
                 )
