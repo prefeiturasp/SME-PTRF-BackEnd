@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django.db.models import Sum
+from rest_framework import serializers
 from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
 
 
@@ -652,3 +653,78 @@ class ResumoPrioridadesService:
         dados = [tipo_recurso_map[recurso.name] for recurso in RecursoOpcoesEnum]
 
         return dados
+
+    def validar_valor_prioridade(self, valor_total, acao_uuid, tipo_aplicacao, recurso):
+        """
+        Valida se o valor da prioridade não excede os valores disponíveis de receita.
+        
+        Args:
+            valor_total (Decimal): Valor total da prioridade
+            acao_uuid (str): UUID da ação (associação ou PDDE)
+            tipo_aplicacao (str): Tipo de aplicação (CUSTEIO ou CAPITAL)
+            recurso (str): Tipo de recurso (PTRF ou PDDE)
+            
+        Raises:
+            serializers.ValidationError: Se o valor exceder os recursos disponíveis
+        """
+        if not valor_total or not acao_uuid or not tipo_aplicacao or not recurso:
+            logger.error(
+                f"Erro ao validar valor da prioridade: {str(e)} | "
+                f"Parâmetros: valor_total={valor_total}, acao_uuid={acao_uuid}, tipo_aplicacao={tipo_aplicacao}, recurso={recurso}"
+            )
+            return
+            
+        try:
+            # Obtém o resumo de prioridades
+            resumo_data = self.resumo_prioridades()
+            
+            # Busca a ação no resumo de prioridades (PTRF ou PDDE)
+            acao_data = {}
+            recurso_data = next((item for item in resumo_data if item.get('key') == recurso), {})
+            
+            if recurso_data and 'children' in recurso_data:
+                for acao in recurso_data['children']:
+                    if acao.get('key') == acao_uuid:
+                        acao_data = acao
+                        break
+            
+            if not acao_data:
+                raise serializers.ValidationError(
+                    {'mensagem': 'Ação não encontrada no resumo de prioridades.'}
+                )
+            
+            # Obtém os valores de receita diretamente da ação
+            # O resumo já contém custeio, capital e livre aplicação no nível da ação
+            valor_custeio = Decimal(str(acao_data.get('custeio', 0)))
+            valor_capital = Decimal(str(acao_data.get('capital', 0)))
+            valor_livre = Decimal(str(acao_data.get('livre_aplicacao', 0)))
+            
+            valor_prioridade = Decimal(str(valor_total))
+            
+            # Calcula o valor disponível baseado no tipo de aplicação
+            # Para custeio: custeio + livre_aplicacao >= valor_prioridade
+            # Para capital: capital + livre_aplicacao >= valor_prioridade
+            if tipo_aplicacao == TipoAplicacaoOpcoesEnum.CUSTEIO.name:
+                valor_disponivel = valor_custeio + valor_livre
+            elif tipo_aplicacao == TipoAplicacaoOpcoesEnum.CAPITAL.name:
+                valor_disponivel = valor_capital + valor_livre
+            else:
+                valor_disponivel = Decimal('0')
+            
+            # Verifica se o valor da prioridade excede o valor disponível
+            if valor_prioridade > valor_disponivel:
+                raise serializers.ValidationError(
+                    {'mensagem': 'O valor indicado para a prioridade excede o valor disponível de receita prevista.'}
+                )
+                    
+        except serializers.ValidationError:
+            # Re-lança erros de validação
+            raise
+        except Exception as e:
+            # Em caso de erro na validação, permite a operação mas registra o erro
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erro ao validar valor da prioridade: {str(e)}")
+
+
+    

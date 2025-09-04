@@ -8,6 +8,7 @@ from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
 from sme_ptrf_apps.paa.api import serializers as serializers_paa
 from sme_ptrf_apps.despesas.api.serializers import especificacao_material_servico_serializer as especif_serializer
 from sme_ptrf_apps.despesas.api.serializers import tipo_custeio_serializer
+from sme_ptrf_apps.paa.services.resumo_prioridades_service import ResumoPrioridadesService
 
 
 class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
@@ -137,6 +138,29 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
         if not attrs.get('especificacao_material'):
             raise serializers.ValidationError(
                 {'especificacao_material': 'Especificação de Material e Serviço não informado.'})
+        
+        # Valida se o valor da prioridade não excede os recursos disponíveis
+        # Para recursos PTRF e PDDE
+        if (attrs.get('valor_total') and 
+            attrs.get('tipo_aplicacao') and
+            ((attrs.get('recurso') == RecursoOpcoesEnum.PTRF.name and attrs.get('acao_associacao')) or
+             (attrs.get('recurso') == RecursoOpcoesEnum.PDDE.name and attrs.get('acao_pdde')))):
+            
+            resumo_service = ResumoPrioridadesService(attrs.get('paa'))
+            
+            # Determina o UUID da ação baseado no tipo de recurso
+            if attrs.get('recurso') == RecursoOpcoesEnum.PTRF.name:
+                acao_uuid = str(attrs.get('acao_associacao').uuid)
+            else:  # PDDE
+                acao_uuid = str(attrs.get('acao_pdde').uuid)
+            
+            resumo_service.validar_valor_prioridade(
+                attrs.get('valor_total'),
+                acao_uuid,
+                attrs.get('tipo_aplicacao'),
+                attrs.get('recurso')
+            )
+        
         return super().validate(attrs)
 
 
