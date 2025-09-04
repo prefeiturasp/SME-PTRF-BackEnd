@@ -161,10 +161,7 @@ def test_resumo_prioridades(mock_recursos, mock_pdde, mock_ptrf, resumo_recursos
 @pytest.mark.django_db
 @patch.object(ResumoPrioridadesService, "resumo_prioridades")
 def test_validar_valor_prioridade_sucesso_custeio(mock_resumo, resumo_recursos_paa):
-    """
-    Teste 1: Validação bem-sucedida para tipo CUSTEIO com valor dentro do disponível
-    """
-    # Mock do resumo de prioridades
+    """Validação bem-sucedida para tipo CUSTEIO"""
     mock_resumo.return_value = [
         {
             'key': RecursoOpcoesEnum.PTRF.name,
@@ -181,23 +178,22 @@ def test_validar_valor_prioridade_sucesso_custeio(mock_resumo, resumo_recursos_p
     
     service = ResumoPrioridadesService(paa=resumo_recursos_paa)
     
-    # Valor da prioridade: 800 (menor que custeio + livre = 1200)
-    # Não deve levantar exceção
-    service.validar_valor_prioridade(
-        valor_total=Decimal('800.00'),
-        acao_uuid='acao-uuid-123',
-        tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
-        recurso=RecursoOpcoesEnum.PTRF.name
-    )
+    try:
+        service.validar_valor_prioridade(
+            valor_total=Decimal('800.00'),
+            acao_uuid='acao-uuid-123',
+            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+            recurso=RecursoOpcoesEnum.PTRF.name
+        )
+        assert True
+    except Exception as e:
+        pytest.fail(f"Validação deveria ter passado, mas falhou com: {str(e)}")
 
 
 @pytest.mark.django_db
 @patch.object(ResumoPrioridadesService, "resumo_prioridades")
 def test_validar_valor_prioridade_sucesso_capital(mock_resumo, resumo_recursos_paa):
-    """
-    Teste 2: Validação bem-sucedida para tipo CAPITAL com valor dentro do disponível
-    """
-    # Mock do resumo de prioridades
+    """Validação bem-sucedida para tipo CAPITAL"""
     mock_resumo.return_value = [
         {
             'key': RecursoOpcoesEnum.PDDE.name,
@@ -214,23 +210,22 @@ def test_validar_valor_prioridade_sucesso_capital(mock_resumo, resumo_recursos_p
     
     service = ResumoPrioridadesService(paa=resumo_recursos_paa)
     
-    # Valor da prioridade: 700 (menor que capital + livre = 900)
-    # Não deve levantar exceção
-    service.validar_valor_prioridade(
-        valor_total=Decimal('700.00'),
-        acao_uuid='acao-pdde-uuid-456',
-        tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name,
-        recurso=RecursoOpcoesEnum.PDDE.name
-    )
+    try:
+        service.validar_valor_prioridade(
+            valor_total=Decimal('700.00'),
+            acao_uuid='acao-pdde-uuid-456',
+            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name,
+            recurso=RecursoOpcoesEnum.PDDE.name
+        )
+        assert True
+    except Exception as e:
+        pytest.fail(f"Validação deveria ter passado, mas falhou com: {str(e)}")
 
 
 @pytest.mark.django_db
 @patch.object(ResumoPrioridadesService, "resumo_prioridades")
 def test_validar_valor_prioridade_excede_valor_disponivel(mock_resumo, resumo_recursos_paa):
-    """
-    Teste 3: Validação falha quando valor da prioridade excede o valor disponível
-    """
-    # Mock do resumo de prioridades
+    """Validação falha quando valor excede o disponível"""
     mock_resumo.return_value = [
         {
             'key': RecursoOpcoesEnum.PTRF.name,
@@ -247,8 +242,6 @@ def test_validar_valor_prioridade_excede_valor_disponivel(mock_resumo, resumo_re
     
     service = ResumoPrioridadesService(paa=resumo_recursos_paa)
     
-    # Valor da prioridade: 700 (maior que custeio + livre = 600)
-    # Deve levantar ValidationError
     with pytest.raises(serializers.ValidationError) as exc_info:
         service.validar_valor_prioridade(
             valor_total=Decimal('700.00'),
@@ -263,10 +256,7 @@ def test_validar_valor_prioridade_excede_valor_disponivel(mock_resumo, resumo_re
 @pytest.mark.django_db
 @patch.object(ResumoPrioridadesService, "resumo_prioridades")
 def test_validar_valor_prioridade_acao_nao_encontrada(mock_resumo, resumo_recursos_paa):
-    """
-    Teste 4: Validação falha quando ação não é encontrada no resumo de prioridades
-    """
-    # Mock do resumo de prioridades sem a ação procurada
+    """Validação falha quando ação não é encontrada"""
     mock_resumo.return_value = [
         {
             'key': RecursoOpcoesEnum.PTRF.name,
@@ -283,8 +273,6 @@ def test_validar_valor_prioridade_acao_nao_encontrada(mock_resumo, resumo_recurs
     
     service = ResumoPrioridadesService(paa=resumo_recursos_paa)
     
-    # Ação inexistente no resumo
-    # Deve levantar ValidationError
     with pytest.raises(serializers.ValidationError) as exc_info:
         service.validar_valor_prioridade(
             valor_total=Decimal('100.00'),
