@@ -1,5 +1,6 @@
 from decimal import Decimal
 from django.db.models import Sum
+from rest_framework import serializers
 from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
 
 
@@ -652,3 +653,112 @@ class ResumoPrioridadesService:
         dados = [tipo_recurso_map[recurso.name] for recurso in RecursoOpcoesEnum]
 
         return dados
+
+    def validar_valor_prioridade(self, valor_total, acao_uuid, tipo_aplicacao, recurso):
+        """
+        Valida se o valor da prioridade não excede os valores disponíveis de receita.
+        
+        Args:
+            valor_total (Decimal): Valor total da prioridade
+            acao_uuid (str): UUID da ação (associação ou PDDE)
+            tipo_aplicacao (str): Tipo de aplicação (CUSTEIO ou CAPITAL)
+            recurso (str): Tipo de recurso (PTRF ou PDDE)
+            
+        Raises:
+            serializers.ValidationError: Se o valor exceder os recursos disponíveis
+        """
+        if not valor_total or not acao_uuid or not tipo_aplicacao or not recurso:
+            return
+            
+        try:
+            # Obtém o resumo de prioridades
+            resumo_data = self.resumo_prioridades()
+            
+            # Busca a ação no resumo de prioridades (PTRF ou PDDE)
+            acao_data = self._buscar_acao_no_resumo(resumo_data, acao_uuid, recurso)
+            
+            if not acao_data:
+                raise serializers.ValidationError(
+                    {'mensagem': 'Ação não encontrada no resumo de prioridades.'}
+                )
+            
+            # Obtém os valores de receita da ação associação
+            receita_data = self._obter_dados_receita_da_acao(acao_data)
+            
+            if not receita_data:
+                raise serializers.ValidationError(
+                    {'mensagem': 'Dados de receita não encontrados para a ação associação.'}
+                )
+            
+            # Calcula os valores disponíveis
+            valor_custeio = Decimal(str(receita_data.get('custeio', 0)))
+            valor_capital = Decimal(str(receita_data.get('capital', 0)))
+            valor_livre = Decimal(str(receita_data.get('livre_aplicacao', 0)))
+            
+            valor_prioridade = Decimal(str(valor_total))
+            
+            # Calcula o valor disponível baseado no tipo de aplicação
+            # Para custeio: custeio + livre_aplicacao >= valor_prioridade
+            # Para capital: capital + livre_aplicacao >= valor_prioridade
+            if tipo_aplicacao == TipoAplicacaoOpcoesEnum.CUSTEIO.name:
+                valor_disponivel = valor_custeio + valor_livre
+            elif tipo_aplicacao == TipoAplicacaoOpcoesEnum.CAPITAL.name:
+                valor_disponivel = valor_capital + valor_livre
+            else:
+                valor_disponivel = Decimal('0')
+            
+            # Verifica se o valor da prioridade excede o valor disponível
+            if valor_prioridade > valor_disponivel:
+                raise serializers.ValidationError(
+                    {'mensagem': 'O valor indicado para a prioridade excede o valor disponível de receita prevista.'}
+                )
+                    
+        except serializers.ValidationError:
+            # Re-lança erros de validação
+            raise
+        except Exception as e:
+            # Em caso de erro na validação, permite a operação mas registra o erro
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Erro ao validar valor da prioridade: {str(e)}")
+
+    def _buscar_acao_no_resumo(self, resumo_data, acao_uuid, recurso):
+        """
+        Busca uma ação específica no resumo de prioridades (PTRF ou PDDE).
+        
+        Args:
+            resumo_data (list): Lista com dados do resumo de prioridades
+            acao_uuid (str): UUID da ação a ser buscada
+            recurso (str): Tipo de recurso (PTRF ou PDDE)
+            
+        Returns:
+            dict: Dados da ação encontrada ou None
+        """
+        # Busca no recurso especificado
+        recurso_data = next((item for item in resumo_data if item.get('key') == recurso), None)
+        
+        if recurso_data and 'children' in recurso_data:
+            for acao in recurso_data['children']:
+                if acao.get('key') == acao_uuid:
+                    return acao
+        
+        return None
+
+    def _obter_dados_receita_da_acao(self, acao_data):
+        """
+        Obtém os dados de receita de uma ação (associação ou PDDE).
+        
+        Args:
+            acao_data (dict): Dados da ação
+            
+        Returns:
+            dict: Dados de receita da ação
+        """
+        if 'children' in acao_data:
+            for child in acao_data['children']:
+                if child.get('recurso') == 'Receita':
+                    return child
+        
+        return None
+
+    
