@@ -685,6 +685,24 @@ def permite_editar_campos_extrato(associacao, periodo, conta_associacao):
     return requer_acertos_em_extrato
 
 
+def permite_editar_campos_extrato_se_pc_devolvida_ou_nao_apresentada(associacao, periodo):
+    '''Solução paliativa que resolve o cenário em que há pendências de conciliação,
+       porém não foram solicitados acertos na conta, impossibilitando a UE de concluir acerto'''
+
+    prestacao_conta = PrestacaoConta.objects.filter(
+        associacao=associacao,
+        periodo=periodo
+    ).first()
+
+    if not prestacao_conta:
+        return True
+
+    if prestacao_conta.status in [PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_NAO_APRESENTADA]:
+        return True
+
+    return False
+
+
 def deve_aplicar_nova_regra_data_extrato(associacao, periodo, conta_associacao):
     from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_acerto_em_extrato_na_conta
     prestacao_conta = PrestacaoConta.objects.filter(
