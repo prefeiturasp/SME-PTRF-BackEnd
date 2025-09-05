@@ -1,6 +1,7 @@
 import uuid
 import pytest
 import json
+from unittest.mock import patch
 
 from rest_framework import status
 from sme_ptrf_apps.paa.models.prioridade_paa import PrioridadePaa, SimNaoChoices
@@ -216,8 +217,35 @@ def test_cria_prioridade_paa_pdde_custeio(jwt_authenticated_client_sme, flag_paa
 
 
 @pytest.mark.django_db
-def test_cria_prioridade_paa_recurso_proprio_capital(jwt_authenticated_client_sme, flag_paa,
+@patch('sme_ptrf_apps.paa.services.resumo_prioridades_service.ResumoPrioridadesService.resumo_prioridades')
+def test_cria_prioridade_paa_recurso_proprio_capital(mock_resumo, jwt_authenticated_client_sme, flag_paa,
                                                      paa, especificacao_material):
+    # Mock do resumo de prioridades para Recursos Próprios
+    mock_resumo.return_value = [
+        {
+            'key': RecursoOpcoesEnum.RECURSO_PROPRIO.name,
+            'children': [
+                {
+                    'key': 'item_recursos',
+                    'children': [
+                        {
+                            'recurso': 'Receita',
+                            'custeio': 0,
+                            'capital': 0,
+                            'livre_aplicacao': 1000.00
+                        },
+                        {
+                            'recurso': 'Despesas previstas',
+                            'custeio': 0,
+                            'capital': 0,
+                            'livre_aplicacao': 0
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+    
     data = {
         "paa": str(paa.uuid),
         "prioridade": 1,
@@ -257,8 +285,35 @@ def test_cria_prioridade_paa_recurso_proprio_capital(jwt_authenticated_client_sm
 
 
 @pytest.mark.django_db
-def test_altera_prioridade_custeio_para_capital_com_sucesso(jwt_authenticated_client_sme,
+@patch('sme_ptrf_apps.paa.services.resumo_prioridades_service.ResumoPrioridadesService.resumo_prioridades')
+def test_altera_prioridade_custeio_para_capital_com_sucesso(mock_resumo, jwt_authenticated_client_sme,
                                                             flag_paa, prioridade_paa_ptrf_custeio):
+    # Mock do resumo de prioridades para PTRF
+    mock_resumo.return_value = [
+        {
+            'key': RecursoOpcoesEnum.PTRF.name,
+            'children': [
+                {
+                    'key': str(prioridade_paa_ptrf_custeio.acao_associacao.uuid),
+                    'children': [
+                        {
+                            'recurso': 'Receita',
+                            'custeio': 1000.00,
+                            'capital': 1000.00,
+                            'livre_aplicacao': 500.00
+                        },
+                        {
+                            'recurso': 'Despesas previstas',
+                            'custeio': 100.00,
+                            'capital': 50.00,
+                            'livre_aplicacao': 0
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+    
     prioridade_paa = prioridade_paa_ptrf_custeio
     payload = {
         "paa": str(prioridade_paa.paa.uuid),

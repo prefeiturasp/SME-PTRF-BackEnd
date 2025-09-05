@@ -140,25 +140,37 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
                 {'especificacao_material': 'Especificação de Material e Serviço não informado.'})
         
         # Valida se o valor da prioridade não excede os recursos disponíveis
-        # Para recursos PTRF e PDDE
+        # Para recursos PTRF, PDDE e Recursos Próprios
         if (attrs.get('valor_total') and 
             attrs.get('tipo_aplicacao') and
             ((attrs.get('recurso') == RecursoOpcoesEnum.PTRF.name and attrs.get('acao_associacao')) or
-             (attrs.get('recurso') == RecursoOpcoesEnum.PDDE.name and attrs.get('acao_pdde')))):
+             (attrs.get('recurso') == RecursoOpcoesEnum.PDDE.name and attrs.get('acao_pdde')) or
+             (attrs.get('recurso') == RecursoOpcoesEnum.RECURSO_PROPRIO.name))):
             
             resumo_service = ResumoPrioridadesService(attrs.get('paa'))
             
             # Determina o UUID da ação baseado no tipo de recurso
+            acao_uuid = None
             if attrs.get('recurso') == RecursoOpcoesEnum.PTRF.name:
                 acao_uuid = str(attrs.get('acao_associacao').uuid)
-            else:  # PDDE
+            elif attrs.get('recurso') == RecursoOpcoesEnum.PDDE.name:
                 acao_uuid = str(attrs.get('acao_pdde').uuid)
+            # Para Recursos Próprios, acao_uuid permanece None
+            
+            # Se estamos atualizando uma prioridade existente, passa o UUID e valor atual da prioridade
+            prioridade_uuid = None
+            valor_atual_prioridade = None
+            if self.instance and hasattr(self.instance, 'uuid'):
+                prioridade_uuid = str(self.instance.uuid)
+                valor_atual_prioridade = self.instance.valor_total
             
             resumo_service.validar_valor_prioridade(
                 attrs.get('valor_total'),
                 acao_uuid,
                 attrs.get('tipo_aplicacao'),
-                attrs.get('recurso')
+                attrs.get('recurso'),
+                prioridade_uuid,
+                valor_atual_prioridade
             )
         
         return super().validate(attrs)
