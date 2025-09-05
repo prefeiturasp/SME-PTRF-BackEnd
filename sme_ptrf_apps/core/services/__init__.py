@@ -10,6 +10,7 @@ from .conciliacao_services import (
     desconciliar_transacao,
     salva_conciliacao_bancaria,
     permite_editar_campos_extrato,
+    permite_editar_campos_extrato_se_pc_devolvida_ou_nao_apresentada,
     deve_aplicar_nova_regra_data_extrato
 )
 from .exporta_associacao import gerar_planilha
