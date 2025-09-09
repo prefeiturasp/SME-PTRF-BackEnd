@@ -2439,6 +2439,26 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             notificar_pendencia_geracao_ata_apresentacao(prestacao_contas)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='uuid', description='UUID da Prestação de Conta', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.PATH),
+        ],
+        responses={204: OpenApiResponse()},
+        request=None
+    )
+    @action(detail=True, methods=['post'], url_path='notificar/pendencia_geracao_ata_retificacao',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    def notificar_pendencia_geracao_ata_retificacao(self, request, uuid):
+        from sme_ptrf_apps.core.services.notificacao_services\
+            .notificacao_pendencia_geracao_ata import notificar_pendencia_geracao_ata_retificacao
+        prestacao_contas = self.get_object()
+
+        if not prestacao_contas.ata_retificacao_gerada():
+            notificar_pendencia_geracao_ata_retificacao(prestacao_contas)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)    
 
     @extend_schema(
         parameters=[
