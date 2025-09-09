@@ -471,6 +471,15 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
+        if not prestacao_conta.ata_retificacao_gerada():
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'pendencias',
+                'operacao': 'receber',
+                'mensagem': 'É necessário gerar ata de retificação para realizar o recebimento.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
         if flag_is_active(request, "periodos-processo-sei"):
             trata_processo_sei_ao_receber_pc_v2(prestacao_conta=prestacao_conta,
                                                 processo_sei=processo_sei, acao_processo_sei=acao_processo_sei)

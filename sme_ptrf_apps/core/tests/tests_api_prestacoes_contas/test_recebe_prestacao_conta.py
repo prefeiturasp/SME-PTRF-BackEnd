@@ -22,6 +22,7 @@ def prestacao_conta_nao_recebida(periodo, associacao):
         status=PrestacaoConta.STATUS_NAO_RECEBIDA
     )
 
+
 @pytest.fixture
 def ata(prestacao_conta_nao_recebida):
     return baker.make(
@@ -44,7 +45,19 @@ def ata(prestacao_conta_nao_recebida):
         status_geracao_pdf=Ata.STATUS_CONCLUIDO
     )
 
-def test_api_recebe_prestacao_conta(jwt_authenticated_client_a, prestacao_conta_nao_recebida, ata):
+
+@pytest.fixture
+def ata_retificacao(ata_factory, prestacao_conta_nao_recebida):
+    return ata_factory.create(
+        prestacao_conta=prestacao_conta_nao_recebida,
+        tipo_ata='RETIFICACAO',
+        periodo=prestacao_conta_nao_recebida.periodo,
+        status_geracao_pdf=Ata.STATUS_CONCLUIDO
+    )
+
+
+def test_api_recebe_prestacao_conta(jwt_authenticated_client_a, prestacao_conta_nao_recebida, ata, ata_retificacao):
+
     payload = {
         'data_recebimento': '2020-10-01',
         'processo_sei': '1234.5678/9101112-1',
@@ -62,7 +75,8 @@ def test_api_recebe_prestacao_conta(jwt_authenticated_client_a, prestacao_conta_
     assert prestacao_atualizada.data_recebimento == date(2020, 10, 1), 'Data de recebimento não atualizada.'
 
 
-def test_api_recebe_prestacao_conta_exige_data_recebimento(jwt_authenticated_client_a, prestacao_conta_nao_recebida, ata):
+def test_api_recebe_prestacao_conta_exige_data_recebimento(jwt_authenticated_client_a, prestacao_conta_nao_recebida, ata, ata_retificacao):
+
     url = f'/api/prestacoes-contas/{prestacao_conta_nao_recebida.uuid}/receber/'
 
     response = jwt_authenticated_client_a.patch(url, content_type='application/json')
@@ -124,6 +138,7 @@ def test_api_recebe_prestacao_conta_nao_pode_aceitar_status_diferente_de_nao_rec
     prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_em_analise.uuid)
     assert prestacao_atualizada.status == PrestacaoConta.STATUS_EM_ANALISE, 'Status não deveria ter sido alterado.'
 
+
 def test_api_recebe_prestacao_conta_exige_processo_sei(jwt_authenticated_client_a, prestacao_conta_nao_recebida):
     payload = {
         'data_recebimento': '2020-10-01',
@@ -149,11 +164,13 @@ def test_api_recebe_prestacao_conta_exige_processo_sei(jwt_authenticated_client_
     prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_nao_recebida.uuid)
     assert prestacao_atualizada.status == PrestacaoConta.STATUS_NAO_RECEBIDA, 'Status não deveria ter sido alterado.'
 
-def test_api_recebe_prestacao_conta_e_edita_processo_sei(jwt_authenticated_client_a, prestacao_conta_nao_recebida, ata, processo_associacao_factory):
+
+def test_api_recebe_prestacao_conta_e_edita_processo_sei(jwt_authenticated_client_a, prestacao_conta_nao_recebida, ata, ata_retificacao, processo_associacao_factory):
     ano = prestacao_conta_nao_recebida.periodo.referencia[0:4]
     associacao = prestacao_conta_nao_recebida.associacao
     numero_processo = '1111.1111/1111111-1'
-    processo_associacao = processo_associacao_factory.create(associacao=associacao, ano=ano, numero_processo=numero_processo)
+    processo_associacao = processo_associacao_factory.create(
+        associacao=associacao, ano=ano, numero_processo=numero_processo)
 
     payload = {
         'data_recebimento': '2020-10-01',
@@ -171,11 +188,13 @@ def test_api_recebe_prestacao_conta_e_edita_processo_sei(jwt_authenticated_clien
 
     assert processo_editado.numero_processo == '2222.2222/2222111-1'
 
-def test_api_recebe_prestacao_conta_e_inclui_novo_processo_sei(jwt_authenticated_client_a, prestacao_conta_nao_recebida, ata, processo_associacao_factory):
+
+def test_api_recebe_prestacao_conta_e_inclui_novo_processo_sei(jwt_authenticated_client_a, prestacao_conta_nao_recebida, ata, ata_retificacao, processo_associacao_factory):
     ano = prestacao_conta_nao_recebida.periodo.referencia[0:4]
     associacao = prestacao_conta_nao_recebida.associacao
     numero_processo = '1111.1111/1111111-1'
-    processo_associacao = processo_associacao_factory.create(associacao=associacao, ano=ano, numero_processo=numero_processo)
+    processo_associacao = processo_associacao_factory.create(
+        associacao=associacao, ano=ano, numero_processo=numero_processo)
 
     processos_antes_de_receber_pc = ProcessoAssociacao.objects.all()
     assert processos_antes_de_receber_pc.count() == 1
@@ -195,11 +214,13 @@ def test_api_recebe_prestacao_conta_e_inclui_novo_processo_sei(jwt_authenticated
     processos_depois_de_receber_pc = ProcessoAssociacao.objects.all()
     assert processos_depois_de_receber_pc.count() == 2
 
-def test_api_recebe_prestacao_conta_e_mantem_processo_sei(jwt_authenticated_client_a, prestacao_conta_nao_recebida, ata, processo_associacao_factory):
+
+def test_api_recebe_prestacao_conta_e_mantem_processo_sei(jwt_authenticated_client_a, prestacao_conta_nao_recebida, ata, ata_retificacao, processo_associacao_factory):
     ano = prestacao_conta_nao_recebida.periodo.referencia[0:4]
     associacao = prestacao_conta_nao_recebida.associacao
     numero_processo = '1111.1111/1111111-1'
-    processo_associacao = processo_associacao_factory.create(associacao=associacao, ano=ano, numero_processo=numero_processo)
+    processo_associacao = processo_associacao_factory.create(
+        associacao=associacao, ano=ano, numero_processo=numero_processo)
 
     processos_antes_de_receber_pc = ProcessoAssociacao.objects.all()
     assert processos_antes_de_receber_pc.count() == 1
@@ -241,6 +262,33 @@ def test_api_recebe_prestacao_conta_exige_ata_apresentacao_gerada(jwt_authentica
         'erro': 'pendencias',
         'operacao': 'receber',
         'mensagem': 'É necessário gerar ata de apresentação para realizar o recebimento.'
+    }
+
+    assert result == resultado_esperado
+    prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_nao_recebida.uuid)
+    assert prestacao_atualizada.status == PrestacaoConta.STATUS_NAO_RECEBIDA, 'Status não deveria ter sido alterado.'
+
+
+def test_api_recebe_prestacao_conta_exige_ata_retificacao_gerada(jwt_authenticated_client_a, ata, prestacao_conta_nao_recebida):
+    payload = {
+        'data_recebimento': '2020-10-01',
+        'processo_sei': '2222.2222/2222111-1',
+        'acao_processo_sei': None
+    }
+
+    url = f'/api/prestacoes-contas/{prestacao_conta_nao_recebida.uuid}/receber/'
+
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    result = json.loads(response.content)
+
+    resultado_esperado = {
+        'uuid': f'{prestacao_conta_nao_recebida.uuid}',
+        'erro': 'pendencias',
+        'operacao': 'receber',
+        'mensagem': 'É necessário gerar ata de retificação para realizar o recebimento.'
     }
 
     assert result == resultado_esperado
