@@ -10,6 +10,7 @@ from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.core.choices.filtro_informacoes_associacao import FiltroInformacoesAssociacao
 from sme_ptrf_apps.core.models import AcaoAssociacao
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 
 class ParametrizacoesAcoesAssociacaoViewSet(mixins.ListModelMixin, GenericViewSet):
@@ -46,3 +47,15 @@ class ParametrizacoesAcoesAssociacaoViewSet(mixins.ListModelMixin, GenericViewSe
                 qs = qs.filter(associacao__data_de_encerramento__isnull=False)
 
         return qs.order_by('associacao__nome', 'acao__nome')
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='filtro_informacoes', description='Filtrar por informações. Separado por vírgula',
+                             required=False, type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='nome', description='Nome da Associação', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: AcaoAssociacaoRetrieveSerializer(many=True)},
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
