@@ -471,15 +471,6 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        if not prestacao_conta.ata_retificacao_gerada():
-            response = {
-                'uuid': f'{uuid}',
-                'erro': 'pendencias',
-                'operacao': 'receber',
-                'mensagem': 'É necessário gerar ata de retificação para realizar o recebimento.'
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-
         if flag_is_active(request, "periodos-processo-sei"):
             trata_processo_sei_ao_receber_pc_v2(prestacao_conta=prestacao_conta,
                                                 processo_sei=processo_sei, acao_processo_sei=acao_processo_sei)
@@ -2063,6 +2054,16 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
+        if not prestacao_conta.ata_retificacao_gerada():
+            response = {
+                'uuid': f'{uuid}',
+                'erro': 'pendencias',
+                'status': prestacao_conta.status,
+                'operacao': 'receber-apos-acertos',
+                'mensagem': 'É necessário gerar ata de retificação para realizar o recebimento.'
+            }
+            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        
         prestacao_recebida = prestacao_conta.receber_apos_acertos(data_recebimento_apos_acertos=data_recebimento)
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_recebida, many=False).data,
@@ -2439,7 +2440,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             notificar_pendencia_geracao_ata_apresentacao(prestacao_contas)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
+
     @extend_schema(
         parameters=[
             OpenApiParameter(name='uuid', description='UUID da Prestação de Conta', required=True,
@@ -2458,7 +2459,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if not prestacao_contas.ata_retificacao_gerada():
             notificar_pendencia_geracao_ata_retificacao(prestacao_contas)
 
-        return Response(status=status.HTTP_204_NO_CONTENT)    
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
         parameters=[
