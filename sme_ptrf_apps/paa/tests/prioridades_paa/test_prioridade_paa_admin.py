@@ -20,7 +20,8 @@ def test_search_fields(prioridade_paa_admin):
 
 
 def test_list_filter(prioridade_paa_admin):
-    assert prioridade_paa_admin.list_filter == ('recurso', 'prioridade', 'tipo_aplicacao', 'programa_pdde', 'acao_pdde')
+    assert prioridade_paa_admin.list_filter == (
+        'recurso', 'prioridade', 'tipo_aplicacao', 'programa_pdde', 'acao_pdde', 'paa')
 
 
 def test_readonly_fields(prioridade_paa_admin):
