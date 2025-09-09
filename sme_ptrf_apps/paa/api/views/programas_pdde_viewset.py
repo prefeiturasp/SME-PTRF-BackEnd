@@ -97,6 +97,8 @@ class ProgramaPddeViewSet(WaffleFlagMixin, ModelViewSet):
         parameters=[
             OpenApiParameter(name='paa_uuid', description='UUID do PAA', required=True,
                              type=OpenApiTypes.UUID, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='page_size', description='Tamanho da página', required=False,
+                             type=OpenApiTypes.INT, location=OpenApiParameter.QUERY),
         ],
         responses={200: OpenApiTypes.OBJECT},
         description="Retornam os totais por programa PDDE relacionados a um PAA"
@@ -110,6 +112,12 @@ class ProgramaPddeViewSet(WaffleFlagMixin, ModelViewSet):
                 'mensagem': "PAA não foi informado."
             })
 
-        response = PaaService.somatorio_totais_por_programa_pdde(paa)
+        page_size = request.query_params.get('page_size', 1000)
+        try:
+            page_size = int(page_size)
+        except (ValueError, TypeError):
+            page_size = 1000
+
+        response = PaaService.somatorio_totais_por_programa_pdde(paa, page_size)
         serializer = ProgramasPddeSomatorioTotalSerializer(response)
         return Response(serializer.data, status=status.HTTP_200_OK)

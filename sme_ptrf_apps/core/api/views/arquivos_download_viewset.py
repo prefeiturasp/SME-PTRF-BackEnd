@@ -13,6 +13,8 @@ from django.http import HttpResponse
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Q
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiExample
+
 
 class ArquivosDownloadViewSet(mixins.ListModelMixin,
                               mixins.RetrieveModelMixin,
@@ -43,10 +45,35 @@ class ArquivosDownloadViewSet(mixins.ListModelMixin,
 
         return qs
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='ultima_atualizacao', description='Filtrar por datas.',
+                             required=False, type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='identificador', description='Filtrar por identificador/informações.',
+                             required=False, type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: ArquivoDownloadSerializer(many=True)},
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Respostas', value=choices_to_json(ArquivoDownload.STATUS_CHOICES))
+        ]
+    )
     @action(detail=False, methods=['get'], url_path='status')
     def get_status(self, request):
         return Response(choices_to_json(ArquivoDownload.STATUS_CHOICES))
 
+    @extend_schema(
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Requisição', value={'uuid': 'uuid-1234', 'lido': True}),
+            OpenApiExample('Respostas', value={'mensagem': 'Arquivo atualizado com sucesso'})
+        ]
+    )
     @action(detail=False, methods=['put'], url_path='marcar-lido')
     def marcar_como_lido_nao_lido(self, request):
         dado = self.request.data
@@ -80,6 +107,10 @@ class ArquivosDownloadViewSet(mixins.ListModelMixin,
 
         return Response(resultado, status=status_code)
 
+    @extend_schema(
+        responses={200: 'result'},
+        examples=[OpenApiExample('Resposta', value={'quantidade_nao_lidos': 0})],
+    )
     @action(detail=False, methods=['get'], url_path='quantidade-nao-lidos')
     def quantidade_de_nao_lidos(self, request):
         user = self.request.user
@@ -90,6 +121,16 @@ class ArquivosDownloadViewSet(mixins.ListModelMixin,
         }
         return Response(data)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='arquivo_download_uuid', description='UUID do Arquivo', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={
+            (200, 'application/octet-stream'): OpenApiTypes.BINARY,
+        },
+        description="Retorna um arquivo PDF - Ata."
+    )
     @action(detail=False, methods=['get'], url_path='download-arquivo')
     def download_arquivo(self, request):
         arquivo_download_uuid = request.query_params.get('arquivo_download_uuid')
@@ -136,6 +177,3 @@ class ArquivosDownloadViewSet(mixins.ListModelMixin,
                 'mensagem': 'Arquivo não encontrado'
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
-
-
-

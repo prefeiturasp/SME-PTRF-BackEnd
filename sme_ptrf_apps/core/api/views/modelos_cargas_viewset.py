@@ -9,6 +9,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from drf_spectacular.utils import extend_schema, OpenApiTypes
+
+
 from sme_ptrf_apps.core.api.serializers import ModeloCargaSerializer
 from sme_ptrf_apps.core.models import ModeloCarga
 
@@ -23,6 +26,12 @@ class ModelosCargasViewSet(ModelViewSet):
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
     filterset_fields = ('tipo_carga', )
 
+    @extend_schema(
+        responses={
+            (200, 'text/csv'): OpenApiTypes.BINARY,
+        },
+        description="Retorna um arquivo CSV."
+    )
     @action(detail=True, methods=['get'], url_path='download')
     def download(self, request, tipo_carga=None):
         logger.info("Download do modelo de arquivo de carga to tipo %s.", tipo_carga)
