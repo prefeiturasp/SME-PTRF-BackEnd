@@ -1,16 +1,15 @@
 import logging
 
 from datetime import datetime
+from django.http import Http404
 
 from waffle.mixins import WaffleFlagMixin
-
+from rest_framework.exceptions import NotFound
 from rest_framework.decorators import action
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
-
-from sme_ptrf_apps.paa.services.paa_service import PaaService
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import (
@@ -21,6 +20,7 @@ from sme_ptrf_apps.paa.api.serializers.paa_serializer import PaaSerializer
 from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
 from sme_ptrf_apps.paa.models import Paa
 from sme_ptrf_apps.core.models import Associacao
+from sme_ptrf_apps.paa.services.paa_service import PaaService
 from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
 from sme_ptrf_apps.paa.services.resumo_prioridades_service import ResumoPrioridadesService
 
@@ -66,7 +66,11 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             "username": request.user.username,
             "data": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
             "ano": datetime.now().year,
-            "rodape": f"Unidade Educacional: {tipo_unidade} {nome_unidade}. Documento gerado pelo usuário: {request.user.username}, via SIG - Escola, em: {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}"
+            "rodape": (
+                f"Unidade Educacional: {tipo_unidade} {nome_unidade}. "
+                f"Documento gerado pelo usuário: {request.user.username}, "
+                f"via SIG - Escola, em: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}"
+            )
         }
         return PaaService.gerar_arquivo_pdf_levantamento_prioridades_paa(dados)
 
@@ -116,4 +120,48 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             permission_classes=[PermissaoApiUe])
     def resumo_prioridades(self, request, uuid=None):
         result = ResumoPrioridadesService(self.get_object()).resumo_prioridades()
+        return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='paas-anteriores',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def paa_anteriores(self, request, uuid=None):
+        paa_atual = self.get_object()
+        paas_anteriores = self.queryset.filter(
+            periodo_paa__data_inicial__lt=paa_atual.periodo_paa.data_inicial,
+            associacao=paa_atual.associacao
+        ).order_by('-periodo_paa__data_inicial')
+
+        serializer = PaaSerializer(paas_anteriores, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='importar-prioridades/(?P<uuid_paa_anterior>[a-f0-9-]+)',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def importar_prioridades(self, request, uuid=None, uuid_paa_anterior=None):
+        """
+            Importar prioridades de PAA anterior.
+
+            Essa action pode ser usada para importar as prioridades de PAA anterior
+            para o PAA atual.
+
+            - uuid_paa_anterior: uuid do PAA anterior para importar as prioridades.
+
+            Retorna um dicionário com a mensagem de sucesso e a quantidade de
+            prioridades importadas.
+        """
+        try:
+            paa_atual = self.get_object()
+        except (Http404, NotFound, Paa.DoesNotExist):
+            return Response({"mensagem": "PAA atual não encontrado"}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            paa_anterior = Paa.objects.get(uuid=uuid_paa_anterior)
+        except (Http404, NotFound, Paa.DoesNotExist):
+            return Response({"mensagem": "PAA anterior não encontrado"}, status=status.HTTP_404_NOT_FOUND)
+
+        importados = PaaService.importar_prioridades_paa_anterior(paa_atual, paa_anterior)
+
+        result = {
+            'mensagem': 'Prioridades importadas com sucesso',
+            'importados': len(importados)
+        }
+
         return Response(result, status=status.HTTP_200_OK)

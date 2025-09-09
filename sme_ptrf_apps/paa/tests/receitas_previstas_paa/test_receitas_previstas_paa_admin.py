@@ -16,7 +16,7 @@ def test_raw_id_fields(receitas_previstas_paa_admin):
 
 
 def test_list_filter(receitas_previstas_paa_admin):
-    assert receitas_previstas_paa_admin.list_filter == ('acao_associacao__associacao',)
+    assert receitas_previstas_paa_admin.list_filter == ('acao_associacao__associacao', 'paa')
 
 
 def test_readonly_fields(receitas_previstas_paa_admin):
