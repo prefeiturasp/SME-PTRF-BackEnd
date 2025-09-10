@@ -163,6 +163,7 @@ class FuncUeRecebimentoDeNotificacoes(models.Model):
             ('recebe_notificacao_automatica_inativacao_conta', '[UE] Pode receber Notificação Encerramento de Conta Bancária'),
             ('recebe_notificacao_resultado_encerramento_conta', '[UE] Pode receber Notificação Resultado Encerramento de Conta Bancária'),
             ('recebe_notificacao_geracao_ata_apresentacao', '[UE] Pode receber Notificação Geração Ata de Apresentação'),
+            ('recebe_notificacao_geracao_ata_retificacao', '[UE] Pode receber Notificação Geração Ata de Retificação'),
             ('recebe_notificacao_conclusao_reprovada_pc_nao_apresentada', '[UE] Pode receber Notificação Prestação de Contas Reprovada Não Apresentação'),
         )
 

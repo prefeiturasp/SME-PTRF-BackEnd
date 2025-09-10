@@ -22,3 +22,4 @@ from .tipo_conta_factory import *
 from .arquivo_download_factory import *
 from .tipo_devolucao_ao_tesouro_factory import *
 from .flag_factory import *
+from .ata_factory import *

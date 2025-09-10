@@ -35,7 +35,7 @@ from sme_ptrf_apps.core.fixtures.factories import (
     SolicitacaoAcertoLancamentoFactory, ProcessoAssociacaoFactory,
     PrestacaoContaReprovadaNaoApresentacaoFactory, DemonstrativoFinanceiroFactory,
     ItemResumoPorAcaoFactory, ItemDespesaFactory, ItemCreditoFactory, ArquivoDownloadFactory,
-    TipoDevolucaoAoTesouroFactory, FlagFactory
+    TipoDevolucaoAoTesouroFactory, FlagFactory, AtaFactory, ParticipanteFactory
 )
 from sme_ptrf_apps.users.fixtures.factories import (
     UsuarioFactory, UnidadeEmSuporteFactory, GrupoAcessoFactory, VisaoFactory,
@@ -83,7 +83,7 @@ factories_to_register = [
     FonteRecursoPaaFactory, RecursoProprioPaaFactory, PeriodoPaaFactory, PaaFactory,
     ParametroPaaFactory, BemProduzidoFactory, ReceitaPrevistaPddeFactory, BemProduzidoDespesaFactory,
     BemProduzidoRateioFactory, BemProduzidoItemFactory, EspecificacaoMaterialServicoFactory,
-    PrioridadePaaFactory
+    PrioridadePaaFactory, AtaFactory, ParticipanteFactory
 ]
 
 for factory in factories_to_register:

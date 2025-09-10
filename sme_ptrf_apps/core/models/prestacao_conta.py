@@ -334,8 +334,17 @@ class PrestacaoConta(ModeloBase):
             return True
         return False
 
+    def ata_retificacao_gerada(self):
+        ata = self.ata_retificacao_do_periodo()
+        if ata and ata.documento_gerado:
+            return True
+        return False
+
     def ata_do_periodo(self):
         return self.atas_da_prestacao.filter(tipo_ata='APRESENTACAO', previa=False, periodo=self.periodo).last()
+
+    def ata_retificacao_do_periodo(self):
+        return self.atas_da_prestacao.filter(tipo_ata='RETIFICACAO', previa=False, periodo=self.periodo).last()
 
     def ultima_ata(self):
         return self.atas_da_prestacao.filter(tipo_ata='APRESENTACAO', previa=False).last()
@@ -926,10 +935,10 @@ class PrestacaoConta(ModeloBase):
             qtd_por_status[cls.STATUS_NAO_APRESENTADA] = quantidade_pcs_nao_apresentadas
 
             periodo_completo = (
-                qtd_por_status[PrestacaoConta.STATUS_NAO_RECEBIDA] == 0
-                and qtd_por_status[PrestacaoConta.STATUS_RECEBIDA] == 0
-                and qtd_por_status[PrestacaoConta.STATUS_EM_ANALISE] == 0
-                and qtd_por_status[PrestacaoConta.STATUS_DEVOLVIDA] == 0
+                qtd_por_status[PrestacaoConta.STATUS_NAO_RECEBIDA] == 0 and
+                qtd_por_status[PrestacaoConta.STATUS_RECEBIDA] == 0 and
+                qtd_por_status[PrestacaoConta.STATUS_EM_ANALISE] == 0 and
+                qtd_por_status[PrestacaoConta.STATUS_DEVOLVIDA] == 0
             )
 
             if not numero_bruto_nao_apresentadas:
