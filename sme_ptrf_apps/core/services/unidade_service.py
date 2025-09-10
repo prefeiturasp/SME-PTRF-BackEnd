@@ -113,6 +113,7 @@ def consulta_unidade(codigo_eol):
                 unidade_retorno = resultado
                 result['codigo_eol'] = codigo_eol
                 result['nome'] = unidade_retorno.get('nome') or ''
+                result['nome_dre'] = unidade_retorno.get('nomeDRE') or ''
                 result['tipo_unidade'] = unidade_retorno.get('siglaTipoEscola').strip() if unidade_retorno["siglaTipoEscola"] is not None else ''
                 result['email'] = unidade_retorno.get('email') or ''
                 result['telefone'] = unidade_retorno.get('telefone') or ''
