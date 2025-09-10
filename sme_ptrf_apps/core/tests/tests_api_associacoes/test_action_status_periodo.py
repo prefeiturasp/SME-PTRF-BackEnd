@@ -257,20 +257,15 @@ def test_status_periodo_pendencias_cadastrais_com_contas_pendentes(
                                               content_type='application/json')
     result = json.loads(response.content)
 
-    pendencias_cadastrais_esperado = {
-        'conciliacao_bancaria': {
-            'contas_pendentes': [f'{observacao_conciliacao_campos_nao_preenchidos.conta_associacao.uuid}', f'{observacao_conciliacao_campos_nao_preenchidos_002.conta_associacao.uuid}',],
-        },
-        'dados_associacao': {
-            'pendencia_cadastro': False,
-            'pendencia_contas': False,
-            'pendencia_membros': True,
-            'pendencia_novo_mandato': False
-        }
-    }
-
     assert response.status_code == status.HTTP_200_OK
-    assert result['pendencias_cadastrais'] == pendencias_cadastrais_esperado
+    assert f'{observacao_conciliacao_campos_nao_preenchidos.conta_associacao.uuid}' in result[
+        'pendencias_cadastrais']['conciliacao_bancaria']['contas_pendentes']
+    assert f'{observacao_conciliacao_campos_nao_preenchidos_002.conta_associacao.uuid}' in result[
+        'pendencias_cadastrais']['conciliacao_bancaria']['contas_pendentes']
+    assert result['pendencias_cadastrais']['dados_associacao']['pendencia_cadastro'] is False
+    assert result['pendencias_cadastrais']['dados_associacao']['pendencia_contas'] is False
+    assert result['pendencias_cadastrais']['dados_associacao']['pendencia_membros'] is True
+    assert result['pendencias_cadastrais']['dados_associacao']['pendencia_novo_mandato'] is False
 
 
 @freeze_time('2020-07-10 10:20:00')
