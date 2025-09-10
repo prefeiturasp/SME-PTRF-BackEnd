@@ -23,7 +23,7 @@ def prestacao_conta_retornada_apos_acerto(periodo, associacao):
 
 
 @pytest.fixture
-def prestacao_conta_devolvidae(periodo, associacao):
+def prestacao_conta_devolvida(periodo, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo,
@@ -85,12 +85,12 @@ def test_api_recebe_prestacao_conta_apos_acetos_exige_data_recebimento(jwt_authe
 
 def test_api_recebe_prestacao_conta_apos_acetos_nao_pode_aceitar_status_diferente_de_retornada_apos_acertos(
         jwt_authenticated_client_a,
-        prestacao_conta_devolvidae):
+        prestacao_conta_devolvida):
     payload = {
         'data_recebimento_apos_acertos': '2020-10-01',
     }
 
-    url = f'/api/prestacoes-contas/{prestacao_conta_devolvidae.uuid}/receber-apos-acertos/'
+    url = f'/api/prestacoes-contas/{prestacao_conta_devolvida.uuid}/receber-apos-acertos/'
 
     response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
 
@@ -99,7 +99,7 @@ def test_api_recebe_prestacao_conta_apos_acetos_nao_pode_aceitar_status_diferent
     result = json.loads(response.content)
 
     result_esperado = {
-        'uuid': f'{prestacao_conta_devolvidae.uuid}',
+        'uuid': f'{prestacao_conta_devolvida.uuid}',
         'erro': 'status_nao_permite_operacao',
         'status': PrestacaoConta.STATUS_DEVOLVIDA,
         'operacao': 'receber-apos-acertos',
@@ -108,11 +108,11 @@ def test_api_recebe_prestacao_conta_apos_acetos_nao_pode_aceitar_status_diferent
 
     assert result == result_esperado, "Deveria ter retornado erro status_nao_permite_operacao."
 
-    prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_devolvidae.uuid)
+    prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_devolvida.uuid)
     assert prestacao_atualizada.status == PrestacaoConta.STATUS_DEVOLVIDA, 'Status não deveria ter sido alterado.'
 
 
-def test_api_prestacao_conta_apos_acetos_exige_ata_retificacao_gerada(jwt_authenticated_client_a, prestacao_conta_retornada_apos_acerto):
+def test_api_prestacao_conta_apos_acertos_exige_ata_retificacao_gerada(jwt_authenticated_client_a, prestacao_conta_retornada_apos_acerto):
     payload = {
         'data_recebimento_apos_acertos': '2020-10-01',
     }
@@ -135,6 +135,6 @@ def test_api_prestacao_conta_apos_acetos_exige_ata_retificacao_gerada(jwt_authen
 
     assert result == resultado_esperado
 
-    prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_devolvidae.uuid)
+    prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_retornada_apos_acerto.uuid)
 
-    assert prestacao_atualizada.status == PrestacaoConta.STATUS_DEVOLVIDA, 'Status não deveria ter sido alterado.'
+    assert prestacao_atualizada.status == PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA, 'Status não deveria ter sido alterado.'
