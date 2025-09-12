@@ -116,13 +116,26 @@ class ExportacoesDadosCreditosService:
         write.writerow(rodape)
         rodape.clear()
 
+        # Linha 2: Arquivo disponibilizado em (próximo ao momento de conclusão)
+        data_hora_disponibilizado = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
+        rodape.append(f"Arquivo disponibilizado em {data_hora_disponibilizado}")
+        write.writerow(rodape)
+        rodape.clear()
+
         rodape.append(get_informacoes_download(self.data_inicio, self.data_final))
         write.writerow(rodape)
         rodape.clear()
 
     def texto_info_arquivo_gerado(self):
-        data_hora_geracao = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
+        # Usa o horário de início do processamento (criado_em do registro na central de download)
+        inicio = None
+        if self.objeto_arquivo_download and getattr(self.objeto_arquivo_download, 'criado_em', None):
+            inicio = self.objeto_arquivo_download.criado_em
+        else:
+            inicio = datetime.datetime.now()
+
+        data_hora_inicio = inicio.strftime("%d/%m/%Y às %H:%M:%S")
+        texto = f"Arquivo solicitado via {self.ambiente} pelo usuário {self.user} em {data_hora_inicio}"
 
         return texto
 
