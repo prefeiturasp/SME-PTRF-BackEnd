@@ -180,22 +180,36 @@ class ExportacoesDadosUnidadesService:
             logger.error("Erro arquivo download... %s", str(e))
 
     def texto_rodape(self):
-        data_hora_geracao = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
+        # Usa o horário de início do processamento (criado_em do registro na central de download)
+        inicio = None
+        if self.objeto_arquivo_download and getattr(self.objeto_arquivo_download, 'criado_em', None):
+            inicio = self.objeto_arquivo_download.criado_em
+        else:
+            inicio = datetime.datetime.now()
+
+        data_hora_inicio = inicio.strftime("%d/%m/%Y às %H:%M:%S")
+        texto = f"Arquivo solicitado via {self.ambiente} pelo usuário {self.user} em {data_hora_inicio}"
 
         return texto
 
     def cria_rodape(self, write):
         rodape = []
-        texto = self.texto_rodape()
-
+        # Linha em branco antes do rodapé (mantida conforme padrão anterior)
+        write.writerow(rodape)
+        rodape.clear()
+        # Linha 1: Arquivo solicitado (horário do início do processamento)
+        texto_solicitado = self.texto_rodape()
+        rodape.append(texto_solicitado)
         write.writerow(rodape)
         rodape.clear()
 
-        rodape.append(texto)
+        # Linha 2: Arquivo disponibilizado em (próximo ao momento de conclusão)
+        data_hora_disponibilizado = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
+        rodape.append(f"Arquivo disponibilizado em {data_hora_disponibilizado}")
         write.writerow(rodape)
         rodape.clear()
 
+        # Linha 3: Mantém linha de filtro aplicado
         rodape.append(self.texto_filtro_aplicado)
         write.writerow(rodape)
         rodape.clear()
