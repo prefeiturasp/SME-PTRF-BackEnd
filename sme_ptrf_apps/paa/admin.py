@@ -40,6 +40,10 @@ class ParametroPaaAdmin(admin.ModelAdmin):
             'fields':
                 ('mes_elaboracao_paa',)
         }),
+        ('Texto PAA (UE)', {
+            'fields':
+                ('texto_pagina_paa_ue', 'introducao_do_paa_ue_1', 'introducao_do_paa_ue_2', 'conclusao_do_paa_ue_1', 'conclusao_do_paa_ue_2')
+        }),
     )
 
 
