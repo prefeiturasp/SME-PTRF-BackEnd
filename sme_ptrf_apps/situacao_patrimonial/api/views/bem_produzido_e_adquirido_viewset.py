@@ -46,6 +46,7 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
         acao_uuid = request.query_params.get('acao_associacao_uuid')
         conta_uuid = request.query_params.get('conta_associacao_uuid')
         periodos_uuid = request.query_params.get('periodos_uuid')
+        visao_dre = request.query_params.get('visao_dre', 'false').lower() == 'true'
 
         if periodos_uuid:
             try:
@@ -57,6 +58,11 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
         data_fim = request.query_params.get('data_fim')
 
         bens_produzidos = BemProduzidoItem.objects.filter(bem_produzido__associacao__uuid=associacao_uuid)
+
+        if visao_dre:
+            from sme_ptrf_apps.situacao_patrimonial.models.bem_produzido import BemProduzido
+            bens_produzidos = bens_produzidos.filter(bem_produzido__status=BemProduzido.STATUS_COMPLETO)
+        
         bens_produzidos = self.filtrar_bens_produzidos(
             bens_produzidos, especificacao_bem, fornecedor, acao_uuid, conta_uuid, periodos_uuid, data_inicio, data_fim
         )
