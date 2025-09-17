@@ -182,13 +182,13 @@ class CreditosEscolaElementos {
 
   //----------------------- Grid Repasse -------------------------\\
   selecionarValorCapital = () => {
-    return cy.contains("11.500");
+    return cy.contains("8.000,00");
   };
   selecionarValorCusteio = () => {
-    return cy.contains("8.600");
+    return cy.contains("8.500,00");
   };
   selecionarValorLivreAplicacao = () => {
-    return cy.contains("8.500");
+    return cy.contains("57.478,00");
   };
 
   //----------------------- Mensagens Campos Obrigatórios -------------------------\\
