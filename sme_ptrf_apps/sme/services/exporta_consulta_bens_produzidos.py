@@ -1244,13 +1244,13 @@ class ExportacaoConsultaBensProduzidosService:
     def texto_rodape(self):
         """Gera texto do rodapé"""
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.identificacao_usuario} em {data_hora_geracao}"
+        texto = f"Arquivo solicitado via {self.ambiente} pelo usuário {self.identificacao_usuario} em {data_hora_geracao}"
         return texto
 
     def texto_info_arquivo_gerado(self):
         """Gera texto de informação do arquivo"""
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.identificacao_usuario} em {data_hora_geracao}"
+        texto = f"Arquivo solicitado via {self.ambiente} pelo usuário {self.identificacao_usuario} em {data_hora_geracao}"
         return texto
 
 
