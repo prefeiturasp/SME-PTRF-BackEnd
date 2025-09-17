@@ -5,6 +5,8 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiExample
+
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from ...services.saldo_bancario_service import saldo_por_tipo_de_unidade, saldo_por_dre, saldo_por_ue_dre
@@ -22,6 +24,24 @@ class SaldosBancariosSMEViewSet(GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
     queryset = ObservacaoConciliacao.objects.all()
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conta', description='UUID do Tipo de Conta', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value=[
+                {
+                    "tipo_de_unidade": "IFSP",
+                    "qtde_unidades_informadas": 0,
+                    "saldo_bancario_informado": 0,
+                    "total_unidades": 0
+                }]),
+        ]
+    )
     @action(detail=False, methods=['get'], url_path='saldo-por-tipo-unidade',
             permission_classes=[IsAuthenticated, PermissaoAPIApenasSmeComLeituraOuGravacao])
     def saldo_por_tipo_de_unidade(self, request):
@@ -70,6 +90,25 @@ class SaldosBancariosSMEViewSet(GenericViewSet):
 
         return Response(saldos, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conta', description='UUID do Tipo de Conta', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value=[
+                {
+                    "nome_dre": "BUTANTA",
+                    "qtde_dre_informadas": 0,
+                    "saldo_bancario_informado": 0,
+                    "total_unidades": 0
+                }
+            ]),
+        ]
+    )
     @action(detail=False, methods=['get'], url_path='saldo-por-dre',
             permission_classes=[IsAuthenticated, PermissaoAPIApenasSmeComLeituraOuGravacao])
     def saldo_por_dre(self, request):
@@ -118,6 +157,28 @@ class SaldosBancariosSMEViewSet(GenericViewSet):
 
         return Response(saldos, status=status.HTTP_200_OK)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='periodo', description='UUID do Período', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='conta', description='UUID do Tipo de Conta', required=True,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value=[{
+                "sigla_dre": "B",
+                "uuid_dre": "1911663a-b3d6-4cb7-9dec-2b0458253894",
+                "nome_dre": "BUTANTA",
+                "associacoes": [
+                    {
+                        "associacao": "IFSP",
+                        "saldo_total": 0
+                    }
+                ]
+            }]),
+        ]
+    )
     @action(detail=False, methods=['get'], url_path='saldo-por-ue-dre',
             permission_classes=[IsAuthenticated, PermissaoAPIApenasSmeComLeituraOuGravacao])
     def saldo_por_ue_dre(self, request):
@@ -165,4 +226,3 @@ class SaldosBancariosSMEViewSet(GenericViewSet):
         saldos = saldo_por_ue_dre(self.queryset, periodo=periodo, conta=conta_uuid)
 
         return Response(saldos, status=status.HTTP_200_OK)
-

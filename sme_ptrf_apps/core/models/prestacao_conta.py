@@ -334,8 +334,17 @@ class PrestacaoConta(ModeloBase):
             return True
         return False
 
+    def ata_retificacao_gerada(self):
+        ata = self.ata_retificacao_do_periodo()
+        if ata and ata.documento_gerado:
+            return True
+        return False
+
     def ata_do_periodo(self):
         return self.atas_da_prestacao.filter(tipo_ata='APRESENTACAO', previa=False, periodo=self.periodo).last()
+
+    def ata_retificacao_do_periodo(self):
+        return self.atas_da_prestacao.filter(tipo_ata='RETIFICACAO', previa=False, periodo=self.periodo).last()
 
     def ultima_ata(self):
         return self.atas_da_prestacao.filter(tipo_ata='APRESENTACAO', previa=False).last()
@@ -677,7 +686,7 @@ class PrestacaoConta(ModeloBase):
     def pode_devolver(self):
         if self.analise_atual:
             requer_alteracao_em_lancamento = self.analise_atual.verifica_se_requer_alteracao_em_lancamentos(False)
-            requer_alteracao_em_extrato = self.analise_atual.requer_acertos_em_extrato
+            requer_alteracao_em_extrato = self.analise_atual.acertos_em_extrato_requer_gerar_documentos
 
             if not requer_alteracao_em_lancamento and not requer_alteracao_em_extrato:
                 return True
@@ -926,10 +935,10 @@ class PrestacaoConta(ModeloBase):
             qtd_por_status[cls.STATUS_NAO_APRESENTADA] = quantidade_pcs_nao_apresentadas
 
             periodo_completo = (
-                qtd_por_status[PrestacaoConta.STATUS_NAO_RECEBIDA] == 0
-                and qtd_por_status[PrestacaoConta.STATUS_RECEBIDA] == 0
-                and qtd_por_status[PrestacaoConta.STATUS_EM_ANALISE] == 0
-                and qtd_por_status[PrestacaoConta.STATUS_DEVOLVIDA] == 0
+                qtd_por_status[PrestacaoConta.STATUS_NAO_RECEBIDA] == 0 and
+                qtd_por_status[PrestacaoConta.STATUS_RECEBIDA] == 0 and
+                qtd_por_status[PrestacaoConta.STATUS_EM_ANALISE] == 0 and
+                qtd_por_status[PrestacaoConta.STATUS_DEVOLVIDA] == 0
             )
 
             if not numero_bruto_nao_apresentadas:

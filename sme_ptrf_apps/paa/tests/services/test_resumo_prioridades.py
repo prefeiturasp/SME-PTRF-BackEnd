@@ -1,11 +1,12 @@
 import uuid
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from decimal import Decimal
+from rest_framework import serializers
 
 from sme_ptrf_apps.paa.services.resumo_prioridades_service import ResumoPrioridadesService
-from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum
+from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
 
 
 @pytest.mark.django_db
@@ -155,3 +156,344 @@ def test_resumo_prioridades(mock_recursos, mock_pdde, mock_ptrf, resumo_recursos
     assert {"key": "RECURSO_PROPRIO"} in result
     assert len(result) == 3  # PTRF, PDDE e RECURSO_PROPRIO
     assert result[0]["key"] == "PTRF"
+
+
+@pytest.mark.django_db
+@patch.object(ResumoPrioridadesService, "resumo_prioridades")
+def test_validar_valor_prioridade_sucesso_custeio(mock_resumo, resumo_recursos_paa):
+    """Validação bem-sucedida para tipo CUSTEIO"""
+    mock_resumo.return_value = [
+        {
+            'key': RecursoOpcoesEnum.PTRF.name,
+            'children': [
+                {
+                    'key': 'acao-uuid-123',
+                    'children': [
+                        {
+                            'recurso': 'Receita',
+                            'custeio': Decimal('1000.00'),
+                            'capital': Decimal('500.00'),
+                            'livre_aplicacao': Decimal('200.00')
+                        },
+                        {
+                            'recurso': 'Despesas previstas',
+                            'custeio': Decimal('100.00'),
+                            'capital': Decimal('50.00'),
+                            'livre_aplicacao': Decimal('0.00')
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+    
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+    
+    try:
+        service.validar_valor_prioridade(
+            valor_total=Decimal('800.00'),
+            acao_uuid='acao-uuid-123',
+            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+            recurso=RecursoOpcoesEnum.PTRF.name
+        )
+        assert True
+    except Exception as e:
+        pytest.fail(f"Validação deveria ter passado, mas falhou com: {str(e)}")
+
+
+@pytest.mark.django_db
+@patch.object(ResumoPrioridadesService, "resumo_prioridades")
+def test_validar_valor_prioridade_sucesso_capital(mock_resumo, resumo_recursos_paa):
+    """Validação bem-sucedida para tipo CAPITAL"""
+    mock_resumo.return_value = [
+        {
+            'key': RecursoOpcoesEnum.PDDE.name,
+            'children': [
+                {
+                    'key': 'acao-pdde-uuid-456',
+                    'children': [
+                        {
+                            'recurso': 'Receita',
+                            'custeio': Decimal('300.00'),
+                            'capital': Decimal('800.00'),
+                            'livre_aplicacao': Decimal('100.00')
+                        },
+                        {
+                            'recurso': 'Despesas previstas',
+                            'custeio': Decimal('50.00'),
+                            'capital': Decimal('100.00'),
+                            'livre_aplicacao': Decimal('0.00')
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+    
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+    
+    try:
+        service.validar_valor_prioridade(
+            valor_total=Decimal('700.00'),
+            acao_uuid='acao-pdde-uuid-456',
+            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name,
+            recurso=RecursoOpcoesEnum.PDDE.name
+        )
+        assert True
+    except Exception as e:
+        pytest.fail(f"Validação deveria ter passado, mas falhou com: {str(e)}")
+
+
+@pytest.mark.django_db
+@patch.object(ResumoPrioridadesService, "resumo_prioridades")
+def test_validar_valor_prioridade_excede_valor_disponivel(mock_resumo, resumo_recursos_paa):
+    """Validação falha quando valor excede o disponível"""
+    mock_resumo.return_value = [
+        {
+            'key': RecursoOpcoesEnum.PTRF.name,
+            'children': [
+                {
+                    'key': 'acao-uuid-789',
+                    'children': [
+                        {
+                            'recurso': 'Receita',
+                            'custeio': Decimal('500.00'),
+                            'capital': Decimal('300.00'),
+                            'livre_aplicacao': Decimal('100.00')
+                        },
+                        {
+                            'recurso': 'Despesas previstas',
+                            'custeio': Decimal('200.00'),
+                            'capital': Decimal('100.00'),
+                            'livre_aplicacao': Decimal('0.00')
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+    
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+    
+    with pytest.raises(serializers.ValidationError) as exc_info:
+        service.validar_valor_prioridade(
+            valor_total=Decimal('500.00'),
+            acao_uuid='acao-uuid-789',
+            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+            recurso=RecursoOpcoesEnum.PTRF.name
+        )
+    
+    assert 'O valor indicado para a prioridade excede o valor disponível de receita prevista.' in str(exc_info.value)
+
+
+@pytest.mark.django_db
+@patch.object(ResumoPrioridadesService, "resumo_prioridades")
+def test_validar_valor_prioridade_acao_nao_encontrada(mock_resumo, resumo_recursos_paa):
+    """Validação falha quando ação não é encontrada"""
+    mock_resumo.return_value = [
+        {
+            'key': RecursoOpcoesEnum.PTRF.name,
+            'children': [
+                {
+                    'key': 'outra-acao-uuid',
+                    'children': [
+                        {
+                            'recurso': 'Receita',
+                            'custeio': Decimal('1000.00'),
+                            'capital': Decimal('500.00'),
+                            'livre_aplicacao': Decimal('200.00')
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+    
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+    
+    with pytest.raises(serializers.ValidationError) as exc_info:
+        service.validar_valor_prioridade(
+            valor_total=Decimal('100.00'),
+            acao_uuid='acao-inexistente-uuid',
+            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+            recurso=RecursoOpcoesEnum.PTRF.name
+        )
+    
+    assert 'Ação não encontrada no resumo de prioridades.' in str(exc_info.value)
+
+
+@pytest.mark.django_db
+@patch.object(ResumoPrioridadesService, "resumo_prioridades")
+def test_validar_valor_prioridade_recursos_proprios_sucesso(mock_resumo, resumo_recursos_paa):
+    """Validação bem-sucedida para Recursos Próprios"""
+    mock_resumo.return_value = [
+        {
+            'key': RecursoOpcoesEnum.RECURSO_PROPRIO.name,
+            'children': [
+                {
+                    'key': 'item_recursos',
+                    'children': [
+                        {
+                            'recurso': 'Receita',
+                            'custeio': Decimal('0.00'),
+                            'capital': Decimal('0.00'),
+                            'livre_aplicacao': Decimal('1000.00')
+                        },
+                        {
+                            'recurso': 'Despesas previstas',
+                            'custeio': Decimal('0.00'),
+                            'capital': Decimal('0.00'),
+                            'livre_aplicacao': Decimal('200.00')
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+    
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+    
+    try:
+        service.validar_valor_prioridade(
+            valor_total=Decimal('500.00'),
+            acao_uuid=None,
+            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+            recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name
+        )
+        assert True
+    except Exception as e:
+        pytest.fail(f"Validação deveria ter passado, mas falhou com: {str(e)}")
+
+
+@pytest.mark.django_db
+@patch.object(ResumoPrioridadesService, "resumo_prioridades")
+def test_validar_valor_prioridade_atualizacao_reducao_permitida(mock_resumo, resumo_recursos_paa):
+    """Validação permite redução mesmo com saldo zerado"""
+    mock_resumo.return_value = [
+        {
+            'key': RecursoOpcoesEnum.PTRF.name,
+            'children': [
+                {
+                    'key': 'acao-uuid-123',
+                    'children': [
+                        {
+                            'recurso': 'Receita',
+                            'custeio': Decimal('1000.00'),
+                            'capital': Decimal('500.00'),
+                            'livre_aplicacao': Decimal('200.00')
+                        },
+                        {
+                            'recurso': 'Despesas previstas',
+                            'custeio': Decimal('1000.00'),
+                            'capital': Decimal('500.00'),
+                            'livre_aplicacao': Decimal('200.00')
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+    
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+    
+    try:
+        service.validar_valor_prioridade(
+            valor_total=Decimal('500.00'),
+            acao_uuid='acao-uuid-123',
+            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+            recurso=RecursoOpcoesEnum.PTRF.name,
+            prioridade_uuid='prioridade-uuid-123',
+            valor_atual_prioridade=Decimal('800.00')
+        )
+        assert True
+    except Exception as e:
+        pytest.fail(f"Redução deveria ter sido permitida, mas falhou com: {str(e)}")
+
+
+@pytest.mark.django_db
+@patch.object(ResumoPrioridadesService, "resumo_prioridades")
+def test_validar_valor_prioridade_atualizacao_aumento_bloqueado_saldo_zerado(mock_resumo, resumo_recursos_paa):
+    """Validação bloqueia aumento quando saldo está zerado"""
+    mock_resumo.return_value = [
+        {
+            'key': RecursoOpcoesEnum.PTRF.name,
+            'children': [
+                {
+                    'key': 'acao-uuid-123',
+                    'children': [
+                        {
+                            'recurso': 'Receita',
+                            'custeio': Decimal('1000.00'),
+                            'capital': Decimal('500.00'),
+                            'livre_aplicacao': Decimal('200.00')
+                        },
+                        {
+                            'recurso': 'Despesas previstas',
+                            'custeio': Decimal('1000.00'),
+                            'capital': Decimal('500.00'),
+                            'livre_aplicacao': Decimal('200.00')
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+    
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+    
+    with pytest.raises(serializers.ValidationError) as exc_info:
+        service.validar_valor_prioridade(
+            valor_total=Decimal('1200.00'),
+            acao_uuid='acao-uuid-123',
+            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+            recurso=RecursoOpcoesEnum.PTRF.name,
+            prioridade_uuid='prioridade-uuid-123',
+            valor_atual_prioridade=Decimal('800.00')
+        )
+    
+    assert 'O valor indicado para a prioridade excede o valor disponível de receita prevista.' in str(exc_info.value)
+
+
+@pytest.mark.django_db
+@patch.object(ResumoPrioridadesService, "resumo_prioridades")
+def test_validar_valor_prioridade_atualizacao_aumento_permitido_saldo_positivo(mock_resumo, resumo_recursos_paa):
+    """Validação permite aumento quando há saldo positivo"""
+    mock_resumo.return_value = [
+        {
+            'key': RecursoOpcoesEnum.PTRF.name,
+            'children': [
+                {
+                    'key': 'acao-uuid-123',
+                    'children': [
+                        {
+                            'recurso': 'Receita',
+                            'custeio': Decimal('1000.00'),
+                            'capital': Decimal('500.00'),
+                            'livre_aplicacao': Decimal('200.00')
+                        },
+                        {
+                            'recurso': 'Despesas previstas',
+                            'custeio': Decimal('500.00'),
+                            'capital': Decimal('200.00'),
+                            'livre_aplicacao': Decimal('100.00')
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+    
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+    
+    try:
+        service.validar_valor_prioridade(
+            valor_total=Decimal('800.00'),
+            acao_uuid='acao-uuid-123',
+            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+            recurso=RecursoOpcoesEnum.PTRF.name,
+            prioridade_uuid='prioridade-uuid-123',
+            valor_atual_prioridade=Decimal('400.00')
+        )
+        assert True
+    except Exception as e:
+        pytest.fail(f"Aumento deveria ter sido permitido, mas falhou com: {str(e)}")

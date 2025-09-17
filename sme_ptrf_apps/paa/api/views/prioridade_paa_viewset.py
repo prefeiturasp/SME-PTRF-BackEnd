@@ -4,7 +4,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework.exceptions import NotFound
 from django.http import Http404
-
+import logging
 import django_filters
 from waffle.mixins import WaffleFlagMixin
 
@@ -19,7 +19,7 @@ from sme_ptrf_apps.paa.api.serializers import (
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComGravacao
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 
-
+logger = logging.getLogger(__name__)
 class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [PermissaoApiUe]
@@ -107,10 +107,15 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
     def update(self, request, *args, **kwargs):
         """
         Cenário de exceção: quando tentar atualizar uma prioridade que já foi removida
+        Atualiza uma PrioridadePaa existente.
+        
+        Valida os dados através do serializer e aplica a validação de valor.
+        Retorna os dados da prioridade atualizada ou erros de validação.
         """
         try:
             self.get_object()
             return super().update(request, *args, **kwargs)
+            
         except (Http404, NotFound):
             return Response(
                 {"mensagem": "Prioridade não encontrada ou já foi removida da base de dados."},

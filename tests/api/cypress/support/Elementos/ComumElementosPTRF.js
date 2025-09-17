@@ -99,7 +99,10 @@ class ComumElementosPTRF {
     return cy.get('[data-tooltip-content="Resumo dos recursos"]');
   };
   menuCreditosDaEscola = () => {
-    return cy.get('[data-tooltip-content="Créditos da escola"]');
+    return cy
+      .get('[data-cy="Créditos da escola"]')
+      .find(".sidenav---navtext---1AE_f")
+      .contains("Créditos da escola");
   };
   menuGastosDaEscola = () => {
     return cy.get('[data-tooltip-content="Gastos da escola"]');

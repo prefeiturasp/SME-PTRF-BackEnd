@@ -12,7 +12,7 @@ def test_filtros(
         jwt_authenticated_client_a,
         conta_associacao_1,
         tipo_conta_1):
-    response = jwt_authenticated_client_a.get(f'/api/contas-associacoes/filtros/', content_type='application/json')
+    response = jwt_authenticated_client_a.get('/api/contas-associacoes/filtros/', content_type='application/json')
     result = response.json()
     assert response.status_code == status.HTTP_200_OK
     assert len(result["tipos_contas"]) == 2
