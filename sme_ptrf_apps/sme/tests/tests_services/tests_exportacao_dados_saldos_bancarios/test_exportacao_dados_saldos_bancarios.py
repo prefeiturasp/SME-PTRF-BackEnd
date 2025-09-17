@@ -65,7 +65,7 @@ def test_rodape(observacao_conciliacao_exportacao_csv, ambiente):
     ).texto_info_arquivo_gerado()
 
     data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-    resultado_esperado = f"Arquivo gerado via {ambiente.prefixo} pelo usuário 12345 em {data_atual}"
+    resultado_esperado = f"Arquivo solicitado via {ambiente.prefixo} pelo usuário 12345 em {data_atual}"
 
     assert dados == resultado_esperado
 

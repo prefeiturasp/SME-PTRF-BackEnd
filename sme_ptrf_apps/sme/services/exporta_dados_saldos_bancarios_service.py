@@ -234,6 +234,6 @@ class ExportacaoDadosSaldosBancariosService:
 
     def texto_info_arquivo_gerado(self):
         data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
+        texto = f"Arquivo solicitado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
 
         return texto
