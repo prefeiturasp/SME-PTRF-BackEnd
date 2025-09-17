@@ -23,6 +23,7 @@ class FuncDreAssociacoesDaDre(models.Model):
             ('access_associacao_dre', '[DRE] Pode acessar Associações da DRE.'),
             ('access_dados_unidade_dre', '[DRE] Pode acessar dados de uma unidade.'),
             ('access_situacao_financeira_dre', '[DRE] Pode acessar a situação financeira de uma unidade.'),
+            ('access_situacao_patrimonial_dre', '[DRE] Pode acessar a situação patrimonial de uma unidade.'),
         )
 
 

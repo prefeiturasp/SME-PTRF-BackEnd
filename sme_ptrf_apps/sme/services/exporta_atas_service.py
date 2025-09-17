@@ -196,8 +196,15 @@ class ExportacoesAtasService:
             logger.error("Erro arquivo download...")
 
     def texto_info_arquivo_gerado(self):
-        data_hora_geracao = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-        texto = f"Arquivo gerado via {self.ambiente} pelo usuário {self.user} em {data_hora_geracao}"
+        # Usa o horário de início do processamento (criado_em do registro na central de download)
+        inicio = None
+        if self.objeto_arquivo_download and getattr(self.objeto_arquivo_download, 'criado_em', None):
+            inicio = self.objeto_arquivo_download.criado_em
+        else:
+            inicio = datetime.now()
+
+        data_hora_inicio = inicio.strftime("%d/%m/%Y às %H:%M:%S")
+        texto = f"Arquivo solicitado via {self.ambiente} pelo usuário {self.user} em {data_hora_inicio}"
 
         return texto
 
@@ -210,6 +217,11 @@ class ExportacoesAtasService:
         rodape.clear()
 
         rodape.append(texto_info_arquivo_gerado)
+        write.writerow(rodape)
+        rodape.clear()
+
+        data_hora_disponibilizado = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
+        rodape.append(f"Arquivo disponibilizado em {data_hora_disponibilizado}")
         write.writerow(rodape)
         rodape.clear()
 

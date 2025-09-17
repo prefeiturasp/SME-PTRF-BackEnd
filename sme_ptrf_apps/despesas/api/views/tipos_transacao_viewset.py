@@ -2,6 +2,9 @@ from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
+
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+
 from ..serializers.tipo_transacao_serializer import TipoTransacaoComUuidSerializer
 from ...models import TipoTransacao
 
@@ -25,6 +28,16 @@ class TiposTransacaoViewSet(mixins.ListModelMixin,
             qs = qs.filter(nome__unaccent__icontains=nome)
 
         return qs.order_by('nome')
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='nome', description='Filtrar por nome', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: TipoTransacaoComUuidSerializer(many=True)},
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
         from django.db.models.deletion import ProtectedError

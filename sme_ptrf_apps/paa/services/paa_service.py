@@ -5,10 +5,11 @@ from django.contrib.staticfiles.storage import staticfiles_storage
 from django.template.loader import get_template
 from django.http import HttpResponse
 from django.db.models import Sum
+from django.db import transaction
 
 from weasyprint import HTML, CSS
 
-from sme_ptrf_apps.paa.models import ParametroPaa, ProgramaPdde
+from sme_ptrf_apps.paa.models import ParametroPaa, ProgramaPdde, PrioridadePaa
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +45,9 @@ class PaaService:
         return response
 
     @classmethod
-    def somatorio_totais_por_programa_pdde(cls, paa_uuid):
-        # Obtem todos os programas
-        qs_programas = ProgramaPdde.objects.prefetch_related('acaopdde_set').all()
+    def somatorio_totais_por_programa_pdde(cls, paa_uuid, page_size=1000):
+        # Obtem todos os programas com paginação
+        qs_programas = ProgramaPdde.objects.prefetch_related('acaopdde_set').all()[:page_size]
         programas = []
         for qs_programa in qs_programas:
             # Objeto padrão por programa
@@ -116,3 +117,27 @@ class PaaService:
             "total": totais
         }
         return objeto
+
+    @classmethod
+    def importar_prioridades_paa_anterior(cls, paa_atual, paa_anterior) -> list:
+        prioridades_a_importar = paa_anterior.prioridadepaa_set.filter(prioridade=True)
+
+        with transaction.atomic():
+            novas_prioridades = [
+                PrioridadePaa(
+                    paa=paa_atual,  # replica nova prioridade para o PAA atual
+                    prioridade=prioridade.prioridade,
+                    recurso=prioridade.recurso,
+                    acao_associacao=prioridade.acao_associacao,
+                    programa_pdde=prioridade.programa_pdde,
+                    acao_pdde=prioridade.acao_pdde,
+                    tipo_aplicacao=prioridade.tipo_aplicacao,
+                    tipo_despesa_custeio=prioridade.tipo_despesa_custeio,
+                    especificacao_material=prioridade.especificacao_material,
+                    valor_total=None  # Redefine o valor para ser informado no front
+                )
+                for prioridade in prioridades_a_importar
+            ]
+
+            importados = PrioridadePaa.objects.bulk_create(novas_prioridades)
+            return importados

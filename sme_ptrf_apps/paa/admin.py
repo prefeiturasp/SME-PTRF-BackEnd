@@ -18,14 +18,11 @@ from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 class PeriodoPaaAdmin(admin.ModelAdmin):
 
     list_display = ('id', 'referencia', 'data_inicial', 'data_final')
-    search_fields = (
-        'referencia',
-    )
+    search_fields = ('referencia',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     list_filter = (
         ('data_inicial', DateRangeFilter),
         ('data_final', DateRangeFilter),
-
     )
 
 
@@ -42,6 +39,10 @@ class ParametroPaaAdmin(admin.ModelAdmin):
         ('Elaboração', {
             'fields':
                 ('mes_elaboracao_paa',)
+        }),
+        ('Texto PAA (UE)', {
+            'fields':
+                ('texto_pagina_paa_ue', 'introducao_do_paa_ue_1', 'introducao_do_paa_ue_2', 'conclusao_do_paa_ue_1', 'conclusao_do_paa_ue_2')
         }),
     )
 
@@ -79,7 +80,7 @@ class AcaoPddeAdmin(admin.ModelAdmin):
 class ReceitaPrevistaPaaAdmin(admin.ModelAdmin):
     list_display = ('acao_associacao', 'previsao_valor_custeio', 'previsao_valor_capital', 'previsao_valor_livre')
     search_fields = ('acao_associacao__acao__nome', 'acao_associacao__associacao__nome')
-    list_filter = ('acao_associacao__associacao',)
+    list_filter = ('acao_associacao__associacao', 'paa')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     raw_id_fields = ('acao_associacao', 'paa')
 
@@ -129,7 +130,7 @@ class PrioridadePaaAdmin(admin.ModelAdmin):
         'valor_total',
         'paa',
     )
-    list_filter = ('recurso', 'prioridade', 'tipo_aplicacao', 'programa_pdde', 'acao_pdde',)
+    list_filter = ('recurso', 'prioridade', 'tipo_aplicacao', 'programa_pdde', 'acao_pdde', 'paa')
     raw_id_fields = ('paa', 'acao_pdde', 'acao_associacao', 'programa_pdde', 'tipo_despesa_custeio',
                      'especificacao_material')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
