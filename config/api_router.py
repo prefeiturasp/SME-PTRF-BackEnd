@@ -276,6 +276,7 @@ router.register("bem-produzido-items", BemProduzidoItemViewSet, basename="bem-pr
 
 
 app_name = "api"
+
 urlpatterns = router.urls
 urlpatterns += [
     path("versao", versao),
