@@ -282,6 +282,7 @@ sme_ptrf_apps/media/
 
 .ipython/
 .env
+**/.env
 .envs/*
 !.envs/.local/
 /_material/
