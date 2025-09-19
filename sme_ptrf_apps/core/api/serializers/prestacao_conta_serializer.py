@@ -112,12 +112,17 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     devolucao_atual = serializers.SerializerMethodField('get_devolucao_atual')
     ata_aprensentacao_gerada = serializers.SerializerMethodField('get_ata_aprensentacao_gerada')
     ata_retificacao_gerada = serializers.SerializerMethodField('get_ata_retificacao_gerada')
+    tem_apenas_ajustes_externos = serializers.SerializerMethodField('get_tem_apenas_ajustes_externos')
 
     def get_ata_aprensentacao_gerada(self, obj):
         return obj.ata_apresentacao_gerada()
 
     def get_ata_retificacao_gerada(self, obj):
         return obj.ata_retificacao_gerada()
+
+    def get_tem_apenas_ajustes_externos(self, obj):
+        from sme_ptrf_apps.core.services.ajuste_services import tem_apenas_ajustes_externos
+        return tem_apenas_ajustes_externos(obj)
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
@@ -304,7 +309,8 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'devolucao_atual',
             'periodo_referencia',
             'ata_aprensentacao_gerada',
-            'ata_retificacao_gerada'
+            'ata_retificacao_gerada',
+            'tem_apenas_ajustes_externos'
         )
 
 

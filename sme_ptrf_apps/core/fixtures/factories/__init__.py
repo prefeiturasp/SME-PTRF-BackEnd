@@ -7,8 +7,12 @@ from .associacao_factory import *
 from .acao_associacao_factory import *
 from .acao_factory import *
 from .tipo_acerto_lancamento_factory import *
+from .tipo_acerto_documento_factory import *
+from .tipo_documento_prestacao_conta_factory import *
 from .analise_prestacao_conta_factory import *
 from .analise_lancamento_prestacao_conta_factory import *
+from .analise_documento_prestacao_conta_factory import *
+from .solicitacao_acerto_documento_factory import *
 from .observacao_conciliacao_factory import *
 from .arquivo_factory import *
 from .fechamento_periodo_factory import *
