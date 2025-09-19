@@ -62,7 +62,10 @@ class AssociacaoCreateSerializer(serializers.ModelSerializer):
         if "unidade__observacao" in validated_data:
             observacao = validated_data.pop('unidade__observacao')
 
+        if not unidade.get('nome_dre'):
+            raise serializers.ValidationError({"nome_dre": ["EOL informado não possui DRE."]})
 
+        
         associacao = Associacao.objects.create(**validated_data)
         unidade['observacao'] = observacao
         
