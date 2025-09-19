@@ -102,7 +102,43 @@ class UnidadeListSerializer(serializers.ModelSerializer):
 
 
 class UnidadeCreateSerializer(serializers.ModelSerializer):
+    nome_dre = serializers.CharField(required=False, allow_blank=True, allow_null=True, write_only=True)
+    
     class Meta:
         model = Unidade
         fields = ('codigo_eol', 'nome', 'email', 'telefone', 'numero',
-                  'tipo_logradouro', 'logradouro', 'bairro', 'cep', 'tipo_unidade', 'observacao')
+                  'tipo_logradouro', 'logradouro', 'bairro', 'cep', 'tipo_unidade', 'observacao', 'nome_dre')
+    
+    def to_internal_value(self, data):
+        # Garantir que o campo nome_dre seja preservado
+        internal_value = super().to_internal_value(data)
+        if 'nome_dre' in data:
+            internal_value['nome_dre'] = data['nome_dre']
+        return internal_value
+    
+    def create(self, validated_data):
+        nome_dre = validated_data.pop('nome_dre', None)
+        
+        # Buscar DRE pelo nome se fornecido
+        dre = None
+        if nome_dre:
+            try:
+                # Busca exata primeiro
+                dre = Unidade.dres.filter(nome__iexact=nome_dre).first()
+                
+                # Se não encontrar, busca por contém (case insensitive)
+                if not dre:
+                    dre = Unidade.dres.filter(nome__unaccent__icontains=nome_dre).first()
+                    
+            except Exception:
+                # Se houver erro na busca, continua sem DRE
+                pass
+        
+        unidade = Unidade.objects.create(**validated_data)
+        
+        # Vincular DRE se encontrada
+        if dre:
+            unidade.dre = dre
+            unidade.save()
+            
+        return unidade
