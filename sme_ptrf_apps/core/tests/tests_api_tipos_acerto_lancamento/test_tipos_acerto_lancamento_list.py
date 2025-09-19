@@ -7,12 +7,13 @@ pytestmark = pytest.mark.django_db
 
 
 def test_api_list_tipos_acerto_lancamento(jwt_authenticated_client_a, tipo_acerto_lancamento):
-    response = jwt_authenticated_client_a.get(f'/api/tipos-acerto-lancamento/', content_type='application/json')
+    response = jwt_authenticated_client_a.get('/api/tipos-acerto-lancamento/', content_type='application/json')
     result = json.loads(response.content)
 
     resultado_esperado = [
         {
             'ativo': True,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento.pode_alterar_saldo_conciliacao,
             'id': tipo_acerto_lancamento.id,
             'nome': 'Teste lanca',
             'categoria': 'EXCLUSAO_LANCAMENTO',
@@ -31,7 +32,7 @@ def test_api_list_tipos_acerto_lancamento_filtro_nome(
     tipo_acerto_lancamento_03
 ):
     response = jwt_authenticated_client_a.get(
-        f'/api/tipos-acerto-lancamento/?nome=tes', content_type='application/json'
+        '/api/tipos-acerto-lancamento/?nome=tes', content_type='application/json'
     )
     result = json.loads(response.content)
 
@@ -41,6 +42,7 @@ def test_api_list_tipos_acerto_lancamento_filtro_nome(
             'nome': tipo_acerto_lancamento.nome,
             'categoria': tipo_acerto_lancamento.categoria,
             'ativo': tipo_acerto_lancamento.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento.pode_alterar_saldo_conciliacao,
             'uuid': f'{tipo_acerto_lancamento.uuid}'
         },
         {
@@ -48,6 +50,7 @@ def test_api_list_tipos_acerto_lancamento_filtro_nome(
             'nome': tipo_acerto_lancamento_02.nome,
             'categoria': tipo_acerto_lancamento_02.categoria,
             'ativo': tipo_acerto_lancamento_02.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento_02.pode_alterar_saldo_conciliacao,
             'uuid': f'{tipo_acerto_lancamento_02.uuid}'
         },
     ]
@@ -63,7 +66,7 @@ def test_api_list_tipos_acerto_lancamento_filtro_categoria(
     tipo_acerto_lancamento_03
 ):
     response = jwt_authenticated_client_a.get(
-        f'/api/tipos-acerto-lancamento/?categoria=EDICAO_LANCAMENTO,EXCLUSAO_LANCAMENTO', content_type='application/json'
+        '/api/tipos-acerto-lancamento/?categoria=EDICAO_LANCAMENTO,EXCLUSAO_LANCAMENTO', content_type='application/json'
     )
     result = json.loads(response.content)
 
@@ -73,6 +76,7 @@ def test_api_list_tipos_acerto_lancamento_filtro_categoria(
             'nome': tipo_acerto_lancamento.nome,
             'categoria': tipo_acerto_lancamento.categoria,
             'ativo': tipo_acerto_lancamento.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento.pode_alterar_saldo_conciliacao,
             'uuid': f'{tipo_acerto_lancamento.uuid}'
         },
         {
@@ -80,6 +84,7 @@ def test_api_list_tipos_acerto_lancamento_filtro_categoria(
             'nome': tipo_acerto_lancamento_02.nome,
             'categoria': tipo_acerto_lancamento_02.categoria,
             'ativo': tipo_acerto_lancamento_02.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento_02.pode_alterar_saldo_conciliacao,
             'uuid': f'{tipo_acerto_lancamento_02.uuid}'
         },
         {
@@ -87,6 +92,7 @@ def test_api_list_tipos_acerto_lancamento_filtro_categoria(
             'nome': tipo_acerto_lancamento_03.nome,
             'categoria': tipo_acerto_lancamento_03.categoria,
             'ativo': tipo_acerto_lancamento_03.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento_03.pode_alterar_saldo_conciliacao,
             'uuid': f'{tipo_acerto_lancamento_03.uuid}'
         },
     ]
@@ -102,7 +108,7 @@ def test_api_list_tipos_acerto_lancamento_filtro_ativo(
     tipo_acerto_lancamento_03
 ):
     response = jwt_authenticated_client_a.get(
-        f'/api/tipos-acerto-lancamento/?ativo=False', content_type='application/json'
+        '/api/tipos-acerto-lancamento/?ativo=False', content_type='application/json'
     )
     result = json.loads(response.content)
 
@@ -112,6 +118,7 @@ def test_api_list_tipos_acerto_lancamento_filtro_ativo(
             'nome': tipo_acerto_lancamento_02.nome,
             'categoria': tipo_acerto_lancamento_02.categoria,
             'ativo': tipo_acerto_lancamento_02.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento_02.pode_alterar_saldo_conciliacao,
             'uuid': f'{tipo_acerto_lancamento_02.uuid}'
         },
         {
@@ -119,6 +126,7 @@ def test_api_list_tipos_acerto_lancamento_filtro_ativo(
             'nome': tipo_acerto_lancamento_03.nome,
             'categoria': tipo_acerto_lancamento_03.categoria,
             'ativo': tipo_acerto_lancamento_03.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento_03.pode_alterar_saldo_conciliacao,
             'uuid': f'{tipo_acerto_lancamento_03.uuid}'
         },
     ]
@@ -134,7 +142,7 @@ def test_api_list_tipos_acerto_lancamento_filtro_composto(
     tipo_acerto_lancamento_03
 ):
     response = jwt_authenticated_client_a.get(
-        f'/api/tipos-acerto-lancamento/?nome=lan&categoria=EXCLUSAO_LANCAMENTO', content_type='application/json'
+        '/api/tipos-acerto-lancamento/?nome=lan&categoria=EXCLUSAO_LANCAMENTO', content_type='application/json'
     )
     result = json.loads(response.content)
 
@@ -144,6 +152,7 @@ def test_api_list_tipos_acerto_lancamento_filtro_composto(
             'nome': tipo_acerto_lancamento.nome,
             'categoria': tipo_acerto_lancamento.categoria,
             'ativo': tipo_acerto_lancamento.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento.pode_alterar_saldo_conciliacao,
             'uuid': f'{tipo_acerto_lancamento.uuid}'
         },
         {
@@ -151,6 +160,7 @@ def test_api_list_tipos_acerto_lancamento_filtro_composto(
             'nome': tipo_acerto_lancamento_03.nome,
             'categoria': tipo_acerto_lancamento_03.categoria,
             'ativo': tipo_acerto_lancamento_03.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento_03.pode_alterar_saldo_conciliacao,
             'uuid': f'{tipo_acerto_lancamento_03.uuid}'
         },
     ]

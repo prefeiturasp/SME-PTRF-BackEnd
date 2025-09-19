@@ -10,11 +10,12 @@ def test_create_tipo_acerto_documento(jwt_authenticated_client_a, tipo_documento
     payload_novo_tipo_acerto = {
         "nome": "tipo acerto documento teste",
         "categoria": TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS,
-        "tipos_documento_prestacao": [tipo_documento_prestacao_conta_relacao_bens.id]
+        "tipos_documento_prestacao": [tipo_documento_prestacao_conta_relacao_bens.id],
+        "pode_alterar_saldo_conciliacao": False,
     }
 
     response = jwt_authenticated_client_a.post(
-        f'/api/tipos-acerto-documento/', data=json.dumps(payload_novo_tipo_acerto),
+        '/api/tipos-acerto-documento/', data=json.dumps(payload_novo_tipo_acerto),
         content_type='application/json'
     )
 
@@ -22,6 +23,7 @@ def test_create_tipo_acerto_documento(jwt_authenticated_client_a, tipo_documento
 
     assert response.status_code == status.HTTP_201_CREATED
     assert TipoAcertoDocumento.objects.filter(uuid=result['uuid']).exists()
+    assert result['pode_alterar_saldo_conciliacao'] == payload_novo_tipo_acerto['pode_alterar_saldo_conciliacao']
 
 
 def test_create_tipo_acerto_documento_nome_igual(
@@ -36,7 +38,7 @@ def test_create_tipo_acerto_documento_nome_igual(
     }
 
     response = jwt_authenticated_client_a.post(
-        f'/api/tipos-acerto-documento/', data=json.dumps(payload_novo_tipo_acerto),
+        '/api/tipos-acerto-documento/', data=json.dumps(payload_novo_tipo_acerto),
         content_type='application/json'
     )
 

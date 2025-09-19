@@ -14,9 +14,11 @@ def retorna_tags_de_informacao(lancamento):
 
     return informacoes
 
+
 def retorna_tags_de_informacao_concatenadas(lancamento):
     if lancamento and lancamento['mestre'] and lancamento['mestre'].tags_de_informacao_concatenadas:
         return lancamento['mestre'].tags_de_informacao_concatenadas
+
 
 def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
     result_esperado = []
@@ -25,7 +27,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
 
         if inativa:
             lancamento[
-                "mestre"].mensagem_inativa = f'Este gasto foi excluído em {lancamento["mestre"].data_e_hora_de_inativacao.strftime("%d/%m/%Y %H:%M:%S")}'
+                "mestre"].mensagem_inativa = f'Este gasto foi excluído em {lancamento["mestre"].data_e_hora_de_inativacao.strftime("%d/%m/%Y %H:%M:%S")}'  # noqa
 
         mestre_esperado = {
             'associacao': f'{lancamento["mestre"].associacao.uuid}',
@@ -151,7 +153,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
             {
                 'periodo': f'{periodo.uuid}',
                 'conta': f'{conta.uuid}',
-                'data': f'{lancamento["mestre"].data_transacao if lancamento["tipo"] == "Gasto" else lancamento["mestre"].data}',
+                'data': f'{lancamento["mestre"].data_transacao if lancamento["tipo"] == "Gasto" else lancamento["mestre"].data}',  # noqa
                 'tipo_transacao': lancamento["tipo"],
                 'numero_documento': lancamento["mestre"].numero_documento if lancamento["tipo"] == "Gasto" else "",
                 'descricao': lancamento["mestre"].nome_fornecedor if lancamento["tipo"] == "Gasto" else lancamento[
@@ -196,6 +198,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                                     {
                                         'tipo_acerto': {
                                             'ativo': True,
+                                            'pode_alterar_saldo_conciliacao': False,
                                             'categoria': 'DEVOLUCAO',
                                             'id': lancamento["solicitacao_ajuste"].tipo_acerto.id,
                                             'nome': 'Devolução',
@@ -230,7 +233,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                                             },
                                             'devolucao_total': False,
                                             'motivo': 'teste',
-                                            'prestacao_conta': f'{lancamento["analise_lancamento"].analise_prestacao_conta.prestacao_conta.uuid}',
+                                            'prestacao_conta': f'{lancamento["analise_lancamento"].analise_prestacao_conta.prestacao_conta.uuid}',  # noqa
                                             'tipo': {
                                                 'id': lancamento["solicitacao_devolucao"].tipo.id,
                                                 'nome': 'Devolução '
@@ -313,7 +316,7 @@ def test_api_list_lancamentos_todos_da_conta(
     result_esperado = monta_result_esperado(lancamentos_esperados=lancamentos_esperados, periodo=periodo_2020_1,
                                             conta=conta_associacao_cartao)
 
-    url = f'/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_analises.uuid}/lancamentos-com-ajustes/?conta_associacao={conta_uuid}'
+    url = f'/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_analises.uuid}/lancamentos-com-ajustes/?conta_associacao={conta_uuid}'  # noqa
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
@@ -359,7 +362,7 @@ def test_api_list_lancamentos_todos_da_conta_inativa(
     result_esperado = monta_result_esperado(lancamentos_esperados=lancamentos_esperados, periodo=periodo_2020_1,
                                             conta=conta_associacao_cartao, inativa=True)
 
-    url = f'/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_inativa_analises.uuid}/lancamentos-com-ajustes/?conta_associacao={conta_uuid}'
+    url = f'/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_inativa_analises.uuid}/lancamentos-com-ajustes/?conta_associacao={conta_uuid}'  # noqa
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
@@ -413,7 +416,7 @@ def test_api_list_lancamentos_todos_da_conta_por_tipo_ajuste(
     result_esperado = monta_result_esperado(lancamentos_esperados=lancamentos_esperados, periodo=periodo_2020_1,
                                             conta=conta_associacao_cartao)
 
-    url = f'/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_analises.uuid}/lancamentos-com-ajustes/?conta_associacao={conta_uuid}&tipo_acerto={tipo_acerto_lancamento_devolucao.uuid}'
+    url = f'/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_analises.uuid}/lancamentos-com-ajustes/?conta_associacao={conta_uuid}&tipo_acerto={tipo_acerto_lancamento_devolucao.uuid}'  # noqa
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
