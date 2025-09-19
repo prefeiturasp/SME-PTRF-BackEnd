@@ -51,14 +51,6 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
   context(
     "Casos de teste para a rota de Get api/analises-consolidados-dre/download-documento-pdf_devolucao_acertos/",
     () => {
-      // it('Validar Get no endpoint api/analises-consolidados-dre/download-documento-pdf_devolucao_acertos/ com sucesso', () => {
-      // 	var id = '25f1c5c3-0a8b-4aaf-937a-15feeec91dae'
-      // 	cy.validar_download_documento_pdf_devolucao_acertos_dre(id).then((response) => {
-      // 		expect(response.status).to.eq(200)
-      // 		expect(response.body).to.exist
-      // 	})
-      // })
-
       it("Validar Get no endpoint api/analises-consolidados-dre/download-documento-pdf_devolucao_acertos/ com id invalido", () => {
         var id = "25f1c5c3-0a8b-4aaf-937a-15feee";
         cy.validar_download_documento_pdf_devolucao_acertos_dre(id).then(
