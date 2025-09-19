@@ -79,11 +79,14 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
                     'uuid_registro_devolucao': f'{solicitacao_acerto_lancamento_devolucao.devolucao_ao_tesouro.uuid}',
                 },
                 'id': solicitacao_acerto_lancamento_devolucao.id,
-                'tipo_acerto': {'ativo': True,
-                                'categoria': 'DEVOLUCAO',
-                                'id': tipo_acerto_lancamento_devolucao.id,
-                                'nome': 'Devolução',
-                                'uuid': f'{tipo_acerto_lancamento_devolucao.uuid}'},
+                'tipo_acerto': {
+                    'ativo': True,
+                    'categoria': 'DEVOLUCAO',
+                    'id': tipo_acerto_lancamento_devolucao.id,
+                    'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento_devolucao.pode_alterar_saldo_conciliacao,
+                    'nome': 'Devolução',
+                    'uuid': f'{tipo_acerto_lancamento_devolucao.uuid}'
+                },
                 'uuid': f'{solicitacao_acerto_lancamento_devolucao.uuid}',
                 'esclarecimentos': None,
                 'justificativa': None,
@@ -96,7 +99,7 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
         'houve_considerados_corretos_automaticamente': False,
     }
 
-    url = f'/api/prestacoes-contas/{prestacao_conta_2020_1_em_analise.uuid}/analises-de-lancamento/?analise_lancamento={analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}'
+    url = f'/api/prestacoes-contas/{prestacao_conta_2020_1_em_analise.uuid}/analises-de-lancamento/?analise_lancamento={analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}'  # noqa
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)

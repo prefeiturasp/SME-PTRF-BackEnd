@@ -43,6 +43,7 @@ def test_api_get_solicitacoes_acerto_de_um_documento_nao_por_conta(
                     'categoria': tipo_acerto_documento_assinatura.categoria,
                     'id': tipo_acerto_documento_assinatura.id,
                     'nome': 'Enviar com assinatura',
+                    'pode_alterar_saldo_conciliacao': tipo_acerto_documento_assinatura.pode_alterar_saldo_conciliacao,
                     'uuid': f'{tipo_acerto_documento_assinatura.uuid}',
                     'tipos_documento_prestacao': [tipo_documento_prestacao_conta_ata.id]
                 },
@@ -61,7 +62,7 @@ def test_api_get_solicitacoes_acerto_de_um_documento_nao_por_conta(
         'solicitacoes_de_ajuste_da_analise_total': 1
     }
 
-    url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/analises-de-documento/?analise_documento={analise_documento_prestacao_conta_2020_1_ata_ajuste.uuid}'
+    url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/analises-de-documento/?analise_documento={analise_documento_prestacao_conta_2020_1_ata_ajuste.uuid}'  # noqa
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
@@ -79,7 +80,7 @@ def test_api_get_solicitacoes_acerto_de_um_documento_por_conta(
 
     uuid_esperado = f'{analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste.uuid}'
 
-    url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/analises-de-documento/?analise_documento={analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste.uuid}'
+    url = f'/api/prestacoes-contas/{prestacao_conta.uuid}/analises-de-documento/?analise_documento={analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste.uuid}'  # noqa
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
