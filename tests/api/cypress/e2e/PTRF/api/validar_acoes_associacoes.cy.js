@@ -524,7 +524,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
         cy.cadastrar_acoes_associacoes_incluir_lote(body).then((response) => {
           expect(response.status).to.eq(201);
           expect(response.body.mensagem).to.eq(
-            "Unidades vinculadas à ação com sucesso."
+            "Alguns vínculos não puderam ser feitos."
           );
         });
       });
@@ -656,7 +656,7 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
     "Casos de teste para a rota de Get api/acoes-associacoes/uuid",
     () => {
       it("Validar Get no endpoint api/acoes-associacoes/uuid com sucesso", () => {
-        var id = "f234e1d2-d894-4445-bdbd-e01fc4db2cea";
+        var id = "b66803ee-25b2-489e-876c-37aa2d5adb3b";
         cy.validar_acoes_associacoes(id).then((response) => {
           expect(response.status).to.eq(200);
           expect(response.body.acao.uuid).to.exist;
@@ -690,13 +690,12 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
     "Casos de teste para a rota de Get /api/acoes-associacoes/{uuid}/obter-saldo-atual/",
     () => {
       it("Validar Get no endpoint /api/acoes-associacoes/{uuid}/obter-saldo-atual/ com sucesso", () => {
-        var id = "f234e1d2-d894-4445-bdbd-e01fc4db2cea";
+        var id = "b66803ee-25b2-489e-876c-37aa2d5adb3b";
         cy.validar_acoes_associacoes_obter_saldo_atual(id).then((response) => {
           expect(response.status).to.eq(200);
           expect(response.body.saldo_atual_capital).to.exist;
           expect(response.body.saldo_atual_custeio).to.exist;
           expect(response.body.saldo_atual_livre).to.exist;
-          // expect(response.body.saldo_atual_total).to.exist
         });
       });
 

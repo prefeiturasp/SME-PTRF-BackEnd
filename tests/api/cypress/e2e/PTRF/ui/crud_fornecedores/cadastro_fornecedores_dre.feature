@@ -16,7 +16,7 @@ Funcionalidade: Cadastro fornecedor
 
     Exemplos:
       | visualizacao | nome_do_fornecedor | cpf_cnpj           | mensagem                                            | caso                             |
-      | web          | teste automatizado |        84434384791 | O fornecedor foi adicionado ao sistema com sucesso. | CPF com sucesso                  |
+      | web          | teste automatizado |        44307973070 | O fornecedor foi adicionado ao sistema com sucesso. | CPF com sucesso                  |
       | web          | teste automatizado |     88952264000196 | O fornecedor foi adicionado ao sistema com sucesso. | CNPJ com sucesso                 |
       | web          |                    |     88952264000196 | Nome é obrigatório                                  | com nome do fornecedor em branco |
       | web          | teste automatizado |                    | CPF / CNPJ é obrigatório                            | com CPF / CNPJ em branco         |

@@ -93,22 +93,19 @@ class ComumElementosPTRF {
   //-----------------------Menu de Navegação-------------------------\\
 
   menuParametrizacoes = () => {
-    return cy.get('[data-tooltip-content="Parametrizações"]');
+    return cy.get('[data-cy="Parametrizações"]');
   };
   menuResumoDosRecursos = () => {
-    return cy.get('[data-tooltip-content="Resumo dos recursos"]');
+    return cy.get('[data-cy="Resumo dos recursos"]');
   };
   menuCreditosDaEscola = () => {
-    return cy
-      .get('[data-cy="Créditos da escola"]')
-      .find(".sidenav---navtext---1AE_f")
-      .contains("Créditos da escola");
+    return cy.get('[data-cy="Créditos da escola"]');
   };
   menuGastosDaEscola = () => {
-    return cy.get('[data-tooltip-content="Gastos da escola"]');
+    return cy.get('[data-cy="Gastos da escola"]');
   };
   menuPrestacaoContas = () => {
-    return cy.get('[data-tooltip-content="Prestação de contas"]');
+    return cy.get('[data-cy="Prestação de contas"]');
   };
   menuGeracaoDocumentos = () => {
     return cy.get("#geracao_documento");

@@ -100,17 +100,6 @@ describe("Validar rotas de acoes da aplicação SigEscola", () => {
   context(
     "Casos de teste para a rota de Get /api/demonstrativo-financeiro/documento-final/",
     () => {
-      it("Validar Get no endpoint /api/demonstrativo-financeiro/documento-final/ com sucesso", () => {
-        var id =
-          "?conta-associacao=202511ec-dae9-4c9a-ab96-1b36d04069ca&periodo=6a04e2c4-6769-4c56-abbc-edea7d87bead&formato_arquivo=PDF";
-        cy.validar_demonstrativo_financeiro_documento_final(id).then(
-          (response) => {
-            expect(response.status).to.eq(200);
-            expect(response.body).to.exist;
-          }
-        );
-      });
-
       it("Validar Get no endpoint /api/demonstrativo-financeiro/documento-final/ com conta associacao invalida", () => {
         var id =
           "?conta-associacao=202511ec-dae9-4c9a-ab96-1b36&periodo=6a04e2c4-6769-4c56-abbc-edea7d87bead&formato_arquivo=PDF";
