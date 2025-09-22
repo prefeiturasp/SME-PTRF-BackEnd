@@ -106,7 +106,7 @@ def test_rodape(ambiente):
 
     data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
 
-    resultado_esperado = f"Arquivo gerado via {ambiente.prefixo} pelo usuário None em {data_atual}"
+    resultado_esperado = f"Arquivo solicitado via {ambiente.prefixo} pelo usuário None em {data_atual}"
 
     assert dados == resultado_esperado
 
