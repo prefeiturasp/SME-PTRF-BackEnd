@@ -1,7 +1,6 @@
 import json
 
 import pytest
-from model_bakery import baker
 from rest_framework import status
 
 pytestmark = pytest.mark.django_db
@@ -14,12 +13,13 @@ def test_api_list_tipos_acerto_documento_todos(
     tipo_documento_prestacao_conta_ata,
     tipo_documento_prestacao_conta_relacao_bens
 ):
-    response = jwt_authenticated_client_a.get(f'/api/tipos-acerto-documento/', content_type='application/json')
+    response = jwt_authenticated_client_a.get('/api/tipos-acerto-documento/', content_type='application/json')
     result = json.loads(response.content)
 
     resultado_esperado = [
         {
             'ativo': tipo_acerto_documento_assinatura.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_documento_assinatura.pode_alterar_saldo_conciliacao,
             'categoria': tipo_acerto_documento_assinatura.categoria,
             'id': tipo_acerto_documento_assinatura.id,
             'nome': 'Enviar com assinatura',
@@ -35,6 +35,7 @@ def test_api_list_tipos_acerto_documento_todos(
         },
         {
             'ativo': tipo_acerto_documento_enviar.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_documento_enviar.pode_alterar_saldo_conciliacao,
             'categoria': tipo_acerto_documento_enviar.categoria,
             'id': tipo_acerto_documento_enviar.id,
             'nome': 'Enviar o documento',
@@ -69,13 +70,14 @@ def test_api_list_tipos_acerto_documento_filtro_nome(
     tipo_documento_prestacao_conta_ata
 ):
     response = jwt_authenticated_client_a.get(
-        f'/api/tipos-acerto-documento/?nome=tes', content_type='application/json'
+        '/api/tipos-acerto-documento/?nome=tes', content_type='application/json'
     )
     result = json.loads(response.content)
 
     resultado_esperado = [
         {
             'ativo': tipo_acerto_documento_01.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_documento_01.pode_alterar_saldo_conciliacao,
             'categoria': tipo_acerto_documento_01.categoria,
             'id': tipo_acerto_documento_01.id,
             'nome': tipo_acerto_documento_01.nome,
@@ -91,6 +93,7 @@ def test_api_list_tipos_acerto_documento_filtro_nome(
         },
         {
             'ativo': tipo_acerto_documento_03.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_documento_03.pode_alterar_saldo_conciliacao,
             'categoria': tipo_acerto_documento_03.categoria,
             'id': tipo_acerto_documento_03.id,
             'nome': tipo_acerto_documento_03.nome,
@@ -119,13 +122,14 @@ def test_api_list_tipos_acerto_documento_filtro_categoria(
     tipo_documento_prestacao_conta_ata
 ):
     response = jwt_authenticated_client_a.get(
-        f'/api/tipos-acerto-documento/?categoria=INCLUSAO_CREDITO,INCLUSAO_GASTO', content_type='application/json'
+        '/api/tipos-acerto-documento/?categoria=INCLUSAO_CREDITO,INCLUSAO_GASTO', content_type='application/json'
     )
     result = json.loads(response.content)
 
     resultado_esperado = [
         {
             'ativo': tipo_acerto_documento_01.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_documento_01.pode_alterar_saldo_conciliacao,
             'categoria': tipo_acerto_documento_01.categoria,
             'id': tipo_acerto_documento_01.id,
             'nome': tipo_acerto_documento_01.nome,
@@ -141,6 +145,7 @@ def test_api_list_tipos_acerto_documento_filtro_categoria(
         },
         {
             'ativo': tipo_acerto_documento_02.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_documento_02.pode_alterar_saldo_conciliacao,
             'categoria': tipo_acerto_documento_02.categoria,
             'id': tipo_acerto_documento_02.id,
             'nome': tipo_acerto_documento_02.nome,
@@ -156,6 +161,7 @@ def test_api_list_tipos_acerto_documento_filtro_categoria(
         },
         {
             'ativo': tipo_acerto_documento_03.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_documento_03.pode_alterar_saldo_conciliacao,
             'categoria': tipo_acerto_documento_03.categoria,
             'id': tipo_acerto_documento_03.id,
             'nome': tipo_acerto_documento_03.nome,
@@ -184,13 +190,14 @@ def test_api_list_tipos_acerto_documento_filtro_ativo(
     tipo_documento_prestacao_conta_ata
 ):
     response = jwt_authenticated_client_a.get(
-        f'/api/tipos-acerto-documento/?ativo=False', content_type='application/json'
+        '/api/tipos-acerto-documento/?ativo=False', content_type='application/json'
     )
     result = json.loads(response.content)
 
     resultado_esperado = [
         {
             'ativo': tipo_acerto_documento_03.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_documento_03.pode_alterar_saldo_conciliacao,
             'categoria': tipo_acerto_documento_03.categoria,
             'id': tipo_acerto_documento_03.id,
             'nome': tipo_acerto_documento_03.nome,
@@ -227,6 +234,7 @@ def test_api_list_tipos_acerto_documento_filtro_documento_relacionado(
     resultado_esperado = [
         {
             'ativo': tipo_acerto_documento_01.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_documento_01.pode_alterar_saldo_conciliacao,
             'categoria': tipo_acerto_documento_01.categoria,
             'id': tipo_acerto_documento_01.id,
             'nome': tipo_acerto_documento_01.nome,
@@ -242,6 +250,7 @@ def test_api_list_tipos_acerto_documento_filtro_documento_relacionado(
         },
         {
             'ativo': tipo_acerto_documento_02.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_documento_02.pode_alterar_saldo_conciliacao,
             'categoria': tipo_acerto_documento_02.categoria,
             'id': tipo_acerto_documento_02.id,
             'nome': tipo_acerto_documento_02.nome,
@@ -268,12 +277,15 @@ def test_api_list_tipos_acerto_documento_por_tipo_documento(
     tipo_documento_prestacao_conta_relacao_bens,
     tipo_documento_prestacao_conta_ata
 ):
-    response = jwt_authenticated_client_a.get(f'/api/tipos-acerto-documento/?tipos_documento_prestacao__uuid={tipo_documento_prestacao_conta_relacao_bens.uuid}', content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/tipos-acerto-documento/?tipos_documento_prestacao__uuid={tipo_documento_prestacao_conta_relacao_bens.uuid}',  # noqa
+        content_type='application/json')
     result = json.loads(response.content)
 
     resultado_esperado = [
         {
             'ativo': tipo_acerto_documento_enviar.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_documento_enviar.pode_alterar_saldo_conciliacao,
             'categoria': tipo_acerto_documento_enviar.categoria,
             'id': tipo_acerto_documento_enviar.id,
             'nome': 'Enviar o documento',
@@ -308,13 +320,14 @@ def test_api_list_tipos_acerto_documento_filtro_composto(
     tipo_documento_prestacao_conta_ata
 ):
     response = jwt_authenticated_client_a.get(
-        f'/api/tipos-acerto-documento/?categoria=INCLUSAO_CREDITO&nome=1', content_type='application/json'
+        '/api/tipos-acerto-documento/?categoria=INCLUSAO_CREDITO&nome=1', content_type='application/json'
     )
     result = json.loads(response.content)
 
     resultado_esperado = [
         {
             'ativo': tipo_acerto_documento_03.ativo,
+            'pode_alterar_saldo_conciliacao': tipo_acerto_documento_03.pode_alterar_saldo_conciliacao,
             'categoria': tipo_acerto_documento_03.categoria,
             'id': tipo_acerto_documento_03.id,
             'nome': tipo_acerto_documento_03.nome,

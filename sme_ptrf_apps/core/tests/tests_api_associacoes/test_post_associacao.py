@@ -27,7 +27,8 @@ def test_api_post_associacao(jwt_authenticated_client_a, periodo_anterior):
             'tipo_logradouro': 'Rua',
             'logradouro': 'Flamengo',
             'bairro': 'Ferreira',
-            'cep': '05524160'
+            'cep': '05524160',
+            'nome_dre': 'DRE Existente 1'
         }
     }
     response = jwt_authenticated_client_a.post(f'/api/associacoes/', data=json.dumps(payload),
@@ -62,7 +63,8 @@ def test_api_post_associacao_deve_gerar_erro_data_de_encerramento_maior_que_peri
                 'tipo_logradouro': 'Rua',
                 'logradouro': 'Flamengo',
                 'bairro': 'Ferreira',
-                'cep': '05524160'
+                'cep': '05524160',
+                'nome_dre': 'DRE Existente 2'
             }
         }
         response = jwt_authenticated_client_a.post(f'/api/associacoes/', data=json.dumps(payload),
@@ -95,7 +97,8 @@ def test_api_post_associacao_deve_gerar_erro_data_de_encerramento_maior_que_data
                 'tipo_logradouro': 'Rua',
                 'logradouro': 'Flamengo',
                 'bairro': 'Ferreira',
-                'cep': '05524160'
+                'cep': '05524160',
+                'nome_dre': 'DRE Existente 3'
             }
         }
         response = jwt_authenticated_client_a.post(f'/api/associacoes/', data=json.dumps(payload),
@@ -128,7 +131,8 @@ def test_api_post_associacao_deve_gerar_erro_cnpj_invalido(
             'tipo_logradouro': 'Rua',
             'logradouro': 'Flamengo',
             'bairro': 'Ferreira',
-            'cep': '05524160'
+            'cep': '05524160',
+            'nome_dre': 'DRE Existente 4'
         }
     }
     response = jwt_authenticated_client_a.post(f'/api/associacoes/', data=json.dumps(payload),
