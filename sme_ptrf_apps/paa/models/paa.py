@@ -2,7 +2,7 @@ from django.db import models
 from datetime import datetime
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
-
+from ckeditor.fields import RichTextField
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.models.periodo_paa import PeriodoPaa
@@ -16,6 +16,7 @@ class Paa(ModeloBase):
                                    blank=False, null=True)
     saldo_congelado_em = models.DateTimeField(
         verbose_name="Saldo congelado em", blank=True, null=True)
+    texto_introducao = RichTextField(null=True, verbose_name='Texto introdução')
 
     def periodo_paa_objeto(self):
         return self.periodo_paa

@@ -13,3 +13,4 @@ def test_paa_retriever_serializer(paa):
     assert 'associacao' in serializer.data
     assert 'periodo_paa_objeto' in serializer.data
     assert 'saldo_congelado_em' in serializer.data
+    assert 'texto_introducao' in serializer.data
