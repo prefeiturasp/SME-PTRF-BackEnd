@@ -16,7 +16,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPITodosComLeituraOuGravacao,
     PermissaoApiUe
 )
-from sme_ptrf_apps.paa.api.serializers.paa_serializer import PaaSerializer
+from sme_ptrf_apps.paa.api.serializers.paa_serializer import PaaSerializer, PaaUpdateSerializer
 from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
 from sme_ptrf_apps.paa.models import Paa
 from sme_ptrf_apps.core.models import Associacao
@@ -34,7 +34,13 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
     queryset = Paa.objects.all()
     serializer_class = PaaSerializer
     pagination_class = CustomPagination
-    http_method_names = ['get', 'post', 'delete']
+    http_method_names = ['get', 'post', 'delete', 'patch']
+
+    def get_serializer_class(self):
+        if self.action == 'partial_update':
+            return PaaUpdateSerializer
+        else:
+            return PaaSerializer
 
     def get_queryset(self):
         qs = self.queryset
