@@ -195,3 +195,95 @@ def test_api_recebe_sem_ata_quando_apenas_ajustes_externos(
 
     prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_retornada_apos_acerto.uuid)
     assert prestacao_atualizada.status == PrestacaoConta.STATUS_DEVOLVIDA_RECEBIDA
+
+
+def test_api_recebe_sem_ata_quando_apenas_solicitacao_de_esclarecimento(
+    jwt_authenticated_client_a,
+    prestacao_conta_retornada_apos_acerto,
+    analise_prestacao_conta_factory,
+    analise_documento_prestacao_conta_factory,
+    solicitacao_acerto_documento_factory,
+    tipo_acerto_documento_factory,
+):
+    analise = analise_prestacao_conta_factory(
+        prestacao_conta=prestacao_conta_retornada_apos_acerto,
+        status=AnalisePrestacaoConta.STATUS_DEVOLVIDA,
+    )
+
+    analise_doc = analise_documento_prestacao_conta_factory(
+        analise_prestacao_conta=analise
+    )
+    tipo_doc_escl = tipo_acerto_documento_factory(
+        categoria=TipoAcertoDocumento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO
+    )
+    solicitacao_acerto_documento_factory(
+        analise_documento=analise_doc,
+        tipo_acerto=tipo_doc_escl,
+    )
+
+    payload = {
+        'data_recebimento_apos_acertos': '2020-10-01',
+    }
+
+    url = f'/api/prestacoes-contas/{prestacao_conta_retornada_apos_acerto.uuid}/receber-apos-acertos/'
+    response = jwt_authenticated_client_a.patch(
+        url, data=json.dumps(payload), content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_retornada_apos_acerto.uuid)
+    assert prestacao_atualizada.status == PrestacaoConta.STATUS_DEVOLVIDA_RECEBIDA
+
+
+def test_api_recebe_sem_ata_quando_ajustes_externos_e_solicitacao_de_esclarecimento(
+    jwt_authenticated_client_a,
+    prestacao_conta_retornada_apos_acerto,
+    analise_prestacao_conta_factory,
+    analise_documento_prestacao_conta_factory,
+    analise_lancamento_prestacao_conta_factory,
+    solicitacao_acerto_documento_factory,
+    solicitacao_acerto_lancamento_factory,
+    tipo_acerto_documento_factory,
+    tipo_acerto_lancamento_factory
+):
+    analise = analise_prestacao_conta_factory(
+        prestacao_conta=prestacao_conta_retornada_apos_acerto,
+        status=AnalisePrestacaoConta.STATUS_DEVOLVIDA,
+    )
+
+    analise_doc = analise_documento_prestacao_conta_factory(
+        analise_prestacao_conta=analise
+    )
+    tipo_doc_escl = tipo_acerto_documento_factory(
+        categoria=TipoAcertoDocumento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO
+    )
+    solicitacao_acerto_documento_factory(
+        analise_documento=analise_doc,
+        tipo_acerto=tipo_doc_escl,
+    )
+
+    analise_lanc = analise_lancamento_prestacao_conta_factory(
+        analise_prestacao_conta=analise
+    )
+    tipo_lanc_ext = tipo_acerto_lancamento_factory(
+        categoria=TipoAcertoLancamento.CATEGORIA_AJUSTES_EXTERNOS
+    )
+    solicitacao_acerto_lancamento_factory(
+        analise_lancamento=analise_lanc,
+        tipo_acerto=tipo_lanc_ext,
+    )
+
+    payload = {
+        'data_recebimento_apos_acertos': '2020-10-01',
+    }
+
+    url = f'/api/prestacoes-contas/{prestacao_conta_retornada_apos_acerto.uuid}/receber-apos-acertos/'
+    response = jwt_authenticated_client_a.patch(
+        url, data=json.dumps(payload), content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    prestacao_atualizada = PrestacaoConta.by_uuid(prestacao_conta_retornada_apos_acerto.uuid)
+    assert prestacao_atualizada.status == PrestacaoConta.STATUS_DEVOLVIDA_RECEBIDA
