@@ -1,6 +1,6 @@
 import pytest
 
-from sme_ptrf_apps.core.services.ajuste_services import tem_apenas_ajustes_externos
+from sme_ptrf_apps.core.services.ajuste_services import possui_apenas_categorias_que_nao_requerem_ata
 from sme_ptrf_apps.core.models import (
     PrestacaoConta, 
     AnalisePrestacaoConta, 
@@ -58,16 +58,16 @@ def tipo_acerto_lancamento_edicao():
     )
 
 
-class TestTemApenasAjustesExternos:
+class TestPossuiApenasCategoriasQueNaoRequeremAta:
 
     def test_prestacao_conta_none(self):
-        assert tem_apenas_ajustes_externos(None) is False
+        assert possui_apenas_categorias_que_nao_requerem_ata(None) is False
 
     def test_prestacao_conta_sem_analises(self, prestacao_conta):
-        assert tem_apenas_ajustes_externos(prestacao_conta) is False
+        assert possui_apenas_categorias_que_nao_requerem_ata(prestacao_conta) is False
 
     def test_analise_sem_ajustes(self, analise_prestacao_conta):
-        assert tem_apenas_ajustes_externos(analise_prestacao_conta.prestacao_conta) is False
+        assert possui_apenas_categorias_que_nao_requerem_ata(analise_prestacao_conta.prestacao_conta) is False
 
     def test_apenas_ajustes_externos_documentos(self, analise_prestacao_conta, tipo_acerto_documento_ajustes_externos):
         from sme_ptrf_apps.core.fixtures.factories.analise_documento_prestacao_conta_factory import AnaliseDocumentoPrestacaoContaFactory
@@ -82,7 +82,7 @@ class TestTemApenasAjustesExternos:
             tipo_acerto=tipo_acerto_documento_ajustes_externos
         )
         
-        assert tem_apenas_ajustes_externos(analise_prestacao_conta.prestacao_conta) is True
+        assert possui_apenas_categorias_que_nao_requerem_ata(analise_prestacao_conta.prestacao_conta) is True
 
     def test_apenas_ajustes_externos_lancamentos(self, analise_prestacao_conta, tipo_acerto_lancamento_ajustes_externos):
         from sme_ptrf_apps.core.fixtures.factories.analise_lancamento_prestacao_conta_factory import AnaliseLancamentoPrestacaoContaFactory
@@ -97,7 +97,27 @@ class TestTemApenasAjustesExternos:
             tipo_acerto=tipo_acerto_lancamento_ajustes_externos
         )
         
-        assert tem_apenas_ajustes_externos(analise_prestacao_conta.prestacao_conta) is True
+        assert possui_apenas_categorias_que_nao_requerem_ata(analise_prestacao_conta.prestacao_conta) is True
+
+    def test_apenas_solicitacao_de_esclarecimento_documentos(self, analise_prestacao_conta):
+        from sme_ptrf_apps.core.fixtures.factories.analise_documento_prestacao_conta_factory import AnaliseDocumentoPrestacaoContaFactory
+        from sme_ptrf_apps.core.fixtures.factories.solicitacao_acerto_documento_factory import SolicitacaoAcertoDocumentoFactory
+        from sme_ptrf_apps.core.fixtures.factories.tipo_acerto_documento_factory import TipoAcertoDocumentoFactory
+
+        analise_documento = AnaliseDocumentoPrestacaoContaFactory(
+            analise_prestacao_conta=analise_prestacao_conta
+        )
+
+        tipo_acerto_esclarecimento = TipoAcertoDocumentoFactory(
+            categoria=TipoAcertoDocumento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO
+        )
+
+        SolicitacaoAcertoDocumentoFactory(
+            analise_documento=analise_documento,
+            tipo_acerto=tipo_acerto_esclarecimento
+        )
+
+        assert possui_apenas_categorias_que_nao_requerem_ata(analise_prestacao_conta.prestacao_conta) is True
 
     def test_ajustes_externos_com_outros_ajustes_documentos(self, analise_prestacao_conta, 
                                                            tipo_acerto_documento_ajustes_externos,
@@ -119,7 +139,7 @@ class TestTemApenasAjustesExternos:
             tipo_acerto=tipo_acerto_documento_edicao
         )
         
-        assert tem_apenas_ajustes_externos(analise_prestacao_conta.prestacao_conta) is False
+        assert possui_apenas_categorias_que_nao_requerem_ata(analise_prestacao_conta.prestacao_conta) is False
 
     def test_ajustes_externos_com_outros_ajustes_lancamentos(self, analise_prestacao_conta,
                                                            tipo_acerto_lancamento_ajustes_externos,
@@ -141,7 +161,7 @@ class TestTemApenasAjustesExternos:
             tipo_acerto=tipo_acerto_lancamento_edicao
         )
         
-        assert tem_apenas_ajustes_externos(analise_prestacao_conta.prestacao_conta) is False
+        assert possui_apenas_categorias_que_nao_requerem_ata(analise_prestacao_conta.prestacao_conta) is False
 
     def test_apenas_outros_ajustes_documentos(self, analise_prestacao_conta, tipo_acerto_documento_edicao):
         from sme_ptrf_apps.core.fixtures.factories.analise_documento_prestacao_conta_factory import AnaliseDocumentoPrestacaoContaFactory
@@ -156,7 +176,7 @@ class TestTemApenasAjustesExternos:
             tipo_acerto=tipo_acerto_documento_edicao
         )
         
-        assert tem_apenas_ajustes_externos(analise_prestacao_conta.prestacao_conta) is False
+        assert possui_apenas_categorias_que_nao_requerem_ata(analise_prestacao_conta.prestacao_conta) is False
 
     def test_apenas_outros_ajustes_lancamentos(self, analise_prestacao_conta, tipo_acerto_lancamento_edicao):
         from sme_ptrf_apps.core.fixtures.factories.analise_lancamento_prestacao_conta_factory import AnaliseLancamentoPrestacaoContaFactory
@@ -171,7 +191,7 @@ class TestTemApenasAjustesExternos:
             tipo_acerto=tipo_acerto_lancamento_edicao
         )
         
-        assert tem_apenas_ajustes_externos(analise_prestacao_conta.prestacao_conta) is False
+        assert possui_apenas_categorias_que_nao_requerem_ata(analise_prestacao_conta.prestacao_conta) is False
 
     def test_ajustes_externos_documentos_e_lancamentos(self, analise_prestacao_conta,
                                                       tipo_acerto_documento_ajustes_externos,
@@ -199,7 +219,7 @@ class TestTemApenasAjustesExternos:
             tipo_acerto=tipo_acerto_lancamento_ajustes_externos
         )
         
-        assert tem_apenas_ajustes_externos(analise_prestacao_conta.prestacao_conta) is True
+        assert possui_apenas_categorias_que_nao_requerem_ata(analise_prestacao_conta.prestacao_conta) is True
 
     def test_ajustes_externos_com_solicitacao_esclarecimento(self, analise_prestacao_conta,
                                                            tipo_acerto_documento_ajustes_externos):
@@ -225,7 +245,7 @@ class TestTemApenasAjustesExternos:
             tipo_acerto=tipo_acerto_esclarecimento
         )
         
-        assert tem_apenas_ajustes_externos(analise_prestacao_conta.prestacao_conta) is False
+        assert possui_apenas_categorias_que_nao_requerem_ata(analise_prestacao_conta.prestacao_conta) is True
 
     def test_ajustes_externos_com_inclusao_credito(self, analise_prestacao_conta,
                                                   tipo_acerto_documento_ajustes_externos):
@@ -251,7 +271,7 @@ class TestTemApenasAjustesExternos:
             tipo_acerto=tipo_acerto_inclusao_credito
         )
         
-        assert tem_apenas_ajustes_externos(analise_prestacao_conta.prestacao_conta) is False
+        assert possui_apenas_categorias_que_nao_requerem_ata(analise_prestacao_conta.prestacao_conta) is False
 
     def test_ajustes_externos_com_devolucao(self, analise_prestacao_conta,
                                            tipo_acerto_lancamento_ajustes_externos):
@@ -277,4 +297,4 @@ class TestTemApenasAjustesExternos:
             tipo_acerto=tipo_acerto_devolucao
         )
         
-        assert tem_apenas_ajustes_externos(analise_prestacao_conta.prestacao_conta) is False
+        assert possui_apenas_categorias_que_nao_requerem_ata(analise_prestacao_conta.prestacao_conta) is False
