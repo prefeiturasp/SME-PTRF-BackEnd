@@ -20,7 +20,7 @@ from sme_ptrf_apps.paa.api.serializers.paa_serializer import PaaSerializer, PaaU
 from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
 from sme_ptrf_apps.paa.models import Paa
 from sme_ptrf_apps.core.models import Associacao
-from sme_ptrf_apps.paa.services.paa_service import PaaService
+from sme_ptrf_apps.paa.services.paa_service import PaaService, ImportacaoConfirmacaoNecessaria
 from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
 from sme_ptrf_apps.paa.services.resumo_prioridades_service import ResumoPrioridadesService
 
@@ -154,20 +154,26 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             Retorna um dicionário com a mensagem de sucesso e a quantidade de
             prioridades importadas.
         """
+        confirmar = bool(int(self.request.query_params.get('confirmar', 0)))
         try:
             paa_atual = self.get_object()
         except (Http404, NotFound, Paa.DoesNotExist):
-            return Response({"mensagem": "PAA atual não encontrado"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"mensagem": "PAA atual não encontrado."}, status=status.HTTP_404_NOT_FOUND)
         try:
             paa_anterior = Paa.objects.get(uuid=uuid_paa_anterior)
         except (Http404, NotFound, Paa.DoesNotExist):
-            return Response({"mensagem": "PAA anterior não encontrado"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"mensagem": "PAA anterior não encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-        importados = PaaService.importar_prioridades_paa_anterior(paa_atual, paa_anterior)
+        try:
+            importados = PaaService.importar_prioridades_paa_anterior(paa_atual, paa_anterior, confirmar)
+        except ImportacaoConfirmacaoNecessaria as e:
+            return Response({"confirmar": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         result = {
-            'mensagem': 'Prioridades importadas com sucesso',
-            'importados': len(importados)
+            'mensagem': 'Prioridades importadas com sucesso.' if len(importados) > 0 else (
+                'Nenhuma prioridade encontrada para importação'),
         }
 
         return Response(result, status=status.HTTP_200_OK)

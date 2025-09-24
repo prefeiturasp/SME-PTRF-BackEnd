@@ -59,7 +59,7 @@ class SaldosBancariosSmeDetalhesAsocciacoesViewSet(mixins.ListModelMixin,
         ],
         responses={200: 'result'},
         examples=[
-            OpenApiExample('Responsta', value=[
+            OpenApiExample('Resposta', value=[
                 {
                     "nome": "ASSOCIACAO DE PAIS E MESTRE...",
                     "unidade__nome": "ROLANDO BOLDRIN",
