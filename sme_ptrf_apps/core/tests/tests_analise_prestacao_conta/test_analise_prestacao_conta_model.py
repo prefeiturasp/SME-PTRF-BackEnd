@@ -1,9 +1,16 @@
 import pytest
+from datetime import datetime, date
 from django.contrib import admin
 
 from ...models import PrestacaoConta, AnalisePrestacaoConta, DevolucaoPrestacaoConta
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture
+def periodo_2023_1(periodo_factory):
+    return periodo_factory.create(data_inicio_realizacao_despesas=datetime(2023, 1, 1),
+                                  data_fim_realizacao_despesas=datetime(2023, 5, 30))
 
 
 def test_instance_model(analise_prestacao_conta_2020_1):
@@ -118,6 +125,8 @@ def test_tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta(
     com_pendencia,
     com_solicitacao_de_acerto_em_conta,
     esperado,
+    periodo_2023_1,
+    prestacao_conta_factory,
     analise_prestacao_conta_factory,
     observacao_conciliacao_factory,
     conta_associacao_factory,
@@ -125,9 +134,14 @@ def test_tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta(
     pdf_factory
 ):
 
-    analise = analise_prestacao_conta_factory(status="EM_ANALISE")
+    pc = prestacao_conta_factory(periodo=periodo_2023_1, status="EM_ANALISE")
+    analise = analise_prestacao_conta_factory(status="EM_ANALISE", prestacao_conta=pc)
+    pc.analise_atual = analise
+    pc.save()
+
     conta_associacao = conta_associacao_factory.create(
-        associacao=analise.prestacao_conta.associacao
+        associacao=analise.prestacao_conta.associacao,
+        data_inicio=date(2019, 2, 2)
     )
     if com_pendencia:
         observacao_conciliacao_factory(
@@ -155,15 +169,22 @@ def test_tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta(
 
 
 def test_contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta(
+    periodo_2023_1,
+    prestacao_conta_factory,
     analise_prestacao_conta_factory,
     observacao_conciliacao_factory,
-    conta_associacao_factory,
+    conta_associacao_factory
 ):
+    pc = prestacao_conta_factory(periodo=periodo_2023_1, status="EM_ANALISE")
+    analise = analise_prestacao_conta_factory(status="EM_ANALISE", prestacao_conta=pc)
+    pc.analise_atual = analise
+    pc.save()
 
-    analise = analise_prestacao_conta_factory(status="EM_ANALISE")
     conta_associacao = conta_associacao_factory.create(
-        associacao=analise.prestacao_conta.associacao
+        associacao=analise.prestacao_conta.associacao,
+        data_inicio=date(2019, 2, 2)
     )
+
     observacao_conciliacao_factory(
         conta_associacao=conta_associacao,
         associacao=analise.prestacao_conta.associacao,
@@ -174,15 +195,22 @@ def test_contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta(
 
 
 def test_contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta_sem_pendencias(
+    periodo_2023_1,
+    prestacao_conta_factory,
     analise_prestacao_conta_factory,
     analise_conta_prestacao_conta_factory,
     observacao_conciliacao_factory,
-    conta_associacao_factory,
+    conta_associacao_factory
 ):
 
-    analise = analise_prestacao_conta_factory(status="EM_ANALISE")
+    pc = prestacao_conta_factory(periodo=periodo_2023_1, status="EM_ANALISE")
+    analise = analise_prestacao_conta_factory(status="EM_ANALISE", prestacao_conta=pc)
+    pc.analise_atual = analise
+    pc.save()
+
     conta_associacao = conta_associacao_factory.create(
-        associacao=analise.prestacao_conta.associacao
+        associacao=analise.prestacao_conta.associacao,
+        data_inicio=date(2019, 2, 2)
     )
     observacao_conciliacao_factory(
         conta_associacao=conta_associacao,
