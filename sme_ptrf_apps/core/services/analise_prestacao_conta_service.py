@@ -208,3 +208,26 @@ def get_ajustes_extratos_bancarios(analise_prestacao, conta_associacao=None):
         qs = qs.filter(conta_associacao=conta_associacao).first()
 
     return AnaliseContaPrestacaoContaRetrieveSerializer(qs, many=not conta_associacao).data if qs else None
+
+
+def cria_solicitacao_acerto_em_contas_com_pendencia(analise_prestacao):
+    """
+    Função temporária para tratamento de PCs devolvidas com pendência de conciliação e sem solicitação de acerto
+    """
+
+    from sme_ptrf_apps.core.models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
+
+    if analise_prestacao.prestacao_conta.status not in ["DEVOLVIDA"]:
+        return
+
+    contas_pendentes = analise_prestacao.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta()
+
+    for conta in contas_pendentes:
+        AnaliseContaPrestacaoConta.objects.create(
+            analise_prestacao_conta=analise_prestacao,
+            conta_associacao=conta,
+            prestacao_conta=analise_prestacao.prestacao_conta,
+            solicitar_envio_do_comprovante_do_saldo_da_conta=True,
+            solicitar_correcao_da_data_do_saldo_da_conta=True,
+            observacao_solicitar_envio_do_comprovante_do_saldo_da_conta="Corrigir pendências na conciliação"
+        )
