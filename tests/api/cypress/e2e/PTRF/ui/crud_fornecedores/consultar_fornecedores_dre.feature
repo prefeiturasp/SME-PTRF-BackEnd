@@ -15,9 +15,9 @@ Funcionalidade: consultar fornecedor
     Entao excluo o fornecedor com o nome "teste automatizado" do banco de dados
 
     Exemplos:
-      | visualizacao | nome_do_fornecedor | cpf_cnpj              |valores_consulta_nome_fornecedor |valores_consulta_cpf_cnpj| caso                                                     |
-      | web          | teste automatizado |     84434384791       | teste automatizado              | 844.343.847-91          |   informando dados em todos os campos com valor cpf      |
-      | web          | teste automatizado |  17863885000155       | teste automatizado              | 17.863.885/0001-55      |   informando dados em todos os campos com valor cnpj     |
-      | web          |                    |  17863885000155       | teste automatizado              | 17.863.885/0001-55      |   informando dados somente no campo de cnpj              |
-      | web          |                    |     84434384791       | teste automatizado              | 844.343.847-91          |   informando dados somente no campo de cpf               |
-      | web          | teste automatizado |     84434384791       | teste automatizado              |                         |   informando dados somente no campo de nome              |
+      | visualizacao | nome_do_fornecedor   | cpf_cnpj              |valores_consulta_nome_fornecedor |valores_consulta_cpf_cnpj| caso                                                     |
+      | web          | testes automatizados |     84434384791       | testes automatizados              | 844.343.847-91          |   informando dados em todos os campos com valor cpf      |
+      | web          | testes automatizados |  17863885000155       | testes automatizados              | 17.863.885/0001-55      |   informando dados em todos os campos com valor cnpj     |
+      | web          |                      |  17863885000155       | testes automatizados              | 17.863.885/0001-55      |   informando dados somente no campo de cnpj              |
+      | web          |                      |     84434384791       | testes automatizados              | 844.343.847-91          |   informando dados somente no campo de cpf               |
+      | web          | testes automatizados |     84434384791       | testes automatizados              |                         |   informando dados somente no campo de nome              |

@@ -1,6 +1,7 @@
 from sme_ptrf_apps.core.models import TipoAcertoDocumento, TipoAcertoLancamento
 
 
+
 def possui_apenas_categorias_que_nao_requerem_ata(prestacao_conta):
     """
     Verifica se a prestação de contas possui apenas categorias que não requerem

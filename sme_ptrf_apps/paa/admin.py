@@ -42,7 +42,8 @@ class ParametroPaaAdmin(admin.ModelAdmin):
         }),
         ('Texto PAA (UE)', {
             'fields':
-                ('texto_pagina_paa_ue', 'introducao_do_paa_ue_1', 'introducao_do_paa_ue_2', 'conclusao_do_paa_ue_1', 'conclusao_do_paa_ue_2')
+                ('texto_pagina_paa_ue', 'introducao_do_paa_ue_1', 'introducao_do_paa_ue_2',
+                 'conclusao_do_paa_ue_1', 'conclusao_do_paa_ue_2')
         }),
     )
 
@@ -133,7 +134,7 @@ class PrioridadePaaAdmin(admin.ModelAdmin):
     list_filter = ('recurso', 'prioridade', 'tipo_aplicacao', 'programa_pdde', 'acao_pdde', 'paa')
     raw_id_fields = ('paa', 'acao_pdde', 'acao_associacao', 'programa_pdde', 'tipo_despesa_custeio',
                      'especificacao_material')
-    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em', 'paa_importado')
     search_fields = ('acao_associacao__acao__nome', 'acao_associacao__associacao__nome', 'programa_pdde__nome',
                      'acao_pdde__nome', 'tipo_despesa_custeio__nome', 'especificacao_material__descricao')
 
