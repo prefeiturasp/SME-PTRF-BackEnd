@@ -9,6 +9,7 @@ from sme_ptrf_apps.core.api.serializers import (
     DevolucaoAoTesouroRetrieveSerializer
 )
 from sme_ptrf_apps.core.services.processos_services import get_processo_sei_da_prestacao
+from sme_ptrf_apps.core.services.ajuste_services import possui_apenas_categorias_que_nao_requerem_ata
 
 from sme_ptrf_apps.dre.api.serializers.motivo_aprovacao_ressalva_serializer import MotivoAprovacaoRessalvaSerializer
 from sme_ptrf_apps.dre.api.serializers.motivo_reprovacao_serializer import MotivoReprovacaoSerializer
@@ -112,7 +113,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     devolucao_atual = serializers.SerializerMethodField('get_devolucao_atual')
     ata_aprensentacao_gerada = serializers.SerializerMethodField('get_ata_aprensentacao_gerada')
     ata_retificacao_gerada = serializers.SerializerMethodField('get_ata_retificacao_gerada')
-    tem_apenas_ajustes_externos = serializers.SerializerMethodField('get_tem_apenas_ajustes_externos')
+    possui_apenas_categorias_que_nao_requerem_ata = serializers.SerializerMethodField('get_possui_apenas_categorias_que_nao_requerem_ata')
 
     def get_ata_aprensentacao_gerada(self, obj):
         return obj.ata_apresentacao_gerada()
@@ -120,9 +121,8 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     def get_ata_retificacao_gerada(self, obj):
         return obj.ata_retificacao_gerada()
 
-    def get_tem_apenas_ajustes_externos(self, obj):
-        from sme_ptrf_apps.core.services.ajuste_services import tem_apenas_ajustes_externos
-        return tem_apenas_ajustes_externos(obj)
+    def get_possui_apenas_categorias_que_nao_requerem_ata(self, obj):
+        return possui_apenas_categorias_que_nao_requerem_ata(obj)
 
     def get_periodo_uuid(self, obj):
         return obj.periodo.uuid
@@ -310,7 +310,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'periodo_referencia',
             'ata_aprensentacao_gerada',
             'ata_retificacao_gerada',
-            'tem_apenas_ajustes_externos'
+            'possui_apenas_categorias_que_nao_requerem_ata'
         )
 
 

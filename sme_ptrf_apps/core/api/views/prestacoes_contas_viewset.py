@@ -7,6 +7,7 @@ from django.db.utils import IntegrityError
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status, serializers
 from rest_framework.decorators import action
+from sme_ptrf_apps.core.services.ajuste_services import possui_apenas_categorias_que_nao_requerem_ata
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -2054,7 +2055,10 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        if not prestacao_conta.ata_retificacao_gerada():
+        if (
+            not prestacao_conta.ata_retificacao_gerada()
+            and not possui_apenas_categorias_que_nao_requerem_ata(prestacao_conta)
+        ):
             response = {
                 'uuid': f'{uuid}',
                 'erro': 'pendencias',
