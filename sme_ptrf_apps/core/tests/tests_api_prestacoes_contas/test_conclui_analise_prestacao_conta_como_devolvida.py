@@ -11,6 +11,7 @@ from ...models import PrestacaoConta
 
 pytestmark = pytest.mark.django_db
 
+
 @pytest.fixture
 def prestacao_conta_2020_1_em_analise(periodo_2020_1, associacao):
     return baker.make(
@@ -29,15 +30,16 @@ def analise_prestacao_conta_2020_1_em_analise(prestacao_conta_2020_1_em_analise,
         prestacao_conta=prestacao_conta_2020_1_em_analise,
     )
 
+
 @pytest.fixture
-def prestacao_conta_em_analise(periodo, associacao, analise_prestacao_conta_2020_1_em_analise):
+def prestacao_conta_em_analise(periodo, associacao):
+
     return baker.make(
         'PrestacaoConta',
         periodo=periodo,
         associacao=associacao,
         data_recebimento=date(2020, 10, 1),
         status=PrestacaoConta.STATUS_EM_ANALISE,
-        analise_atual=analise_prestacao_conta_2020_1_em_analise
     )
 
 
@@ -121,7 +123,23 @@ def tipo_devolucao_ao_tesouro():
 
 @freeze_time('2020-09-01')
 def test_api_conclui_analise_prestacao_conta_devolvida(jwt_authenticated_client_a, prestacao_conta_em_analise,
-                                                       conta_associacao, despesa, tipo_devolucao_ao_tesouro):
+                                                       conta_associacao, despesa, tipo_devolucao_ao_tesouro,
+                                                       observacao_conciliacao_factory, pdf_factory, analise_prestacao_conta_factory):
+
+    analise = analise_prestacao_conta_factory(
+        prestacao_conta=prestacao_conta_em_analise
+    )
+    prestacao_conta_em_analise.analise_atual = analise
+    prestacao_conta_em_analise.save()
+
+    observacao_conciliacao_factory(
+        data_extrato='2020-07-01',
+        saldo_extrato=0,
+        periodo=prestacao_conta_em_analise.periodo,
+        associacao=prestacao_conta_em_analise.associacao,
+        conta_associacao=conta_associacao,
+        comprovante_extrato=pdf_factory())
+
     payload = {
         'analises_de_conta_da_prestacao': [
             {
@@ -145,6 +163,36 @@ def test_api_conclui_analise_prestacao_conta_devolvida(jwt_authenticated_client_
     assert prestacao_atualizada.devolucoes_da_prestacao.exists(), 'Não gravou o registro de devolução da PC.'
     assert prestacao_atualizada.devolucoes_da_prestacao.first().data_limite_ue == date(2020, 7,
                                                                                        21), 'Não gravou a data limite.'
+
+
+@freeze_time('2020-09-01')
+def test_api_conclui_analise_prestacao_conta_devolvida_com_pendencias_conciliacao(jwt_authenticated_client_a, prestacao_conta_em_analise,
+                                                                                  conta_associacao, despesa, tipo_devolucao_ao_tesouro,
+                                                                                  analise_prestacao_conta_factory):
+    analise = analise_prestacao_conta_factory(
+        prestacao_conta=prestacao_conta_em_analise
+    )
+    prestacao_conta_em_analise.analise_atual = analise
+    prestacao_conta_em_analise.save()
+
+    payload = {
+        'analises_de_conta_da_prestacao': [
+            {
+                'conta_associacao': f'{conta_associacao.uuid}',
+                'data_extrato': '2020-07-01',
+                'saldo_extrato': 100.00,
+            },
+        ],
+        'resultado_analise': PrestacaoConta.STATUS_DEVOLVIDA,
+        'data_limite_ue': '2020-07-21',
+    }
+
+    url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/concluir-analise/'
+
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data['erro'] == 'devolucao_invalida'
 
 
 def test_api_conclui_analise_prestacao_conta_aprovada_ressalva_exige_data_limite(jwt_authenticated_client_a,

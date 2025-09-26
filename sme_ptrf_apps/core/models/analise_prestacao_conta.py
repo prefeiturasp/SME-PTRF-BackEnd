@@ -379,6 +379,48 @@ class AnalisePrestacaoConta(ModeloBase):
             f'É necessário recalcular fechamentos e documentos? {analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes}')
         return analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes
 
+    def tem_acertos_que_podem_alterar_saldo_conciliacao(self):
+        from sme_ptrf_apps.core.models import SolicitacaoAcertoLancamento, SolicitacaoAcertoDocumento
+
+        analises_de_lancamento_que_podem_alterar_saldo_conciliacao = self.analises_de_lancamentos.filter(
+            solicitacoes_de_ajuste_da_analise__tipo_acerto__pode_alterar_saldo_conciliacao=True,
+            solicitacoes_de_ajuste_da_analise__status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE
+        )
+
+        analises_de_documento_que_podem_alterar_saldo_conciliacao = self.analises_de_documento.filter(
+            solicitacoes_de_ajuste_da_analise__tipo_acerto__pode_alterar_saldo_conciliacao=True,
+            solicitacoes_de_ajuste_da_analise__status_realizacao=SolicitacaoAcertoDocumento.STATUS_REALIZACAO_PENDENTE
+        )
+
+        logger.debug(f'Prestação de conta: {self.prestacao_conta.id}')
+        logger.debug(f'Análise de Prestação de conta: {self.id}')
+        logger.debug(
+            f'analises_de_lancamento_que_podem_alterar_saldo_conciliacao: {analises_de_lancamento_que_podem_alterar_saldo_conciliacao}')
+        logger.debug(
+            f'analises_de_documento_que_podem_alterar_saldo_conciliacao: {analises_de_documento_que_podem_alterar_saldo_conciliacao}')
+
+        return (analises_de_lancamento_que_podem_alterar_saldo_conciliacao.exists() or
+                analises_de_documento_que_podem_alterar_saldo_conciliacao.exists())
+
+    def tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta(self):
+        contas_pendentes = self.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta()
+
+        return True if len(contas_pendentes) > 0 else False
+
+    def contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta(self):
+        contas = []
+
+        contas_pendentes = self.prestacao_conta.associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(
+            self.prestacao_conta.periodo)
+
+        for conta in contas_pendentes:
+
+            requer_acertos = self.requer_acertos_em_extrato_na_conta_associacao(conta)
+            if not requer_acertos:
+                contas.append(conta)
+
+        return contas
+
     @classmethod
     def editavel(cls, uuid_analise, visao):
         analise = AnalisePrestacaoConta.by_uuid(uuid_analise)
