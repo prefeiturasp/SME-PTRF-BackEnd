@@ -1,5 +1,5 @@
 from django_filters import rest_framework as filters
-from rest_framework import mixins, status
+from rest_framework import mixins, status, serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 from ..serializers.tipo_acerto_documento_serializer import (
@@ -10,9 +10,54 @@ from ...models import TipoAcertoDocumento, TipoDocumentoPrestacaoConta
 from sme_ptrf_apps.users.permissoes import PermissaoApiDre
 from rest_framework.response import Response
 from rest_framework.decorators import action
-from ....utils.choices_to_json import choices_to_json
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+    OpenApiParameter,
+    inline_serializer
+)
 
 
+@extend_schema_view(
+    list=extend_schema(
+        description=(
+            "Retorna a lista de tipos de acerto de documento. "
+            "Permite filtrar por **nome**, **categoria**, **ativo**, "
+            "**documento_relacionado** e também pelo campo relacional "
+            "**tipos_documento_prestacao__uuid**."
+        ),
+        parameters=[
+            OpenApiParameter("nome", str, OpenApiParameter.QUERY,
+                             description="Filtra pelo nome (case-insensitive, acento ignorado)"),
+            OpenApiParameter("categoria", str, OpenApiParameter.QUERY,
+                             description="Filtra por categorias (separadas por vírgula)"),
+            OpenApiParameter("ativo", bool, OpenApiParameter.QUERY, description="Filtra por ativo (true/false)"),
+            OpenApiParameter("documento_relacionado", str, OpenApiParameter.QUERY,
+                             description="Filtra pelos IDs de documentos relacionados (separados por vírgula)"),
+        ],
+        responses={200: TipoAcertoDocumentoListaSerializer(many=True)},
+    ),
+    tabelas=extend_schema(
+        description=(
+            "Retorna as categorias disponíveis, os tipos de acerto agrupados por categoria "
+            "e a lista de documentos de prestação de contas."
+        ),
+        parameters=[
+            OpenApiParameter("tipos_documento_prestacao__uuid", str, OpenApiParameter.QUERY,
+                             description="Filtra pelo UUID de TipoDocumentoPrestacaoConta"),
+        ],
+        responses={
+            200: inline_serializer(
+                name="TabelaTiposAcertoDocumento",
+                fields={
+                    "categorias": serializers.ListField(child=serializers.CharField()),
+                    "agrupado_por_categorias": serializers.DictField(),
+                    "documentos": serializers.ListField(child=serializers.DictField()),
+                },
+            ),
+        },
+    )
+)
 class TiposAcertoDocumentoViewSet(mixins.ListModelMixin,
                                   mixins.RetrieveModelMixin,
                                   mixins.CreateModelMixin,
@@ -83,4 +128,3 @@ class TiposAcertoDocumentoViewSet(mixins.ListModelMixin,
         }
 
         return Response(result, status=status.HTTP_200_OK)
-

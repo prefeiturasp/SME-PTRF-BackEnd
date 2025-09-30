@@ -11,10 +11,166 @@ from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiExample
+
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(
+    limpar_status=extend_schema(
+        description="Recebe uma lista de UUIDs de solicitações de acerto e limpa o status delas.",
+        request={
+            "payload": {
+                "type": "object", "required": True, "properties": {
+                    "uuids_solicitacoes_acertos_lancamentos": {"type": "array", "items": {"type": "string"}},
+                    "justificativa": {"type": "string"}
+                }
+            }
+        },
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value={"mensagem": "Status alterado com sucesso!", "status": 200})
+        ]
+    ),
+    justificar_nao_realizacao=extend_schema(
+        description="Registra uma justificativa para a não realização de uma solicitação de acerto.",
+        request={
+            "payload": {
+                "type": "object", "required": True, "properties": {
+                    "uuids_solicitacoes_acertos_lancamentos": {"type": "array", "items": {"type": "string"}},
+                    "justificativa": {"type": "string"}
+                }
+            }
+        },
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value={
+                "mensagem": "Status alterados com sucesso!",
+                "status": 200,
+                "todas_as_solicitacoes_marcadas_como_justificado": True,
+            })
+        ]
+    ),
+    marcar_como_realizado=extend_schema(
+        description="Marca solicitações de acerto como realizadas.",
+        request={
+            "payload": {
+                "type": "object", "required": True, "properties": {
+                    "uuids_solicitacoes_acertos_lancamentos": {"type": "array", "items": {"type": "string"}},
+                    "justificativa": {"type": "string"}
+                }
+            }
+        },
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value={
+                "mensagem": "Status alterados com sucesso!",
+                "status": status.HTTP_200_OK,
+                "todas_as_solicitacoes_marcadas_como_realizado": True,
+            })
+        ]
+    ),
+    tabelas=extend_schema(
+        description="Retorna tabelas de apoio (status de realização, editabilidade, etc).",
+        parameters=[
+            OpenApiParameter("uuid_analise_prestacao", str, OpenApiParameter.QUERY,
+                             description="UUID da análise de prestação"),
+            OpenApiParameter("visao", str, OpenApiParameter.QUERY,
+                             description="Visão do usuário"),
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value={
+                "status_realizacao": "|".join([
+                    AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE,
+                    AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO,
+                    AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_JUSTIFICADO,
+                    AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_JUSTIFICADO,
+                    AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_REALIZADO_PARCIALMENTE
+                ]),
+                "status_realizacao_solicitacao": "|".join([
+                    SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE,
+                    SolicitacaoAcertoLancamento.STATUS_REALIZACAO_REALIZADO,
+                    SolicitacaoAcertoLancamento.STATUS_REALIZACAO_JUSTIFICADO
+                ]),
+                "editavel": True
+            })
+        ]
+    ),
+    marcar_devolucao_tesouro_atualizada=extend_schema(
+        description="Atualiza a devolução ao Tesouro como **atualizada**.",
+        responses={200: AnaliseLancamentoPrestacaoContaRetrieveSerializer},
+    ),
+    marcar_devolucao_tesouro_nao_atualizada=extend_schema(
+        description="Atualiza a devolução ao Tesouro como **não atualizada**.",
+        responses={200: AnaliseLancamentoPrestacaoContaRetrieveSerializer},
+    ),
+    marcar_lancamento_atualizado=extend_schema(
+        description="Marca o lançamento como **atualizado**.",
+        responses={200: AnaliseLancamentoPrestacaoContaRetrieveSerializer},
+    ),
+    marcar_lancamento_excluido=extend_schema(
+        description="Marca o lançamento como **excluído**.",
+        responses={200: AnaliseLancamentoPrestacaoContaRetrieveSerializer},
+    ),
+    marcar_como_esclarecido=extend_schema(
+        description="Adiciona esclarecimento e marca a solicitação como esclarecida.",
+        request={
+            "payload": {
+                "type": "object", "required": True, "properties": {
+                    "uuid_solicitacao_acerto": {"type": "string"},
+                    "esclarecimento": {"type": "string"}
+                }
+            }
+        },
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value={
+                "mensagem": "Esclarecimento atualizado com sucesso.",
+                "status": 200,
+            })
+        ]
+    ),
+    marcar_como_conciliado=extend_schema(
+        description="Marca o lançamento como conciliado em um período específico.",
+        request={
+            "payload": {
+                "type": "object", "required": True, "properties": {
+                    "uuid_analise_lancamento": {"type": "string"},
+                    "uuid_periodo": {"type": "string"}
+                }
+            }
+        },
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample('Resposta', value={
+                "mensagem": "Esclarecimento atualizado com sucesso.",
+                "status": 200
+            })
+        ]
+    ),
+    marcar_como_desconciliado=extend_schema(
+        description="Remove a conciliação de um lançamento previamente conciliado.",
+        request={
+            "payload": {
+                "type": "object", "required": True, "properties": {
+                    "uuid_analise_lancamento": {"type": "string"},
+                }
+            }
+        },
+        responses={200: AnaliseLancamentoPrestacaoContaRetrieveSerializer},
+    ),
+    tags_informacoes_conferencia_list=extend_schema(
+        description="Retorna as tags utilizadas nas informações de conferência.",
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample(
+                'Resposta',
+                value=AnaliseLancamentoPrestacaoConta.get_tags_informacoes_de_conferencia_list())
+        ],
+    ),
+)
 class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
                                              mixins.RetrieveModelMixin,
                                              GenericViewSet):
@@ -119,7 +275,9 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
         except (ValidationError, Exception):
             erro = {
                 'erro': 'objeto_analise_lancamento_pc_nao_encontrado',
-                'mensagem': f'Não foi encontrado um objeto Análise de Lançamento da PC com o uuid {uuid_analise_lancamento} na base'
+                'mensagem': (
+                    'Não foi encontrado um objeto Análise de Lançamento da PC com '
+                    f'o uuid {uuid_analise_lancamento} na base')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -128,12 +286,16 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
                 analise_lancamento=analise_lancamento
             )
 
-            return Response(AnaliseLancamentoPrestacaoContaRetrieveSerializer(response, many=False).data, status=status.HTTP_200_OK)
+            return Response(
+                AnaliseLancamentoPrestacaoContaRetrieveSerializer(response, many=False).data,
+                status=status.HTTP_200_OK)
 
-        except:
+        except:  # noqa
             erro = {
                 'erro': 'erro_ao_passar_devolucao_ao_tesouro_para_autalizada',
-                'mensagem': f'Não foi possível passar a Devolução ao Tesouro da Análise de Lançamento da PC {uuid_analise_lancamento} para atualizada'
+                'mensagem': (
+                    'Não foi possível passar a Devolução ao Tesouro da Análise de Lançamento da '
+                    f'PC {uuid_analise_lancamento} para atualizada')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -154,7 +316,9 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
         except (ValidationError, Exception):
             erro = {
                 'erro': 'objeto_analise_lancamento_pc_nao_encontrado',
-                'mensagem': f'Não foi encontrado um objeto Análise de Lançamento da PC com o uuid {uuid_analise_lancamento} na base'
+                'mensagem': (
+                    f'Não foi encontrado um objeto Análise de Lançamento da PC com o uuid {uuid_analise_lancamento} '
+                    'na base')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -163,12 +327,16 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
                 analise_lancamento=analise_lancamento
             )
 
-            return Response(AnaliseLancamentoPrestacaoContaRetrieveSerializer(response, many=False).data, status=status.HTTP_200_OK)
+            return Response(
+                AnaliseLancamentoPrestacaoContaRetrieveSerializer(response, many=False).data,
+                status=status.HTTP_200_OK)
 
-        except:
+        except:  # noqa
             erro = {
                 'erro': 'erro_ao_passar_devolucao_ao_tesouro_para_nao_autalizada',
-                'mensagem': f'Não foi possível passar a Devolução ao Tesouro da Análise de Lançamento da PC {uuid_analise_lancamento} para não atualizada'
+                'mensagem': (
+                    'Não foi possível passar a Devolução ao Tesouro da Análise de Lançamento da '
+                    f'PC {uuid_analise_lancamento} para não atualizada')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -189,7 +357,9 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
         except (ValidationError, Exception):
             erro = {
                 'erro': 'objeto_analise_lancamento_pc_nao_encontrado',
-                'mensagem': f'Não foi encontrado um objeto Análise de Lançamento da PC com o uuid {uuid_analise_lancamento} na base'
+                'mensagem': (
+                    f'Não foi encontrado um objeto Análise de Lançamento da PC com o uuid {uuid_analise_lancamento} '
+                    'na base')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -198,12 +368,15 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
                 analise_lancamento=analise_lancamento
             )
 
-            return Response(AnaliseLancamentoPrestacaoContaRetrieveSerializer(response, many=False).data, status=status.HTTP_200_OK)
+            return Response(
+                AnaliseLancamentoPrestacaoContaRetrieveSerializer(response, many=False).data,
+                status=status.HTTP_200_OK)
 
-        except:
+        except:  # noqa
             erro = {
                 'erro': 'erro_ao_passar_devolucao_ao_tesouro_para_autalizada',
-                'mensagem': f'Não foi possível passar o Lançamento da Análise UUID: {uuid_analise_lancamento} para atualizado'
+                'mensagem': (
+                    f'Não foi possível passar o Lançamento da Análise UUID: {uuid_analise_lancamento} para atualizado')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -224,7 +397,9 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
         except (ValidationError, Exception):
             erro = {
                 'erro': 'objeto_analise_lancamento_pc_nao_encontrado',
-                'mensagem': f'Não foi encontrado um objeto Análise de Lançamento da PC com o uuid {uuid_analise_lancamento} na base'
+                'mensagem': (
+                    f'Não foi encontrado um objeto Análise de Lançamento da PC com o uuid {uuid_analise_lancamento} '
+                    'na base')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -233,12 +408,15 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
                 analise_lancamento=analise_lancamento
             )
 
-            return Response(AnaliseLancamentoPrestacaoContaRetrieveSerializer(response, many=False).data, status=status.HTTP_200_OK)
+            return Response(
+                AnaliseLancamentoPrestacaoContaRetrieveSerializer(response, many=False).data,
+                status=status.HTTP_200_OK)
 
-        except:
+        except:  # noqa
             erro = {
                 'erro': 'erro_ao_passar_devolucao_ao_tesouro_para_autalizada',
-                'mensagem': f'Não foi possível passar o Lançamento da Análise UUID: {uuid_analise_lancamento} para excluído'
+                'mensagem': (
+                    f'Não foi possível passar o Lançamento da Análise UUID: {uuid_analise_lancamento} para excluído')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -280,7 +458,6 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
         analise_lancamento = AnaliseLancamentoPrestacaoConta.by_uuid(uuid_analise_lancamento)
         periodo = Periodo.by_uuid(uuid_periodo)
 
-
         try:
             response = AnaliseLancamentoPrestacaoContaService.marcar_lancamento_como_conciliado(
                 analise_lancamento=analise_lancamento,
@@ -294,10 +471,11 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
 
             erro = {
                 'erro': 'erro_ao_conciliar',
-                'mensagem': f'Não foi possível passar o Lançamento da Análise UUID: {uuid_analise_lancamento} para conciliado'
+                'mensagem': (
+                    f'Não foi possível passar o Lançamento da Análise UUID: {uuid_analise_lancamento} '
+                    'para conciliado')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
 
     @action(detail=False, methods=['post'], url_path='marcar-como-desconciliado',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
@@ -323,7 +501,9 @@ class AnaliseLancamentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
 
             erro = {
                 'erro': 'erro_ao_desconciliar',
-                'mensagem': f'Não foi possível passar o Lançamento da Análise UUID: {uuid_analise_lancamento} para desconciliado'
+                'mensagem': (
+                    f'Não foi possível passar o Lançamento da Análise UUID: {uuid_analise_lancamento} '
+                    'para desconciliado')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 

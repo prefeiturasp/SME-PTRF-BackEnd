@@ -773,7 +773,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
-            if prestacao_conta.analise_atual and prestacao_conta.analise_atual.tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta():
+            if prestacao_conta.analise_atual and prestacao_conta.analise_atual.tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta():  # noqa
                 response = {
                     'uuid': f'{uuid}',
                     'erro': 'devolucao_invalida',
