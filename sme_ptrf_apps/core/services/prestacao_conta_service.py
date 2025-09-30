@@ -577,3 +577,41 @@ class PrestacaoContaService:
             self.logger.info(f'Apagando prévias demonstrativo financeiro da conta {conta}.')
             DemonstrativoFinanceiro.objects.filter(periodo_previa=self.periodo, conta_associacao=conta).delete()
         self.logger.info(f'Prévias de documentos apagadas.')
+
+    def contas_com_saldo_alterado_sem_solicitacao(self):
+        from sme_ptrf_apps.core.services.resumo_rescursos_service import ResumoRecursosService
+        contas_alteradas = []
+
+        if self.e_retorno_devolucao:
+            contas = self.prestacao.contas_ativas_no_periodo()
+
+            for conta in contas:
+                self.logger.info(f'Conta: {conta}')
+                resumo = ResumoRecursosService.resumo_recursos(
+                    periodo=self.prestacao.periodo,
+                    conta_associacao=conta
+                )
+
+                resumo.get_saldos_por_fechamento()
+                if resumo.saldo_posterior:
+                    saldo_fechamento = resumo.saldo_posterior.total_geral
+                    self.logger.info(f'Saldo fechamento: {saldo_fechamento}')
+                else:
+                    saldo_fechamento = 0
+                    self.logger.info('Conta sem fechamentos')
+
+                resumo.get_saldos_pelo_movimento()
+                if resumo.saldo_posterior:
+                    saldo_calculado = resumo.saldo_posterior.total_geral
+                    self.logger.info(f'Saldo calculado: {saldo_calculado}')
+                else:
+                    saldo_calculado = 0
+                    self.logger.info('Conta movimentação')
+
+                ultima_analise = self.prestacao.ultima_analise()
+                requer_acertos = ultima_analise.requer_acertos_em_saldo_na_conta_associacao(conta)
+
+                if saldo_fechamento != saldo_calculado and not requer_acertos:
+                    contas_alteradas.append(conta)
+
+        return contas_alteradas
