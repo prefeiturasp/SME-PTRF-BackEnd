@@ -14,13 +14,120 @@ from ..serializers.presentes_ata_serializer import PresentesAtaSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db.models import Q
-from sme_ptrf_apps.core.choices import MembroEnum, RepresentacaoCargo
+from sme_ptrf_apps.core.choices import MembroEnum
 from rest_framework import status
 from django.core.exceptions import ValidationError
 from sme_ptrf_apps.utils.remove_digitos_str import remove_digitos
 from waffle import get_waffle_flag_model
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiExample
 
 
+@extend_schema_view(
+    membros_e_nao_membros=extend_schema(
+        description="Retorna a lista de membros e não membros presentes em uma ata.",
+        parameters=[
+            OpenApiParameter(name="ata_uuid", type=str, location=OpenApiParameter.QUERY,
+                             description="UUID da ata", required=True)
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample(
+                name="Exemplo de resposta",
+                value={
+                    'presentes_membros': [],
+                    'presentes_nao_membros': [],
+                    'presentes_ata_conselho_fiscal': []
+                }
+            )
+        ]
+    ),
+    padrao_presentes=extend_schema(
+        description="Retorna os membros padrão de uma ata para marcação de presença.",
+        parameters=[
+            OpenApiParameter(name="ata_uuid", type=str, location=OpenApiParameter.QUERY,
+                             description="UUID da ata", required=True)
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample(
+                name="Exemplo de resposta",
+                value=[{
+                    "ata": 'uuid-1234',
+                    "cargo": '',
+                    "identificacao": '',
+                    "nome": '',
+                    "editavel": False,
+                    "membro": True,
+                    "presente": True
+                }]
+            )
+        ]
+    ),
+    presentes_padrao_conselho_fiscal=extend_schema(
+        description="Retorna os membros padrão do conselho fiscal de uma ata.",
+        parameters=[
+            OpenApiParameter(name="ata_uuid", type=str, location=OpenApiParameter.QUERY,
+                             description="UUID da ata")
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample(
+                name="Exemplo de resposta",
+                value={
+                    "presidente_conselho_fiscal": "",
+                    "conselheiro_1": "",
+                    "conselheiro_2": "",
+                    "conselheiro_3": "",
+                    "conselheiro_4": "",
+                    "conselheiro_5": "",
+                }
+            )
+        ]
+    ),
+    get_nome_cargo_membro_associacao=extend_schema(
+        description="Retorna o nome e cargo de um membro da associação ou participante da ata.",
+        parameters=[
+            OpenApiParameter(name="ata_uuid", type=str, location=OpenApiParameter.QUERY,
+                             description="UUID da ata"),
+            OpenApiParameter(name="identificador", type=str, location=OpenApiParameter.QUERY,
+                             description="CPF ou código de identificação do membro", required=True),
+            OpenApiParameter(name="data", type=str, required=False, location=OpenApiParameter.QUERY,
+                             description="Data de referência")
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample(
+                name="Exemplo de resposta",
+                value={"mensagem": "", "nome": "", "cargo": ""}
+            )
+        ]
+    ),
+    get_participantes_ordenados_por_cargo=extend_schema(
+        description="Retorna todos os participantes de uma ata ordenados pelo cargo.",
+        parameters=[
+            OpenApiParameter(name="ata_uuid", type=str, location=OpenApiParameter.QUERY,
+                             description="UUID da ata")
+        ],
+        responses={200: 'result'},
+        examples=[
+            OpenApiExample(
+                name="Exemplo de resposta",
+                value=[
+                    {
+                        'id': 0,
+                        'identificacao': "",
+                        'nome': "",
+                        'cargo': "",
+                        'membro': "",
+                        'presente': "",
+                        'presidente_da_reuniao': "",
+                        'secretario_da_reuniao': "",
+                    }
+                ]
+            )
+        ]
+    ),
+)
 class PresentesAtaViewSet(mixins.CreateModelMixin,
                           mixins.RetrieveModelMixin,
                           mixins.UpdateModelMixin,
@@ -48,7 +155,7 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            valida_ata = Ata.by_uuid(ata_uuid)
+            Ata.by_uuid(ata_uuid)
         except ValidationError:
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -63,7 +170,7 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
         associacao = ata.associacao
 
         flags = get_waffle_flag_model()
-        if flags.objects.filter(name='historico-de-membros', everyone=True).exists():   
+        if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
             if not presentes_ata_membros or not ata.data_reuniao:
                 result = {
                     'presentes_membros': [],
@@ -72,20 +179,23 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
                 }
                 return Response(result)
             else:
-                presentes_ata_membros_conselho_fiscal = Participante.objects.filter(ata=ata).filter(membro=True, conselho_fiscal=True).values()
-                presentes_ata_membros_conselho_fiscal_ordenados = sorted(presentes_ata_membros_conselho_fiscal, key=Participante.ordenar_por_cargo)
-                
+                presentes_ata_membros_conselho_fiscal = Participante.objects.filter(ata=ata).filter(
+                    membro=True, conselho_fiscal=True).values()
+                presentes_ata_membros_conselho_fiscal_ordenados = sorted(presentes_ata_membros_conselho_fiscal,
+                                                                         key=Participante.ordenar_por_cargo)
+
                 presentes_ata_membros_ordenados = sorted(presentes_ata_membros, key=Participante.ordenar_por_cargo)
-                
-                presentes_ata_nao_membros_ordenados = sorted(presentes_ata_nao_membros, key=Participante.ordenar_por_cargo)
-                
+
+                presentes_ata_nao_membros_ordenados = sorted(presentes_ata_nao_membros,
+                                                             key=Participante.ordenar_por_cargo)
+
                 result = {
                     'presentes_membros': presentes_ata_membros_ordenados,
                     'presentes_nao_membros': presentes_ata_nao_membros_ordenados,
                     'presentes_ata_conselho_fiscal': presentes_ata_membros_conselho_fiscal_ordenados
                 }
                 return Response(result)
-            
+
         else:
             if not presentes_ata_membros:
                 membros_associacao = ata.associacao.membros_por_cargo()
@@ -106,8 +216,8 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
 
                 presentes_ata_conselho_fiscal = retorna_membros_do_conselho_fiscal_por_associacao(associacao)
             else:
-                presentes_ata_conselho_fiscal = Participante.objects.filter(ata=ata).filter(membro=True, conselho_fiscal=True).values()
-
+                presentes_ata_conselho_fiscal = Participante.objects.filter(ata=ata).filter(
+                    membro=True, conselho_fiscal=True).values()
 
             result = {
                 'presentes_membros': presentes_ata_membros,
@@ -129,7 +239,7 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            valida_ata = Ata.by_uuid(ata_uuid)
+            Ata.by_uuid(ata_uuid)
         except ValidationError:
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -158,7 +268,8 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
 
         return Response(membros)
 
-    @action(detail=False, url_path='presentes-padrao-conselho-fiscal', permission_classes=[IsAuthenticated & PermissaoApiUe])
+    @action(detail=False, url_path='presentes-padrao-conselho-fiscal',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
     def presentes_padrao_conselho_fiscal(self, request):
         ata_uuid = request.query_params.get('ata_uuid')
 
@@ -170,7 +281,7 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            valida_ata = Ata.by_uuid(ata_uuid)
+            Ata.by_uuid(ata_uuid)
         except ValidationError:
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -199,7 +310,8 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
 
         return Response(result)
 
-    @action(detail=False, url_path='get-nome-cargo-membro-associacao', permission_classes=[IsAuthenticated & PermissaoApiUe])
+    @action(detail=False, url_path='get-nome-cargo-membro-associacao',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
     def get_nome_cargo_membro_associacao(self, request):
         ata_uuid = request.query_params.get('ata_uuid')
         identificador = request.query_params.get('identificador')
@@ -230,21 +342,21 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
         flags = get_waffle_flag_model()
         if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
             data = request.query_params.get('data')
-            
+
             if data and valida_ata and valida_ata.associacao and valida_ata.associacao.id:
 
                 servico_composicao = ServicoRecuperaComposicaoPorData()
                 composicao = servico_composicao.get_composicao_por_data_e_associacao(data, valida_ata.associacao.id)
-  
+
                 try:
                     ocupante_existe = OcupanteCargo.objects.filter(
                         Q(codigo_identificacao=identificador) | Q(cpf_responsavel=identificador)
                     ).get()
-                
-                    if composicao.cargos_da_composicao_da_composicao.filter(ocupante_do_cargo__codigo_identificacao=identificador).exists() or composicao.cargos_da_composicao_da_composicao.filter(ocupante_do_cargo__cpf_responsavel=identificador).exists():
+
+                    if composicao.cargos_da_composicao_da_composicao.filter(ocupante_do_cargo__codigo_identificacao=identificador).exists() or composicao.cargos_da_composicao_da_composicao.filter(ocupante_do_cargo__cpf_responsavel=identificador).exists():  # noqa
                         # Ocupante encontrado na composição
                         cargo = CargoComposicao.objects.get(composicao=composicao, ocupante_do_cargo=ocupante_existe)
-                        
+
                         result = {
                             "mensagem": "membro-encontrado",
                             "nome": ocupante_existe.nome,
@@ -253,12 +365,12 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
                     else:
                         result = Participante.get_informacao_servidor(identificador)
                     return Response(result)
-                except:
+                except:  # noqa
                     result = Participante.get_informacao_servidor(identificador)
-                    return Response(result) 
+                    return Response(result)
             else:
                 result = Participante.get_informacao_servidor(identificador)
-                return Response(result)  
+                return Response(result)
         else:
             ata = Ata.objects.filter(uuid=ata_uuid).first()
             membros_associacao = MembroAssociacao.objects.filter(associacao=ata.associacao)
@@ -279,11 +391,11 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
 
             return Response(result)
 
-
-    @action(detail=False, url_path='get-participantes-ordenados-por-cargo', permission_classes=[IsAuthenticated & PermissaoApiUe])
+    @action(detail=False, url_path='get-participantes-ordenados-por-cargo',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
     def get_participantes_ordenados_por_cargo(self, request):
         ata_uuid = request.query_params.get('ata_uuid')
-        
+
         if not ata_uuid:
             return Response({'erro': 'O parâmetro "ata_uuid" é obrigatório'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -294,9 +406,9 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
 
         participantes = Participante.objects.filter(ata=ata).values()
         participantes_ordenados = sorted(participantes, key=Participante.ordenar_por_cargo)
-        
+
         response_data = []
-        for participante in participantes_ordenados:           
+        for participante in participantes_ordenados:
             data = {
                 'id': participante["id"],
                 'identificacao': participante["identificacao"],
@@ -304,9 +416,9 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
                 'cargo': participante["cargo"],
                 'membro': participante["membro"],
                 'presente': participante["presente"],
-                'presidente_da_reuniao': participante["id"] == ata.presidente_da_reuniao.id if ata.presidente_da_reuniao else False,
-                'secretario_da_reuniao': participante["id"] == ata.secretario_da_reuniao.id if ata.secretario_da_reuniao else False
+                'presidente_da_reuniao': participante["id"] == ata.presidente_da_reuniao.id if ata.presidente_da_reuniao else False,  # noqa
+                'secretario_da_reuniao': participante["id"] == ata.secretario_da_reuniao.id if ata.secretario_da_reuniao else False  # noqa
             }
             response_data.append(data)
-        
+
         return Response(response_data)
