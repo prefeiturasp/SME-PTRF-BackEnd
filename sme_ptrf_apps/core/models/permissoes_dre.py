@@ -24,6 +24,7 @@ class FuncDreAssociacoesDaDre(models.Model):
             ('access_dados_unidade_dre', '[DRE] Pode acessar dados de uma unidade.'),
             ('access_situacao_financeira_dre', '[DRE] Pode acessar a situação financeira de uma unidade.'),
             ('access_situacao_patrimonial_dre', '[DRE] Pode acessar a situação patrimonial de uma unidade.'),
+            ('aceita_e_rejeita_cancelamento_conta', '[DRE] Pode aceitar e rejeitar encerramento de conta.'),
         )
 
 
