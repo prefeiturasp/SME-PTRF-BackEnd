@@ -371,65 +371,53 @@ class Associacao(ModeloIdNome):
         from ..services import info_resumo_conciliacao
         from sme_ptrf_apps.core.services.conciliacao_services import transacoes_para_conciliacao
 
-        pendencias = {
-            'contas_pendentes': []
-        }
+        contas_pendentes = []
 
         if periodo:
-            if periodo.data_fim_realizacao_despesas:
-                contas = self.contas.filter(
-                    Q(status=ContaAssociacao.STATUS_ATIVA) |
-                    (Q(solicitacao_encerramento__data_de_encerramento_na_agencia__gte=periodo.data_inicio_realizacao_despesas) &
-                     Q(solicitacao_encerramento__data_de_encerramento_na_agencia__lte=periodo.data_fim_realizacao_despesas))
-                )
-            else:
-                contas = self.contas.filter(
-                    Q(status=ContaAssociacao.STATUS_ATIVA) |
-                    (Q(solicitacao_encerramento__data_de_encerramento_na_agencia__gte=periodo.data_inicio_realizacao_despesas))
-                )
-
             observacoes = self.observacoes_conciliacao_da_associacao.filter(periodo=periodo)
 
-            for conta in contas:
-                if not conta.conta_criada_no_periodo_ou_periodo_anteriores(periodo):
-                    continue
+            for conta in self.contas.all():
 
-                resumo = info_resumo_conciliacao(periodo, conta)
-                observacao = observacoes.filter(conta_associacao=conta).first()
-                saldo_posterior = resumo.get('saldo_posterior_total', 0)
+                if conta.ativa_no_periodo(periodo=periodo):
 
-                transacoes_pendentes_conciliacao = transacoes_para_conciliacao(
-                    periodo=periodo,
-                    conta_associacao=conta,
-                    conferido=False,
-                )
+                    resumo = info_resumo_conciliacao(periodo, conta)
+                    observacao = observacoes.filter(conta_associacao=conta).first()
+                    saldo_posterior = resumo.get('saldo_posterior_total', 0)
 
-                saldo_extrato = getattr(observacao, "saldo_extrato", None)
-                data_extrato = getattr(observacao, "data_extrato", None)
-                comprovante_extrato = getattr(observacao, "comprovante_extrato", None)
-                texto_observacao = getattr(observacao, "texto", None)
+                    transacoes_pendentes_conciliacao = transacoes_para_conciliacao(
+                        periodo=periodo,
+                        conta_associacao=conta,
+                        conferido=False,
+                    )
 
-                pendente_observacao = observacao is None or (data_extrato is None or saldo_extrato is None)
+                    saldo_extrato = getattr(observacao, "saldo_extrato", None)
+                    data_extrato = getattr(observacao, "data_extrato", None)
+                    comprovante_extrato = getattr(observacao, "comprovante_extrato", None)
+                    texto_observacao = getattr(observacao, "texto", None)
 
-                pendente_justificativa = (
-                    not pendente_observacao and
-                    (Decimal(saldo_posterior) - saldo_extrato) != 0 and
-                    not transacoes_pendentes_conciliacao and
-                    not texto_observacao
-                )
+                    pendente_observacao = observacao is None or (data_extrato is None or saldo_extrato is None)
+                    pendente_justificativa = (
+                        not pendente_observacao and
+                        (Decimal(saldo_posterior) - saldo_extrato) != 0 and
+                        not transacoes_pendentes_conciliacao and
+                        not texto_observacao
+                    )
 
-                pendente_extrato = (
-                    not pendente_observacao and
-                    not comprovante_extrato
-                )
+                    pendente_extrato = (
+                        not pendente_observacao and
+                        not comprovante_extrato
+                    )
 
-                if pendente_observacao or pendente_justificativa or pendente_extrato:
-                    pendencias['contas_pendentes'].append(conta.uuid)
+                    LOGGER.info(f"Conta associacao: {conta}")
+                    LOGGER.info(f"Período: {periodo}")
+                    LOGGER.info(f"Pendência observacao: {pendente_observacao}")
+                    LOGGER.info(f"Pendência extrato: {pendente_extrato}")
+                    LOGGER.info(f"Pendência justificativa: {pendente_justificativa}")
 
-        if not pendencias['contas_pendentes']:
-            return None
+                    if pendente_observacao or pendente_justificativa or pendente_extrato:
+                        contas_pendentes.append(conta)
 
-        return pendencias
+        return contas_pendentes
 
     def contas_ativas_do_periodo_selecionado(self, periodo):
         contas_a_retornar = []
