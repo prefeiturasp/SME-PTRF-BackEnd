@@ -597,7 +597,7 @@ class PrestacaoContaService:
                     saldo_fechamento = resumo.saldo_posterior.total_geral
                     self.logger.info(f'Saldo fechamento: {saldo_fechamento}')
                 else:
-                    saldo_fechamento = 0
+                    saldo_fechamento = None
                     self.logger.info('Conta sem fechamentos')
 
                 resumo.get_saldos_pelo_movimento()
@@ -611,7 +611,7 @@ class PrestacaoContaService:
                 ultima_analise = self.prestacao.ultima_analise()
                 requer_acertos = ultima_analise.requer_acertos_em_saldo_na_conta_associacao(conta)
 
-                if saldo_fechamento != saldo_calculado and not requer_acertos:
+                if saldo_fechamento is not None and saldo_fechamento != saldo_calculado and not requer_acertos:
                     contas_alteradas.append(conta)
 
         return contas_alteradas
