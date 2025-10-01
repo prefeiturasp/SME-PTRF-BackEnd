@@ -614,4 +614,6 @@ class PrestacaoContaService:
                 if saldo_fechamento is not None and saldo_fechamento != saldo_calculado and not requer_acertos:
                     contas_alteradas.append(conta)
 
-        return contas_alteradas
+        # [HISTÓRIA #134189] DESCONSIDERA VALIDAÇÃO TEMPORARIAMENTE DEVIDO A INSCONSISTÊNCIAS NO FLUXO DE ANÁLISE DRE
+        # return contas_alteradas
+        return []

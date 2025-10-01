@@ -28,9 +28,7 @@ class ResumoDespesas:
         self.data_fim = data_fim
         self.acao_associacao = acao_associacao
         self.conta_associacao = conta_associacao
-        self.total_custeio = Decimal(0.00)
-        self.total_capital = Decimal(0.00)
-        self.total_geral = Decimal(0.00)
+        self.__set_totais_despesas_com_zero()
 
         self.fechamentos_no_periodo = fechamentos_no_periodo
 
@@ -43,6 +41,11 @@ class ResumoDespesas:
             self.__set_total_despesas_pelo_movimento_do_periodo()
 
         self.total_geral += self.total_custeio + self.total_capital
+
+    def __set_totais_despesas_com_zero(self):
+        self.total_custeio = Decimal(0.00)
+        self.total_capital = Decimal(0.00)
+        self.total_geral = Decimal(0.00)
 
     def __set_totais_despesas_pelos_fechamentos(self):
         self.total_custeio = Decimal(0.00)
@@ -60,8 +63,8 @@ class ResumoDespesas:
             data_fim=self.data_fim
         )
 
-        totais_despesa_por_aplicacao = despesas.values('aplicacao_recurso').order_by('aplicacao_recurso').annotate(
-            valor_total_aplicacao=Sum('valor_rateio'))
+        totais_despesa_por_aplicacao = despesas.values('aplicacao_recurso').order_by(
+            'aplicacao_recurso').annotate(valor_total_aplicacao=Sum('valor_rateio'))
 
         for total in totais_despesa_por_aplicacao:
             if total['aplicacao_recurso'] == 'CUSTEIO':
@@ -73,11 +76,14 @@ class ResumoDespesas:
                 raise ResumoRecursosException(erro)
 
     def get_totais_despesas_pelos_fechamentos(self):
+        self.__set_totais_despesas_com_zero()
         self.__set_totais_despesas_pelos_fechamentos()
 
         self.total_geral += self.total_custeio + self.total_capital
 
     def get_totais_despesas_pelo_movimento(self):
+        self.__set_totais_despesas_com_zero()
+
         self.__set_total_despesas_pelo_movimento_do_periodo()
 
         self.total_geral += self.total_custeio + self.total_capital
