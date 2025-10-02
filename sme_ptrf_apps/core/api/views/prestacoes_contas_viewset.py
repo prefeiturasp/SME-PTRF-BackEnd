@@ -2068,18 +2068,18 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        if (
-            not prestacao_conta.ata_retificacao_gerada() and
-            not possui_apenas_categorias_que_nao_requerem_ata(prestacao_conta)
-        ):
-            response = {
-                'uuid': f'{uuid}',
-                'erro': 'pendencias',
-                'status': prestacao_conta.status,
-                'operacao': 'receber-apos-acertos',
-                'mensagem': 'É necessário gerar ata de retificação para realizar o recebimento.'
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
+        # if (
+        #     not prestacao_conta.ata_retificacao_gerada() and
+        #     not possui_apenas_categorias_que_nao_requerem_ata(prestacao_conta)
+        # ):
+        #     response = {
+        #         'uuid': f'{uuid}',
+        #         'erro': 'pendencias',
+        #         'status': prestacao_conta.status,
+        #         'operacao': 'receber-apos-acertos',
+        #         'mensagem': 'É necessário gerar ata de retificação para realizar o recebimento.'
+        #     }
+        #     return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         prestacao_recebida = prestacao_conta.receber_apos_acertos(data_recebimento_apos_acertos=data_recebimento)
 
