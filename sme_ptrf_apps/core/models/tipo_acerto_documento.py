@@ -41,6 +41,8 @@ class TipoAcertoDocumento(ModeloIdNome):
         choices=CATEGORIA_CHOICES,
         default=CATEGORIA_SOLICITACAO_ESCLARECIMENTO
     )
+    pode_alterar_saldo_conciliacao = models.BooleanField(
+        'Este tipo de acerto pode alterar o saldo em conciliação bancária', default=False)
 
     ativo = models.BooleanField('Ativo', default=True)
 

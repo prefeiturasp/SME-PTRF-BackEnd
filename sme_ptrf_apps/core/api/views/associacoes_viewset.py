@@ -246,8 +246,15 @@ class AssociacoesViewSet(ModelViewSet):
             gerar_previas = pc_requer_geracao_documentos(prestacao_conta)
 
         pendencias_dados = associacao.pendencias_dados_da_associacao()
-        pendencias_conciliacao = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(
+        contas_pendentes = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(
             periodo)
+
+        pendencias_conciliacao = None
+
+        if len(contas_pendentes) > 0:
+            pendencias_conciliacao = {
+                'contas_pendentes': [conta.uuid for conta in contas_pendentes]
+            }
 
         if pendencias_dados or pendencias_conciliacao:
             pendencias_cadastrais = {

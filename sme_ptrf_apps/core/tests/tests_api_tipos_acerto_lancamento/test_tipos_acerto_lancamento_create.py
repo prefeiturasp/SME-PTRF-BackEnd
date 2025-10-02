@@ -9,11 +9,12 @@ pytestmark = pytest.mark.django_db
 def test_create_tipo_acerto_lancamento(jwt_authenticated_client_a):
     payload_novo_tipo_acerto = {
         "nome": "tipo acerto teste",
-        "categoria": TipoAcertoLancamento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO
+        "categoria": TipoAcertoLancamento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO,
+        "pode_alterar_saldo_conciliacao": False,
     }
 
     response = jwt_authenticated_client_a.post(
-        f'/api/tipos-acerto-lancamento/', data=json.dumps(payload_novo_tipo_acerto),
+        '/api/tipos-acerto-lancamento/', data=json.dumps(payload_novo_tipo_acerto),
         content_type='application/json'
     )
 
@@ -21,6 +22,7 @@ def test_create_tipo_acerto_lancamento(jwt_authenticated_client_a):
 
     assert response.status_code == status.HTTP_201_CREATED
     assert TipoAcertoLancamento.objects.filter(uuid=result['uuid']).exists()
+    assert result['pode_alterar_saldo_conciliacao'] == payload_novo_tipo_acerto['pode_alterar_saldo_conciliacao']
 
 
 def test_create_tipo_acerto_lancamento_nome_igual(jwt_authenticated_client_a, tipo_acerto_lancamento_create):
@@ -30,7 +32,7 @@ def test_create_tipo_acerto_lancamento_nome_igual(jwt_authenticated_client_a, ti
     }
 
     response = jwt_authenticated_client_a.post(
-        f'/api/tipos-acerto-lancamento/', data=json.dumps(payload_novo_tipo_acerto),
+        '/api/tipos-acerto-lancamento/', data=json.dumps(payload_novo_tipo_acerto),
         content_type='application/json'
     )
 
@@ -42,4 +44,3 @@ def test_create_tipo_acerto_lancamento_nome_igual(jwt_authenticated_client_a, ti
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert len(TipoAcertoLancamento.objects.filter(nome="Teste nome igual").all()) == 1
     assert resultado_esperado == result
-

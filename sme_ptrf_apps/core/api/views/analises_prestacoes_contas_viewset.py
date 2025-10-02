@@ -23,9 +23,188 @@ from ...services import (
 from django.http import HttpResponse
 from sme_ptrf_apps.core.tasks import gerar_previa_relatorio_acertos_async, gerar_previa_relatorio_apos_acertos_async
 
+from drf_spectacular.utils import (
+    extend_schema, extend_schema_view,
+    OpenApiParameter, OpenApiExample, OpenApiTypes, OpenApiResponse
+)
+
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(
+    ajustes_em_extratos_bancarios=extend_schema(
+        description="Retorna os ajustes encontrados para a conta da associação vinculada à análise de prestação.",
+        responses={200: 'result'},
+        parameters=[
+            OpenApiParameter("conta_associacao", str, OpenApiParameter.QUERY,
+                             description="UUID da conta da associação", required=True)
+        ],
+        examples=[
+            OpenApiExample(
+                "Exemplo de resposta",
+                value={
+                    "uuid": "bb3e7b79-b915-4976-b8aa-98491cda7126",
+                    "prestacao_conta": "19576d1f-1678-4dbc-9bfb-a1e9c5d51301",
+                    "conta_associacao": {
+                        "uuid": "a5b5e686-d787-4fb3-bd2b-0369761ba937",
+                        "tipo_conta": {
+                            "uuid": "38c381e1-6a11-44a9-a2dd-39243799fac1",
+                            "id": 1,
+                            "nome": "Cheque",
+                            "banco_nome": "",
+                            "agencia": "",
+                            "numero_conta": "",
+                            "numero_cartao": "",
+                            "apenas_leitura": False,
+                            "permite_inativacao": True
+                        },
+                        "banco_nome": "001",
+                        "agencia": "0687",
+                        "numero_conta": "376787",
+                        "solicitacao_encerramento": None,
+                        "saldo_atual_conta": 576138.23,
+                        "habilitar_solicitar_encerramento": False,
+                        "nome": "Cheque",
+                        "status": "ATIVA",
+                        "periodo_encerramento_conta": None,
+                        "mostrar_alerta_valores_reprogramados_ao_solicitar": False
+                    },
+                    "data_extrato": None,
+                    "saldo_extrato": "442149.03",
+                    "analise_prestacao_conta": "95d04126-b30e-4ee7-a0a9-253679d56af9",
+                    "solicitar_envio_do_comprovante_do_saldo_da_conta": False,
+                    "solicitar_correcao_da_data_do_saldo_da_conta": False,
+                    "observacao_solicitar_envio_do_comprovante_do_saldo_da_conta": None
+                },
+                response_only=True
+            )
+        ]
+    ),
+    despesas_periodos_anteriores_com_ajustes=extend_schema(
+        description="Lista as despesas de períodos anteriores ajustadas, filtradas por conta/ação.",
+        responses={200: OpenApiResponse(description="Lista de despesas de períodos anteriores ajustadas")},
+        parameters=[
+            OpenApiParameter("conta_associacao", str, OpenApiParameter.QUERY,
+                             description="UUID da conta da associação", required=True),
+            OpenApiParameter("acao_associacao", str, OpenApiParameter.QUERY,
+                             description="UUID da ação da associação", required=False),
+            OpenApiParameter("tipo_acerto", str, OpenApiParameter.QUERY,
+                             description="UUID do Tipo de Acerto do Lançamento", required=False),
+            OpenApiParameter("tipo", str, OpenApiParameter.QUERY, required=False,
+                             description="Tipo da transação: CREDITOS ou GASTOS", enum=['CREDITOS', 'GASTOS']),
+        ]
+    ),
+    verifica_se_tem_ajustes_extratos=extend_schema(
+        description="Verifica se existem ajustes em extratos bancários para a análise de prestação.",
+        responses={200: OpenApiResponse(description="Resultado da verificação")}
+    ),
+    documentos_com_ajustes=extend_schema(
+        description="Retorna os documentos que possuem ajustes vinculados à análise.",
+        responses={200: AnaliseDocumentoPrestacaoContaSolicitacoesAgrupadasRetrieveSerializer(many=True)}
+    ),
+    lancamentos_com_ajustes=extend_schema(
+        description="Retorna os lançamentos vinculados à análise da prestação, com filtros opcionais.",
+        responses={200: OpenApiResponse(description="Lista de lançamentos com ajustes")},
+        parameters=[
+            OpenApiParameter("conta_associacao", str, OpenApiParameter.QUERY,
+                             description="UUID da conta da associação", required=True),
+            OpenApiParameter("acao_associacao", str, OpenApiParameter.QUERY,
+                             description="UUID da ação da associação", required=False),
+            OpenApiParameter("tipo", str, OpenApiParameter.QUERY, required=False,
+                             description="Tipo da transação: CREDITOS ou GASTOS", enum=['CREDITOS', 'GASTOS']),
+            OpenApiParameter("tipo_acerto", str, OpenApiParameter.QUERY,
+                             description="UUID do Tipo de Acerto do Lançamento", required=False),
+        ]
+    ),
+    download_documento_pdf=extend_schema(
+        description="Realiza o download do arquivo PDF da análise.",
+        responses={(200, 'application/pdf'): OpenApiTypes.BINARY},
+        parameters=[
+            OpenApiParameter("analise_prestacao_uuid", str, OpenApiParameter.QUERY,
+                             description="UUID da análise da prestação de contas", required=True),
+        ]
+    ),
+    previa=extend_schema(
+        description="Gera uma prévia do relatório de acertos e envia para processamento em background.",
+        responses={200: 'Arquivo na fila para processamento.'},
+        parameters=[
+            OpenApiParameter("analise_prestacao_uuid", str, OpenApiParameter.QUERY,
+                             description="UUID da análise da prestação de contas", required=True),
+        ],
+        examples=[
+            OpenApiExample(
+                'Resposta',
+                value={'mensagem': 'Arquivo na fila para processamento.'}
+            )
+        ],
+    ),
+    status_info=extend_schema(
+        description="Retorna o status atual da análise da prestação de contas.",
+        responses={200: OpenApiResponse(description="Status da análise")},
+        parameters=[
+            OpenApiParameter("analise_prestacao_uuid", str, OpenApiParameter.QUERY,
+                             description="UUID da análise da prestação de contas", required=True),
+        ]
+    ),
+    previa_relatorio_apos_acertos=extend_schema(
+        description="Gera uma prévia do relatório após acertos e envia para processamento.",
+        responses={200: 'Arquivo na fila para processamento.'},
+        parameters=[
+            OpenApiParameter("analise_prestacao_uuid", str, OpenApiParameter.QUERY,
+                             description="UUID da análise da prestação de contas", required=True),
+        ],
+        examples=[
+            OpenApiExample(
+                'Resposta',
+                value={'mensagem': 'Arquivo na fila para processamento.'}
+            )
+        ],
+    ),
+    status_info_relatorio_apos_acertos=extend_schema(
+        description="Consulta o status do relatório após os acertos.",
+        responses={200: OpenApiResponse(description="Status do relatório após acertos")},
+        parameters=[
+            OpenApiParameter("analise_prestacao_uuid", str, OpenApiParameter.QUERY,
+                             description="UUID da análise da prestação de contas", required=True),
+        ]
+    ),
+    download_documento_pdf_apos_acertos=extend_schema(
+        description="Permite o download do PDF do relatório gerado após os acertos.",
+        responses={(200, 'application/pdf'): OpenApiTypes.BINARY},
+        parameters=[
+            OpenApiParameter("analise_prestacao_uuid", str, OpenApiParameter.QUERY,
+                             description="UUID da análise da prestação de contas", required=True),
+        ]
+    ),
+    regerar_relatorio_apos_acertos=extend_schema(
+        description="Regerar relatório após acertos e envia para a fila de processamento.",
+        responses={200: 'Arquivo na fila para processamento.'},
+        parameters=[
+            OpenApiParameter("analise_prestacao_uuid", str, OpenApiParameter.QUERY,
+                             description="UUID da análise da prestação de contas", required=True),
+        ],
+        examples=[
+            OpenApiExample(
+                'Resposta',
+                value={'mensagem': 'Arquivo na fila para processamento.'}
+            )
+        ],
+    ),
+    regerar_previa_relatorio_apos_acertos=extend_schema(
+        description="Regerar da prévia do relatório após acertos e envia para a fila de processamento.",
+        responses={200: OpenApiResponse(description="Mensagem de confirmação de envio para processamento")},
+        parameters=[
+            OpenApiParameter("analise_prestacao_uuid", str, OpenApiParameter.QUERY,
+                             description="UUID da análise da prestação de contas", required=True),
+        ],
+        examples=[
+            OpenApiExample(
+                'Resposta',
+                value={'mensagem': 'Arquivo na fila para processamento.'}
+            )
+        ],
+    ),
+)
 class AnalisesPrestacoesContasViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet
@@ -247,11 +426,13 @@ class AnalisesPrestacoesContasViewSet(
 
         if analise_prestacao_uuid:
             try:
-                analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+                AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
             except AnalisePrestacaoConta.DoesNotExist:
                 erro = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                    'mensagem': (
+                        f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não "
+                        "foi encontrado na base.")
                 }
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -287,7 +468,8 @@ class AnalisesPrestacoesContasViewSet(
             except AnalisePrestacaoConta.DoesNotExist:
                 erro = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto AnalisePrestacaoConta para o uuid {analise_prestacao_uuid} não foi encontrado."
+                    'mensagem': (
+                        f"O objeto AnalisePrestacaoConta para o uuid {analise_prestacao_uuid} não foi encontrado.")
                 }
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -320,7 +502,8 @@ class AnalisesPrestacoesContasViewSet(
             except AnalisePrestacaoConta.DoesNotExist:
                 erro = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto AnalisePrestacaoConta para o uuid {analise_prestacao_uuid} não foi encontrado."
+                    'mensagem': (
+                        f"O objeto AnalisePrestacaoConta para o uuid {analise_prestacao_uuid} não foi encontrado.")
                 }
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -363,11 +546,13 @@ class AnalisesPrestacoesContasViewSet(
 
         if analise_prestacao_uuid:
             try:
-                analise_prestacao = AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
+                AnalisePrestacaoConta.objects.get(uuid=analise_prestacao_uuid)
             except AnalisePrestacaoConta.DoesNotExist:
                 erro = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                    'mensagem': (
+                        f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não "
+                        "foi encontrado na base.")
                 }
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -403,7 +588,8 @@ class AnalisesPrestacoesContasViewSet(
             except AnalisePrestacaoConta.DoesNotExist:
                 erro = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto AnalisePrestacaoConta para o uuid {analise_prestacao_uuid} não foi encontrado."
+                    'mensagem': (
+                        f"O objeto AnalisePrestacaoConta para o uuid {analise_prestacao_uuid} não foi encontrado.")
                 }
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -436,7 +622,8 @@ class AnalisesPrestacoesContasViewSet(
             except AnalisePrestacaoConta.DoesNotExist:
                 erro = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto AnalisePrestacaoConta para o uuid {analise_prestacao_uuid} não foi encontrado."
+                    'mensagem': (
+                        f"O objeto AnalisePrestacaoConta para o uuid {analise_prestacao_uuid} não foi encontrado.")
                 }
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -487,7 +674,9 @@ class AnalisesPrestacoesContasViewSet(
             except AnalisePrestacaoConta.DoesNotExist:
                 erro = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                    'mensagem': (
+                        f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não "
+                        "foi encontrado na base.")
                 }
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -540,7 +729,9 @@ class AnalisesPrestacoesContasViewSet(
             except AnalisePrestacaoConta.DoesNotExist:
                 erro = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                    'mensagem': (
+                        f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não "
+                        "foi encontrado na base.")
                 }
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)

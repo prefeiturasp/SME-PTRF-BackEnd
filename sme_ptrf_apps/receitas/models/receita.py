@@ -170,15 +170,21 @@ class Receita(ModeloBase):
     @classmethod
     def receitas_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conferido=None, conta_associacao=None,
                                                categoria_receita=None, data_fim=None):
+
+        dataset = cls.completas.all()
+
+        if acao_associacao:
+            dataset = cls.completas.filter(acao_associacao=acao_associacao)
+
         if data_fim:
-            dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
+            dataset = dataset.filter(
                 data__gte=periodo.data_inicio_realizacao_despesas, data__lte=data_fim, )
         else:
             if periodo.data_fim_realizacao_despesas:
-                dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
+                dataset = dataset.filter(
                     data__range=(periodo.data_inicio_realizacao_despesas, periodo.data_fim_realizacao_despesas))
             else:
-                dataset = cls.completas.filter(acao_associacao=acao_associacao).filter(
+                dataset = dataset.filter(
                     data__gte=periodo.data_inicio_realizacao_despesas)
 
         if conferido is not None:

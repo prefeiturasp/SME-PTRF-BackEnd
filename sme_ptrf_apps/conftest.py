@@ -36,7 +36,8 @@ from sme_ptrf_apps.core.fixtures.factories import (
     SolicitacaoAcertoDocumentoFactory, ProcessoAssociacaoFactory,
     PrestacaoContaReprovadaNaoApresentacaoFactory, DemonstrativoFinanceiroFactory,
     ItemResumoPorAcaoFactory, ItemDespesaFactory, ItemCreditoFactory, ArquivoDownloadFactory,
-    TipoDevolucaoAoTesouroFactory, FlagFactory, AtaFactory, ParticipanteFactory
+    TipoDevolucaoAoTesouroFactory, FlagFactory, AtaFactory, ParticipanteFactory,
+    AnaliseContaPrestacaoContaFactory, PDFFactory
 )
 from sme_ptrf_apps.users.fixtures.factories import (
     UsuarioFactory, UnidadeEmSuporteFactory, GrupoAcessoFactory, VisaoFactory,
@@ -85,7 +86,8 @@ factories_to_register = [
     FonteRecursoPaaFactory, RecursoProprioPaaFactory, PeriodoPaaFactory, PaaFactory,
     ParametroPaaFactory, BemProduzidoFactory, ReceitaPrevistaPddeFactory, BemProduzidoDespesaFactory,
     BemProduzidoRateioFactory, BemProduzidoItemFactory, EspecificacaoMaterialServicoFactory,
-    PrioridadePaaFactory, AtaFactory, ParticipanteFactory
+    PrioridadePaaFactory, AtaFactory, ParticipanteFactory, AnaliseContaPrestacaoContaFactory,
+    PDFFactory
 ]
 
 for factory in factories_to_register:
@@ -1917,7 +1919,6 @@ def parametros():
         texto_pagina_suporte_dre='Teste DRE',
         texto_pagina_suporte_sme='Teste SME',
         texto_pagina_valores_reprogramados_ue='Teste UE',
-        texto_pagina_paa_ue='Teste PAA UE',
         texto_pagina_valores_reprogramados_dre='Teste DRE'
     )
 

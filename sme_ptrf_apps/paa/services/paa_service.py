@@ -14,6 +14,15 @@ from sme_ptrf_apps.paa.models import ParametroPaa, ProgramaPdde, PrioridadePaa
 logger = logging.getLogger(__name__)
 
 
+class ImportacaoConfirmacaoNecessaria(Exception):
+    """ Exceção de importação de quando já existem prioridades importadas e
+    necessita de confirmação do usuário para remover-las e realizar a importação novamente."""
+
+    def __init__(self, payload):
+        super().__init__(payload)
+        self.payload = payload
+
+
 class PaaService:
 
     @classmethod
@@ -119,13 +128,40 @@ class PaaService:
         return objeto
 
     @classmethod
-    def importar_prioridades_paa_anterior(cls, paa_atual, paa_anterior) -> list:
+    def importar_prioridades_paa_anterior(cls, paa_atual, paa_anterior, confirmar_importacao=False) -> list:
         prioridades_a_importar = paa_anterior.prioridadepaa_set.filter(prioridade=True)
+
+        if not prioridades_a_importar.exists():
+            raise Exception("Nenhuma prioridade encontrada para importação.")
+
+        # Obtem prioridades (somente as importadas) do PAA atual
+        prioridades_importadas_do_paa_atual = paa_atual.prioridadepaa_set.filter(paa_importado__isnull=False)
+
+        # valida quando prioridades do PAA atual já foram importadas
+        existe_prioridade_importada_no_paa_atual = prioridades_importadas_do_paa_atual.filter(
+            paa_importado=paa_anterior).exists()
+        if existe_prioridade_importada_no_paa_atual:
+            raise Exception("Não é permitido importar novamente o mesmo PAA.")
+
+        # Valida quando já exitem prioridades importadas no PAA atual e usuário não confirmou
+        ja_existe_prioridades_importadas = prioridades_importadas_do_paa_atual.exists()
+
+        # validação assegura que não existe prioridades importadas para notificar ao usuário
+        # e validação assegura que há prioridades importadas e o usuário confirmou a importação (no aviso de front)
+        if ja_existe_prioridades_importadas and not confirmar_importacao:
+            raise ImportacaoConfirmacaoNecessaria((
+                "Foi realizada a importação de um PAA anteriormente e todas as prioridades deste PAA anterior "
+                "serão excluídas e será realizada a importação do PAA indicado."
+            ))
+
+        # Sempre remove todas as prioridades do PAA atual que são importadas
+        prioridades_importadas_do_paa_atual.delete()
 
         with transaction.atomic():
             novas_prioridades = [
                 PrioridadePaa(
                     paa=paa_atual,  # replica nova prioridade para o PAA atual
+                    paa_importado=paa_anterior,  # relaciona ao PAA de importação
                     prioridade=prioridade.prioridade,
                     recurso=prioridade.recurso,
                     acao_associacao=prioridade.acao_associacao,

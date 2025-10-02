@@ -1,5 +1,5 @@
 import pytest
-
+from datetime import date
 from unittest.mock import patch
 from rest_framework import status
 from waffle.testutils import override_flag
@@ -12,7 +12,7 @@ pytestmark = pytest.mark.django_db
 def test_concluir_v2_nao_pode_ser_executado_sem_feature_flag_ativa(
     jwt_authenticated_client_a,
 ):
-    url = f"/api/prestacoes-contas/concluir-v2/"
+    url = "/api/prestacoes-contas/concluir-v2/"
 
     response = jwt_authenticated_client_a.post(
         url, content_type="application/json", data={}
@@ -25,7 +25,7 @@ def test_concluir_v2_nao_pode_ser_executado_sem_feature_flag_ativa(
 def test_concluir_v2_dev_exigir_os_parametros(
     jwt_authenticated_client_a,
 ):
-    url = f"/api/prestacoes-contas/concluir-v2/"
+    url = "/api/prestacoes-contas/concluir-v2/"
 
     response = jwt_authenticated_client_a.post(
         url, content_type="application/json", data={}
@@ -37,6 +37,7 @@ def test_concluir_v2_dev_exigir_os_parametros(
     # Verificando se as mensagens de erro indicam a falta dos parâmetros obrigatórios
     assert "associacao_uuid" in response.data
     assert "periodo_uuid" in response.data
+
 
 @patch("sme_ptrf_apps.core.services.periodo_services.pc_tem_solicitacoes_de_acerto_pendentes", return_value=False)
 @override_flag("novo-processo-pc", active=True)
@@ -75,7 +76,7 @@ def test_concluir_v2_status_invalido_bloqueia(
     associacao = associacao_factory()
     periodo = periodo_factory()
     # Cria PC com status NÃO permitido (ex.: qualquer um diferente de NAO_APRESENTADA/DEVOLVIDA)
-    pc = prestacao_conta_factory(
+    prestacao_conta_factory(
         associacao=associacao,
         periodo=periodo,
         status=PrestacaoConta.STATUS_EM_ANALISE,
@@ -150,3 +151,42 @@ def test_concluir_v2_status_permitido_com_acertos_pendentes_bloqueia(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert "non_field_errors" in response.data
     assert "acerto" in " ".join(response.data["non_field_errors"]).lower()
+
+
+@override_flag("novo-processo-pc", active=True)
+def test_concluir_v2_com_saldo_alterado_sem_solicitacao(
+    jwt_authenticated_client_a,
+    associacao_factory,
+    periodo_factory,
+    prestacao_conta_factory,
+    conta_associacao_factory,
+):
+    url = "/api/prestacoes-contas/concluir-v2/"
+    associacao = associacao_factory()
+    periodo = periodo_factory()
+    pc = prestacao_conta_factory(
+        associacao=associacao,
+        periodo=periodo,
+        status=PrestacaoConta.STATUS_DEVOLVIDA,
+        data_recebimento=periodo.data_inicio_realizacao_despesas
+    )
+    conta = conta_associacao_factory(associacao=associacao, data_inicio=date(2019, 2, 2))
+
+    payload = {
+        "associacao_uuid": str(associacao.uuid),
+        "periodo_uuid": str(periodo.uuid),
+    }
+
+    with patch.object(
+        pc.__class__,
+        "contas_saldos_alterados_sem_solicitacao",
+        return_value=[conta]
+    ):
+        response = jwt_authenticated_client_a.post(url, format="json", data=payload)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert "erro" in response.data
+        assert response.data["erro"] == ["prestacao_com_saldos_alterados_sem_solicitacao"]
+
+        assert "mensagem" in response.data
+        assert "O saldo bancário" in response.data["mensagem"][0]

@@ -81,11 +81,27 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
 
     class AnalisePrestacaoContaSerializer(serializers.ModelSerializer):
         devolucao_prestacao_conta = DevolucaoPrestacaoContaRetrieveSerializer(many=False)
+        acertos_podem_alterar_saldo_conciliacao = serializers.SerializerMethodField(
+            'get_acertos_podem_alterar_saldo_conciliacao')
+        tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta = serializers.SerializerMethodField(
+            'get_tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta')
+        contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta = serializers.SerializerMethodField(
+            'get_contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta')
 
         class Meta:
             from sme_ptrf_apps.core.models import AnalisePrestacaoConta
             model = AnalisePrestacaoConta
-            fields = ('uuid', 'id', 'devolucao_prestacao_conta', 'status', 'criado_em')
+            fields = ('uuid', 'id', 'devolucao_prestacao_conta', 'status', 'criado_em', 'acertos_podem_alterar_saldo_conciliacao',
+                      'tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta', 'contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta')
+
+        def get_acertos_podem_alterar_saldo_conciliacao(self, obj):
+            return obj.tem_acertos_que_podem_alterar_saldo_conciliacao()
+
+        def get_tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta(self, obj):
+            return obj.tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta()
+
+        def get_contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta(self, obj):
+            return [conta.uuid for conta in obj.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta()]
 
     class ConciliacaoBancariaSerializer(serializers.ModelSerializer):
         class Meta:
@@ -113,7 +129,8 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
     devolucao_atual = serializers.SerializerMethodField('get_devolucao_atual')
     ata_aprensentacao_gerada = serializers.SerializerMethodField('get_ata_aprensentacao_gerada')
     ata_retificacao_gerada = serializers.SerializerMethodField('get_ata_retificacao_gerada')
-    possui_apenas_categorias_que_nao_requerem_ata = serializers.SerializerMethodField('get_possui_apenas_categorias_que_nao_requerem_ata')
+    possui_apenas_categorias_que_nao_requerem_ata = serializers.SerializerMethodField(
+        'get_possui_apenas_categorias_que_nao_requerem_ata')
 
     def get_ata_aprensentacao_gerada(self, obj):
         return obj.ata_apresentacao_gerada()
