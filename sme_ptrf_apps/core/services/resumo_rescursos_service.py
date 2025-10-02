@@ -28,9 +28,7 @@ class ResumoDespesas:
         self.data_fim = data_fim
         self.acao_associacao = acao_associacao
         self.conta_associacao = conta_associacao
-        self.total_custeio = Decimal(0.00)
-        self.total_capital = Decimal(0.00)
-        self.total_geral = Decimal(0.00)
+        self.__set_totais_despesas_com_zero()
 
         self.fechamentos_no_periodo = fechamentos_no_periodo
 
@@ -43,6 +41,11 @@ class ResumoDespesas:
             self.__set_total_despesas_pelo_movimento_do_periodo()
 
         self.total_geral += self.total_custeio + self.total_capital
+
+    def __set_totais_despesas_com_zero(self):
+        self.total_custeio = Decimal(0.00)
+        self.total_capital = Decimal(0.00)
+        self.total_geral = Decimal(0.00)
 
     def __set_totais_despesas_pelos_fechamentos(self):
         self.total_custeio = Decimal(0.00)
@@ -60,8 +63,8 @@ class ResumoDespesas:
             data_fim=self.data_fim
         )
 
-        totais_despesa_por_aplicacao = despesas.values('aplicacao_recurso').order_by('aplicacao_recurso').annotate(
-            valor_total_aplicacao=Sum('valor_rateio'))
+        totais_despesa_por_aplicacao = despesas.values('aplicacao_recurso').order_by(
+            'aplicacao_recurso').annotate(valor_total_aplicacao=Sum('valor_rateio'))
 
         for total in totais_despesa_por_aplicacao:
             if total['aplicacao_recurso'] == 'CUSTEIO':
@@ -69,8 +72,21 @@ class ResumoDespesas:
             elif total['aplicacao_recurso'] == 'CAPITAL':
                 self.total_capital += total['valor_total_aplicacao']
             else:
-                erro = f'Existem rateios com aplicação desconhecida. Aplicação:{total["aplicacao_recurso"] }'
+                erro = f'Existem rateios com aplicação desconhecida. Aplicação:{total["aplicacao_recurso"]}'
                 raise ResumoRecursosException(erro)
+
+    def get_totais_despesas_pelos_fechamentos(self):
+        self.__set_totais_despesas_com_zero()
+        self.__set_totais_despesas_pelos_fechamentos()
+
+        self.total_geral += self.total_custeio + self.total_capital
+
+    def get_totais_despesas_pelo_movimento(self):
+        self.__set_totais_despesas_com_zero()
+
+        self.__set_total_despesas_pelo_movimento_do_periodo()
+
+        self.total_geral += self.total_custeio + self.total_capital
 
 
 class ResumoReceitas:
@@ -130,6 +146,7 @@ class ResumoReceitas:
             periodo=self.periodo,
             data_fim=self.data_fim
         )
+
         for receita in receitas.all():
             if receita.categoria_receita not in ['CUSTEIO', 'CAPITAL', 'LIVRE']:
                 erro = f'Categoria de receita desconhecida. Categoria:{receita.categoria_receita} Receita:{receita.id}'
@@ -148,6 +165,22 @@ class ResumoReceitas:
         self.total_capital = self.repasses_capital + self.outras_capital
         self.total_livre = self.repasses_livre + self.outras_livre
 
+    def get_totais_receitas_pelos_fechamentos(self):
+        self.__set_totais_receitas_com_zero()
+        self.__set_totais_receitas_pelos_fechamentos()
+
+        self.total_geral = self.total_custeio + self.total_capital + self.total_livre
+        self.repasses_geral = self.repasses_custeio + self.repasses_capital + self.repasses_livre
+        self.outras_geral = self.outras_custeio + self.outras_capital + self.outras_livre
+
+    def get_totais_receitas_pelo_movimento(self):
+        self.__set_totais_receitas_com_zero()
+        self.__set_totais_receitas_pelo_movimento_do_periodo()
+
+        self.total_geral = self.total_custeio + self.total_capital + self.total_livre
+        self.repasses_geral = self.repasses_custeio + self.repasses_capital + self.repasses_livre
+        self.outras_geral = self.outras_custeio + self.outras_capital + self.outras_livre
+
 
 class ResumoRecursos:
 
@@ -157,11 +190,19 @@ class ResumoRecursos:
         self.acao_associacao = acao_associacao
         self.conta_associacao = conta_associacao
 
-        self.fechamentos_no_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(
-            periodo=self.periodo,
-            acao_associacao=self.acao_associacao,
-            conta_associacao=self.conta_associacao,
-        )
+        if acao_associacao:
+            self.fechamentos_no_periodo = FechamentoPeriodo.fechamentos_da_acao_no_periodo(
+                periodo=self.periodo,
+                acao_associacao=self.acao_associacao,
+                conta_associacao=self.conta_associacao,
+            )
+        elif conta_associacao:
+            self.fechamentos_no_periodo = FechamentoPeriodo.fechamentos_da_conta_no_periodo(
+                periodo=self.periodo,
+                conta_associacao=self.conta_associacao,
+            )
+        else:
+            self.fechamentos_no_periodo = None
 
         self.receitas = ResumoReceitas(periodo, acao_associacao, conta_associacao,
                                        fechamentos_no_periodo=self.fechamentos_no_periodo, data_fim=self.data_fim)
@@ -256,8 +297,20 @@ class ResumoRecursos:
             total_livre=saldo_posterior_livre,
         )
 
+    def get_saldos_por_fechamento(self):
+        self.receitas.get_totais_receitas_pelos_fechamentos()
+        self.despesas.get_totais_despesas_pelos_fechamentos()
+
+        self.__set_saldos_pelos_fechamentos()
+
+    def get_saldos_pelo_movimento(self):
+        self.receitas.get_totais_receitas_pelo_movimento()
+        self.despesas.get_totais_despesas_pelo_movimento()
+
+        self.__set_saldos_por_calculo()
+
 
 class ResumoRecursosService:
     @classmethod
-    def resumo_recursos(cls, periodo, acao_associacao, conta_associacao=None, data_fim=None):
+    def resumo_recursos(cls, periodo, acao_associacao=None, conta_associacao=None, data_fim=None):
         return ResumoRecursos(periodo=periodo, acao_associacao=acao_associacao, conta_associacao=conta_associacao, data_fim=data_fim)

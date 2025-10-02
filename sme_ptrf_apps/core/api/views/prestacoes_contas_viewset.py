@@ -710,7 +710,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         motivos_reprovacao_uuid = request.data.get('motivos_reprovacao', [])
         outros_motivos_reprovacao = request.data.get('outros_motivos_reprovacao', '')
 
-        if resultado_analise == PrestacaoConta.STATUS_REPROVADA and not motivos_reprovacao_uuid and not outros_motivos_reprovacao: # noqa
+        if resultado_analise == PrestacaoConta.STATUS_REPROVADA and not motivos_reprovacao_uuid and not outros_motivos_reprovacao:  # noqa
             response = {
                 'uuid': f'{uuid}',
                 'erro': 'falta_de_informacoes',
@@ -768,6 +768,19 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                         'Essa prestação de contas não pode ser devolvida, ou reaberta porque há prestação de contas '
                         'dessa associação de um período posterior. Se necessário, reabra ou devolva primeiro a '
                         'prestação de contas mais recente.'
+                    )
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+        if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
+            if prestacao_conta.analise_atual and prestacao_conta.analise_atual.tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta():  # noqa
+                response = {
+                    'uuid': f'{uuid}',
+                    'erro': 'devolucao_invalida',
+                    'operacao': 'concluir-analise',
+                    'mensagem': (
+                        'Não é possível devolver esta prestação de contas, pois há pendências na conciliação bancária '
+                        'sem solicitação de acerto. Para prosseguir, solicite o acerto das contas pendentes.'
                     )
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
@@ -2055,19 +2068,19 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        if (
-            not prestacao_conta.ata_retificacao_gerada()
-            and not possui_apenas_categorias_que_nao_requerem_ata(prestacao_conta)
-        ):
-            response = {
-                'uuid': f'{uuid}',
-                'erro': 'pendencias',
-                'status': prestacao_conta.status,
-                'operacao': 'receber-apos-acertos',
-                'mensagem': 'É necessário gerar ata de retificação para realizar o recebimento.'
-            }
-            return Response(response, status=status.HTTP_400_BAD_REQUEST)
-        
+        # if (
+        #     not prestacao_conta.ata_retificacao_gerada() and
+        #     not possui_apenas_categorias_que_nao_requerem_ata(prestacao_conta)
+        # ):
+        #     response = {
+        #         'uuid': f'{uuid}',
+        #         'erro': 'pendencias',
+        #         'status': prestacao_conta.status,
+        #         'operacao': 'receber-apos-acertos',
+        #         'mensagem': 'É necessário gerar ata de retificação para realizar o recebimento.'
+        #     }
+        #     return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
         prestacao_recebida = prestacao_conta.receber_apos_acertos(data_recebimento_apos_acertos=data_recebimento)
 
         return Response(PrestacaoContaRetrieveSerializer(prestacao_recebida, many=False).data,

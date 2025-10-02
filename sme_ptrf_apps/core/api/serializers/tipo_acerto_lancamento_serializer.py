@@ -36,4 +36,4 @@ class TipoAcertoLancamentoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipoAcertoLancamento
-        fields = ('id', 'nome', 'categoria', 'ativo', 'uuid')
+        fields = ('id', 'nome', 'categoria', 'ativo', 'uuid', 'pode_alterar_saldo_conciliacao')

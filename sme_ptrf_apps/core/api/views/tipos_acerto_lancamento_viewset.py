@@ -1,4 +1,4 @@
-from rest_framework import mixins, status
+from rest_framework import mixins, status, serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 from ..serializers.tipo_acerto_lancamento_serializer import TipoAcertoLancamentoSerializer
@@ -6,8 +6,51 @@ from ...models import TipoAcertoLancamento
 from sme_ptrf_apps.users.permissoes import PermissaoApiDre
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+    OpenApiParameter,
+    inline_serializer
+)
 
 
+@extend_schema_view(
+    list=extend_schema(
+        description=(
+            "Retorna a lista de tipos de acerto de lançamento. "
+            "Permite filtrar por **nome**, **categoria** (pode ser múltipla, separada por vírgula) "
+            "e **ativo**."
+        ),
+        parameters=[
+            OpenApiParameter("nome", str, OpenApiParameter.QUERY,
+                             description="Filtra pelo nome (case-insensitive, acento ignorado)"),
+            OpenApiParameter("categoria", str, OpenApiParameter.QUERY,
+                             description="Filtra por categorias (separadas por vírgula)"),
+            OpenApiParameter("ativo", bool, OpenApiParameter.QUERY, description="Filtra por ativo (true/false)"),
+        ],
+        responses={200: TipoAcertoLancamentoSerializer(many=True)},
+    ),
+    tabelas=extend_schema(
+        description=(
+            "Retorna as categorias disponíveis e os tipos de acerto agrupados por categoria. "
+            "Aceita filtros opcionais."
+        ),
+        parameters=[
+            OpenApiParameter("aplicavel_despesas_periodos_anteriores", bool, OpenApiParameter.QUERY,
+                             description="Se filtra por aplicável a despesas de períodos anteriores"),
+            OpenApiParameter("is_repasse", bool, OpenApiParameter.QUERY, description="Se filtra por ser repasse"),
+        ],
+        responses={
+            200: inline_serializer(
+                name="TabelaTiposAcertoLancamento",
+                fields={
+                    "categorias": serializers.ListField(child=serializers.CharField()),
+                    "agrupado_por_categorias": serializers.DictField(),
+                },
+            ),
+        },
+    )
+)
 class TiposAcertoLancamentoViewSet(mixins.ListModelMixin,
                                    mixins.RetrieveModelMixin,
                                    mixins.CreateModelMixin,

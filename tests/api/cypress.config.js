@@ -10,8 +10,7 @@ module.exports = defineConfig({
       require("./cypress/plugin/index")(on, config);
       return cloudPlugin(on, config);
     },
-    baseUrlPTRF:
-      "https://qa-sig-escola.sme.prefeitura.sp.gov.br/login-suporte",
+    baseUrlPTRF: "https://qa-sig-escola.sme.prefeitura.sp.gov.br/login-suporte",
     baseUrlPTRFHomol: "https://qa-sig-escola.sme.prefeitura.sp.gov.br/",
     usuario_homol_sme: process.env.USUARIO_HOMOL_SME,
     usuario_homol_dre: process.env.USUARIO_HOMOL_DRE,

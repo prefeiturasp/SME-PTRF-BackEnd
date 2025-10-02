@@ -6,19 +6,19 @@ class CreditosEscolaElementos {
       .select("Arredondamento na transferência de saldo entre cartões BB");
   };
   devolucaoConta = () => {
-    return cy.get(".d-flex > #tipo_receita").select("Devolução à conta");
+    return cy.get("#tipo_receita").select("Devolução à conta");
   };
   estorno = () => {
-    return cy.get(".d-flex > #tipo_receita").select("Estorno");
+    return cy.get("#tipo_receita").select("Estorno");
   };
   recursoExterno = () => {
-    return cy.get(".d-flex > #tipo_receita").select("Recurso Externo");
+    return cy.get("#tipo_receita").select("Recurso Externo");
   };
   rendimento = () => {
-    return cy.get(".d-flex > #tipo_receita").select("Rendimento");
+    return cy.get("#tipo_receita").select("Rendimento");
   };
   repasse = () => {
-    return cy.get(".d-flex > #tipo_receita").select("Repasse");
+    return cy.get("#tipo_receita").select("Repasse");
   };
 
   //----------------------- Botões -------------------------\\

@@ -5,14 +5,55 @@ from rest_framework.permissions import IsAuthenticated
 from sme_ptrf_apps.users.permissoes import (PermissaoAPITodosComLeituraOuGravacao, )
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from drf_spectacular.utils import (
+    extend_schema, extend_schema_view, OpenApiParameter, OpenApiResponse
+)
 
-
-from ...models import AnalisePrestacaoConta, ContaAssociacao, AcaoAssociacao
+from ...models import AnalisePrestacaoConta, ContaAssociacao
 
 from ...models import AnaliseContaPrestacaoConta, PrestacaoConta
 from ..serializers.analise_conta_prestacao_conta_serializer import AnaliseContaPrestacaoContaRetrieveSerializer
 
 
+@extend_schema_view(
+    get_ajustes_saldo_conta=extend_schema(
+        description=(
+            "Retorna os ajustes de saldo de uma conta vinculados a uma prestação de contas e "
+            "a uma análise de prestação."),
+        parameters=[
+            OpenApiParameter(name="analise_prestacao_conta", type=str, required=True,
+                             location=OpenApiParameter.QUERY, description="UUID da análise de prestação de contas"),
+            OpenApiParameter(name="prestacao_conta", type=str, required=True,
+                             location=OpenApiParameter.QUERY, description="UUID da prestação de contas"),
+            OpenApiParameter(name="conta_associacao", type=str, required=True,
+                             location=OpenApiParameter.QUERY, description="UUID da conta da associação"),
+        ],
+        responses={200: AnaliseContaPrestacaoContaRetrieveSerializer(many=True)},
+    ),
+    salvar_ajustes_saldo_conta=extend_schema(
+        description="Cria um novo registro de análise de ajustes de saldo por conta com base nos dados enviados.",
+        request={
+            "application/json": {
+                "example": {
+                    "analise_prestacao_conta": "uuid-analise",
+                    "conta_associacao": "uuid-conta-associacao",
+                    "prestacao_conta": "uuid-prestacao",
+                    "data_extrato": "2025-09-26",
+                    "saldo_extrato": "442149.03",
+                    "solicitar_envio_do_comprovante_do_saldo_da_conta": False,
+                    "solicitar_correcao_da_data_do_saldo_da_conta": False,
+                    "observacao_solicitar_envio_do_comprovante_do_saldo_da_conta": None,
+                }
+            }
+        },
+        responses={
+            200: OpenApiResponse(
+                description="Ajuste de saldo salvo com sucesso.",
+                examples=[{"mensagem": "Analise de ajustes de saldo por conta salva com sucesso"}]
+            ),
+        },
+    )
+)
 class AnaliseContaPrestacaoContaViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
@@ -34,7 +75,7 @@ class AnaliseContaPrestacaoContaViewSet(viewsets.ModelViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            prestacao_conta = PrestacaoConta.by_uuid(prestacao_conta_uuid)
+            PrestacaoConta.by_uuid(prestacao_conta_uuid)
         except (PrestacaoConta.DoesNotExist, ValidationError):
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -51,7 +92,7 @@ class AnaliseContaPrestacaoContaViewSet(viewsets.ModelViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            conta_associacao = ContaAssociacao.objects.get(uuid=conta_associacao_uuid)
+            ContaAssociacao.objects.get(uuid=conta_associacao_uuid)
         except (ContaAssociacao.DoesNotExist, ValidationError):
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -97,7 +138,9 @@ class AnaliseContaPrestacaoContaViewSet(viewsets.ModelViewSet):
         except (AnalisePrestacaoConta.DoesNotExist, ValidationError):
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto analise_prestacao_conta para o uuid {analise_prestacao_conta_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto analise_prestacao_conta para o uuid {analise_prestacao_conta_uuid} "
+                    "não foi encontrado na base.")
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -128,7 +171,7 @@ class AnaliseContaPrestacaoContaViewSet(viewsets.ModelViewSet):
                 saldo_extrato=saldo_extrato,
                 solicitar_envio_do_comprovante_do_saldo_da_conta=solicitar_envio_do_comprovante_do_saldo_da_conta,
                 solicitar_correcao_da_data_do_saldo_da_conta=solicitar_correcao_da_data_do_saldo_da_conta,
-                observacao_solicitar_envio_do_comprovante_do_saldo_da_conta=observacao_solicitar_envio_do_comprovante_do_saldo_da_conta,
+                observacao_solicitar_envio_do_comprovante_do_saldo_da_conta=observacao_solicitar_envio_do_comprovante_do_saldo_da_conta,  # noqa
             )
         except Exception as err:
             erro = {

@@ -24,6 +24,10 @@ class PrioridadePaa(ModeloBase):
     paa = models.ForeignKey(
         'paa.Paa', on_delete=models.PROTECT, verbose_name="PAA", blank=False, null=True)
 
+    paa_importado = models.ForeignKey(
+        'paa.Paa', on_delete=models.PROTECT, verbose_name="PAA Importado",
+        blank=True, null=True, related_name='paa_importado')
+
     prioridade = models.BooleanField(
         choices=SimNaoChoices.choices, default=SimNaoChoices.NAO, verbose_name='Prioridade')
 

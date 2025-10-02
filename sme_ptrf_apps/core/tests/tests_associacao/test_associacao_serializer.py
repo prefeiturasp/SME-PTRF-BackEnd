@@ -1,4 +1,5 @@
 import pytest
+from rest_framework.exceptions import ValidationError
 
 from ...api.serializers.associacao_serializer import (AssociacaoSerializer, AssociacaoLookupSerializer,
                                                       AssociacaoCreateSerializer, AssociacaoListSerializer,
@@ -59,3 +60,29 @@ def test_completo_serializer(associacao, membro_associacao_presidente_associacao
     assert serializer.data['presidente_associacao']
     assert serializer.data['presidente_conselho_fiscal']
     assert serializer.data['processo_regularidade']
+
+
+def test_associacao_create_serializer_sem_nome_dre():
+    serializer = AssociacaoCreateSerializer(data={
+        'nome': 'APM Nova Escola',
+        'unidade': {
+            'codigo_eol': '789123',
+            'nome': 'EMEF Nova Escola',
+            'email': 'emefnova@escola.sp.gov.br',
+            'telefone': '11912345678',
+            'numero': '123',
+            'tipo_logradouro': 'Rua',
+            'logradouro': 'Nova',
+            'bairro': 'Centro',
+            'cep': '01001000',
+            'tipo_unidade': 'EMEF',
+            'observacao': 'Unidade gerada para teste',
+        }
+    })
+
+    assert serializer.is_valid(), serializer.errors
+
+    with pytest.raises(ValidationError) as erro:
+        serializer.save()
+
+    assert erro.value.detail == {'nome_dre': ['EOL informado não possui DRE.']}

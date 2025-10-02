@@ -43,6 +43,8 @@ class TipoAcertoLancamento(ModeloIdNome):
         max_length=35,
         choices=CATEGORIA_CHOICES,
     )
+    pode_alterar_saldo_conciliacao = models.BooleanField(
+        'Este tipo de acerto pode alterar o saldo em conciliação bancária', default=False)
 
     ativo = models.BooleanField('Ativo', default=True)
 

@@ -19,6 +19,7 @@ def test_retrieve_tipo_acerto_documento(
 
     resultado_esperado = {
         'ativo': tipo_acerto_documento_01.ativo,
+        'pode_alterar_saldo_conciliacao': tipo_acerto_documento_01.pode_alterar_saldo_conciliacao,
         'categoria': tipo_acerto_documento_01.categoria,
         'id': tipo_acerto_documento_01.id,
         'nome': tipo_acerto_documento_01.nome,
@@ -35,4 +36,3 @@ def test_retrieve_tipo_acerto_documento(
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado
-

@@ -25,7 +25,7 @@ def test_list_filter(prioridade_paa_admin):
 
 
 def test_readonly_fields(prioridade_paa_admin):
-    assert prioridade_paa_admin.readonly_fields == ('uuid', 'id', 'criado_em', 'alterado_em')
+    assert prioridade_paa_admin.readonly_fields == ('uuid', 'id', 'criado_em', 'alterado_em', 'paa_importado')
 
 
 def test_raw_fields(prioridade_paa_admin):

@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ...models import TipoAcertoDocumento, TipoDocumentoPrestacaoConta
+from ...models import TipoAcertoDocumento
 from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
 from .tipo_documento_prestacao_conta_serializer import TipoDocumentoPrestacaoContaSerializer
 
@@ -10,7 +10,8 @@ class TipoAcertoDocumentoListaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipoAcertoDocumento
-        fields = ('id', 'uuid', 'nome', 'categoria', 'ativo', 'tipos_documento_prestacao')
+        fields = ('id', 'uuid', 'nome', 'categoria', 'ativo',
+                  'tipos_documento_prestacao', 'pode_alterar_saldo_conciliacao')
 
 
 class TipoAcertoDocumentoSerializer(serializers.ModelSerializer):
@@ -33,7 +34,8 @@ class TipoAcertoDocumentoSerializer(serializers.ModelSerializer):
 
         if not tipos_documentos_prestacao:
             raise serializers.ValidationError({
-                "detail": "Para salvar um tipo de acerto de documento é necessário informar pelo menos um documento relacionado"
+                "detail": ("Para salvar um tipo de acerto de documento é necessário informar "
+                           "pelo menos um documento relacionado")
             })
         tipo_documento_criado.adiciona_tipos_documentos_prestacao(tipos_documentos_prestacao)
 
@@ -61,4 +63,5 @@ class TipoAcertoDocumentoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipoAcertoDocumento
-        fields = ('id', 'uuid', 'nome', 'categoria', 'ativo', 'tipos_documento_prestacao')
+        fields = ('id', 'uuid', 'nome', 'categoria', 'ativo',
+                  'tipos_documento_prestacao', 'pode_alterar_saldo_conciliacao')

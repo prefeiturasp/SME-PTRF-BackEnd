@@ -605,11 +605,7 @@ class PrestacaoConta(ModeloBase):
             data_limite_ue=data_limite_ue
         )
 
-        devolucao_requer_alteracoes = False
-
         if self.analise_atual:
-            devolucao_requer_alteracoes = self.analise_atual.verifica_se_requer_alteracao_em_lancamentos(
-                considera_realizacao=False)
             self.analise_atual.devolucao_prestacao_conta = devolucao
             self.analise_atual.status = self.STATUS_DEVOLVIDA
             self.analise_atual.save()
@@ -617,10 +613,6 @@ class PrestacaoConta(ModeloBase):
         self.analise_atual = None
         self.justificativa_pendencia_realizacao = ""
         self.save()
-
-        if devolucao_requer_alteracoes:
-            logging.info('A devolução de PC requer alterações e por isso deve apagar os seus fechamentos.')
-            self.apaga_fechamentos()
 
         notificar_prestacao_de_contas_devolvida_para_acertos(self, data_limite_ue)
         return self
@@ -695,6 +687,18 @@ class PrestacaoConta(ModeloBase):
             periodo__referencia__gt=self.periodo.referencia
         ).exists()
         return pode_rebrir_pc
+
+    def contas_saldos_alterados_sem_solicitacao(self):
+        from sme_ptrf_apps.logging.loggers import ContextualLogger
+        from sme_ptrf_apps.core.services.prestacao_conta_service import PrestacaoContaService
+        logger_pc = ContextualLogger.get_logger(__name__)
+
+        pc_service = PrestacaoContaService(
+            periodo_uuid=self.periodo.uuid,
+            associacao_uuid=self.associacao.uuid,
+            logger=logger_pc
+        )
+        return pc_service.contas_com_saldo_alterado_sem_solicitacao()
 
     def contas_ativas_no_periodo(self):
         contas_a_exibir = []
