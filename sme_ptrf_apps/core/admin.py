@@ -420,7 +420,8 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
     raw_id_fields = ('periodo', 'associacao', 'analise_atual', 'consolidado_dre',)
 
-    actions = ['marcar_como_nao_publicada', 'desvincular_pcs_do_consolidado', 'setar_status_anterior_a_retificacao']
+    actions = ['marcar_como_nao_publicada', 'desvincular_pcs_do_consolidado', 'setar_status_anterior_a_retificacao', 
+               '_cria_solicitacao_acerto_em_contas_com_pendencia']
 
     def desvincular_pcs_do_consolidado(self, request, queryset):
         contador = 0
@@ -449,6 +450,12 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
                 prestacao_conta.save()
 
         self.message_user(request, f"PCs setadas ao status anterior da retificação com sucesso!")
+
+    def _cria_solicitacao_acerto_em_contas_com_pendencia(self, request, queryset):
+        from sme_ptrf_apps.core.services.analise_prestacao_conta_service import cria_solicitacao_acerto_em_contas_com_pendencia
+        for prestacao_conta in queryset.all():
+            ultima_analise_pc = prestacao_conta.ultima_analise()
+            cria_solicitacao_acerto_em_contas_com_pendencia(ultima_analise_pc)
 
 
 @admin.register(Ata)
