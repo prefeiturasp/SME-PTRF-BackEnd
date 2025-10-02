@@ -6,6 +6,7 @@ from sme_ptrf_apps.core.services.prestacao_conta_service import PrestacaoContaSe
 pytestmark = pytest.mark.django_db
 
 
+# [HISTÓRIA #134189] DESCONSIDERA VALIDAÇÃO TEMPORARIAMENTE DEVIDO A INSCONSISTÊNCIAS NO FLUXO DE ANÁLISE DRE
 def test_contas_com_saldo_alterado_sem_solicitacao(
     associacao_factory,
     periodo_factory,
@@ -54,4 +55,5 @@ def test_contas_com_saldo_alterado_sem_solicitacao(
             periodo_uuid=periodo_2024_1.uuid,
             logger=fake_logger
         )
-        assert pc_service.contas_com_saldo_alterado_sem_solicitacao() == [conta_associacao]
+        # assert pc_service.contas_com_saldo_alterado_sem_solicitacao() == [conta_associacao]
+        assert pc_service.contas_com_saldo_alterado_sem_solicitacao() == []
