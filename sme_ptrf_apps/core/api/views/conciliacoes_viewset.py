@@ -31,7 +31,6 @@ from ...services import (
     desconciliar_transacao,
     salva_conciliacao_bancaria,
     permite_editar_campos_extrato,
-    permite_editar_campos_extrato_se_pc_devolvida_ou_nao_apresentada,
     deve_aplicar_nova_regra_data_extrato
 )
 from ....despesas.models import Despesa
@@ -471,15 +470,10 @@ class ConciliacoesViewSet(GenericViewSet):
 
         info_solicitacao = conta_associacao.get_info_solicitacao_encerramento(periodo)
 
-        # permite_editar = permite_editar_campos_extrato(
-        #     associacao,
-        #     periodo,
-        #     conta_associacao
-        # )
-
-        permite_editar = permite_editar_campos_extrato_se_pc_devolvida_ou_nao_apresentada(
+        permite_editar = permite_editar_campos_extrato(
             associacao,
-            periodo
+            periodo,
+            conta_associacao
         )
 
         aplicar_nova_regra_data_extrato = deve_aplicar_nova_regra_data_extrato(
