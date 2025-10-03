@@ -96,3 +96,4 @@ def _tem_solicitacoes_realizadas_por_categoria(analises_queryset, categorias):
             return True
     
     return False
+
