@@ -104,7 +104,8 @@ from sme_ptrf_apps.paa.api.views import (
     ReceitaPrevistaPddeViewSet,
     FonteRecursoPaaViewSet,
     RecursoProprioPaaViewSet,
-    PrioridadePaaViewSet
+    PrioridadePaaViewSet,
+    ObjetivoPaaViewSet,
 )
 from sme_ptrf_apps.users.api.views import (
     EsqueciMinhaSenhaViewSet,
@@ -267,6 +268,7 @@ router.register("recursos-proprios-paa", RecursoProprioPaaViewSet, basename='rec
 router.register("periodos-paa", PeriodoPaaViewSet, basename='periodos_paa')
 router.register("parametros-paa", ParametrosPaaViewSet, basename='parametros_paa')
 router.register("prioridades-paa", PrioridadePaaViewSet, basename='prioridades-paa')
+router.register("objetivos-paa", ObjetivoPaaViewSet, basename='objetivos-paa')
 router.register("bens-produzidos", BemProduzidoViewSet, basename='bens-produzidos')
 router.register("bens-produzidos-e-adquiridos", BemAdquiridoProduzidoViewSet, basename='bens-produzidos-e-adquiridos')
 router.register("bens-produzidos-rascunho", BemProduzidoRascunhoViewSet, basename='bens-produzidos-rascunho')
