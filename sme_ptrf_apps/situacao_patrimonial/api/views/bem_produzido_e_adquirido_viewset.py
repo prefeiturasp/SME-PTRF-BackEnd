@@ -17,6 +17,7 @@ from rest_framework.decorators import action
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoItem
+from sme_ptrf_apps.situacao_patrimonial.models.bem_produzido import BemProduzido
 from sme_ptrf_apps.situacao_patrimonial.api.serializers import BemProduzidoEAdquiridoSerializer
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.core.models.periodo import Periodo
@@ -59,20 +60,38 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
 
         bens_produzidos = BemProduzidoItem.objects.filter(bem_produzido__associacao__uuid=associacao_uuid)
 
+        # Na visão DRE, filtrar apenas bens completos
         if visao_dre:
-            from sme_ptrf_apps.situacao_patrimonial.models.bem_produzido import BemProduzido
             bens_produzidos = bens_produzidos.filter(bem_produzido__status=BemProduzido.STATUS_COMPLETO)
         
+        # Aplicar filtros a todos os bens produzidos (rascunhos e completos)
         bens_produzidos = self.filtrar_bens_produzidos(
             bens_produzidos, especificacao_bem, fornecedor, acao_uuid, conta_uuid, periodos_uuid, data_inicio, data_fim
         )
+        
+        bens_produzidos_rascunho = bens_produzidos.exclude(bem_produzido__status=BemProduzido.STATUS_COMPLETO)
+        bens_produzidos_completos = bens_produzidos.filter(bem_produzido__status=BemProduzido.STATUS_COMPLETO)
 
         bens_adquiridos = RateioDespesa.rateios_completos_de_capital().filter(despesa__associacao__uuid=associacao_uuid)
         bens_adquiridos = self.filtrar_bens_adquiridos(
             bens_adquiridos, especificacao_bem, fornecedor, acao_uuid, conta_uuid, periodos_uuid, data_inicio, data_fim
         )
 
-        combined = list(chain(bens_produzidos, bens_adquiridos))
+        bens_produzidos_rascunho = list(bens_produzidos_rascunho)
+        bens_produzidos_completos = list(bens_produzidos_completos)
+        
+        bens_misturados = bens_produzidos_completos + list(bens_adquiridos)
+        
+        def get_data_aquisicao(item):
+            if hasattr(item, 'despesa'):  # É RateioDespesa (bem adquirido)
+                return item.despesa.data_documento if item.despesa.data_documento else datetime.date.min
+            else:  # É BemProduzidoItem (bem produzido)
+                datas = [d.despesa.data_documento for d in item.bem_produzido.despesas.all() if d.despesa.data_documento]
+                return max(datas) if datas else datetime.date.min
+        
+        bens_misturados_ordenados = sorted(bens_misturados, key=get_data_aquisicao, reverse=True)
+
+        combined = bens_produzidos_rascunho + bens_misturados_ordenados
 
         paginator = CustomPagination()
         page = paginator.paginate_queryset(combined, request)
@@ -108,9 +127,9 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
 
             queryset = queryset.filter(periodo_filters)
         if data_inicio:
-            queryset = queryset.filter(criado_em__gte=data_inicio)
+            queryset = queryset.filter(bem_produzido__despesas__despesa__data_documento__gte=data_inicio).distinct()
         if data_fim:
-            queryset = queryset.filter(criado_em__lte=data_fim)
+            queryset = queryset.filter(bem_produzido__despesas__despesa__data_documento__lte=data_fim).distinct()
         return queryset
 
     def filtrar_bens_adquiridos(self, queryset, especificacao_bem, fornecedor, acao_uuid, conta_uuid, periodos_uuid, data_inicio, data_fim):

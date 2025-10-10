@@ -13,6 +13,9 @@ from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido, BemProduzidoDespesa
 from sme_ptrf_apps.situacao_patrimonial.api.serializers import BemProduzidoSerializer, BemProduzidoSaveSerializer, BemProduzidoSaveRacunhoSerializer
+from sme_ptrf_apps.despesas.models import Despesa
+from sme_ptrf_apps.core.models import PrestacaoConta
+import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +65,90 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
 
         return Response({
             'mensagem': f'{quantidade} despesas removidas do bem produzido.'
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], url_path='verificar_se_pode_informar_valores', permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def verificar_se_pode_informar_valores(self, request, *args, **kwargs):
+        """
+        Verifica se há pelo menos uma despesa que permite informar valores em situação patrimonial.
+        
+        Regra:
+        - Se TODAS as despesas são de períodos finalizados com PC entregue: não permite (retorna False)
+        - Se há pelo menos uma despesa de período não finalizado OU período finalizado sem PC entregue: permite (retorna True)
+        """
+        uuids_despesas = request.data.get('uuids', [])
+
+        if not isinstance(uuids_despesas, list) or not all(isinstance(u, str) for u in uuids_despesas):
+            return Response({
+                'mensagem': 'A lista de UUIDs das despesas é obrigatória e deve conter apenas strings.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if not uuids_despesas:
+            return Response({
+                'pode_informar_valores': False,
+                'mensagem': 'Nenhuma despesa fornecida para verificação.'
+            }, status=status.HTTP_200_OK)
+
+        despesas = Despesa.objects.filter(uuid__in=uuids_despesas)
+
+        if not despesas.exists():
+            return Response({
+                'pode_informar_valores': False,
+                'mensagem': 'Nenhuma despesa encontrada com os UUIDs fornecidos.'
+            }, status=status.HTTP_200_OK)
+
+        status_pc_entregue = [
+            PrestacaoConta.STATUS_RECEBIDA,
+            PrestacaoConta.STATUS_EM_ANALISE,
+            PrestacaoConta.STATUS_DEVOLVIDA,
+            PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA,
+            PrestacaoConta.STATUS_DEVOLVIDA_RECEBIDA,
+            PrestacaoConta.STATUS_APROVADA,
+            PrestacaoConta.STATUS_APROVADA_RESSALVA,
+            PrestacaoConta.STATUS_REPROVADA,
+        ]
+
+        hoje = datetime.date.today()
+        todas_despesas_periodo_finalizado_com_pc = True
+
+        for despesa in despesas:
+            periodo = despesa.periodo_da_despesa
+            
+            if not periodo or not despesa.associacao:
+                # Despesa sem período ou associação: permite adicionar
+                todas_despesas_periodo_finalizado_com_pc = False
+                break
+            
+            # Verificar se o período está finalizado
+            periodo_finalizado = periodo.data_fim_realizacao_despesas and periodo.data_fim_realizacao_despesas < hoje
+            
+            if not periodo_finalizado:
+                # Período não finalizado: permite adicionar
+                todas_despesas_periodo_finalizado_com_pc = False
+                break
+            
+            # Período finalizado: verificar se há PC entregue
+            pc = PrestacaoConta.objects.filter(
+                periodo=periodo,
+                associacao=despesa.associacao
+            ).first()
+            
+            if not pc or pc.status not in status_pc_entregue:
+                # Período finalizado SEM PC entregue: permite adicionar
+                todas_despesas_periodo_finalizado_com_pc = False
+                break
+
+        # Se todas as despesas são de períodos finalizados com PC entregue, NÃO permite
+        pode_informar_valores = not todas_despesas_periodo_finalizado_com_pc
+
+        if pode_informar_valores:
+            mensagem = 'Há pelo menos uma despesa de período não finalizado ou sem prestação de contas entregue.'
+        else:
+            mensagem = 'Todas as despesas são de períodos finalizados com prestação de contas entregue.'
+
+        return Response({
+            'pode_informar_valores': pode_informar_valores,
+            'mensagem': mensagem
         }, status=status.HTTP_200_OK)
 
 
