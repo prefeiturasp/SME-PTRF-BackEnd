@@ -13,9 +13,8 @@ from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido, BemProduzidoDespesa
 from sme_ptrf_apps.situacao_patrimonial.api.serializers import BemProduzidoSerializer, BemProduzidoSaveSerializer, BemProduzidoSaveRacunhoSerializer
+from sme_ptrf_apps.situacao_patrimonial.services import BemProduzidoService
 from sme_ptrf_apps.despesas.models import Despesa
-from sme_ptrf_apps.core.models import PrestacaoConta
-import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -97,59 +96,9 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
                 'mensagem': 'Nenhuma despesa encontrada com os UUIDs fornecidos.'
             }, status=status.HTTP_200_OK)
 
-        status_pc_entregue = [
-            PrestacaoConta.STATUS_RECEBIDA,
-            PrestacaoConta.STATUS_EM_ANALISE,
-            PrestacaoConta.STATUS_DEVOLVIDA,
-            PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA,
-            PrestacaoConta.STATUS_DEVOLVIDA_RECEBIDA,
-            PrestacaoConta.STATUS_APROVADA,
-            PrestacaoConta.STATUS_APROVADA_RESSALVA,
-            PrestacaoConta.STATUS_REPROVADA,
-        ]
+        resultado = BemProduzidoService.verificar_se_pode_informar_valores(despesas)
 
-        hoje = datetime.date.today()
-        todas_despesas_periodo_finalizado_com_pc = True
-
-        for despesa in despesas:
-            periodo = despesa.periodo_da_despesa
-            
-            if not periodo or not despesa.associacao:
-                # Despesa sem período ou associação: permite adicionar
-                todas_despesas_periodo_finalizado_com_pc = False
-                break
-            
-            # Verificar se o período está finalizado
-            periodo_finalizado = periodo.data_fim_realizacao_despesas and periodo.data_fim_realizacao_despesas < hoje
-            
-            if not periodo_finalizado:
-                # Período não finalizado: permite adicionar
-                todas_despesas_periodo_finalizado_com_pc = False
-                break
-            
-            # Período finalizado: verificar se há PC entregue
-            pc = PrestacaoConta.objects.filter(
-                periodo=periodo,
-                associacao=despesa.associacao
-            ).first()
-            
-            if not pc or pc.status not in status_pc_entregue:
-                # Período finalizado SEM PC entregue: permite adicionar
-                todas_despesas_periodo_finalizado_com_pc = False
-                break
-
-        # Se todas as despesas são de períodos finalizados com PC entregue, NÃO permite
-        pode_informar_valores = not todas_despesas_periodo_finalizado_com_pc
-
-        if pode_informar_valores:
-            mensagem = 'Há pelo menos uma despesa de período não finalizado ou sem prestação de contas entregue.'
-        else:
-            mensagem = 'Todas as despesas são de períodos finalizados com prestação de contas entregue.'
-
-        return Response({
-            'pode_informar_valores': pode_informar_valores,
-            'mensagem': mensagem
-        }, status=status.HTTP_200_OK)
+        return Response(resultado, status=status.HTTP_200_OK)
 
 
 class BemProduzidoRascunhoViewSet(WaffleFlagMixin, ModelViewSet):
