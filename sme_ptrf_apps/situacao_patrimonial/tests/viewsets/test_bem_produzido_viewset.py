@@ -421,3 +421,332 @@ def test_excluir_em_lote_payload_invalido(
     response = jwt_authenticated_client_sme.post(
         f'/api/bens-produzidos/{bem_produzido_2.uuid}/excluir-lote/', content_type='application/json', data=json.dumps({"uuids": "nao_lista"}))
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_verificar_se_pode_informar_valores_com_despesa_em_periodo_nao_finalizado(
+        jwt_authenticated_client_sme,
+        flag_situacao_patrimonial,
+        associacao_1,
+        despesa_factory,
+        periodo_2025_1,
+):
+    """Testa quando há despesa em período não finalizado (data_fim no futuro)."""
+    # Criar uma despesa no período 2025_1 (que não está finalizado)
+    despesa = despesa_factory(
+        associacao=associacao_1,
+        data_transacao='2025-01-15',
+        data_documento='2025-01-15'
+    )
+
+    payload = {
+        "uuids": [str(despesa.uuid)]
+    }
+
+    response = jwt_authenticated_client_sme.post(
+        '/api/bens-produzidos/verificar_se_pode_informar_valores/',
+        content_type='application/json',
+        data=json.dumps(payload)
+    )
+
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    assert content['pode_informar_valores'] is True
+    assert 'período não finalizado' in content['mensagem'].lower() or 'sem prestação' in content['mensagem'].lower()
+
+
+def test_verificar_se_pode_informar_valores_com_despesa_periodo_finalizado_com_pc_entregue(
+        jwt_authenticated_client_sme,
+        flag_situacao_patrimonial,
+        associacao_1,
+        despesa_factory,
+        periodo_factory,
+        prestacao_conta_factory,
+):
+    """Testa quando todas as despesas são de períodos finalizados com PC entregue."""
+    from datetime import date
+    
+    # Criar um período finalizado (data_fim no passado)
+    periodo_passado = periodo_factory(
+        referencia='2023.1',
+        data_inicio_realizacao_despesas=date(2023, 1, 1),
+        data_fim_realizacao_despesas=date(2023, 4, 30),
+    )
+    
+    # Criar uma despesa no período finalizado
+    despesa = despesa_factory(
+        associacao=associacao_1,
+        data_transacao='2023-01-15',
+        data_documento='2023-01-15'
+    )
+
+    # Criar uma PC com status APROVADA (PC entregue)
+    prestacao_conta_factory(
+        periodo=periodo_passado,
+        associacao=associacao_1,
+        status='APROVADA'
+    )
+
+    payload = {
+        "uuids": [str(despesa.uuid)]
+    }
+
+    response = jwt_authenticated_client_sme.post(
+        '/api/bens-produzidos/verificar_se_pode_informar_valores/',
+        content_type='application/json',
+        data=json.dumps(payload)
+    )
+
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    assert content['pode_informar_valores'] is False
+    assert 'prestação de contas entregue' in content['mensagem'].lower()
+
+
+def test_verificar_se_pode_informar_valores_com_despesa_periodo_finalizado_sem_pc_entregue(
+        jwt_authenticated_client_sme,
+        flag_situacao_patrimonial,
+        associacao_1,
+        despesa_factory,
+        periodo_factory,
+        prestacao_conta_factory,
+):
+    """Testa quando há despesa de período finalizado SEM PC entregue (NAO_APRESENTADA)."""
+    from datetime import date
+    
+    # Criar um período finalizado (data_fim no passado)
+    periodo_passado = periodo_factory(
+        referencia='2023.1',
+        data_inicio_realizacao_despesas=date(2023, 1, 1),
+        data_fim_realizacao_despesas=date(2023, 4, 30),
+    )
+    
+    # Criar uma despesa no período finalizado
+    despesa = despesa_factory(
+        associacao=associacao_1,
+        data_transacao='2023-01-15',
+        data_documento='2023-01-15'
+    )
+
+    # Criar uma PC com status NAO_APRESENTADA (PC não entregue)
+    prestacao_conta_factory(
+        periodo=periodo_passado,
+        associacao=associacao_1,
+        status='NAO_APRESENTADA'
+    )
+
+    payload = {
+        "uuids": [str(despesa.uuid)]
+    }
+
+    response = jwt_authenticated_client_sme.post(
+        '/api/bens-produzidos/verificar_se_pode_informar_valores/',
+        content_type='application/json',
+        data=json.dumps(payload)
+    )
+
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    assert content['pode_informar_valores'] is True
+    assert 'sem prestação' in content['mensagem'].lower() or 'período não finalizado' in content['mensagem'].lower()
+
+
+def test_verificar_se_pode_informar_valores_com_multiplas_despesas_mix(
+        jwt_authenticated_client_sme,
+        flag_situacao_patrimonial,
+        associacao_1,
+        despesa_factory,
+        periodo_factory,
+        prestacao_conta_factory,
+):
+    """Testa quando há múltiplas despesas: uma com PC entregue e outra sem PC entregue."""
+    from datetime import date
+    
+    # Criar períodos finalizados
+    periodo_2023_1 = periodo_factory(
+        referencia='2023.1',
+        data_inicio_realizacao_despesas=date(2023, 1, 1),
+        data_fim_realizacao_despesas=date(2023, 4, 30),
+    )
+    
+    periodo_2023_2 = periodo_factory(
+        referencia='2023.2',
+        data_inicio_realizacao_despesas=date(2023, 5, 1),
+        data_fim_realizacao_despesas=date(2023, 8, 31),
+    )
+    
+    # Criar despesa no período 2023.1 COM PC entregue
+    despesa_com_pc = despesa_factory(
+        associacao=associacao_1,
+        data_transacao='2023-01-15',
+        data_documento='2023-01-15'
+    )
+    
+    prestacao_conta_factory(
+        periodo=periodo_2023_1,
+        associacao=associacao_1,
+        status='APROVADA'
+    )
+
+    # Criar despesa no período 2023.2 SEM PC entregue
+    despesa_sem_pc = despesa_factory(
+        associacao=associacao_1,
+        data_transacao='2023-05-15',
+        data_documento='2023-05-15'
+    )
+    
+    prestacao_conta_factory(
+        periodo=periodo_2023_2,
+        associacao=associacao_1,
+        status='NAO_APRESENTADA'
+    )
+
+    payload = {
+        "uuids": [str(despesa_com_pc.uuid), str(despesa_sem_pc.uuid)]
+    }
+
+    response = jwt_authenticated_client_sme.post(
+        '/api/bens-produzidos/verificar_se_pode_informar_valores/',
+        content_type='application/json',
+        data=json.dumps(payload)
+    )
+
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    assert content['pode_informar_valores'] is True
+    assert 'sem prestação' in content['mensagem'].lower() or 'período não finalizado' in content['mensagem'].lower()
+
+
+def test_verificar_se_pode_informar_valores_array_vazio(
+        jwt_authenticated_client_sme,
+        flag_situacao_patrimonial,
+):
+    """Testa quando o array de UUIDs está vazio."""
+    payload = {
+        "uuids": []
+    }
+
+    response = jwt_authenticated_client_sme.post(
+        '/api/bens-produzidos/verificar_se_pode_informar_valores/',
+        content_type='application/json',
+        data=json.dumps(payload)
+    )
+
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    assert content['pode_informar_valores'] is False
+    assert 'nenhuma despesa fornecida' in content['mensagem'].lower()
+
+
+def test_verificar_se_pode_informar_valores_payload_invalido(
+        jwt_authenticated_client_sme,
+        flag_situacao_patrimonial,
+):
+    """Testa quando o payload não é uma lista válida."""
+    payload = {
+        "uuids": "nao_lista"
+    }
+
+    response = jwt_authenticated_client_sme.post(
+        '/api/bens-produzidos/verificar_se_pode_informar_valores/',
+        content_type='application/json',
+        data=json.dumps(payload)
+    )
+
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'obrigatória' in content['mensagem'].lower()
+
+
+def test_verificar_se_pode_informar_valores_uuids_inexistentes(
+        jwt_authenticated_client_sme,
+        flag_situacao_patrimonial,
+):
+    """Testa quando os UUIDs não correspondem a despesas existentes."""
+    payload = {
+        "uuids": ["550e8400-e29b-41d4-a716-446655440000"]
+    }
+
+    response = jwt_authenticated_client_sme.post(
+        '/api/bens-produzidos/verificar_se_pode_informar_valores/',
+        content_type='application/json',
+        data=json.dumps(payload)
+    )
+
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    assert content['pode_informar_valores'] is False
+    assert 'nenhuma despesa encontrada' in content['mensagem'].lower()
+
+
+def test_verificar_se_pode_informar_valores_todas_despesas_periodos_finalizados_com_pc_entregue(
+        jwt_authenticated_client_sme,
+        flag_situacao_patrimonial,
+        associacao_1,
+        despesa_factory,
+        periodo_factory,
+        prestacao_conta_factory,
+):
+    """Testa quando TODAS as despesas são de períodos finalizados COM PC entregue."""
+    from datetime import date
+    
+    # Criar períodos finalizados
+    periodo_2023_1 = periodo_factory(
+        referencia='2023.1',
+        data_inicio_realizacao_despesas=date(2023, 1, 1),
+        data_fim_realizacao_despesas=date(2023, 4, 30),
+    )
+    
+    periodo_2023_2 = periodo_factory(
+        referencia='2023.2',
+        data_inicio_realizacao_despesas=date(2023, 5, 1),
+        data_fim_realizacao_despesas=date(2023, 8, 31),
+    )
+    
+    # Criar despesas nos períodos finalizados
+    despesa_1 = despesa_factory(
+        associacao=associacao_1,
+        data_transacao='2023-01-15',
+        data_documento='2023-01-15'
+    )
+
+    despesa_2 = despesa_factory(
+        associacao=associacao_1,
+        data_transacao='2023-05-15',
+        data_documento='2023-05-15'
+    )
+
+    # Criar PCs com status entregue para ambos os períodos
+    prestacao_conta_factory(
+        periodo=periodo_2023_1,
+        associacao=associacao_1,
+        status='APROVADA'
+    )
+
+    prestacao_conta_factory(
+        periodo=periodo_2023_2,
+        associacao=associacao_1,
+        status='APROVADA_RESSALVA'
+    )
+
+    payload = {
+        "uuids": [str(despesa_1.uuid), str(despesa_2.uuid)]
+    }
+
+    response = jwt_authenticated_client_sme.post(
+        '/api/bens-produzidos/verificar_se_pode_informar_valores/',
+        content_type='application/json',
+        data=json.dumps(payload)
+    )
+
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    assert content['pode_informar_valores'] is False
+    assert 'prestação de contas entregue' in content['mensagem'].lower()
