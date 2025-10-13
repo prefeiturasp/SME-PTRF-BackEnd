@@ -10,3 +10,4 @@ from .recurso_proprio_paa_viewset import RecursoProprioPaaViewSet
 from .fonte_recurso_paa_viewset import FonteRecursoPaaViewSet
 from .prioridade_paa_viewset import PrioridadePaaViewSet
 from .objetivo_paa_viewset import ObjetivoPaaViewSet
+from .atividade_estatutaria_viewset import AtividadeEstatutariaViewSet
