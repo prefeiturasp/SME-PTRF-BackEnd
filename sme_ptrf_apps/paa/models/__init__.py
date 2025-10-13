@@ -10,3 +10,4 @@ from .receita_prevista_paa import ReceitaPrevistaPaa
 from .receita_prevista_pdde import ReceitaPrevistaPdde
 from .prioridade_paa import PrioridadePaa
 from .objetivo_paa import ObjetivoPaa
+from .atividade_estatutaria import AtividadeEstatutaria

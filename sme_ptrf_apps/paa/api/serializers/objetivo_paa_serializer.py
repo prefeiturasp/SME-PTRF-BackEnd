@@ -37,7 +37,7 @@ class ObjetivoPaaSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         nome = validated_data['nome']
-        nome_ja_cadastrado = ObjetivoPaa.objects.filter(nome=nome).all()
+        nome_ja_cadastrado = ObjetivoPaa.objects.filter(nome__iexact=nome).all()
 
         if nome_ja_cadastrado:
             raise serializers.ValidationError(self.ERROR_MSG_NOME_JA_CADASTRADO)
