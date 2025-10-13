@@ -25,7 +25,7 @@ def customTitledFilter(title):
 @admin.register(TipoDocumento)
 class TipoDocumentoAdmin(admin.ModelAdmin):
     list_display = (
-    'nome', 'pode_reter_imposto', 'eh_documento_de_retencao_de_imposto', 'documento_comprobatorio_de_despesa')
+        'nome', 'pode_reter_imposto', 'eh_documento_de_retencao_de_imposto', 'documento_comprobatorio_de_despesa')
     readonly_fields = ('id', 'uuid')
 
 
@@ -33,12 +33,13 @@ class TipoDocumentoAdmin(admin.ModelAdmin):
 class TipoCusteioAdmin(admin.ModelAdmin):
     list_display = ('nome', 'id', 'uuid', 'eh_tributos_e_tarifas')
     readonly_fields = ('id', 'uuid')
+    autocomplete_fields = ('unidades',)
 
 
 @admin.register(RateioDespesa)
 class RateioDespesaAdmin(admin.ModelAdmin):
     list_display = (
-    "uuid", 'numero_documento', 'associacao', 'acao', 'valor_rateio', 'quantidade_itens_capital', 'status',)
+        "uuid", 'numero_documento', 'associacao', 'acao', 'valor_rateio', 'quantidade_itens_capital', 'status',)
     search_fields = (
         'despesa__numero_documento', 'despesa__nome_fornecedor', 'especificacao_material_servico__descricao',
         'associacao__unidade__codigo_eol', 'associacao__unidade__nome',)
@@ -77,6 +78,7 @@ class RateioDespesaInLine(admin.TabularInline):
 
     autocomplete_fields = ['associacao', 'despesa', 'conta_associacao', 'acao_associacao']
 
+
 class PeriodoDaDespesaFilter(admin.SimpleListFilter):
     title = 'Periodo da Despesa'
     parameter_name = 'periodo_da_despesa'
@@ -90,8 +92,9 @@ class PeriodoDaDespesaFilter(admin.SimpleListFilter):
             periodo_id = self.value()
             periodo = Periodo.objects.get(pk=periodo_id)
             return queryset.filter(data_transacao__gte=periodo.data_inicio_realizacao_despesas,
-                                    data_transacao__lte=periodo.data_fim_realizacao_despesas)
+                                   data_transacao__lte=periodo.data_fim_realizacao_despesas)
         return queryset
+
 
 @admin.register(Despesa)
 class DespesaAdmin(admin.ModelAdmin):

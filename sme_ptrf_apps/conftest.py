@@ -48,7 +48,7 @@ from sme_ptrf_apps.mandatos.fixtures.factories import (
 )
 from sme_ptrf_apps.despesas.fixtures.factories import (
     DespesaFactory, RateioDespesaFactory, TipoTransacaoFactory, TipoDocumentoFactory,
-    MotivoPagamentoAntecipadoFactory, EspecificacaoMaterialServicoFactory
+    MotivoPagamentoAntecipadoFactory, EspecificacaoMaterialServicoFactory, TipoCusteioFactory
 )
 from sme_ptrf_apps.receitas.fixtures.factories import (
     TipoReceitaFactory
@@ -71,7 +71,7 @@ factories_to_register = [
     PrestacaoContaFactory, UsuarioFactory, UnidadeEmSuporteFactory,
     GrupoAcessoFactory, VisaoFactory, ArquivoFactory, AcaoFactory,
     AcaoAssociacaoFactory, FechamentoPeriodoFactory, DespesaFactory,
-    RateioDespesaFactory, MembroAssociacaoFactory, AcessoConcedidoSmeFactory,
+    RateioDespesaFactory, TipoCusteioFactory, MembroAssociacaoFactory, AcessoConcedidoSmeFactory,
     MandatoFactory, ComposicaoFactory, PrestacaoContaReprovadaNaoApresentacaoFactory,
     TipoAcertoLancamentoFactory, TipoAcertoDocumentoFactory, TipoDocumentoPrestacaoContaFactory,
     AnalisePrestacaoContaFactory, AnaliseLancamentoPrestacaoContaFactory, AnaliseDocumentoPrestacaoContaFactory,
