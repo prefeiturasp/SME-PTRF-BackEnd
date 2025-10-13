@@ -398,3 +398,468 @@ def test_exportar_sem_permissao(jwt_authenticated_client_sme, associacao_1, monk
     )
     
     assert response.status_code in [status.HTTP_202_ACCEPTED, status.HTTP_403_FORBIDDEN, status.HTTP_404_NOT_FOUND]
+
+@freeze_time('2025-01-01')
+def test_lista_rascunhos_aparecem_primeiro(
+    jwt_authenticated_client_sme, 
+    flag_situacao_patrimonial, 
+    associacao_1,
+    bem_produzido_factory,
+    bem_produzido_item_factory,
+    despesa_factory,
+    bem_produzido_despesa_factory,
+    rateio_despesa_factory,
+    especificacao_material_servico_1
+):
+    """Testa se bens produzidos em rascunho aparecem primeiro na listagem"""
+    from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido
+    
+    # Criar bem produzido completo com data mais recente
+    bem_completo = bem_produzido_factory.create(
+        associacao=associacao_1, 
+        status=BemProduzido.STATUS_COMPLETO
+    )
+    despesa_completo = despesa_factory(associacao=associacao_1, data_documento='2025-01-15')
+    bem_produzido_despesa_factory.create(bem_produzido=bem_completo, despesa=despesa_completo)
+    bem_produzido_item_factory.create(
+        bem_produzido=bem_completo,
+        especificacao_do_bem=especificacao_material_servico_1
+    )
+    
+    # Criar bem produzido em rascunho com data mais antiga
+    bem_rascunho = bem_produzido_factory.create(
+        associacao=associacao_1, 
+        status=BemProduzido.STATUS_INCOMPLETO
+    )
+    despesa_rascunho = despesa_factory(associacao=associacao_1, data_documento='2025-01-05')
+    bem_produzido_despesa_factory.create(bem_produzido=bem_rascunho, despesa=despesa_rascunho)
+    bem_produzido_item_factory.create(
+        bem_produzido=bem_rascunho,
+        especificacao_do_bem=especificacao_material_servico_1
+    )
+    
+    # Criar bem adquirido (rateio de capital)
+    despesa_adquirido = despesa_factory(associacao=associacao_1, data_documento='2025-01-20')
+    rateio_despesa_factory.create(
+        associacao=associacao_1, 
+        despesa=despesa_adquirido, 
+        aplicacao_recurso="CAPITAL",
+        especificacao_material_servico=especificacao_material_servico_1
+    )
+    
+    response = jwt_authenticated_client_sme.get(
+        f'/api/bens-produzidos-e-adquiridos/?associacao_uuid={associacao_1.uuid}'
+    )
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    assert len(content["results"]) == 3
+    
+    # Verificar que o primeiro item é o rascunho (mesmo tendo data mais antiga)
+    assert content["results"][0]["status"] == BemProduzido.STATUS_INCOMPLETO
+    assert content["results"][0]["tipo"] == "Produzido"
+    
+    # Os demais devem estar ordenados por data decrescente
+    # Bem adquirido (2025-01-20) vem antes do bem completo (2025-01-15)
+    assert content["results"][1]["tipo"] == "Adquirido"
+    assert content["results"][1]["data_aquisicao_producao"] == "2025-01-20"
+    assert content["results"][2]["status"] == BemProduzido.STATUS_COMPLETO
+    assert content["results"][2]["data_aquisicao_producao"] == "2025-01-15"
+
+
+@freeze_time('2025-01-01')
+def test_lista_multiplos_rascunhos_aparecem_primeiro(
+    jwt_authenticated_client_sme, 
+    flag_situacao_patrimonial, 
+    associacao_1,
+    bem_produzido_factory,
+    bem_produzido_item_factory,
+    despesa_factory,
+    bem_produzido_despesa_factory,
+    rateio_despesa_factory,
+    especificacao_material_servico_1
+):
+    """Testa se múltiplos bens produzidos em rascunho aparecem primeiro"""
+    from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido
+    
+    # Criar 3 bens produzidos em rascunho
+    for i in range(3):
+        bem_rascunho = bem_produzido_factory.create(
+            associacao=associacao_1, 
+            status=BemProduzido.STATUS_INCOMPLETO
+        )
+        despesa_rascunho = despesa_factory(associacao=associacao_1, data_documento=f'2025-01-0{i+1}')
+        bem_produzido_despesa_factory.create(bem_produzido=bem_rascunho, despesa=despesa_rascunho)
+        bem_produzido_item_factory.create(
+            bem_produzido=bem_rascunho,
+            especificacao_do_bem=especificacao_material_servico_1
+        )
+    
+    # Criar 2 bens produzidos completos
+    for i in range(2):
+        bem_completo = bem_produzido_factory.create(
+            associacao=associacao_1, 
+            status=BemProduzido.STATUS_COMPLETO
+        )
+        despesa_completo = despesa_factory(associacao=associacao_1, data_documento=f'2025-01-{20+i}')
+        bem_produzido_despesa_factory.create(bem_produzido=bem_completo, despesa=despesa_completo)
+        bem_produzido_item_factory.create(
+            bem_produzido=bem_completo,
+            especificacao_do_bem=especificacao_material_servico_1
+        )
+    
+    response = jwt_authenticated_client_sme.get(
+        f'/api/bens-produzidos-e-adquiridos/?associacao_uuid={associacao_1.uuid}'
+    )
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    assert len(content["results"]) == 5
+    
+    # Os 3 primeiros devem ser rascunhos
+    for i in range(3):
+        assert content["results"][i]["status"] == BemProduzido.STATUS_INCOMPLETO
+        assert content["results"][i]["tipo"] == "Produzido"
+    
+    # Os 2 últimos devem ser completos, ordenados por data decrescente
+    assert content["results"][3]["status"] == BemProduzido.STATUS_COMPLETO
+    assert content["results"][3]["data_aquisicao_producao"] == "2025-01-21"
+    assert content["results"][4]["status"] == BemProduzido.STATUS_COMPLETO
+    assert content["results"][4]["data_aquisicao_producao"] == "2025-01-20"
+
+
+@freeze_time('2025-01-01')
+def test_lista_ordenacao_completos_e_adquiridos_por_data_decrescente(
+    jwt_authenticated_client_sme, 
+    flag_situacao_patrimonial, 
+    associacao_1,
+    bem_produzido_factory,
+    bem_produzido_item_factory,
+    despesa_factory,
+    bem_produzido_despesa_factory,
+    rateio_despesa_factory,
+    especificacao_material_servico_1
+):
+    """Testa se bens completos e adquiridos são ordenados por data decrescente"""
+    from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido
+    
+    # Criar bem produzido completo - data: 15/01
+    bem_completo = bem_produzido_factory.create(
+        associacao=associacao_1, 
+        status=BemProduzido.STATUS_COMPLETO
+    )
+    despesa_completo = despesa_factory(associacao=associacao_1, data_documento='2025-01-15')
+    bem_produzido_despesa_factory.create(bem_produzido=bem_completo, despesa=despesa_completo)
+    bem_produzido_item_factory.create(
+        bem_produzido=bem_completo,
+        especificacao_do_bem=especificacao_material_servico_1
+    )
+    
+    # Criar bem adquirido - data: 20/01 (mais recente)
+    despesa_adquirido_1 = despesa_factory(associacao=associacao_1, data_documento='2025-01-20')
+    rateio_despesa_factory.create(
+        associacao=associacao_1, 
+        despesa=despesa_adquirido_1, 
+        aplicacao_recurso="CAPITAL",
+        especificacao_material_servico=especificacao_material_servico_1
+    )
+    
+    # Criar outro bem adquirido - data: 10/01 (mais antiga)
+    despesa_adquirido_2 = despesa_factory(associacao=associacao_1, data_documento='2025-01-10')
+    rateio_despesa_factory.create(
+        associacao=associacao_1, 
+        despesa=despesa_adquirido_2, 
+        aplicacao_recurso="CAPITAL",
+        especificacao_material_servico=especificacao_material_servico_1
+    )
+    
+    response = jwt_authenticated_client_sme.get(
+        f'/api/bens-produzidos-e-adquiridos/?associacao_uuid={associacao_1.uuid}'
+    )
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    assert len(content["results"]) == 3
+    
+    # Verificar ordenação por data decrescente
+    assert content["results"][0]["data_aquisicao_producao"] == "2025-01-20"  # Mais recente
+    assert content["results"][1]["data_aquisicao_producao"] == "2025-01-15"  # Meio
+    assert content["results"][2]["data_aquisicao_producao"] == "2025-01-10"  # Mais antiga
+
+
+def test_lista_rascunhos_com_filtro_periodo(
+    jwt_authenticated_client_sme, 
+    flag_situacao_patrimonial, 
+    associacao_1,
+    bem_produzido_factory,
+    bem_produzido_item_factory,
+    despesa_factory,
+    bem_produzido_despesa_factory,
+    periodo_2025_1,
+    periodo_2024_1,
+    especificacao_material_servico_1
+):
+    """Testa se filtros são aplicados aos rascunhos também"""
+    from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido
+    
+    # Criar bem rascunho no período 2025.1
+    with freeze_time('2025-01-15'):
+        bem_rascunho_2025 = bem_produzido_factory.create(
+            associacao=associacao_1, 
+            status=BemProduzido.STATUS_INCOMPLETO
+        )
+        despesa_rascunho_2025 = despesa_factory(associacao=associacao_1, data_documento='2025-01-15')
+        bem_produzido_despesa_factory.create(bem_produzido=bem_rascunho_2025, despesa=despesa_rascunho_2025)
+        item_2025 = bem_produzido_item_factory.create(
+            bem_produzido=bem_rascunho_2025,
+            especificacao_do_bem=especificacao_material_servico_1
+        )
+    
+    # Criar bem rascunho no período 2024.1
+    with freeze_time('2024-02-15'):
+        bem_rascunho_2024 = bem_produzido_factory.create(
+            associacao=associacao_1, 
+            status=BemProduzido.STATUS_INCOMPLETO
+        )
+        despesa_rascunho_2024 = despesa_factory(associacao=associacao_1, data_documento='2024-02-15')
+        bem_produzido_despesa_factory.create(bem_produzido=bem_rascunho_2024, despesa=despesa_rascunho_2024)
+        item_2024 = bem_produzido_item_factory.create(
+            bem_produzido=bem_rascunho_2024,
+            especificacao_do_bem=especificacao_material_servico_1
+        )
+    
+    # Criar bem completo no período 2025.1
+    with freeze_time('2025-02-01'):
+        bem_completo_2025 = bem_produzido_factory.create(
+            associacao=associacao_1, 
+            status=BemProduzido.STATUS_COMPLETO
+        )
+        despesa_completo_2025 = despesa_factory(associacao=associacao_1, data_documento='2025-02-01')
+        bem_produzido_despesa_factory.create(bem_produzido=bem_completo_2025, despesa=despesa_completo_2025)
+        item_completo = bem_produzido_item_factory.create(
+            bem_produzido=bem_completo_2025,
+            especificacao_do_bem=especificacao_material_servico_1
+        )
+    
+    # Filtrar por período 2025.1
+    response = jwt_authenticated_client_sme.get(
+        f'/api/bens-produzidos-e-adquiridos/?'
+        f'associacao_uuid={associacao_1.uuid}&'
+        f'periodos_uuid={periodo_2025_1.uuid}'
+    )
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    # Deve retornar apenas os itens do período 2025.1 (rascunho + completo)
+    assert len(content["results"]) == 2
+    
+    # Primeiro deve ser o rascunho
+    assert content["results"][0]["status"] == BemProduzido.STATUS_INCOMPLETO
+    
+    # Segundo deve ser o completo
+    assert content["results"][1]["status"] == BemProduzido.STATUS_COMPLETO
+
+
+@freeze_time('2025-01-01')
+def test_lista_visao_dre_nao_mostra_rascunhos(
+    jwt_authenticated_client_sme, 
+    flag_situacao_patrimonial, 
+    associacao_1,
+    bem_produzido_factory,
+    bem_produzido_item_factory,
+    despesa_factory,
+    bem_produzido_despesa_factory,
+    rateio_despesa_factory,
+    especificacao_material_servico_1
+):
+    """Testa se na visão DRE os rascunhos não aparecem"""
+    from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido
+    
+    # Criar bem produzido em rascunho
+    bem_rascunho = bem_produzido_factory.create(
+        associacao=associacao_1, 
+        status=BemProduzido.STATUS_INCOMPLETO
+    )
+    despesa_rascunho = despesa_factory(associacao=associacao_1, data_documento='2025-01-15')
+    bem_produzido_despesa_factory.create(bem_produzido=bem_rascunho, despesa=despesa_rascunho)
+    bem_produzido_item_factory.create(
+        bem_produzido=bem_rascunho,
+        especificacao_do_bem=especificacao_material_servico_1
+    )
+    
+    # Criar bem produzido completo
+    bem_completo = bem_produzido_factory.create(
+        associacao=associacao_1, 
+        status=BemProduzido.STATUS_COMPLETO
+    )
+    despesa_completo = despesa_factory(associacao=associacao_1, data_documento='2025-01-20')
+    bem_produzido_despesa_factory.create(bem_produzido=bem_completo, despesa=despesa_completo)
+    bem_produzido_item_factory.create(
+        bem_produzido=bem_completo,
+        especificacao_do_bem=especificacao_material_servico_1
+    )
+    
+    # Criar bem adquirido
+    despesa_adquirido = despesa_factory(associacao=associacao_1, data_documento='2025-01-25')
+    rateio_despesa_factory.create(
+        associacao=associacao_1, 
+        despesa=despesa_adquirido, 
+        aplicacao_recurso="CAPITAL",
+        especificacao_material_servico=especificacao_material_servico_1
+    )
+    
+    # Fazer request com visao_dre=true
+    response = jwt_authenticated_client_sme.get(
+        f'/api/bens-produzidos-e-adquiridos/?'
+        f'associacao_uuid={associacao_1.uuid}&'
+        f'visao_dre=true'
+    )
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    # Deve retornar apenas 2 itens (completo + adquirido), sem o rascunho
+    assert len(content["results"]) == 2
+    
+    # Nenhum item deve ser rascunho
+    for item in content["results"]:
+        assert item["status"] != BemProduzido.STATUS_INCOMPLETO
+    
+    # Verificar que só há completos e adquiridos
+    statuses = [item["status"] for item in content["results"]]
+    assert BemProduzido.STATUS_COMPLETO in statuses
+
+
+@freeze_time('2025-01-01')
+def test_lista_rascunhos_com_filtro_fornecedor(
+    jwt_authenticated_client_sme, 
+    flag_situacao_patrimonial, 
+    associacao_1,
+    bem_produzido_factory,
+    bem_produzido_item_factory,
+    despesa_factory,
+    bem_produzido_despesa_factory,
+    especificacao_material_servico_1
+):
+    """Testa se o filtro de fornecedor é aplicado aos rascunhos"""
+    from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido
+    
+    # Criar bem rascunho com fornecedor "Empresa A"
+    bem_rascunho_a = bem_produzido_factory.create(
+        associacao=associacao_1, 
+        status=BemProduzido.STATUS_INCOMPLETO
+    )
+    despesa_rascunho_a = despesa_factory(
+        associacao=associacao_1, 
+        data_documento='2025-01-15',
+        nome_fornecedor='Empresa A'
+    )
+    bem_produzido_despesa_factory.create(bem_produzido=bem_rascunho_a, despesa=despesa_rascunho_a)
+    bem_produzido_item_factory.create(
+        bem_produzido=bem_rascunho_a,
+        especificacao_do_bem=especificacao_material_servico_1
+    )
+    
+    # Criar bem rascunho com fornecedor "Empresa B"
+    bem_rascunho_b = bem_produzido_factory.create(
+        associacao=associacao_1, 
+        status=BemProduzido.STATUS_INCOMPLETO
+    )
+    despesa_rascunho_b = despesa_factory(
+        associacao=associacao_1, 
+        data_documento='2025-01-20',
+        nome_fornecedor='Empresa B'
+    )
+    bem_produzido_despesa_factory.create(bem_produzido=bem_rascunho_b, despesa=despesa_rascunho_b)
+    bem_produzido_item_factory.create(
+        bem_produzido=bem_rascunho_b,
+        especificacao_do_bem=especificacao_material_servico_1
+    )
+    
+    # Filtrar por fornecedor "Empresa A"
+    response = jwt_authenticated_client_sme.get(
+        f'/api/bens-produzidos-e-adquiridos/?'
+        f'associacao_uuid={associacao_1.uuid}&'
+        f'fornecedor=Empresa A'
+    )
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    # Deve retornar apenas 1 item (rascunho da Empresa A)
+    assert len(content["results"]) == 1
+    assert content["results"][0]["status"] == BemProduzido.STATUS_INCOMPLETO
+
+
+@freeze_time('2025-10-10')
+def test_filtro_data_usa_data_documento_despesa(
+    jwt_authenticated_client_sme, 
+    flag_situacao_patrimonial, 
+    associacao_1,
+    bem_produzido_factory,
+    bem_produzido_item_factory,
+    despesa_factory,
+    bem_produzido_despesa_factory,
+    rateio_despesa_factory,
+    especificacao_material_servico_1
+):
+    """
+    Testa se o filtro de data usa data_documento da despesa e não criado_em.
+    
+    Cenário: Um bem produzido criado em 10/10/2025 mas com despesa de data_documento = 30/09/2025.
+    Ao filtrar até 30/09/2025, o bem deve aparecer (filtrado pela data do documento).
+    Se o filtro estivesse usando criado_em, o bem não apareceria (criado em 10/10).
+    """
+    from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido
+    
+    # Criar bem produzido com despesa de 30/09/2025
+    # mas criado_em = 2025-10-10 (por causa do freeze_time)
+    bem_produzido = bem_produzido_factory.create(
+        associacao=associacao_1,
+        status=BemProduzido.STATUS_COMPLETO
+    )
+    
+    despesa = despesa_factory(associacao=associacao_1, data_documento='2025-09-30')
+    bem_produzido_despesa_factory.create(bem_produzido=bem_produzido, despesa=despesa)
+    bem_produzido_item_factory.create(
+        bem_produzido=bem_produzido,
+        especificacao_do_bem=especificacao_material_servico_1
+    )
+    
+    # Criar outro bem para controle - despesa de 05/10/2025
+    bem_produzido_2 = bem_produzido_factory.create(
+        associacao=associacao_1,
+        status=BemProduzido.STATUS_COMPLETO
+    )
+    despesa_2 = despesa_factory(associacao=associacao_1, data_documento='2025-10-05')
+    bem_produzido_despesa_factory.create(bem_produzido=bem_produzido_2, despesa=despesa_2)
+    bem_produzido_item_factory.create(
+        bem_produzido=bem_produzido_2,
+        especificacao_do_bem=especificacao_material_servico_1
+    )
+    
+    # Filtrar de 01/09 até 30/09
+    response = jwt_authenticated_client_sme.get(
+        f'/api/bens-produzidos-e-adquiridos/?'
+        f'associacao_uuid={associacao_1.uuid}&'
+        f'data_inicio=2025-09-01&'
+        f'data_fim=2025-09-30'
+    )
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    # Deve retornar apenas 1 item (bem com data_documento da despesa = 30/09)
+    # Se estivesse usando criado_em, não retornaria nada (ambos criados em 10/10)
+    assert len(content["results"]) == 1
+    assert content["results"][0]["data_aquisicao_producao"] == "2025-09-30"
+    
+    # Filtrar de 01/10 até 31/10 - deve retornar o segundo bem
+    response = jwt_authenticated_client_sme.get(
+        f'/api/bens-produzidos-e-adquiridos/?'
+        f'associacao_uuid={associacao_1.uuid}&'
+        f'data_inicio=2025-10-01&'
+        f'data_fim=2025-10-31'
+    )
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    assert len(content["results"]) == 1
+    assert content["results"][0]["data_aquisicao_producao"] == "2025-10-05"
