@@ -48,7 +48,7 @@ from sme_ptrf_apps.mandatos.fixtures.factories import (
 )
 from sme_ptrf_apps.despesas.fixtures.factories import (
     DespesaFactory, RateioDespesaFactory, TipoTransacaoFactory, TipoDocumentoFactory,
-    MotivoPagamentoAntecipadoFactory, EspecificacaoMaterialServicoFactory
+    MotivoPagamentoAntecipadoFactory, EspecificacaoMaterialServicoFactory, TipoCusteioFactory
 )
 from sme_ptrf_apps.receitas.fixtures.factories import (
     TipoReceitaFactory
@@ -56,7 +56,7 @@ from sme_ptrf_apps.receitas.fixtures.factories import (
 from sme_ptrf_apps.paa.fixtures.factories import (
     PeriodoPaaFactory, PaaFactory, ParametroPaaFactory, ReceitaPrevistaPaaFactory,
     FonteRecursoPaaFactory, RecursoProprioPaaFactory, AcaoPddeFactory, ProgramaPddeFactory,
-    ReceitaPrevistaPddeFactory, PrioridadePaaFactory, ObjetivoPaaFactory
+    ReceitaPrevistaPddeFactory, PrioridadePaaFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory
 )
 from sme_ptrf_apps.situacao_patrimonial.fixtures.factories import (
     BemProduzidoFactory,
@@ -71,7 +71,7 @@ factories_to_register = [
     PrestacaoContaFactory, UsuarioFactory, UnidadeEmSuporteFactory,
     GrupoAcessoFactory, VisaoFactory, ArquivoFactory, AcaoFactory,
     AcaoAssociacaoFactory, FechamentoPeriodoFactory, DespesaFactory,
-    RateioDespesaFactory, MembroAssociacaoFactory, AcessoConcedidoSmeFactory,
+    RateioDespesaFactory, TipoCusteioFactory, MembroAssociacaoFactory, AcessoConcedidoSmeFactory,
     MandatoFactory, ComposicaoFactory, PrestacaoContaReprovadaNaoApresentacaoFactory,
     TipoAcertoLancamentoFactory, TipoAcertoDocumentoFactory, TipoDocumentoPrestacaoContaFactory,
     AnalisePrestacaoContaFactory, AnaliseLancamentoPrestacaoContaFactory, AnaliseDocumentoPrestacaoContaFactory,
@@ -87,7 +87,7 @@ factories_to_register = [
     ParametroPaaFactory, BemProduzidoFactory, ReceitaPrevistaPddeFactory, BemProduzidoDespesaFactory,
     BemProduzidoRateioFactory, BemProduzidoItemFactory, EspecificacaoMaterialServicoFactory,
     PrioridadePaaFactory, AtaFactory, ParticipanteFactory, AnaliseContaPrestacaoContaFactory,
-    PDFFactory, ObjetivoPaaFactory
+    PDFFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory
 ]
 
 for factory in factories_to_register:
