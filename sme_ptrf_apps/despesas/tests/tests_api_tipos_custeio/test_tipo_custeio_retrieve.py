@@ -18,6 +18,7 @@ def test_retrieve_tipo_custeio(jwt_authenticated_client_d, tipo_custeio_01):
         'nome': tipo_custeio_01.nome,
         'id': tipo_custeio_01.id,
         'uuid': f'{tipo_custeio_01.uuid}',
+        'todas_unidades_selecionadas': True
     }
 
     assert response.status_code == status.HTTP_200_OK
