@@ -19,7 +19,11 @@ from ...services import (
     barra_status
 )
 
+from drf_spectacular.utils import extend_schema_view
+from .docs.valores_reprogramados_docs import DOCS
 
+
+@extend_schema_view(**DOCS)
 class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiDre]
     lookup_field = 'uuid'
@@ -116,7 +120,7 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
         if valores_reprogramados == "Nenhum tipo de conta definida em Parâmetro DRE":
             erro = {
                 'erro': 'Tipo de conta não definida.',
-                'mensagem': f"Nenhum tipo de conta definida em Parâmetro DRE."
+                'mensagem': "Nenhum tipo de conta definida em Parâmetro DRE."
             }
 
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -148,7 +152,7 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
         if not dados:
             erro = {
                 'erro': 'Dados não informados.',
-                'mensagem': f"Os dados necessários não foram informados."
+                'mensagem': "Os dados necessários não foram informados."
             }
 
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -158,12 +162,12 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
         if not visao_selecionada:
             erro = {
                 'erro': 'Visão não informada.',
-                'mensagem': f"A visão não foi informada."
+                'mensagem': "A visão não foi informada."
             }
 
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        retorno = salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_selecionada)
+        salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_selecionada)
 
         result = {
             "contas": monta_estrutura_valores_reprogramados(associacao),
@@ -193,7 +197,7 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
         if not dados:
             erro = {
                 'erro': 'Dados não informados.',
-                'mensagem': f"Os dados necessários não foram informados."
+                'mensagem': "Os dados necessários não foram informados."
             }
 
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -203,12 +207,12 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
         if not visao_selecionada:
             erro = {
                 'erro': 'Visão não informada.',
-                'mensagem': f"A visão não foi informada."
+                'mensagem': "A visão não foi informada."
             }
 
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        retorno = salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_selecionada, concluir=True)
+        salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_selecionada, concluir=True)
 
         result = {
             "contas": monta_estrutura_valores_reprogramados(associacao),
