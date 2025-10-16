@@ -1,6 +1,7 @@
 import json
 import pytest
 from rest_framework import status
+from freezegun import freeze_time
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido
 
 pytestmark = pytest.mark.django_db
@@ -737,6 +738,68 @@ def test_verificar_se_pode_informar_valores_todas_despesas_periodos_finalizados_
 
     payload = {
         "uuids": [str(despesa_1.uuid), str(despesa_2.uuid)]
+    }
+
+    response = jwt_authenticated_client_sme.post(
+        '/api/bens-produzidos/verificar_se_pode_informar_valores/',
+        content_type='application/json',
+        data=json.dumps(payload)
+    )
+
+    content = json.loads(response.content)
+    
+    assert response.status_code == status.HTTP_200_OK
+    assert content['pode_informar_valores'] is False
+    assert 'prestação de contas entregue' in content['mensagem'].lower()
+
+
+@freeze_time('2024-01-01')
+@pytest.mark.parametrize("status_pc", [
+    'NAO_RECEBIDA',
+    'RECEBIDA',
+    'EM_ANALISE',
+    'DEVOLVIDA',
+    'DEVOLVIDA_RETORNADA',
+    'DEVOLVIDA_RECEBIDA',
+    'APROVADA',
+    'APROVADA_RESSALVA',
+    'REPROVADA',
+    'EM_PROCESSAMENTO',
+    'A_PROCESSAR',
+    'CALCULADA',
+    'DEVOLVIDA_CALCULADA',
+])
+def test_verificar_se_pode_informar_valores_todos_status_exceto_nao_apresentada_sao_pc_entregue(
+        jwt_authenticated_client_sme,
+        flag_situacao_patrimonial,
+        associacao_1,
+        despesa_factory,
+        periodo_factory,
+        prestacao_conta_factory,
+        status_pc,
+):
+    from datetime import date
+    
+    periodo_passado = periodo_factory(
+        referencia='2023.1',
+        data_inicio_realizacao_despesas=date(2023, 1, 1),
+        data_fim_realizacao_despesas=date(2023, 4, 30),
+    )
+    
+    despesa = despesa_factory(
+        associacao=associacao_1,
+        data_transacao='2023-01-15',
+        data_documento='2023-01-15'
+    )
+
+    prestacao_conta_factory(
+        periodo=periodo_passado,
+        associacao=associacao_1,
+        status=status_pc
+    )
+
+    payload = {
+        "uuids": [str(despesa.uuid)]
     }
 
     response = jwt_authenticated_client_sme.post(
