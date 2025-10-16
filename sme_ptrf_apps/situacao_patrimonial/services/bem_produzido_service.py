@@ -32,14 +32,8 @@ class BemProduzidoService:
             }
 
         status_pc_entregue = [
-            PrestacaoConta.STATUS_RECEBIDA,
-            PrestacaoConta.STATUS_EM_ANALISE,
-            PrestacaoConta.STATUS_DEVOLVIDA,
-            PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA,
-            PrestacaoConta.STATUS_DEVOLVIDA_RECEBIDA,
-            PrestacaoConta.STATUS_APROVADA,
-            PrestacaoConta.STATUS_APROVADA_RESSALVA,
-            PrestacaoConta.STATUS_REPROVADA,
+            status for status in PrestacaoConta.STATUS_NOMES.keys() 
+            if status != PrestacaoConta.STATUS_NAO_APRESENTADA
         ]
 
         todas_despesas_periodo_finalizado_com_pc = True
