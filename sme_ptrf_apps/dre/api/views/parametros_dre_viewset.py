@@ -3,18 +3,19 @@ import logging
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from sme_ptrf_apps.core.models.parametros import Parametros
-
-
 from sme_ptrf_apps.users.permissoes import PermissaoAPIApenasDreComLeituraOuGravacao
+
+from drf_spectacular.utils import extend_schema_view
+from .docs.parametros_dre_docs import DOCS
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class ParametrosDreViewSet(GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao]
     queryset = Parametros.objects.all()
