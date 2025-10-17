@@ -51,6 +51,7 @@ def monta_result_esperado(transacoes_esperadas, periodo, conta):
                     'eh_tributos_e_tarifas': False,
                     'id': rateio.tipo_custeio.id,
                     'nome': rateio.tipo_custeio.nome,
+                    'todas_unidades_selecionadas': True,
                     'uuid': f"{rateio.tipo_custeio.uuid}"
                 },
                 "especificacao_material_servico": {
@@ -62,18 +63,19 @@ def monta_result_esperado(transacoes_esperadas, periodo, conta):
                     "uuid": str(rateio.especificacao_material_servico.uuid)
                 },
                 "notificar_dias_nao_conferido": rateio.notificar_dias_nao_conferido,
-                'estorno': {'categoria_receita': None,
-                           'data': None,
-                           'detalhe_outros': '',
-                           'detalhe_tipo_receita': None,
-                           'tipo_receita': {'aceita_capital': False,
-                                            'aceita_custeio': False,
-                                            'aceita_livre': False,
-                                            'e_devolucao': False,
-                                            'e_recursos_proprios': False,
-                                            'e_repasse': False,
-                                            'nome': ''},
-                           'valor': None},
+                'estorno': {
+                    'categoria_receita': None,
+                    'data': None,
+                    'detalhe_outros': '',
+                    'detalhe_tipo_receita': None,
+                    'tipo_receita': {'aceita_capital': False,
+                                     'aceita_custeio': False,
+                                     'aceita_livre': False,
+                                     'e_devolucao': False,
+                                     'e_recursos_proprios': False,
+                                     'e_repasse': False,
+                                     'nome': ''},
+                    'valor': None},
                 "aplicacao_recurso": rateio.aplicacao_recurso,
                 "acao_associacao": {
                     "uuid": f'{rateio.acao_associacao.uuid}',
@@ -107,7 +109,7 @@ def monta_result_esperado(transacoes_esperadas, periodo, conta):
             {
                 'periodo': f'{periodo.uuid}',
                 'conta': f'{conta.uuid}',
-                'data': f'{transacao["mestre"].data_transacao if transacao["tipo"] == "Gasto" else transacao["mestre"].data}',
+                'data': f'{transacao["mestre"].data_transacao if transacao["tipo"] == "Gasto" else transacao["mestre"].data}',  # noqa
                 'tipo_transacao': transacao["tipo"],
                 'numero_documento': transacao["mestre"].numero_documento if transacao["tipo"] == "Gasto" else "",
                 'descricao': transacao["mestre"].nome_fornecedor if transacao["tipo"] == "Gasto" else transacao[
@@ -166,7 +168,7 @@ def test_api_get_transacoes_conferidas(jwt_authenticated_client_a,
     result_esperado = monta_result_esperado(transacoes_esperadas=transacoes_esperadas, periodo=periodo_2020_1,
                                             conta=conta_associacao_cartao)
 
-    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=True'
+    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=True'  # noqa
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
@@ -216,7 +218,7 @@ def test_api_get_transacoes_nao_conferidas(jwt_authenticated_client_a,
     result_esperado = monta_result_esperado(transacoes_esperadas=transacoes_esperadas, periodo=periodo_2020_1,
                                             conta=conta_associacao_cartao)
 
-    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=False'
+    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=False'  # noqa
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
@@ -282,7 +284,7 @@ def test_deve_trazer_transacoes_nao_conferidas_de_periodos_anteriores(jwt_authen
     result_esperado = monta_result_esperado(transacoes_esperadas=transacoes_esperadas, periodo=periodo_2020_1,
                                             conta=conta_associacao_cartao)
 
-    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=False'
+    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=False'  # noqa
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
@@ -341,7 +343,7 @@ def test_deve_filtrar_transacoes_por_acao(jwt_authenticated_client_a,
     result_esperado = monta_result_esperado(transacoes_esperadas=transacoes_esperadas, periodo=periodo_2020_1,
                                             conta=conta_associacao_cartao)
 
-    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=False'
+    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=False'  # noqa
 
     url = f'{url}&acao_associacao={acao_uuid}'
 
@@ -374,7 +376,7 @@ def test_deve_validar_conferido(jwt_authenticated_client_a,
                     'O parâmetro é obrigatório.'
     }
 
-    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=INVALID'
+    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_uuid}&conferido=INVALID'  # noqa
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
