@@ -1,5 +1,6 @@
 import uuid as uuid
 from django.db import models
+from django.db.models import Q
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 
 from auditlog.models import AuditlogHistoryField
@@ -15,6 +16,23 @@ class TipoCusteio(ModeloIdNome):
         verbose_name = "Tipo de despesa de custeio"
         verbose_name_plural = "Tipos de despesa de custeio"
         unique_together = ['nome', ]
+
+    @classmethod
+    def get_valores(cls, user=None, associacao_uuid=None):
+        from sme_ptrf_apps.core.models.associacao import Associacao
+
+        query = cls.objects.all()
+
+        if associacao_uuid:
+            try:
+                associacao = Associacao.objects.get(uuid=associacao_uuid)
+            except Associacao.DoesNotExist:
+                associacao = None
+
+            if associacao:
+                query = query.filter(Q(unidades__isnull=True) | Q(unidades__in=[associacao.unidade]))
+
+        return query.order_by('nome')
 
     def pode_vincular(self, unidades_uuid):
         unidades_uuid_set = {uuid.UUID(u) for u in unidades_uuid}
