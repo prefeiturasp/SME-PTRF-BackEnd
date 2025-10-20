@@ -14,3 +14,7 @@ class Mes(models.IntegerChoices):
     OUTUBRO = 10, 'Outubro'
     NOVEMBRO = 11, 'Novembro'
     DEZEMBRO = 12, 'Dezembro'
+
+    @classmethod
+    def to_dict(cls):
+        return [dict(key=key.value, value=key.label) for key in cls]

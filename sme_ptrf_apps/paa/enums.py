@@ -26,3 +26,16 @@ class TipoAplicacaoOpcoesEnum(Enum):
     @classmethod
     def to_dict(cls):
         return [dict(key=key.name, value=key.value) for key in cls]
+
+
+class TipoAtividadeEstatutariaEnum(Enum):
+    ORDINARIA = "Reuniões Ordinárias"
+    EXTRAORDINARIA = "Reuniões Extraordinárias"
+
+    @classmethod
+    def choices(cls):
+        return [(key.name, key.value) for key in cls]
+
+    @classmethod
+    def to_dict(cls):
+        return [dict(key=key.name, value=key.value) for key in cls]

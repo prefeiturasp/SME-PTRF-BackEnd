@@ -15,7 +15,11 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoApiDre,
 )
 
+from drf_spectacular.utils import extend_schema_view
+from .docs.membros_comissoes_docs import DOCS
 
+
+@extend_schema_view(**DOCS)
 class MembrosComissoesViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiDre]
     lookup_field = 'uuid'

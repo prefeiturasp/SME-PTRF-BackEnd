@@ -10,7 +10,10 @@ from sme_ptrf_apps.paa.models import (
     ParametroPaa,
     ReceitaPrevistaPdde,
     Paa,
-    PrioridadePaa)
+    PrioridadePaa,
+    ObjetivoPaa,
+    AtividadeEstatutaria,
+)
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 
 
@@ -141,3 +144,20 @@ class PrioridadePaaAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return queryset_prioridades_paa(qs)
+
+
+@admin.register(ObjetivoPaa)
+class ObjetivoPaaAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'status',)
+    list_filter = ('status',)
+    raw_id_fields = ('paa', )
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
+    search_fields = ('nome',)
+
+
+@admin.register(AtividadeEstatutaria)
+class AtividadeEstatutariaAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'status', 'mes', 'tipo')
+    list_filter = ('status', 'mes', 'tipo')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
+    search_fields = ('nome',)

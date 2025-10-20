@@ -9,12 +9,15 @@ from rest_framework.viewsets import GenericViewSet
 
 from sme_ptrf_apps.core.models.parametros import Parametros
 
+from sme_ptrf_apps.users.permissoes import PermissaoAPITodosComLeituraOuGravacao
 
-from sme_ptrf_apps.users.permissoes import PermissaoAPITodosComLeituraOuGravacao, PermissaoAPIApenasSmeComGravacao
+from drf_spectacular.utils import extend_schema_view
+from .docs.parametros_ue_docs import DOCS
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class ParametrosUeViewSet(GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao]
     queryset = Parametros.objects.all()

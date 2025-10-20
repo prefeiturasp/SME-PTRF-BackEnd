@@ -17,3 +17,5 @@ from .prioridade_paa_serializer import (
     PrioridadePaaCreateUpdateSerializer,
     PrioridadePaaListSerializer
 )
+from .objetivo_paa_serializer import ObjetivoPaaSerializer
+from .atividade_estatutaria_serializer import AtividadeEstatutariaSerializer

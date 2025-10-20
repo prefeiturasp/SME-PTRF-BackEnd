@@ -93,7 +93,8 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                     'eh_tributos_e_tarifas': False,
                     'id': rateio.tipo_custeio.id,
                     'nome': rateio.tipo_custeio.nome,
-                    'uuid': f"{rateio.tipo_custeio.uuid}"
+                    'uuid': f"{rateio.tipo_custeio.uuid}",
+                    'todas_unidades_selecionadas': True,
                 },
                 "especificacao_material_servico": {
                     "id": rateio.especificacao_material_servico.id,
