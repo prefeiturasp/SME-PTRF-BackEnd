@@ -1,15 +1,18 @@
 from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
-from ...models import AnaliseDocumentoPrestacaoConta, ObservacaoConciliacao
+from ...models import AnaliseDocumentoPrestacaoConta
 from ..serializers import AnaliseDocumentoPrestacaoContaRetrieveSerializer
 from sme_ptrf_apps.core.services import SolicitacaoAcertoDocumentoService
 from sme_ptrf_apps.core.models import SolicitacaoAcertoDocumento, AnalisePrestacaoConta
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from drf_spectacular.utils import extend_schema_view
+from .docs.analise_documento_prestacao_conta_docs import DOCS
 
 
+@extend_schema_view(**DOCS)
 class AnaliseDocumentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
                                             mixins.RetrieveModelMixin,
                                             GenericViewSet):
@@ -158,11 +161,11 @@ class AnaliseDocumentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
 
         return Response(response, status=status_response)
 
-
     @action(detail=False, methods=['post'], url_path='editar-informacao-conciliacao',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def editar_informacao_conciliacao(self, request):
-        from sme_ptrf_apps.core.api.serializers.validation_serializers import EditarInformacaoConciliacaoValidateSerializer
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            EditarInformacaoConciliacaoValidateSerializer
 
         query = EditarInformacaoConciliacaoValidateSerializer(data=self.request.data)
         query.is_valid(raise_exception=True)
@@ -179,11 +182,11 @@ class AnaliseDocumentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
 
         return Response(response, status=status_response)
 
-
     @action(detail=False, methods=['post'], url_path='restaurar-justificativa-original',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def reataurar_justificativa_original(self, request):
-        from sme_ptrf_apps.core.api.serializers.validation_serializers import DesfazerEditacaoInformacaoConciliacaoValidateSerializer
+        from sme_ptrf_apps.core.api.serializers.validation_serializers import \
+            DesfazerEditacaoInformacaoConciliacaoValidateSerializer
 
         query = DesfazerEditacaoInformacaoConciliacaoValidateSerializer(data=self.request.data)
         query.is_valid(raise_exception=True)
@@ -197,7 +200,6 @@ class AnaliseDocumentoPrestacaoContaViewSet(mixins.UpdateModelMixin,
         status_response = response.pop("status")
 
         return Response(response, status=status_response)
-
 
     @action(detail=False, url_path='tags-informacoes-conferencia',
             permission_classes=[IsAuthenticated & PermissaoApiUe])

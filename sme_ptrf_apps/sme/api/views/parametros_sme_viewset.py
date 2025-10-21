@@ -8,13 +8,15 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from sme_ptrf_apps.core.models.parametros import Parametros
-
-
 from sme_ptrf_apps.users.permissoes import PermissaoAPIApenasSmeComLeituraOuGravacao
+
+from drf_spectacular.utils import extend_schema_view
+from .docs.parametros_sme_docs import DOCS
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class ParametrosSmeViewSet(GenericViewSet):
     permission_classes = [IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
     queryset = Parametros.objects.all()

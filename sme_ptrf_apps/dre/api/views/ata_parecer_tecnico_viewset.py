@@ -7,14 +7,13 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasDreComLeituraOuGravacao, PermissaoAPITodosComGravacao
 )
 
-from sme_ptrf_apps.dre.models import AtaParecerTecnico, ConsolidadoDRE
+from sme_ptrf_apps.dre.models import AtaParecerTecnico
 from sme_ptrf_apps.dre.models import ParametrosDre
 from sme_ptrf_apps.core.models import Unidade, Periodo
 import logging
 from sme_ptrf_apps.dre.api.serializers.ata_parecer_tecnico_serializer import (
     AtaParecerTecnicoSerializer,
     AtaParecerTecnicoCreateSerializer,
-    AtaParecerTecnicoLookUpSerializer
 )
 from ...services import (
     informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
@@ -25,9 +24,13 @@ from ...tasks import gerar_arquivo_ata_parecer_tecnico_async
 
 from django.http import HttpResponse
 
+from drf_spectacular.utils import extend_schema_view
+from .docs.ata_parecer_tecnico_docs import DOCS
+
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     queryset = AtaParecerTecnico.objects.all()
@@ -58,7 +61,7 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            ata = AtaParecerTecnico.objects.get(uuid=ata_uuid)
+            AtaParecerTecnico.objects.get(uuid=ata_uuid)
         except (ValidationError, Exception):
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -68,7 +71,7 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            dre = Unidade.dres.get(uuid=dre_uuid)
+            Unidade.dres.get(uuid=dre_uuid)
         except (ValidationError, Exception):
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -78,7 +81,7 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
+            Periodo.objects.filter(uuid=periodo_uuid).get()
         except (ValidationError, Exception):
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -168,7 +171,7 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            valida_ata = AtaParecerTecnico.by_uuid(ata_uuid)
+            AtaParecerTecnico.by_uuid(ata_uuid)
         except ValidationError:
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -255,7 +258,7 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        info = informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre(dre=dre, periodo=periodo, ata_de_parecer_tecnico=ata_de_parecer_tecnico)
+        info = informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre(
+            dre=dre, periodo=periodo, ata_de_parecer_tecnico=ata_de_parecer_tecnico)
 
         return Response(info)
-

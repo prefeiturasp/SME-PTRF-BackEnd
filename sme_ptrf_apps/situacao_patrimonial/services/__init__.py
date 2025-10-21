@@ -1,0 +1,1 @@
+from .bem_produzido_service import BemProduzidoService

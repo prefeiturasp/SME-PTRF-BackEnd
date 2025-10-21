@@ -5,7 +5,11 @@ from ...models import MotivoEstorno
 from ..serializers import MotivoEstornoSerializer
 from rest_framework.response import Response
 
+from drf_spectacular.utils import extend_schema_view
+from .docs.motivos_estorno_docs import DOCS
 
+
+@extend_schema_view(**DOCS)
 class MotivosEstornoViewSet(mixins.ListModelMixin,
                             mixins.RetrieveModelMixin,
                             mixins.CreateModelMixin,
@@ -39,4 +43,3 @@ class MotivosEstornoViewSet(mixins.ListModelMixin,
             self.perform_destroy(motivo)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
-
