@@ -773,6 +773,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
         if resultado_analise == PrestacaoConta.STATUS_DEVOLVIDA:
+            analise_atual = prestacao_conta.analise_atual
+
             if prestacao_conta.analise_atual and prestacao_conta.analise_atual.tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta():  # noqa
                 response = {
                     'uuid': f'{uuid}',
@@ -781,6 +783,19 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                     'mensagem': (
                         'Não é possível devolver esta prestação de contas, pois há pendências na conciliação bancária '
                         'sem solicitação de acerto. Para prosseguir, solicite o acerto das contas pendentes.'
+                    )
+                }
+                return Response(response, status=status.HTTP_400_BAD_REQUEST)
+
+            if analise_atual and analise_atual.tem_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao():
+                response = {
+                    'uuid': f'{uuid}',
+                    'erro': 'devolucao_invalida',
+                    'operacao': 'concluir-analise',
+                    'mensagem': (
+                        'Não é possível devolver esta prestação de contas enquanto houver solicitações de lançar crédito, '
+                        'lançar despesa ou exclusão de lançamento sem o respectivo acerto de conciliação bancária. '
+                        'Solicite o acerto das contas pendentes antes de prosseguir.'
                     )
                 }
                 return Response(response, status=status.HTTP_400_BAD_REQUEST)

@@ -414,7 +414,7 @@ class AnalisePrestacaoConta(ModeloBase):
                 analises_de_documento_que_podem_alterar_saldo_conciliacao.exists())
 
     def contas_solicitacoes_lancar_credito_ou_despesa(self):
-        from sme_ptrf_apps.core.models import TipoAcertoDocumento
+        from sme_ptrf_apps.core.models import TipoAcertoDocumento, TipoAcertoLancamento
 
         categorias_inclusao = [
             TipoAcertoDocumento.CATEGORIA_INCLUSAO_CREDITO,
@@ -440,13 +440,33 @@ class AnalisePrestacaoConta(ModeloBase):
             if analise_documento.conta_associacao:
                 contas_por_id[analise_documento.conta_associacao_id] = analise_documento.conta_associacao
 
-        for analise_lancamento in self.analises_de_lancamentos.filter(
-            filtro_nome_lancar_credito | filtro_nome_lancar_despesa
-        ):
-            if analise_lancamento.conta_associacao:
-                contas_por_id[analise_lancamento.conta_associacao_id] = analise_lancamento.conta_associacao
+        filtro_lancamentos = (
+            filtro_nome_lancar_credito |
+            filtro_nome_lancar_despesa |
+            Q(solicitacoes_de_ajuste_da_analise__tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO)
+        )
+
+        for analise_lancamento in self.analises_de_lancamentos.filter(filtro_lancamentos).distinct():
+            for conta in self._contas_associadas_ao_lancamento(analise_lancamento):
+                if conta:
+                    contas_por_id[conta.id] = conta
 
         return list(contas_por_id.values())
+
+    def _contas_associadas_ao_lancamento(self, analise_lancamento):
+        contas = []
+
+        receita = getattr(analise_lancamento, 'receita', None)
+        if receita and getattr(receita, 'conta_associacao', None):
+            contas.append(receita.conta_associacao)
+
+        despesa = getattr(analise_lancamento, 'despesa', None)
+        if despesa:
+            for rateio in despesa.rateios.all():
+                if rateio.conta_associacao:
+                    contas.append(rateio.conta_associacao)
+
+        return contas
 
     def tem_solicitacoes_lancar_credito_ou_despesa(self):
         return len(self.contas_solicitacoes_lancar_credito_ou_despesa()) > 0

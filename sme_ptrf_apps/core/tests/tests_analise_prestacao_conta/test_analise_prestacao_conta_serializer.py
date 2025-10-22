@@ -2,6 +2,7 @@ import pytest
 from model_bakery import baker
 
 from ...api.serializers import AnalisePrestacaoContaRetrieveSerializer
+from ...models import TipoAcertoLancamento
 
 pytestmark = pytest.mark.django_db
 
@@ -67,3 +68,57 @@ def test_contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao
     contas_com_pendencia = analise.contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao()
     assert contas_com_pendencia == [conta_associacao_cheque]
     assert analise.tem_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao() is True
+
+
+def test_contas_solicitacoes_lancar_credito_ou_despesa_para_lancamentos(
+    analise_prestacao_conta_2020_1,
+    analise_lancamento_receita_prestacao_conta_2020_1,
+    monkeypatch,
+):
+    analise = analise_prestacao_conta_2020_1
+    analise_lancamento = analise_lancamento_receita_prestacao_conta_2020_1
+    conta = analise_lancamento.receita.conta_associacao
+
+    tipo_lancar_credito = baker.make(
+        'TipoAcertoLancamento',
+        nome='Lancar credito',
+        categoria=TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
+    )
+
+    baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento,
+        tipo_acerto=tipo_lancar_credito,
+    )
+
+    monkeypatch.setattr(
+        analise.__class__,
+        'contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta',
+        lambda self: [conta],
+    )
+
+    contas = analise.contas_solicitacoes_lancar_credito_ou_despesa()
+    assert [conta.id for conta in contas] == [conta.id]
+
+    analise_exclusao = baker.make(
+        'AnalisePrestacaoConta',
+        prestacao_conta=analise.prestacao_conta,
+    )
+    analise_lancamento_exclusao = baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_exclusao,
+        receita=analise_lancamento.receita,
+    )
+    tipo_exclusao = baker.make(
+        'TipoAcertoLancamento',
+        nome='Exclusao de lancamento',
+        categoria=TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO,
+    )
+    baker.make(
+        'SolicitacaoAcertoLancamento',
+        analise_lancamento=analise_lancamento_exclusao,
+        tipo_acerto=tipo_exclusao,
+    )
+
+    contas_exclusao = analise_exclusao.contas_solicitacoes_lancar_credito_ou_despesa()
+    assert [c.id for c in contas_exclusao] == [conta.id]
