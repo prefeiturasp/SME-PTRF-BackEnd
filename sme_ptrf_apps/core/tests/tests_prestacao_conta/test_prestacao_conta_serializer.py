@@ -144,3 +144,40 @@ def test_retrieve_serializer(prestacao_conta, devolucao_prestacao_conta_2020_1, 
     assert serializer.data['analise_atual'] is None
     assert serializer.data['justificativa_pendencia_realizacao']
     assert serializer.data['ata_aprensentacao_gerada'] == False
+
+
+def test_retrieve_serializer_with_solicitacoes_lancar_credito_ou_despesa(
+    prestacao_conta,
+    conta_associacao_cheque,
+    tipo_acerto_documento_requer_inclusao_credito,
+    monkeypatch,
+):
+    analise = baker.make('AnalisePrestacaoConta', prestacao_conta=prestacao_conta)
+    analise_documento = baker.make(
+        'AnaliseDocumentoPrestacaoConta',
+        analise_prestacao_conta=analise,
+        conta_associacao=conta_associacao_cheque,
+    )
+    baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento,
+        tipo_acerto=tipo_acerto_documento_requer_inclusao_credito,
+    )
+
+    monkeypatch.setattr(
+        analise.__class__,
+        'contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta',
+        lambda self: [conta_associacao_cheque],
+    )
+
+    prestacao_conta.analise_atual = analise
+    prestacao_conta.save(update_fields=['analise_atual'])
+
+    serializer = PrestacaoContaRetrieveSerializer(prestacao_conta)
+    analise_data = serializer.data['analise_atual']
+
+    assert analise_data is not None
+    assert analise_data['solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao'] is True
+    assert analise_data['contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao'] == [
+        str(conta_associacao_cheque.uuid)
+    ]
