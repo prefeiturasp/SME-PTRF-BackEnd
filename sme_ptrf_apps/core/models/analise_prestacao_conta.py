@@ -389,6 +389,7 @@ class AnalisePrestacaoConta(ModeloBase):
             f'É necessário recalcular fechamentos e documentos? {analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes}')
         return analises_de_lancamentos_requerem_alteracoes or analises_de_documentos_requerem_alteracoes
 
+
     def tem_acertos_que_podem_alterar_saldo_conciliacao(self):
         from sme_ptrf_apps.core.models import SolicitacaoAcertoLancamento, SolicitacaoAcertoDocumento
 
@@ -411,6 +412,81 @@ class AnalisePrestacaoConta(ModeloBase):
 
         return (analises_de_lancamento_que_podem_alterar_saldo_conciliacao.exists() or
                 analises_de_documento_que_podem_alterar_saldo_conciliacao.exists())
+
+    def contas_solicitacoes_lancar_credito_ou_despesa(self):
+        from sme_ptrf_apps.core.models import TipoAcertoDocumento, TipoAcertoLancamento
+
+        categorias_inclusao = [
+            TipoAcertoDocumento.CATEGORIA_INCLUSAO_CREDITO,
+            TipoAcertoDocumento.CATEGORIA_INCLUSAO_GASTO,
+        ]
+
+        filtro_nome_lancar_credito = Q(
+            solicitacoes_de_ajuste_da_analise__tipo_acerto__nome__unaccent__iexact='lancar credito'
+        )
+        filtro_nome_lancar_despesa = Q(
+            solicitacoes_de_ajuste_da_analise__tipo_acerto__nome__unaccent__iexact='lancar despesa'
+        )
+
+        filtro_documentos = (
+            Q(solicitacoes_de_ajuste_da_analise__tipo_acerto__categoria__in=categorias_inclusao) |
+            filtro_nome_lancar_credito |
+            filtro_nome_lancar_despesa
+        )
+
+        contas_por_id = {}
+
+        for analise_documento in self.analises_de_documento.filter(filtro_documentos):
+            if analise_documento.conta_associacao:
+                contas_por_id[analise_documento.conta_associacao_id] = analise_documento.conta_associacao
+
+        filtro_lancamentos = (
+            filtro_nome_lancar_credito |
+            filtro_nome_lancar_despesa |
+            Q(solicitacoes_de_ajuste_da_analise__tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO)
+        )
+
+        for analise_lancamento in self.analises_de_lancamentos.filter(filtro_lancamentos).distinct():
+            for conta in self._contas_associadas_ao_lancamento(analise_lancamento):
+                if conta:
+                    contas_por_id[conta.id] = conta
+
+        return list(contas_por_id.values())
+
+    def _contas_associadas_ao_lancamento(self, analise_lancamento):
+        contas = []
+
+        receita = getattr(analise_lancamento, 'receita', None)
+        if receita and getattr(receita, 'conta_associacao', None):
+            contas.append(receita.conta_associacao)
+
+        despesa = getattr(analise_lancamento, 'despesa', None)
+        if despesa:
+            for rateio in despesa.rateios.all():
+                if rateio.conta_associacao:
+                    contas.append(rateio.conta_associacao)
+
+        return contas
+
+    def tem_solicitacoes_lancar_credito_ou_despesa(self):
+        return len(self.contas_solicitacoes_lancar_credito_ou_despesa()) > 0
+
+    def contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao(self):
+        contas_solicitacoes = self.contas_solicitacoes_lancar_credito_ou_despesa()
+        if not contas_solicitacoes:
+            return []
+
+        contas_pendentes_ids = {
+            conta.id for conta in self.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta()
+        }
+
+        return [
+            conta for conta in contas_solicitacoes
+            if conta.id in contas_pendentes_ids
+        ]
+
+    def tem_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao(self):
+        return len(self.contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao()) > 0
 
     def tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta(self):
         contas_pendentes = self.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta()
