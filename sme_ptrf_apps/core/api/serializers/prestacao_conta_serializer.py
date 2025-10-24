@@ -108,12 +108,11 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             return [conta.uuid for conta in obj.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta()]
 
         def get_contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao(self, obj):
-            return [
-                str(conta.uuid) for conta in obj.contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao()
-            ]
+            contas = obj.contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao()
+            return [str(conta.uuid) for conta in contas]
 
         def get_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao(self, obj):
-            return obj.tem_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao()
+            return bool(obj.contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao())
 
     class ConciliacaoBancariaSerializer(serializers.ModelSerializer):
         class Meta:
