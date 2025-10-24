@@ -24,7 +24,10 @@ def test_retrieve_acao(
         "posicao_nas_pesquisas": "ZZZZZZZZZZ",
         "aceita_capital": acao_x.aceita_capital,
         "aceita_custeio": acao_x.aceita_custeio,
-        "aceita_livre": acao_x.aceita_livre
+        "aceita_livre": acao_x.aceita_livre,
+        "exibir_paa": True,
+        "tem_receitas_previstas_paa_em_elaboracao": False,
+        "tem_prioridades_paa_em_elaboracao": False
     }
 
     assert response.status_code == status.HTTP_200_OK

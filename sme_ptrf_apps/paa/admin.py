@@ -53,10 +53,7 @@ class ParametroPaaAdmin(admin.ModelAdmin):
 
 @admin.register(Paa)
 class PaaAdmin(admin.ModelAdmin):
-    list_display = [
-        'periodo_paa',
-        'associacao',
-    ]
+    list_display = ('periodo_paa', 'associacao', 'status')
 
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     list_display_links = ['periodo_paa']
