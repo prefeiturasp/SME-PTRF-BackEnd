@@ -476,13 +476,9 @@ class AnalisePrestacaoConta(ModeloBase):
         if not contas_solicitacoes:
             return []
 
-        contas_pendentes_ids = {
-            conta.id for conta in self.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta()
-        }
-
         return [
             conta for conta in contas_solicitacoes
-            if conta.id in contas_pendentes_ids
+            if not self.requer_acertos_em_saldo_na_conta_associacao(conta)
         ]
 
     def tem_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao(self):
