@@ -150,7 +150,6 @@ def test_retrieve_serializer_with_solicitacoes_lancar_credito_ou_despesa(
     prestacao_conta,
     conta_associacao_cheque,
     tipo_acerto_documento_requer_inclusao_credito,
-    monkeypatch,
 ):
     analise = baker.make('AnalisePrestacaoConta', prestacao_conta=prestacao_conta)
     analise_documento = baker.make(
@@ -162,12 +161,6 @@ def test_retrieve_serializer_with_solicitacoes_lancar_credito_ou_despesa(
         'SolicitacaoAcertoDocumento',
         analise_documento=analise_documento,
         tipo_acerto=tipo_acerto_documento_requer_inclusao_credito,
-    )
-
-    monkeypatch.setattr(
-        analise.__class__,
-        'contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta',
-        lambda self: [conta_associacao_cheque],
     )
 
     prestacao_conta.analise_atual = analise

@@ -26,7 +26,6 @@ def test_contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao
     conta_associacao_cartao,
     tipo_acerto_documento_requer_inclusao_credito,
     tipo_acerto_documento_requer_inclusao_despesa,
-    monkeypatch,
 ):
     analise = analise_prestacao_conta_2020_1
 
@@ -52,12 +51,6 @@ def test_contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao
         tipo_acerto=tipo_acerto_documento_requer_inclusao_despesa,
     )
 
-    monkeypatch.setattr(
-        analise.__class__,
-        'contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta',
-        lambda self: [conta_associacao_cheque],
-    )
-
     contas = analise.contas_solicitacoes_lancar_credito_ou_despesa()
     assert {conta.id for conta in contas} == {
         conta_associacao_cheque.id,
@@ -66,14 +59,28 @@ def test_contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao
     assert analise.tem_solicitacoes_lancar_credito_ou_despesa() is True
 
     contas_com_pendencia = analise.contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao()
-    assert contas_com_pendencia == [conta_associacao_cheque]
+    assert {conta.id for conta in contas_com_pendencia} == {
+        conta_associacao_cheque.id,
+        conta_associacao_cartao.id,
+    }
+    assert analise.tem_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao() is True
+
+    baker.make(
+        'AnaliseContaPrestacaoConta',
+        analise_prestacao_conta=analise,
+        prestacao_conta=analise.prestacao_conta,
+        conta_associacao=conta_associacao_cartao,
+        saldo_extrato=10,
+    )
+
+    contas_filtradas = analise.contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao()
+    assert [conta.id for conta in contas_filtradas] == [conta_associacao_cheque.id]
     assert analise.tem_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao() is True
 
 
 def test_contas_solicitacoes_lancar_credito_ou_despesa_para_lancamentos(
     analise_prestacao_conta_2020_1,
     analise_lancamento_receita_prestacao_conta_2020_1,
-    monkeypatch,
 ):
     analise = analise_prestacao_conta_2020_1
     analise_lancamento = analise_lancamento_receita_prestacao_conta_2020_1
@@ -89,12 +96,6 @@ def test_contas_solicitacoes_lancar_credito_ou_despesa_para_lancamentos(
         'SolicitacaoAcertoLancamento',
         analise_lancamento=analise_lancamento,
         tipo_acerto=tipo_lancar_credito,
-    )
-
-    monkeypatch.setattr(
-        analise.__class__,
-        'contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta',
-        lambda self: [conta],
     )
 
     contas = analise.contas_solicitacoes_lancar_credito_ou_despesa()
@@ -122,3 +123,14 @@ def test_contas_solicitacoes_lancar_credito_ou_despesa_para_lancamentos(
 
     contas_exclusao = analise_exclusao.contas_solicitacoes_lancar_credito_ou_despesa()
     assert [c.id for c in contas_exclusao] == [conta.id]
+
+    baker.make(
+        'AnaliseContaPrestacaoConta',
+        analise_prestacao_conta=analise,
+        prestacao_conta=analise.prestacao_conta,
+        conta_associacao=conta,
+        saldo_extrato=100,
+    )
+
+    assert analise.contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao() == []
+    assert analise.tem_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao() is False
