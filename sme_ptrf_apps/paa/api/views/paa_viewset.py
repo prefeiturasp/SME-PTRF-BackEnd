@@ -177,3 +177,21 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         }
 
         return Response(result, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='receitas-previstas',
+            permission_classes=[IsAuthenticated])
+    def receitas_previstas(self, request, uuid=None):
+        from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoRetrieveSerializer
+
+        paa = self.get_object()
+        acoes_associacoes = paa.associacao.acoes.all()
+
+        serializer_acao_associacao = AcaoAssociacaoRetrieveSerializer(acoes_associacoes, many=True)
+        for acao_assoc in serializer_acao_associacao.data:
+            acao_assoc['receitas_previstas_paa'] = ReceitaPrevistaPaaSerializer(
+                paa.receitaprevistapaa_set.filter(
+                    acao_associacao__acao__uuid=str(acao_assoc['acao']['uuid'])
+                ),
+                many=True).data
+
+        return Response(serializer_acao_associacao.data, status=status.HTTP_200_OK)

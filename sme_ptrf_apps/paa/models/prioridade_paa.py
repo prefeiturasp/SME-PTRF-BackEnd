@@ -67,11 +67,14 @@ class PrioridadePaa(ModeloBase):
         """
             Exibição unificada em um campo, no admin, de acordo com a condição abaixo
         """
-        if self.acao_associacao:
-            return self.acao_associacao.acao.nome
-        elif self.acao_pdde:
+        if self.recurso == RecursoOpcoesEnum.PDDE.name:
             return self.acao_pdde.nome
-        else:
+
+        if self.recurso == RecursoOpcoesEnum.PTRF.name:
+            return self.acao_associacao.acao.nome \
+                if self.acao_associacao and self.acao_associacao.acao else 'Informar Ação PTRF'
+
+        if self.recurso == RecursoOpcoesEnum.RECURSO_PROPRIO.name:
             return 'Recursos Próprios'
     nome.short_description = 'Ação'
 

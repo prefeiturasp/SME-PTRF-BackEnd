@@ -1,6 +1,6 @@
 
 def test_list_display(paa_admin):
-    assert paa_admin.list_display == ['periodo_paa', 'associacao']
+    assert paa_admin.list_display == ('periodo_paa', 'associacao', 'status')
 
 
 def test_list_display_links(paa_admin):

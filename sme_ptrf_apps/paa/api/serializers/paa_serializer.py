@@ -13,8 +13,9 @@ class PaaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Paa
-        fields = ('uuid', 'periodo_paa', 'associacao', 'periodo_paa_objeto', 'saldo_congelado_em', 'texto_introducao')
-        read_only_fields = ('periodo_paa_objeto', 'periodo_paa')
+        fields = ('uuid', 'periodo_paa', 'associacao', 'periodo_paa_objeto', 'saldo_congelado_em',
+                  'texto_introducao', 'status')
+        read_only_fields = ('periodo_paa_objeto', 'periodo_paa', 'status')
 
     def validate(self, attrs):
         try:
