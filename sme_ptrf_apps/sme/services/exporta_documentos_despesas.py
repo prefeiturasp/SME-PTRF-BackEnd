@@ -214,12 +214,16 @@ class ExportacoesDocumentosDespesasService:
                     continue
 
                 if campo == "motivos":
-                    motivo_string = '; '.join(str(motivo) for motivo in motivos)
+                    motivos_limpos = [str(motivo).replace("\n", " ").replace("\r", " ") for motivo in motivos]
+                    motivo_string = '; '.join(motivos_limpos)
+                    
                     if (len(motivo_string)):
-                        motivo_string = motivo_string + '; ' + instance.outros_motivos_pagamento_antecipado
+                        outros_limpo = instance.outros_motivos_pagamento_antecipado.replace("\n", " ").replace("\r", " ")
+                        motivo_string = motivo_string + '; ' + outros_limpo
                     elif (len(instance.outros_motivos_pagamento_antecipado)):
-                        motivo_string = instance.outros_motivos_pagamento_antecipado
-                    linha_horizontal.append(motivo_string.replace(";", ","))
+                        motivo_string = instance.outros_motivos_pagamento_antecipado.replace("\n", " ").replace("\r", " ")
+                    motivo_string = motivo_string.replace("\n", " ").replace("\r", " ").replace(";", ",")
+                    linha_horizontal.append(motivo_string)
                     continue
 
                 if campo == "uuid":
