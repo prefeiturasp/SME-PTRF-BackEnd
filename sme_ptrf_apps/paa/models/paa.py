@@ -18,6 +18,7 @@ class Paa(ModeloBase):
     saldo_congelado_em = models.DateTimeField(
         verbose_name="Saldo congelado em", blank=True, null=True)
     texto_introducao = RichTextField(null=True, verbose_name='Texto introdução')
+    texto_conclusao = RichTextField(null=True, verbose_name='Texto conclusão')
     status = models.CharField(max_length=20, null=True, blank=True,
                               default=PaaStatusEnum.EM_ELABORACAO.name,
                               choices=PaaStatusEnum.choices())
