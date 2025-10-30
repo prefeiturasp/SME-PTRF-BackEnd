@@ -15,3 +15,4 @@ def test_cobranca_prestacao_conta_list_serializer(analise_conta_prestacao_conta_
     assert serializer.data['saldo_extrato']
     assert serializer.data['solicitar_envio_do_comprovante_do_saldo_da_conta']
     assert serializer.data['observacao_solicitar_envio_do_comprovante_do_saldo_da_conta']
+    assert serializer.data['solicitar_correcao_de_justificativa_de_conciliacao']

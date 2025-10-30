@@ -5,7 +5,7 @@ import pytest
 from rest_framework import status
 from model_bakery import baker
 
-from sme_ptrf_apps.core.models import PrestacaoConta
+from sme_ptrf_apps.core.models import PrestacaoConta, AnaliseContaPrestacaoConta
 
 pytestmark = pytest.mark.django_db
 
@@ -71,6 +71,7 @@ def test_salvar_ajustes_saldo_conta(
         'saldo_extrato': 100,
         'solicitar_envio_do_comprovante_do_saldo_da_conta': True,
         'observacao_solicitar_envio_do_comprovante_do_saldo_da_conta': 'Observação do Teste Action Salvar Ajustes Saldo Conta ',
+        'solicitar_correcao_de_justificativa_de_conciliacao': True,
     }
 
     response = jwt_authenticated_client_a.post(
@@ -80,3 +81,10 @@ def test_salvar_ajustes_saldo_conta(
     )
 
     assert response.status_code == status.HTTP_200_OK
+
+    analise_conta = AnaliseContaPrestacaoConta.objects.get(
+        analise_prestacao_conta=analise_prestacao_conta_teste_solicitar_envio_do_comprovante_do_saldo_da_conta,
+        prestacao_conta=prestacao_conta_2020_1_teste_solicitar_envio_do_comprovante_do_saldo_da_conta,
+        conta_associacao=conta_associacao_teste_solicitar_envio_do_comprovante_do_saldo_da_conta,
+    )
+    assert analise_conta.solicitar_correcao_de_justificativa_de_conciliacao
