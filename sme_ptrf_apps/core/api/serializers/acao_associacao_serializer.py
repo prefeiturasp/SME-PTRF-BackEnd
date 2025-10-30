@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from ..serializers.acao_serializer import AcaoSerializer
 from ..serializers.associacao_serializer import AssociacaoSerializer, AssociacaoListSerializer
-from sme_ptrf_apps.paa.api.serializers import ReceitaPrevistaPaaSerializer
 from ...models import AcaoAssociacao, Associacao, Acao
 
 
@@ -77,7 +76,6 @@ class AcaoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
     acao = AcaoSerializer()
     data_de_encerramento_associacao = serializers.SerializerMethodField('get_data_de_encerramento_associacao')
     tooltip_associacao_encerrada = serializers.SerializerMethodField('get_tooltip_associacao_encerrada')
-    receitas_previstas_paa = ReceitaPrevistaPaaSerializer(many=True, read_only=True)
     saldos = serializers.SerializerMethodField()
 
     def get_data_de_encerramento_associacao(self, obj):
@@ -92,6 +90,5 @@ class AcaoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = AcaoAssociacao
         fields = ('uuid', 'id', 'associacao', 'data_de_encerramento_associacao',
-                  'tooltip_associacao_encerrada', 'acao', 'status', 'criado_em',
-                  'receitas_previstas_paa', 'saldos')
-        read_only_fields = ('uuid', 'id', 'criado_em', 'receitas_previstas_paa',)
+                  'tooltip_associacao_encerrada', 'acao', 'status', 'criado_em', 'saldos',)
+        read_only_fields = ('uuid', 'id', 'criado_em',)

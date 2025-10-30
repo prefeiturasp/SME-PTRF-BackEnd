@@ -8,7 +8,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_api_acoes_list(jwt_authenticated_client_a, acao_x, acao_y):
-    response = jwt_authenticated_client_a.get(f'/api/acoes/', content_type='application/json')
+    response = jwt_authenticated_client_a.get('/api/acoes/', content_type='application/json')
     result = json.loads(response.content)
 
     resultado_esperado = [
@@ -20,7 +20,10 @@ def test_api_acoes_list(jwt_authenticated_client_a, acao_x, acao_y):
             'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
             "aceita_capital": acao_x.aceita_capital,
             "aceita_custeio": acao_x.aceita_custeio,
-            "aceita_livre": acao_x.aceita_livre
+            "aceita_livre": acao_x.aceita_livre,
+            "exibir_paa": True,
+            "tem_receitas_previstas_paa_em_elaboracao": False,
+            "tem_prioridades_paa_em_elaboracao": False
         },
         {
             'id': acao_y.id,
@@ -30,8 +33,10 @@ def test_api_acoes_list(jwt_authenticated_client_a, acao_x, acao_y):
             'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
             "aceita_capital": acao_y.aceita_capital,
             "aceita_custeio": acao_y.aceita_custeio,
-            "aceita_livre": acao_y.aceita_livre
-
+            "aceita_livre": acao_y.aceita_livre,
+            "exibir_paa": True,
+            "tem_receitas_previstas_paa_em_elaboracao": False,
+            "tem_prioridades_paa_em_elaboracao": False
         }
     ]
 
@@ -40,7 +45,7 @@ def test_api_acoes_list(jwt_authenticated_client_a, acao_x, acao_y):
 
 
 def test_api_acoes_list_por_nome(jwt_authenticated_client_a, acao_xpto, acao_y):
-    response = jwt_authenticated_client_a.get(f'/api/acoes/?nome=P', content_type='application/json')
+    response = jwt_authenticated_client_a.get('/api/acoes/?nome=P', content_type='application/json')
     result = json.loads(response.content)
 
     resultado_esperado = [
@@ -52,7 +57,10 @@ def test_api_acoes_list_por_nome(jwt_authenticated_client_a, acao_xpto, acao_y):
             'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
             "aceita_capital": acao_xpto.aceita_capital,
             "aceita_custeio": acao_xpto.aceita_custeio,
-            "aceita_livre": acao_xpto.aceita_livre
+            "aceita_livre": acao_xpto.aceita_livre,
+            "exibir_paa": True,
+            "tem_receitas_previstas_paa_em_elaboracao": False,
+            "tem_prioridades_paa_em_elaboracao": False
         },
     ]
 
