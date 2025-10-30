@@ -37,6 +37,7 @@ def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
             'solicitar_envio_do_comprovante_do_saldo_da_conta': analise_conta.solicitar_envio_do_comprovante_do_saldo_da_conta,
             'solicitar_correcao_da_data_do_saldo_da_conta': analise_conta.solicitar_correcao_da_data_do_saldo_da_conta,
             'observacao_solicitar_envio_do_comprovante_do_saldo_da_conta': analise_conta.observacao_solicitar_envio_do_comprovante_do_saldo_da_conta,
+            'solicitar_correcao_de_justificativa_de_conciliacao': analise_conta.solicitar_correcao_de_justificativa_de_conciliacao,
         }
         logger.info(
             f'Ajuste em conta:{dados["nome_conta"]} data:{dados["data_extrato"]} saldo:{dados["saldo_extrato"]}')
