@@ -25,5 +25,6 @@ class AnaliseContaPrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'uuid', 'prestacao_conta', 'conta_associacao', 'data_extrato', 'saldo_extrato', 'analise_prestacao_conta',
             'solicitar_envio_do_comprovante_do_saldo_da_conta',
             'solicitar_correcao_da_data_do_saldo_da_conta',
-            'observacao_solicitar_envio_do_comprovante_do_saldo_da_conta'
+            'observacao_solicitar_envio_do_comprovante_do_saldo_da_conta',
+            'solicitar_correcao_de_justificativa_de_conciliacao'
         )

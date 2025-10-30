@@ -2335,6 +2335,7 @@ def analise_conta_prestacao_conta_2020_1_solicitar_envio_do_comprovante_do_saldo
         data_extrato=date(2020, 7, 1),
         saldo_extrato=100.00,
         solicitar_envio_do_comprovante_do_saldo_da_conta=True,
+        solicitar_correcao_de_justificativa_de_conciliacao=True,
         observacao_solicitar_envio_do_comprovante_do_saldo_da_conta=('Observação de solicitação de envio de comprovante'
                                                                      ' de saldo conta cheque'),
     )
