@@ -37,6 +37,7 @@ class ExportacoesDadosMateriaisEServicosService:
         self.data_final = kwargs.get('data_final', None)
         self.nome_arquivo = kwargs.get('nome_arquivo', None)
         self.user = kwargs.get('user', None)
+        self.dre_codigo_eol = kwargs.get('dre_codigo_eol', None)
         self.objeto_arquivo_download = None
         self.ambiente = self.get_ambiente
         self.informacoes_download = self.get_informacoes_download()
@@ -128,7 +129,8 @@ class ExportacoesDadosMateriaisEServicosService:
         obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo,
-            informacoes=self.informacoes_download
+            informacoes=self.informacoes_download,
+            dre_codigo_eol=self.dre_codigo_eol
         )
         self.objeto_arquivo_download = obj
 
@@ -140,7 +142,8 @@ class ExportacoesDadosMateriaisEServicosService:
                 objeto = gerar_arquivo_download(
                     self.user,
                     self.nome_arquivo,
-                    informacoes=self.informacoes_download
+                    informacoes=self.informacoes_download,
+                    dre_codigo_eol=self.dre_codigo_eol
                 )
             objeto.arquivo.save(
                 name=objeto.identificador,

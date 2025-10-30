@@ -15,7 +15,15 @@ logger = logging.getLogger(__name__)
 def exportar_associacoes_async(data_inicio, data_final, username, dre_uuid=None):
     logger.info("Exportando csv em processamento...")
 
+    dre_codigo_eol = None
     if dre_uuid:
+        from sme_ptrf_apps.core.models.unidade import Unidade
+        try:
+            dre = Unidade.dres.get(uuid=dre_uuid)
+            dre_codigo_eol = dre.codigo_eol
+        except Unidade.DoesNotExist:
+            logger.warning(f"DRE com uuid {dre_uuid} não encontrada")
+        
         queryset = Associacao.objects.filter(
             unidade__dre__uuid=dre_uuid,
         ).order_by('id')
@@ -29,6 +37,7 @@ def exportar_associacoes_async(data_inicio, data_final, username, dre_uuid=None)
             'data_inicio': data_inicio,
             'data_final': data_final,
             'user': username,
+            'dre_codigo_eol': dre_codigo_eol,
         }
 
         ExportaAssociacoesService(

@@ -72,6 +72,7 @@ class ExportacoesAtasService:
         self.data_final = kwargs.get('data_final', None)
         self.nome_arquivo = kwargs.get('nome_arquivo', None)
         self.user = kwargs.get('user', None)
+        self.dre_codigo_eol = kwargs.get('dre_codigo_eol', None)
         self.cabecalho = CABECALHO_ATAS
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
@@ -173,7 +174,8 @@ class ExportacoesAtasService:
         obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo,
-            informacoes=get_informacoes_download(self.data_inicio, self.data_final)
+            informacoes=get_informacoes_download(self.data_inicio, self.data_final),
+            dre_codigo_eol=self.dre_codigo_eol
         )
 
         self.objeto_arquivo_download = obj

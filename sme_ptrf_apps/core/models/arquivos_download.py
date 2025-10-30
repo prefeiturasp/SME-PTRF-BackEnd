@@ -33,6 +33,8 @@ class ArquivoDownload(ModeloBase):
     msg_erro = models.CharField("Mensagem erro", max_length=300, blank=True)
     lido = models.BooleanField("Foi lido?", default=False)
     usuario = models.ForeignKey(get_user_model(), on_delete=models.PROTECT)
+    dre = models.ForeignKey('Unidade', on_delete=models.PROTECT, related_name='arquivos_download_da_dre', to_field="codigo_eol",
+                            blank=True, null=True, limit_choices_to={'tipo_unidade': 'DRE'})
 
     class Meta:
         verbose_name = "Arquivo Download"
