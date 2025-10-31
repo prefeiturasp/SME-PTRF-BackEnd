@@ -11,7 +11,11 @@ from ..serializers.comentario_analise_consolidado_dre_serializer import Comentar
 from ...models.comentario_analise_consolidado_dre import ComentarioAnaliseConsolidadoDRE
 from ...models.consolidado_dre import ConsolidadoDRE
 
+from drf_spectacular.utils import extend_schema_view
+from .docs.comentarios_analises_consolidado_dre_docs import DOCS
 
+
+@extend_schema_view(**DOCS)
 class ComentariosAnalisesConsolidadosDREViewSet(viewsets.ModelViewSet):
     lookup_field = 'uuid'
     permission_classes = [AllowAny]
@@ -75,7 +79,7 @@ class ComentariosAnalisesConsolidadosDREViewSet(viewsets.ModelViewSet):
         except (ConsolidadoDRE.DoesNotExist, ValidationError):
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"Algum comentário da lista não foi encontrado pelo uuid informado."
+                'mensagem': "Algum comentário da lista não foi encontrado pelo uuid informado."
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 

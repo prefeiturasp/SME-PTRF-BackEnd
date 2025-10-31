@@ -7,9 +7,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.status import HTTP_201_CREATED
 
-from drf_spectacular.utils import extend_schema, OpenApiParameter
-from drf_spectacular.types import OpenApiTypes
-
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.sme.tasks import (
     exportar_associacoes_async,
@@ -38,11 +35,14 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasDreComLeituraOuGravacao,
 )
 from sme_ptrf_apps.sme.api.serializers import ExportacaoDadosSerializer
+from drf_spectacular.utils import extend_schema_view
+from .docs.exportacoes_dados_docs import DOCS
 
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class ExportacoesDadosViewSet(GenericViewSet):
     permission_classes = [
         IsAuthenticated &
@@ -96,36 +96,6 @@ class ExportacoesDadosViewSet(GenericViewSet):
             status=HTTP_201_CREATED,
         )
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name='data_inicio',
-                description='Filtro de início de data de criação',
-                required=False,
-                allow_blank=True,
-                type=str,
-                location=OpenApiParameter.QUERY,
-            ),
-            OpenApiParameter(
-                name='data_final',
-                description='Filtro de fim de data de criação',
-                required=False,
-                allow_blank=True,
-                type=str,
-                location=OpenApiParameter.QUERY,
-            ),
-            OpenApiParameter(
-                name='dre_uui',
-                description='Filtro de uuid de DRE',
-                required=False,
-                allow_blank=True,
-                type=str,
-                location=OpenApiParameter.QUERY,
-            ),
-        ],
-        description="parâmetros de URL",
-        responses={200: "Success"},
-    )
     @action(
         detail=False,
         methods=["get"],
@@ -325,22 +295,6 @@ class ExportacoesDadosViewSet(GenericViewSet):
             status=HTTP_201_CREATED,
         )
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="data_inicio",
-                type=OpenApiTypes.DATE,
-                description="Data de início",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="data_final",
-                type=OpenApiTypes.DATE,
-                description="Data final",
-                required=False,
-            ),
-        ]
-    )
     @action(
         detail=False,
         methods=["get"],
@@ -362,22 +316,6 @@ class ExportacoesDadosViewSet(GenericViewSet):
             status=HTTP_201_CREATED,
         )
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="data_inicio",
-                type=OpenApiTypes.DATE,
-                description="Data de início",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="data_final",
-                type=OpenApiTypes.DATE,
-                description="Data final",
-                required=False,
-            ),
-        ]
-    )
     @action(
         detail=False,
         methods=["get"],
@@ -399,22 +337,6 @@ class ExportacoesDadosViewSet(GenericViewSet):
             status=HTTP_201_CREATED,
         )
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="data_inicio",
-                type=OpenApiTypes.DATE,
-                description="Data de início",
-                required=False,
-            ),
-            OpenApiParameter(
-                name="data_final",
-                type=OpenApiTypes.DATE,
-                description="Data final",
-                required=False,
-            ),
-        ]
-    )
     @action(
         detail=False,
         methods=["get"],
@@ -479,36 +401,6 @@ class ExportacoesDadosViewSet(GenericViewSet):
             status=HTTP_201_CREATED,
         )
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name='data_inicio',
-                description='Filtro de início de data de criação',
-                required=False,
-                allow_blank=True,
-                type=str,
-                location=OpenApiParameter.QUERY,
-            ),
-            OpenApiParameter(
-                name='data_final',
-                description='Filtro de fim de data de criação',
-                required=False,
-                allow_blank=True,
-                type=str,
-                location=OpenApiParameter.QUERY,
-            ),
-            OpenApiParameter(
-                name='dre_uui',
-                description='Filtro de uuid de DRE',
-                required=False,
-                allow_blank=True,
-                type=str,
-                location=OpenApiParameter.QUERY,
-            ),
-        ],
-        description="Parâmetros de URL",
-        responses={200: "Success"},
-    )
     @action(
         detail=False,
         methods=["get"],
