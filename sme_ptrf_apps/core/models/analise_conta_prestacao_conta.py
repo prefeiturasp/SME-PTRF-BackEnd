@@ -3,6 +3,7 @@ from django.db import models
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+from sme_ptrf_apps.core.models.conta_associacao import ContaAssociacao
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
@@ -40,14 +41,15 @@ class AnaliseContaPrestacaoConta(ModeloBase):
         if not prestacao_conta or not prestacao_conta.associacao:
             return []
 
-        contas = list(prestacao_conta.associacao.contas.all())
+        contas = list(prestacao_conta.associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA))
         if not contas:
             return []
 
         periodo = prestacao_conta.periodo
         observacoes = ObservacaoConciliacao.objects.filter(
             periodo=periodo,
-            conta_associacao__in=contas
+            conta_associacao__in=contas,
+            conta_associacao__status=ContaAssociacao.STATUS_INATIVA,
         ).select_related('conta_associacao')
         observacoes_por_conta_id = {
             observacao.conta_associacao_id: observacao
