@@ -1157,6 +1157,7 @@ class ArquivoDownloadAdmin(admin.ModelAdmin):
     change_list_template = 'admin/core/arquivodownload_change_list.html'
     search_fields = ('usuario__username', 'usuario__name', 'identificador', 'informacoes')
     list_filter = ('status', 'lido', DreArquivoDownloadFilter)
+    raw_id_fields = ('usuario',)
 
     def get_nome_usuario(self, obj):
         """Retorna o username e nome do usuário"""
