@@ -1,0 +1,25 @@
+{% extends "admin/change_list.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    #changelist table td,
+    #changelist table th {
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        word-break: break-word !important;
+    }
+
+    #changelist table .field-identificador { max-width: 150px; }
+    #changelist table .field-informacoes { max-width: 250px; }
+    #changelist table .field-get_dre_nome { max-width: 120px; }
+    #changelist table .field-get_nome_usuario { max-width: 100px; }
+    
+    #changelist table .field-status { white-space: nowrap !important; width: 100px; }
+    #changelist table .field-lido { white-space: nowrap !important; width: 50px; }
+    #changelist table .field-alterado_em { white-space: nowrap !important; width: 130px; }
+    
+    #changelist table td { padding: 8px !important; vertical-align: top !important; }
+</style>
+{% endblock %}
+

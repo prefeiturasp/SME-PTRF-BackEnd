@@ -52,6 +52,7 @@ class ExportacoesDocumentosDespesasService:
         self.data_final = kwargs.get('data_final', None)
         self.nome_arquivo = kwargs.get('nome_arquivo', None)
         self.user = kwargs.get('user', None)
+        self.dre_codigo_eol = kwargs.get('dre_codigo_eol', None)
         self.cabecalho = CABECALHO_DOCS
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
@@ -269,7 +270,8 @@ class ExportacoesDocumentosDespesasService:
         obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo,
-            self.informacoes_download
+            self.informacoes_download,
+            self.dre_codigo_eol
         )
 
         self.objeto_arquivo_download = obj

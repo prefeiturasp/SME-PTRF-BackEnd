@@ -1129,11 +1129,57 @@ class AmbienteAdmin(admin.ModelAdmin):
     list_display = ('prefixo', 'nome')
 
 
+class DreArquivoDownloadFilter(admin.SimpleListFilter):
+    """Filtro customizado de DRE que filtra por DRE do arquivo E usuários da DRE"""
+    title = 'DRE'
+    parameter_name = 'dre_filtro'
+
+    def lookups(self, request, model_admin):
+        """Retorna lista de DREs disponíveis"""
+        from sme_ptrf_apps.core.models import Unidade
+        dres = Unidade.objects.filter(tipo_unidade='DRE').order_by('nome')
+        
+        return [(dre.codigo_eol, dre.nome) for dre in dres]
+
+    def queryset(self, request, queryset):
+        """Filtra por DRE do arquivo"""
+        if self.value():
+            # Filtrar apenas por arquivos que têm a DRE diretamente associada
+            return queryset.filter(dre__codigo_eol=self.value())
+        return queryset
+
+
 @admin.register(ArquivoDownload)
 class ArquivoDownloadAdmin(admin.ModelAdmin):
-    list_display = ('identificador', 'status', 'alterado_em', 'lido', 'informacoes')
+    list_display = ('identificador', 'status', 'informacoes', 'get_dre_nome', 'alterado_em', 'get_nome_usuario', 'lido')
     readonly_fields = ('uuid', 'id',)
     list_display_links = ('identificador',)
+    change_list_template = 'admin/core/arquivodownload_change_list.html'
+    search_fields = ('usuario__username', 'usuario__name', 'identificador', 'informacoes')
+    list_filter = ('status', 'lido', DreArquivoDownloadFilter)
+
+    def get_nome_usuario(self, obj):
+        """Retorna o username e nome do usuário"""
+        if obj.usuario:
+            username = obj.usuario.username or ''
+            name = obj.usuario.name or ''
+            if username and name:
+                return f"{username} - {name}"
+            elif username:
+                return username
+            elif name:
+                return name
+        return '-'
+    
+    get_nome_usuario.short_description = 'Usuário'
+    get_nome_usuario.admin_order_field = 'usuario__username'
+
+    def get_dre_nome(self, obj):
+        """Retorna o nome da DRE"""
+        return obj.dre.nome if obj.dre else '-'
+    
+    get_dre_nome.short_description = 'DRE'
+    get_dre_nome.admin_order_field = 'dre__nome'
 
 
 @admin.register(AnalisePrestacaoConta)
