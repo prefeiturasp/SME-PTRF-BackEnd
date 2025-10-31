@@ -49,7 +49,6 @@ class AnaliseContaPrestacaoConta(ModeloBase):
         observacoes = ObservacaoConciliacao.objects.filter(
             periodo=periodo,
             conta_associacao__in=contas,
-            conta_associacao__status=ContaAssociacao.STATUS_INATIVA,
         ).select_related('conta_associacao')
         observacoes_por_conta_id = {
             observacao.conta_associacao_id: observacao
