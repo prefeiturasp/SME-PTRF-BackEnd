@@ -11,19 +11,18 @@ def flag_paa():
 
 
 @pytest.mark.django_db
-def test_lista_receita_prevista_paa(jwt_authenticated_client_sme, acao_associacao, paa, flag_paa):
+def test_lista_receita_prevista_paa(jwt_authenticated_client_sme, acao_associacao_factory, paa_factory, periodo_paa_1, flag_paa):
 
     for index in range(50):
         ReceitaPrevistaPaaFactory.create(
-            paa=paa,
-            acao_associacao=acao_associacao,
+            paa=paa_factory(periodo_paa=periodo_paa_1),
+            acao_associacao=acao_associacao_factory(),
             previsao_valor_custeio=100 + index,
             previsao_valor_capital=101 + index,
             previsao_valor_livre=102 + index
         )
 
-    response = jwt_authenticated_client_sme.get("/api/receitas-previstas-paa/?acao_nome=PTRF")
-
+    response = jwt_authenticated_client_sme.get("/api/receitas-previstas-paa/")
     assert response.status_code == status.HTTP_200_OK
     assert response.data["count"] == 50
     assert 'links' in response.data

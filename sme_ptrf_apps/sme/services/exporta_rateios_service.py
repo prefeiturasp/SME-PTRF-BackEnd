@@ -20,40 +20,40 @@ from tempfile import NamedTemporaryFile
 logger = logging.getLogger(__name__)
 
 CABECALHO_RATEIOS = [
-        ('Código EOL', 'associacao__unidade__codigo_eol'),
-        ('Nome Unidade', 'associacao__unidade__nome'),
-        ('Nome Associação', 'associacao__nome'),
-        ('DRE', 'associacao__unidade__dre__nome'),
-        ('ID do Gasto', 'despesa__id'),
-        ('Número do documento', 'despesa__numero_documento'),
-        ('Tipo de documento', 'despesa__tipo_documento__nome'),
-        ('Data do documento', 'despesa__data_documento'),
-        ('CPF_CNPJ do fornecedor', 'despesa__cpf_cnpj_fornecedor'),
-        ('Nome do fornecedor', 'despesa__nome_fornecedor'),
-        ('Tipo de transação', 'despesa__tipo_transacao__nome'),
-        ('Número do documento da transação', 'despesa__documento_transacao'),
-        ('Data da transação', 'despesa__data_transacao'),
-        ('Tipo de aplicação do recurso', 'aplicacao_recurso'),
-        ('Nome do Tipo de Custeio', 'tipo_custeio__nome'),
-        ('Descrição da Especificação de Material ou Serviço', 'especificacao_material_servico__descricao'),
-        ('Nome do tipo de Conta', 'conta_associacao__tipo_conta__nome'),
-        ('Nome da Ação', 'acao_associacao__acao__nome'),
-        ('Quantidade de itens', 'quantidade_itens_capital'),
-        ('Valor unitário', 'valor_item_capital'),
-        ('Número do processo de incorporação', 'numero_processo_incorporacao_capital'),
-        ('Valor', 'valor_rateio'),
-        ('Valor realizado', 'valor_original'),
-        ('Status do rateio', 'despesa__status'),
-        ('Conferido', 'conferido'),
-        ('Referência do período de conciliação', 'periodo_conciliacao__referencia'),
-        ('Descrição da tag', 'tag__nome'),
-        ('É saída de recurso externo?', 'saida_de_recurso_externo'),
-        ('É gasto sem comprovação fiscal?', 'eh_despesa_sem_comprovacao_fiscal'),
-        ('É pagamento antecipado?', 'PAGAMENTO_ANTECIPADO'),
-        ('Tem estorno cadastrado?', 'POSSUI_ESTORNO'),
-        ('Data e hora de criação', 'criado_em'),
-        ('Data e hora da última atualização', 'alterado_em'),
-        ('UUID do rateio', 'uuid'),
+    ('Código EOL', 'associacao__unidade__codigo_eol'),
+    ('Nome Unidade', 'associacao__unidade__nome'),
+    ('Nome Associação', 'associacao__nome'),
+    ('DRE', 'associacao__unidade__dre__nome'),
+    ('ID do Gasto', 'despesa__id'),
+    ('Número do documento', 'despesa__numero_documento'),
+    ('Tipo de documento', 'despesa__tipo_documento__nome'),
+    ('Data do documento', 'despesa__data_documento'),
+    ('CPF_CNPJ do fornecedor', 'despesa__cpf_cnpj_fornecedor'),
+    ('Nome do fornecedor', 'despesa__nome_fornecedor'),
+    ('Tipo de transação', 'despesa__tipo_transacao__nome'),
+    ('Número do documento da transação', 'despesa__documento_transacao'),
+    ('Data da transação', 'despesa__data_transacao'),
+    ('Tipo de aplicação do recurso', 'aplicacao_recurso'),
+    ('Nome do Tipo de Custeio', 'tipo_custeio__nome'),
+    ('Descrição da Especificação de Material ou Serviço', 'especificacao_material_servico__descricao'),
+    ('Nome do tipo de Conta', 'conta_associacao__tipo_conta__nome'),
+    ('Nome da Ação', 'acao_associacao__acao__nome'),
+    ('Quantidade de itens', 'quantidade_itens_capital'),
+    ('Valor unitário', 'valor_item_capital'),
+    ('Número do processo de incorporação', 'numero_processo_incorporacao_capital'),
+    ('Valor', 'valor_rateio'),
+    ('Valor realizado', 'valor_original'),
+    ('Status do rateio', 'despesa__status'),
+    ('Conferido', 'conferido'),
+    ('Referência do período de conciliação', 'periodo_conciliacao__referencia'),
+    ('Descrição da tag', 'tag__nome'),
+    ('É saída de recurso externo?', 'saida_de_recurso_externo'),
+    ('É gasto sem comprovação fiscal?', 'eh_despesa_sem_comprovacao_fiscal'),
+    ('É pagamento antecipado?', 'PAGAMENTO_ANTECIPADO'),
+    ('Tem estorno cadastrado?', 'POSSUI_ESTORNO'),
+    ('Data e hora de criação', 'criado_em'),
+    ('Data e hora da última atualização', 'alterado_em'),
+    ('UUID do rateio', 'uuid'),
 ]
 
 
@@ -122,6 +122,14 @@ class ExportacoesRateiosService:
             self.cria_rodape(write)
             self.envia_arquivo_central_download(tmp)
 
+    def adaptar_valor_campo_para_excel(self, campo):
+        """
+        Formata valores numéricos de campos CharField usando ="valor",
+        garantindo que o Excel interprete o conteúdo como texto
+        e não converta automaticamente para número ou notação científica.
+        """
+        return f'="{campo.replace(";", ",")}"'
+
     def monta_dados(self):
         linhas_vertical = []
 
@@ -154,7 +162,7 @@ class ExportacoesRateiosService:
 
                 if campo == "despesa__numero_documento":
                     campo = get_recursive_attr(instance, campo)
-                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    linha_horizontal.append(self.adaptar_valor_campo_para_excel(campo) if campo else "")
                     continue
 
                 if campo == "despesa__tipo_documento__nome":
