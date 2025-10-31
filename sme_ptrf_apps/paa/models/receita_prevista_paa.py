@@ -31,6 +31,12 @@ class ReceitaPrevistaPaa(ModeloBase):
     class Meta:
         verbose_name = "Receita Prevista do PAA"
         verbose_name_plural = "Receitas Previstas do PAA"
+        constraints = [
+            models.UniqueConstraint(
+                fields=['paa', 'acao_associacao'],
+                name='unique_receita_prevista_por_paa_acao'
+            )
+        ]
 
 
 auditlog.register(ReceitaPrevistaPaa)
