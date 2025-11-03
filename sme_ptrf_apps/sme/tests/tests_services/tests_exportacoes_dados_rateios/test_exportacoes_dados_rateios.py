@@ -196,7 +196,7 @@ def test_resultado_esperado_dados_extracao(rateios_despesa_queryset):
         primeiro_rateio.associacao.nome,
         primeiro_rateio.associacao.unidade.nome_dre,
         primeiro_rateio.despesa.id,
-        primeiro_rateio.despesa.numero_documento,
+        f'="{primeiro_rateio.despesa.numero_documento}"',
         primeiro_rateio.despesa.tipo_documento.nome,
         primeiro_rateio.despesa.data_documento.strftime("%d/%m/%Y"),
         primeiro_rateio.despesa.cpf_cnpj_fornecedor,

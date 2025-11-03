@@ -33,6 +33,7 @@ class ExportacaoDadosProcessosSEIPrestacaoContasService:
         self.queryset = kwargs.get('queryset', None)
         self.nome_arquivo = kwargs.get('nome_arquivo', None)
         self.user = kwargs.get('user', None)
+        self.dre_codigo_eol = kwargs.get('dre_codigo_eol', None)
         self.cabecalho = CABECALHO
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
@@ -105,6 +106,7 @@ class ExportacaoDadosProcessosSEIPrestacaoContasService:
         obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo,
+            dre_codigo_eol=self.dre_codigo_eol
         )
 
         self.objeto_arquivo_download = obj

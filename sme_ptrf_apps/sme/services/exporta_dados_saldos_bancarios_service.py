@@ -39,6 +39,7 @@ class ExportacaoDadosSaldosBancariosService:
         self.data_inicio = kwargs.get("data_inicio", None)
         self.data_final = kwargs.get("data_final", None)
         self.user = kwargs.get('user', None)
+        self.dre_codigo_eol = kwargs.get('dre_codigo_eol', None)
         self.cabecalho = CABECALHO
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
@@ -181,7 +182,8 @@ class ExportacaoDadosSaldosBancariosService:
         obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo,
-            self.texto_filtro_aplicado
+            self.texto_filtro_aplicado,
+            self.dre_codigo_eol
         )
 
         self.objeto_arquivo_download = obj

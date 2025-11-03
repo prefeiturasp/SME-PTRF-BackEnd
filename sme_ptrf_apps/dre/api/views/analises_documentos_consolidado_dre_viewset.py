@@ -14,9 +14,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.core.exceptions import ValidationError
 
+from drf_spectacular.utils import extend_schema_view
+from .docs.analises_documentos_consolidado_dre_docs import DOCS
+
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class AnalisesDocumentosConsolidadoDreViewSet(
     mixins.CreateModelMixin,
     mixins.RetrieveModelMixin,
@@ -65,7 +69,9 @@ class AnalisesDocumentosConsolidadoDreViewSet(
         except (AnaliseConsolidadoDre.DoesNotExist, ValidationError):
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto AnaliseConsolidadoDre para o uuid {analise_atual_consolidado_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto AnaliseConsolidadoDre para o uuid {analise_atual_consolidado_uuid} não "
+                    "foi encontrado na base.")
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -85,7 +91,9 @@ class AnalisesDocumentosConsolidadoDreViewSet(
         else:
             erro = {
                 'erro': 'erro_ao_gravar_acerto',
-                'mensagem': f"Não foi possível gravar o acerto para o Documento {documento_uuid} Tipo de Documento {tipo_documento}"
+                'mensagem': (
+                    f"Não foi possível gravar o acerto para o Documento {documento_uuid} Tipo de "
+                    f"Documento {tipo_documento}")
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -114,7 +122,9 @@ class AnalisesDocumentosConsolidadoDreViewSet(
         except (AnaliseConsolidadoDre.DoesNotExist, ValidationError):
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto AnaliseConsolidadoDre para o uuid {analise_atual_consolidado_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto AnaliseConsolidadoDre para o uuid {analise_atual_consolidado_uuid} não "
+                    "foi encontrado na base.")
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -151,7 +161,9 @@ class AnalisesDocumentosConsolidadoDreViewSet(
         except (AnaliseConsolidadoDre.DoesNotExist, ValidationError):
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto AnaliseConsolidadoDre para o uuid {analise_atual_consolidado_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto AnaliseConsolidadoDre para o uuid {analise_atual_consolidado_uuid} não "
+                    "foi encontrado na base.")
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -202,7 +214,8 @@ class AnalisesDocumentosConsolidadoDreViewSet(
         else:
             erro = {
                 'erro': 'erro_ao_efetuar_download',
-                'mensagem': f"Não foi efetuar o Download do Documento {documento_uuid} Tipo de Documento {tipo_documento}"
+                'mensagem': (
+                    f"Não foi efetuar o Download do Documento {documento_uuid} Tipo de Documento {tipo_documento}")
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)

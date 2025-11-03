@@ -4,7 +4,7 @@ from tempfile import NamedTemporaryFile
 from django.core.files import File
 
 
-def gerar_arquivo_download(username, identificador, informacoes=''):
+def gerar_arquivo_download(username, identificador, informacoes='', dre_codigo_eol=None):
     usuario = get_user_model().objects.get(username=username)
     obj_arquivo_download = ArquivoDownload.objects.create(
                     identificador=identificador,
@@ -13,7 +13,8 @@ def gerar_arquivo_download(username, identificador, informacoes=''):
                     status=ArquivoDownload.STATUS_EM_PROCESSAMENTO,
                     msg_erro="",
                     lido=False,
-                    usuario=usuario
+                    usuario=usuario,
+                    dre_id=dre_codigo_eol
                 )
 
     obj_arquivo_download.save()

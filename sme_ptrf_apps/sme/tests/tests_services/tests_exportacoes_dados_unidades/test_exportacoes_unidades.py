@@ -74,7 +74,7 @@ def test_criar_registro_central_download(export_service):
         mock_gerar_arqv.return_value = ArquivoDownload(usuario=export_service.user)
         export_service.cria_registro_central_download()
         mock_gerar_arqv.assert_called_once_with(
-            export_service.user, export_service.nome_arquivo, export_service.texto_filtro_aplicado
+            export_service.user, export_service.nome_arquivo, export_service.texto_filtro_aplicado, export_service.dre_codigo_eol
         )
 
 
