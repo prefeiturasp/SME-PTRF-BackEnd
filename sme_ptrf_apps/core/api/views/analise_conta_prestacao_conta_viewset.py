@@ -43,6 +43,7 @@ from ..serializers.analise_conta_prestacao_conta_serializer import AnaliseContaP
                     "solicitar_envio_do_comprovante_do_saldo_da_conta": False,
                     "solicitar_correcao_da_data_do_saldo_da_conta": False,
                     "observacao_solicitar_envio_do_comprovante_do_saldo_da_conta": None,
+                    "solicitar_correcao_de_justificativa_de_conciliacao": False
                 }
             }
         },
@@ -131,7 +132,11 @@ class AnaliseContaPrestacaoContaViewSet(viewsets.ModelViewSet):
         solicitar_correcao_da_data_do_saldo_da_conta = dados_analise_saldo.get(
             'solicitar_correcao_da_data_do_saldo_da_conta', False)
         observacao_solicitar_envio_do_comprovante_do_saldo_da_conta = dados_analise_saldo.get(
-            'observacao_solicitar_envio_do_comprovante_do_saldo_da_conta', None)
+            'observacao_solicitar_envio_do_comprovante_do_saldo_da_conta'
+        )
+        solicitar_correcao_de_justificativa_de_conciliacao = dados_analise_saldo.get(
+            'solicitar_correcao_de_justificativa_de_conciliacao', False
+        )
 
         try:
             analise_prestacao_conta = AnalisePrestacaoConta.by_uuid(analise_prestacao_conta_uuid)
@@ -163,7 +168,7 @@ class AnaliseContaPrestacaoContaViewSet(viewsets.ModelViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            AnaliseContaPrestacaoConta.objects.create(
+            AnaliseContaPrestacaoConta.objects.update_or_create(
                 analise_prestacao_conta=analise_prestacao_conta,
                 conta_associacao=conta_associacao,
                 prestacao_conta=prestacao_conta,
@@ -171,7 +176,10 @@ class AnaliseContaPrestacaoContaViewSet(viewsets.ModelViewSet):
                 saldo_extrato=saldo_extrato,
                 solicitar_envio_do_comprovante_do_saldo_da_conta=solicitar_envio_do_comprovante_do_saldo_da_conta,
                 solicitar_correcao_da_data_do_saldo_da_conta=solicitar_correcao_da_data_do_saldo_da_conta,
-                observacao_solicitar_envio_do_comprovante_do_saldo_da_conta=observacao_solicitar_envio_do_comprovante_do_saldo_da_conta,  # noqa
+                observacao_solicitar_envio_do_comprovante_do_saldo_da_conta=(
+                    observacao_solicitar_envio_do_comprovante_do_saldo_da_conta
+                ),
+                solicitar_correcao_de_justificativa_de_conciliacao=solicitar_correcao_de_justificativa_de_conciliacao,
             )
         except Exception as err:
             erro = {

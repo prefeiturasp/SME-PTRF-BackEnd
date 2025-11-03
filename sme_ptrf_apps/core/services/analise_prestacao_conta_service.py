@@ -1,6 +1,7 @@
 import logging
 import uuid
 import copy
+from decimal import Decimal
 from sme_ptrf_apps.core.services.dados_relatorio_acertos_service import (gerar_dados_relatorio_acertos)
 from sme_ptrf_apps.core.services.relatorio_acertos_pdf_service import (gerar_arquivo_relatorio_acertos_pdf)
 from sme_ptrf_apps.core.services.dados_relatorio_apos_acertos_service import DadosRelatorioAposAcertosService
@@ -14,6 +15,51 @@ from sme_ptrf_apps.core.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _pendencias_conciliacao_para_conta(periodo, conta_associacao):
+    from sme_ptrf_apps.core.models import ObservacaoConciliacao
+    from sme_ptrf_apps.core.services import info_resumo_conciliacao
+    from sme_ptrf_apps.core.services.conciliacao_services import transacoes_para_conciliacao
+
+    observacao = ObservacaoConciliacao.objects.filter(
+        periodo=periodo,
+        conta_associacao=conta_associacao
+    ).first()
+
+    resumo = info_resumo_conciliacao(periodo, conta_associacao) or {}
+    saldo_posterior = Decimal(resumo.get('saldo_posterior_total') or 0)
+
+    transacoes_pendentes_conciliacao = transacoes_para_conciliacao(
+        periodo=periodo,
+        conta_associacao=conta_associacao,
+        conferido=False,
+    )
+
+    saldo_extrato = getattr(observacao, "saldo_extrato", None)
+    saldo_extrato_decimal = Decimal(saldo_extrato) if saldo_extrato is not None else None
+    data_extrato = getattr(observacao, "data_extrato", None)
+    comprovante_extrato = getattr(observacao, "comprovante_extrato", None)
+    texto_observacao = getattr(observacao, "texto", None)
+
+    pendente_observacao = observacao is None or (data_extrato is None or saldo_extrato is None)
+    pendente_justificativa = (
+        not pendente_observacao and
+        (saldo_posterior - (saldo_extrato_decimal or Decimal('0'))) != 0 and
+        not transacoes_pendentes_conciliacao and
+        not texto_observacao
+    )
+
+    pendente_extrato = (
+        not pendente_observacao and
+        not comprovante_extrato
+    )
+
+    return {
+        'pendente_observacao': pendente_observacao,
+        'pendente_extrato': pendente_extrato,
+        'pendente_justificativa': pendente_justificativa,
+    }
 
 
 def copia_ajustes_entre_analises(analise_origem, analise_destino):
@@ -221,13 +267,20 @@ def cria_solicitacao_acerto_em_contas_com_pendencia(analise_prestacao):
         return
 
     contas_pendentes = analise_prestacao.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta()
+    periodo = analise_prestacao.prestacao_conta.periodo
 
     for conta in contas_pendentes:
+        pendencias = _pendencias_conciliacao_para_conta(periodo, conta)
+
+        if not any(pendencias.values()):
+            continue
+
         AnaliseContaPrestacaoConta.objects.create(
             analise_prestacao_conta=analise_prestacao,
             conta_associacao=conta,
             prestacao_conta=analise_prestacao.prestacao_conta,
-            solicitar_envio_do_comprovante_do_saldo_da_conta=True,
-            solicitar_correcao_da_data_do_saldo_da_conta=True,
+            solicitar_envio_do_comprovante_do_saldo_da_conta=pendencias['pendente_extrato'],
+            solicitar_correcao_da_data_do_saldo_da_conta=pendencias['pendente_observacao'],
+            solicitar_correcao_de_justificativa_de_conciliacao=pendencias['pendente_justificativa'],
             observacao_solicitar_envio_do_comprovante_do_saldo_da_conta="Corrigir pendências na conciliação"
         )
