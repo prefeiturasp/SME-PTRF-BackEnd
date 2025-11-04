@@ -36,24 +36,14 @@ class AnaliseContaPrestacaoConta(ModeloBase):
 
     @classmethod
     def contas_solicitar_correcao_de_justificativa(cls, prestacao_conta):
-        from sme_ptrf_apps.core.models import ObservacaoConciliacao
+        from sme_ptrf_apps.core.services.analise_prestacao_conta_service import _pendencias_conciliacao_para_conta
 
         if not prestacao_conta or not prestacao_conta.associacao:
             return []
 
-        contas = list(prestacao_conta.associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA))
+        contas = list(prestacao_conta.contas_ativas_no_periodo())
         if not contas:
             return []
-
-        periodo = prestacao_conta.periodo
-        observacoes = ObservacaoConciliacao.objects.filter(
-            periodo=periodo,
-            conta_associacao__in=contas
-        ).select_related('conta_associacao')
-        observacoes_por_conta_id = {
-            observacao.conta_associacao_id: observacao
-            for observacao in observacoes
-        }
 
         contas_com_correcao = set(
             cls.objects.filter(
@@ -63,14 +53,13 @@ class AnaliseContaPrestacaoConta(ModeloBase):
         )
 
         contas_sem_justificativa = []
+        periodo = prestacao_conta.periodo
         for conta in contas:
-            observacao = observacoes_por_conta_id.get(conta.id)
-            justificativa = getattr(observacao, 'texto', None) if observacao else None
-
-            if justificativa and justificativa.strip():
+            if conta.id in contas_com_correcao:
                 continue
 
-            if conta.id in contas_com_correcao:
+            pendencias_conciliacao = _pendencias_conciliacao_para_conta(periodo, conta) or {}
+            if not pendencias_conciliacao.get('pendente_justificativa', False):
                 continue
 
             contas_sem_justificativa.append(conta)
