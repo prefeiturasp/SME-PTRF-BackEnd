@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 import json
 import pytest
+from freezegun import freeze_time
 
 from rest_framework import status
 
@@ -61,6 +62,7 @@ def test_create_mes_nao_definido_em_parametro(jwt_authenticated_client_sme, flag
                                             "Novo PAA foi definido no Admin.")]
 
 
+@freeze_time('2025-04-1 10:11:12')
 def test_create_duplicado(jwt_authenticated_client_sme, flag_paa, paa, associacao):
     ParametroPaaFactory.create(mes_elaboracao_paa=date.today().month)
     payload = {
