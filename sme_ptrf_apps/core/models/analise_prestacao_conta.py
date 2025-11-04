@@ -159,13 +159,25 @@ class AnalisePrestacaoConta(ModeloBase):
         return requer_acertos
 
     def requer_acertos_em_extrato_na_conta_associacao(self, conta_associacao):
-        requer_acertos = AnaliseContaPrestacaoConta.objects.filter(
+        analises = AnaliseContaPrestacaoConta.objects.filter(
             analise_prestacao_conta=self,
             prestacao_conta=self.prestacao_conta,
             conta_associacao=conta_associacao,
-        ).exists()
+        ).filter(self._criterio_acertos_de_extrato())
 
-        return requer_acertos
+        return analises.exists()
+
+    @staticmethod
+    def _criterio_acertos_de_extrato():
+        """
+        Considera apenas solicitações que exigem ajuste no extrato/saldo,
+        desconsiderando correções exclusivas de justificativa.
+        """
+        return (
+            Q(solicitar_envio_do_comprovante_do_saldo_da_conta=True) |
+            Q(solicitar_correcao_da_data_do_saldo_da_conta=True) |
+            Q(solicitar_correcao_de_justificativa_de_conciliacao=False)
+        )
 
     @property
     def acertos_em_extrato_requer_gerar_documentos(self):
@@ -490,12 +502,33 @@ class AnalisePrestacaoConta(ModeloBase):
         return True if len(contas_pendentes) > 0 else False
 
     def contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta(self):
-        contas = []
+        prestacao_conta = self.prestacao_conta
+        associacao = prestacao_conta.associacao
 
-        contas_pendentes = self.prestacao_conta.associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(
-            self.prestacao_conta.periodo)
+        if not associacao:
+            return []
+
+        contas = []
+        periodo = prestacao_conta.periodo
+
+        contas_pendentes = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(periodo)
+
+        contas_com_pendencia_de_justificativa = {
+            conta.id
+            for conta in AnaliseContaPrestacaoConta.contas_solicitar_correcao_de_justificativa(prestacao_conta)
+        }
+
+        from sme_ptrf_apps.core.services.analise_prestacao_conta_service import _pendencias_conciliacao_para_conta
 
         for conta in contas_pendentes:
+            if conta.id in contas_com_pendencia_de_justificativa:
+                pendencias_conciliacao = _pendencias_conciliacao_para_conta(periodo, conta) or {}
+                pendente_observacao = pendencias_conciliacao.get('pendente_observacao', False)
+                pendente_extrato = pendencias_conciliacao.get('pendente_extrato', False)
+                pendente_justificativa = pendencias_conciliacao.get('pendente_justificativa', False)
+
+                if pendente_justificativa and not pendente_observacao and not pendente_extrato:
+                    continue
 
             requer_acertos = self.requer_acertos_em_extrato_na_conta_associacao(conta)
             if not requer_acertos:
