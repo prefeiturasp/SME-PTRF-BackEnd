@@ -41,7 +41,7 @@ class AnaliseContaPrestacaoConta(ModeloBase):
         if not prestacao_conta or not prestacao_conta.associacao:
             return []
 
-        contas = list(prestacao_conta.associacao.contas.filter(status=ContaAssociacao.STATUS_ATIVA))
+        contas = list(prestacao_conta.contas_ativas_no_periodo())
         if not contas:
             return []
 
