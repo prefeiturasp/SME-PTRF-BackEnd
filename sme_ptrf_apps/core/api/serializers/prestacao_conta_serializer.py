@@ -2,7 +2,7 @@ from waffle import flag_is_active
 
 from rest_framework import serializers
 
-from sme_ptrf_apps.core.models import PrestacaoConta, ObservacaoConciliacao
+from sme_ptrf_apps.core.models import PrestacaoConta, ObservacaoConciliacao, AnaliseContaPrestacaoConta
 from sme_ptrf_apps.core.api.serializers import (
     AssociacaoCompletoSerializer,
     DevolucaoPrestacaoContaRetrieveSerializer,
@@ -85,14 +85,24 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             'get_acertos_podem_alterar_saldo_conciliacao')
         tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta = serializers.SerializerMethodField(
             'get_tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta')
-        contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta = serializers.SerializerMethodField(
-            'get_contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta')
+        contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta = serializers.SerializerMethodField('get_contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta')
+        contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao = serializers.SerializerMethodField('get_contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao')
+        solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao = serializers.SerializerMethodField('get_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao')
+        solicitar_correcao_de_justificativa_de_conciliacao = serializers.SerializerMethodField(
+            'get_solicitar_correcao_de_justificativa_de_conciliacao')
+        contas_solicitar_correcao_de_justificativa_de_conciliacao = serializers.SerializerMethodField(
+            'get_contas_solicitar_correcao_de_justificativa_de_conciliacao')
 
         class Meta:
             from sme_ptrf_apps.core.models import AnalisePrestacaoConta
             model = AnalisePrestacaoConta
             fields = ('uuid', 'id', 'devolucao_prestacao_conta', 'status', 'criado_em', 'acertos_podem_alterar_saldo_conciliacao',
-                      'tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta', 'contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta')
+                      'tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta',
+                      'contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta',
+                      'contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao',
+                      'solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao',
+                      'solicitar_correcao_de_justificativa_de_conciliacao',
+                      'contas_solicitar_correcao_de_justificativa_de_conciliacao')
 
         def get_acertos_podem_alterar_saldo_conciliacao(self, obj):
             return obj.tem_acertos_que_podem_alterar_saldo_conciliacao()
@@ -102,6 +112,20 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
 
         def get_contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta(self, obj):
             return [conta.uuid for conta in obj.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta()]
+
+        def get_contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao(self, obj):
+            contas = obj.contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao()
+            return [str(conta.uuid) for conta in contas]
+
+        def get_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao(self, obj):
+            return bool(obj.contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao())
+
+        def get_solicitar_correcao_de_justificativa_de_conciliacao(self, obj):
+            return AnaliseContaPrestacaoConta.requer_correcao_de_justificativa(obj.prestacao_conta)
+
+        def get_contas_solicitar_correcao_de_justificativa_de_conciliacao(self, obj):
+            contas = AnaliseContaPrestacaoConta.contas_solicitar_correcao_de_justificativa(obj.prestacao_conta)
+            return [str(conta.uuid) for conta in contas]
 
     class ConciliacaoBancariaSerializer(serializers.ModelSerializer):
         class Meta:
@@ -267,6 +291,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
                     'solicitar_envio_do_comprovante_do_saldo_da_conta': analise.solicitar_envio_do_comprovante_do_saldo_da_conta,
                     'solicitar_correcao_da_data_do_saldo_da_conta': analise.solicitar_correcao_da_data_do_saldo_da_conta,
                     'observacao_solicitar_envio_do_comprovante_do_saldo_da_conta': analise.observacao_solicitar_envio_do_comprovante_do_saldo_da_conta,
+                    'solicitar_correcao_de_justificativa_de_conciliacao': analise.solicitar_correcao_de_justificativa_de_conciliacao
                 }
             )
 

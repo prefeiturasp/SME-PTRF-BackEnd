@@ -62,7 +62,15 @@ class DadosRelatorioAposAcertos:
     def __dados_extratos_bancarios(self):
         dados_extratos = []
         for analise_conta in self.analise_prestacao_conta.analises_de_extratos.all():
-            if analise_conta.data_extrato or analise_conta.saldo_extrato is not None:
+            exibir_dados = any([
+                analise_conta.data_extrato,
+                analise_conta.saldo_extrato is not None,
+                analise_conta.solicitar_envio_do_comprovante_do_saldo_da_conta,
+                analise_conta.solicitar_correcao_da_data_do_saldo_da_conta,
+                analise_conta.solicitar_correcao_de_justificativa_de_conciliacao,
+            ])
+
+            if exibir_dados:
                 dados = {
                     'nome_conta': analise_conta.conta_associacao.tipo_conta.nome,
                     'data_extrato': analise_conta.data_extrato,
@@ -70,6 +78,7 @@ class DadosRelatorioAposAcertos:
                     'solicitar_envio_do_comprovante_do_saldo_da_conta': analise_conta.solicitar_envio_do_comprovante_do_saldo_da_conta,
                     'solicitar_correcao_da_data_do_saldo_da_conta': analise_conta.solicitar_correcao_da_data_do_saldo_da_conta,
                     'observacao_solicitar_envio_do_comprovante_do_saldo_da_conta': analise_conta.observacao_solicitar_envio_do_comprovante_do_saldo_da_conta,
+                    'solicitar_correcao_de_justificativa_de_conciliacao': analise_conta.solicitar_correcao_de_justificativa_de_conciliacao,
                 }
                 dados_extratos.append(dados)
 

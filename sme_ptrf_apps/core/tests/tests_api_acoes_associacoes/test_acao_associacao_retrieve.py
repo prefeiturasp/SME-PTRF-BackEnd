@@ -20,7 +20,6 @@ def test_retrieve_acao_associacao(
     esperado = {
         'uuid': f'{acao_associacao.uuid}',
         'id': acao_associacao.id,
-        'receitas_previstas_paa': [],
         'saldos': {
             'saldo_atual_capital': 0.0,
             'saldo_atual_custeio': 0.0,
@@ -53,7 +52,10 @@ def test_retrieve_acao_associacao(
             'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
             "aceita_capital": acao_associacao.acao.aceita_capital,
             "aceita_custeio": acao_associacao.acao.aceita_custeio,
-            "aceita_livre": acao_associacao.acao.aceita_livre
+            "aceita_livre": acao_associacao.acao.aceita_livre,
+            "exibir_paa": True,
+            "tem_receitas_previstas_paa_em_elaboracao": False,
+            "tem_prioridades_paa_em_elaboracao": False
         },
         'status': acao_associacao.status,
         'criado_em': acao_associacao.criado_em.isoformat("T"),

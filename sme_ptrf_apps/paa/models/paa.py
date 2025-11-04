@@ -6,6 +6,7 @@ from ckeditor.fields import RichTextField
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.models.periodo_paa import PeriodoPaa
+from sme_ptrf_apps.paa.enums import PaaStatusEnum
 
 
 class Paa(ModeloBase):
@@ -17,6 +18,10 @@ class Paa(ModeloBase):
     saldo_congelado_em = models.DateTimeField(
         verbose_name="Saldo congelado em", blank=True, null=True)
     texto_introducao = RichTextField(null=True, verbose_name='Texto introdução')
+    texto_conclusao = RichTextField(null=True, verbose_name='Texto conclusão')
+    status = models.CharField(max_length=20, null=True, blank=True,
+                              default=PaaStatusEnum.EM_ELABORACAO.name,
+                              choices=PaaStatusEnum.choices())
 
     def periodo_paa_objeto(self):
         return self.periodo_paa

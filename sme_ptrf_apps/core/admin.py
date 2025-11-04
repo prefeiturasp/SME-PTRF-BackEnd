@@ -76,11 +76,58 @@ admin.site.register(MotivoRejeicaoEncerramentoContaAssociacao)
 class AcaoAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id')
 
+    def save_model(self, request, obj, form, change):
+        """
+        Incluir validação de campo exibir_paa.
+        """
+        if change:
+            # Obtem o valor atual do formulário admin
+            exibir_paa_newVal = form.cleaned_data['exibir_paa']
+
+            desabilitando_acao = not exibir_paa_newVal
+
+            if desabilitando_acao:
+                from .services.acoes_desabilitadas_paa import desabilitar_acao_ptrf_paa
+
+                # obtém as prioridades de PAA`s em Elaboração para acao PTRF
+                prioridades = obj.prioridades_paa_em_elaboracao_acao_ptrf()
+                # Lista de nomes das Associações para exibição na tela admin
+                associacoes_prioridades = list(prioridades.values_list(
+                    "acao_associacao__associacao__nome", flat=True).distinct())
+                count_prioridades = prioridades.count()
+
+                # Obtém as receitas previstas de PAA`s em Elaboração para acao PTRF
+                receitas = obj.receitas_previstas_paa_em_elaboracao_acao_ptrf()
+                # Lista de nomes das Associações para exibição na tela admin
+                associacoes_receitas = list(receitas.values_list(
+                    "acao_associacao__associacao__nome", flat=True).distinct())
+                count_receitas = receitas.count()
+
+                # Service para desabilitar acao PTRF
+                desabilitar_acao_ptrf_paa(obj)
+
+                if count_prioridades > 0:
+                    # Exibe Mensagem de feedback para o Usuário tem a ciência de quais Associações houve alteração
+                    self.message_user(request, mark_safe(
+                        f'{count_prioridades} Prioridade(s) precisa(m) ser corrigida(s) quanto ao campo Ações PTRF.</br>'  # noqa
+                        f' {"</br> ".join(associacoes_prioridades)}'  # noqa
+                    ), level=messages.WARNING)
+
+                if count_receitas > 0:
+                    # Exibe Mensagem de feedback para o Usuário tem a ciência de quais Associações houve alteração
+                    self.message_user(request, mark_safe(
+                        f'{count_receitas} Receita(s) prevista(s) indicada(s)'
+                        f' removida(s) da ação PTRF \"{obj.nome}\". </br>'
+                        f'{"</br> ".join(associacoes_receitas)}'  # noqa
+                    ), level=messages.WARNING)
+
+        super().save_model(request, obj, form, change)
+
 
 @admin.register(SolicitacaoEncerramentoContaAssociacao)
 class SolicitacaoEncerramentoContaAssociacaoAdmin(admin.ModelAdmin):
     def get_codigo_eol(self, obj):
-        return obj.conta_associacao.associacao.unidade.codigo_eol if obj and obj.conta_associacao and obj.conta_associacao.associacao and obj.conta_associacao.associacao.unidade else ''
+        return obj.conta_associacao.associacao.unidade.codigo_eol if obj and obj.conta_associacao and obj.conta_associacao.associacao and obj.conta_associacao.associacao.unidade else ''  # noqa
 
     get_codigo_eol.short_description = 'EOL'
 
@@ -130,7 +177,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
                 associacao.status_valores_reprogramados = Associacao.STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO
                 associacao.save()
 
-        self.message_user(request, f"Status definido com sucesso!")
+        self.message_user(request, "Status definido com sucesso!")
 
     def migrar_valores_reprogramados(self, request, queryset):
         for associacao in queryset.all():
@@ -172,7 +219,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
                                 fechamento_implantacao
                             )
 
-        self.message_user(request, f"Valores migrados com sucesso!")
+        self.message_user(request, "Valores migrados com sucesso!")
 
 
 @admin.register(ContaAssociacao)
@@ -420,7 +467,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     search_fields = ('associacao__unidade__codigo_eol', 'associacao__nome', 'associacao__unidade__nome')
     raw_id_fields = ('periodo', 'associacao', 'analise_atual', 'consolidado_dre',)
 
-    actions = ['marcar_como_nao_publicada', 'desvincular_pcs_do_consolidado', 'setar_status_anterior_a_retificacao', 
+    actions = ['marcar_como_nao_publicada', 'desvincular_pcs_do_consolidado', 'setar_status_anterior_a_retificacao',
                '_cria_solicitacao_acerto_em_contas_com_pendencia']
 
     def desvincular_pcs_do_consolidado(self, request, queryset):
@@ -440,7 +487,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
                 prestacao_conta.publicada = False
                 prestacao_conta.save()
 
-        self.message_user(request, f"PCs marcadas como não publicadas com sucesso!")
+        self.message_user(request, "PCs marcadas como não publicadas com sucesso!")
 
     # TODO remover action após solução do bug 100138
     def setar_status_anterior_a_retificacao(self, request, queryset):
@@ -449,10 +496,11 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
                 prestacao_conta.status = prestacao_conta.status_anterior_a_retificacao
                 prestacao_conta.save()
 
-        self.message_user(request, f"PCs setadas ao status anterior da retificação com sucesso!")
+        self.message_user(request, "PCs setadas ao status anterior da retificação com sucesso!")
 
     def _cria_solicitacao_acerto_em_contas_com_pendencia(self, request, queryset):
-        from sme_ptrf_apps.core.services.analise_prestacao_conta_service import cria_solicitacao_acerto_em_contas_com_pendencia
+        from sme_ptrf_apps.core.services.analise_prestacao_conta_service import (
+            cria_solicitacao_acerto_em_contas_com_pendencia)
         for prestacao_conta in queryset.all():
             ultima_analise_pc = prestacao_conta.ultima_analise()
             cria_solicitacao_acerto_em_contas_com_pendencia(ultima_analise_pc)
@@ -462,7 +510,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
 class AtaAdmin(admin.ModelAdmin):
 
     def get_eol_unidade(self, obj):
-        return f'{obj.associacao.unidade.codigo_eol} - {obj.associacao.unidade.nome}' if obj and obj.associacao and obj.associacao.unidade else ''
+        return f'{obj.associacao.unidade.codigo_eol} - {obj.associacao.unidade.nome}' if obj and obj.associacao and obj.associacao.unidade else ''  # noqa
 
     get_eol_unidade.short_description = 'Unidade'
 
@@ -516,7 +564,7 @@ class ArquivoAdmin(admin.ModelAdmin):
 
     def processa_carga(self, request, queryset):
         processa_cargas(queryset)
-        self.message_user(request, f"Processo Terminado. Verifique o status do processo.")
+        self.message_user(request, "Processo Terminado. Verifique o status do processo.")
 
     processa_carga.short_description = "Realizar Carga dos arquivos."
 
@@ -550,7 +598,7 @@ class ProcessoAssociacaoAdmin(admin.ModelAdmin):
 @admin.register(ObservacaoConciliacao)
 class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
     def get_unidade(self, obj):
-        return f'{obj.associacao.unidade.codigo_eol} - {obj.associacao.unidade.nome}' if obj and obj.associacao and obj.associacao.unidade else ''
+        return f'{obj.associacao.unidade.codigo_eol} - {obj.associacao.unidade.nome}' if obj and obj.associacao and obj.associacao.unidade else ''  # noqa
 
     get_unidade.short_description = 'Unidade'
 
@@ -610,12 +658,12 @@ class NotificacaoAdmin(admin.ModelAdmin):
 class DevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
 
     def get_associacao(self, obj):
-        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''
+        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''  # noqa
 
     get_associacao.short_description = 'Associação'
 
     def get_referencia_periodo(self, obj):
-        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
+        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''  # noqa
 
     get_referencia_periodo.short_description = 'Período'
 
@@ -637,27 +685,28 @@ class DevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
 class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
 
     def get_associacao(self, obj):
-        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''
+        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''  # noqa
 
     get_associacao.short_description = 'Associação'
 
     def get_unidade_codigo_eol(self, obj):
-        return obj.prestacao_conta.associacao.unidade.codigo_eol if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade else ''
+        return obj.prestacao_conta.associacao.unidade.codigo_eol if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade else ''  # noqa
 
     get_unidade_codigo_eol.short_description = 'EOL'
 
     def get_referencia_periodo(self, obj):
-        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
+        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''  # noqa
 
     get_referencia_periodo.short_description = 'Período'
 
     def get_id_analise_prestacao_contas(self, obj):
-        return obj.analise_prestacao_conta.id if obj and obj.analise_prestacao_conta and obj.analise_prestacao_conta.id else ''
+        return obj.analise_prestacao_conta.id if obj and obj.analise_prestacao_conta and obj.analise_prestacao_conta.id else ''  # noqa
 
     get_id_analise_prestacao_contas.short_description = 'Análise de Prestação de contas'
 
     list_display = (
-        'get_unidade_codigo_eol', 'get_associacao',  'get_referencia_periodo', 'data_extrato', 'saldo_extrato', 'get_id_analise_prestacao_contas')
+        'get_unidade_codigo_eol', 'get_associacao', 'get_referencia_periodo', 'data_extrato',
+        'saldo_extrato', 'get_id_analise_prestacao_contas')
     list_filter = ('prestacao_conta__periodo', 'prestacao_conta__associacao__unidade__dre')
     list_display_links = ('get_associacao',)
     readonly_fields = ('uuid', 'id')
@@ -679,7 +728,7 @@ class AnaliseContaPrestacaoContaAdmin(admin.ModelAdmin):
                         analise_conta.analise_prestacao_conta = ultima_analise
                         analise_conta.save()
 
-        self.message_user(request, f"Vinculação Concluída.")
+        self.message_user(request, "Vinculação Concluída.")
 
     vincula_analise_prestacao_contas.short_description = "Víncular a ultima análise de prestação de contas"
 
@@ -758,7 +807,8 @@ class ComentarioAnalisePrestacaoAdmin(admin.ModelAdmin):
     list_display_links = ('get_associacao',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('prestacao_conta__associacao__unidade__codigo_eol', 'prestacao_conta__associacao__unidade__nome',
-                     'prestacao_conta__associacao__nome', 'ordem', 'comentario', 'prestacao_conta__associacao__unidade__dre__codigo_eol', 'associacao__unidade__dre__codigo_eol', )
+                     'prestacao_conta__associacao__nome', 'ordem', 'comentario',
+                     'prestacao_conta__associacao__unidade__dre__codigo_eol', 'associacao__unidade__dre__codigo_eol', )
     raw_id_fields = ['prestacao_conta', 'associacao', ]
 
 
@@ -862,7 +912,7 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
     get_nome_conta.short_description = 'Conta'
 
     def get_nome_associacao(self, obj):
-        return obj.conta_associacao.associacao.nome if obj and obj.conta_associacao and obj.conta_associacao.associacao else ''
+        return obj.conta_associacao.associacao.nome if obj and obj.conta_associacao and obj.conta_associacao.associacao else ''  # noqa
 
     get_nome_associacao.short_description = 'Associação'
 
@@ -875,7 +925,7 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
     get_periodo.short_description = 'Periodo'
 
     def get_nome_dre(self, obj):
-        return obj.conta_associacao.associacao.unidade.dre.nome if obj and obj.conta_associacao and obj.conta_associacao.associacao and obj.conta_associacao.associacao.unidade and obj.conta_associacao.associacao.unidade.dre else ''
+        return obj.conta_associacao.associacao.unidade.dre.nome if obj and obj.conta_associacao and obj.conta_associacao.associacao and obj.conta_associacao.associacao.unidade and obj.conta_associacao.associacao.unidade.dre else ''  # noqa
 
     get_nome_dre.short_description = 'DRE'
 
@@ -894,7 +944,7 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
         from django.contrib.auth import get_user_model
 
         try:
-            usuario = get_user_model().objects.get(username='usr_amcom')
+            get_user_model().objects.get(username='usr_amcom')
             self.message_user(request, mark_safe(
                 "<strong>Atenção! Processo de regeração iniciado. </br> "
                 "Este processo rodará em segundo plano e pode demorar! </br> "
@@ -976,7 +1026,7 @@ class RelacaoBensAdmin(admin.ModelAdmin):
     get_periodo.short_description = 'Periodo'
 
     def get_nome_dre(self, obj):
-        return obj.conta_associacao.associacao.unidade.dre.nome if obj and obj.conta_associacao and obj.conta_associacao.associacao and obj.conta_associacao.associacao.unidade and obj.conta_associacao.associacao.unidade.dre else ''
+        return obj.conta_associacao.associacao.unidade.dre.nome if obj and obj.conta_associacao and obj.conta_associacao.associacao and obj.conta_associacao.associacao.unidade and obj.conta_associacao.associacao.unidade.dre else ''  # noqa
 
     get_nome_dre.short_description = 'DRE'
 
@@ -1033,8 +1083,8 @@ class RelatorioRelacaoBensAdmin(admin.ModelAdmin):
         "fields": ["periodo_referencia", "periodo_data_inicio", "periodo_data_fim", "conta"],
     }),
         ('Identificação APM', {
-            "fields": ["tipo_unidade", "nome_unidade", "nome_associacao", "cnpj_associacao", "codigo_eol_associacao", "nome_dre_associacao",
-                       "presidente_diretoria_executiva",  "cargo_substituto_presidente_ausente"],
+            "fields": ["tipo_unidade", "nome_unidade", "nome_associacao", "cnpj_associacao", "codigo_eol_associacao",
+                       "nome_dre_associacao", "presidente_diretoria_executiva", "cargo_substituto_presidente_ausente"],
         }),
         ('Valor', {
             "fields": ["valor_total"],
@@ -1079,28 +1129,75 @@ class AmbienteAdmin(admin.ModelAdmin):
     list_display = ('prefixo', 'nome')
 
 
+class DreArquivoDownloadFilter(admin.SimpleListFilter):
+    """Filtro customizado de DRE que filtra por DRE do arquivo E usuários da DRE"""
+    title = 'DRE'
+    parameter_name = 'dre_filtro'
+
+    def lookups(self, request, model_admin):
+        """Retorna lista de DREs disponíveis"""
+        from sme_ptrf_apps.core.models import Unidade
+        dres = Unidade.objects.filter(tipo_unidade='DRE').order_by('nome')
+        
+        return [(dre.codigo_eol, dre.nome) for dre in dres]
+
+    def queryset(self, request, queryset):
+        """Filtra por DRE do arquivo"""
+        if self.value():
+            # Filtrar apenas por arquivos que têm a DRE diretamente associada
+            return queryset.filter(dre__codigo_eol=self.value())
+        return queryset
+
+
 @admin.register(ArquivoDownload)
 class ArquivoDownloadAdmin(admin.ModelAdmin):
-    list_display = ('identificador', 'status', 'alterado_em', 'lido', 'informacoes')
+    list_display = ('identificador', 'status', 'informacoes', 'get_dre_nome', 'alterado_em', 'get_nome_usuario', 'lido')
     readonly_fields = ('uuid', 'id',)
     list_display_links = ('identificador',)
+    change_list_template = 'admin/core/arquivodownload_change_list.html'
+    search_fields = ('usuario__username', 'usuario__name', 'identificador', 'informacoes')
+    list_filter = ('status', 'lido', DreArquivoDownloadFilter)
+    raw_id_fields = ('usuario',)
+
+    def get_nome_usuario(self, obj):
+        """Retorna o username e nome do usuário"""
+        if obj.usuario:
+            username = obj.usuario.username or ''
+            name = obj.usuario.name or ''
+            if username and name:
+                return f"{username} - {name}"
+            elif username:
+                return username
+            elif name:
+                return name
+        return '-'
+    
+    get_nome_usuario.short_description = 'Usuário'
+    get_nome_usuario.admin_order_field = 'usuario__username'
+
+    def get_dre_nome(self, obj):
+        """Retorna o nome da DRE"""
+        return obj.dre.nome if obj.dre else '-'
+    
+    get_dre_nome.short_description = 'DRE'
+    get_dre_nome.admin_order_field = 'dre__nome'
 
 
 @admin.register(AnalisePrestacaoConta)
 class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
 
     def get_associacao(self, obj):
-        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''
+        return obj.prestacao_conta.associacao.nome if obj and obj.prestacao_conta and obj.prestacao_conta.associacao else ''  # noqa
 
     get_associacao.short_description = 'Associação'
 
     def get_unidade(self, obj):
-        return f'{obj.prestacao_conta.associacao.unidade.codigo_eol} - {obj.prestacao_conta.associacao.unidade.nome}' if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade else ''
+        return f'{obj.prestacao_conta.associacao.unidade.codigo_eol} - {obj.prestacao_conta.associacao.unidade.nome}' if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade else ''  # noqa
 
     get_unidade.short_description = 'Unidade'
 
     def get_referencia_periodo(self, obj):
-        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
+        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''  # noqa
 
     get_referencia_periodo.short_description = 'Período'
 
@@ -1125,12 +1222,12 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
 @admin.register(AnaliseLancamentoPrestacaoConta)
 class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
     def get_unidade(self, obj):
-        return f'{obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_prestacao_conta and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_prestacao_conta.prestacao_conta.associacao.unidade else '-'
+        return f'{obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_prestacao_conta and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_prestacao_conta.prestacao_conta.associacao.unidade else '-'  # noqa
 
     get_unidade.short_description = 'Unidade'
 
     def get_periodo(self, obj):
-        return f'{obj.analise_prestacao_conta.prestacao_conta.periodo.referencia}' if obj and obj.analise_prestacao_conta and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.periodo else ''
+        return f'{obj.analise_prestacao_conta.prestacao_conta.periodo.referencia}' if obj and obj.analise_prestacao_conta and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.periodo else ''  # noqa
 
     get_periodo.short_description = 'Período'
 
@@ -1199,12 +1296,12 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
 
                 if analise == primeira_analise:
                     logging.info(
-                        f'**************** Primeira Analise PC ID: {primeira_analise.analise_prestacao_conta_id} Despesa ID: {primeira_analise.despesa_id}  Status Realizacao: {primeira_analise.status_realizacao} | Análise Atual PC ID: {analise.analise_prestacao_conta_id} Despesa ID: {analise.despesa_id} Status Realizacao: {analise.status_realizacao}')
+                        f'**************** Primeira Analise PC ID: {primeira_analise.analise_prestacao_conta_id} Despesa ID: {primeira_analise.despesa_id}  Status Realizacao: {primeira_analise.status_realizacao} | Análise Atual PC ID: {analise.analise_prestacao_conta_id} Despesa ID: {analise.despesa_id} Status Realizacao: {analise.status_realizacao}')  # noqa
                     continue
 
                 if not analise.analise_corrigida_via_admin_action:
                     logging.info(
-                        f"**************** Demais Analise PC ID: {analise.analise_prestacao_conta_id} Despesa ID: {analise.despesa_id} Status Realizacao: {analise.status_realizacao}")
+                        f"**************** Demais Analise PC ID: {analise.analise_prestacao_conta_id} Despesa ID: {analise.despesa_id} Status Realizacao: {analise.status_realizacao}")  # noqa
                     analise.analise_prestacao_conta_auxiliar = analise.analise_prestacao_conta
                     analise.analise_corrigida_via_admin_action = True
                     analise.analise_prestacao_conta = None
@@ -1232,7 +1329,7 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
             analise.save()
 
             logging.info(
-                f"**************** Revertendo Inativação da Analise de Lançamento Tipo Gasto: {analise} Despesa ID: {analise.despesa_id}")
+                f"**************** Revertendo Inativação da Analise de Lançamento Tipo Gasto: {analise} Despesa ID: {analise.despesa_id}")  # noqa
 
             contador += 1
 
@@ -1272,12 +1369,12 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
             for analise in todas_analises_da_receita:
                 if analise == primeira_analise:
                     logging.info(
-                        f'**************** Primeira Analise PC ID: {primeira_analise.analise_prestacao_conta_id} Receita ID: {primeira_analise.receita_id}  Status Realizacao: {primeira_analise.status_realizacao} | Análise Atual PC ID: {analise.analise_prestacao_conta_id} Receita ID: {analise.receita_id} Status Realizacao: {analise.status_realizacao}')
+                        f'**************** Primeira Analise PC ID: {primeira_analise.analise_prestacao_conta_id} Receita ID: {primeira_analise.receita_id}  Status Realizacao: {primeira_analise.status_realizacao} | Análise Atual PC ID: {analise.analise_prestacao_conta_id} Receita ID: {analise.receita_id} Status Realizacao: {analise.status_realizacao}')  # noqa
                     continue
 
                 if not analise.analise_corrigida_via_admin_action:
                     logging.info(
-                        f"**************** Demais Analise PC ID: {analise.analise_prestacao_conta_id} Receita ID: {analise.receita_id} Status Realizacao: {analise.status_realizacao}")
+                        f"**************** Demais Analise PC ID: {analise.analise_prestacao_conta_id} Receita ID: {analise.receita_id} Status Realizacao: {analise.status_realizacao}")  # noqa
                     analise.analise_prestacao_conta_auxiliar = analise.analise_prestacao_conta
                     analise.analise_corrigida_via_admin_action = True
                     analise.analise_prestacao_conta = None
@@ -1304,7 +1401,7 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
             analise.save()
 
             logging.info(
-                f"**************** Revertendo Inativação da Analise de Lançamento Tipo Receita: {analise} Receita ID: {analise.receita_id}")
+                f"**************** Revertendo Inativação da Analise de Lançamento Tipo Receita: {analise} Receita ID: {analise.receita_id}")  # noqa
 
             contador += 1
 
@@ -1325,7 +1422,7 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
     raw_id_fields = ['analise_lancamento', 'tipo_acerto', 'devolucao_ao_tesouro']
 
     def get_unidade(self, obj):
-        return f'{obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.tipo_unidade} - {obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_lancamento and obj.analise_lancamento.analise_prestacao_conta and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade else ''
+        return f'{obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.tipo_unidade} - {obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_lancamento and obj.analise_lancamento.analise_prestacao_conta and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade else ''  # noqa
 
     get_unidade.short_description = 'Unidade'
 
@@ -1340,12 +1437,12 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
     get_despesa.short_description = 'Despesa'
 
     def get_periodo(self, obj):
-        return f'{obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.periodo.referencia}' if obj and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.periodo else ''
+        return f'{obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.periodo.referencia}' if obj and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta and obj.analise_lancamento.analise_prestacao_conta.prestacao_conta.periodo else ''  # noqa
 
     get_periodo.short_description = 'Período'
 
     def get_analise_pc(self, obj):
-        return f'#{obj.analise_lancamento.analise_prestacao_conta.pk}' if obj and obj.analise_lancamento.analise_prestacao_conta else ''
+        return f'#{obj.analise_lancamento.analise_prestacao_conta.pk}' if obj and obj.analise_lancamento.analise_prestacao_conta else ''  # noqa
 
     get_analise_pc.short_description = 'Análise PC'
 
@@ -1384,7 +1481,7 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
                 logging.info(
                     f'Vinculado solicitação {solicitacao.id}-{solicitacao} à devolução {devolucao.id}-{devolucao}')
 
-        self.message_user(request, f"Processo realizado com sucesso!")
+        self.message_user(request, "Processo realizado com sucesso!")
 
 
 @admin.register(TipoDocumentoPrestacaoConta)
@@ -1405,12 +1502,12 @@ class TipoAcertoDocumentoAdmin(admin.ModelAdmin):
 @admin.register(AnaliseDocumentoPrestacaoConta)
 class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
     def get_unidade(self, obj):
-        return f'{obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_prestacao_conta.prestacao_conta.associacao.unidade else ''
+        return f'{obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_prestacao_conta.prestacao_conta.associacao.unidade else ''  # noqa
 
     get_unidade.short_description = 'Unidade'
 
     def get_periodo(self, obj):
-        return f'{obj.analise_prestacao_conta.prestacao_conta.periodo.referencia}' if obj and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.periodo else ''
+        return f'{obj.analise_prestacao_conta.prestacao_conta.periodo.referencia}' if obj and obj.analise_prestacao_conta.prestacao_conta and obj.analise_prestacao_conta.prestacao_conta.periodo else ''  # noqa
 
     get_periodo.short_description = 'Período'
 
@@ -1441,7 +1538,7 @@ class AnaliseDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
 @admin.register(SolicitacaoAcertoDocumento)
 class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
     def get_unidade(self, obj):
-        return f'{obj.analise_documento.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_documento.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_documento and obj.analise_documento.analise_prestacao_conta and obj.analise_documento.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_documento.analise_prestacao_conta.prestacao_conta.associacao.unidade else ''
+        return f'{obj.analise_documento.analise_prestacao_conta.prestacao_conta.associacao.unidade.codigo_eol} - {obj.analise_documento.analise_prestacao_conta.prestacao_conta.associacao.unidade.nome}' if obj and obj.analise_documento and obj.analise_documento.analise_prestacao_conta and obj.analise_documento.analise_prestacao_conta.prestacao_conta.associacao and obj.analise_documento.analise_prestacao_conta.prestacao_conta.associacao.unidade else ''  # noqa
 
     get_unidade.short_description = 'Unidade'
 
@@ -1451,12 +1548,12 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
     get_despesa.short_description = 'Despesa'
 
     def get_periodo(self, obj):
-        return f'{obj.analise_documento.analise_prestacao_conta.prestacao_conta.periodo.referencia}' if obj and obj.analise_documento.analise_prestacao_conta.prestacao_conta and obj.analise_documento.analise_prestacao_conta.prestacao_conta.periodo else ''
+        return f'{obj.analise_documento.analise_prestacao_conta.prestacao_conta.periodo.referencia}' if obj and obj.analise_documento.analise_prestacao_conta.prestacao_conta and obj.analise_documento.analise_prestacao_conta.prestacao_conta.periodo else ''  # noqa
 
     get_periodo.short_description = 'Período'
 
     def get_analise_pc(self, obj):
-        return f'#{obj.analise_documento.analise_prestacao_conta.pk}' if obj and obj.analise_documento.analise_prestacao_conta else ''
+        return f'#{obj.analise_documento.analise_prestacao_conta.pk}' if obj and obj.analise_documento.analise_prestacao_conta else ''  # noqa
 
     get_analise_pc.short_description = 'Análise PC'
     list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_acerto', 'copiado',]
@@ -1479,7 +1576,7 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
 @admin.register(Participante)
 class PresenteAtaAdmin(admin.ModelAdmin):
     def get_unidade(self, obj):
-        return f'{obj.ata.associacao.unidade.codigo_eol} - {obj.ata.associacao.unidade.nome}' if obj and obj.ata and obj.ata.associacao and obj.ata.associacao.unidade else ''
+        return f'{obj.ata.associacao.unidade.codigo_eol} - {obj.ata.associacao.unidade.nome}' if obj and obj.ata and obj.ata.associacao and obj.ata.associacao.unidade else ''  # noqa
 
     get_unidade.short_description = 'Unidade'
 
@@ -1513,12 +1610,12 @@ class PresenteAtaAdmin(admin.ModelAdmin):
 @admin.register(ValoresReprogramados)
 class ValoresReprogramadosAdmin(admin.ModelAdmin):
     def get_unidade(self, obj):
-        return f'{obj.associacao.unidade.codigo_eol} - {obj.associacao.unidade.nome}' if obj and obj.associacao and obj.associacao.unidade else ''
+        return f'{obj.associacao.unidade.codigo_eol} - {obj.associacao.unidade.nome}' if obj and obj.associacao and obj.associacao.unidade else ''  # noqa
 
     get_unidade.short_description = 'Unidade'
 
     def get_tipo_conta(self, obj):
-        return f'{obj.conta_associacao.tipo_conta.nome}' if obj and obj.conta_associacao and obj.conta_associacao.tipo_conta else ''
+        return f'{obj.conta_associacao.tipo_conta.nome}' if obj and obj.conta_associacao and obj.conta_associacao.tipo_conta else ''  # noqa
 
     get_tipo_conta.short_description = 'Conta'
 
@@ -1554,17 +1651,18 @@ class DevolucaoAoTesouroAdmin(admin.ModelAdmin):
     get_dre.short_description = 'DRE'
 
     def get_unidade(self, obj):
-        return f'{obj.prestacao_conta.associacao.unidade.codigo_eol} - {obj.prestacao_conta.associacao.unidade.nome}' if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade else ''
+        return f'{obj.prestacao_conta.associacao.unidade.codigo_eol} - {obj.prestacao_conta.associacao.unidade.nome}' if obj and obj.prestacao_conta and obj.prestacao_conta.associacao and obj.prestacao_conta.associacao.unidade else ''  # noqa
 
     get_unidade.short_description = 'Unidade'
 
     def get_referencia_periodo(self, obj):
-        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''
+        return obj.prestacao_conta.periodo.referencia if obj and obj.prestacao_conta and obj.prestacao_conta.periodo else ''  # noqa
 
     get_referencia_periodo.short_description = 'Período'
 
     list_display = (
-        'get_dre', 'get_unidade', 'get_referencia_periodo', 'despesa', 'data', 'tipo', 'devolucao_total', 'valor', 'visao_criacao')
+        'get_dre', 'get_unidade', 'get_referencia_periodo', 'despesa',
+        'data', 'tipo', 'devolucao_total', 'valor', 'visao_criacao')
 
     list_filter = (
         'prestacao_conta__periodo',
@@ -1595,9 +1693,9 @@ class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
             obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta and
             obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta and
             obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao and
-            obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade
+            obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade  # noqa
         ):
-            unidade = obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade
+            unidade = obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta.associacao.unidade  # noqa
             return f'{unidade.codigo_eol} - {unidade.nome}'
         else:
             return ''
@@ -1612,7 +1710,7 @@ class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
             obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta and
             obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta.periodo
         ):
-            periodo = obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta.periodo
+            periodo = obj.solicitacao_acerto_lancamento.analise_lancamento.analise_prestacao_conta.prestacao_conta.periodo  # noqa
             return periodo.referencia
         else:
             return ''
@@ -1635,16 +1733,16 @@ class SolicitacaoDevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
     list_display = ('get_unidade', 'get_referencia_periodo', 'get_despesa', 'tipo', 'valor', 'devolucao_total')
     list_filter = (
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo',
-        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
-        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',  # noqa
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',  # noqa
         'tipo',
         'devolucao_total',
     )
     list_display_links = ('get_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em')
     search_fields = (
-        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
-        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',  # noqa
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',  # noqa
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome',
         'motivo'
     )
@@ -1667,7 +1765,7 @@ class TransferenciaEolAdmin(admin.ModelAdmin):
         for transferencia in queryset.all():
             transferencia.transferir()
 
-        self.message_user(request, f"Transferência concluida.")
+        self.message_user(request, "Transferência concluida.")
 
     list_display = ('eol_transferido', 'eol_historico', 'tipo_nova_unidade',
                     'tipo_conta_transferido', 'data_inicio_atividades', 'status_processamento')
@@ -1857,6 +1955,7 @@ try:
     admin.site.unregister(LogEntry)
 except admin.sites.NotRegistered:
     pass
+
 
 @admin.register(LogEntry)
 class LogEntryAdminCustom(LogEntryAdmin):

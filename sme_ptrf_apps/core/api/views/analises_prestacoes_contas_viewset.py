@@ -74,7 +74,8 @@ logger = logging.getLogger(__name__)
                     "analise_prestacao_conta": "95d04126-b30e-4ee7-a0a9-253679d56af9",
                     "solicitar_envio_do_comprovante_do_saldo_da_conta": False,
                     "solicitar_correcao_da_data_do_saldo_da_conta": False,
-                    "observacao_solicitar_envio_do_comprovante_do_saldo_da_conta": None
+                    "observacao_solicitar_envio_do_comprovante_do_saldo_da_conta": None,
+                    "solicitar_correcao_de_justificativa_de_conciliacao": False
                 },
                 response_only=True
             )

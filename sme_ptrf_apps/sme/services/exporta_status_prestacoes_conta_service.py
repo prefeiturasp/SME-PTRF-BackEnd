@@ -56,6 +56,7 @@ class ExportacoesStatusPrestacoesContaService:
         self.data_final = kwargs.get('data_final', None)
         self.nome_arquivo = kwargs.get('nome_arquivo', None)
         self.user = kwargs.get('user', None)
+        self.dre_codigo_eol = kwargs.get('dre_codigo_eol', None)
         self.cabecalho = CABECALHO[0]
         self.objeto_arquivo_download = None
         self.ambiente = self.get_ambiente
@@ -246,7 +247,8 @@ class ExportacoesStatusPrestacoesContaService:
         obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo,
-            informacoes=get_informacoes_download(self.data_inicio, self.data_final)
+            informacoes=get_informacoes_download(self.data_inicio, self.data_final),
+            dre_codigo_eol=self.dre_codigo_eol
         )
         self.objeto_arquivo_download = obj
 

@@ -3,6 +3,7 @@ from django.db import models
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+from sme_ptrf_apps.core.models.conta_associacao import ContaAssociacao
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
@@ -28,8 +29,46 @@ class AnaliseContaPrestacaoConta(ModeloBase):
 
     observacao_solicitar_envio_do_comprovante_do_saldo_da_conta = models.TextField('Observação solicitação de envio do comprovante do saldo da conta', max_length=600, blank=True, null=True)
 
+    solicitar_correcao_de_justificativa_de_conciliacao = models.BooleanField("Solicitar correção de justificativa", default=False)
+
     def __str__(self):
         return f"{self.conta_associacao} - {self.data_extrato} - {self.saldo_extrato}"
+
+    @classmethod
+    def contas_solicitar_correcao_de_justificativa(cls, prestacao_conta):
+        from sme_ptrf_apps.core.services.analise_prestacao_conta_service import _pendencias_conciliacao_para_conta
+
+        if not prestacao_conta or not prestacao_conta.associacao:
+            return []
+
+        contas = list(prestacao_conta.contas_ativas_no_periodo())
+        if not contas:
+            return []
+
+        contas_com_correcao = set(
+            cls.objects.filter(
+                prestacao_conta=prestacao_conta,
+                solicitar_correcao_de_justificativa_de_conciliacao=True
+            ).values_list('conta_associacao_id', flat=True)
+        )
+
+        contas_sem_justificativa = []
+        periodo = prestacao_conta.periodo
+        for conta in contas:
+            if conta.id in contas_com_correcao:
+                continue
+
+            pendencias_conciliacao = _pendencias_conciliacao_para_conta(periodo, conta) or {}
+            if not pendencias_conciliacao.get('pendente_justificativa', False):
+                continue
+
+            contas_sem_justificativa.append(conta)
+
+        return contas_sem_justificativa
+
+    @classmethod
+    def requer_correcao_de_justificativa(cls, prestacao_conta):
+        return len(cls.contas_solicitar_correcao_de_justificativa(prestacao_conta)) > 0
 
     class Meta:
         verbose_name = "Análise de conta de prestação de contas"

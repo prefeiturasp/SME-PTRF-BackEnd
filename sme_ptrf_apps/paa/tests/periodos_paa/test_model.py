@@ -1,10 +1,12 @@
 import pytest
+from freezegun import freeze_time
 from django.core.exceptions import ValidationError
 from sme_ptrf_apps.paa.models import PeriodoPaa
 
 pytestmark = pytest.mark.django_db
 
 
+@freeze_time('2025-04-1 10:11:12')
 def test_periodo_vigente(periodo_paa_1, periodo_paa_2):
     assert PeriodoPaa.periodo_vigente() == periodo_paa_1
 

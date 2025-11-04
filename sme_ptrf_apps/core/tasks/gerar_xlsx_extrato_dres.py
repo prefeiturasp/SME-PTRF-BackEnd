@@ -16,7 +16,7 @@ def gerar_xlsx_extrato_dres_async(periodo_uuid, conta_uuid, username):
     from sme_ptrf_apps.sme.services.exporta_arquivos_service import gerar_arquivo_xlsx_extrato_dres
     from sme_ptrf_apps.core.services.arquivo_download_service import gerar_arquivo_download, atualiza_arquivo_download, atualiza_arquivo_download_erro
 
-    obj_arquivo_download = gerar_arquivo_download(username, "saldos_bancarios_associacoes.xlsx")
+    obj_arquivo_download = gerar_arquivo_download(username, "saldos_bancarios_associacoes.xlsx", dre_codigo_eol=None)
     try:
         arquivo_xlsx = gerar_arquivo_xlsx_extrato_dres(periodo_uuid, conta_uuid, username)
         atualiza_arquivo_download(obj_arquivo_download, arquivo_xlsx)

@@ -164,7 +164,12 @@ class PaaService:
                     paa_importado=paa_anterior,  # relaciona ao PAA de importação
                     prioridade=prioridade.prioridade,
                     recurso=prioridade.recurso,
-                    acao_associacao=prioridade.acao_associacao,
+
+                    # Ref História (134829) de desativação de Ações no PAA
+                    acao_associacao=prioridade.acao_associacao if (
+                        prioridade.acao_associacao and
+                        prioridade.acao_associacao.acao and
+                        prioridade.acao_associacao.acao.exibir_paa) else None,
                     programa_pdde=prioridade.programa_pdde,
                     acao_pdde=prioridade.acao_pdde,
                     tipo_aplicacao=prioridade.tipo_aplicacao,
