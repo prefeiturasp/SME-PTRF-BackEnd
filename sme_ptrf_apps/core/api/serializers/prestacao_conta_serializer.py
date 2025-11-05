@@ -125,7 +125,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
 
         def get_contas_solicitar_correcao_de_justificativa_de_conciliacao(self, obj):
             contas = obj.contas_pendencia_justificativa_sem_solicitacao_de_acerto_em_conta()
-            return [conta.uuid for conta in contas]
+            return [str(conta.uuid) for conta in contas]
 
     class ConciliacaoBancariaSerializer(serializers.ModelSerializer):
         class Meta:
