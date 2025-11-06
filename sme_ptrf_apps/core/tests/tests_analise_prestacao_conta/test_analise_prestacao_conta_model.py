@@ -163,6 +163,7 @@ def test_tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta(
             analise_prestacao_conta=analise,
             prestacao_conta=analise.prestacao_conta,
             conta_associacao=conta_associacao,
+            solicitar_envio_do_comprovante_do_saldo_da_conta=True,
         )
 
     assert analise.tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta() is esperado
@@ -222,6 +223,7 @@ def test_contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta_sem_pen
         analise_prestacao_conta=analise,
         prestacao_conta=analise.prestacao_conta,
         conta_associacao=conta_associacao,
+        solicitar_envio_do_comprovante_do_saldo_da_conta=True,
     )
 
     assert analise.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta() == []
@@ -247,21 +249,12 @@ def test_contas_pendencia_conciliacao_sem_solicitacao_mantem_pendencias_nao_just
     monkeypatch.setattr(
         analise.prestacao_conta.associacao,
         'pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos',
-        lambda periodo: [conta_associacao]
-    )
-
-    monkeypatch.setattr(
-        'sme_ptrf_apps.core.models.analise_prestacao_conta.AnaliseContaPrestacaoConta.contas_solicitar_correcao_de_justificativa',
-        lambda prestacao_conta: []  # justificativa resolvida
-    )
-
-    monkeypatch.setattr(
-        'sme_ptrf_apps.core.services.analise_prestacao_conta_service._pendencias_conciliacao_para_conta',
-        lambda periodo, conta: {
-            'pendente_observacao': False,
-            'pendente_extrato': True,
-            'pendente_justificativa': False,
-        }
+        lambda periodo: [{
+            'conta': conta_associacao,
+            'observacao': False,
+            'extrato': True,
+            'justificativa': False,
+        }]
     )
 
     contas = analise.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta()
@@ -289,21 +282,17 @@ def test_contas_pendencia_conciliacao_sem_solicitacao_apenas_justificativa(
     monkeypatch.setattr(
         analise.prestacao_conta.associacao,
         'pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos',
-        lambda periodo: [conta_associacao]
+        lambda periodo: [{
+            'conta': conta_associacao,
+            'observacao': False,
+            'extrato': False,
+            'justificativa': True,
+        }]
     )
 
     monkeypatch.setattr(
-        'sme_ptrf_apps.core.models.analise_prestacao_conta.AnaliseContaPrestacaoConta.contas_solicitar_correcao_de_justificativa',
-        lambda prestacao_conta: [conta_associacao] if prestacao_conta == analise.prestacao_conta else []
-    )
-
-    monkeypatch.setattr(
-        'sme_ptrf_apps.core.services.analise_prestacao_conta_service._pendencias_conciliacao_para_conta',
-        lambda periodo, conta: {
-            'pendente_observacao': False,
-            'pendente_extrato': False,
-            'pendente_justificativa': True,
-        }
+        'sme_ptrf_apps.core.models.analise_prestacao_conta.AnalisePrestacaoConta.requer_acertos_em_extrato_na_conta_associacao',
+        lambda self, conta: True if conta == conta_associacao else False
     )
 
     assert analise.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta() == []

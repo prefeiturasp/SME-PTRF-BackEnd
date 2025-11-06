@@ -2361,6 +2361,7 @@ def analise_conta_prestacao_conta_2019_2(
         conta_associacao=conta_associacao_cheque,
         data_extrato=date(2020, 7, 1),
         saldo_extrato=100.00,
+        solicitar_envio_do_comprovante_do_saldo_da_conta=True,
         analise_prestacao_conta=analise_prestacao_conta_2019_2
     )
 

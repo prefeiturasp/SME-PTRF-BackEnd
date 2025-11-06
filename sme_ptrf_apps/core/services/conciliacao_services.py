@@ -662,7 +662,7 @@ def salva_conciliacao_bancaria(justificativa_ou_extrato_bancario, texto_observac
 
 
 def permite_editar_campos_extrato(associacao, periodo, conta_associacao):
-    from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_acerto_em_extrato
+    from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_acerto_em_extrato_na_conta
     prestacao_conta = PrestacaoConta.objects.filter(
         associacao=associacao,
         periodo=periodo
@@ -680,7 +680,7 @@ def permite_editar_campos_extrato(associacao, periodo, conta_associacao):
     if prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
         return False
 
-    requer_acertos_em_extrato = pc_requer_acerto_em_extrato(prestacao_conta)
+    requer_acertos_em_extrato = pc_requer_acerto_em_extrato_na_conta(prestacao_conta, conta_associacao)
 
     return requer_acertos_em_extrato
 
