@@ -414,8 +414,14 @@ class Associacao(ModeloIdNome):
                     LOGGER.info(f"Pendência extrato: {pendente_extrato}")
                     LOGGER.info(f"Pendência justificativa: {pendente_justificativa}")
 
-                    if pendente_observacao or pendente_justificativa or pendente_extrato:                        
-                        contas_pendentes.append(conta)
+                    if pendente_observacao or pendente_justificativa or pendente_extrato:
+                        pendencia = {
+                            "observacao": pendente_observacao,
+                            "extrato": pendente_extrato,
+                            "justificativa": pendente_justificativa,
+                            "conta": conta,
+                        }
+                        contas_pendentes.append(pendencia)
 
         return contas_pendentes
 
