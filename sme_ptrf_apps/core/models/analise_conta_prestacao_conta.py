@@ -33,19 +33,6 @@ class AnaliseContaPrestacaoConta(ModeloBase):
 
     def __str__(self):
         return f"{self.conta_associacao} - {self.data_extrato} - {self.saldo_extrato}"
-
-    @classmethod
-    def requer_correcao_de_justificativa(cls, prestacao_conta):
-        if not prestacao_conta:
-            return False
-
-        ultima_analise = prestacao_conta.ultima_analise()
-        if not ultima_analise:
-            return False
-
-        contas = ultima_analise.contas_pendencia_justificativa_sem_solicitacao_de_acerto_em_conta()
-        return len(contas) > 0
-
     class Meta:
         verbose_name = "Análise de conta de prestação de contas"
         verbose_name_plural = "09.8) Análises de contas de prestações de contas"
