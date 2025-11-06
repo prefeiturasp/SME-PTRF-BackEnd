@@ -159,24 +159,13 @@ class AnalisePrestacaoConta(ModeloBase):
         return requer_acertos
 
     def requer_acertos_em_extrato_na_conta_associacao(self, conta_associacao):
-        analises = AnaliseContaPrestacaoConta.objects.filter(
+        requer_acertos = AnaliseContaPrestacaoConta.objects.filter(
             analise_prestacao_conta=self,
             prestacao_conta=self.prestacao_conta,
             conta_associacao=conta_associacao,
-        ).filter(self._criterio_acertos_de_extrato())
+        ).exists()
 
-        return analises.exists()
-
-    @staticmethod
-    def _criterio_acertos_de_extrato():
-        """
-        Considera apenas solicitações que exigem ajuste no extrato/saldo,
-        desconsiderando correções exclusivas de justificativa.
-        """
-        return (
-            Q(solicitar_envio_do_comprovante_do_saldo_da_conta=True) |
-            Q(solicitar_correcao_da_data_do_saldo_da_conta=True)
-        )
+        return requer_acertos
 
     def requer_acertos_em_extrato_na_conta_associacao_do_tipo_justificativa(self, conta_associacao):
         analises = AnaliseContaPrestacaoConta.objects.filter(
