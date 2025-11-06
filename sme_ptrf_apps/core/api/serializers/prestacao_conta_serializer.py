@@ -121,7 +121,7 @@ class PrestacaoContaRetrieveSerializer(serializers.ModelSerializer):
             return bool(obj.contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao())
 
         def get_solicitar_correcao_de_justificativa_de_conciliacao(self, obj):
-            return AnaliseContaPrestacaoConta.requer_correcao_de_justificativa(obj.prestacao_conta)
+            return len(obj.contas_pendencia_justificativa_sem_solicitacao_de_acerto_em_conta()) > 0
 
         def get_contas_solicitar_correcao_de_justificativa_de_conciliacao(self, obj):
             contas = obj.contas_pendencia_justificativa_sem_solicitacao_de_acerto_em_conta()
