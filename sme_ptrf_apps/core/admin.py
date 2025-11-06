@@ -498,14 +498,6 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
 
         self.message_user(request, "PCs setadas ao status anterior da retificação com sucesso!")
 
-    def _cria_solicitacao_acerto_em_contas_com_pendencia(self, request, queryset):
-        from sme_ptrf_apps.core.services.analise_prestacao_conta_service import (
-            cria_solicitacao_acerto_em_contas_com_pendencia)
-        for prestacao_conta in queryset.all():
-            ultima_analise_pc = prestacao_conta.ultima_analise()
-            cria_solicitacao_acerto_em_contas_com_pendencia(ultima_analise_pc)
-
-
 @admin.register(Ata)
 class AtaAdmin(admin.ModelAdmin):
 
