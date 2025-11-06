@@ -520,16 +520,14 @@ class AnalisePrestacaoConta(ModeloBase):
  
         contas_pendentes = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(periodo)
         
-        from sme_ptrf_apps.core.services.analise_prestacao_conta_service import _pendencias_conciliacao_para_conta
         for conta in contas_pendentes:
-            pendencias_conciliacao_conta = _pendencias_conciliacao_para_conta(periodo, conta) or {}
-            tem_pendencia_extrato = pendencias_conciliacao_conta.get('pendente_extrato', False)
-            tem_pendencias_conciliacao = pendencias_conciliacao_conta.get('pendente_observacao', False)
+            tem_pendencia_extrato = conta["extrato"]
+            tem_pendencias_conciliacao = conta["observacao"]
             
             if tem_pendencia_extrato or tem_pendencias_conciliacao:
-                requer_acertos = self.requer_acertos_em_extrato_na_conta_associacao(conta)
+                requer_acertos = self.requer_acertos_em_extrato_na_conta_associacao(conta["conta"])
                 if not requer_acertos:
-                    contas.append(conta)
+                    contas.append(conta["conta"])
  
         return contas
 
@@ -545,15 +543,13 @@ class AnalisePrestacaoConta(ModeloBase):
  
         contas_pendentes = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(periodo)
         
-        from sme_ptrf_apps.core.services.analise_prestacao_conta_service import _pendencias_conciliacao_para_conta
         for conta in contas_pendentes:
-            pendencias_conciliacao_conta = _pendencias_conciliacao_para_conta(periodo, conta) or {}
-            tem_pendencia_de_justificativa = pendencias_conciliacao_conta.get('pendente_justificativa', False)
+            tem_pendencia_de_justificativa = conta["justificativa"]
             
             if tem_pendencia_de_justificativa:
-                requer_acertos = self.requer_acertos_em_extrato_na_conta_associacao_do_tipo_justificativa(conta)
+                requer_acertos = self.requer_acertos_em_extrato_na_conta_associacao_do_tipo_justificativa(conta["conta"])
                 if not requer_acertos:
-                    contas.append(conta)
+                    contas.append(conta["conta"])
  
         return contas
     
