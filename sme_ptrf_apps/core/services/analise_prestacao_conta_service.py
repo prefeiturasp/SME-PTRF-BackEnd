@@ -16,52 +16,6 @@ from sme_ptrf_apps.core.models import (
 
 logger = logging.getLogger(__name__)
 
-
-def _pendencias_conciliacao_para_conta(periodo, conta_associacao):
-    from sme_ptrf_apps.core.models import ObservacaoConciliacao
-    from sme_ptrf_apps.core.services import info_resumo_conciliacao
-    from sme_ptrf_apps.core.services.conciliacao_services import transacoes_para_conciliacao
-
-    observacao = ObservacaoConciliacao.objects.filter(
-        periodo=periodo,
-        conta_associacao=conta_associacao
-    ).first()
-
-    resumo = info_resumo_conciliacao(periodo, conta_associacao) or {}
-    saldo_posterior = Decimal(resumo.get('saldo_posterior_total') or 0)
-
-    transacoes_pendentes_conciliacao = transacoes_para_conciliacao(
-        periodo=periodo,
-        conta_associacao=conta_associacao,
-        conferido=False,
-    )
-
-    saldo_extrato = getattr(observacao, "saldo_extrato", None)
-    saldo_extrato_decimal = Decimal(saldo_extrato) if saldo_extrato is not None else None
-    data_extrato = getattr(observacao, "data_extrato", None)
-    comprovante_extrato = getattr(observacao, "comprovante_extrato", None)
-    texto_observacao = getattr(observacao, "texto", None)
-
-    pendente_observacao = observacao is None or (data_extrato is None or saldo_extrato is None)
-    pendente_justificativa = (
-        not pendente_observacao and
-        (saldo_posterior - (saldo_extrato_decimal or Decimal('0'))) != 0 and
-        not transacoes_pendentes_conciliacao and
-        not texto_observacao
-    )
-
-    pendente_extrato = (
-        not pendente_observacao and
-        not comprovante_extrato
-    )
-
-    return {
-        'pendente_observacao': pendente_observacao,
-        'pendente_extrato': pendente_extrato,
-        'pendente_justificativa': pendente_justificativa,
-    }
-
-
 def copia_ajustes_entre_analises(analise_origem, analise_destino):
     def copia_solicitacao_devolucao_ao_tesouro(da_solicitacao_origem, para_solicitacao_destino):
         nova_solicitacao_devolucao = copy.deepcopy(da_solicitacao_origem.solicitacao_devolucao_ao_tesouro)
@@ -255,32 +209,3 @@ def get_ajustes_extratos_bancarios(analise_prestacao, conta_associacao=None):
 
     return AnaliseContaPrestacaoContaRetrieveSerializer(qs, many=not conta_associacao).data if qs else None
 
-
-def cria_solicitacao_acerto_em_contas_com_pendencia(analise_prestacao):
-    """
-    Função temporária para tratamento de PCs devolvidas com pendência de conciliação e sem solicitação de acerto
-    """
-
-    from sme_ptrf_apps.core.models.analise_conta_prestacao_conta import AnaliseContaPrestacaoConta
-
-    if analise_prestacao.prestacao_conta.status not in ["DEVOLVIDA"]:
-        return
-
-    contas_pendentes = analise_prestacao.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta()
-    periodo = analise_prestacao.prestacao_conta.periodo
-
-    for conta in contas_pendentes:
-        pendencias = _pendencias_conciliacao_para_conta(periodo, conta)
-
-        if not any(pendencias.values()):
-            continue
-
-        AnaliseContaPrestacaoConta.objects.create(
-            analise_prestacao_conta=analise_prestacao,
-            conta_associacao=conta,
-            prestacao_conta=analise_prestacao.prestacao_conta,
-            solicitar_envio_do_comprovante_do_saldo_da_conta=pendencias['pendente_extrato'],
-            solicitar_correcao_da_data_do_saldo_da_conta=pendencias['pendente_observacao'],
-            solicitar_correcao_de_justificativa_de_conciliacao=pendencias['pendente_justificativa'],
-            observacao_solicitar_envio_do_comprovante_do_saldo_da_conta="Corrigir pendências na conciliação"
-        )

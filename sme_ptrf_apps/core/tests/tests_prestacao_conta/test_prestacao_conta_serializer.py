@@ -153,8 +153,9 @@ def test_retrieve_serializer_with_solicitacoes_lancar_credito_ou_despesa(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        'sme_ptrf_apps.core.services.analise_prestacao_conta_service._pendencias_conciliacao_para_conta',
-        lambda periodo, conta: {'pendente_justificativa': False}
+        prestacao_conta.associacao,
+        'pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos',
+        lambda periodo: []
     )
     analise = baker.make('AnalisePrestacaoConta', prestacao_conta=prestacao_conta)
     analise_documento = baker.make(
@@ -196,8 +197,14 @@ def test_retrieve_serializer_sem_justificativa(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        'sme_ptrf_apps.core.services.analise_prestacao_conta_service._pendencias_conciliacao_para_conta',
-        lambda periodo, conta: {'pendente_justificativa': True}
+        prestacao_conta.associacao,
+        'pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos',
+        lambda periodo: [{
+            'conta': conta_associacao_cheque,
+            'observacao': False,
+            'extrato': False,
+            'justificativa': True,
+        }]
     )
     analise = baker.make('AnalisePrestacaoConta', prestacao_conta=prestacao_conta)
     baker.make(
@@ -226,8 +233,14 @@ def test_retrieve_serializer_sem_justificativa_ja_solicitada(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        'sme_ptrf_apps.core.services.analise_prestacao_conta_service._pendencias_conciliacao_para_conta',
-        lambda periodo, conta: {'pendente_justificativa': True}
+        prestacao_conta.associacao,
+        'pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos',
+        lambda periodo: [{
+            'conta': conta_associacao_cheque,
+            'observacao': False,
+            'extrato': False,
+            'justificativa': True,
+        }]
     )
     analise = baker.make('AnalisePrestacaoConta', prestacao_conta=prestacao_conta)
     baker.make(

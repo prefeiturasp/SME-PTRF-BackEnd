@@ -253,7 +253,7 @@ class AssociacoesViewSet(ModelViewSet):
 
         if len(contas_pendentes) > 0:
             pendencias_conciliacao = {
-                'contas_pendentes': [conta.uuid for conta in contas_pendentes]
+                'contas_pendentes': [conta["conta"].uuid for conta in contas_pendentes]
             }
 
         if pendencias_dados or pendencias_conciliacao:

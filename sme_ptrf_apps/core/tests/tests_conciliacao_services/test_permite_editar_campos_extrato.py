@@ -28,13 +28,20 @@ def test_permite_editar_campos_extrato_no_periodo_em_andamento_com_conta_criada_
     assert periodo_aberto == Periodo.da_data(conta.data_inicio)
     assert not periodo_aberto.encerrado
     assert permite_editar == True
-    
+
 @freeze_time('2019-04-01 10:10:10')
-def test_permite_editar_campos_extrato_no_periodo_finalizado_com_conta_criada_no_periodo_e_documentos_pendentes_de_geracao(associacao_factory, conta_associacao_factory, periodo_factory, prestacao_conta_factory):
-    
+def test_permite_editar_campos_extrato_no_periodo_finalizado_com_conta_criada_no_periodo_e_documentos_pendentes_de_geracao(
+    associacao_factory,
+    conta_associacao_factory,
+    periodo_factory,
+    prestacao_conta_factory,
+):
+
     associacao = associacao_factory.create()
-    
-    conta = conta_associacao_factory.create(associacao=associacao, data_inicio=date(2019, 2, 2))
+
+    conta = conta_associacao_factory.create(
+        associacao=associacao, data_inicio=date(2019, 2, 2)
+    )
 
     periodo_encerrado = periodo_factory.create(
         referencia="2019.1",
@@ -72,3 +79,128 @@ def test_permite_editar_campos_extrato_no_periodo_finalizado_com_conta_criada_no
     assert periodo_encerrado == Periodo.da_data(conta.data_inicio)
     assert periodo_encerrado.encerrado
     assert permite_editar == True
+
+@freeze_time('2019-04-01 10:10:10')
+def test_permite_editar_campos_extrato_somente_contas_com_solicitacao_acerto(
+    associacao_factory,
+    conta_associacao_factory,
+    periodo_factory,
+    prestacao_conta_factory,
+    analise_prestacao_conta_factory,
+    analise_conta_prestacao_conta_factory,
+):
+
+    associacao = associacao_factory.create()
+
+    conta_a = conta_associacao_factory.create(
+        associacao=associacao, data_inicio=date(2018, 2, 2)
+    )
+    conta_b = conta_associacao_factory.create(associacao=associacao, data_inicio=date(2018, 2, 2))
+ 
+    periodo_encerrado = periodo_factory.create(
+        referencia="2019.1",
+        data_inicio_realizacao_despesas=date(2019, 1, 1),
+        data_fim_realizacao_despesas=date(2019, 3, 31),
+    )
+ 
+    prestacao_conta = prestacao_conta_factory.create(
+        periodo=periodo_encerrado, associacao=associacao, status=PrestacaoConta.STATUS_DEVOLVIDA)
+ 
+    analise = analise_prestacao_conta_factory(status="DEVOLVIDA", prestacao_conta=prestacao_conta)
+ 
+    analise_conta_prestacao_conta_factory(
+        analise_prestacao_conta=analise,
+        prestacao_conta=prestacao_conta,
+        conta_associacao=conta_a,
+        solicitar_envio_do_comprovante_do_saldo_da_conta=True,
+    )
+ 
+    permite_editar_conta_a = permite_editar_campos_extrato(associacao, periodo_encerrado, conta_a)
+ 
+    assert permite_editar_conta_a is True
+
+    permite_editar_conta_b = permite_editar_campos_extrato(associacao, periodo_encerrado, conta_b)
+
+    assert permite_editar_conta_b is False
+
+
+@freeze_time('2019-04-01 10:10:10')
+def test_permite_editar_campos_extrato_com_pendencia_de_justificativa(
+    associacao_factory,
+    conta_associacao_factory,
+    periodo_factory,
+    prestacao_conta_factory,
+    analise_prestacao_conta_factory,
+    analise_conta_prestacao_conta_factory,
+):
+
+    associacao = associacao_factory.create()
+    conta_com_pendencia = conta_associacao_factory.create(
+        associacao=associacao,
+        data_inicio=date(2018, 2, 2),
+    )
+    conta_sem_pendencia = conta_associacao_factory.create(
+        associacao=associacao,
+        data_inicio=date(2018, 2, 2),
+    )
+
+    periodo_encerrado = periodo_factory.create(
+        referencia="2019.1",
+        data_inicio_realizacao_despesas=date(2019, 1, 1),
+        data_fim_realizacao_despesas=date(2019, 3, 31),
+    )
+
+    prestacao_conta = prestacao_conta_factory.create(
+        periodo=periodo_encerrado,
+        associacao=associacao,
+        status=PrestacaoConta.STATUS_DEVOLVIDA,
+    )
+
+    analise = analise_prestacao_conta_factory(
+        status="DEVOLVIDA",
+        prestacao_conta=prestacao_conta,
+    )
+
+    analise_conta_prestacao_conta_factory(
+        analise_prestacao_conta=analise,
+        prestacao_conta=prestacao_conta,
+        conta_associacao=conta_com_pendencia,
+        solicitar_correcao_de_justificativa_de_conciliacao=True,
+    )
+
+    assert permite_editar_campos_extrato(associacao, periodo_encerrado, conta_com_pendencia) is True
+    assert permite_editar_campos_extrato(associacao, periodo_encerrado, conta_sem_pendencia) is False
+
+
+@freeze_time('2019-04-01 10:10:10')
+def test_permite_editar_campos_extrato_negado_sem_acerto_e_prestacao_nao_devolvida(
+    associacao_factory,
+    conta_associacao_factory,
+    periodo_factory,
+    prestacao_conta_factory,
+):
+
+    associacao = associacao_factory.create()
+
+    conta = conta_associacao_factory.create(
+        associacao=associacao,
+        data_inicio=date(2018, 2, 2),
+    )
+
+    periodo_encerrado = periodo_factory.create(
+        referencia="2019.1",
+        data_inicio_realizacao_despesas=date(2019, 1, 1),
+        data_fim_realizacao_despesas=date(2019, 3, 31),
+    )
+
+    prestacao_conta = prestacao_conta_factory.create(
+        periodo=periodo_encerrado,
+        associacao=associacao,
+        status=PrestacaoConta.STATUS_APROVADA,
+    )
+
+    permite_editar = permite_editar_campos_extrato(associacao, periodo_encerrado, conta)
+
+    assert prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA
+    assert periodo_encerrado != Periodo.da_data(conta.data_inicio)
+    assert permite_editar is False
