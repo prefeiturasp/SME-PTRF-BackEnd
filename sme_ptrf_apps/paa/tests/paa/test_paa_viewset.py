@@ -1,4 +1,5 @@
 import pytest
+import json
 from datetime import datetime, date
 from freezegun import freeze_time
 from rest_framework import status
@@ -324,3 +325,43 @@ def test_action_importar_prioridades_quando_ja_houver_prioridades_importadas_do_
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result == {'mensagem': 'Não é permitido importar novamente o mesmo PAA.'}
+
+
+def test_get_objetivos_paa(jwt_authenticated_client_sme, flag_paa, objetivo_paa_factory):
+
+    objetivo_1 = objetivo_paa_factory()
+
+    objetivo_paa_factory()
+
+    response = jwt_authenticated_client_sme.get(f"/api/paa/{str(objetivo_1.paa.uuid)}/objetivos/")
+
+    result = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 1
+
+
+def test_patch_objetivos_paa(jwt_authenticated_client_sme, flag_paa, objetivo_paa_factory):
+
+    objetivo_1 = objetivo_paa_factory()
+
+    payload = {
+        "objetivos": [
+            {"nome": "Objetivo novo"},
+            {"objetivo": f"{objetivo_1.uuid}", "nome": "Novo nome objetivo existente"},
+        ]
+    }
+
+    response = jwt_authenticated_client_sme.patch(
+        f"/api/paa/{str(objetivo_1.paa.uuid)}/",
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    result = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['texto_introducao'] is None
+    assert result['texto_conclusao'] is None
+    assert len(result['objetivos']) == 2
+    assert payload["objetivos"][1]["nome"] == "Novo nome objetivo existente"
