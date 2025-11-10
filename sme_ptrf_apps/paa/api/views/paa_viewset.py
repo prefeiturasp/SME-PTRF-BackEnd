@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 from django.http import Http404
 from django.db.models import Q
+from django.db.models.functions import Lower
 
 from waffle.mixins import WaffleFlagMixin
 from rest_framework.exceptions import NotFound
@@ -205,7 +206,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
 
         paa = self.get_object()
 
-        objetivos = ObjetivoPaa.objects.filter(Q(paa__isnull=True) | Q(paa=paa))
+        objetivos = ObjetivoPaa.objects.filter(Q(paa__isnull=True) | Q(paa=paa)).order_by(Lower("nome"))
 
         serializer = ObjetivoPaaSerializer(objetivos, many=True)
 
