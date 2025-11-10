@@ -76,7 +76,6 @@ class PaaUpdateSerializer(serializers.ModelSerializer):
         instance = super().update(instance, validated_data)
 
         if objetivos_data is not None:
-            print(objetivos_data)
             self._generenciar_objetivos(instance, objetivos_data)
 
         return instance
