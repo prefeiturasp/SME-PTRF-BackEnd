@@ -39,3 +39,18 @@ class TipoAtividadeEstatutariaEnum(Enum):
     @classmethod
     def to_dict(cls):
         return [dict(key=key.name, value=key.value) for key in cls]
+
+
+class PaaStatusEnum(Enum):
+    NAO_INICIADO = "Não iniciado"
+    EM_ELABORACAO = "Em elaboração"
+    GERADO = "Gerado"
+    EM_RETIFICACAO = "Em retificação"
+
+    @classmethod
+    def choices(cls):
+        return [(key.name, key.value) for key in cls]
+
+    @classmethod
+    def to_dict(cls):
+        return [dict(key=key.name, value=key.value) for key in cls]

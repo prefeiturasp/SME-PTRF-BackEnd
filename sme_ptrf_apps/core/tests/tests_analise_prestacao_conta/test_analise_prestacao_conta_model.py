@@ -163,6 +163,7 @@ def test_tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta(
             analise_prestacao_conta=analise,
             prestacao_conta=analise.prestacao_conta,
             conta_associacao=conta_associacao,
+            solicitar_envio_do_comprovante_do_saldo_da_conta=True,
         )
 
     assert analise.tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta() is esperado
@@ -222,6 +223,101 @@ def test_contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta_sem_pen
         analise_prestacao_conta=analise,
         prestacao_conta=analise.prestacao_conta,
         conta_associacao=conta_associacao,
+        solicitar_envio_do_comprovante_do_saldo_da_conta=True,
     )
 
     assert analise.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta() == []
+
+
+def test_contas_pendencia_conciliacao_sem_solicitacao_mantem_pendencias_nao_justificativas(
+    periodo_2023_1,
+    prestacao_conta_factory,
+    analise_prestacao_conta_factory,
+    conta_associacao_factory,
+    monkeypatch
+):
+    pc = prestacao_conta_factory(periodo=periodo_2023_1, status="EM_ANALISE")
+    analise = analise_prestacao_conta_factory(status="EM_ANALISE", prestacao_conta=pc)
+    pc.analise_atual = analise
+    pc.save()
+
+    conta_associacao = conta_associacao_factory.create(
+        associacao=analise.prestacao_conta.associacao,
+        data_inicio=date(2019, 2, 2)
+    )
+
+    monkeypatch.setattr(
+        analise.prestacao_conta.associacao,
+        'pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos',
+        lambda periodo: [{
+            'conta': conta_associacao,
+            'observacao': False,
+            'extrato': True,
+            'justificativa': False,
+        }]
+    )
+
+    contas = analise.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta()
+    assert contas == [conta_associacao]
+    assert analise.tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta() is True
+
+
+def test_contas_pendencia_conciliacao_sem_solicitacao_apenas_justificativa(
+    periodo_2023_1,
+    prestacao_conta_factory,
+    analise_prestacao_conta_factory,
+    conta_associacao_factory,
+    monkeypatch
+):
+    pc = prestacao_conta_factory(periodo=periodo_2023_1, status="EM_ANALISE")
+    analise = analise_prestacao_conta_factory(status="EM_ANALISE", prestacao_conta=pc)
+    pc.analise_atual = analise
+    pc.save()
+
+    conta_associacao = conta_associacao_factory.create(
+        associacao=analise.prestacao_conta.associacao,
+        data_inicio=date(2019, 2, 2)
+    )
+
+    monkeypatch.setattr(
+        analise.prestacao_conta.associacao,
+        'pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos',
+        lambda periodo: [{
+            'conta': conta_associacao,
+            'observacao': False,
+            'extrato': False,
+            'justificativa': True,
+        }]
+    )
+
+    monkeypatch.setattr(
+        'sme_ptrf_apps.core.models.analise_prestacao_conta.AnalisePrestacaoConta.requer_acertos_em_extrato_na_conta_associacao',
+        lambda self, conta: True if conta == conta_associacao else False
+    )
+
+    assert analise.contas_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta() == []
+    assert analise.tem_pendencia_conciliacao_sem_solicitacao_de_acerto_em_conta() is False
+
+def test_requer_acertos_em_extrato_na_conta_associacao_considera_outros_ajustes(
+    prestacao_conta_factory,
+    analise_prestacao_conta_factory,
+    conta_associacao_factory,
+    analise_conta_prestacao_conta_factory,
+    periodo_2023_1
+):
+    pc = prestacao_conta_factory(periodo=periodo_2023_1, status="DEVOLVIDA")
+    analise = analise_prestacao_conta_factory(status="EM_ANALISE", prestacao_conta=pc)
+    conta = conta_associacao_factory.create(
+        associacao=analise.prestacao_conta.associacao,
+        data_inicio=date(2019, 2, 2)
+    )
+
+    analise_conta_prestacao_conta_factory(
+        analise_prestacao_conta=analise,
+        prestacao_conta=analise.prestacao_conta,
+        conta_associacao=conta,
+        solicitar_envio_do_comprovante_do_saldo_da_conta=True,
+        solicitar_correcao_de_justificativa_de_conciliacao=True,
+    )
+
+    assert analise.requer_acertos_em_extrato_na_conta_associacao(conta) is True

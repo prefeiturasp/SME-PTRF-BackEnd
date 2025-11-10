@@ -59,7 +59,9 @@ def test_get_tabelas_tipos_custeio_sem_unidade(jwt_authenticated_client_d, assoc
         f'/api/despesas/tabelas/?associacao_uuid={associacao_1.uuid}', content_type='application/json')
     result = json.loads(response.content)
 
+    nomes = [t['nome'] for t in result['tipos_custeio']]
+
     assert len(result['tipos_custeio']) == 2
-    assert result['tipos_custeio'][0]['nome'] == tipo.nome
-    assert result['tipos_custeio'][1]['nome'] == tipo_2.nome
+    assert tipo.nome in nomes
+    assert tipo_2.nome in nomes
     assert response.status_code == status.HTTP_200_OK

@@ -3,6 +3,7 @@ from django.db import models
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+from sme_ptrf_apps.core.models.conta_associacao import ContaAssociacao
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
@@ -28,9 +29,10 @@ class AnaliseContaPrestacaoConta(ModeloBase):
 
     observacao_solicitar_envio_do_comprovante_do_saldo_da_conta = models.TextField('Observação solicitação de envio do comprovante do saldo da conta', max_length=600, blank=True, null=True)
 
+    solicitar_correcao_de_justificativa_de_conciliacao = models.BooleanField("Solicitar correção de justificativa", default=False)
+
     def __str__(self):
         return f"{self.conta_associacao} - {self.data_extrato} - {self.saldo_extrato}"
-
     class Meta:
         verbose_name = "Análise de conta de prestação de contas"
         verbose_name_plural = "09.8) Análises de contas de prestações de contas"

@@ -144,3 +144,125 @@ def test_retrieve_serializer(prestacao_conta, devolucao_prestacao_conta_2020_1, 
     assert serializer.data['analise_atual'] is None
     assert serializer.data['justificativa_pendencia_realizacao']
     assert serializer.data['ata_aprensentacao_gerada'] == False
+
+
+def test_retrieve_serializer_with_solicitacoes_lancar_credito_ou_despesa(
+    prestacao_conta,
+    conta_associacao_cheque,
+    tipo_acerto_documento_requer_inclusao_credito,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        prestacao_conta.associacao,
+        'pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos',
+        lambda periodo: []
+    )
+    analise = baker.make('AnalisePrestacaoConta', prestacao_conta=prestacao_conta)
+    analise_documento = baker.make(
+        'AnaliseDocumentoPrestacaoConta',
+        analise_prestacao_conta=analise,
+        conta_associacao=conta_associacao_cheque,
+    )
+    baker.make(
+        'SolicitacaoAcertoDocumento',
+        analise_documento=analise_documento,
+        tipo_acerto=tipo_acerto_documento_requer_inclusao_credito,
+    )
+    baker.make(
+        'ObservacaoConciliacao',
+        periodo=prestacao_conta.periodo,
+        conta_associacao=conta_associacao_cheque,
+        associacao=prestacao_conta.associacao,
+        texto='Justificativa registrada',
+    )
+
+    prestacao_conta.analise_atual = analise
+    prestacao_conta.save(update_fields=['analise_atual'])
+
+    serializer = PrestacaoContaRetrieveSerializer(prestacao_conta)
+    analise_data = serializer.data['analise_atual']
+
+    assert analise_data is not None
+    assert analise_data['solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao'] is True
+    assert analise_data['contas_solicitacoes_lancar_credito_ou_despesa_com_pendencia_conciliacao'] == [
+        str(conta_associacao_cheque.uuid)
+    ]
+    assert analise_data['solicitar_correcao_de_justificativa_de_conciliacao'] is False
+    assert analise_data['contas_solicitar_correcao_de_justificativa_de_conciliacao'] == []
+
+
+def test_retrieve_serializer_sem_justificativa(
+    prestacao_conta,
+    conta_associacao_cheque,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        prestacao_conta.associacao,
+        'pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos',
+        lambda periodo: [{
+            'conta': conta_associacao_cheque,
+            'observacao': False,
+            'extrato': False,
+            'justificativa': True,
+        }]
+    )
+    analise = baker.make('AnalisePrestacaoConta', prestacao_conta=prestacao_conta)
+    baker.make(
+        'ObservacaoConciliacao',
+        periodo=prestacao_conta.periodo,
+        conta_associacao=conta_associacao_cheque,
+        associacao=prestacao_conta.associacao,
+        texto='',
+    )
+
+    prestacao_conta.analise_atual = analise
+    prestacao_conta.save(update_fields=['analise_atual'])
+
+    serializer = PrestacaoContaRetrieveSerializer(prestacao_conta)
+    analise_data = serializer.data['analise_atual']
+
+    assert analise_data['solicitar_correcao_de_justificativa_de_conciliacao'] is True
+    assert analise_data['contas_solicitar_correcao_de_justificativa_de_conciliacao'] == [
+        str(conta_associacao_cheque.uuid)
+    ]
+
+
+def test_retrieve_serializer_sem_justificativa_ja_solicitada(
+    prestacao_conta,
+    conta_associacao_cheque,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        prestacao_conta.associacao,
+        'pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos',
+        lambda periodo: [{
+            'conta': conta_associacao_cheque,
+            'observacao': False,
+            'extrato': False,
+            'justificativa': True,
+        }]
+    )
+    analise = baker.make('AnalisePrestacaoConta', prestacao_conta=prestacao_conta)
+    baker.make(
+        'ObservacaoConciliacao',
+        periodo=prestacao_conta.periodo,
+        conta_associacao=conta_associacao_cheque,
+        associacao=prestacao_conta.associacao,
+        texto=None,
+    )
+    baker.make(
+        'AnaliseContaPrestacaoConta',
+        analise_prestacao_conta=analise,
+        prestacao_conta=prestacao_conta,
+        conta_associacao=conta_associacao_cheque,
+        solicitar_correcao_de_justificativa_de_conciliacao=True,
+    )
+
+    prestacao_conta.analise_atual = analise
+    prestacao_conta.save(update_fields=['analise_atual'])
+
+    serializer = PrestacaoContaRetrieveSerializer(prestacao_conta)
+    analise_data = serializer.data['analise_atual']
+
+    assert analise_data['solicitar_correcao_de_justificativa_de_conciliacao'] is False
+    assert analise_data['contas_solicitar_correcao_de_justificativa_de_conciliacao'] == []
