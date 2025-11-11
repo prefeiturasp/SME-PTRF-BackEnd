@@ -22,6 +22,7 @@ class Paa(ModeloBase):
     status = models.CharField(max_length=20, null=True, blank=True,
                               default=PaaStatusEnum.EM_ELABORACAO.name,
                               choices=PaaStatusEnum.choices())
+    objetivos = models.ManyToManyField('ObjetivoPaa', related_name='paas', blank=True)
 
     def periodo_paa_objeto(self):
         return self.periodo_paa
