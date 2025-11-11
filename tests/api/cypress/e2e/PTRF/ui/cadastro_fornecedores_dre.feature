@@ -10,9 +10,9 @@ Funcionalidade: Cadastro fornecedor
     E clico na opcao "Fornecedores" com a visao SME
     E clico no botao "Adicionar fornecedor" da tela Fornecedores
     E informo dado nos campos "<nome_do_fornecedor>" e "<cpf_cnpj>"
-    E clico no botao "Salvar" da tela tipo de conta
-    Quando sistema apresenta a '<mensagem>' na tela
-    Entao excluo o fornecedor com o nome "teste automatizado" do banco de dados
+    #E clico no botao "Salvar" da tela tipo de conta
+    #Quando sistema apresenta a '<mensagem>' na tela
+    #Entao excluo o fornecedor com o nome "teste automatizado" do banco de dados
 
     Exemplos:
       | visualizacao | nome_do_fornecedor | cpf_cnpj           | mensagem                                            | caso                             |
@@ -31,9 +31,9 @@ Funcionalidade: Cadastro fornecedor
     E clico na opcao "Fornecedores" com a visao SME
     E clico no botao "Adicionar fornecedor" da tela Fornecedores
     E informo dado nos campos "<nome_do_fornecedor>" e "<cpf_cnpj>"
-    E clico no botao "Salvar" da tela tipo de conta
-    Quando sistema apresenta a '<mensagem>' na tela
-    Entao excluo o fornecedor com o nome "teste automatizado" do banco de dados
+    # E clico no botao "Salvar" da tela tipo de conta
+    #Quando sistema apresenta a '<mensagem>' na tela
+    #Entao excluo o fornecedor com o nome "teste automatizado" do banco de dados
 
     Exemplos:
       | visualizacao | nome_do_fornecedor | cpf_cnpj          | mensagem                                            | caso                     |

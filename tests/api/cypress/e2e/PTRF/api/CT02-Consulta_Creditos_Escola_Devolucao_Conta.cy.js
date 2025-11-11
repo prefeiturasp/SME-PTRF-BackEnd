@@ -1,12 +1,12 @@
 //<reference types="cypress" />
 
-import usuarios from "../../../../fixtures/usuariosPTRF.json";
+import usuarios from "../../../fixtures/usuariosPTRF.json";
 const usuario = usuarios.Josue;
 
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
+import ComumPaginaPTRF from "../../../support/Paginas/ComumPaginaPTRF";
 const Comum = new ComumPaginaPTRF();
 
-import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina";
+import CreditosEscolaPagina from "../../../support/Paginas/CreditosEscolaPagina";
 const Creditos = new CreditosEscolaPagina();
 
 Cypress.on("uncaught:exception", (err, runnable) => {
@@ -14,20 +14,24 @@ Cypress.on("uncaught:exception", (err, runnable) => {
   return false;
 });
 
-describe("Credito Escola - Cadastro", () => {
-  it("CT08-Validar_Soma_Cadastro_de_Credito", () => {
+describe("Credito Escola - Consulta", () => {
+  it("CT02-Consulta_Creditos_Escola_Devolucao_Conta", () => {
     Comum.visitarPaginaPTRF();
 
     Comum.login(usuario.Usuario, usuario.Senha);
 
-    Comum.selecionarCeuVilaAlpina();
+    Comum.selecionarselecaoEMEF();
 
     Creditos.selecionarCreditosDaEscola();
 
-    Creditos.selecionarRendimento();
+    Creditos.selecionarDevolacaoConta();
 
     Creditos.filtrarReceita();
 
     Creditos.validarCreditosCadastrados();
+
+    Comum.selecionarPerfil();
+
+    Comum.logout();
   });
 });

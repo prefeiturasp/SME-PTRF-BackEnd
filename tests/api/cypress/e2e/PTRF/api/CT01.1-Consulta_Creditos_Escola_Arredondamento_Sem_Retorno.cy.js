@@ -1,25 +1,26 @@
 //<reference types="cypress" />
 
-import usuarios from "../../../../fixtures/usuariosPTRF.json";
+import usuarios from "../../../fixtures/usuariosPTRF.json";
 const usuario = usuarios.Josue;
 
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
+import ComumPaginaPTRF from "../../../support/Paginas/ComumPaginaPTRF";
 const Comum = new ComumPaginaPTRF();
 
-import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina";
+import CreditosEscolaPagina from "../../../support/Paginas/CreditosEscolaPagina";
 const Creditos = new CreditosEscolaPagina();
 
 Cypress.on("uncaught:exception", (err, runnable) => {
+  // quando retorna falso previne o  Cypress de falhar o teste
   return false;
 });
 
 describe("Credito Escola - Consulta", () => {
-  it("CT01-Consulta_Creditos_Escola_Arredondamento", () => {
+  it("CT07-Consulta_Escola_Arredondamento_Sem_Retorno", () => {
     Comum.visitarPaginaPTRF();
 
     Comum.login(usuario.Usuario, usuario.Senha);
 
-    Comum.selecionarselecaoEMEF();
+    Comum.selecionarCeuVilaAlpina();
 
     Creditos.selecionarCreditosDaEscola();
 
@@ -27,7 +28,7 @@ describe("Credito Escola - Consulta", () => {
 
     Creditos.filtrarReceita();
 
-    Creditos.validarCreditosCadastrados();
+    Creditos.validarRetornoSemResultado();
 
     Comum.selecionarPerfil();
 

@@ -1,12 +1,12 @@
 //<reference types="cypress" />
 
-import usuarios from "../../../../fixtures/usuariosPTRF.json";
+import usuarios from "../../../fixtures/usuariosPTRF.json";
 const usuario = usuarios.Josue;
 
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
+import ComumPaginaPTRF from "../../../support/Paginas/ComumPaginaPTRF";
 const Comum = new ComumPaginaPTRF();
 
-import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina";
+import CreditosEscolaPagina from "../../../support/Paginas/CreditosEscolaPagina";
 const Creditos = new CreditosEscolaPagina();
 
 Cypress.on("uncaught:exception", (err, runnable) => {
@@ -15,7 +15,7 @@ Cypress.on("uncaught:exception", (err, runnable) => {
 });
 
 describe("Credito Escola - Cadastro", () => {
-  it("CT04-Cadastro_de_Credito_Rendimento_Campos_em_Branco", () => {
+  it("CT01-Cadastro_de_Credito", () => {
     Comum.visitarPaginaPTRF();
 
     Comum.login(usuario.Usuario, usuario.Senha);
@@ -28,7 +28,7 @@ describe("Credito Escola - Cadastro", () => {
 
     Creditos.selecionarCadastrarCredito();
 
-    Creditos.realizarCadastroCreditoRendimentoCamposEmBranco();
+    Creditos.realizarCadastroCredito();
 
     Comum.selecionarPerfil();
 
