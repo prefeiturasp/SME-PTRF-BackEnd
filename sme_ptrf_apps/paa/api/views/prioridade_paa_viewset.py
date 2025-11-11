@@ -158,3 +158,42 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
         nova_prioridade = serializer.save()
 
         return Response(PrioridadePaaCreateUpdateSerializer(nova_prioridade).data, status=status.HTTP_201_CREATED)
+
+
+class PrioridadePaaRelatorioViewSet(WaffleFlagMixin, ModelViewSet):
+    waffle_flag = "paa"
+    permission_classes = [PermissaoApiUe]
+    lookup_field = "uuid"
+    queryset = PrioridadePaa.objects.all()
+    serializer_class = PrioridadePaaListSerializer
+    http_method_names = ["get"]
+    pagination_class = None
+    filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
+    filterset_fields = (
+        "acao_associacao__uuid",
+        "paa__uuid",
+        "recurso",
+        "prioridade",
+        "programa_pdde__uuid",
+        "acao_pdde__uuid",
+        "tipo_aplicacao",
+        "tipo_despesa_custeio__uuid",
+        "especificacao_material__uuid",
+    )
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return queryset_prioridades_paa(qs)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+
+        data = serializer.data
+        return Response(
+            {
+                "count": len(data),
+                "results": data,
+            },
+            status=status.HTTP_200_OK,
+        )
