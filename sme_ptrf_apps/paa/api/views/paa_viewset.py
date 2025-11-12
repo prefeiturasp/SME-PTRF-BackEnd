@@ -225,3 +225,14 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         serializer = AtividadeEstatutariaSerializer(objetivos, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='previa-atividades-previstas',
+            permission_classes=[IsAuthenticated])
+    def previa_atividades_previstas(self, request, uuid=None):
+        from sme_ptrf_apps.paa.api.serializers.paa_serializer import AtividadesPrevistasPaaDetailSerializer
+
+        paa = self.get_object()
+
+        serializer = AtividadesPrevistasPaaDetailSerializer(paa)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

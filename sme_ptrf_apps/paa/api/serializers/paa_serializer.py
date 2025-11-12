@@ -6,25 +6,44 @@ from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.services import PaaService
 from sme_ptrf_apps.paa.api.serializers.objetivo_paa_serializer import ObjetivoPaaSerializer, ObjetivoPaaUpdateSerializer
 from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_paa_serializer import AtividadeEstatutariaPaaSerializer, AtividadeEstaturariaPaaUpdateSerializer
+from sme_ptrf_apps.paa.api.serializers import PeriodoPaaSerializer
 
-from . import PeriodoPaaSerializer
+
+class AtividadesPrevistasPaaDetailSerializer(serializers.ModelSerializer):
+    from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import RecursoProprioPaaListSerializer
+
+    atividades_estatutarias = AtividadeEstatutariaPaaSerializer(
+        source='atividadeestatutariapaa_set',
+        many=True,
+        read_only=True
+    )
+    recursos_proprios = RecursoProprioPaaListSerializer(
+        source='recursopropriopaa_set',
+        many=True,
+        read_only=True
+    )
+
+    total_recursos_proprios = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Paa
+        fields = ('atividades_estatutarias', 'recursos_proprios', 'total_recursos_proprios', )
+        read_only_fields = ('atividades_estatutarias', 'recursos_proprios', 'total_recursos_proprios', )
+
+    def get_total_recursos_proprios(self, obj):
+        return obj.get_total_recursos_proprios()
 
 
 class PaaSerializer(serializers.ModelSerializer):
     associacao = serializers.SlugRelatedField(queryset=Associacao.objects.all(), slug_field='uuid')
     periodo_paa_objeto = PeriodoPaaSerializer(read_only=True, many=False)
     objetivos = ObjetivoPaaSerializer(many=True, read_only=True)
-    atividades_estatutarias = AtividadeEstatutariaPaaSerializer(
-        source='atividadeestatutariapaa_set',
-        many=True,
-        read_only=True
-    )
 
     class Meta:
         model = Paa
         fields = ('uuid', 'periodo_paa', 'associacao', 'periodo_paa_objeto', 'saldo_congelado_em',
-                  'texto_introducao', 'texto_conclusao', 'status', 'objetivos', 'atividades_estatutarias')
-        read_only_fields = ('periodo_paa_objeto', 'periodo_paa', 'status', 'objetivos', 'atividades_estatutarias')
+                  'texto_introducao', 'texto_conclusao', 'status', 'objetivos')
+        read_only_fields = ('periodo_paa_objeto', 'periodo_paa', 'status', 'objetivos')
 
     def validate(self, attrs):
         try:

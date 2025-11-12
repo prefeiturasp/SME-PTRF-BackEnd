@@ -1,6 +1,6 @@
 import pytest
 
-from sme_ptrf_apps.paa.api.serializers import FonteRecursoPaaSerializer
+from sme_ptrf_apps.paa.api.serializers.fonte_recurso_paa_serializer import FonteRecursoPaaSerializer
 
 pytestmark = pytest.mark.django_db
 

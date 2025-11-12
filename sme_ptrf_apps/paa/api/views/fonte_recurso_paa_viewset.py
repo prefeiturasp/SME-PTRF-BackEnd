@@ -4,7 +4,7 @@ from rest_framework.viewsets import ModelViewSet
 from waffle.mixins import WaffleFlagMixin
 
 from ...models import FonteRecursoPaa
-from ..serializers import FonteRecursoPaaSerializer
+from ..serializers.fonte_recurso_paa_serializer import FonteRecursoPaaSerializer
 
 
 class FonteRecursoPaaViewSet(WaffleFlagMixin, ModelViewSet):

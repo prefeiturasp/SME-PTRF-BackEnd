@@ -1,3 +1,4 @@
+from django.db.models import Sum
 from django.db import models
 from datetime import datetime
 from auditlog.models import AuditlogHistoryField
@@ -36,6 +37,10 @@ class Paa(ModeloBase):
     def set_descongelar_saldo(self):
         self.saldo_congelado_em = None
         self.save()
+
+    def get_total_recursos_proprios(self):
+        total = self.recursopropriopaa_set.aggregate(total=Sum('valor'))['total']
+        return total or 0
 
     class Meta:
         verbose_name = 'PAA'
