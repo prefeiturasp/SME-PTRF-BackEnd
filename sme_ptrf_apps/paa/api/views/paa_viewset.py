@@ -226,13 +226,24 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'], url_path='previa-atividades-previstas',
+    @action(detail=True, methods=['get'], url_path='atividades-estatutarias-previstas',
             permission_classes=[IsAuthenticated])
-    def previa_atividades_previstas(self, request, uuid=None):
-        from sme_ptrf_apps.paa.api.serializers.paa_serializer import AtividadesPrevistasPaaDetailSerializer
+    def atividades_estatutarias_previstas(self, request, uuid=None):
+        from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_paa_serializer import AtividadeEstatutariaPaaSerializer
 
         paa = self.get_object()
 
-        serializer = AtividadesPrevistasPaaDetailSerializer(paa)
+        serializer = AtividadeEstatutariaPaaSerializer(paa.atividadeestatutariapaa_set.all(), many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='recursos-proprios-previstos',
+            permission_classes=[IsAuthenticated])
+    def recursos_proprios_previstos(self, request, uuid=None):
+        from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import RecursoProprioPaaListSerializer
+
+        paa = self.get_object()
+
+        serializer = RecursoProprioPaaListSerializer(paa.recursopropriopaa_set.all(), many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)

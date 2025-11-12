@@ -1,10 +1,66 @@
 import pytest
 import json
-from datetime import date
+from datetime import date, timedelta
 from rest_framework import status
-from sme_ptrf_apps.paa.models import AtividadeEstatutaria, AtividadeEstatutariaPaa
+from sme_ptrf_apps.paa.models import Paa, AtividadeEstatutaria, AtividadeEstatutariaPaa
 
 pytestmark = pytest.mark.django_db
+
+
+def test_update(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory, parametro_paa_factory, associacao):
+    periodo_paa_1 = periodo_paa_factory.create(referencia="Periodo Teste",
+                                               data_inicial=date.today() - timedelta(weeks=5),
+                                               data_final=date.today() + timedelta(weeks=5))
+    paa = paa_factory.create(periodo_paa=periodo_paa_1, associacao=associacao)
+    parametro_paa_factory.create(mes_elaboracao_paa=date.today().month)
+    payload = {
+        "texto_introducao": "Teste texto"
+    }
+    response = jwt_authenticated_client_sme.patch(f'/api/paa/{paa.uuid}/',
+                                                  content_type='application/json',
+                                                  data=json.dumps(payload))
+
+    assert response.status_code == status.HTTP_200_OK, response.content
+    paa = Paa.objects.first()
+    assert paa.texto_introducao == payload["texto_introducao"]
+
+
+def test_update_texto_conclusao(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory, parametro_paa_factory, associacao):
+    periodo_paa_1 = periodo_paa_factory.create(referencia="Periodo Teste",
+                                               data_inicial=date.today() - timedelta(weeks=5),
+                                               data_final=date.today() + timedelta(weeks=5))
+    paa = paa_factory.create(periodo_paa=periodo_paa_1, associacao=associacao)
+    parametro_paa_factory.create(mes_elaboracao_paa=date.today().month)
+    payload = {
+        "texto_conclusao": "Teste texto conclusão"
+    }
+    response = jwt_authenticated_client_sme.patch(f'/api/paa/{paa.uuid}/',
+                                                  content_type='application/json',
+                                                  data=json.dumps(payload))
+
+    assert response.status_code == status.HTTP_200_OK, response.content
+    paa = Paa.objects.first()
+    assert paa.texto_conclusao == payload["texto_conclusao"]
+
+
+def test_update_ambos_textos(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory, parametro_paa_factory, associacao):
+    periodo_paa_1 = periodo_paa_factory.create(referencia="Periodo Teste",
+                                               data_inicial=date.today() - timedelta(weeks=5),
+                                               data_final=date.today() + timedelta(weeks=5))
+    paa = paa_factory.create(periodo_paa=periodo_paa_1, associacao=associacao)
+    parametro_paa_factory.create(mes_elaboracao_paa=date.today().month)
+    payload = {
+        "texto_introducao": "Teste texto introdução",
+        "texto_conclusao": "Teste texto conclusão"
+    }
+    response = jwt_authenticated_client_sme.patch(f'/api/paa/{paa.uuid}/',
+                                                  content_type='application/json',
+                                                  data=json.dumps(payload))
+
+    assert response.status_code == status.HTTP_200_OK, response.content
+    paa = Paa.objects.first()
+    assert paa.texto_introducao == payload["texto_introducao"]
+    assert paa.texto_conclusao == payload["texto_conclusao"]
 
 
 def test_patch_objetivos_paa(jwt_authenticated_client_sme, flag_paa, objetivo_paa_factory):
