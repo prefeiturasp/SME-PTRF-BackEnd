@@ -15,6 +15,7 @@ from sme_ptrf_apps.paa.models import (
     AtividadeEstatutaria,
     AtaPaa,
     ParticipanteAtaPaa,
+    AtividadeEstatutariaPaa
 )
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 
@@ -53,6 +54,11 @@ class ParametroPaaAdmin(admin.ModelAdmin):
     )
 
 
+class AtividadeEstatutariaPaaInline(admin.TabularInline):
+    model = AtividadeEstatutariaPaa
+    extra = 1
+
+
 @admin.register(Paa)
 class PaaAdmin(admin.ModelAdmin):
     list_display = ('periodo_paa', 'associacao', 'status')
@@ -61,6 +67,7 @@ class PaaAdmin(admin.ModelAdmin):
     list_display_links = ['periodo_paa']
     list_filter = ('periodo_paa', 'associacao')
     raw_id_fields = ['periodo_paa', 'associacao']
+    inlines = [AtividadeEstatutariaPaaInline]
 
 
 @admin.register(ProgramaPdde)
@@ -159,6 +166,16 @@ class AtividadeEstatutariaAdmin(admin.ModelAdmin):
     list_display = ('nome', 'status', 'mes', 'tipo')
     list_filter = ('status', 'mes', 'tipo')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
+    raw_id_fields = ('paa', )
+    search_fields = ('nome',)
+
+
+@admin.register(AtividadeEstatutariaPaa)
+class AtividadeEstatutariaPaaAdmin(admin.ModelAdmin):
+    list_display = ('atividade_estatutaria', 'paa', 'data', 'criado_em', 'alterado_em',)
+    list_filter = ('atividade_estatutaria__status', 'atividade_estatutaria__mes', 'atividade_estatutaria__tipo')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
+    raw_id_fields = ('paa', )
     search_fields = ('nome',)
 
 
@@ -222,7 +239,8 @@ class ParticipanteAtaPaaAdmin(admin.ModelAdmin):
 
     get_periodo_paa.short_description = 'Período PAA'
 
-    list_display = ['get_unidade', 'get_periodo_paa', 'ata_paa', 'identificacao', 'nome', 'cargo', 'membro', 'professor_gremio']
+    list_display = ['get_unidade', 'get_periodo_paa', 'ata_paa',
+                    'identificacao', 'nome', 'cargo', 'membro', 'professor_gremio']
 
     search_fields = [
         'nome',

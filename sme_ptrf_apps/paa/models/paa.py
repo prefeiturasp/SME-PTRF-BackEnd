@@ -23,6 +23,8 @@ class Paa(ModeloBase):
                               default=PaaStatusEnum.EM_ELABORACAO.name,
                               choices=PaaStatusEnum.choices())
     objetivos = models.ManyToManyField('ObjetivoPaa', related_name='paas', blank=True)
+    atividades_estatutarias = models.ManyToManyField(
+        'AtividadeEstatutaria', through='AtividadeEstatutariaPaa', related_name='paas', blank=True)
 
     def periodo_paa_objeto(self):
         return self.periodo_paa

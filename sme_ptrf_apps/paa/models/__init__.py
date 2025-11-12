@@ -13,3 +13,4 @@ from .objetivo_paa import ObjetivoPaa
 from .atividade_estatutaria import AtividadeEstatutaria
 from .ata_paa import AtaPaa
 from .participante_ata_paa import ParticipanteAtaPaa
+from .atividade_estatutaria_paa import AtividadeEstatutariaPaa
