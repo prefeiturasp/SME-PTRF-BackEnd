@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.core.exceptions import ValidationError
 
+from drf_spectacular.utils import extend_schema_view
+
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 from sme_ptrf_apps.paa.models import ParticipanteAtaPaa, AtaPaa
 from sme_ptrf_apps.paa.api.serializers.presentes_ata_paa_serializer import (
@@ -15,12 +17,15 @@ from sme_ptrf_apps.paa.api.serializers.presentes_ata_paa_serializer import (
     PresentesAtaPaaCreateSerializer
 )
 from sme_ptrf_apps.core.services import TerceirizadasException, TerceirizadasService, SmeIntegracaoApiException
+from sme_ptrf_apps.core.choices import MembroEnum
+from sme_ptrf_apps.utils.remove_digitos_str import remove_digitos
 from requests import ConnectTimeout, ReadTimeout
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiExample
+from .docs.presentes_ata_paa_docs import DOCS
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class PresentesAtaPaaViewSet(mixins.CreateModelMixin,
                              mixins.RetrieveModelMixin,
                              mixins.UpdateModelMixin,
@@ -38,26 +43,6 @@ class PresentesAtaPaaViewSet(mixins.CreateModelMixin,
             return PresentesAtaPaaCreateSerializer
         return PresentesAtaPaaSerializer
 
-    @extend_schema(
-        description="Retorna informações do servidor (professor do grêmio) pelo RF usando TerceirizadasService.",
-        parameters=[
-            OpenApiParameter(
-                name='rf',
-                description='Registro Funcional (RF) do servidor',
-                required=True,
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.QUERY
-            ),
-        ],
-        responses={200: OpenApiExample(
-            name="Exemplo de resposta",
-            value={
-                "mensagem": "buscando-servidor-nao-membro",
-                "nome": "Nome do Servidor",
-                "cargo": "Cargo do Servidor"
-            }
-        )},
-    )
     @action(detail=False, url_path='buscar-informacao-professor-gremio',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def buscar_informacao_professor_gremio(self, request):
@@ -99,34 +84,6 @@ class PresentesAtaPaaViewSet(mixins.CreateModelMixin,
 
         return Response(result)
 
-    @extend_schema(
-        description="Retorna todos os participantes de uma ata PAA ordenados pelo cargo.",
-        parameters=[
-            OpenApiParameter(
-                name='ata_paa_uuid',
-                description='UUID da ata PAA',
-                required=True,
-                type=OpenApiTypes.STR,
-                location=OpenApiParameter.QUERY
-            ),
-        ],
-        responses={200: OpenApiExample(
-            name="Exemplo de resposta",
-            value=[
-                {
-                    'uuid': 'uuid-1234',
-                    'identificacao': '1234567',
-                    'nome': 'Nome do Participante',
-                    'cargo': 'Cargo',
-                    'membro': True,
-                    'presente': True,
-                    'presidente_da_reuniao': False,
-                    'secretario_da_reuniao': False,
-                    'professor_gremio': False
-                }
-            ]
-        )},
-    )
     @action(detail=False, url_path='get-participantes-ordenados-por-cargo',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def get_participantes_ordenados_por_cargo(self, request):
@@ -166,4 +123,45 @@ class PresentesAtaPaaViewSet(mixins.CreateModelMixin,
             response_data.append(data)
 
         return Response(response_data)
+
+    @action(detail=False, url_path='padrao-de-presentes', permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def padrao_presentes(self, request):
+        ata_paa_uuid = request.query_params.get('ata_paa_uuid')
+
+        if not ata_paa_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid da ata PAA.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            AtaPaa.by_uuid(ata_paa_uuid)
+        except (ValidationError, AtaPaa.DoesNotExist):
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto ata PAA para o uuid {ata_paa_uuid} não foi encontrado na base."
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        ata_paa = AtaPaa.objects.filter(uuid=ata_paa_uuid).first()
+
+        membros_associacao = ata_paa.paa.associacao.membros_por_cargo()
+
+        membros = []
+        for membro in membros_associacao:
+
+            dado = {
+                "ata_paa": ata_paa_uuid,
+                "cargo": remove_digitos(MembroEnum[membro.cargo_associacao].value),
+                "identificacao": membro.codigo_identificacao if membro.codigo_identificacao else membro.cpf,
+                "nome": membro.nome,
+                "editavel": False,
+                "membro": True,
+                "presente": True
+            }
+
+            membros.append(dado)
+
+        return Response(membros)
 

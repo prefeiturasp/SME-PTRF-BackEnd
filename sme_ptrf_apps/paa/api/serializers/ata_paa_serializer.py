@@ -1,5 +1,6 @@
 import logging
 
+from django.db import transaction
 from rest_framework import serializers
 from sme_ptrf_apps.mandatos.services.composicao_service import ServicoRecuperaComposicaoPorData
 
@@ -93,124 +94,126 @@ class AtaPaaCreateSerializer(serializers.ModelSerializer):
         return obj.nome
 
     def create(self, validated_data):
-        presentes_na_ata_paa = validated_data.pop('presentes_na_ata_paa', [])
-        ata_paa = AtaPaa.objects.create(**validated_data)
+        with transaction.atomic():
+            presentes_na_ata_paa = validated_data.pop('presentes_na_ata_paa', [])
+            ata_paa = AtaPaa.objects.create(**validated_data)
 
-        presentes_lista = []
-        
-        flags = get_waffle_flag_model()
-        if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
-            if validated_data and validated_data.get("data_reuniao"):
-                servico_composicao = ServicoRecuperaComposicaoPorData()
-                composicao = servico_composicao.get_composicao_por_data_e_associacao(
-                    validated_data["data_reuniao"], 
-                    ata_paa.paa.associacao
-                )
-                ata_paa.composicao = composicao
-            else:
-                ata_paa.composicao = None
+            presentes_lista = []
             
-            for presente in presentes_na_ata_paa:
-                presidente = presente.pop('presidente_da_reuniao', False)
-                secretario = presente.pop('secretario_da_reuniao', False)
-                professor_gremio = presente.get('professor_gremio', False)
+            flags = get_waffle_flag_model()
+            if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+                if validated_data and validated_data.get("data_reuniao"):
+                    servico_composicao = ServicoRecuperaComposicaoPorData()
+                    composicao = servico_composicao.get_composicao_por_data_e_associacao(
+                        validated_data["data_reuniao"], 
+                        ata_paa.paa.associacao
+                    )
+                    ata_paa.composicao = composicao
+                else:
+                    ata_paa.composicao = None
                 
-                # Validação: professor do grêmio não pode ser presidente nem secretário
-                if professor_gremio and (presidente or secretario):
-                    raise serializers.ValidationError({
-                        'presentes_na_ata_paa': 'O professor do grêmio não pode ser presidente nem secretário da reunião.'
-                    })
-                
-                presente_object = PresentesAtaPaaCreateSerializer().create(presente)
-                presente_object.ata_paa = ata_paa
-                presente_object.save()
-                
-                if presidente:
-                    ata_paa.presidente_da_reuniao = presente_object
+                for presente in presentes_na_ata_paa:
+                    presidente = presente.pop('presidente_da_reuniao', False)
+                    secretario = presente.pop('secretario_da_reuniao', False)
+                    professor_gremio = presente.get('professor_gremio', False)
                     
-                elif secretario:
-                    ata_paa.secretario_da_reuniao = presente_object
+                    # Validação: professor do grêmio não pode ser presidente nem secretário
+                    if professor_gremio and (presidente or secretario):
+                        raise serializers.ValidationError({
+                            'presentes_na_ata_paa': 'O professor do grêmio não pode ser presidente nem secretário da reunião.'
+                        })
+                    
+                    presente_object = PresentesAtaPaaCreateSerializer().create(presente)
+                    presente_object.ata_paa = ata_paa
+                    presente_object.save()
+                    
+                    if presidente:
+                        ata_paa.presidente_da_reuniao = presente_object
+                        
+                    elif secretario:
+                        ata_paa.secretario_da_reuniao = presente_object
 
-                presente_object.eh_conselho_fiscal()
-                presentes_lista.append(presente_object)
-        else:
-            for presente in presentes_na_ata_paa:
-                presente_object = PresentesAtaPaaCreateSerializer().create(presente)
-                presente_object.ata_paa = ata_paa
-                presente_object.save()
-                presente_object.eh_conselho_fiscal()
-                presentes_lista.append(presente_object)
+                    presente_object.eh_conselho_fiscal()
+                    presentes_lista.append(presente_object)
+            else:
+                for presente in presentes_na_ata_paa:
+                    presente_object = PresentesAtaPaaCreateSerializer().create(presente)
+                    presente_object.ata_paa = ata_paa
+                    presente_object.save()
+                    presente_object.eh_conselho_fiscal()
+                    presentes_lista.append(presente_object)
 
-        ata_paa.presentes_na_ata_paa.set(presentes_lista)
-        ata_paa.arquivo_pdf = None
-        ata_paa.arquivo_pdf_nao_gerado()
-        ata_paa.save()
+            ata_paa.presentes_na_ata_paa.set(presentes_lista)
+            ata_paa.arquivo_pdf = None
+            ata_paa.arquivo_pdf_nao_gerado()
+            ata_paa.save()
 
-        return ata_paa
+            return ata_paa
 
     def update(self, instance, validated_data):
-        presentes_json = validated_data.pop('presentes_na_ata_paa', [])
-        
-        if instance.presidente_da_reuniao:
-            instance.presidente_da_reuniao = None
-        if instance.secretario_da_reuniao:
-            instance.secretario_da_reuniao = None
-        instance.save()
-
-        instance.presentes_na_ata_paa.all().delete()
-        presentes_lista = []
-        
-        flags = get_waffle_flag_model()
-        if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
-            if validated_data and validated_data.get("data_reuniao"):
-                servico_composicao = ServicoRecuperaComposicaoPorData()
-                composicao = servico_composicao.get_composicao_por_data_e_associacao(
-                    validated_data["data_reuniao"], 
-                    instance.paa.associacao
-                )
-                instance.composicao = composicao
-            else:
-                instance.composicao = None
-
-            for presente in presentes_json:
-                presidente = presente.pop('presidente_da_reuniao', False)
-                secretario = presente.pop('secretario_da_reuniao', False)
-                professor_gremio = presente.get('professor_gremio', False)
-                
-                # Validação: professor do grêmio não pode ser presidente nem secretário
-                if professor_gremio and (presidente or secretario):
-                    raise serializers.ValidationError({
-                        'presentes_na_ata_paa': 'O professor do grêmio não pode ser presidente nem secretário da reunião.'
-                    })
-                
-                presente_object = PresentesAtaPaaCreateSerializer().create(presente)
-                presente_object.ata_paa = instance
-                presente_object.save()
-                
-                if presidente:
-                    instance.presidente_da_reuniao = presente_object
-                    
-                elif secretario:
-                    instance.secretario_da_reuniao = presente_object
-                    
-                presente_object.eh_conselho_fiscal()
-                presentes_lista.append(presente_object)
+        with transaction.atomic():
+            presentes_json = validated_data.pop('presentes_na_ata_paa', [])
             
-        else:
-            for presente in presentes_json:
-                presente_object = PresentesAtaPaaCreateSerializer().create(presente)
-                presente_object.ata_paa = instance
-                presente_object.save()
-                presente_object.eh_conselho_fiscal()
-                presentes_lista.append(presente_object)
+            if instance.presidente_da_reuniao:
+                instance.presidente_da_reuniao = None
+            if instance.secretario_da_reuniao:
+                instance.secretario_da_reuniao = None
+            instance.save()
 
-        update_instance_from_dict(instance, validated_data)
-        instance.presentes_na_ata_paa.set(presentes_lista)
-        instance.arquivo_pdf = None
-        instance.arquivo_pdf_nao_gerado()
-        instance.save()
+            instance.presentes_na_ata_paa.all().delete()
+            presentes_lista = []
+            
+            flags = get_waffle_flag_model()
+            if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+                if validated_data and validated_data.get("data_reuniao"):
+                    servico_composicao = ServicoRecuperaComposicaoPorData()
+                    composicao = servico_composicao.get_composicao_por_data_e_associacao(
+                        validated_data["data_reuniao"], 
+                        instance.paa.associacao
+                    )
+                    instance.composicao = composicao
+                else:
+                    instance.composicao = None
 
-        return instance
+                for presente in presentes_json:
+                    presidente = presente.pop('presidente_da_reuniao', False)
+                    secretario = presente.pop('secretario_da_reuniao', False)
+                    professor_gremio = presente.get('professor_gremio', False)
+                    
+                    # Validação: professor do grêmio não pode ser presidente nem secretário
+                    if professor_gremio and (presidente or secretario):
+                        raise serializers.ValidationError({
+                            'presentes_na_ata_paa': 'O professor do grêmio não pode ser presidente nem secretário da reunião.'
+                        })
+                    
+                    presente_object = PresentesAtaPaaCreateSerializer().create(presente)
+                    presente_object.ata_paa = instance
+                    presente_object.save()
+                    
+                    if presidente:
+                        instance.presidente_da_reuniao = presente_object
+                        
+                    elif secretario:
+                        instance.secretario_da_reuniao = presente_object
+                        
+                    presente_object.eh_conselho_fiscal()
+                    presentes_lista.append(presente_object)
+                
+            else:
+                for presente in presentes_json:
+                    presente_object = PresentesAtaPaaCreateSerializer().create(presente)
+                    presente_object.ata_paa = instance
+                    presente_object.save()
+                    presente_object.eh_conselho_fiscal()
+                    presentes_lista.append(presente_object)
+
+            update_instance_from_dict(instance, validated_data)
+            instance.presentes_na_ata_paa.set(presentes_lista)
+            instance.arquivo_pdf = None
+            instance.arquivo_pdf_nao_gerado()
+            instance.save()
+
+            return instance
 
     class Meta:
         model = AtaPaa

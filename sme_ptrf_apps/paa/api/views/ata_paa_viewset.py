@@ -7,23 +7,24 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
 
-from drf_spectacular.utils import (
-    extend_schema, OpenApiParameter, OpenApiTypes, OpenApiResponse)
-
 from django.core.exceptions import ValidationError
 from django.http import HttpResponse
 
 from waffle.mixins import WaffleFlagMixin
 
+from drf_spectacular.utils import extend_schema_view
+
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComLeituraOuGravacao
 from sme_ptrf_apps.utils.choices_to_json import choices_to_json
 from sme_ptrf_apps.paa.models import AtaPaa
 from sme_ptrf_apps.paa.api.serializers.ata_paa_serializer import AtaPaaSerializer, AtaPaaCreateSerializer
+from .docs.ata_paa_docs import DOCS
 
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class AtaPaaViewSet(WaffleFlagMixin,
                     mixins.RetrieveModelMixin,
                     mixins.UpdateModelMixin,
@@ -40,16 +41,6 @@ class AtaPaaViewSet(WaffleFlagMixin,
         else:
             return AtaPaaSerializer
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(name='ata-paa-uuid', description='UUID da ata PAA', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-        ],
-        responses={
-            (200, 'application/pdf'): OpenApiTypes.BINARY,
-        },
-        description="Retorna um arquivo PDF - Ata PAA."
-    )
     @action(detail=False, methods=['get'], url_path='download-arquivo-ata-paa',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def download_arquivo_ata_paa(self, request):
@@ -90,44 +81,6 @@ class AtaPaaViewSet(WaffleFlagMixin,
 
         return response
 
-    @extend_schema(
-        parameters=[],
-        responses={200: OpenApiResponse(
-            response={
-                'type': 'object',
-                'properties': {
-                    "tipo_ata": {
-                        'type': 'array',
-                        'items': {
-                            'type': 'object',
-                            'properties': {'id': {'type': 'string'}, 'nome': {'type': 'string'}}
-                        },
-                    },
-                    "tipos_reuniao": {
-                        'type': 'array',
-                        'items': {
-                            'type': 'object',
-                            'properties': {'id': {'type': 'string'}, 'nome': {'type': 'string'}}
-                        },
-                    },
-                    "convocacoes": {
-                        'type': 'array',
-                        'items': {
-                            'type': 'object',
-                            'properties': {'id': {'type': 'string'}, 'nome': {'type': 'string'}}
-                        },
-                    },
-                    "pareceres": {
-                        'type': 'array',
-                        'items': {
-                            'type': 'object',
-                            'properties': {'id': {'type': 'string'}, 'nome': {'type': 'string'}}
-                        },
-                    },
-                },
-            }
-        )},
-    )
     @action(detail=False, url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, request):

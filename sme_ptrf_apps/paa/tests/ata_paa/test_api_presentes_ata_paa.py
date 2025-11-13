@@ -182,3 +182,31 @@ def test_get_participantes_ordenados_por_cargo(
     assert 'presidente_da_reuniao' in result[0]
     assert 'secretario_da_reuniao' in result[0]
 
+
+def test_get_padrao_presentes(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    ata_paa,
+    membro_associacao
+):
+    response = jwt_authenticated_client_sme.get(
+        f'/api/presentes-ata-paa/padrao-de-presentes/?ata_paa_uuid={ata_paa.uuid}',
+        content_type='application/json'
+    )
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert isinstance(result, list)
+    # Verifica se retorna pelo menos um membro (se houver membros na associação)
+    if len(result) > 0:
+        assert 'ata_paa' in result[0]
+        assert 'cargo' in result[0]
+        assert 'identificacao' in result[0]
+        assert 'nome' in result[0]
+        assert 'editavel' in result[0]
+        assert 'membro' in result[0]
+        assert 'presente' in result[0]
+        assert result[0]['membro'] is True
+        assert result[0]['presente'] is True
+        assert result[0]['editavel'] is False
+
