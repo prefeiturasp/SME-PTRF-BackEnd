@@ -198,7 +198,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
 
         return Response(serializer_acao_associacao.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'], url_path='objetivos-disponiveis',
+    @action(detail=True, methods=['get'], url_path='objetivos',
             permission_classes=[IsAuthenticated])
     def objetivos_disponiveis(self, request, uuid=None):
         from sme_ptrf_apps.paa.api.serializers.objetivo_paa_serializer import ObjetivoPaaSerializer

@@ -50,7 +50,7 @@ def test_get_objetivos_disponiveis(jwt_authenticated_client_sme, flag_paa, objet
 
     objetivo_paa_factory()
 
-    response = jwt_authenticated_client_sme.get(f"/api/paa/{str(objetivo_1.paa.uuid)}/objetivos-disponiveis/")
+    response = jwt_authenticated_client_sme.get(f"/api/paa/{str(objetivo_1.paa.uuid)}/objetivos/")
 
     result = response.json()
 
