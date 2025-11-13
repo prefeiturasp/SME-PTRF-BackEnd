@@ -1,0 +1,169 @@
+import logging
+from rest_framework import mixins
+from django_filters import rest_framework as filters
+from rest_framework.viewsets import GenericViewSet
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
+from django.core.exceptions import ValidationError
+
+from sme_ptrf_apps.users.permissoes import PermissaoApiUe
+from sme_ptrf_apps.paa.models import ParticipanteAtaPaa, AtaPaa
+from sme_ptrf_apps.paa.api.serializers.presentes_ata_paa_serializer import (
+    PresentesAtaPaaSerializer,
+    PresentesAtaPaaCreateSerializer
+)
+from sme_ptrf_apps.core.services import TerceirizadasException, TerceirizadasService, SmeIntegracaoApiException
+from requests import ConnectTimeout, ReadTimeout
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiExample
+
+logger = logging.getLogger(__name__)
+
+
+class PresentesAtaPaaViewSet(mixins.CreateModelMixin,
+                             mixins.RetrieveModelMixin,
+                             mixins.UpdateModelMixin,
+                             mixins.DestroyModelMixin,
+                             mixins.ListModelMixin,
+                             GenericViewSet):
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
+    queryset = ParticipanteAtaPaa.objects.all()
+    serializer_class = PresentesAtaPaaSerializer
+    filterset_fields = ('ata_paa__uuid',)
+    filter_backends = (filters.DjangoFilterBackend,)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return PresentesAtaPaaCreateSerializer
+        return PresentesAtaPaaSerializer
+
+    @extend_schema(
+        description="Retorna informações do servidor (professor do grêmio) pelo RF usando TerceirizadasService.",
+        parameters=[
+            OpenApiParameter(
+                name='rf',
+                description='Registro Funcional (RF) do servidor',
+                required=True,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY
+            ),
+        ],
+        responses={200: OpenApiExample(
+            name="Exemplo de resposta",
+            value={
+                "mensagem": "buscando-servidor-nao-membro",
+                "nome": "Nome do Servidor",
+                "cargo": "Cargo do Servidor"
+            }
+        )},
+    )
+    @action(detail=False, url_path='buscar-informacao-professor-gremio',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def buscar_informacao_professor_gremio(self, request):
+        rf = request.query_params.get('rf')
+
+        if not rf:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o RF do servidor.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            if len(rf) == 7:
+                servidor = TerceirizadasService.get_informacao_servidor(rf)
+                if servidor:
+                    result = {
+                        "mensagem": "buscando-servidor-nao-membro",
+                        "nome": servidor[0]["nm_pessoa"],
+                        "cargo": servidor[0]["cargo"]
+                    }
+                    return Response(result)
+        except SmeIntegracaoApiException as e:
+            logger.error(f'Erro ao buscar servidor: {str(e)}')
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except TerceirizadasException as e:
+            logger.error(f'Erro ao buscar servidor: {str(e)}')
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except ReadTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+        except ConnectTimeout:
+            return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
+
+        result = {
+            "mensagem": "servidor-nao-encontrado",
+            "nome": "",
+            "cargo": ""
+        }
+
+        return Response(result)
+
+    @extend_schema(
+        description="Retorna todos os participantes de uma ata PAA ordenados pelo cargo.",
+        parameters=[
+            OpenApiParameter(
+                name='ata_paa_uuid',
+                description='UUID da ata PAA',
+                required=True,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY
+            ),
+        ],
+        responses={200: OpenApiExample(
+            name="Exemplo de resposta",
+            value=[
+                {
+                    'uuid': 'uuid-1234',
+                    'identificacao': '1234567',
+                    'nome': 'Nome do Participante',
+                    'cargo': 'Cargo',
+                    'membro': True,
+                    'presente': True,
+                    'presidente_da_reuniao': False,
+                    'secretario_da_reuniao': False,
+                    'professor_gremio': False
+                }
+            ]
+        )},
+    )
+    @action(detail=False, url_path='get-participantes-ordenados-por-cargo',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def get_participantes_ordenados_por_cargo(self, request):
+        """
+        Retorna todos os participantes de uma ata PAA ordenados pelo cargo.
+        """
+        ata_paa_uuid = request.query_params.get('ata_paa_uuid')
+
+        if not ata_paa_uuid:
+            return Response({'erro': 'O parâmetro "ata_paa_uuid" é obrigatório'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            ata_paa = AtaPaa.objects.get(uuid=ata_paa_uuid)
+        except AtaPaa.DoesNotExist:
+            return Response({'erro': 'A ata PAA especificada não existe'}, status=status.HTTP_404_NOT_FOUND)
+
+        participantes = ParticipanteAtaPaa.objects.filter(ata_paa=ata_paa).values()
+        participantes_ordenados = sorted(participantes, key=ParticipanteAtaPaa.ordenar_por_cargo)
+
+        # Buscar UUIDs do presidente e secretário para comparação
+        presidente_uuid = str(ata_paa.presidente_da_reuniao.uuid) if ata_paa.presidente_da_reuniao else None
+        secretario_uuid = str(ata_paa.secretario_da_reuniao.uuid) if ata_paa.secretario_da_reuniao else None
+
+        response_data = []
+        for participante in participantes_ordenados:
+            data = {
+                'uuid': participante['uuid'],
+                'identificacao': participante['identificacao'],
+                'nome': participante['nome'],
+                'cargo': participante['cargo'],
+                'membro': participante['membro'],
+                'presente': participante['presente'],
+                'professor_gremio': participante.get('professor_gremio', False),
+                'presidente_da_reuniao': str(participante['uuid']) == presidente_uuid if presidente_uuid else False,
+                'secretario_da_reuniao': str(participante['uuid']) == secretario_uuid if secretario_uuid else False
+            }
+            response_data.append(data)
+
+        return Response(response_data)
+

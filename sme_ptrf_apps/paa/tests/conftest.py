@@ -2,6 +2,7 @@ import pytest
 from datetime import date
 
 from django.contrib.admin.sites import site
+from rest_framework.test import APIClient
 
 from sme_ptrf_apps.paa.admin import (
     PeriodoPaaAdmin, PaaAdmin, ParametroPaaAdmin
@@ -81,3 +82,34 @@ def resumo_recursos_paa(paa_factory, periodo_paa_resumo_recursos, associacao):
 @pytest.fixture
 def parametro_paa(parametro_paa_factory):
     return parametro_paa_factory.create(mes_elaboracao_paa=4)
+
+
+@pytest.fixture
+def ata_paa(ata_paa_factory, paa):
+    return ata_paa_factory.create(paa=paa)
+
+
+@pytest.fixture
+def presente_ata_paa_membro(participante_ata_paa_factory, ata_paa):
+    return participante_ata_paa_factory.create(
+        ata_paa=ata_paa,
+        identificacao="123",
+        nome="membro",
+        cargo="teste cargo",
+        membro=True,
+        conselho_fiscal=False,
+        professor_gremio=False
+    )
+
+
+@pytest.fixture
+def presente_ata_paa_nao_membro(participante_ata_paa_factory, ata_paa):
+    return participante_ata_paa_factory.create(
+        ata_paa=ata_paa,
+        identificacao="456",
+        nome="nao membro",
+        cargo="teste cargo",
+        membro=False,
+        conselho_fiscal=False,
+        professor_gremio=False
+    )
