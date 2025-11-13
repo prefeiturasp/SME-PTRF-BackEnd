@@ -243,8 +243,8 @@ def test_cria_atividade_estatutaria_duplicada(jwt_authenticated_client_sme, flag
 def test_edita_atividade_estatutaria_duplicada_com_existencia(
         jwt_authenticated_client_sme, flag_paa, atividade_estatutaria_factory):
 
-    obj = atividade_estatutaria_factory.create(nome="Atividade 1")
-    obj2 = atividade_estatutaria_factory.create(nome="Atividade 2")
+    obj = atividade_estatutaria_factory.create(nome="Atividade 1", paa=None)
+    obj2 = atividade_estatutaria_factory.create(nome="Atividade 2", paa=None)
     data = {
         "nome": obj.nome,
         "tipo": obj.tipo,
@@ -262,7 +262,7 @@ def test_edita_atividade_estatutaria_duplicada_com_existencia(
 def test_edita_atividade_estatutaria_duplicada_com_propria_instancia(
         jwt_authenticated_client_sme, flag_paa, atividade_estatutaria_factory):
 
-    obj = atividade_estatutaria_factory.create(nome="Atividade 1")
+    obj = atividade_estatutaria_factory.create(nome="Atividade 1", paa=None)
     data = {
         "nome": obj.nome,
         "tipo": obj.tipo,
@@ -276,7 +276,7 @@ def test_edita_atividade_estatutaria_duplicada_com_propria_instancia(
 
 @pytest.mark.django_db
 def test_patch_atividade_estatutaria(jwt_authenticated_client_sme, atividade_estatutaria_factory):
-    obj = atividade_estatutaria_factory.create(nome="Antigo Nome")
+    obj = atividade_estatutaria_factory.create(nome="Antigo Nome", paa=None)
     url = reverse("api:atividades-estatutarias-detail", args=[obj.uuid])
     response = jwt_authenticated_client_sme.patch(url, {"nome": "Nome Atualizado"}, format="json")
     assert response.status_code == status.HTTP_200_OK
@@ -286,7 +286,7 @@ def test_patch_atividade_estatutaria(jwt_authenticated_client_sme, atividade_est
 
 @pytest.mark.django_db
 def test_delete_atividade_estatutaria(jwt_authenticated_client_sme, atividade_estatutaria_factory):
-    obj = atividade_estatutaria_factory.create(nome="A Deletar")
+    obj = atividade_estatutaria_factory.create(nome="A Deletar", paa=None)
     url = reverse("api:atividades-estatutarias-detail", args=[obj.uuid])
     response = jwt_authenticated_client_sme.delete(url)
     assert response.status_code == status.HTTP_204_NO_CONTENT

@@ -1,10 +1,15 @@
-import pytest
+
 import json
-from datetime import datetime, date
-from freezegun import freeze_time
-from rest_framework import status
-from sme_ptrf_apps.paa.models import Paa, PrioridadePaa
+import pytest
 from django.urls import reverse
+from freezegun import freeze_time
+from datetime import date, timedelta, datetime
+from rest_framework import status
+
+from sme_ptrf_apps.paa.models import Paa, PeriodoPaa, PrioridadePaa
+from sme_ptrf_apps.paa.fixtures.factories.parametro_paa import ParametroPaaFactory
+from sme_ptrf_apps.paa.fixtures.factories.periodo_paa import PeriodoPaaFactory
+
 
 pytestmark = pytest.mark.django_db
 
@@ -46,45 +51,6 @@ def test_ativar_atualizacao_saldo(
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 2
     assert paa.saldo_congelado_em is None
-
-
-def test_carrega_paas_anteriores(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory):
-
-    periodo_2024 = periodo_paa_factory.create(
-        referencia="Periodo 2024", data_inicial=date(2024, 1, 1), data_final=date(2024, 12, 31))
-    periodo_2025 = periodo_paa_factory.create(
-        referencia="Periodo 2025", data_inicial=date(2025, 1, 1), data_final=date(2025, 12, 31))
-
-    paa_2024 = paa_factory.create(periodo_paa=periodo_2024)
-    # considerar mesma associacao
-    paa_2025 = paa_factory.create(periodo_paa=periodo_2025, associacao=paa_2024.associacao)
-
-    response = jwt_authenticated_client_sme.get(f"/api/paa/{str(paa_2025.uuid)}/paas-anteriores/")
-
-    result = response.json()
-
-    assert response.status_code == status.HTTP_200_OK
-    assert len(result) == 1
-    assert result[0]['periodo_paa_objeto']['referencia'] == "Periodo 2024"
-    assert result[0]['associacao'] == str(paa_2024.associacao.uuid)
-
-
-def test_action_resumo_prioridades(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory):
-
-    periodo_2025 = periodo_paa_factory.create(
-        referencia="Periodo 2025", data_inicial=date(2025, 1, 1), data_final=date(2025, 12, 31))
-
-    paa_2025 = paa_factory.create(periodo_paa=periodo_2025)
-
-    response = jwt_authenticated_client_sme.get(f"/api/paa/{str(paa_2025.uuid)}/resumo-prioridades/")
-
-    result = response.json()
-
-    assert response.status_code == status.HTTP_200_OK
-    assert len(result) == 3
-    assert result[0]['key'] == 'PTRF'
-    assert result[1]['key'] == 'PDDE'
-    assert result[2]['key'] == 'RECURSO_PROPRIO'
 
 
 def test_action_importar_prioridades_paa_atual_nao_encontrado(
@@ -327,41 +293,82 @@ def test_action_importar_prioridades_quando_ja_houver_prioridades_importadas_do_
     assert result == {'mensagem': 'Não é permitido importar novamente o mesmo PAA.'}
 
 
-def test_get_objetivos_paa(jwt_authenticated_client_sme, flag_paa, objetivo_paa_factory):
-
-    objetivo_1 = objetivo_paa_factory()
-
-    objetivo_paa_factory()
-
-    response = jwt_authenticated_client_sme.get(f"/api/paa/{str(objetivo_1.paa.uuid)}/objetivos/")
-
-    result = response.json()
-
-    assert response.status_code == status.HTTP_200_OK
-    assert len(result) == 1
-
-
-def test_patch_objetivos_paa(jwt_authenticated_client_sme, flag_paa, objetivo_paa_factory):
-
-    objetivo_1 = objetivo_paa_factory()
-
+def test_create_sucesso_mes_elaboracao_atual(jwt_authenticated_client_sme, flag_paa, associacao):
+    PeriodoPaaFactory.create(referencia="Periodo Teste",
+                             data_inicial=date.today() - timedelta(weeks=5),
+                             data_final=date.today() + timedelta(weeks=5))
+    ParametroPaaFactory.create(mes_elaboracao_paa=date.today().month)
     payload = {
-        "objetivos": [
-            {"nome": "Objetivo novo"},
-            {"objetivo": f"{objetivo_1.uuid}", "nome": "Novo nome objetivo existente"},
-        ]
+        "associacao": str(associacao.uuid),
     }
+    response = jwt_authenticated_client_sme.post('/api/paa/',
+                                                 content_type='application/json',
+                                                 data=json.dumps(payload))
 
-    response = jwt_authenticated_client_sme.patch(
-        f"/api/paa/{str(objetivo_1.paa.uuid)}/",
-        data=json.dumps(payload),
-        content_type='application/json'
-    )
+    assert response.status_code == status.HTTP_201_CREATED, response.content
+    paa = Paa.objects.all()
+    assert len(paa) == 1
 
-    result = response.json()
 
-    assert response.status_code == status.HTTP_200_OK
-    assert result['texto_introducao'] is None
-    assert result['texto_conclusao'] is None
-    assert len(result['objetivos']) == 2
-    assert payload["objetivos"][1]["nome"] == "Novo nome objetivo existente"
+def test_create_mes_nao_liberado_para_elaboracao(jwt_authenticated_client_sme, flag_paa, associacao):
+    ParametroPaaFactory.create(mes_elaboracao_paa=date.today().month + 1)
+    payload = {
+        "associacao": str(associacao.uuid),
+    }
+    response = jwt_authenticated_client_sme.post('/api/paa/',
+                                                 content_type='application/json',
+                                                 data=json.dumps(payload))
+    content = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST, response.content
+    paa = Paa.objects.all()
+    assert len(paa) == 0
+    assert content['non_field_errors'] == ["Mês não liberado para Elaboração de novo PAA."]
+
+
+def test_create_mes_nao_definido_em_parametro(jwt_authenticated_client_sme, flag_paa, associacao):
+    payload = {
+        "associacao": str(associacao.uuid),
+    }
+    response = jwt_authenticated_client_sme.post('/api/paa/',
+                                                 content_type='application/json',
+                                                 data=json.dumps(payload))
+    content = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST, response.content
+    paa = Paa.objects.all()
+    assert len(paa) == 0
+    assert content['non_field_errors'] == [("Nenhum parâmetro de mês para Elaboração de "
+                                            "Novo PAA foi definido no Admin.")]
+
+
+@freeze_time('2025-04-1 10:11:12')
+def test_create_duplicado(jwt_authenticated_client_sme, flag_paa, paa, associacao):
+    ParametroPaaFactory.create(mes_elaboracao_paa=date.today().month)
+    payload = {
+        "associacao": str(associacao.uuid),
+    }
+    response = jwt_authenticated_client_sme.post('/api/paa/',
+                                                 content_type='application/json',
+                                                 data=json.dumps(payload))
+    content = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST, response.content
+    paa = Paa.objects.all()
+    assert len(paa) == 1
+    assert content['non_field_errors'] == [("Já existe um PAA para a Associação informada.")]
+
+
+def test_create_sem_periodo_vigente_encontrado(jwt_authenticated_client_sme, flag_paa, associacao):
+    assert PeriodoPaa.objects.count() == 0
+    ParametroPaaFactory.create(mes_elaboracao_paa=date.today().month)
+    payload = {
+        "associacao": str(associacao.uuid),
+    }
+    response = jwt_authenticated_client_sme.post('/api/paa/',
+                                                 content_type='application/json',
+                                                 data=json.dumps(payload))
+    content = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert content['non_field_errors'] == ['Nenhum Período vigente foi encontrado.'], content

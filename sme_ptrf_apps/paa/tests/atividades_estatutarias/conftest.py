@@ -19,7 +19,7 @@ def atividade_estatutaria_ativo():
                       nome="Atividade Estatutária 1",
                       status=True,
                       mes=Mes.JANEIRO,
-                      tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name)
+                      tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name, paa=None)
 
 
 @pytest.fixture
@@ -28,4 +28,4 @@ def atividade_estatutaria_inativo():
                       nome="Atividade Estatutária 2",
                       status=False,
                       mes=Mes.FEVEREIRO,
-                      tipo=TipoAtividadeEstatutariaEnum.EXTRAORDINARIA.name)
+                      tipo=TipoAtividadeEstatutariaEnum.EXTRAORDINARIA.name, paa=None)

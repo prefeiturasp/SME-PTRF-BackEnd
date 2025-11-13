@@ -473,7 +473,7 @@ class ResumoPrioridadesService:
                     - Node 3: Saldo
         """
 
-        from sme_ptrf_apps.paa.api.serializers import RecursoProprioPaaListSerializer
+        from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import RecursoProprioPaaListSerializer
 
         # Queryset Somente de Prioridades do PAA de Recursos Próprios
         prioridades_recurso_proprio_qs = self.paa.prioridadepaa_set.filter(
@@ -695,7 +695,7 @@ class ResumoPrioridadesService:
                         {'mensagem': 'Item de Recursos Próprios não encontrado no resumo de prioridades.'})
                 acao_data = recurso_data['children'][0]
             else:
-                acao_data = next((acao for acao in recurso_data.get('children', []) if acao.get('key') == acao_uuid), {}) # noqa
+                acao_data = next((acao for acao in recurso_data.get('children', []) if acao.get('key') == acao_uuid), {})  # noqa
                 if not acao_data:
                     raise serializers.ValidationError({'mensagem': 'Ação não encontrada no resumo de prioridades.'})
 
@@ -723,7 +723,7 @@ class ResumoPrioridadesService:
             valores_despesa = {
                 'custeio': Decimal(str(despesa_data.get('custeio', 0))) if despesa_data else Decimal('0'),
                 'capital': Decimal(str(despesa_data.get('capital', 0))) if despesa_data else Decimal('0'),
-                'livre_aplicacao': Decimal(str(despesa_data.get('livre_aplicacao', 0))) if despesa_data else Decimal('0') # noqa
+                'livre_aplicacao': Decimal(str(despesa_data.get('livre_aplicacao', 0))) if despesa_data else Decimal('0')  # noqa
             }
 
             # Ajusta despesas se for atualização
