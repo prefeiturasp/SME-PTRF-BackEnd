@@ -19,3 +19,5 @@ from .prioridade_paa_serializer import (
 )
 from .objetivo_paa_serializer import ObjetivoPaaSerializer
 from .atividade_estatutaria_serializer import AtividadeEstatutariaSerializer
+from .ata_paa_serializer import AtaPaaSerializer, AtaPaaCreateSerializer, AtaPaaLookUpSerializer
+from .presentes_ata_paa_serializer import PresentesAtaPaaSerializer, PresentesAtaPaaCreateSerializer

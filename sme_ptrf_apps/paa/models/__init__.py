@@ -11,3 +11,5 @@ from .receita_prevista_pdde import ReceitaPrevistaPdde
 from .prioridade_paa import PrioridadePaa
 from .objetivo_paa import ObjetivoPaa
 from .atividade_estatutaria import AtividadeEstatutaria
+from .ata_paa import AtaPaa
+from .participante_ata_paa import ParticipanteAtaPaa

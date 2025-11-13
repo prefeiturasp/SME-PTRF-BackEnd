@@ -11,3 +11,5 @@ from .fonte_recurso_paa_viewset import FonteRecursoPaaViewSet
 from .prioridade_paa_viewset import PrioridadePaaViewSet, PrioridadePaaRelatorioViewSet
 from .objetivo_paa_viewset import ObjetivoPaaViewSet
 from .atividade_estatutaria_viewset import AtividadeEstatutariaViewSet
+from .ata_paa_viewset import AtaPaaViewSet
+from .presentes_ata_paa_viewset import PresentesAtaPaaViewSet
