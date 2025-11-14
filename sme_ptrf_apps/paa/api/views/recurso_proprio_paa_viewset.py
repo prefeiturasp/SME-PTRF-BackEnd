@@ -10,7 +10,7 @@ from waffle.mixins import WaffleFlagMixin
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.paa.models import RecursoProprioPaa
-from sme_ptrf_apps.paa.api.serializers import RecursoProprioPaaCreateSerializer, RecursoProprioPaaListSerializer
+from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import RecursoProprioPaaCreateSerializer, RecursoProprioPaaListSerializer
 
 
 class RecursoProprioPaaViewSet(WaffleFlagMixin, ModelViewSet):

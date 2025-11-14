@@ -63,15 +63,15 @@ class AtividadeEstatutariaSerializer(serializers.ModelSerializer):
         return StatusChoices(int(obj.status)).label
 
     def get_mes_label(self, obj):
-        return Mes(int(obj.mes)).label
+        return Mes(int(obj.mes)).label if obj.mes else ""
 
     def get_tipo_label(self, obj):
         return TipoAtividadeEstatutariaEnum[obj.tipo].value
 
     class Meta:
         model = AtividadeEstatutaria
-        fields = ('uuid', 'id', 'nome', 'status', 'tipo', 'mes', 'status_label', 'tipo_label', 'mes_label')
-        read_only_fields = ('uuid', 'id', 'status_label', 'tipo_label', 'mes_label')
+        fields = ('uuid', 'id', 'nome', 'status', 'tipo', 'mes', 'status_label', 'tipo_label', 'mes_label', 'paa')
+        read_only_fields = ('uuid', 'id', 'status_label', 'tipo_label', 'mes_label', 'paa')
         validators = [
             UniqueTogetherValidator(
                 queryset=AtividadeEstatutaria.objects.all(),

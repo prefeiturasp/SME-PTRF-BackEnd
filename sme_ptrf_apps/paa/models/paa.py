@@ -1,3 +1,4 @@
+from django.db.models import Sum
 from django.db import models
 from datetime import datetime
 from auditlog.models import AuditlogHistoryField
@@ -22,6 +23,9 @@ class Paa(ModeloBase):
     status = models.CharField(max_length=20, null=True, blank=True,
                               default=PaaStatusEnum.EM_ELABORACAO.name,
                               choices=PaaStatusEnum.choices())
+    objetivos = models.ManyToManyField('ObjetivoPaa', related_name='paas', blank=True)
+    atividades_estatutarias = models.ManyToManyField(
+        'AtividadeEstatutaria', through='AtividadeEstatutariaPaa', related_name='paas', blank=True)
 
     def periodo_paa_objeto(self):
         return self.periodo_paa
@@ -33,6 +37,10 @@ class Paa(ModeloBase):
     def set_descongelar_saldo(self):
         self.saldo_congelado_em = None
         self.save()
+
+    def get_total_recursos_proprios(self):
+        total = self.recursopropriopaa_set.aggregate(total=Sum('valor'))['total']
+        return total or 0
 
     class Meta:
         verbose_name = 'PAA'

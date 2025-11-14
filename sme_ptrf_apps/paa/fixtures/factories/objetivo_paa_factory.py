@@ -14,4 +14,4 @@ class ObjetivoPaaFactory(DjangoModelFactory):
 
     paa = SubFactory(PaaFactory)
     status = LazyFunction(lambda: fake.random_element([StatusChoices.ATIVO, StatusChoices.INATIVO]))
-    nome = Sequence(lambda n: fake.unique.word())
+    nome = Sequence(lambda n: f"{fake.word()}_{n}")

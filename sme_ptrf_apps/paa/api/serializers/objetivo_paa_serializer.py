@@ -3,6 +3,16 @@ from sme_ptrf_apps.paa.models import Paa, ObjetivoPaa
 from sme_ptrf_apps.paa.models.objetivo_paa import StatusChoices
 
 
+class ObjetivoPaaUpdateSerializer(serializers.Serializer):
+    objetivo = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=ObjetivoPaa.objects.all()
+    )
+    nome = serializers.CharField(required=False)
+    _destroy = serializers.BooleanField(required=False, default=False)
+
+
 class ObjetivoPaaSerializer(serializers.ModelSerializer):
     ERROR_MSG_NOME_JA_CADASTRADO = {"mensagem": "Já existe um objetivo cadastrado com este nome."}
 
