@@ -11,13 +11,11 @@ Funcionalidade: Cadastro tipo de transação
     E clico no botao "Adicionar tipo de transacao" da tela tipos de transacao
     E informo dado nos campos "<nome_tipo_de_transacao>" e "<tem_documento>" da tela tipo de transacao
     E clico no botao "Salvar" da tela tipos de transacao
-    # Quando sistema apresenta a '<mensagem>' na tela
-    # Entao excluo o tipo de transacao com o nome de "teste automatizado" do banco de dados
+    Quando sistema apresenta a '<mensagem>' na tela
+    Entao excluo o tipo de transacao com o nome de "teste automatizado" do banco de dados
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao | nome_tipo_de_transacao | tem_documento | mensagem                                                   | caso                                   |
-      | web          | Tipos de Transação          | teste automatizado     | true          | O tipo de transação foi adicionado ao sistema com sucesso. | tem documento sim incluido com sucesso |
-      | web          | Tipos de Transação          | teste automatizado     | false         | O tipo de transação foi adicionado ao sistema com sucesso. | tem documento nao incluido com sucesso |
       | web          | Tipos de Transação          |                        | false         | Nome é obrigatório                                         | com campo nome em branco.              |
 
   Esquema do Cenário: Validar cadastro de tipo de transação :<caso>
@@ -27,8 +25,8 @@ Funcionalidade: Cadastro tipo de transação
     E clico no botao "Adicionar tipo de transacao" da tela tipos de transacao
     E informo dado nos campos "<nome_tipo_de_transacao>" e "<tem_documento>" da tela tipo de transacao
     E clico no botao "Salvar" da tela tipos de transacao
-    # Quando sistema apresenta a '<mensagem>' na tela
-    # Entao excluo o tipo de transacao com o nome de "teste automatizado" do banco de dados
+    Quando sistema apresenta a '<mensagem>' na tela
+    Entao excluo o tipo de transacao com o nome de "teste automatizado" do banco de dados
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao | nome_tipo_de_transacao | tem_documento | mensagem                                                   | caso                                   |
