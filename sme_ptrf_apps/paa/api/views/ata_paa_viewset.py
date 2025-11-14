@@ -16,8 +16,8 @@ from drf_spectacular.utils import extend_schema_view
 
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComLeituraOuGravacao
 from sme_ptrf_apps.utils.choices_to_json import choices_to_json
-from sme_ptrf_apps.paa.models import AtaPaa
-from sme_ptrf_apps.paa.api.serializers.ata_paa_serializer import AtaPaaSerializer, AtaPaaCreateSerializer
+from sme_ptrf_apps.paa.models import AtaPaa, Paa
+from sme_ptrf_apps.paa.api.serializers.ata_paa_serializer import AtaPaaSerializer, AtaPaaCreateSerializer, AtaPaaLookUpSerializer
 from .docs.ata_paa_docs import DOCS
 
 
@@ -40,6 +40,35 @@ class AtaPaaViewSet(WaffleFlagMixin,
             return AtaPaaCreateSerializer
         else:
             return AtaPaaSerializer
+
+    @action(detail=False, methods=['get', 'post'], url_path='iniciar-ata',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def iniciar_ata(self, request):
+        paa_uuid = request.query_params.get('paa_uuid')
+        
+        if not paa_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário informar o uuid do PAA. ?paa_uuid=uuid_do_paa'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            paa = Paa.objects.get(uuid=paa_uuid)
+        except Paa.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto PAA para o uuid {paa_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        ata_paa = AtaPaa.iniciar(paa=paa)
+
+        if request.method == 'GET':
+            return Response(AtaPaaLookUpSerializer(ata_paa, many=False).data, status=status.HTTP_200_OK)
+        else:
+            return Response(AtaPaaSerializer(ata_paa, many=False).data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='download-arquivo-ata-paa',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
