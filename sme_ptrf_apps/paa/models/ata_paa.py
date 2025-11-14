@@ -138,7 +138,7 @@ class AtaPaa(ModeloBase):
 
     previa = models.BooleanField("É prévia?", default=False)
     
-    justificativa_repasses_pendentes = models.TextField('Justificativa repasses pendentes', blank=True, default='')
+    justificativa = models.TextField('Justificativa de rejeição', blank=True, default='')
       
     pdf_gerado_previamente = models.BooleanField("PDF gerado previamente", blank=True, default=False, help_text="O PDF já foi gerado e precisa ser regerado quando a ata é editada/apagada")
     
@@ -165,6 +165,21 @@ class AtaPaa(ModeloBase):
     def arquivo_pdf_nao_gerado(self):
         self.status_geracao_pdf = self.STATUS_NAO_GERADO
         self.save()
+
+    @classmethod
+    def iniciar(cls, paa):
+        ata_paa = cls.objects.filter(
+            paa=paa,
+            tipo_ata=cls.ATA_APRESENTACAO
+        ).first()
+
+        if ata_paa:
+            return ata_paa
+
+        return cls.objects.create(
+            paa=paa,
+            tipo_ata=cls.ATA_APRESENTACAO
+        )
 
     class Meta:
         verbose_name = "Ata PAA"

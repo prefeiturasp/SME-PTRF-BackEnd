@@ -8,7 +8,7 @@ import uuid
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("paa", "0020_paa_objetivos"),
+        ("paa", "0021_atapaa_participanteatapaa_and_more"),
     ]
 
     operations = [
@@ -75,7 +75,7 @@ class Migration(migrations.Migration):
             field=models.ManyToManyField(
                 blank=True, related_name="paas",
                 through="paa.AtividadeEstatutariaPaa",
-                to="paa.atividadeestatutariapaa",
+                to="paa.atividadeestatutaria",
             ),
         ),
     ]

@@ -24,7 +24,7 @@ class AtaPaaFactory(DjangoModelFactory):
     hora_reuniao = time(0, 0)
     local_reuniao = fake.city()
     comentarios = fake.sentence(nb_words=8)
-    justificativa_repasses_pendentes = ''
+    justificativa = ''
 
     previa = False
     pdf_gerado_previamente = False

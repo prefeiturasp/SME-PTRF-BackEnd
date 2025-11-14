@@ -30,5 +30,5 @@ def test_serializer(ata_paa):
     assert serializer.data['parecer_conselho']
     assert serializer.data['nome']
     assert serializer.data['hora_reuniao'] == "00:00"
-    assert serializer.data['justificativa_repasses_pendentes'] == ""
+    assert serializer.data['justificativa'] == ""
 
