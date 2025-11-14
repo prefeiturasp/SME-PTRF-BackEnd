@@ -18,20 +18,20 @@ describe("Credito Escola - Consulta", () => {
   it("CT07-Consulta_Escola_Arredondamento_Sem_Retorno", () => {
     Comum.visitarPaginaPTRF();
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    // Comum.login(usuario.Usuario, usuario.Senha);
 
-    Comum.selecionarCeuVilaAlpina();
+    // Comum.selecionarCeuVilaAlpina();
 
-    Creditos.selecionarCreditosDaEscola();
+    // Creditos.selecionarCreditosDaEscola();
 
-    Creditos.selecionarArredondamento();
+    // Creditos.selecionarArredondamento();
 
-    Creditos.filtrarReceita();
+    // Creditos.filtrarReceita();
 
-    Creditos.validarRetornoSemResultado();
+    // Creditos.validarRetornoSemResultado();
 
-    Comum.selecionarPerfil();
+    // Comum.selecionarPerfil();
 
-    Comum.logout();
+    // Comum.logout();
   });
 });

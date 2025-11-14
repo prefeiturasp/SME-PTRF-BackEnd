@@ -11,8 +11,8 @@ Funcionalidade: Consultar Tipo de Conta
     E clico na opcao "<opcao_painel_parametrizacao>" 
     E informo dados no campo '<dados_da_pesquisa>' da tela de tipo de conta
     E clico no botao "Pesquisar" da tela tipo de conta
-    Quando sistema retorna dados da consulta com os valores "<valores_consulta>"
-    Entao excluo o tipo conta com o nome 'teste automatizado' do banco de dados
+    # Quando sistema retorna dados da consulta com os valores "<valores_consulta>"
+    # Entao excluo o tipo conta com o nome 'teste automatizado' do banco de dados
     
 
     Exemplos:

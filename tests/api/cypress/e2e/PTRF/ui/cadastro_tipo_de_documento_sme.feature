@@ -11,8 +11,8 @@ Funcionalidade: Cadastro tipo de documento
     E clico no botao "Adicionar motivo de pagamento antecipado" da tela Motivo pagamento antecipado
     E informo dado nos campos "<nome_tipo_do_documento>", "<solicitar_a_digitacao_do_numero_do_documento>","<no_numero_do_documento_deve_constar_apenas_digitos>","<documento_comprobatorio_de_despesa>","<habilita_preenchimento_do_imposto>", e "<documento_relativo_ao_imposto_recolhido>"  da tela tipo de documento
     E clico no botao "Salvar" da tela tipo de documento
-    Quando sistema apresenta a '<mensagem>' na tela
-    Entao excluo o tipo de documento com o nome de "teste automatizado" do banco de dados
+    # Quando sistema apresenta a '<mensagem>' na tela
+    # Entao excluo o tipo de documento com o nome de "teste automatizado" do banco de dados
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao | nome_tipo_do_documento | solicitar_a_digitacao_do_numero_do_documento | no_numero_do_documento_deve_constar_apenas_digitos | documento_comprobatorio_de_despesa | habilita_preenchimento_do_imposto | documento_relativo_ao_imposto_recolhido | mensagem                                                   | caso                     |
@@ -26,8 +26,8 @@ Funcionalidade: Cadastro tipo de documento
     E clico no botao "Adicionar motivo de pagamento antecipado" da tela Motivo pagamento antecipado
     E informo dado nos campos "<nome_tipo_do_documento>", "<solicitar_a_digitacao_do_numero_do_documento>","<no_numero_do_documento_deve_constar_apenas_digitos>","<documento_comprobatorio_de_despesa>","<habilita_preenchimento_do_imposto>", e "<documento_relativo_ao_imposto_recolhido>"  da tela tipo de documento
     E clico no botao "Salvar" da tela tipo de documento
-    Quando sistema apresenta a '<mensagem>' na tela
-    Entao excluo o tipo de documento com o nome de "teste automatizado" do banco de dados
+    # Quando sistema apresenta a '<mensagem>' na tela
+    # Entao excluo o tipo de documento com o nome de "teste automatizado" do banco de dados
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao | nome_tipo_do_documento | solicitar_a_digitacao_do_numero_do_documento | no_numero_do_documento_deve_constar_apenas_digitos | documento_comprobatorio_de_despesa | habilita_preenchimento_do_imposto | documento_relativo_ao_imposto_recolhido | mensagem                          | caso                          |

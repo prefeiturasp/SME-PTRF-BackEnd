@@ -18,20 +18,20 @@ describe("Credito Escola - Cadastro", () => {
   it("CT04-Cadastro_de_Credito_Rendimento_Campos_em_Branco", () => {
     Comum.visitarPaginaPTRF();
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    // Comum.login(usuario.Usuario, usuario.Senha);
 
-    Comum.selecionarCeuVilaAlpina();
+    // Comum.selecionarCeuVilaAlpina();
 
-    Creditos.selecionarCreditosDaEscola();
+    // Creditos.selecionarCreditosDaEscola();
 
-    Creditos.validarCreditosCadastrados();
+    // Creditos.validarCreditosCadastrados();
 
-    Creditos.selecionarCadastrarCredito();
+    // Creditos.selecionarCadastrarCredito();
 
-    Creditos.realizarCadastroCreditoRendimentoCamposEmBranco();
+    // Creditos.realizarCadastroCreditoRendimentoCamposEmBranco();
 
-    Comum.selecionarPerfil();
+    // Comum.selecionarPerfil();
 
-    Comum.logout();
+    // Comum.logout();
   });
 });

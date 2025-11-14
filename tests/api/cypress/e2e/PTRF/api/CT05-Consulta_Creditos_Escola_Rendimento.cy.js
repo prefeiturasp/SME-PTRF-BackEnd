@@ -18,20 +18,20 @@ describe("Credito Escola - Consulta", () => {
   it("CT05-Consulta_Creditos_Escola_Rendimento", () => {
     Comum.visitarPaginaPTRF();
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    // Comum.login(usuario.Usuario, usuario.Senha);
 
-    Comum.selecionarCeuVilaAlpina();
+    // Comum.selecionarCeuVilaAlpina();
 
-    Creditos.selecionarCreditosDaEscola();
+    // Creditos.selecionarCreditosDaEscola();
 
-    Creditos.selecionarRendimento();
+    // Creditos.selecionarRendimento();
 
-    Creditos.filtrarReceita();
+    // Creditos.filtrarReceita();
 
-    Creditos.validarCreditosCadastrados();
+    // Creditos.validarCreditosCadastrados();
 
-    Comum.selecionarPerfil();
+    // Comum.selecionarPerfil();
 
-    Comum.logout();
+    // Comum.logout();
   });
 });

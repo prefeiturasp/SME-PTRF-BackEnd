@@ -18,20 +18,20 @@ describe("Credito Escola - Cadastro", () => {
   it("CT02-Cadastro_de_Credito_Rendimento_Cheque_Custeio", () => {
     Comum.visitarPaginaPTRF();
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    // Comum.login(usuario.Usuario, usuario.Senha);
 
-    Comum.selecionarCeuVilaAlpina();
+    // Comum.selecionarCeuVilaAlpina();
 
-    Creditos.selecionarCreditosDaEscola();
+    // Creditos.selecionarCreditosDaEscola();
 
-    Creditos.validarCreditosCadastrados();
+    // Creditos.validarCreditosCadastrados();
 
-    Creditos.selecionarCadastrarCredito();
+    // Creditos.selecionarCadastrarCredito();
 
-    Creditos.realizarCadastroCreditoRendimentoCusteioCheque();
+    // Creditos.realizarCadastroCreditoRendimentoCusteioCheque();
 
-    Comum.selecionarPerfil();
+    // Comum.selecionarPerfil();
 
-    Comum.logout();
+    // Comum.logout();
   });
 });

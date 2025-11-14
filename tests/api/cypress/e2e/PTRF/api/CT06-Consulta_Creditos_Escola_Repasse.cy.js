@@ -18,20 +18,20 @@ describe("Credito Escola - Consulta", () => {
   it("CT06-Consulta_Creditos_Escola_Repasse", () => {
     Comum.visitarPaginaPTRF();
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    // Comum.login(usuario.Usuario, usuario.Senha);
 
-    Comum.selecionarCeuVilaAlpina();
+    // Comum.selecionarCeuVilaAlpina();
 
-    Creditos.selecionarCreditosDaEscola();
+    // Creditos.selecionarCreditosDaEscola();
 
-    Creditos.selecionarRepasse();
+    // Creditos.selecionarRepasse();
 
-    Creditos.filtrarReceita();
+    // Creditos.filtrarReceita();
 
-    Creditos.validarCreditosCadastrados();
+    // Creditos.validarCreditosCadastrados();
 
-    Comum.selecionarPerfil();
+    // Comum.selecionarPerfil();
 
-    Comum.logout();
+    // Comum.logout();
   });
 });

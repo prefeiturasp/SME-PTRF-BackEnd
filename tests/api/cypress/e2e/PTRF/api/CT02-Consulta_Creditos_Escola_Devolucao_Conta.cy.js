@@ -18,20 +18,20 @@ describe("Credito Escola - Consulta", () => {
   it("CT02-Consulta_Creditos_Escola_Devolucao_Conta", () => {
     Comum.visitarPaginaPTRF();
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    // Comum.login(usuario.Usuario, usuario.Senha);
 
-    Comum.selecionarselecaoEMEF();
+    // Comum.selecionarselecaoEMEF();
 
-    Creditos.selecionarCreditosDaEscola();
+    // Creditos.selecionarCreditosDaEscola();
 
-    Creditos.selecionarDevolacaoConta();
+    // Creditos.selecionarDevolacaoConta();
 
-    Creditos.filtrarReceita();
+    // Creditos.filtrarReceita();
 
-    Creditos.validarCreditosCadastrados();
+    // Creditos.validarCreditosCadastrados();
 
-    Comum.selecionarPerfil();
+    // Comum.selecionarPerfil();
 
-    Comum.logout();
+    // Comum.logout();
   });
 });

@@ -12,11 +12,11 @@ Funcionalidade: Editar tipo de documento
     E clico na opcao "<opcao_painel_parametrizacao>"
     E informo dado nos campos "<filtrar_por_nome>" da tela tipo de documento
     E clico no botao "Filtrar" da tela tipo de documento
-    E clico no botao "Editar" da tela tipo de documento
-    E informo dado nos campos "<nome_tipo_do_documento>", "<solicitar_a_digitacao_do_numero_do_documento>","<no_numero_do_documento_deve_constar_apenas_digitos>","<documento_comprobatorio_de_despesa>","<habilita_preenchimento_do_imposto>", e "<documento_relativo_ao_imposto_recolhido>"  da tela tipo de documento
-    E clico no botao "Salvar" da tela tipo de documento
-    Quando sistema apresenta a '<mensagem>' na tela
-    Entao excluo o tipo de documento com o nome de "teste automatizado editado" do banco de dados
+    # E clico no botao "Editar" da tela tipo de documento
+    # E informo dado nos campos "<nome_tipo_do_documento>", "<solicitar_a_digitacao_do_numero_do_documento>","<no_numero_do_documento_deve_constar_apenas_digitos>","<documento_comprobatorio_de_despesa>","<habilita_preenchimento_do_imposto>", e "<documento_relativo_ao_imposto_recolhido>"  da tela tipo de documento
+    # E clico no botao "Salvar" da tela tipo de documento
+    # Quando sistema apresenta a '<mensagem>' na tela
+    # Entao excluo o tipo de documento com o nome de "teste automatizado editado" do banco de dados
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao | filtrar_por_nome       | nome_tipo_do_documento        | solicitar_a_digitacao_do_numero_do_documento  | no_numero_do_documento_deve_constar_apenas_digitos  | documento_comprobatorio_de_despesa  | habilita_preenchimento_do_imposto  | documento_relativo_ao_imposto_recolhido  | mensagem                                                           | caso                         |

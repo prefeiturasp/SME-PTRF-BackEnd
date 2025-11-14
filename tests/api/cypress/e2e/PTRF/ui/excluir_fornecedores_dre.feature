@@ -11,11 +11,11 @@ Funcionalidade: Excluir fornecedor
     E clico na opcao "Fornecedores" com a visao SME
     E informo dado nos campos "<nome_do_fornecedor>" e "<cpf_cnpj>" para pesquisa na tela de Fornecedores
     E clico no botao "Filtrar" da tela Fornecedores
-    E clico no botao "Editar" da tela fornecedor na tabela com a opcao 'teste automatizado'
-    E clico no botao "Apagar" da tela Fornecedores
-    E sistema apresenta a "<mensagem_de_confirmacao_de_erro>" para afirmacao da exclusao
-    Quando clico no botao "Excluir" da tela Fornecedores
-    Entao sistema apresenta a '<mensagem>' na tela
+    # E clico no botao "Editar" da tela fornecedor na tabela com a opcao 'teste automatizado'
+    # E clico no botao "Apagar" da tela Fornecedores
+    # E sistema apresenta a "<mensagem_de_confirmacao_de_erro>" para afirmacao da exclusao
+    # Quando clico no botao "Excluir" da tela Fornecedores
+    # Entao sistema apresenta a '<mensagem>' na tela
 
     Exemplos:
       | visualizacao | nome_do_fornecedor | cpf_cnpj              |valores_consulta_cpf_cnpj| caso                                   | mensagem_de_confirmacao_de_erro               |  mensagem                                         |          

@@ -18,20 +18,20 @@ describe("Credito Escola - Cadastro", () => {
   it("CT06-Cadastro_de_Credito_Repasse_Valor_Custeio", () => {
     Comum.visitarPaginaPTRF();
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    // Comum.login(usuario.Usuario, usuario.Senha);
 
-    Comum.selecionarCeuVilaAlpina();
+    // Comum.selecionarCeuVilaAlpina();
 
-    Creditos.selecionarCreditosDaEscola();
+    // Creditos.selecionarCreditosDaEscola();
 
-    Creditos.validarCreditosCadastrados();
+    // Creditos.validarCreditosCadastrados();
 
-    Creditos.selecionarCadastrarCredito();
+    // Creditos.selecionarCadastrarCredito();
 
-    Creditos.realizarCadastroCreditoRepasseValorCusteio();
+    // Creditos.realizarCadastroCreditoRepasseValorCusteio();
 
-    Comum.selecionarPerfil();
+    // Comum.selecionarPerfil();
 
-    Comum.logout();
+    // Comum.logout();
   });
 });

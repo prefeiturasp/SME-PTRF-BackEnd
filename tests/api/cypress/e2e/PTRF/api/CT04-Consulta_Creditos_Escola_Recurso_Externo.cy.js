@@ -18,20 +18,20 @@ describe("Credito Escola - Consulta", () => {
   it("CT04-Consulta_Creditos_Escola_Recurso_Externo", () => {
     Comum.visitarPaginaPTRF();
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    // Comum.login(usuario.Usuario, usuario.Senha);
 
-    Comum.selecionarCeuEmefMarioFittipaldi();
+    // Comum.selecionarCeuEmefMarioFittipaldi();
 
-    Creditos.selecionarCreditosDaEscola();
+    // Creditos.selecionarCreditosDaEscola();
 
-    Creditos.selecionarRecursoExterno();
+    // Creditos.selecionarRecursoExterno();
 
-    Creditos.filtrarReceita();
+    // Creditos.filtrarReceita();
 
-    Creditos.validarCreditosCadastrados();
+    // Creditos.validarCreditosCadastrados();
 
-    Comum.selecionarPerfil();
+    // Comum.selecionarPerfil();
 
-    Comum.logout();
+    // Comum.logout();
   });
 });

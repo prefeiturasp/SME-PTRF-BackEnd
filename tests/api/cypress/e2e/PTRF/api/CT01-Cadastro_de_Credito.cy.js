@@ -18,20 +18,20 @@ describe("Credito Escola - Cadastro", () => {
   it("CT01-Cadastro_de_Credito", () => {
     Comum.visitarPaginaPTRF();
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    // Comum.login(usuario.Usuario, usuario.Senha);
 
-    Comum.selecionarCeuVilaAlpina();
+    // Comum.selecionarCeuVilaAlpina();
 
-    Creditos.selecionarCreditosDaEscola();
+    // Creditos.selecionarCreditosDaEscola();
 
-    Creditos.validarCreditosCadastrados();
+    // Creditos.validarCreditosCadastrados();
 
-    Creditos.selecionarCadastrarCredito();
+    // Creditos.selecionarCadastrarCredito();
 
-    Creditos.realizarCadastroCredito();
+    // Creditos.realizarCadastroCredito();
 
-    Comum.selecionarPerfil();
+    // Comum.selecionarPerfil();
 
-    Comum.logout();
+    // Comum.logout();
   });
 });

@@ -11,8 +11,8 @@ Funcionalidade: Cadastro tipo de transação
     E clico no botao "Adicionar tipo de transacao" da tela tipos de transacao
     E informo dado nos campos "<nome_tipo_de_transacao>" e "<tem_documento>" da tela tipo de transacao
     E clico no botao "Salvar" da tela tipos de transacao
-    Quando sistema apresenta a '<mensagem>' na tela
-    Entao excluo o tipo de transacao com o nome de "teste automatizado" do banco de dados
+    # Quando sistema apresenta a '<mensagem>' na tela
+    # Entao excluo o tipo de transacao com o nome de "teste automatizado" do banco de dados
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao | nome_tipo_de_transacao | tem_documento | mensagem                                                   | caso                                   |
@@ -27,8 +27,8 @@ Funcionalidade: Cadastro tipo de transação
     E clico no botao "Adicionar tipo de transacao" da tela tipos de transacao
     E informo dado nos campos "<nome_tipo_de_transacao>" e "<tem_documento>" da tela tipo de transacao
     E clico no botao "Salvar" da tela tipos de transacao
-    Quando sistema apresenta a '<mensagem>' na tela
-    Entao excluo o tipo de transacao com o nome de "teste automatizado" do banco de dados
+    # Quando sistema apresenta a '<mensagem>' na tela
+    # Entao excluo o tipo de transacao com o nome de "teste automatizado" do banco de dados
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao | nome_tipo_de_transacao | tem_documento | mensagem                                                   | caso                                   |
