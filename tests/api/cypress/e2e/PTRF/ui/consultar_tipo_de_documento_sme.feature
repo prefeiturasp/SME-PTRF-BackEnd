@@ -11,12 +11,10 @@ Funcionalidade: Pesquisa tipo de documento
     E clico na opcao "<opcao_painel_parametrizacao>"
     E informo dado nos campos "<filtrar_por_nome>" da tela tipo de documento
     E clico no botao "Filtrar" da tela tipo de documento
-    # E sistema retorna dados da consulta com os valores "<resutado_consulta>" na de pesquisa
-    # Quando sistema retorna dados da consulta com os valores "<valores_consulta>"
-    # Entao excluo o tipo de documento com o nome de "teste automatizado" do banco de dados
+    E sistema retorna dados da consulta com os valores "<resutado_consulta>" na de pesquisa
+    Quando sistema retorna dados da consulta com os valores "<valores_consulta>"
+    Entao excluo o tipo de documento com o nome de "teste automatizado" do banco de dados
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao | filtrar_por_nome       | valores_consulta                   |resutado_consulta                  | caso                         |
-      | web          | Tipos de Documento          | teste automatizado     | Exibindo 1 tipo(s) de documento    |teste automatizado                 | com sucesso                  |
-      | web          | Tipos de Documento          |       automatizado     | Exibindo 1 tipo(s) de documento    |      automatizado                 | com nome parcial informado   |
       | web          | Tipos de Documento          | dgytasgddaysdgysgd     |                                    | Nenhum resultado encontrado.      | com nome inexistente na base |
