@@ -9,20 +9,22 @@ Cypress.Commands.add('validar_mensagens_comuns_do_sistema', (mensagem) => {
         'Digite um CPF / CNPJ válido',
 		'Nome do motivo é obrigatório',
 		'Este motivo de pagamento antecipado já existe.',
+		'Fornecedor com este CPF / CNPJ já existe.',
+		'Já existe um tipo de conta com esse nome.'
     ];
 
 	const mensagensErroNovoPadraoExclusao = [
-        'Tem certeza que deseja excluir esse tipo de documento?',
+        'Tem certeza que deseja excluir esse tipo de documento?'
     ];
 
 	const mensagensValidacao = [
 		'Este tipo de documento já existe.',
 		'Já existe um tipo de transação com esse nome',
-		'Deseja realmente excluir este tipo de transação?'
+		'Deseja realmente excluir este tipo de transação?',
 	]
 	
     const mensagensSucesso = [
-        'O fornecedor foi adicionado ao sistema com sucesso.',
+		'O fornecedor foi adicionado ao sistema com sucesso.',
         'O tipo de documento foi editado no sistema com sucesso.',
 		'Não foi possível criar o fornecedor',
 		'O fornecedor foi editado no sistema com sucesso.',
