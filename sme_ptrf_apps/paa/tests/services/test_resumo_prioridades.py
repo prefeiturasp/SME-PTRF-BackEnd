@@ -1,6 +1,5 @@
-import uuid
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from decimal import Decimal
 from rest_framework import serializers
@@ -64,16 +63,18 @@ def test_calcula_saldos(resumo_recursos_paa):
 
 
 @pytest.mark.django_db
-@patch("sme_ptrf_apps.core.api.serializers.AcaoAssociacaoRetrieveSerializer")
-def test_calcula_node_ptrf(mock_serializer, resumo_recursos_paa):
-    mock_serializer.return_value.data = [
-        {
-            "uuid": str(uuid.uuid4()),
-            "acao": {"nome": "PTRF Teste"},
-            "receitas_previstas_paa": [],
-            "saldos": {}
-        }
-    ]
+def test_calcula_node_ptrf(resumo_recursos_paa):
+    from sme_ptrf_apps.paa.fixtures.factories import ReceitaPrevistaPaaFactory
+    from sme_ptrf_apps.core.fixtures.factories.acao_associacao_factory import AcaoAssociacaoFactory
+    acao_associacao = AcaoAssociacaoFactory.create(associacao=resumo_recursos_paa.associacao)
+    ReceitaPrevistaPaaFactory.create(
+        paa=resumo_recursos_paa,
+        acao_associacao=acao_associacao,
+        previsao_valor_custeio=1001,
+        previsao_valor_capital=1002,
+        previsao_valor_livre=1003
+    )
+
     service = ResumoPrioridadesService(paa=resumo_recursos_paa)
 
     result = service.calcula_node_ptrf()
@@ -82,6 +83,9 @@ def test_calcula_node_ptrf(mock_serializer, resumo_recursos_paa):
     assert result["recurso"] == "PTRF Total"
     assert isinstance(result["children"], list)
     assert result["children"][0]["recurso"].startswith("PTRF")
+    assert result["children"][0]["custeio"] == Decimal(1001)
+    assert result["children"][0]["capital"] == Decimal(1002)
+    assert result["children"][0]["livre_aplicacao"] == Decimal(1003)
 
 
 @pytest.mark.django_db
