@@ -49,8 +49,8 @@ class AtaPaa(ModeloBase):
     PARECER_REJEITADA = 'REJEITADA'
 
     PARECER_NOMES = {
-        PARECER_APROVADA: 'Aprovada',
-        PARECER_REJEITADA: 'Rejeitada',
+        PARECER_APROVADA: 'Aprovado',
+        PARECER_REJEITADA: 'Rejeitado',
     }
 
     PARECER_CHOICES = (
