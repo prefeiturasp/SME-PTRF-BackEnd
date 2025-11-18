@@ -11,13 +11,13 @@ from django.db.models.deletion import ProtectedError
 import django_filters
 from waffle.mixins import WaffleFlagMixin
 
-from sme_ptrf_apps.paa.models import AcaoPdde, ReceitaPrevistaPdde, Paa, PeriodoPaa
+from sme_ptrf_apps.paa.models import AcaoPdde, ReceitaPrevistaPdde, PeriodoPaa
 from ..serializers.acao_pdde_serializer import AcaoPddeSerializer
 from ..serializers.receita_prevista_pdde_serializer import ReceitasPrevistasPDDEValoresSerializer
 
 from ....core.api.utils.pagination import CustomPagination
 
-from sme_ptrf_apps.users.permissoes import PermissaoAPIApenasSmeComLeituraOuGravacao, PermissaoApiUe
+from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 
 
 class AcaoPddeFiltro(django_filters.FilterSet):
@@ -42,7 +42,7 @@ class AcaoPddeFiltro(django_filters.FilterSet):
 
 class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
-    permission_classes = [IsAuthenticated, PermissaoAPIApenasSmeComLeituraOuGravacao]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = AcaoPdde.objects.all().filter(status=AcaoPdde.STATUS_ATIVA).order_by('nome')
     serializer_class = AcaoPddeSerializer
@@ -143,11 +143,14 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
         try:
             obj = self.get_object()
             periodo_vigente = PeriodoPaa.periodo_vigente()
-            receitas_previstas_periodo_vigente = obj.receitaprevistapdde_set.filter(paa__periodo_paa=periodo_vigente).exists()
-        
+            receitas_previstas_periodo_vigente = obj.receitaprevistapdde_set.filter(
+                paa__periodo_paa=periodo_vigente).exists()
+
             if receitas_previstas_periodo_vigente:
                 return Response(
-                    {"detail": "Esta ação PDDE não pode ser excluída porque está sendo utilizada em um Plano Anual de Atividades (PAA)."},
+                    {"detail": (
+                        "Esta ação PDDE não pode ser excluída porque está sendo utilizada em "
+                        "um Plano Anual de Atividades (PAA).")},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             else:
@@ -155,7 +158,7 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
         except ProtectedError:
             obj.status = AcaoPdde.STATUS_INATIVA
             obj.save()
-            
+
             content = {
                 'erro': 'ProtectedError',
                 'mensagem': 'Ação PDDE excluída com sucesso.'
