@@ -14,6 +14,7 @@ class AtividadeEstatutaria(ModeloBase):
                             choices=TipoAtividadeEstatutariaEnum.choices())
     mes = models.IntegerField('Mês', choices=Mes.choices, blank=False, null=True)
     status = models.BooleanField(choices=StatusChoices.choices, default=StatusChoices.ATIVO)
+    paa = models.ForeignKey('paa.Paa', on_delete=models.PROTECT, verbose_name="PAA", blank=True, null=True)
 
     def __str__(self):
         return self.nome

@@ -14,7 +14,7 @@ Cypress.Commands.add('clicar_btn_fornecedores', (btn_fornecedores, nome_tabela_e
 			cy.get(fornecedores_Localizadores.btn_apagar_fornecedores()).click()
 			break
 		case 'Editar':
-			cy.get(fornecedores_Localizadores.tbl_tabela_nome_edicao_fornecedores(nome_tabela_edicao)).find(fornecedores_Localizadores.btn_editar_fornecedores()).click()
+			cy.get(fornecedores_Localizadores.btn_editar_fornecedores()).click()
 			break
 		case 'Excluir':
 			cy.get(fornecedores_Localizadores.btn_excluir_fornecedores()).click()

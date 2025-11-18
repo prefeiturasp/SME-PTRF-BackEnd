@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.db.models import Sum
 from rest_framework import serializers
 from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
+from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
 import logging
 logger = logging.getLogger(__name__)
 
@@ -95,8 +96,11 @@ class ResumoPrioridadesService:
                     de previsão ou saldo atual
                     :param acao_associacao_data: Dado de uma Acao Associacao serializado
                 """
+                qs_receitas_previstas_da_acao = self.paa.receitaprevistapaa_set.filter(
+                    acao_associacao__acao__uuid=str(acao_associacao_data['acao']['uuid'])
+                )
                 # Verificar se existe retorno de receitas previstas em Acao Associacao
-                receitas_previstas_paa = acao_associacao_data.get('receitas_previstas_paa', [])
+                receitas_previstas_paa = ReceitaPrevistaPaaSerializer(qs_receitas_previstas_da_acao, many=True).data
                 receitas_previstas_paa = receitas_previstas_paa[0] if len(receitas_previstas_paa) else {}
                 return receitas_previstas_paa
 
@@ -168,6 +172,7 @@ class ResumoPrioridadesService:
                 previsao_valor = Decimal(receitas_previstas_paa.get('previsao_valor_livre', None) or 0)
                 saldo_congelado = Decimal(receitas_previstas_paa.get('saldo_congelado_livre', None) or 0)
                 saldo_atual = Decimal(saldos.get('saldo_atual_livre', None) or 0)
+                saldo_atual = 0 if saldo_atual < 0 else saldo_atual
 
                 valor = calcular_saldos_congelado_atual_previsao(saldo_congelado, saldo_atual, previsao_valor)
 
@@ -473,7 +478,7 @@ class ResumoPrioridadesService:
                     - Node 3: Saldo
         """
 
-        from sme_ptrf_apps.paa.api.serializers import RecursoProprioPaaListSerializer
+        from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import RecursoProprioPaaListSerializer
 
         # Queryset Somente de Prioridades do PAA de Recursos Próprios
         prioridades_recurso_proprio_qs = self.paa.prioridadepaa_set.filter(
@@ -695,7 +700,7 @@ class ResumoPrioridadesService:
                         {'mensagem': 'Item de Recursos Próprios não encontrado no resumo de prioridades.'})
                 acao_data = recurso_data['children'][0]
             else:
-                acao_data = next((acao for acao in recurso_data.get('children', []) if acao.get('key') == acao_uuid), {}) # noqa
+                acao_data = next((acao for acao in recurso_data.get('children', []) if acao.get('key') == acao_uuid), {})  # noqa
                 if not acao_data:
                     raise serializers.ValidationError({'mensagem': 'Ação não encontrada no resumo de prioridades.'})
 
@@ -723,7 +728,7 @@ class ResumoPrioridadesService:
             valores_despesa = {
                 'custeio': Decimal(str(despesa_data.get('custeio', 0))) if despesa_data else Decimal('0'),
                 'capital': Decimal(str(despesa_data.get('capital', 0))) if despesa_data else Decimal('0'),
-                'livre_aplicacao': Decimal(str(despesa_data.get('livre_aplicacao', 0))) if despesa_data else Decimal('0') # noqa
+                'livre_aplicacao': Decimal(str(despesa_data.get('livre_aplicacao', 0))) if despesa_data else Decimal('0')  # noqa
             }
 
             # Ajusta despesas se for atualização

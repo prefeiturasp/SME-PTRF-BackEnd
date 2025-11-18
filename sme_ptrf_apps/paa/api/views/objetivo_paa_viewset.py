@@ -50,7 +50,7 @@ class ObjetivoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
-    queryset = ObjetivoPaa.objects.all().order_by('nome')
+    queryset = ObjetivoPaa.objects.filter(paa__isnull=True).order_by('nome')
     serializer_class = ObjetivoPaaSerializer
     http_method_names = ["get", "post", "patch", "delete"]
     pagination_class = CustomPagination
