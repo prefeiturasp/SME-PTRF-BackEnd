@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.db.models import Sum
 from rest_framework import serializers
 from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
+from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
 import logging
 logger = logging.getLogger(__name__)
 
@@ -95,8 +96,11 @@ class ResumoPrioridadesService:
                     de previsão ou saldo atual
                     :param acao_associacao_data: Dado de uma Acao Associacao serializado
                 """
+                qs_receitas_previstas_da_acao = self.paa.receitaprevistapaa_set.filter(
+                    acao_associacao__acao__uuid=str(acao_associacao_data['acao']['uuid'])
+                )
                 # Verificar se existe retorno de receitas previstas em Acao Associacao
-                receitas_previstas_paa = acao_associacao_data.get('receitas_previstas_paa', [])
+                receitas_previstas_paa = ReceitaPrevistaPaaSerializer(qs_receitas_previstas_da_acao, many=True).data
                 receitas_previstas_paa = receitas_previstas_paa[0] if len(receitas_previstas_paa) else {}
                 return receitas_previstas_paa
 
@@ -168,6 +172,7 @@ class ResumoPrioridadesService:
                 previsao_valor = Decimal(receitas_previstas_paa.get('previsao_valor_livre', None) or 0)
                 saldo_congelado = Decimal(receitas_previstas_paa.get('saldo_congelado_livre', None) or 0)
                 saldo_atual = Decimal(saldos.get('saldo_atual_livre', None) or 0)
+                saldo_atual = 0 if saldo_atual < 0 else saldo_atual
 
                 valor = calcular_saldos_congelado_atual_previsao(saldo_congelado, saldo_atual, previsao_valor)
 
