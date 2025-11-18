@@ -70,7 +70,7 @@ def test_create_presente_ata_paa_professor_gremio(jwt_authenticated_client_sme, 
     assert result['professor_gremio'] is True
 
 
-def test_create_presente_ata_paa_professor_gremio_nao_pode_ser_presidente(
+def test_create_presente_ata_paa_professor_gremio_pode_ser_presidente(
     jwt_authenticated_client_sme,
     flag_paa,
     ata_paa
@@ -93,12 +93,14 @@ def test_create_presente_ata_paa_professor_gremio_nao_pode_ser_presidente(
         content_type='application/json'
     )
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_201_CREATED
     result = json.loads(response.content)
-    assert 'professor_gremio' in result
+    assert result['professor_gremio'] is True
+    ata_paa.refresh_from_db()
+    assert str(ata_paa.presidente_da_reuniao.uuid) == result['uuid']
 
 
-def test_create_presente_ata_paa_professor_gremio_nao_pode_ser_secretario(
+def test_create_presente_ata_paa_professor_gremio_pode_ser_secretario(
     jwt_authenticated_client_sme,
     flag_paa,
     ata_paa
@@ -121,9 +123,11 @@ def test_create_presente_ata_paa_professor_gremio_nao_pode_ser_secretario(
         content_type='application/json'
     )
 
-    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.status_code == status.HTTP_201_CREATED
     result = json.loads(response.content)
-    assert 'professor_gremio' in result
+    assert result['professor_gremio'] is True
+    ata_paa.refresh_from_db()
+    assert str(ata_paa.secretario_da_reuniao.uuid) == result['uuid']
 
 
 @patch('sme_ptrf_apps.paa.api.views.presentes_ata_paa_viewset.TerceirizadasService.get_informacao_servidor')

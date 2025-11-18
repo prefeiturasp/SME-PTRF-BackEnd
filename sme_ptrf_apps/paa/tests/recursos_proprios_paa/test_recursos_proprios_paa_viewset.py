@@ -104,11 +104,11 @@ def test_exclui_recurso_proprio_paa(jwt_authenticated_client_sme, flag_paa, recu
 
 
 @pytest.mark.django_db
-def test_obter_total_recurso_proprio_paa(jwt_authenticated_client_sme, flag_paa, recurso_proprio_paa_factory):
-    recurso_proprio_paa_factory.create(descricao="ABC 004", valor=100.00)
-    recurso_proprio_paa_factory.create(descricao="ABC 005", valor=200.00)
-    recurso_proprio_paa_factory.create(descricao="ABC 006", valor=300.00)
-    recurso_proprio_paa_factory.create(descricao="ABC 007", valor=150.00)
+def test_obter_total_recurso_proprio_paa(jwt_authenticated_client_sme, flag_paa, recurso_proprio_paa_factory, paa, fonte_recurso_paa, associacao):
+    recurso_proprio_paa_factory.create(descricao="ABC 004", valor=100.00, paa=paa, fonte_recurso=fonte_recurso_paa, associacao=associacao)
+    recurso_proprio_paa_factory.create(descricao="ABC 005", valor=200.00, paa=paa, fonte_recurso=fonte_recurso_paa, associacao=associacao)
+    recurso_proprio_paa_factory.create(descricao="ABC 006", valor=300.00, paa=paa, fonte_recurso=fonte_recurso_paa, associacao=associacao)
+    recurso_proprio_paa_factory.create(descricao="ABC 007", valor=150.00, paa=paa, fonte_recurso=fonte_recurso_paa, associacao=associacao)
 
     response = jwt_authenticated_client_sme.get("/api/recursos-proprios-paa/total/")
     assert response.status_code == status.HTTP_200_OK

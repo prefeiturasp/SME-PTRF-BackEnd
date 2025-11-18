@@ -29,18 +29,6 @@ class PresentesAtaPaaCreateSerializer(serializers.ModelSerializer):
     secretario_da_reuniao = serializers.BooleanField(required=False, allow_null=True)
 
     def validate(self, attrs):
-        """
-        Valida que professor do grêmio não pode ser presidente nem secretário.
-        """
-        professor_gremio = attrs.get('professor_gremio', False)
-        presidente = attrs.get('presidente_da_reuniao', False)
-        secretario = attrs.get('secretario_da_reuniao', False)
-
-        if professor_gremio and (presidente or secretario):
-            raise serializers.ValidationError({
-                'professor_gremio': 'O professor do grêmio não pode ser presidente nem secretário da reunião.'
-            })
-
         return attrs
 
     def create(self, validated_data):
@@ -81,5 +69,5 @@ class PresentesAtaPaaCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ParticipanteAtaPaa
-        fields = ('ata_paa', 'identificacao', 'nome', 'cargo', 'membro', 'presente', 'presidente_da_reuniao', 'secretario_da_reuniao', 'conselho_fiscal', 'professor_gremio')
+        fields = ('uuid', 'ata_paa', 'identificacao', 'nome', 'cargo', 'membro', 'presente', 'presidente_da_reuniao', 'secretario_da_reuniao', 'conselho_fiscal', 'professor_gremio')
 

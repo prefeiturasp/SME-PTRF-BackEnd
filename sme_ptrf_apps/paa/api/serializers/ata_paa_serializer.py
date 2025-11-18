@@ -117,12 +117,6 @@ class AtaPaaCreateSerializer(serializers.ModelSerializer):
                 for presente in presentes_na_ata_paa:
                     presidente = presente.get('presidente_da_reuniao', False)
                     secretario = presente.get('secretario_da_reuniao', False)
-                    professor_gremio = presente.get('professor_gremio', False)
-                    
-                    if professor_gremio and (presidente or secretario):
-                        raise serializers.ValidationError({
-                            'presentes_na_ata_paa': 'O professor do grêmio não pode ser presidente nem secretário da reunião.'
-                        })
                     
                     presente_sem_cargos = presente.copy()
                     presente_sem_cargos.pop('presidente_da_reuniao', None)
@@ -205,12 +199,6 @@ class AtaPaaCreateSerializer(serializers.ModelSerializer):
                 for presente in presentes_json:
                     presidente = presente.get('presidente_da_reuniao', False)
                     secretario = presente.get('secretario_da_reuniao', False)
-                    professor_gremio = presente.get('professor_gremio', False)
-                    
-                    if professor_gremio and (presidente or secretario):
-                        raise serializers.ValidationError({
-                            'presentes_na_ata_paa': 'O professor do grêmio não pode ser presidente nem secretário da reunião.'
-                        })
 
                     presente_sem_cargos = presente.copy()
                     presente_sem_cargos.pop('presidente_da_reuniao', None)
