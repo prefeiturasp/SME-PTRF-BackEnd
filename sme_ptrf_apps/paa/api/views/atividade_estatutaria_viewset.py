@@ -54,7 +54,7 @@ class AtividadeEstatutariaViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
-    queryset = AtividadeEstatutaria.objects.all().order_by('mes', 'nome')
+    queryset = AtividadeEstatutaria.objects.filter(paa__isnull=True).order_by('mes', 'nome')
     serializer_class = AtividadeEstatutariaSerializer
     http_method_names = ["get", "post", "patch", "delete"]
     pagination_class = CustomPagination

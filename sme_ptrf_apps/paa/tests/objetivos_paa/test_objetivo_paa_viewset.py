@@ -72,23 +72,6 @@ def test_list_objetivos_paa_filtro_inativo(
 
 
 @pytest.mark.django_db
-def test_list_objetivos_paa_filtro_paa_uuid(
-        jwt_authenticated_client_sme, flag_paa, objetivo_paa_ativo, objetivo_paa_inativo, objetivo_paa_sem_paa):
-
-    response = jwt_authenticated_client_sme.get(f"/api/objetivos-paa/?paa__uuid={objetivo_paa_ativo.paa.uuid}")
-    result = response.json()
-    assert response.status_code == status.HTTP_200_OK
-    assert 'results' in result
-    assert len(result['results']) == 1
-    assert 'count' in result
-    assert result['count'] == 1
-    assert 'next' in result['links']
-    assert result['links']['next'] is None
-    assert 'previous' in result['links']
-    assert result['links']['previous'] is None
-
-
-@pytest.mark.django_db
 def test_list_objetivos_paa_filtro_nome_exact(
         jwt_authenticated_client_sme, flag_paa, objetivo_paa_ativo, objetivo_paa_inativo, objetivo_paa_sem_paa):
 
@@ -175,7 +158,7 @@ def test_cria_objetivo_paa_com_sucesso(jwt_authenticated_client_sme, flag_paa, p
 
 @pytest.mark.django_db
 def test_patch_objetivo(jwt_authenticated_client_sme, objetivo_paa_factory):
-    obj = objetivo_paa_factory.create(nome="Antigo Nome")
+    obj = objetivo_paa_factory.create(nome="Antigo Nome", paa=None)
     url = reverse("api:objetivos-paa-detail", args=[obj.uuid])
     response = jwt_authenticated_client_sme.patch(url, {"nome": "Nome Atualizado"}, format="json")
     assert response.status_code == status.HTTP_200_OK
@@ -185,7 +168,7 @@ def test_patch_objetivo(jwt_authenticated_client_sme, objetivo_paa_factory):
 
 @pytest.mark.django_db
 def test_delete_objetivo(jwt_authenticated_client_sme, objetivo_paa_factory):
-    obj = objetivo_paa_factory.create(nome="A Deletar")
+    obj = objetivo_paa_factory.create(nome="A Deletar", paa=None)
     url = reverse("api:objetivos-paa-detail", args=[obj.uuid])
     response = jwt_authenticated_client_sme.delete(url)
     assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -194,8 +177,8 @@ def test_delete_objetivo(jwt_authenticated_client_sme, objetivo_paa_factory):
 
 @pytest.mark.django_db
 def test_filtrar_por_status(jwt_authenticated_client_sme, objetivo_paa_factory):
-    objetivo_paa_factory.create(nome="Ativo", status=StatusChoices.ATIVO)
-    objetivo_paa_factory.create(nome="Inativo", status=StatusChoices.INATIVO)
+    objetivo_paa_factory.create(nome="Ativo", status=StatusChoices.ATIVO, paa=None)
+    objetivo_paa_factory.create(nome="Inativo", status=StatusChoices.INATIVO, paa=None)
 
     url = reverse("api:objetivos-paa-list")
     response = jwt_authenticated_client_sme.get(url, {"status": StatusChoices.ATIVO})

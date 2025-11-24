@@ -2,6 +2,8 @@ import logging
 
 from datetime import datetime
 from django.http import Http404
+from django.db.models import Q
+from django.db.models.functions import Lower
 
 from waffle.mixins import WaffleFlagMixin
 from rest_framework.exceptions import NotFound
@@ -195,3 +197,53 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
                 many=True).data
 
         return Response(serializer_acao_associacao.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='objetivos',
+            permission_classes=[IsAuthenticated])
+    def objetivos_disponiveis(self, request, uuid=None):
+        from sme_ptrf_apps.paa.api.serializers.objetivo_paa_serializer import ObjetivoPaaSerializer
+        from sme_ptrf_apps.paa.models.objetivo_paa import ObjetivoPaa
+
+        paa = self.get_object()
+
+        objetivos = ObjetivoPaa.objects.filter(Q(paa__isnull=True) | Q(paa=paa)).order_by(Lower("nome"))
+
+        serializer = ObjetivoPaaSerializer(objetivos, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='atividades-estatutarias-disponiveis',
+            permission_classes=[IsAuthenticated])
+    def atividades_estatutarias_disponiveis(self, request, uuid=None):
+        from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_serializer import AtividadeEstatutariaSerializer
+        from sme_ptrf_apps.paa.models.atividade_estatutaria import AtividadeEstatutaria
+
+        paa = self.get_object()
+
+        objetivos = AtividadeEstatutaria.objects.filter(Q(paa__isnull=True) | Q(paa=paa)).order_by(Lower("nome"))
+
+        serializer = AtividadeEstatutariaSerializer(objetivos, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='atividades-estatutarias-previstas',
+            permission_classes=[IsAuthenticated])
+    def atividades_estatutarias_previstas(self, request, uuid=None):
+        from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_paa_serializer import AtividadeEstatutariaPaaSerializer
+
+        paa = self.get_object()
+
+        serializer = AtividadeEstatutariaPaaSerializer(paa.atividadeestatutariapaa_set.all(), many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='recursos-proprios-previstos',
+            permission_classes=[IsAuthenticated])
+    def recursos_proprios_previstos(self, request, uuid=None):
+        from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import RecursoProprioPaaListSerializer
+
+        paa = self.get_object()
+
+        serializer = RecursoProprioPaaListSerializer(paa.recursopropriopaa_set.all(), many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)

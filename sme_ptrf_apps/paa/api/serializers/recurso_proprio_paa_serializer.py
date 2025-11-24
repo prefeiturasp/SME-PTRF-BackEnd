@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.models import FonteRecursoPaa, RecursoProprioPaa, Paa
-from sme_ptrf_apps.paa.api.serializers import FonteRecursoPaaSerializer
+from sme_ptrf_apps.paa.api.serializers.fonte_recurso_paa_serializer import FonteRecursoPaaSerializer
 
 
 class RecursoProprioPaaCreateSerializer(serializers.ModelSerializer):

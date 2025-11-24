@@ -12,11 +12,13 @@ def test_criacao(atividade_estatutaria_factory):
     atividade_estatutaria_factory.create(
         status=StatusChoices.ATIVO,
         mes=Mes.JANEIRO,
-        tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name)
+        tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name,
+        paa=None)
     atividade_estatutaria_factory.create(
         status=StatusChoices.INATIVO,
         mes=Mes.FEVEREIRO,
-        tipo=TipoAtividadeEstatutariaEnum.EXTRAORDINARIA.name
+        tipo=TipoAtividadeEstatutariaEnum.EXTRAORDINARIA.name,
+        paa=None
     )
     assert AtividadeEstatutaria.objects.filter(
         status=True,
@@ -99,10 +101,12 @@ def test_status_pode_ser_ativo_inativo(atividade_estatutaria_factory):
     atividade_ativo = atividade_estatutaria_factory.create(
         nome="atividade ATIVO",
         status=StatusChoices.ATIVO,
+        paa=None
     )
     atividade_inativo = atividade_estatutaria_factory.create(
         nome="atividade INATIVO",
         status=StatusChoices.INATIVO,
+        paa=None
     )
 
     assert atividade_ativo.status == StatusChoices.ATIVO
@@ -116,7 +120,8 @@ def test_mes_pode_ser_1_a_12(atividade_estatutaria_factory):
         atividades.append(atividade_estatutaria_factory.create(
             nome=f"atividade {mes}",
             status=StatusChoices.ATIVO,
-            mes=mes
+            mes=mes,
+            paa=None
         ))
     for atividade in atividades:
         assert atividade.mes in range(1, 13)
@@ -129,26 +134,30 @@ def test_nome_mes_tipo_devem_ser_unico(atividade_estatutaria_factory):
     atividade_estatutaria_factory.create(
         nome="Único",
         mes=Mes.JANEIRO,
-        tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name)
+        tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name,
+        paa=None),
 
     atividade_estatutaria_factory.create(
         nome="Único",
         mes=Mes.FEVEREIRO,
-        tipo=TipoAtividadeEstatutariaEnum.EXTRAORDINARIA.name)
+        tipo=TipoAtividadeEstatutariaEnum.EXTRAORDINARIA.name,
+        paa=None)
 
     with pytest.raises(IntegrityError):
         with transaction.atomic():
             atividade_estatutaria_factory.create(
                 nome="Único",
                 mes=Mes.JANEIRO,
-                tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name)
+                tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name,
+                paa=None)
 
     with pytest.raises(IntegrityError):
         with transaction.atomic():
             atividade_estatutaria_factory.create(
                 nome="Único",
                 mes=Mes.FEVEREIRO,
-                tipo=TipoAtividadeEstatutariaEnum.EXTRAORDINARIA.name)
+                tipo=TipoAtividadeEstatutariaEnum.EXTRAORDINARIA.name,
+                paa=None)
 
     assert AtividadeEstatutaria.objects.filter(tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name).count() == 1
     assert AtividadeEstatutaria.objects.filter(tipo=TipoAtividadeEstatutariaEnum.EXTRAORDINARIA.name).count() == 1

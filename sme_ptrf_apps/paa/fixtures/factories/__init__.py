@@ -11,3 +11,5 @@ from .receitas_previstas_pdde_factory import *
 from .prioridade_paa_factory import *
 from .objetivo_paa_factory import *
 from .atividade_estatutaria_factory import *
+from .ata_paa_factory import *
+from .atividade_estatutaria_paa_factory import *

@@ -25,6 +25,19 @@ def test_list_default_prioridade_paa(jwt_authenticated_client_sme, flag_paa):
 
 
 @pytest.mark.django_db
+def test_list_default_prioridade_paa_relatorio(jwt_authenticated_client_sme, flag_paa):
+    response = jwt_authenticated_client_sme.get("/api/prioridades-paa-relatorio/")
+    result = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert "results" in result
+    assert len(result["results"]) == 0
+    assert "count" in result
+    assert result["count"] == 0
+    assert "links" not in result
+
+
+@pytest.mark.django_db
 def test_list_ordenacao_customizada_prioridade_paa(
         jwt_authenticated_client_sme, flag_paa, paa, programa_pdde, acao_pdde, acao_associacao):
 
@@ -109,6 +122,75 @@ def test_list_ordenacao_customizada_prioridade_paa(
 
     # Item 3 deve estar no ranking 6
     assert result['results'][5]['uuid'] == str(item3.uuid)
+
+
+@pytest.mark.django_db
+def test_list_ordenacao_customizada_prioridade_paa_relatorio(
+    jwt_authenticated_client_sme, flag_paa, paa, programa_pdde, acao_pdde, acao_associacao
+):
+    item1 = PrioridadePaaFactory(
+        paa=paa,
+        prioridade=0,
+        recurso=RecursoOpcoesEnum.PTRF.name,
+        acao_associacao=acao_associacao,
+        acao_pdde=None,
+    )
+    item2 = PrioridadePaaFactory(
+        paa=paa,
+        prioridade=0,
+        recurso=RecursoOpcoesEnum.PDDE.name,
+        acao_associacao=None,
+        acao_pdde=acao_pdde,
+        programa_pdde=programa_pdde,
+    )
+    item3 = PrioridadePaaFactory(
+        paa=paa,
+        prioridade=0,
+        recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name,
+        acao_associacao=None,
+        acao_pdde=None,
+        programa_pdde=None,
+    )
+    item4 = PrioridadePaaFactory(
+        paa=paa,
+        prioridade=1,
+        recurso=RecursoOpcoesEnum.PTRF.name,
+        acao_associacao=acao_associacao,
+        acao_pdde=None,
+    )
+    item5 = PrioridadePaaFactory(
+        paa=paa,
+        prioridade=1,
+        recurso=RecursoOpcoesEnum.PDDE.name,
+        acao_associacao=None,
+        acao_pdde=acao_pdde,
+        programa_pdde=programa_pdde,
+    )
+    item6 = PrioridadePaaFactory(
+        paa=paa,
+        prioridade=1,
+        recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name,
+        acao_associacao=None,
+        acao_pdde=None,
+        programa_pdde=None,
+    )
+
+    response = jwt_authenticated_client_sme.get("/api/prioridades-paa-relatorio/")
+    result = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert "results" in result
+    assert len(result["results"]) == 6
+    assert "count" in result
+    assert result["count"] == 6
+    assert "links" not in result
+
+    assert result["results"][0]["uuid"] == str(item4.uuid)
+    assert result["results"][1]["uuid"] == str(item5.uuid)
+    assert result["results"][2]["uuid"] == str(item6.uuid)
+    assert result["results"][3]["uuid"] == str(item1.uuid)
+    assert result["results"][4]["uuid"] == str(item2.uuid)
+    assert result["results"][5]["uuid"] == str(item3.uuid)
 
 
 @pytest.mark.django_db
@@ -229,23 +311,32 @@ def test_cria_prioridade_paa_recurso_proprio_capital(mock_resumo, jwt_authentica
                     'key': 'item_recursos',
                     'children': [
                         {
+                            'key': 'item_recursos_receita',
                             'recurso': 'Receita',
                             'custeio': 0,
                             'capital': 0,
-                            'livre_aplicacao': 1000.00
+                            'livre_aplicacao': 0
                         },
                         {
+                            'key': 'item_recursos_despesas',
                             'recurso': 'Despesas previstas',
                             'custeio': 0,
                             'capital': 0,
                             'livre_aplicacao': 0
+                        },
+                        {
+                            'key': 'item_recursos_saldo',
+                            'recurso': 'Saldo',
+                            'custeio': 0,
+                            'capital': 0,
+                            'livre_aplicacao': 20
                         }
                     ]
                 }
             ]
         }
     ]
-    
+
     data = {
         "paa": str(paa.uuid),
         "prioridade": 1,
@@ -297,23 +388,33 @@ def test_altera_prioridade_custeio_para_capital_com_sucesso(mock_resumo, jwt_aut
                     'key': str(prioridade_paa_ptrf_custeio.acao_associacao.uuid),
                     'children': [
                         {
+                            'key': f'{str(prioridade_paa_ptrf_custeio.acao_associacao.uuid)}_receita',
                             'recurso': 'Receita',
                             'custeio': 1000.00,
                             'capital': 1000.00,
                             'livre_aplicacao': 500.00
                         },
                         {
+                            'key': f'{str(prioridade_paa_ptrf_custeio.acao_associacao.uuid)}_despesa',
                             'recurso': 'Despesas previstas',
                             'custeio': 100.00,
                             'capital': 50.00,
                             'livre_aplicacao': 0
-                        }
+                        },
+                        {
+                            'key': f'{str(prioridade_paa_ptrf_custeio.acao_associacao.uuid)}_saldo',
+                            'recurso': 'Saldo',
+                            'custeio': 100.00,
+                            'capital': 50.00,
+                            'livre_aplicacao': 0
+                        },
+
                     ]
                 }
             ]
         }
     ]
-    
+
     prioridade_paa = prioridade_paa_ptrf_custeio
     payload = {
         "paa": str(prioridade_paa.paa.uuid),

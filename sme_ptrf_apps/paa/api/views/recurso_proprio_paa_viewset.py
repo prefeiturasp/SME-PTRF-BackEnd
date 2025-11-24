@@ -7,12 +7,15 @@ from rest_framework.response import Response
 from django.db.models import Sum
 import django_filters
 from waffle.mixins import WaffleFlagMixin
+from drf_spectacular.utils import extend_schema_view
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.paa.models import RecursoProprioPaa
-from sme_ptrf_apps.paa.api.serializers import RecursoProprioPaaCreateSerializer, RecursoProprioPaaListSerializer
+from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import RecursoProprioPaaCreateSerializer, RecursoProprioPaaListSerializer
+from .docs.recurso_proprio_paa_docs import DOCS
 
 
+@extend_schema_view(**DOCS)
 class RecursoProprioPaaViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated]

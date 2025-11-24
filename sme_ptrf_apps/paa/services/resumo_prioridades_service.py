@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.db.models import Sum
 from rest_framework import serializers
 from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
+from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
 import logging
 logger = logging.getLogger(__name__)
 
@@ -9,28 +10,6 @@ logger = logging.getLogger(__name__)
 class ResumoPrioridadesService:
     def __init__(self, paa):
         self.paa = paa
-
-    def calcula_despesa_livre_aplicacao(self, despesa_custeio, despesa_capital, receita_custeio, receita_capital):
-        """
-            Calcula a despesa livre de aplicação com base na diferença de valores das receitas e despesas informadas.
-
-            A lógica utilizada é a seguinte:
-            - Se a receita de custeio for menor que a despesa de custeio,
-            subtrai a despesa de custeio da receita de custeio e soma a diferença à
-            coluna Livre Aplicação de Despesas.(de onde será utilizado o valor não suprido pela receita)
-            - De forma igual, também, para receitas e despesas de capital
-        """
-        despesa_livre = 0
-
-        # Soma a diferença à coluna Livre Aplicação de Despesas quando não há valor suficiente de receitas para Custeio
-        diferenca_custeio = receita_custeio - despesa_custeio
-        despesa_livre += (diferenca_custeio * -1) if diferenca_custeio <= 0 else 0
-
-        # Soma a diferença à coluna Livre Aplicação de Despesas quando não há valor suficiente de receitas para Capital
-        diferenca_capital = receita_capital - despesa_capital
-        despesa_livre += (diferenca_capital * -1) if diferenca_capital <= 0 else 0
-
-        return despesa_livre
 
     def calcula_saldos(self, key, receitas, despesas) -> dict:
         """
@@ -50,20 +29,33 @@ class ResumoPrioridadesService:
         total_custeio = receitas['custeio'] - despesas['custeio']
         total_custeio = total_custeio if total_custeio > 0 else 0
 
-        # O valor total de capitral não deve exibir o saldo negativo (considerando que a diferença seja
+        # O valor total de capital não deve exibir o saldo negativo (considerando que a diferença seja
         #  utilizada, também, em livre aplicação)
         total_capital = receitas['capital'] - despesas['capital']
         total_capital = total_capital if total_capital > 0 else 0
 
-        # Calculo do total de Livre Aplicação
-        total_livre = receitas['livre_aplicacao'] - despesas['livre_aplicacao']
+        # Calcular os valores excedentes entre receitas (-) despesas = (se negativo) descontar de livre aplicacao
+        descontar_de_livre_aplicacao = 0
+
+        # Soma a diferença à coluna Livre Aplicação de Despesas quando não há valor suficiente de receitas para Custeio
+        diferenca_custeio = receitas['custeio'] - despesas['custeio']
+        # Diferença para descontar de livre aplicação (se negativo)
+        descontar_de_livre_aplicacao += (diferenca_custeio * -1) if diferenca_custeio <= 0 else 0
+
+        # Soma a diferença à coluna Livre Aplicação de Despesas quando não há valor suficiente de receitas para Capital
+        diferenca_capital = receitas['capital'] - despesas['capital']
+        # Diferença para descontar de livre aplicação (se negativo)
+        descontar_de_livre_aplicacao += (diferenca_capital * -1) if diferenca_capital <= 0 else 0
+
+        # Calculo do total de Livre Aplicação (valor inputado em receitas previstas (-) as diferenças calculadas acima)
+        total_livre = receitas['livre_aplicacao'] - descontar_de_livre_aplicacao
 
         return {
             'key': key + '_' + 'saldo',
             "recurso": 'Saldo',
-            "custeio": total_custeio,
-            "capital": total_capital,
-            "livre_aplicacao": total_livre,
+            "custeio": round(total_custeio, 2),
+            "capital": round(total_capital, 2),
+            "livre_aplicacao": round(total_livre, 2)
         }
 
     def calcula_node_ptrf(self) -> dict:
@@ -95,8 +87,11 @@ class ResumoPrioridadesService:
                     de previsão ou saldo atual
                     :param acao_associacao_data: Dado de uma Acao Associacao serializado
                 """
+                qs_receitas_previstas_da_acao = self.paa.receitaprevistapaa_set.filter(
+                    acao_associacao__acao__uuid=str(acao_associacao_data['acao']['uuid'])
+                )
                 # Verificar se existe retorno de receitas previstas em Acao Associacao
-                receitas_previstas_paa = acao_associacao_data.get('receitas_previstas_paa', [])
+                receitas_previstas_paa = ReceitaPrevistaPaaSerializer(qs_receitas_previstas_da_acao, many=True).data
                 receitas_previstas_paa = receitas_previstas_paa[0] if len(receitas_previstas_paa) else {}
                 return receitas_previstas_paa
 
@@ -168,6 +163,7 @@ class ResumoPrioridadesService:
                 previsao_valor = Decimal(receitas_previstas_paa.get('previsao_valor_livre', None) or 0)
                 saldo_congelado = Decimal(receitas_previstas_paa.get('saldo_congelado_livre', None) or 0)
                 saldo_atual = Decimal(saldos.get('saldo_atual_livre', None) or 0)
+                saldo_atual = 0 if saldo_atual < 0 else saldo_atual
 
                 valor = calcular_saldos_congelado_atual_previsao(saldo_congelado, saldo_atual, previsao_valor)
 
@@ -211,25 +207,12 @@ class ResumoPrioridadesService:
                 total=Sum('valor_total')
             ).get('total') or 0
 
-            receita_custeio = receitas['custeio']
-            receita_capital = receitas['capital']
-
-            # "O sistema deve exibir nas despesas previstas o valor total das
-            # prioridades cadastradas de Capital e Custeio que utilizaram o saldo de Livre Aplicação"
-            despesa_livre = 0
-
-            despesa_livre += self.calcula_despesa_livre_aplicacao(
-                despesa_custeio,
-                despesa_capital,
-                receita_custeio,
-                receita_capital
-            )
             return {
                 'key': item.get('uuid') + '_' + 'despesa',
                 "recurso": 'Despesas previstas',
                 "custeio": despesa_custeio,
                 "capital": despesa_capital,
-                "livre_aplicacao": despesa_livre,
+                "livre_aplicacao": 0,
             }
 
         # Estrutura do Node Pai para montagem de tabela de hierarquias no frontend
@@ -344,27 +327,12 @@ class ResumoPrioridadesService:
                 total=Sum('valor_total')
             ).get('total') or 0
 
-            receita_custeio = receitas['custeio']
-
-            receita_capital = receitas['capital']
-
-            # "O sistema deve exibir nas despesas previstas o valor total das
-            # prioridades cadastradas de Capital e Custeio que utilizaram o saldo de Livre Aplicação"
-            despesa_livre = 0
-
-            despesa_livre += self.calcula_despesa_livre_aplicacao(
-                despesa_custeio,
-                despesa_capital,
-                receita_custeio,
-                receita_capital
-            )
-
             return {
                 'key': item.get('uuid') + '_' + 'despesa',
                 "recurso": 'Despesas previstas',
                 "custeio": despesa_custeio,
                 "capital": despesa_capital,
-                "livre_aplicacao": despesa_livre,
+                "livre_aplicacao": 0,
             }
 
         # Estrutura do Node Pai para montagem de tabela de hierarquias no frontend
@@ -473,7 +441,7 @@ class ResumoPrioridadesService:
                     - Node 3: Saldo
         """
 
-        from sme_ptrf_apps.paa.api.serializers import RecursoProprioPaaListSerializer
+        from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import RecursoProprioPaaListSerializer
 
         # Queryset Somente de Prioridades do PAA de Recursos Próprios
         prioridades_recurso_proprio_qs = self.paa.prioridadepaa_set.filter(
@@ -547,26 +515,12 @@ class ResumoPrioridadesService:
                 total=Sum('valor_total')
             ).get('total') or 0
 
-            receita_custeio = receitas['custeio']
-
-            receita_capital = receitas['capital']
-
-            # "O sistema deve exibir nas despesas previstas o valor total das
-            # prioridades cadastradas de Capital e Custeio que utilizaram o saldo de Livre Aplicação"
-            despesa_livre = 0
-
-            despesa_livre += self.calcula_despesa_livre_aplicacao(
-                despesa_custeio,
-                despesa_capital,
-                receita_custeio,
-                receita_capital
-            )
             return {
                 'key': item.get('uuid') + '_' + 'despesa',
                 "recurso": 'Despesas previstas',
                 "custeio": despesa_custeio,
                 "capital": despesa_capital,
-                "livre_aplicacao": despesa_livre,
+                "livre_aplicacao": 0,
             }
 
         # Estrutura do Node Pai para montagem de tabela de hierarquias no frontend
@@ -653,8 +607,8 @@ class ResumoPrioridadesService:
 
         return dados
 
-    def validar_valor_prioridade(self, valor_total, acao_uuid, tipo_aplicacao, recurso, prioridade_uuid=None,
-                                 valor_atual_prioridade=None):
+    def validar_valor_prioridade_temp(self, valor_total, acao_uuid, tipo_aplicacao, recurso, prioridade_uuid=None,
+                                      valor_atual_prioridade=None):
         """
         Valida se o valor da prioridade não excede os valores disponíveis de receita.
 
@@ -695,7 +649,7 @@ class ResumoPrioridadesService:
                         {'mensagem': 'Item de Recursos Próprios não encontrado no resumo de prioridades.'})
                 acao_data = recurso_data['children'][0]
             else:
-                acao_data = next((acao for acao in recurso_data.get('children', []) if acao.get('key') == acao_uuid), {}) # noqa
+                acao_data = next((acao for acao in recurso_data.get('children', []) if acao.get('key') == acao_uuid), {})  # noqa
                 if not acao_data:
                     raise serializers.ValidationError({'mensagem': 'Ação não encontrada no resumo de prioridades.'})
 
@@ -723,7 +677,7 @@ class ResumoPrioridadesService:
             valores_despesa = {
                 'custeio': Decimal(str(despesa_data.get('custeio', 0))) if despesa_data else Decimal('0'),
                 'capital': Decimal(str(despesa_data.get('capital', 0))) if despesa_data else Decimal('0'),
-                'livre_aplicacao': Decimal(str(despesa_data.get('livre_aplicacao', 0))) if despesa_data else Decimal('0') # noqa
+                'livre_aplicacao': Decimal(str(despesa_data.get('livre_aplicacao', 0))) if despesa_data else Decimal('0')  # noqa
             }
 
             # Ajusta despesas se for atualização
@@ -777,7 +731,6 @@ class ResumoPrioridadesService:
                     valor_disponivel = saldo_capital + saldo_livre
                 else:
                     valor_disponivel = Decimal('0')
-
             if valor_prioridade > valor_disponivel:
                 raise serializers.ValidationError(
                     {'mensagem': 'O valor indicado para a prioridade excede o valor disponível de receita prevista.'}
@@ -787,3 +740,135 @@ class ResumoPrioridadesService:
             raise
         except Exception as e:
             logger.error(f"Erro ao validar valor da prioridade: {str(e)}")
+
+    def validar_valor_prioridade(self, valor_total, acao_uuid, tipo_aplicacao, recurso, prioridade_uuid=None,
+                                 valor_atual_prioridade=None):
+        """
+        Valida se o valor da prioridade não excede os valores disponíveis de receita.
+
+        Args:
+            valor_total (Decimal): Valor total da prioridade em formulário de cadastro/Edição
+            acao_uuid (str): UUID da ação (associação ou PDDE) - pode ser None para Recursos Próprios
+            tipo_aplicacao (str): Tipo de aplicação (CUSTEIO ou CAPITAL)
+            recurso (str): Tipo de recurso (PTRF, PDDE ou RECURSO_PROPRIO)
+            prioridade_uuid (str, optional): UUID da prioridade sendo atualizada (para exclusão do cálculo)
+            valor_atual_prioridade (Decimal, optional): Valor atual da prioridade sendo atualizada
+
+        Raises:
+            serializers.ValidationError: Se o valor exceder os recursos disponíveis
+        """
+
+        def obtem_saldos(recurso_data, key_acao):
+            """
+            Obtém o saldo total disponível para uma ação.
+
+            O saldo total é calculado somando o valor da instância em edição, o valor do Livre Aplicação e
+            os valores de custeio e capital (de acordo com o tipo de aplicacao [CUSTEIO ou CAPITAL]).
+
+            Parâmetros:
+                recurso_data (dict): Dicionário com os dados da key do recurso [PTRF, PDDE ou RECURSO_PROPRIO]
+                key_acao (str): UUID da ação (associação ou PDDE), em caso de Recursos Próprios,
+                este valor recebe 'item_recursos'
+
+            Retorna:
+                Decimal: Saldo total disponível para a ação
+            """
+            # Obtem o Node [PTRF, PDDE ou RECURSO_PROPRIO]
+            node_acao_data = next(
+                (item for item in recurso_data.get('children', []) if item.get('key') == key_acao), {})
+            # Obter a linha de saldos da ação
+            saldos_resumo = next((
+                item for item in node_acao_data.get(
+                    'children', []) if item.get('key') == '{}_{}'.format(key_acao, 'saldo')), {})
+
+            # Valida se os saldos foram encontrados
+            if not saldos_resumo:
+                raise serializers.ValidationError(
+                    {'mensagem': f'Saldos de recursos {recurso} não encontrados no resumo de prioridades.'})
+
+            # inicializa o saldo de Livre Aplicação
+            saldo_disponivel = saldos_resumo.get('livre_aplicacao')
+            logger.info(f"Inicializando saldo disponível de livre aplicacao | acao_uuid={acao_uuid}, tipo_aplicacao={tipo_aplicacao}, recurso={recurso}, saldo_livre_aplicacao={saldos_resumo.get('livre_aplicacao')}")  # noqa
+
+            # Considera o valor da instância em edição para compor o saldo
+            if prioridade_uuid:
+                # Considera no saldo o valor da instância em edição
+                logger.info(f"Adicionando valor da prioridade instance | acao_uuid={acao_uuid}, tipo_aplicacao={tipo_aplicacao}, recurso={recurso}, valor_instance={valor_atual_prioridade}, prioridade_uuid={prioridade_uuid}")  # noqa
+                saldo_disponivel += valor_atual_prioridade
+
+            # Considera o saldo de Custeio quando tipo de aplicação for CUSTEIO
+            if tipo_aplicacao == TipoAplicacaoOpcoesEnum.CUSTEIO.name:
+                logger.info(f"Adicionando saldo de custeio | acao_uuid={acao_uuid}, tipo_aplicacao={tipo_aplicacao}, recurso={recurso}, saldo_custeio={saldos_resumo.get('custeio')}")  # noqa
+                saldo_disponivel += Decimal(saldos_resumo.get('custeio'))
+
+            # Considera o saldo de Capital quando tipo de aplicação for CAPITAL
+            if tipo_aplicacao == TipoAplicacaoOpcoesEnum.CAPITAL.name:
+                logger.info(f"Adicionando saldo de capital | acao_uuid={acao_uuid}, tipo_aplicacao={tipo_aplicacao}, recurso={recurso}, saldo_custeio={saldos_resumo.get('capital')}")  # noqa
+                saldo_disponivel += Decimal(saldos_resumo.get('capital'))
+
+            logger.info(f"Saldo disponível calculado | acao_uuid={acao_uuid}, tipo_aplicacao={tipo_aplicacao}, recurso={recurso}, saldo_custeio={saldo_disponivel}")  # noqa
+            return round(saldo_disponivel, 2)
+
+        # Validação de parâmetros
+        if not valor_total or not tipo_aplicacao or not recurso:
+            logger.error(f"Erro ao validar valor da prioridade: Parâmetros inválidos | valor_total={valor_total}, acao_uuid={acao_uuid}, tipo_aplicacao={tipo_aplicacao}, recurso={recurso}")  # noqa
+            return
+
+        try:
+            # Obtém o resumo de prioridades
+            resumo_data = self.resumo_prioridades()
+
+            # Busca o recurso no resumo de prioridades
+            recurso_data = next((item for item in resumo_data if item.get('key') == recurso), {})
+
+            # Erro quando não encontra o NODE do recurso
+            if not recurso_data:
+                raise serializers.ValidationError(
+                    {
+                        'mensagem': 'Recurso não encontrado no resumo de prioridades.',
+                        'detail': recurso,
+                    })
+
+            if recurso == RecursoOpcoesEnum.PTRF.name:
+                saldo_disponivel = obtem_saldos(recurso_data, acao_uuid)
+                if saldo_disponivel < valor_total:
+                    raise serializers.ValidationError(
+                        {
+                            'mensagem': (
+                                'O valor indicado para a prioridade excede o valor disponível de receita prevista.'),
+                            'detail': saldo_disponivel
+                        })
+                else:
+                    return saldo_disponivel
+
+            if recurso == RecursoOpcoesEnum.PDDE.name:
+                saldo_disponivel = obtem_saldos(recurso_data, acao_uuid)
+                if saldo_disponivel < valor_total:
+                    raise serializers.ValidationError(
+                        {
+                            'mensagem': (
+                                'O valor indicado para a prioridade excede o valor disponível de receita prevista.'),
+                            'detail': saldo_disponivel
+                        })
+                else:
+                    return saldo_disponivel
+
+            if recurso == RecursoOpcoesEnum.RECURSO_PROPRIO.name:
+                saldo_disponivel = obtem_saldos(recurso_data, 'item_recursos')
+                if saldo_disponivel < valor_total:
+                    raise serializers.ValidationError(
+                        {
+                            'mensagem': (
+                                'O valor indicado para a prioridade excede o valor disponível de receita prevista.'),
+                            'detail': saldo_disponivel
+                        })
+                else:
+                    return saldo_disponivel
+            return
+
+        except serializers.ValidationError as ex:
+            logger.error(f"ValidationError ao validar valor da prioridade: {str(ex)}")
+            raise
+        except Exception as e:
+            logger.error(f"Erro ao validar valor da prioridade: {str(e)}")
+            raise

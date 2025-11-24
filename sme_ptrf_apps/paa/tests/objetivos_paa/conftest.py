@@ -11,8 +11,8 @@ def objetivo_paa_admin():
 
 
 @pytest.fixture
-def objetivo_paa_ativo(paa):
-    return baker.make('ObjetivoPaa', nome="Objetivo 1", status=True, paa=paa)
+def objetivo_paa_ativo():
+    return baker.make('ObjetivoPaa', nome="Objetivo 1", status=True, paa=None)
 
 
 @pytest.fixture
