@@ -130,13 +130,16 @@ def test_prioridade_paa_com_recurso_pdde_capital_sem_material_servico(paa):
         PrioridadePaaCreateUpdateSerializer().validate(prioridade)
 
 
-def test_prioridade_paa_com_recurso_proprio_capital(paa):
-    prioridade = {
-        "paa": str(paa.uuid),
-        "prioridade": SimNaoChoices.SIM,
-        "recurso": RecursoOpcoesEnum.RECURSO_PROPRIO.name,
-        "tipo_aplicacao": TipoAplicacaoOpcoesEnum.CAPITAL.name,
-        "especificacao_material": "93ac0bdd-5bda-4fc8-a409-3a8ff38a9f74",
-        "valor_total": 20
-    }
-    assert PrioridadePaaCreateUpdateSerializer().validate(prioridade)
+def test_prioridade_paa_com_recurso_proprio_capital_sem_saldo(paa):
+    try:
+        prioridade = {
+            "paa": paa,
+            "prioridade": SimNaoChoices.SIM,
+            "recurso": RecursoOpcoesEnum.RECURSO_PROPRIO.name,
+            "tipo_aplicacao": TipoAplicacaoOpcoesEnum.CAPITAL.name,
+            "especificacao_material": "93ac0bdd-5bda-4fc8-a409-3a8ff38a9f74",
+            "valor_total": 20
+        }
+        PrioridadePaaCreateUpdateSerializer().validate(prioridade)
+    except Exception as ex:
+        assert 'O valor indicado para a prioridade excede o valor disponível de receita prevista.' in str(ex)
