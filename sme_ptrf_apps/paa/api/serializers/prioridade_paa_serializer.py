@@ -161,8 +161,9 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
             valor_atual_prioridade = None
             if self.instance and hasattr(self.instance, 'uuid'):
                 prioridade_uuid = str(self.instance.uuid)
-                valor_atual_prioridade = self.instance.valor_total
 
+                # OR 0 evita os registros de Cópia com valores = None
+                valor_atual_prioridade = self.instance.valor_total or 0
             resumo_service.validar_valor_prioridade(
                 attrs.get('valor_total'),
                 acao_uuid,
