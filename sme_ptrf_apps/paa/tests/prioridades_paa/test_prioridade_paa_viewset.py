@@ -311,23 +311,32 @@ def test_cria_prioridade_paa_recurso_proprio_capital(mock_resumo, jwt_authentica
                     'key': 'item_recursos',
                     'children': [
                         {
+                            'key': 'item_recursos_receita',
                             'recurso': 'Receita',
                             'custeio': 0,
                             'capital': 0,
-                            'livre_aplicacao': 1000.00
+                            'livre_aplicacao': 0
                         },
                         {
+                            'key': 'item_recursos_despesas',
                             'recurso': 'Despesas previstas',
                             'custeio': 0,
                             'capital': 0,
                             'livre_aplicacao': 0
+                        },
+                        {
+                            'key': 'item_recursos_saldo',
+                            'recurso': 'Saldo',
+                            'custeio': 0,
+                            'capital': 0,
+                            'livre_aplicacao': 20
                         }
                     ]
                 }
             ]
         }
     ]
-    
+
     data = {
         "paa": str(paa.uuid),
         "prioridade": 1,
@@ -379,23 +388,33 @@ def test_altera_prioridade_custeio_para_capital_com_sucesso(mock_resumo, jwt_aut
                     'key': str(prioridade_paa_ptrf_custeio.acao_associacao.uuid),
                     'children': [
                         {
+                            'key': f'{str(prioridade_paa_ptrf_custeio.acao_associacao.uuid)}_receita',
                             'recurso': 'Receita',
                             'custeio': 1000.00,
                             'capital': 1000.00,
                             'livre_aplicacao': 500.00
                         },
                         {
+                            'key': f'{str(prioridade_paa_ptrf_custeio.acao_associacao.uuid)}_despesa',
                             'recurso': 'Despesas previstas',
                             'custeio': 100.00,
                             'capital': 50.00,
                             'livre_aplicacao': 0
-                        }
+                        },
+                        {
+                            'key': f'{str(prioridade_paa_ptrf_custeio.acao_associacao.uuid)}_saldo',
+                            'recurso': 'Saldo',
+                            'custeio': 100.00,
+                            'capital': 50.00,
+                            'livre_aplicacao': 0
+                        },
+
                     ]
                 }
             ]
         }
     ]
-    
+
     prioridade_paa = prioridade_paa_ptrf_custeio
     payload = {
         "paa": str(prioridade_paa.paa.uuid),
