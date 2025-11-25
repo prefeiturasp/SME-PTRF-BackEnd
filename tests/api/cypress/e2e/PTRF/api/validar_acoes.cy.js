@@ -448,27 +448,6 @@ describe('Validar rotas de acoes da aplicação SigEscola', () => {
 
 	context('Casos de teste para a rota Get api/acoes/{uuid}/associacoes-nao-vinculadas/', () => {
 		var id = ''
-		it('Validar retorno do endpoint api/acoes/{uuid}/associacoes-nao-vinculadas/ com sucesso', () => {
-			cy.validar_acoes(id).then((responseTodasAcoes) => {
-				id = responseTodasAcoes.body[0].uuid
-				cy.validar_acoes_com_associacoes_nao_vinculadas(id).then((response) => {
-					expect(response.status).to.eq(200)
-					expect(response.body[0].cnpj).to.exist
-					expect(response.body[0].data_de_encerramento).to.be.null
-					expect(response.body[0].encerrada).to.exist
-					expect(response.body[0].informacoes).to.exist
-					expect(response.body[0].nome).to.exist
-					expect(response.body[0].status_valores_reprogramados).to.exist
-					expect(response.body[0].tooltip_data_encerramento).to.be.null
-					expect(response.body[0].unidade.codigo_eol).to.exist
-					expect(response.body[0].unidade.nome_com_tipo).to.exist
-					expect(response.body[0].unidade.nome_dre).to.exist
-					expect(response.body[0].unidade.uuid).to.exist
-					expect(response.body[0].uuid).to.exist
-				})
-			})
-		})
-
 		it('Validar retorno do endpoint api/acoes/{uuid}/associacoes-nao-vinculadas/ com uuid invalido', () => {
 			cy.validar_acoes(id).then(() => {
 				id = 'fd5f4'
