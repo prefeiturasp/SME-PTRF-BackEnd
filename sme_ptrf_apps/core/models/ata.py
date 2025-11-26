@@ -196,16 +196,30 @@ class Ata(ModeloBase):
         
         flags = get_waffle_flag_model()
         if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
-            esta_completa = (
+            # Verifica campos básicos comuns
+            esta_completa = bool(
                 self.tipo_ata and
                 self.tipo_reuniao and
                 self.convocacao and
                 self.data_reuniao and
                 self.local_reuniao and
-                self.presidente_da_reuniao and
-                self.secretario_da_reuniao and
                 self.hora_reuniao
             )
+
+            # Verifica se tem os novos campos OU os campos legados
+            tem_novos_campos = bool(self.presidente_da_reuniao and self.secretario_da_reuniao)
+            
+            if not tem_novos_campos:
+                # Caso legado: verifica apenas se os campos antigos estão preenchidos
+                tem_campos_legados = bool(
+                    self.presidente_reuniao and
+                    self.cargo_presidente_reuniao and
+                    self.secretario_reuniao and
+                    self.cargo_secretaria_reuniao
+                )
+                
+                if not tem_campos_legados:
+                    esta_completa = False
 
             if tem_repasses_pendentes_periodos_ate_agora(associacao=self.associacao, periodo=self.periodo):
                 esta_completa = esta_completa and self.justificativa_repasses_pendentes

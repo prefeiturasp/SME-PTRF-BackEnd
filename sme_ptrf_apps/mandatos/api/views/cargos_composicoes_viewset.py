@@ -85,14 +85,15 @@ class CargosComposicoesViewSet(
         except Composicao.DoesNotExist:
             return Response({"erro": "Composição não encontrada."}, status=status.HTTP_404_NOT_FOUND)
         except MultipleObjectsReturned:
-            return Response(
-                {"erro": "Mais de uma composição encontrada para a data informada."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            # Quando há múltiplas composições, retorna a última (maior ID = mais recente)
+            composicao = Composicao.objects.filter(
+                associacao=associacao,
+                data_inicial__lte=data,
+                data_final__gte=data
+            ).order_by('-id').first()
         
         servico_cargos_da_composicao = ServicoCargosOcupantesComposicao()
         
         ocupantes = servico_cargos_da_composicao.get_ocupantes_ordenados_por_cargo(composicao=composicao)
-        
 
         return Response(ocupantes, status=status.HTTP_200_OK)
