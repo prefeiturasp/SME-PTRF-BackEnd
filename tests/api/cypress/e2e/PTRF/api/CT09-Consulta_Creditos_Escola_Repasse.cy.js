@@ -15,23 +15,9 @@ Cypress.on("uncaught:exception", (err, runnable) => {
 });
 
 describe("Credito Escola - Consulta", () => {
-  it("CT07-Consulta_Escola_Arredondamento_Sem_Retorno", () => {
+  it("CT09-Consulta_Creditos_Escola_Repasse", () => {
     Comum.visitarPaginaPTRF();
 
-    // Comum.login(usuario.Usuario, usuario.Senha);
-
-    // Comum.selecionarCeuVilaAlpina();
-
-    // Creditos.selecionarCreditosDaEscola();
-
-    // Creditos.selecionarArredondamento();
-
-    // Creditos.filtrarReceita();
-
-    // Creditos.validarRetornoSemResultado();
-
-    // Comum.selecionarPerfil();
-
-    // Comum.logout();
+    Comum.login(usuario.Usuario, usuario.Senha);
   });
 });

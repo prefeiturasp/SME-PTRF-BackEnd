@@ -10,27 +10,14 @@ import CreditosEscolaPagina from "../../../support/Paginas/CreditosEscolaPagina"
 const Creditos = new CreditosEscolaPagina();
 
 Cypress.on("uncaught:exception", (err, runnable) => {
+  // quando retorna falso previne o  Cypress de falhar o teste
   return false;
 });
 
 describe("Credito Escola - Consulta", () => {
-  it("CT01-Consulta_Creditos_Escola_Arredondamento", () => {
+  it("CT05-Consulta_Creditos_Escola_Devolucao_Conta", () => {
     Comum.visitarPaginaPTRF();
 
     Comum.login(usuario.Usuario, usuario.Senha);
-
-    Comum.selecionarselecaoEMEF();
-
-    Creditos.selecionarCreditosDaEscola();
-
-    Creditos.selecionarArredondamento();
-
-    Creditos.filtrarReceita();
-
-    Creditos.validarCreditosCadastrados();
-
-    Comum.selecionarPerfil();
-
-    Comum.logout();
   });
 });

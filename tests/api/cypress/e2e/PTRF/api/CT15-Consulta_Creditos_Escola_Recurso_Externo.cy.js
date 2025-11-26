@@ -14,24 +14,10 @@ Cypress.on("uncaught:exception", (err, runnable) => {
   return false;
 });
 
-describe("Credito Escola - Cadastro", () => {
-  it("CT01-Cadastro_de_Credito", () => {
+describe("Credito Escola - Consulta", () => {
+  it("CT15-Consulta_Creditos_Escola_Recurso_Externo", () => {
     Comum.visitarPaginaPTRF();
 
-    // Comum.login(usuario.Usuario, usuario.Senha);
-
-    // Comum.selecionarCeuVilaAlpina();
-
-    // Creditos.selecionarCreditosDaEscola();
-
-    // Creditos.validarCreditosCadastrados();
-
-    // Creditos.selecionarCadastrarCredito();
-
-    // Creditos.realizarCadastroCredito();
-
-    // Comum.selecionarPerfil();
-
-    // Comum.logout();
+    Comum.login(usuario.Usuario, usuario.Senha);
   });
 });

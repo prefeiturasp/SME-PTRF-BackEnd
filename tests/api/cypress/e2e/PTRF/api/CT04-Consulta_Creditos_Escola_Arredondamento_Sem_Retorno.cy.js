@@ -15,23 +15,9 @@ Cypress.on("uncaught:exception", (err, runnable) => {
 });
 
 describe("Credito Escola - Consulta", () => {
-  it("CT04-Consulta_Creditos_Escola_Recurso_Externo", () => {
+  it("CT04-Consulta_Escola_Arredondamento_Sem_Retorno", () => {
     Comum.visitarPaginaPTRF();
 
-    // Comum.login(usuario.Usuario, usuario.Senha);
-
-    // Comum.selecionarCeuEmefMarioFittipaldi();
-
-    // Creditos.selecionarCreditosDaEscola();
-
-    // Creditos.selecionarRecursoExterno();
-
-    // Creditos.filtrarReceita();
-
-    // Creditos.validarCreditosCadastrados();
-
-    // Comum.selecionarPerfil();
-
-    // Comum.logout();
+    Comum.login(usuario.Usuario, usuario.Senha);
   });
 });
