@@ -20,7 +20,7 @@ from sme_ptrf_apps.users.permissoes import (
 )
 from sme_ptrf_apps.paa.api.serializers.paa_serializer import PaaSerializer, PaaUpdateSerializer
 from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
-from sme_ptrf_apps.paa.models import Paa
+from sme_ptrf_apps.paa.models import Paa, PeriodoPaa
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.services.paa_service import PaaService, ImportacaoConfirmacaoNecessaria
 from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
@@ -141,6 +141,51 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
 
         serializer = PaaSerializer(paas_anteriores, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='paa-vigente-e-anteriores',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def paa_vigente_e_anteriores(self, request):
+        associacao_uuid = self.request.query_params.get('associacao_uuid')
+
+        if not associacao_uuid:
+            content = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário informar o uuid da associação.'
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            associacao = Associacao.objects.get(uuid=associacao_uuid)
+        except (Associacao.DoesNotExist, ValueError):
+            content = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto associação para o uuid {associacao_uuid} não foi encontrado na base."
+            }
+            return Response(content, status=status.HTTP_404_NOT_FOUND)
+
+        periodo_paa_vigente = PeriodoPaa.periodo_vigente()
+        if not periodo_paa_vigente:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        paa_vigente = self.queryset.filter(
+            periodo_paa=periodo_paa_vigente,
+            associacao=associacao
+        ).first()
+
+        if not paa_vigente:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        paas_anteriores = self.queryset.filter(
+            periodo_paa__data_inicial__lt=periodo_paa_vigente.data_inicial,
+            associacao=associacao
+        ).order_by('-periodo_paa__data_inicial')
+
+        result = {
+            'vigente': PaaSerializer(paa_vigente).data,
+            'anteriores': PaaSerializer(paas_anteriores, many=True).data
+        }
+
+        return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], url_path='importar-prioridades/(?P<uuid_paa_anterior>[a-f0-9-]+)',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
