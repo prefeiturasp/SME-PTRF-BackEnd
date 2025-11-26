@@ -13,3 +13,4 @@ from .objetivo_paa_factory import *
 from .atividade_estatutaria_factory import *
 from .ata_paa_factory import *
 from .atividade_estatutaria_paa_factory import *
+from .outros_recursos_factory import *
