@@ -10,28 +10,13 @@ import CreditosEscolaPagina from "../../../support/Paginas/CreditosEscolaPagina"
 const Creditos = new CreditosEscolaPagina();
 
 Cypress.on("uncaught:exception", (err, runnable) => {
-  // quando retorna falso previne o  Cypress de falhar o teste
   return false;
 });
 
 describe("Credito Escola - Consulta", () => {
-  it("CT06-Consulta_Creditos_Escola_Repasse", () => {
+  it("CT19-Consulta_Creditos_Escola_Arredondamento", () => {
     Comum.visitarPaginaPTRF();
 
-    // Comum.login(usuario.Usuario, usuario.Senha);
-
-    // Comum.selecionarCeuVilaAlpina();
-
-    // Creditos.selecionarCreditosDaEscola();
-
-    // Creditos.selecionarRepasse();
-
-    // Creditos.filtrarReceita();
-
-    // Creditos.validarCreditosCadastrados();
-
-    // Comum.selecionarPerfil();
-
-    // Comum.logout();
+    Comum.login(usuario.Usuario, usuario.Senha);
   });
 });

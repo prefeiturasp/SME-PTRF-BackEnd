@@ -15,23 +15,9 @@ Cypress.on("uncaught:exception", (err, runnable) => {
 });
 
 describe("Credito Escola - Cadastro", () => {
-  it("CT04-Cadastro_de_Credito_Rendimento_Campos_em_Branco", () => {
+  it("CT10-Cadastro_de_Credito_Repasse_Valor_Custeio", () => {
     Comum.visitarPaginaPTRF();
 
-    // Comum.login(usuario.Usuario, usuario.Senha);
-
-    // Comum.selecionarCeuVilaAlpina();
-
-    // Creditos.selecionarCreditosDaEscola();
-
-    // Creditos.validarCreditosCadastrados();
-
-    // Creditos.selecionarCadastrarCredito();
-
-    // Creditos.realizarCadastroCreditoRendimentoCamposEmBranco();
-
-    // Comum.selecionarPerfil();
-
-    // Comum.logout();
+    Comum.login(usuario.Usuario, usuario.Senha);
   });
 });

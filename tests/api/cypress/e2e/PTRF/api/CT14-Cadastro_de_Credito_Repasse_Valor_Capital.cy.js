@@ -15,23 +15,9 @@ Cypress.on("uncaught:exception", (err, runnable) => {
 });
 
 describe("Credito Escola - Cadastro", () => {
-  it("CT05-Cadastro_de_Credito_Repasse_Valor_Capital", () => {
+  it("CT14-Cadastro_de_Credito_Repasse_Valor_Capital", () => {
     Comum.visitarPaginaPTRF();
 
-    // Comum.login(usuario.Usuario, usuario.Senha);
-
-    // Comum.selecionarCeuVilaAlpina();
-
-    // Creditos.selecionarCreditosDaEscola();
-
-    // Creditos.validarCreditosCadastrados();
-
-    // Creditos.selecionarCadastrarCredito();
-
-    // Creditos.realizarCadastroCreditoRepasseValorCapital();
-
-    // Comum.selecionarPerfil();
-
-    // Comum.logout();
+    Comum.login(usuario.Usuario, usuario.Senha);
   });
 });
