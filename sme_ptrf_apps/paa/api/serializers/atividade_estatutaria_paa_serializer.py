@@ -12,6 +12,31 @@ class AtividadeEstatutariaPaaSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'paa', 'atividade_estatutaria', 'data')
 
 
+class AtividadeEstatutariaPaaDocumentoPaaSerializer(serializers.ModelSerializer):
+    tipo_atividade = serializers.SerializerMethodField()
+    data = serializers.SerializerMethodField()
+    atividades_previstas = serializers.SerializerMethodField()
+    mes_ano = serializers.SerializerMethodField()
+
+    class Meta:
+        model = AtividadeEstatutariaPaa
+        fields = ('tipo_atividade', 'data', 'atividades_previstas', 'mes_ano')
+
+    def get_tipo_atividade(self, obj):
+        return obj.atividade_estatutaria.get_tipo_display()
+
+    def get_data(self, obj):
+        return obj.data.strftime("%d/%m/%Y")
+
+    def get_atividades_previstas(self, obj):
+        return obj.atividade_estatutaria.nome
+
+    def get_mes_ano(self, obj):
+        import locale
+        locale.setlocale(locale.LC_TIME, "pt_BR.UTF-8")
+        return obj.data.strftime("%B/%Y").upper()
+
+
 class AtividadeEstaturariaPaaUpdateSerializer(serializers.Serializer):
     atividade_estatutaria = serializers.SlugRelatedField(
         slug_field='uuid',

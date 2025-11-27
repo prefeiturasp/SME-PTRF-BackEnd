@@ -42,6 +42,9 @@ class Paa(ModeloBase):
         total = self.recursopropriopaa_set.aggregate(total=Sum('valor'))['total']
         return total or 0
 
+    def pode_gerar_documento_final(self):
+        if not self.documentopaa_set.exists() and self.objetivos.exists() and self.texto_introducao != "" and self.texto_conclusao != ""
+
     class Meta:
         verbose_name = 'PAA'
         verbose_name_plural = 'PAA`s'

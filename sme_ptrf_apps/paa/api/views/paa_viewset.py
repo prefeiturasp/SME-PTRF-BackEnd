@@ -26,6 +26,9 @@ from sme_ptrf_apps.paa.services.paa_service import PaaService, ImportacaoConfirm
 from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
 from sme_ptrf_apps.paa.services.resumo_prioridades_service import ResumoPrioridadesService
 
+from sme_ptrf_apps.paa.tasks.gerar_documento_paa import gerar_documento_paa_async
+from sme_ptrf_apps.paa.tasks.gerar_previa_documento_paa import gerar_previa_documento_paa_async
+
 logger = logging.getLogger(__name__)
 
 
@@ -247,3 +250,31 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         serializer = RecursoProprioPaaListSerializer(paa.recursopropriopaa_set.all(), many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="gerar-documento")
+    def gerar_documento(self, request, uuid=None):
+        paa = self.get_object()
+        usuario = request.user
+
+        gerar_documento_paa_async.apply_async(
+            args=[str(paa.uuid), usuario.username]
+        )
+
+        return Response(
+            {"detail": "Geração iniciada"},
+            status=200
+        )
+
+    @action(detail=True, methods=["post"], url_path="gerar-previa-documento")
+    def gerar_previa_documento(self, request, uuid=None):
+        paa = self.get_object()
+        usuario = request.user
+
+        gerar_previa_documento_paa_async.apply_async(
+            args=[str(paa.uuid), usuario.username]
+        )
+
+        return Response(
+            {"detail": "Geração prévia iniciada"},
+            status=200
+        )
