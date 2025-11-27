@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="pt-br">
+{% load static %}
+{% load formata_valores %}
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link href="{{ base_static_url }}/css/pdf-previa-paa.css" rel="stylesheet">
+
+  <title>Prévia - Plano Anual de Atividades</title>
+</head>
+<body>
+  <div class="header">
+    <div class="header-left">
+      <img src="{{ base_static_url }}/images/logo_PrefSP_sem_fundo_horizontal_colorida.svg" alt="logo">
+      <div class="header-title">
+        <span class="titulo">Plano Anual de Atividades</span>
+        <span class="subtitulo">Plano anual {{ dados.ano }}</span>
+      </div>
+    </div>
+    <div class="header-right">
+      <span class="label">Período de Execução:</span>
+      <span class="valor">{{ dados.periodo_execucao }}</span>
+    </div>
+  </div>
+
+  <div class="bloco">
+    <div class="bloco-titulo">Bloco 1 - Identificação da Associação</div>
+    <div class="bloco-corpo">
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Nome da Associação:</span>
+          <span class="info-value">{{ dados.nome_associacao }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">CNPJ:</span>
+          <span class="info-value">{{ dados.cnpj }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Código EOL:</span>
+          <span class="info-value">{{ dados.codigo_eol }}</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Diretoria Regional de Educação:</span>
+          <span class="info-value">{{ dados.dre_nome }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bloco">
+    <div class="bloco-titulo">Bloco 2 - Introdução</div>
+    <div class="bloco-corpo">
+      <p class="texto">
+        {% if paa.texto_introducao %}{{ paa.texto_introducao|safe }}{% else %}Sem texto de introdução informado.{% endif %}
+      </p>
+    </div>
+  </div>
+
+  <div class="bloco">
+    <div class="bloco-titulo">Bloco 3 - Objetivos</div>
+    <div class="bloco-corpo">
+      <p class="texto">Definir / apresentar objetivos para o exercício tendo como referência os sugeridos pela SME no modelo padrão</p>
+      <p class="texto">Os objetivos desse plano são:</p>
+      {% if objetivos %}
+        <ul class="lista">
+          {% for objetivo in objetivos %}
+            <li>{{ objetivo.nome }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="texto">Nenhum objetivo cadastrado.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="bloco">
+    <div class="bloco-titulo">Bloco 4 - Plano de aplicação</div>
+    <div class="bloco-corpo">
+      <p class="subsection-title">Prioridades PTRF</p>
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th>Recursos</th>
+            <th>Tipo de aplicação</th>
+            <th>Tipo de despesa</th>
+            <th>Especificação do bem, material ou serviço</th>
+            <th class="valor">Valor total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if prioridades.ptrf %}
+            {% for item in prioridades.ptrf %}
+              <tr>
+                <td>{{ item.recurso }}</td>
+                <td>{{ item.tipo_aplicacao }}</td>
+                <td>{{ item.tipo_despesa }}</td>
+                <td>{{ item.especificacao }}</td>
+                <td class="valor">{{ item.valor_total|formata_valor }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="5" class="texto">Nenhuma prioridade PTRF cadastrada.</td>
+            </tr>
+          {% endif %}
+          <tr class="total-row">
+            <td colspan="4" class="right">TOTAL</td>
+            <td class="valor">{{ prioridades.total_ptrf|formata_valor }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="espacador"></div>
+
+      <p class="subsection-title">Prioridades PDDE</p>
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th>Recursos</th>
+            <th>Tipo de aplicação</th>
+            <th>Tipo de despesa</th>
+            <th>Especificação do bem, material ou serviço</th>
+            <th class="valor">Valor total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if prioridades.pdde %}
+            {% for item in prioridades.pdde %}
+              <tr>
+                <td>{{ item.recurso }}</td>
+                <td>{{ item.tipo_aplicacao }}</td>
+                <td>{{ item.tipo_despesa }}</td>
+                <td>{{ item.especificacao }}</td>
+                <td class="valor">{{ item.valor_total|formata_valor }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="5" class="texto">Nenhuma prioridade PDDE cadastrada.</td>
+            </tr>
+          {% endif %}
+          <tr class="total-row">
+            <td colspan="4" class="right">TOTAL</td>
+            <td class="valor">{{ prioridades.total_pdde|formata_valor }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="espacador"></div>
+
+      <p class="subsection-title">Prioridades Outros Recursos</p>
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th>Recursos</th>
+            <th>Tipo de aplicação</th>
+            <th>Tipo de despesa</th>
+            <th>Especificação do bem, material ou serviço</th>
+            <th class="valor">Valor total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if prioridades.outros %}
+            {% for item in prioridades.outros %}
+              <tr>
+                <td>{{ item.recurso }}</td>
+                <td>{{ item.tipo_aplicacao }}</td>
+                <td>{{ item.tipo_despesa }}</td>
+                <td>{{ item.especificacao }}</td>
+                <td class="valor">{{ item.valor_total|formata_valor }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="5" class="texto">Nenhuma prioridade de outros recursos cadastrada.</td>
+            </tr>
+          {% endif %}
+          <tr class="total-row">
+            <td colspan="4" class="right">TOTAL</td>
+            <td class="valor">{{ prioridades.total_outros|formata_valor }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="bloco">
+    <div class="bloco-titulo">Bloco 5 - Plano orçamentário</div>
+    <div class="bloco-corpo">
+      <p class="subsection-title">PTRF</p>
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th>Recursos</th>
+            <th>Receita</th>
+            <th>Despesas</th>
+            <th>Saldo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if plano_orcamentario.ptrf.linhas %}
+            {% for linha in plano_orcamentario.ptrf.linhas %}
+              <tr>
+                <td>{{ linha.recurso }} - Custeio (R$)</td>
+                <td class="valor">{{ linha.receita.custeio|formata_valor }}</td>
+                <td class="valor">{{ linha.despesa.custeio|formata_valor }}</td>
+                <td class="valor">{{ linha.saldo.custeio|formata_valor }}</td>
+              </tr>
+              <tr>
+                <td>{{ linha.recurso }} - Capital (R$)</td>
+                <td class="valor">{{ linha.receita.capital|formata_valor }}</td>
+                <td class="valor">{{ linha.despesa.capital|formata_valor }}</td>
+                <td class="valor">{{ linha.saldo.capital|formata_valor }}</td>
+              </tr>
+              <tr>
+                <td>{{ linha.recurso }} - Livre Aplicação (R$)</td>
+                <td class="valor">{{ linha.receita.livre|formata_valor }}</td>
+                <td class="valor">{{ linha.despesa.livre|formata_valor }}</td>
+                <td class="valor">{{ linha.saldo.livre|formata_valor }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="4" class="texto">Nenhum dado de PTRF cadastrado.</td>
+            </tr>
+          {% endif %}
+          <tr class="total-row">
+            <td>TOTAL</td>
+            <td>{{ plano_orcamentario.ptrf.totais.receita|formata_valor }}</td>
+            <td>{{ plano_orcamentario.ptrf.totais.despesa|formata_valor }}</td>
+            <td>{{ plano_orcamentario.ptrf.totais.saldo|formata_valor }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="espacador"></div>
+
+      <p class="subsection-title">PDDE</p>
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th>Recursos</th>
+            <th>Receita</th>
+            <th>Despesas</th>
+            <th>Saldo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if plano_orcamentario.pdde.linhas %}
+            {% for linha in plano_orcamentario.pdde.linhas %}
+              <tr>
+                <td>{{ linha.recurso }} - Custeio (R$)</td>
+                <td class="valor">{{ linha.receita.custeio|formata_valor }}</td>
+                <td class="valor">{{ linha.despesa.custeio|formata_valor }}</td>
+                <td class="valor">{{ linha.saldo.custeio|formata_valor }}</td>
+              </tr>
+              <tr>
+                <td>{{ linha.recurso }} - Capital (R$)</td>
+                <td class="valor">{{ linha.receita.capital|formata_valor }}</td>
+                <td class="valor">{{ linha.despesa.capital|formata_valor }}</td>
+                <td class="valor">{{ linha.saldo.capital|formata_valor }}</td>
+              </tr>
+              <tr>
+                <td>{{ linha.recurso }} - Livre Aplicação (R$)</td>
+                <td class="valor">{{ linha.receita.livre|formata_valor }}</td>
+                <td class="valor">{{ linha.despesa.livre|formata_valor }}</td>
+                <td class="valor">{{ linha.saldo.livre|formata_valor }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="4" class="texto">Nenhum dado de PDDE cadastrado.</td>
+            </tr>
+          {% endif %}
+          <tr class="total-row">
+            <td>TOTAL</td>
+            <td>{{ plano_orcamentario.pdde.totais.receita|formata_valor }}</td>
+            <td>{{ plano_orcamentario.pdde.totais.despesa|formata_valor }}</td>
+            <td>{{ plano_orcamentario.pdde.totais.saldo|formata_valor }}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="espacador"></div>
+
+      <p class="subsection-title">Recursos próprios</p>
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th>Recursos</th>
+            <th>Receita</th>
+            <th>Despesas</th>
+            <th>Saldo</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if plano_orcamentario.outros.linhas %}
+            {% for linha in plano_orcamentario.outros.linhas %}
+              <tr>
+                <td>{{ linha.recurso }} - Custeio (R$)</td>
+                <td class="valor">{{ linha.receita.custeio|formata_valor }}</td>
+                <td class="valor">{{ linha.despesa.custeio|formata_valor }}</td>
+                <td class="valor">{{ linha.saldo.custeio|formata_valor }}</td>
+              </tr>
+              <tr>
+                <td>{{ linha.recurso }} - Capital (R$)</td>
+                <td class="valor">{{ linha.receita.capital|formata_valor }}</td>
+                <td class="valor">{{ linha.despesa.capital|formata_valor }}</td>
+                <td class="valor">{{ linha.saldo.capital|formata_valor }}</td>
+              </tr>
+              <tr>
+                <td>{{ linha.recurso }} - Livre Aplicação (R$)</td>
+                <td class="valor">{{ linha.receita.livre|formata_valor }}</td>
+                <td class="valor">{{ linha.despesa.livre|formata_valor }}</td>
+                <td class="valor">{{ linha.saldo.livre|formata_valor }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="4" class="texto">Nenhum dado de recursos próprios cadastrado.</td>
+            </tr>
+          {% endif %}
+          <tr class="total-row">
+            <td>TOTAL</td>
+            <td>{{ plano_orcamentario.outros.totais.receita|formata_valor }}</td>
+            <td>{{ plano_orcamentario.outros.totais.despesa|formata_valor }}</td>
+            <td>{{ plano_orcamentario.outros.totais.saldo|formata_valor }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="bloco">
+    <div class="bloco-titulo">Bloco 6 - Atividades previstas</div>
+    <div class="bloco-corpo">
+      <p class="subsection-title">Atividades Estatutárias</p>
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th>Tipo de atividades</th>
+            <th>Data</th>
+            <th>Atividades Estatutárias Previstas</th>
+            <th>Mês/Ano</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if atividades_previstas.estatutarias %}
+            {% for item in atividades_previstas.estatutarias %}
+              <tr>
+                <td>{{ item.tipo }}</td>
+                <td class="valor">{{ item.data|date:"d/m/Y" }}</td>
+                <td>{{ item.nome }}</td>
+                <td>{{ item.mes_ano }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="4" class="texto">Nenhuma atividade estatutária cadastrada.</td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+
+      <div class="espacador"></div>
+
+      <p class="subsection-title">Outros recursos</p>
+      <table class="tabela">
+        <thead>
+          <tr>
+            <th>Tipo de atividades</th>
+            <th>Data</th>
+            <th>Descrição das receitas e atividades previstas</th>
+            <th class="valor">Valor estimado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if atividades_previstas.outros_recursos %}
+            {% for item in atividades_previstas.outros_recursos %}
+              <tr>
+                <td>{{ item.tipo }}</td>
+                <td class="valor">{% if item.data %}{{ item.data|date:"d/m/Y" }}{% endif %}</td>
+                <td>{{ item.descricao }}</td>
+                <td class="valor">{{ item.valor|formata_valor }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="4" class="texto">Nenhuma atividade de outros recursos cadastrada.</td>
+            </tr>
+          {% endif %}
+          <tr class="total-row">
+            <td colspan="3">TOTAL</td>
+            <td class="valor">{{ atividades_previstas.total_outros|formata_valor }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span>{{ dados.rodape }}</span>
+    <span>Gerado em {{ dados.data }}</span>
+  </div>
+</body>
+</html>
