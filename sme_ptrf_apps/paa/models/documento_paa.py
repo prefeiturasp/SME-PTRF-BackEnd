@@ -10,6 +10,7 @@ class DocumentoPaa(ModeloBase):
         NAO_GERADO = 'NAO_GERADO', 'Não gerado'
         EM_PROCESSAMENTO = 'EM_PROCESSAMENTO', 'Em processamento'
         CONCLUIDO = 'CONCLUIDO', 'Geração concluída'
+        ERRO_PROCESSAMENTO = 'ERRO_PROCESSAMENTO', 'Erro no processamento'
 
     class VersaoChoices(models.TextChoices):
         FINAL = 'FINAL', 'final'
@@ -37,12 +38,20 @@ class DocumentoPaa(ModeloBase):
     def __str__(self):
         if self.status_geracao == DocumentoPaa.StatusChoices.CONCLUIDO:
             return f"Documento PAA {DocumentoPaa.VersaoChoices[self.versao]} gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
-        else:
+        elif self.status_geracao == DocumentoPaa.StatusChoices.EM_PROCESSAMENTO:
             return f"Documento PAA {DocumentoPaa.VersaoChoices[self.versao]} sendo gerado. Aguarde."
+        elif self.status_geracao == DocumentoPaa.StatusChoices.ERRO_PROCESSAMENTO:
+            return f"Documento PAA {DocumentoPaa.VersaoChoices[self.versao]} interrompido com erro no processamento. Tente novamente."
+        else:
+            return f"Documento PAA {DocumentoPaa.VersaoChoices[self.versao]} aguardando início da geração."
 
     class Meta:
         verbose_name = "Documento PAA"
         verbose_name_plural = "Documentos PAA"
+
+    @property
+    def concluido(self):
+        return self.status_geracao == DocumentoPaa.StatusChoices.CONCLUIDO
 
     def arquivo_concluido(self):
         self.status_geracao = DocumentoPaa.StatusChoices.CONCLUIDO
@@ -50,6 +59,10 @@ class DocumentoPaa(ModeloBase):
 
     def arquivo_em_processamento(self):
         self.status_geracao = DocumentoPaa.StatusChoices.EM_PROCESSAMENTO
+        self.save()
+
+    def arquivo_em_erro_processamento(self):
+        self.status_geracao = DocumentoPaa.StatusChoices.ERRO_PROCESSAMENTO
         self.save()
 
 

@@ -3,7 +3,6 @@ import logging
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.template.loader import get_template
-from django.http import HttpResponse
 
 from weasyprint import HTML, CSS
 
@@ -12,7 +11,7 @@ from sme_ptrf_apps.paa.services.dados_documento_paa_service import gerar_dados_d
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_arquivo_documento_paa_pdf(paa, documento_paa, usuario, previa):
+def gerar_arquivo_documento_paa_pdf(paa, documento_paa, usuario, previa=False):
 
     dados = gerar_dados_documento_paa(paa, usuario, previa)
 
@@ -34,7 +33,3 @@ def gerar_arquivo_documento_paa_pdf(paa, documento_paa, usuario, previa):
 
     documento_paa.arquivo_pdf = SimpleUploadedFile(filename, pdf_file, content_type='application/pdf')
     documento_paa.save()
-
-    # response = HttpResponse(pdf_file, content_type="application/pdf")
-    # response["Content-Disposition"] = f'filename="{filename}"'
-    # return response

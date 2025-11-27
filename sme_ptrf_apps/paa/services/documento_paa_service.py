@@ -8,6 +8,7 @@ class DocumentoPaaService:
         self.previa = previa
         self.versao = DocumentoPaa.VersaoChoices.PREVIA if previa else DocumentoPaa.VersaoChoices.FINAL
         self.logger = logger
+        self.documento_paa = None
 
         self.logger.info('Inicializando DocumentoPaaService...')
 
@@ -21,9 +22,21 @@ class DocumentoPaaService:
     def criar_novo_documento(self):
         documento, _ = DocumentoPaa.objects.get_or_create(paa=self.paa, versao=self.versao)
         self.logger.info(f'Documento PAA versão {self.versao} criado com sucesso.')
-        return documento
+        self.documento_paa = documento
 
     def iniciar(self):
         self.apagar_documento_anteriores()
-        documento = self.criar_novo_documento()
-        return documento
+        self.criar_novo_documento()
+        self.marcar_em_processamento()
+
+    def marcar_em_processamento(self):
+        self.documento_paa.arquivo_em_processamento()
+        self.logger.info('Documento PAA em processamento')
+
+    def marcar_concluido(self):
+        self.documento_paa.arquivo_concluido()
+        self.logger.info('Documento PAA concluido')
+
+    def marcar_erro(self):
+        self.documento_paa.arquivo_em_erro_processamento()
+        self.logger.info('Documento PAA marcado com erro no processamento')

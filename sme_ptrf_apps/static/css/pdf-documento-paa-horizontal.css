@@ -164,10 +164,6 @@ html body header .subtitulo {
   font-style: normal;
 }
 
-.detalhe-linha-tabela {
-  margin-bottom: 0px;
-}
-
 .container-watermark {
   position: relative;
   height: 100vh;
@@ -197,6 +193,10 @@ html body header .subtitulo {
 .tabela {
   width: 100% !important;
   background-color: transparent;
+  border-collapse: separate !important;
+  border-spacing: 0;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 .tabela thead tr th {
@@ -212,9 +212,8 @@ html body header .subtitulo {
   white-space: normal !important;
 }
 
-/* Zebra */
 .tabela-zebra tbody tr:nth-child(odd) {
-  background-color: #ffffff; /* cinza bem claro */
+  background-color: #ffffff;
 }
 
 .tabela-zebra tbody tr:nth-child(even) {

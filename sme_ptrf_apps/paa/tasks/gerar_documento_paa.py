@@ -26,28 +26,27 @@ def gerar_documento_paa_async(self, paa_uuid, username=""):
     )
     tentativa = current_task.request.retries + 1
 
+    logger.info(f'Iniciando task gerar_documento_paa_async, tentativa {tentativa}.')
+
+    paa = Paa.objects.get(uuid=paa_uuid)
+    usuario = get_user_model().objects.get(username=username)
+
+    service = DocumentoPaaService(paa=paa, usuario=username, previa=False, logger=logger)
+    service.iniciar()
+
     try:
-        logger.info(f'Iniciando task gerar_documento_paa_async, tentativa {tentativa}.')
+        documento_paa = service.documento_paa
 
-        paa = Paa.objects.get(uuid=paa_uuid)
+        gerar_arquivo_documento_paa_pdf(paa, service.documento_paa, usuario, previa=False)
 
-        usuario = get_user_model().objects.get(username=username)
+        service.marcar_concluido()
 
-        service = DocumentoPaaService(paa=paa, usuario=username, previa=False, logger=logger)
-
-        documento_paa = service.iniciar()
-
-        documento_paa.arquivo_em_processamento()
-
-        logger.info('Documento PAA em processamento')
-
-        gerar_arquivo_documento_paa_pdf(paa, documento_paa, usuario, previa=False)
-
-        documento_paa.arquivo_concluido()
         logger.info(f'Documento PAA arquivo {documento_paa.uuid}.')
 
         logger.info('Task gerar_documento_paa_async finalizada.')
     except Exception as exc:
+        service.marcar_erro()
+
         logger.error(
             f'A tentativa {tentativa} de gerar o documento PAA falhou.',
             exc_info=True,

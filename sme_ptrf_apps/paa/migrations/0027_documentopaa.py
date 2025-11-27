@@ -52,6 +52,7 @@ class Migration(migrations.Migration):
                             ("NAO_GERADO", "Não gerado"),
                             ("EM_PROCESSAMENTO", "Em processamento"),
                             ("CONCLUIDO", "Geração concluída"),
+                            ("ERRO_PROCESSAMENTO", "Erro no processamento"),
                         ],
                         default="NAO_GERADO",
                         max_length=20,

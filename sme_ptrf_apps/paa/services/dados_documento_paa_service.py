@@ -23,7 +23,7 @@ LOGGER = logging.getLogger(__name__)
 
 def gerar_dados_documento_paa(paa, usuario, previa=False):
 
-    cabecalho = cria_cabecalho(paa.periodo_paa, previa)
+    cabecalho = cria_cabecalho(paa.periodo_paa)
     identificacao_associacao = criar_identificacao_associacao(paa)
     data_geracao_documento = cria_data_geracao_documento(usuario, previa)
     grupos_prioridades = criar_grupos_prioridades(paa)
@@ -332,9 +332,8 @@ def criar_identificacao_associacao(paa):
     }
 
 
-def cria_cabecalho(periodo_paa, previa):
+def cria_cabecalho(periodo_paa):
     cabecalho = {
-        "titulo": "Plano Anual de Atividades - PRÉVIA" if previa else "Plano Anual de Atividades - FINAL",
         "mes_ano_inicio": periodo_paa.data_inicial.strftime("%m/%Y"),
         "mes_ano_fim": periodo_paa.data_final.strftime("%m/%Y"),
         "ano": periodo_paa.data_final.strftime("%Y")

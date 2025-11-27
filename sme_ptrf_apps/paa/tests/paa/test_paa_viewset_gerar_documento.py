@@ -6,11 +6,10 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_nao_pode_gerar_final_quando_documento_final_existe(jwt_authenticated_client_sme, flag_paa, documento_paa_factory, paa_factory):
-    paa = paa_factory()
-    documento_paa_factory(paa=paa, versao="FINAL")
+def test_nao_pode_gerar_final_quando_documento_final_existe(jwt_authenticated_client_sme, flag_paa, documento_paa_factory):
+    documento = documento_paa_factory(versao="FINAL", status_geracao="CONCLUIDO")
 
-    response = jwt_authenticated_client_sme.post(f'/api/paa/{paa.uuid}/gerar-documento/',
+    response = jwt_authenticated_client_sme.post(f'/api/paa/{documento.paa.uuid}/gerar-documento/',
                                                  content_type='application/json')
     result = response.json()
 

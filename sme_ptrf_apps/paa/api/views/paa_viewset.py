@@ -256,7 +256,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         paa = self.get_object()
         usuario = request.user
 
-        if paa.documento_final:
+        if paa.documento_final and paa.documento_final.concluido:
             return Response({"mensagem": "O documento final já foi gerado."}, status=400)
 
         errors = []
@@ -312,6 +312,13 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
                 {"mensagem": "Documento final não gerado"},
                 status=400
             )
+
+        if not paa.documento_final.concluido:
+            return Response(
+                {"mensagem": "Documento final não concluído"},
+                status=400
+            )
+
         filename = 'documento_final_paa.pdf'
         response = HttpResponse(
             open(paa.documento_final.arquivo_pdf.path, 'rb'),
@@ -329,6 +336,12 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         if not paa.documento_previa:
             return Response(
                 {"mensagem": "Documento prévia não gerado"},
+                status=400
+            )
+
+        if not paa.documento_previa.concluido:
+            return Response(
+                {"mensagem": "Documento prévia não concluído"},
                 status=400
             )
 
