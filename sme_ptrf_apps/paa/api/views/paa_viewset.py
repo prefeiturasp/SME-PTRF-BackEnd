@@ -310,7 +310,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         if not paa.documento_final:
             return Response(
                 {"mensagem": "Documento final não gerado"},
-                status=204
+                status=400
             )
         filename = 'documento_final_paa.pdf'
         response = HttpResponse(
@@ -329,7 +329,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         if not paa.documento_previa:
             return Response(
                 {"mensagem": "Documento prévia não gerado"},
-                status=204
+                status=400
             )
 
         filename = 'documento_previa_paa.pdf'
@@ -361,6 +361,5 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             )
 
         return Response(
-            {"mensagem": "Nenhum documento criado"},
-            status=204
+            {"mensagem": "Documento pendente de geração"}, status=200
         )

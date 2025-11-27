@@ -4,16 +4,17 @@ import re
 
 
 class ServicoCargosDaComposicao:
-    def __init__(self, composicao):
-        self.__composicao = composicao
-        self.__choices = CargoComposicao.CARGO_ASSOCIACAO_CHOICES
-        self.__cargos_da_composicao = CargoComposicao.objects.filter(composicao=self.composicao)
-        self.__cargos_list = {
-            "diretoria_executiva": [],
-            "conselho_fiscal": []
-        }
-        self.get_cargos_diretoria_executiva_da_composicao()
-        self.get_cargos_conselho_fiscal_da_composicao()
+    def __init__(self, composicao=None):
+        if composicao:
+            self.__composicao = composicao
+            self.__choices = CargoComposicao.CARGO_ASSOCIACAO_CHOICES
+            self.__cargos_da_composicao = CargoComposicao.objects.filter(composicao=self.composicao)
+            self.__cargos_list = {
+                "diretoria_executiva": [],
+                "conselho_fiscal": []
+            }
+            self.get_cargos_diretoria_executiva_da_composicao()
+            self.get_cargos_conselho_fiscal_da_composicao()
 
     @property
     def composicao(self):

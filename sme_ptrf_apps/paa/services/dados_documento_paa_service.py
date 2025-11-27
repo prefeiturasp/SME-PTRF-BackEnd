@@ -1,8 +1,6 @@
 import logging
-import locale
 from datetime import datetime
 from django.db.models import Sum
-
 from sme_ptrf_apps.paa.models.acao_pdde import AcaoPdde
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 from sme_ptrf_apps.paa.enums import TipoAplicacaoOpcoesEnum, RecursoOpcoesEnum
@@ -15,7 +13,11 @@ from sme_ptrf_apps.core.models import (
 
 from waffle import get_waffle_flag_model
 
-locale.setlocale(locale.LC_TIME, "pt_BR.UTF-8")
+MESES_PT = [
+    "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO",
+    "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"
+]
+
 LOGGER = logging.getLogger(__name__)
 
 
@@ -259,7 +261,7 @@ def criar_atividades_estatutarias(paa):
             "tipo_atividade": atividade.atividade_estatutaria.get_tipo_display(),
             "data": atividade.data.strftime("%d/%m/%Y"),
             "atividades_previstas": atividade.atividade_estatutaria.nome,
-            "mes_ano": atividade.data.strftime("%B/%Y").upper(),
+            "mes_ano": f"{MESES_PT[atividade.data.month - 1]}/{atividade.data.year}",
         })
 
     return atividades
