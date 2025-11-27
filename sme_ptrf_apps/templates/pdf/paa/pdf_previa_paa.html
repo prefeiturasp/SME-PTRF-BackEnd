@@ -16,7 +16,7 @@
       <img src="{{ base_static_url }}/images/logo_PrefSP_sem_fundo_horizontal_colorida.svg" alt="logo">
       <div class="header-title">
         <span class="titulo">Plano Anual de Atividades</span>
-        <span class="subtitulo">Plano anual {{ dados.ano }}</span>
+        <span class="subtitulo">Plano anual</span>
       </div>
     </div>
     <div class="header-right">
@@ -397,6 +397,19 @@
           </tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <div class="bloco">
+    <div class="bloco-titulo">Bloco 7 - Conclusão</div>
+    <div class="bloco-corpo">
+      <div class="texto">
+        {% if conclusao_paa %}
+          {{ conclusao_paa|safe }}
+        {% else %}
+          <p>Sem conclusão informada.</p>
+        {% endif %}
+      </div>
     </div>
   </div>
 
