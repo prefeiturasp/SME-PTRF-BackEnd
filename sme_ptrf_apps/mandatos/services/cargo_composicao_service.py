@@ -137,6 +137,33 @@ class ServicoCargosDaComposicao:
 
         return membro_substituido.exists()
 
+    def get_presidente_diretoria_executiva_composicao_vigente(self, associacao):
+        servico_mandato_vigente = ServicoMandatoVigente()
+        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+        servico_composicao_vigente = ServicoComposicaoVigente(associacao=associacao, mandato=mandato_vigente)
+        composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
+
+        if mandato_vigente and composicao_vigente:
+            if associacao.cargo_substituto_presidente_ausente:
+                cargo_da_composicao_presidente_diretoria_executiva = CargoComposicao.objects.filter(
+                    composicao=composicao_vigente,
+                    cargo_associacao=associacao.cargo_substituto_presidente_ausente
+                ).first()
+            else:
+                cargo_da_composicao_presidente_diretoria_executiva = CargoComposicao.objects.filter(
+                    composicao=composicao_vigente,
+                    cargo_associacao='PRESIDENTE_DIRETORIA_EXECUTIVA'
+                ).first()
+
+            presidente_diretoria_executiva = cargo_da_composicao_presidente_diretoria_executiva.ocupante_do_cargo.nome if cargo_da_composicao_presidente_diretoria_executiva and cargo_da_composicao_presidente_diretoria_executiva.ocupante_do_cargo and cargo_da_composicao_presidente_diretoria_executiva.ocupante_do_cargo.nome else '-------'
+
+        else:
+            print("Não existe nenhum Mandato/Composição vigente criada")
+            presidente_diretoria_executiva = "-"
+
+        return presidente_diretoria_executiva
+
 
 class ServicoCargosDaDiretoriaExecutiva:
     def __init__(self):

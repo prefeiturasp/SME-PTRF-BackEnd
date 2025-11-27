@@ -30,7 +30,6 @@ def test_retorna_erros_de_validacao_geracao_final(jwt_authenticated_client_sme, 
     assert "É necessário indicar pelo menos um objetivo" in msg
     assert "É necessário inserir o texto de introdução" in msg
     assert "É necessário inserir o texto de conclusão" in msg
-    assert "datas das reuniões" in msg
 
 
 def test_iniciar_geracao_final_com_sucesso(jwt_authenticated_client_sme, flag_paa, paa_factory, objetivo_paa_factory, atividade_estatutaria_paa_factory):

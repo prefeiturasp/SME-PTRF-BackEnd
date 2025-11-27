@@ -1,23 +1,21 @@
 import logging
+import locale
 from datetime import datetime
 from django.db.models import Sum
 
 from sme_ptrf_apps.paa.models.acao_pdde import AcaoPdde
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
-from sme_ptrf_apps.paa.api.serializers import PrioridadePaaListSerializer
 from sme_ptrf_apps.paa.enums import TipoAplicacaoOpcoesEnum, RecursoOpcoesEnum
 
-from sme_ptrf_apps.core.choices import MembroEnum
-from sme_ptrf_apps.mandatos.services import ServicoComposicaoVigente, ServicoMandatoVigente
-from sme_ptrf_apps.mandatos.models import CargoComposicao
-
+from sme_ptrf_apps.mandatos.services import ServicoCargosDaComposicao
+from sme_ptrf_apps.core.models import MembroAssociacao
 from sme_ptrf_apps.core.models import (
     AcaoAssociacao,
 )
 
 from waffle import get_waffle_flag_model
 
-
+locale.setlocale(locale.LC_TIME, "pt_BR.UTF-8")
 LOGGER = logging.getLogger(__name__)
 
 
@@ -26,20 +24,12 @@ def gerar_dados_documento_paa(paa, usuario, previa=False):
     cabecalho = cria_cabecalho(paa.periodo_paa, previa)
     identificacao_associacao = criar_identificacao_associacao(paa)
     data_geracao_documento = cria_data_geracao_documento(usuario, previa)
-    grupos_prioridades = criar_prioridades(paa)
+    grupos_prioridades = criar_grupos_prioridades(paa)
     atividades_estatutarias = criar_atividades_estatutarias(paa)
     recursos_proprios = criar_recursos_proprios(paa)
-    presidente_diretoria_executiva = cria_presidente_diretoria_executiva(paa.associacao)
     receitas_previstas = criar_receitas_previstas(paa)
     receitas_previstas_pdde = criar_receitas_previstas_pdde(paa)
-
-    prioridades = paa.prioridadepaa_set.filter(recurso=RecursoOpcoesEnum.RECURSO_PROPRIO)
-
-    total_prioridades_recursos_proprios = prioridades.aggregate(
-        total=Sum("valor_total")
-    )["total"] or 0
-
-    saldo_recursos_proprios = paa.get_total_recursos_proprios() - total_prioridades_recursos_proprios
+    presidente_diretoria_executiva = cria_presidente_diretoria_executiva(paa.associacao)
 
     return {
         "cabecalho": cabecalho,
@@ -52,9 +42,6 @@ def gerar_dados_documento_paa(paa, usuario, previa=False):
         "receitas_previstas_pdde": receitas_previstas_pdde,
         "atividades_estatutarias": atividades_estatutarias,
         "recursos_proprios": recursos_proprios,
-        "total_recursos_proprios": paa.get_total_recursos_proprios(),
-        "total_prioridades_recursos_proprios": total_prioridades_recursos_proprios,
-        "saldo_recursos_proprios": saldo_recursos_proprios,
         "texto_conclusao": paa.texto_conclusao,
         "presidente_diretoria_executiva": presidente_diretoria_executiva,
         "previa": previa
@@ -222,71 +209,19 @@ def criar_receitas_previstas_pdde(paa):
 
 
 def cria_presidente_diretoria_executiva(associacao):
-    from sme_ptrf_apps.core.models import MembroAssociacao
-
-    status_presidente_associacao = associacao.status_presidente
-    cargo_substituto_presidente_ausente_name = associacao.cargo_substituto_presidente_ausente
-
-    _presidente_diretoria_executiva = ''
-
     flags = get_waffle_flag_model()
 
     LOGGER.info("Verificando se a flag <historico-de-membros> está ativa...")
 
     if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
         LOGGER.info("A flag está ativa, as informações serão buscadas no Histórico de Membros")
-
-        servico_mandato_vigente = ServicoMandatoVigente()
-        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
-
-        servico_composicao_vigente = ServicoComposicaoVigente(associacao=associacao, mandato=mandato_vigente)
-        composicao_vigente = servico_composicao_vigente.get_composicao_vigente()
-
-        if mandato_vigente and composicao_vigente:
-            if associacao.cargo_substituto_presidente_ausente:
-                cargo_da_composicao_presidente_diretoria_executiva = CargoComposicao.objects.filter(
-                    composicao=composicao_vigente,
-                    cargo_associacao=associacao.cargo_substituto_presidente_ausente
-                ).first()
-            else:
-                cargo_da_composicao_presidente_diretoria_executiva = CargoComposicao.objects.filter(
-                    composicao=composicao_vigente,
-                    cargo_associacao='PRESIDENTE_DIRETORIA_EXECUTIVA'
-                ).first()
-
-            presidente_diretoria_executiva = cargo_da_composicao_presidente_diretoria_executiva.ocupante_do_cargo.nome if cargo_da_composicao_presidente_diretoria_executiva and cargo_da_composicao_presidente_diretoria_executiva.ocupante_do_cargo and cargo_da_composicao_presidente_diretoria_executiva.ocupante_do_cargo.nome else '-------'
-
-        else:
-            presidente_diretoria_executiva = "A flag <historico-de-membros> está ativa e não existe nenhum Mandato/Composição vigente criada"
+        servico_cargo = ServicoCargosDaComposicao()
+        presidente_diretoria_executiva = servico_cargo.get_presidente_diretoria_executiva_composicao_vigente(associacao)
 
     else:
-
-        if status_presidente_associacao == 'PRESENTE':
-            _presidente_diretoria_executiva = \
-                MembroAssociacao.objects.filter(associacao=associacao,
-                                                cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
-        else:
-            _presidente_diretoria_executiva = \
-                MembroAssociacao.objects.filter(associacao=associacao, cargo_associacao=MembroEnum[
-                    cargo_substituto_presidente_ausente_name].name).first()
-
-        presidente_diretoria_executiva = _presidente_diretoria_executiva.nome if _presidente_diretoria_executiva else '-------'
+        presidente_diretoria_executiva = MembroAssociacao.get_presidente_diretoria_executiva(associacao)
 
     return presidente_diretoria_executiva
-
-
-def filtrar_prioridade(prioridades, prioridade, recurso):
-    return [i for i in prioridades if i["prioridade"] == prioridade and i["recurso"] == recurso]
-
-
-def calcular_total(items):
-    total = 0
-    for item in items:
-        try:
-            total += float(item.get("valor_total", 0))
-        except (TypeError, ValueError):
-            pass
-    return total
 
 
 def criar_recursos_proprios(paa):
@@ -300,13 +235,23 @@ def criar_recursos_proprios(paa):
             "valor": recurso.valor,
         })
 
-    return recursos
+    prioridades = paa.prioridadepaa_set.filter(recurso=RecursoOpcoesEnum.RECURSO_PROPRIO)
+
+    total_prioridades_recursos_proprios = prioridades.aggregate(
+        total=Sum("valor_total")
+    )["total"] or 0
+
+    saldo_recursos_proprios = paa.get_total_recursos_proprios() - total_prioridades_recursos_proprios
+
+    return {
+        "items": recursos,
+        "total_recursos_proprios": paa.get_total_recursos_proprios(),
+        "total_prioridades_recursos_proprios": total_prioridades_recursos_proprios,
+        "saldo_recursos_proprios": saldo_recursos_proprios,
+    }
 
 
 def criar_atividades_estatutarias(paa):
-    import locale
-    locale.setlocale(locale.LC_TIME, "pt_BR.UTF-8")
-
     atividades = []
 
     for atividade in paa.atividadeestatutariapaa_set.all():
@@ -320,44 +265,62 @@ def criar_atividades_estatutarias(paa):
     return atividades
 
 
-def criar_prioridades(paa):
+def criar_grupos_prioridades(paa):
+    def filtrar_prioridade(prioridades, prioridade, recurso):
+        return [i for i in prioridades if i["prioridade"] == prioridade and i["recurso_tipo"] == recurso]
+
+    def calcular_total_grupo(items):
+        total = 0
+        for item in items:
+            try:
+                total += float(item.get("valor_total", 0))
+            except (TypeError, ValueError):
+                pass
+        return total
+
     prioridades = queryset_prioridades_paa(paa.prioridadepaa_set.all())
-    prioridades = PrioridadePaaListSerializer(prioridades, many=True).data
+
+    items = []
+
+    for prioridade in prioridades:
+        if prioridade.recurso == "PTRF":
+            recurso = prioridade.acao_associacao.acao.nome
+        elif prioridade.recurso == "PDDE":
+            recurso = prioridade.acao_pdde.nome
+        else:
+            recurso = "Recursos Próprios"
+
+        items.append({
+            "recurso_tipo": prioridade.recurso,
+            "recurso": recurso,
+            "prioridade": prioridade.prioridade,
+            "tipo_aplicacao": prioridade.get_tipo_aplicacao_display(),
+            "tipo_despesa_custeio": prioridade.tipo_despesa_custeio.nome if prioridade.tipo_despesa_custeio else "-",
+            "especificacao_material": prioridade.especificacao_material.descricao,
+            "valor_total": prioridade.valor_total
+        })
 
     grupos = [
-        {"titulo": "Prioridades PTRF", "items": filtrar_prioridade(prioridades, True, "PTRF")},
-        {"titulo": "Prioridades PDDE", "items": filtrar_prioridade(prioridades, True, "PDDE")},
-        {"titulo": "Prioridades Recursos próprios", "items": filtrar_prioridade(prioridades, True, "RECURSO_PROPRIO")},
-        {"titulo": "Não Prioridades PTRF", "items": filtrar_prioridade(prioridades, False, "PTRF")},
-        {"titulo": "Não Prioridades PDDE", "items": filtrar_prioridade(prioridades, False, "PDDE")},
+        {"titulo": "Prioridades PTRF", "items": filtrar_prioridade(items, True, "PTRF")},
+        {"titulo": "Prioridades PDDE", "items": filtrar_prioridade(items, True, "PDDE")},
+        {"titulo": "Prioridades Recursos próprios", "items": filtrar_prioridade(items, True, "RECURSO_PROPRIO")},
+        {"titulo": "Não Prioridades PTRF", "items": filtrar_prioridade(items, False, "PTRF")},
+        {"titulo": "Não Prioridades PDDE", "items": filtrar_prioridade(items, False, "PDDE")},
         {"titulo": "Não Prioridades Recursos próprios",
-            "items": filtrar_prioridade(prioridades, False, "RECURSO_PROPRIO")},
+            "items": filtrar_prioridade(items, False, "RECURSO_PROPRIO")},
     ]
 
     for grupo in grupos:
-        grupo["total"] = calcular_total(grupo["items"])
+        grupo["total"] = calcular_total_grupo(grupo["items"])
 
     return grupos
-
-
-def formata_nome_dre(associacao):
-    if associacao.unidade.dre:
-        nome_dre = associacao.unidade.dre.nome.upper()
-        if "DIRETORIA REGIONAL DE EDUCACAO" in nome_dre:
-            nome_dre = nome_dre.replace("DIRETORIA REGIONAL DE EDUCACAO", "")
-            nome_dre = nome_dre.strip()
-            return nome_dre
-        else:
-            return nome_dre
-    else:
-        return ""
 
 
 def criar_identificacao_associacao(paa):
     nome_associacao = paa.associacao.nome
     cnpj_associacao = paa.associacao.cnpj
     codigo_eol_associacao = paa.associacao.unidade.codigo_eol or ""
-    nome_dre_associacao = formata_nome_dre(paa.associacao)
+    nome_dre_associacao = paa.associacao.unidade.formata_nome_dre()
 
     return {
         "nome_associacao": nome_associacao,

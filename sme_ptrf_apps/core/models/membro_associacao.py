@@ -75,5 +75,23 @@ class MembroAssociacao(ModeloBase):
                 }
                 for choice in MembroEnum.diretoria_executiva_choices()]
 
+    @classmethod
+    def get_presidente_diretoria_executiva(cls, associacao):
+        status_presidente_associacao = associacao.status_presidente
+        cargo_substituto_presidente_ausente_name = associacao.cargo_substituto_presidente_ausente
+
+        _presidente_diretoria_executiva = ''
+
+        if status_presidente_associacao == 'PRESENTE':
+            _presidente_diretoria_executiva = \
+                MembroAssociacao.objects.filter(associacao=associacao,
+                                                cargo_associacao=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name).first()
+        else:
+            _presidente_diretoria_executiva = \
+                MembroAssociacao.objects.filter(associacao=associacao, cargo_associacao=MembroEnum[
+                    cargo_substituto_presidente_ausente_name].name).first()
+
+        return _presidente_diretoria_executiva.nome if _presidente_diretoria_executiva else '-------'
+
 
 auditlog.register(MembroAssociacao)

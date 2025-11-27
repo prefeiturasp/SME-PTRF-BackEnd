@@ -270,9 +270,6 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         if not paa.texto_conclusao:
             errors.append("É necessário inserir o texto de conclusão")
 
-        if not paa.atividadeestatutariapaa_set.filter(data__isnull=False).exists():
-            errors.append("É necessário indicar as datas das reuniões de atividades estatutárias")
-
         if errors:
             return Response(
                 {"mensagem": "\n".join(errors)},

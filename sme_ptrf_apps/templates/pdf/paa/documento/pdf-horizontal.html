@@ -116,7 +116,6 @@
           <table class="tabela tabela-zebra table-borderless mb-4">
 
             <thead>
-              <!-- RECURSO -->
               <tr style="background: #f8f9fa;">
                 <th colspan="5" style="padding: 6px;">{{ grupo.titulo }}</th>
               </tr>
@@ -133,18 +132,10 @@
             <tbody class="nao-quebra-linha">
               {% for prioridade in grupo.items %}
                 <tr>
-                  <td>
-                    {% if prioridade.recurso == "PTRF" %}
-                      {{ prioridade.acao_associacao_objeto.nome }}
-                    {% elif prioridade.recurso == "PDDE" %}
-                      {{ prioridade.acao_pdde_objeto.nome }}
-                    {% else %}
-                      Recursos Próprios
-                    {% endif %}
-                  </td>
-                  <td>{{ prioridade.tipo_aplicacao_objeto.value }}</td>
-                  <td>{{ prioridade.tipo_despesa_custeio_objeto.nome }}</td>
-                  <td>{{ prioridade.especificacao_material_objeto.nome }}</td>
+                  <td>{{ prioridade.recurso }}</td>
+                  <td>{{ prioridade.tipo_aplicacao }}</td>
+                  <td>{{ prioridade.tipo_despesa_custeio }}</td>
+                  <td>{{ prioridade.especificacao_material }}</td>
                   <td>{{ prioridade.valor_total|formata_valor }}</td>
                 </tr>
               {% endfor %}
@@ -171,7 +162,6 @@
           <table class="tabela tabela-zebra table-borderless mb-4">
 
             <thead>
-              <!-- RECURSO -->
               <tr style="background: #f8f9fa;">
                 <th colspan="5" style="padding: 6px;">PTRF</th>
               </tr>
@@ -240,7 +230,6 @@
           <table class="tabela tabela-zebra table-borderless mb-4">
 
             <thead>
-              <!-- RECURSO -->
               <tr style="background: #f8f9fa;">
                 <th colspan="5" style="padding: 6px;">PDDE</th>
               </tr>
@@ -309,7 +298,6 @@
           <table class="tabela tabela-zebra table-borderless mb-4">
 
             <thead>
-              <!-- RECURSO -->
               <tr style="background: #f8f9fa;">
                 <th colspan="5" style="padding: 6px;">Recursos Próprios</th>
               </tr>
@@ -337,21 +325,21 @@
                   <ul style="list-style: none; padding-left: 0">
                     <li>-</li>
                     <li>-</li>
-                    <li>{{dados.total_recursos_proprios|formata_valor}}</li>
+                    <li>{{dados.recursos_proprios.total_recursos_proprios|formata_valor}}</li>
                   </ul>
                 </td>
                 <td>
                   <ul style="list-style: none;padding-left: 0">
                     <li>-</li>
                     <li>-</li>
-                    <li>{{dados.total_prioridades_recursos_proprios|formata_valor}}</li>
+                    <li>{{dados.recursos_proprios.total_prioridades_recursos_proprios|formata_valor}}</li>
                   </ul>
                 </td>
                 <td>
                   <ul style="list-style: none;padding-left: 0">
                     <li>-</li>
                     <li>-</li>
-                    <li>{{dados.saldo_recursos_proprios|formata_valor}}</li>
+                    <li>{{dados.recursos_proprios.saldo_recursos_proprios|formata_valor}}</li>
                   </ul>
                 </td>
               </tr>
@@ -359,15 +347,15 @@
               <tr style="background: #f8f9fa; font-weight: bold;">
                 <td>TOTAL</td>
                 <td></td>
-                <td>{{dados.total_recursos_proprios|formata_valor}}</td>
-                <td>{{dados.total_prioridades_recursos_proprios|formata_valor}}</td>
-                <td>{{dados.saldo_recursos_proprios|formata_valor }}</td>
+                <td>{{dados.recursos_proprios.total_recursos_proprios|formata_valor}}</td>
+                <td>{{dados.recursos_proprios.total_prioridades_recursos_proprios|formata_valor}}</td>
+                <td>{{dados.recursos_proprios.saldo_recursos_proprios|formata_valor }}</td>
               </tr>
             </tbody>
 
           </table>
     </article>
-  </section>  
+  </section>
 
   <section class="row">
     <article id="bloco-6" class="col mb-3 border p-0">
@@ -376,7 +364,6 @@
           <table class="tabela tabela-zebra table-borderless mb-4">
 
             <thead>
-              <!-- RECURSO -->
               <tr style="background: #f8f9fa;">
                 <th colspan="5" style="padding: 6px;">Atividades Estatutárias</th>
               </tr>
@@ -411,7 +398,6 @@
           <table class="tabela tabela-zebra table-borderless mb-4">
 
             <thead>
-              <!-- RECURSO -->
               <tr style="background: #f8f9fa;">
                 <th colspan="5" style="padding: 6px;">Recursos Próprios</th>
               </tr>
@@ -425,9 +411,9 @@
             </thead>
 
             <tbody class="nao-quebra-linha">
-              {% for recurso in dados.recursos_proprios %}
+              {% for recurso in dados.recursos_proprios.items %}
                 <tr>
-                  <td>{{ recurso.fonte_recurso.nome }}</td>
+                  <td>{{ recurso.fonte_recurso }}</td>
                   <td>{{ recurso.data_prevista }}</td>
                   <td>{{ recurso.descricao }}</td>
                   <td>{{ recurso.valor|formata_valor }}</td>
@@ -438,7 +424,7 @@
                 <td>TOTAL</td>
                 <td></td>
                 <td></td>
-                <td>{{ dados.total_recursos_proprios|formata_valor }}</td>
+                <td>{{ dados.recursos_proprios.total_recursos_proprios|formata_valor }}</td>
               </tr>
             </tbody>
 
