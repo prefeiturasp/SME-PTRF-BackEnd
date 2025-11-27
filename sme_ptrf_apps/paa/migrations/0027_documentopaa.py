@@ -80,7 +80,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 "verbose_name": "Documento PAA",
-                "verbose_name_plural": "Documento PAA",
+                "verbose_name_plural": "Documentos PAA",
             },
         ),
     ]

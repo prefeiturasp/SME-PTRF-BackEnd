@@ -42,7 +42,7 @@ class DocumentoPaa(ModeloBase):
 
     class Meta:
         verbose_name = "Documento PAA"
-        verbose_name_plural = "Documento PAA"
+        verbose_name_plural = "Documentos PAA"
 
     def arquivo_concluido(self):
         self.status_geracao = DocumentoPaa.StatusChoices.CONCLUIDO

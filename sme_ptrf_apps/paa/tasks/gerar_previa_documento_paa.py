@@ -4,8 +4,7 @@ from celery.exceptions import MaxRetriesExceededError
 from sme_ptrf_apps.paa.services.documento_paa_pdf_service import gerar_arquivo_documento_paa_pdf
 from sme_ptrf_apps.logging.loggers import ContextualLogger
 from sme_ptrf_apps.paa.models.paa import Paa
-from sme_ptrf_apps.paa.models.documento_paa import DocumentoPaa
-
+from sme_ptrf_apps.paa.services.documento_paa_service import DocumentoPaaService
 MAX_RETRIES = 3
 
 
@@ -34,12 +33,12 @@ def gerar_previa_documento_paa_async(self, paa_uuid, username=""):
 
         usuario = get_user_model().objects.get(username=username)
 
-        # apagar documentos anteriores
+        service = DocumentoPaaService(paa=paa, usuario=username, previa=True, logger=logger)
 
-        documento_paa, _ = DocumentoPaa.objects.get_or_create(paa=paa, versao=DocumentoPaa.VersaoChoices.PREVIA)
-        logger.info('Documento PAA criado')
+        documento_paa = service.iniciar()
 
         documento_paa.arquivo_em_processamento()
+
         logger.info('Documento PAA em processamento')
 
         gerar_arquivo_documento_paa_pdf(paa, documento_paa, usuario, previa=True)
