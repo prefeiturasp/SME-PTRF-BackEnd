@@ -17,10 +17,10 @@ Cypress.Commands.add('clicar_btn_motivo_pagamento_antecipado', (btn_motivo_pagam
 			cy.get(motivo_pagamento_antecipado_Localizadores.tbl_tabela_nome_edicao_motivo_pagamento_antecipado(nome_tabela_edicao)).find(motivo_pagamento_antecipado_Localizadores.btn_editar_motivo_pagamento_antecipado()).click()
 			break
 		case 'Apagar':
-			cy.get(motivo_pagamento_antecipado_Localizadores.btn_apagar_motivo_pagamento_antecipado()).click()
+			cy.get(motivo_pagamento_antecipado_Localizadores.btn_apagar_motivo_pagamento_antecipado()).click({force: true})
 			break
 		case 'Excluir':
-			cy.get(motivo_pagamento_antecipado_Localizadores.btn_excluir_motivo_pagamento_antecipado()).click()
+			cy.get(motivo_pagamento_antecipado_Localizadores.btn_excluir_motivo_pagamento_antecipado()).click({force: true})
 			break
 		default:
 			break
