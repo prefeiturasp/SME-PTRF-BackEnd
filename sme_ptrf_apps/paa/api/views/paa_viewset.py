@@ -82,6 +82,70 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         }
         return PaaService.gerar_arquivo_pdf_levantamento_prioridades_paa(dados)
 
+    @action(detail=True, methods=['get'], url_path='download-previa-paa',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def download_previa_paa(self, request, uuid=None):
+        paa = self.get_object()
+        associacao_uuid = self.request.query_params.get('associacao_uuid')
+
+        if not associacao_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário informar o uuid da associação. ?associacao_uuid=<uuid>'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if str(paa.associacao.uuid) != str(associacao_uuid):
+            erro = {
+                'erro': 'associacao_invalida',
+                'mensagem': 'O PAA informado não pertence à associação indicada.'
+            }
+            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+
+        associacao = paa.associacao
+        data_agora = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        periodo_execucao = None
+        if paa.periodo_paa and paa.periodo_paa.data_inicial and paa.periodo_paa.data_final:
+            periodo_execucao = f"{paa.periodo_paa.data_inicial.strftime('%m/%Y')} até {paa.periodo_paa.data_final.strftime('%m/%Y')}"
+            ano_referencia = paa.periodo_paa.data_inicial.year
+        else:
+            ano_referencia = datetime.now().year
+
+        nome_unidade = associacao.unidade.nome if associacao and associacao.unidade else ""
+        tipo_unidade = associacao.unidade.tipo_unidade if associacao and associacao.unidade else ""
+        codigo_eol = associacao.unidade.codigo_eol if associacao and associacao.unidade else ""
+        dre_nome = associacao.unidade.dre.nome if associacao and associacao.unidade and associacao.unidade.dre else ""
+        endereco_unidade = ""
+        if associacao and associacao.unidade:
+            unidade = associacao.unidade
+            partes_endereco = [unidade.tipo_logradouro, unidade.logradouro, unidade.numero]
+            endereco_unidade = " ".join([p for p in partes_endereco if p]).strip()
+
+        dados = {
+            "nome_associacao": associacao.nome if associacao else "",
+            "nome_unidade": nome_unidade,
+            "tipo_unidade": tipo_unidade,
+            "cnpj": associacao.cnpj if associacao else "",
+            "codigo_eol": codigo_eol,
+            "dre_nome": dre_nome,
+            "username": request.user.username,
+            "data": data_agora,
+            "ano": ano_referencia,
+            "periodo_execucao": periodo_execucao,
+            "rodape": None
+        }
+
+        unidade_desc = f"{dados.get('tipo_unidade')} {dados.get('nome_unidade')}".strip()
+        if endereco_unidade:
+            unidade_desc = f"{unidade_desc} - {endereco_unidade}"
+
+        dados["rodape"] = (
+            f"{unidade_desc} Documento gerado pelo usuário: {request.user.username}, "
+            f"via SIG - Escola, em: {dados.get('data')}"
+        )
+
+        return PaaService.gerar_arquivo_pdf_previa_paa(paa, dados)
+
     @action(detail=True, methods=['post'], url_path='desativar-atualizacao-saldo',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def desativar_atualizacao_saldo(self, request, uuid):
