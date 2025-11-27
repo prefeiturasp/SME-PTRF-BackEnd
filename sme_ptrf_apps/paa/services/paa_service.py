@@ -69,6 +69,7 @@ class PaaService:
         prioridades = cls._prioridades_por_recurso(paa)
         plano_orcamentario = cls._plano_orcamentario(paa)
         atividades_previstas = cls._atividades_previstas(paa)
+        conclusao = cls._conclusao_paa(paa)
 
         html_template = get_template('pdf/paa/pdf_previa_paa.html')
         rendered_html = html_template.render({
@@ -79,6 +80,7 @@ class PaaService:
             'prioridades': prioridades,
             'plano_orcamentario': plano_orcamentario,
             'atividades_previstas': atividades_previstas,
+            'conclusao_paa': conclusao,
             'base_static_url': staticfiles_storage.location
         })
 
@@ -331,6 +333,21 @@ class PaaService:
             'outros_recursos': outros_recursos,
             'total_outros': total_outros
         }
+
+    @classmethod
+    def _conclusao_paa(cls, paa):
+        try:
+            parametro = ParametroPaa.get()
+        except Exception:
+            parametro = None
+
+        if parametro:
+            if parametro.conclusao_do_paa_ue_1:
+                return parametro.conclusao_do_paa_ue_1
+            if parametro.conclusao_do_paa_ue_2:
+                return parametro.conclusao_do_paa_ue_2
+
+        return paa.texto_conclusao or ""
 
     @classmethod
     def somatorio_totais_por_programa_pdde(cls, paa_uuid, page_size=1000):
