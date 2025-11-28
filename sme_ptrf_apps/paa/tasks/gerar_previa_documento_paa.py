@@ -1,0 +1,66 @@
+from django.contrib.auth import get_user_model
+from celery import shared_task, current_task
+from celery.exceptions import MaxRetriesExceededError
+from sme_ptrf_apps.paa.services.documento_paa_pdf_service import gerar_arquivo_documento_paa_pdf
+from sme_ptrf_apps.logging.loggers import ContextualLogger
+from sme_ptrf_apps.paa.models.paa import Paa
+from sme_ptrf_apps.paa.services.documento_paa_service import DocumentoPaaService
+MAX_RETRIES = 3
+
+
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_kwargs={'max_retries': MAX_RETRIES},
+    retry_backoff=True,
+    retry_backoff_max=600,
+    retry_jitter=True,
+    time_limit=600,
+    soft_time_limit=300
+)
+def gerar_previa_documento_paa_async(self, paa_uuid, username=""):
+    logger = ContextualLogger.get_logger(
+        __name__,
+        operacao='Plano Anual de Atividades',
+        username=username
+    )
+    tentativa = current_task.request.retries + 1
+
+    logger.info(f'Iniciando task gerar_previa_documento_paa_async, tentativa {tentativa}.')
+
+    paa = Paa.objects.get(uuid=paa_uuid)
+    usuario = get_user_model().objects.get(username=username)
+
+    service = DocumentoPaaService(paa=paa, usuario=username, previa=True, logger=logger)
+    service.iniciar()
+
+    try:
+        documento_paa = service.documento_paa
+
+        gerar_arquivo_documento_paa_pdf(paa, service.documento_paa, usuario, previa=True)
+
+        service.marcar_concluido()
+
+        logger.info(f'Documento PAA arquivo {documento_paa.uuid}.')
+
+        logger.info('Task gerar_previa_documento_paa_async finalizada.')
+    except Exception as exc:
+        service.marcar_erro()
+
+        logger.error(
+            f'A tentativa {tentativa} de gerar o documento PAA falhou.',
+            exc_info=True,
+            stack_info=True
+        )
+
+        if tentativa > MAX_RETRIES:
+            mensagem_tentativas_excedidas = 'Tentativas de reprocessamento com falha excedidas para o documento PAA.'
+            logger.error(
+                mensagem_tentativas_excedidas,
+                exc_info=True,
+                stack_info=True
+            )
+
+            raise MaxRetriesExceededError(mensagem_tentativas_excedidas)
+        else:
+            raise exc

@@ -42,6 +42,14 @@ class Paa(ModeloBase):
         total = self.recursopropriopaa_set.aggregate(total=Sum('valor'))['total']
         return total or 0
 
+    @property
+    def documento_final(self):
+        return self.documentopaa_set.filter(versao="FINAL").first()
+
+    @property
+    def documento_previa(self):
+        return self.documentopaa_set.filter(versao="PREVIA").first()
+
     class Meta:
         verbose_name = 'PAA'
         verbose_name_plural = 'PAA`s'

@@ -1,0 +1,221 @@
+@charset "UTF-8";
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  src: url(../fonts/Roboto-Regular.ttf);
+}
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 700;
+  src: url(../fonts/Roboto-Bold.ttf);
+}
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  font-style: italic;
+  src: url(../fonts/Roboto-Italic.ttf);
+}
+
+@page {
+  size: A4 landscape;
+  margin: 3cm -2mm 2cm -2mm;
+  padding: 0;
+  @top-center {
+    content: element(heading);
+  }
+  @bottom-right {
+    color: #000;
+    content: counter(page) "/" counter(pages);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: 1.4cm 0;
+    font-weight: bold;
+    font-style: italic;
+  }
+
+  @bottom-center {
+    content: none;
+  }
+
+  @bottom-left {
+    color: #000;
+    content: element(nome-associacao);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: 1.5cm 0;
+    font-style: normal;
+  }
+}
+
+@media print {
+  body,
+  page {
+    margin: 0;
+  }
+}
+
+html {
+  font-family: Roboto, sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 10pt;
+}
+
+body {
+  font-family: Roboto;
+  font-style: normal;
+}
+
+html body section#cabecalho,
+header {
+  background: #eeeeee;
+  margin: 0;
+  padding: 0 0 0.5cm 0.5cm;
+  width: 100%;
+}
+
+header {
+  position: running(heading);
+  width: 315mm;
+  padding: 0.3cm 1.8cm 0.3cm 1cm;
+  margin: 0 0 0.7cm 3.5cm;
+}
+
+html body section#cabecalho .titulo,
+html body section#cabecalho .subtitulo,
+html body header .subtitulo {
+  font-weight: bold;
+  color: #0c0c0c;
+  font-family: Roboto, serif;
+}
+
+html body section#cabecalho .subtitulo,
+html body header .subtitulo {
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+#nome-associacao-rodape {
+  position: running(nome-associacao);
+  font-style: normal;
+  color: #000;
+}
+
+.divisao {
+  margin: 0 1.5cm 0 0.5cm;
+}
+
+.font-18 {
+  font-size: 18px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-16 {
+  font-size: 16px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-14 {
+  font-size: 14px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-12 {
+  font-size: 12px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-10 {
+  font-size: 10px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-8 {
+  font-size: 8px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.borda-box-cabecalho-left {
+  border-top: solid 1px #a4a4a4;
+  border-bottom: solid 1px #a4a4a4;
+  border-left: solid 1px #a4a4a4;
+}
+
+.borda-box-cabecalho-right {
+  border-top: solid 1px #a4a4a4;
+  border-bottom: solid 1px #a4a4a4;
+  border-left: solid 1px #a4a4a4;
+  border-right: solid 1px #a4a4a4;
+}
+
+.conteudo {
+  margin: 0 1cm;
+  width: 280mm;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.container-watermark {
+  position: relative;
+  height: 100vh;
+}
+
+.watermark1 {
+  position: fixed;
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.5;
+  z-index: 99;
+}
+.watermark2 {
+  position: fixed;
+  top: 75%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.5;
+  z-index: 99;
+}
+
+.nao-quebra-linha {
+  break-inside: avoid !important;
+}
+
+.tabela {
+  width: 100% !important;
+  background-color: transparent;
+  border-collapse: separate !important;
+  border-spacing: 0;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.tabela thead tr th {
+  padding: 8px;
+  background-color: #f7f8f9;
+}
+
+.tabela tbody td {
+  padding: 8px;
+  vertical-align: middle;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+  white-space: normal !important;
+}
+
+.tabela-zebra tbody tr:nth-child(odd) {
+  background-color: #ffffff;
+}
+
+.tabela-zebra tbody tr:nth-child(even) {
+  background-color: #f7f8f9;
+}

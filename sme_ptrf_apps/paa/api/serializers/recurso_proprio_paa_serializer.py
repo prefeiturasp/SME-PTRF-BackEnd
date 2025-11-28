@@ -46,3 +46,25 @@ class RecursoProprioPaaListSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecursoProprioPaa
         fields = ('id', 'paa', 'uuid', 'associacao', 'fonte_recurso', 'data_prevista', 'descricao', 'valor')
+
+
+class RecursoProprioPaaListDocumentoPaaSerializer(serializers.ModelSerializer):
+    data_prevista = serializers.SerializerMethodField()
+    paa = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Paa.objects.all()
+    )
+    fonte_recurso = FonteRecursoPaaSerializer()
+    valor = serializers.FloatField()
+    associacao = serializers.SerializerMethodField('get_associacao_uuid')
+
+    def get_data_prevista(self, obj):
+        return obj.data_prevista.strftime("%d/%m/%Y")
+
+    def get_associacao_uuid(self, obj):
+        return obj.associacao.uuid
+
+    class Meta:
+        model = RecursoProprioPaa
+        fields = ('id', 'paa', 'uuid', 'associacao', 'fonte_recurso', 'data_prevista', 'descricao', 'valor')
