@@ -1,6 +1,7 @@
 from ..models import Composicao, CargoComposicao
 from datetime import date, timedelta, datetime
 from django.db.models import Q
+from django.core.exceptions import MultipleObjectsReturned
 
 
 class ServicoComposicaoVigente:
@@ -156,6 +157,12 @@ class ServicoCriaComposicaoVigenteDoMandato(ServicoComposicaoVigente):
                     )
                 except Composicao.DoesNotExist:
                     composicao_anterior = None
+                except MultipleObjectsReturned:
+                    composicao_anterior = Composicao.objects.filter(
+                        associacao=self.associacao,
+                        mandato=self.mandato,
+                        data_final=composicao.data_inicial - timedelta(days=1)
+                    ).order_by('-id').first()
 
                 if composicao_anterior:
                     composicao_anterior.cargos_da_composicao_da_composicao.filter(
@@ -175,3 +182,10 @@ class ServicoRecuperaComposicaoPorData:
             return composicao
         except Composicao.DoesNotExist:
             return None
+        except MultipleObjectsReturned:
+            composicao = Composicao.objects.filter(
+                associacao_id=associacao_id,
+                data_inicial__lte=data,
+                data_final__gte=data
+            ).order_by('-id').first()
+            return composicao
