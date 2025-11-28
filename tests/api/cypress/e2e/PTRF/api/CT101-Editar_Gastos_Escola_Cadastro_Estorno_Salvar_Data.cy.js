@@ -17,9 +17,9 @@ Cypress.on('uncaught:exception', (err, runnable) => {
     return false
   })
 
-  describe('Gastos da Escola - Consulta', () => {
+  describe('Gastos da Escola - Editar', () => {
 
-    it('CT63-Consulta_Gastos_Escola_Acao_Material_Complementar',()=>{
+    it('CT101-Editar_Gastos_Escola_Cadastro_Estorno_Salvar_Data',()=>{
 
     Comum.visitarPaginaPTRF();
 
