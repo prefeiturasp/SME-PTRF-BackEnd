@@ -18,16 +18,6 @@ describe("Credito Escola - Cadastro", () => {
   it("CT08-Validar_Soma_Cadastro_de_Credito", () => {
     Comum.visitarPaginaPTRF();
 
-    // Comum.login(usuario.Usuario, usuario.Senha);
-
-    // Comum.selecionarCeuVilaAlpina();
-
-    // Creditos.selecionarCreditosDaEscola();
-
-    // Creditos.selecionarRendimento();
-
-    // Creditos.filtrarReceita();
-
-    // Creditos.validarCreditosCadastrados();
+    Comum.login(usuario.Usuario, usuario.Senha);
   });
 });

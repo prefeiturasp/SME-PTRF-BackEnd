@@ -1,6 +1,6 @@
 import logging
-
 from datetime import datetime
+from django.http import HttpResponse
 from django.http import Http404
 from django.db.models import Q
 from django.db.models.functions import Lower
@@ -25,6 +25,9 @@ from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.services.paa_service import PaaService, ImportacaoConfirmacaoNecessaria
 from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
 from sme_ptrf_apps.paa.services.resumo_prioridades_service import ResumoPrioridadesService
+
+from sme_ptrf_apps.paa.tasks.gerar_documento_paa import gerar_documento_paa_async
+from sme_ptrf_apps.paa.tasks.gerar_previa_documento_paa import gerar_previa_documento_paa_async
 
 logger = logging.getLogger(__name__)
 
@@ -247,3 +250,129 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         serializer = RecursoProprioPaaListSerializer(paa.recursopropriopaa_set.all(), many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="gerar-documento")
+    def gerar_documento(self, request, uuid=None):
+        paa = self.get_object()
+        usuario = request.user
+
+        if paa.documento_final and paa.documento_final.concluido:
+            return Response({"mensagem": "O documento final já foi gerado."}, status=400)
+
+        errors = []
+
+        if not paa.objetivos.exists():
+            errors.append("É necessário indicar pelo menos um objetivo no PAA")
+
+        if not paa.texto_introducao:
+            errors.append("É necessário inserir o texto de introdução")
+
+        if not paa.texto_conclusao:
+            errors.append("É necessário inserir o texto de conclusão")
+
+        if errors:
+            return Response(
+                {"mensagem": "\n".join(errors)},
+                status=400
+            )
+
+        gerar_documento_paa_async.apply_async(
+            args=[str(paa.uuid), usuario.username]
+        )
+
+        return Response(
+            {"mensagem": "Geração de documento final iniciada"},
+            status=200
+        )
+
+    @action(detail=True, methods=["post"], url_path="gerar-previa-documento")
+    def gerar_previa_documento(self, request, uuid=None):
+        paa = self.get_object()
+        usuario = request.user
+
+        if paa.documento_final:
+            return Response({"mensagem": "O documento final já foi gerado e não é mais possível gerar prévias."}, status=400)
+
+        gerar_previa_documento_paa_async.apply_async(
+            args=[str(paa.uuid), usuario.username]
+        )
+
+        return Response(
+            {"mensagem": "Geração de documento prévia iniciada"},
+            status=200
+        )
+
+    @action(detail=True, methods=['get'], url_path='documento-final',
+            permission_classes=[IsAuthenticated])
+    def documento_final(self, request, uuid=None):
+        paa = self.get_object()
+
+        if not paa.documento_final:
+            return Response(
+                {"mensagem": "Documento final não gerado"},
+                status=400
+            )
+
+        if not paa.documento_final.concluido:
+            return Response(
+                {"mensagem": "Documento final não concluído"},
+                status=400
+            )
+
+        filename = 'documento_final_paa.pdf'
+        response = HttpResponse(
+            open(paa.documento_final.arquivo_pdf.path, 'rb'),
+            content_type='application/pdf'
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
+        return response
+
+    @action(detail=True, methods=['get'], url_path='documento-previa',
+            permission_classes=[IsAuthenticated])
+    def documento_previa(self, request, uuid=None):
+        paa = self.get_object()
+
+        if not paa.documento_previa:
+            return Response(
+                {"mensagem": "Documento prévia não gerado"},
+                status=400
+            )
+
+        if not paa.documento_previa.concluido:
+            return Response(
+                {"mensagem": "Documento prévia não concluído"},
+                status=400
+            )
+
+        filename = 'documento_previa_paa.pdf'
+        response = HttpResponse(
+            open(paa.documento_previa.arquivo_pdf.path, 'rb'),
+            content_type='application/pdf'
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
+        return response
+
+    @action(detail=True, methods=['get'], url_path='status-geracao',
+            permission_classes=[IsAuthenticated])
+    def satus_geracao(self, request, uuid=None):
+        paa = self.get_object()
+
+        if paa.documento_previa:
+            return Response(
+                {"mensagem": paa.documento_previa.__str__(), "versao": paa.documento_previa.versao,
+                 "status": paa.documento_previa.status_geracao},
+                status=200
+            )
+
+        if paa.documento_final:
+            return Response(
+                {"mensagem": paa.documento_final.__str__(), "versao": paa.documento_final.versao,
+                 "status": paa.documento_final.status_geracao},
+                status=200
+            )
+
+        return Response(
+            {"mensagem": "Documento pendente de geração"}, status=200
+        )

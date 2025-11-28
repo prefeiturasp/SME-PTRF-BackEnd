@@ -16,7 +16,8 @@ from sme_ptrf_apps.paa.models import (
     AtaPaa,
     ParticipanteAtaPaa,
     AtividadeEstatutariaPaa,
-    OutroRecurso
+    OutroRecurso,
+    DocumentoPaa
 )
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 
@@ -69,6 +70,12 @@ class PaaAdmin(admin.ModelAdmin):
     list_filter = ('periodo_paa', 'associacao')
     raw_id_fields = ['periodo_paa', 'associacao']
     inlines = [AtividadeEstatutariaPaaInline]
+    actions = ["gerar_documento"]
+
+    def gerar_documento(self, request, queryset):
+        from sme_ptrf_apps.paa.services.documento_paa_pdf_service import gerar_arquivo_documento_paa_pdf
+        for paa in queryset:
+            return gerar_arquivo_documento_paa_pdf(paa)
 
 
 @admin.register(ProgramaPdde)
@@ -151,6 +158,17 @@ class PrioridadePaaAdmin(admin.ModelAdmin):
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         return queryset_prioridades_paa(qs)
+
+    actions = ["criar_lote_prioridades"]
+
+    def criar_lote_prioridades(modeladmin, request, queryset):
+        import uuid
+        for obj in queryset:
+            for item in range(10):
+                clone = obj
+                clone.pk = None
+                clone.uuid = uuid.uuid4()
+                clone.save()
 
 
 @admin.register(ObjetivoPaa)
@@ -269,3 +287,6 @@ class OutroRecursoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'aceita_capital', 'aceita_custeio', 'aceita_livre_aplicacao')
     search_fields = ('nome', )
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+
+admin.site.register(DocumentoPaa)

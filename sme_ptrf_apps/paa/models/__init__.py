@@ -15,3 +15,4 @@ from .ata_paa import AtaPaa
 from .participante_ata_paa import ParticipanteAtaPaa
 from .atividade_estatutaria_paa import AtividadeEstatutariaPaa
 from .outros_recursos import OutroRecurso
+from .documento_paa import DocumentoPaa
