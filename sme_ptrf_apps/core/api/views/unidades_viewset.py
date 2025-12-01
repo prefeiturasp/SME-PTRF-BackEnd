@@ -14,6 +14,8 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
     PermissaoAPITodosComLeituraOuGravacao,
 )
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 
 class UnidadesViewSet(viewsets.ModelViewSet):
@@ -24,6 +26,43 @@ class UnidadesViewSet(viewsets.ModelViewSet):
     filters = (filters.DjangoFilterBackend, SearchFilter,)
     serializer_class = UnidadeSerializer
     filterset_fields = ('tipo_unidade', 'codigo_eol', 'dre__uuid')
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='tipo_unidade',
+                description='Filtra unidades pelo tipo',
+                required=False,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY
+            ),
+            OpenApiParameter(
+                name='codigo_eol',
+                description='Filtra unidades pelo código EOL',
+                required=False,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY
+            ),
+            OpenApiParameter(
+                name='tecnico',
+                description='UUID do técnico responsável',
+                required=False,
+                type=OpenApiTypes.UUID,
+                location=OpenApiParameter.QUERY
+            ),
+            OpenApiParameter(
+                name='search',
+                description='Busca por nome ou código EOL',
+                required=False,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY
+            ),
+        ],
+        responses={200: UnidadeSerializer(many=True)},
+        description="Lista unidades filtrando por tipo, código EOL, técnico ou busca textual."
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
     def get_queryset(self):
         qs = Unidade.objects.all()
@@ -52,18 +91,45 @@ class UnidadesViewSet(viewsets.ModelViewSet):
         else:
             return UnidadeSerializer
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name='dre_uuid',
+                description='UUID da DRE para filtrar unidades',
+                required=True,
+                type=OpenApiTypes.UUID,
+                location=OpenApiParameter.QUERY
+            ),
+            OpenApiParameter(
+                name='periodo',
+                description='UUID do Período para filtrar unidades',
+                required=True,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY
+            ),
+        ],
+        responses={
+            200: OpenApiTypes.OBJECT,
+            400: OpenApiTypes.OBJECT
+        },
+        description=(
+            "Retorna as unidades disponíveis para atribuição, filtradas por DRE e período."
+            "Ambos os parâmetros (dre_uuid e periodo_uuid) são obrigatórios."
+        ),
+        summary="Listar unidades para atribuição"
+    )
     @action(detail=False, url_path='para-atribuicao',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def para_atribuicao(self, request, *args, **kwargs):
         dre_uuid = request.query_params.get('dre_uuid')
-        periodo = request.query_params.get('periodo')
+        periodo_uuid = request.query_params.get('periodo')
 
-        if not dre_uuid or not periodo:
+        if not dre_uuid or not periodo_uuid:
             erro = {
                 'erro': 'parametros_requerido',
-                'mensagem': 'É necessário enviar o uuid da dre (dre_uuid) e o periodo como parâmetros.'
+                'mensagem': 'É necessário enviar o uuid da dre (dre_uuid) e o periodo_uuid como parâmetros.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        list_unidades = monta_unidade_para_atribuicao(self.get_queryset(), dre_uuid, periodo)
+        list_unidades = monta_unidade_para_atribuicao(self.get_queryset(), dre_uuid, periodo_uuid)
         return Response(list_unidades)
