@@ -37,14 +37,14 @@ def gerar_dados_documento_paa(paa, usuario, previa=False):
         "cabecalho": cabecalho,
         "identificacao_associacao": identificacao_associacao,
         "data_geracao_documento": data_geracao_documento,
-        "texto_introducao": paa.texto_introducao,
+        "texto_introducao": paa.texto_introducao if paa.texto_introducao else "",
         "objetivos": paa.objetivos.all(),
         "grupos_prioridades": grupos_prioridades,
         "receitas_previstas": receitas_previstas,
         "receitas_previstas_pdde": receitas_previstas_pdde,
         "atividades_estatutarias": atividades_estatutarias,
         "recursos_proprios": recursos_proprios,
-        "texto_conclusao": paa.texto_conclusao,
+        "texto_conclusao": paa.texto_conclusao if paa.texto_conclusao else "",
         "presidente_diretoria_executiva": presidente_diretoria_executiva,
         "previa": previa
     }
