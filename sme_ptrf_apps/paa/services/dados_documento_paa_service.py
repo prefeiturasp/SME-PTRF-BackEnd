@@ -1,9 +1,11 @@
 import logging
 from datetime import datetime
-from django.db.models import Sum
+from django.db.models import Sum, Q
+from sme_ptrf_apps.paa.models.atividade_estatutaria import AtividadeEstatutaria
 from sme_ptrf_apps.paa.models.acao_pdde import AcaoPdde
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 from sme_ptrf_apps.paa.enums import TipoAplicacaoOpcoesEnum, RecursoOpcoesEnum
+from sme_ptrf_apps.paa.choices import StatusChoices
 
 from sme_ptrf_apps.mandatos.services import ServicoCargosDaComposicao
 from sme_ptrf_apps.core.models import MembroAssociacao
@@ -254,17 +256,20 @@ def criar_recursos_proprios(paa):
 
 
 def criar_atividades_estatutarias(paa):
-    atividades = []
+    items = []
 
-    for atividade in paa.atividadeestatutariapaa_set.all():
-        atividades.append({
-            "tipo_atividade": atividade.atividade_estatutaria.get_tipo_display(),
-            "data": atividade.data.strftime("%d/%m/%Y"),
-            "atividades_previstas": atividade.atividade_estatutaria.nome,
-            "mes_ano": f"{MESES_PT[atividade.data.month - 1]}/{atividade.data.year}",
+    atividades = AtividadeEstatutaria.objects.filter(Q(paa__isnull=True) | Q(paa=paa), status=StatusChoices.ATIVO)
+
+    for atividade in atividades:
+        atividade_paa = paa.atividadeestatutariapaa_set.filter(atividade_estatutaria=atividade).first()
+        items.append({
+            "tipo_atividade": atividade.get_tipo_display(),
+            "data": atividade_paa.data.strftime("%d/%m/%Y") if atividade_paa else "",
+            "atividades_previstas": atividade.nome,
+            "mes_ano": f"{MESES_PT[atividade_paa.data.month - 1]}/{atividade_paa.data.year}" if atividade_paa else MESES_PT[atividade.mes],
         })
 
-    return atividades
+    return items
 
 
 def criar_grupos_prioridades(paa):
