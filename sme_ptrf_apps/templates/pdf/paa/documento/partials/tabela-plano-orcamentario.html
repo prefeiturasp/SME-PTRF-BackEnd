@@ -1,0 +1,186 @@
+  {% load static %}
+  {% load formata_valores %}
+
+  <section class="row">
+    <article id="bloco-5" class="col mb-3 p-0">
+      <p class="font-14 pt-1 pl-2 pb-2 mb-0 border-left border-right border-top"><strong>Bloco 5 - Plano Orçamentário</strong></p>
+        <table class="tabela border tabela-zebra mb-2 mt-0">
+          <thead>
+            <tr style="background: #f8f9fa;">
+              <th colspan="5" style="padding: 6px;">PTRF</th>
+            </tr>
+
+            <tr style="background: #f8f9fa;">
+              <th>Recursos</th>
+              <th></th>
+              <th>Receita</th>
+              <th>Despesa</th>
+              <th>Saldo</th>
+            </tr>
+          </thead>
+
+          <tbody class="nao-quebra-linha">
+            {% for receita in dados.receitas_previstas.items %}
+              <tr>
+                <td>{{ receita.nome }}</td>
+                <td>
+                  <ul style="list-style: none; padding-left: 0">
+                    <li>Custeio (R$)</li>
+                    <li>Capital (R$)</li>
+                    <li>Livre Aplicação (R$)</li>
+                  </ul>
+                </td>
+                <td>
+                  <ul style="list-style: none; padding-left: 0">
+                    <li>{{receita.total_receita_custeio|formata_valor}}</li>
+                    <li>{{receita.total_receita_capital|formata_valor}}</li>
+                    <li>{{receita.total_receita_livre|formata_valor}}</li>
+                  </ul>
+                </td>
+                <td>
+                  <ul style="list-style: none;padding-left: 0">
+                    <li>{{receita.total_despesa_custeio|formata_valor}}</li>
+                    <li>{{receita.total_despesa_capital|formata_valor}}</li>
+                    <li>{{receita.total_despesa_livre|formata_valor}}</li>
+                  </ul>
+                </td>
+                <td>
+                  <ul style="list-style: none;padding-left: 0">
+                    <li>{{receita.saldo_custeio|formata_valor}}</li>
+                    <li>{{receita.saldo_capital|formata_valor}}</li>
+                    <li>{{receita.saldo_livre|formata_valor}}</li>
+                  </ul>
+                </td>
+              </tr>
+            {% endfor %}
+
+            <tr style="background: #f8f9fa; font-weight: bold;">
+              <td>TOTAL</td>
+              <td></td>
+              <td>{{dados.receitas_previstas.total_receitas|formata_valor}}</td>
+              <td>{{dados.receitas_previstas.total_despesas|formata_valor}}</td>
+              <td>{{dados.receitas_previstas.total_saldo|formata_valor }}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <table class="tabela border tabela-zebra mb-2 mt-0">
+          <thead>
+          <tr style="background: #f8f9fa;">
+            <th colspan="5" style="padding: 6px;">PDDE</th>
+          </tr>
+
+          <tr style="background: #f8f9fa;">
+            <th>Recursos</th>
+            <th></th>
+            <th>Receita</th>
+            <th>Despesa</th>
+            <th>Saldo</th>
+          </tr>
+          </thead>
+
+        <tbody class="nao-quebra-linha">
+          {% for receita in dados.receitas_previstas_pdde.items %}
+            <tr>
+              <td>{{ receita.nome }}</td>
+              <td>
+                <ul style="list-style: none; padding-left: 0">
+                  <li>Custeio (R$)</li>
+                  <li>Capital (R$)</li>
+                  <li>Livre Aplicação (R$)</li>
+                </ul>
+              </td>
+              <td>
+                <ul style="list-style: none; padding-left: 0">
+                  <li>{{receita.total_receita_custeio|formata_valor}}</li>
+                  <li>{{receita.total_receita_capital|formata_valor}}</li>
+                  <li>{{receita.total_receita_livre|formata_valor}}</li>
+                </ul>
+              </td>
+              <td>
+                <ul style="list-style: none;padding-left: 0">
+                  <li>{{receita.total_despesa_custeio|formata_valor}}</li>
+                  <li>{{receita.total_despesa_capital|formata_valor}}</li>
+                  <li>{{receita.total_despesa_livre|formata_valor}}</li>
+                </ul>
+              </td>
+              <td>
+                <ul style="list-style: none;padding-left: 0">
+                  <li>{{receita.saldo_custeio|formata_valor}}</li>
+                  <li>{{receita.saldo_capital|formata_valor}}</li>
+                  <li>{{receita.saldo_livre|formata_valor}}</li>
+                </ul>
+              </td>
+            </tr>
+          {% endfor %}
+
+          <tr style="background: #f8f9fa; font-weight: bold;">
+            <td>TOTAL</td>
+            <td></td>
+            <td>{{dados.receitas_previstas_pdde.total_receitas|formata_valor}}</td>
+            <td>{{dados.receitas_previstas_pdde.total_despesas|formata_valor}}</td>
+            <td>{{dados.receitas_previstas_pdde.total_saldo|formata_valor }}</td>
+          </tr>
+        </tbody>
+        </table>
+
+        <table class="tabela border tabela-zebra mb-2 mt-0">
+        <thead>
+          <tr style="background: #f8f9fa;">
+            <th colspan="5" style="padding: 6px;">Recursos Próprios</th>
+          </tr>
+
+          <tr style="background: #f8f9fa;">
+            <th>Recursos</th>
+            <th></th>
+            <th>Receita</th>
+            <th>Despesa</th>
+            <th>Saldo</th>
+          </tr>
+        </thead>
+
+        <tbody class="nao-quebra-linha">
+          <tr>
+            <td>Recursos Próprios</td>
+            <td>
+              <ul style="list-style: none; padding-left: 0">
+                <li>Custeio (R$)</li>
+                <li>Capital (R$)</li>
+                <li>Livre Aplicação (R$)</li>
+              </ul>
+            </td>
+            <td>
+              <ul style="list-style: none; padding-left: 0">
+                <li>-</li>
+                <li>-</li>
+                <li>{{dados.recursos_proprios.total_recursos_proprios|formata_valor}}</li>
+              </ul>
+            </td>
+            <td>
+              <ul style="list-style: none;padding-left: 0">
+                <li>-</li>
+                <li>-</li>
+                <li>{{dados.recursos_proprios.total_prioridades_recursos_proprios|formata_valor}}</li>
+              </ul>
+            </td>
+            <td>
+              <ul style="list-style: none;padding-left: 0">
+                <li>-</li>
+                <li>-</li>
+                <li>{{dados.recursos_proprios.saldo_recursos_proprios|formata_valor}}</li>
+              </ul>
+            </td>
+          </tr>
+
+          <tr style="background: #f8f9fa; font-weight: bold;">
+            <td>TOTAL</td>
+            <td></td>
+            <td>{{dados.recursos_proprios.total_recursos_proprios|formata_valor}}</td>
+            <td>{{dados.recursos_proprios.total_prioridades_recursos_proprios|formata_valor}}</td>
+            <td>{{dados.recursos_proprios.saldo_recursos_proprios|formata_valor }}</td>
+          </tr>
+        </tbody>
+        </table>
+
+    </article>
+  </section>

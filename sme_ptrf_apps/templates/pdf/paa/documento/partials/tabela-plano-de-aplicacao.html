@@ -1,0 +1,50 @@
+{% load static %}
+{% load formata_valores %}
+
+  <section class="row">
+    <article id="bloco-4" class="col mb-3 p-0">
+      <p class="font-14 pt-1 pl-2 pb-2 mb-0 border-left border-right border-top"><strong>Bloco 4 - Plano de aplicação</strong></p>
+
+      {% for grupo in dados.grupos_prioridades %}
+        {% if grupo.items %}
+          <table class="tabela border tabela-zebra mb-2 mt-0">
+
+            <thead>
+              <tr style="background: #f8f9fa;">
+                <th colspan="5" style="padding: 6px;">{{ grupo.titulo }}</th>
+              </tr>
+
+              <tr style="background: #f8f9fa;">
+                <th>Recursos</th>
+                <th>Tipo de aplicação</th>
+                <th>Tipo de despesa</th>
+                <th>Especificação do bem, material ou serviço</th>
+                <th>Valor total</th>
+              </tr>
+            </thead>
+
+            <tbody class="nao-quebra-linha">
+              {% for prioridade in grupo.items %}
+                <tr>
+                  <td>{{ prioridade.recurso }}</td>
+                  <td>{{ prioridade.tipo_aplicacao }}</td>
+                  <td>{{ prioridade.tipo_despesa_custeio }}</td>
+                  <td>{{ prioridade.especificacao_material }}</td>
+                  <td>{{ prioridade.valor_total|formata_valor }}</td>
+                </tr>
+              {% endfor %}
+
+              <tr style="background: #f8f9fa; font-weight: bold;">
+                <td>TOTAL</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>{{ grupo.total|formata_valor }}</td>
+              </tr>
+            </tbody>
+
+          </table>
+        {% endif %}
+      {% endfor %}
+    </article>
+  </section>

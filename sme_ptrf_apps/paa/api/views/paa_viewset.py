@@ -1,6 +1,6 @@
 import logging
-
 from datetime import datetime
+from django.http import HttpResponse
 from django.http import Http404
 from django.db.models import Q
 from django.db.models.functions import Lower
@@ -20,11 +20,14 @@ from sme_ptrf_apps.users.permissoes import (
 )
 from sme_ptrf_apps.paa.api.serializers.paa_serializer import PaaSerializer, PaaUpdateSerializer
 from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
-from sme_ptrf_apps.paa.models import Paa
+from sme_ptrf_apps.paa.models import Paa, PeriodoPaa
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.services.paa_service import PaaService, ImportacaoConfirmacaoNecessaria
 from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
 from sme_ptrf_apps.paa.services.resumo_prioridades_service import ResumoPrioridadesService
+
+from sme_ptrf_apps.paa.tasks.gerar_documento_paa import gerar_documento_paa_async
+from sme_ptrf_apps.paa.tasks.gerar_previa_documento_paa import gerar_previa_documento_paa_async
 
 logger = logging.getLogger(__name__)
 
@@ -142,6 +145,51 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         serializer = PaaSerializer(paas_anteriores, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['get'], url_path='paa-vigente-e-anteriores',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def paa_vigente_e_anteriores(self, request):
+        associacao_uuid = self.request.query_params.get('associacao_uuid')
+
+        if not associacao_uuid:
+            content = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário informar o uuid da associação.'
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            associacao = Associacao.objects.get(uuid=associacao_uuid)
+        except (Associacao.DoesNotExist, ValueError):
+            content = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto associação para o uuid {associacao_uuid} não foi encontrado na base."
+            }
+            return Response(content, status=status.HTTP_404_NOT_FOUND)
+
+        periodo_paa_vigente = PeriodoPaa.periodo_vigente()
+        if not periodo_paa_vigente:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        paa_vigente = self.queryset.filter(
+            periodo_paa=periodo_paa_vigente,
+            associacao=associacao
+        ).first()
+
+        if not paa_vigente:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        paas_anteriores = self.queryset.filter(
+            periodo_paa__data_inicial__lt=periodo_paa_vigente.data_inicial,
+            associacao=associacao
+        ).order_by('-periodo_paa__data_inicial')
+
+        result = {
+            'vigente': PaaSerializer(paa_vigente).data,
+            'anteriores': PaaSerializer(paas_anteriores, many=True).data
+        }
+
+        return Response(result, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['post'], url_path='importar-prioridades/(?P<uuid_paa_anterior>[a-f0-9-]+)',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def importar_prioridades(self, request, uuid=None, uuid_paa_anterior=None):
@@ -229,7 +277,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
     @action(detail=True, methods=['get'], url_path='atividades-estatutarias-previstas',
             permission_classes=[IsAuthenticated])
     def atividades_estatutarias_previstas(self, request, uuid=None):
-        from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_paa_serializer import AtividadeEstatutariaPaaSerializer
+        from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_paa_serializer import AtividadeEstatutariaPaaSerializer  # noqa
 
         paa = self.get_object()
 
@@ -247,3 +295,136 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         serializer = RecursoProprioPaaListSerializer(paa.recursopropriopaa_set.all(), many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="gerar-documento")
+    def gerar_documento(self, request, uuid=None):
+        paa = self.get_object()
+        usuario = request.user
+
+        if paa.documento_final and paa.documento_final.concluido:
+            return Response({"mensagem": "O documento final já foi gerado."}, status=400)
+
+        errors = []
+        # definido no frontend quando o editor estiver vazio
+        CAMPO_EDITOR_VAZIO = "<p></p>"
+        if not paa.texto_introducao or paa.texto_introducao.strip() == CAMPO_EDITOR_VAZIO:
+            errors.append("É necessário inserir o texto de introdução")
+
+        if not paa.objetivos.exists():
+            errors.append("É necessário indicar pelo menos um objetivo no PAA")
+
+        if not paa.texto_conclusao or paa.texto_conclusao.strip() == CAMPO_EDITOR_VAZIO:
+            errors.append("É necessário inserir o texto de conclusão")
+
+        if errors:
+            return Response(
+                {"mensagem": "\n".join(errors)},
+                status=400
+            )
+
+        confirmar = bool(int(self.request.data.get('confirmar', 0)))
+        if not confirmar:
+            return Response({"confirmar": "Geração não foi confirmada"}, status=status.HTTP_400_BAD_REQUEST)
+
+        gerar_documento_paa_async.apply_async(
+            args=[str(paa.uuid), usuario.username]
+        )
+
+        return Response(
+            {"mensagem": "Geração de documento final iniciada"},
+            status=200
+        )
+
+    @action(detail=True, methods=["post"], url_path="gerar-previa-documento")
+    def gerar_previa_documento(self, request, uuid=None):
+        paa = self.get_object()
+        usuario = request.user
+
+        if paa.documento_final:
+            return Response(
+                {"mensagem": "O documento final já foi gerado e não é mais possível gerar prévias."},
+                status=400)
+
+        gerar_previa_documento_paa_async.apply_async(
+            args=[str(paa.uuid), usuario.username]
+        )
+
+        return Response(
+            {"mensagem": "Geração de documento prévia iniciada"},
+            status=200
+        )
+
+    @action(detail=True, methods=['get'], url_path='documento-final',
+            permission_classes=[IsAuthenticated])
+    def documento_final(self, request, uuid=None):
+        paa = self.get_object()
+
+        if not paa.documento_final:
+            return Response(
+                {"mensagem": "Documento final não gerado"},
+                status=400
+            )
+
+        if not paa.documento_final.concluido:
+            return Response(
+                {"mensagem": "Documento final não concluído"},
+                status=400
+            )
+
+        filename = 'documento_final_paa.pdf'
+        response = HttpResponse(
+            open(paa.documento_final.arquivo_pdf.path, 'rb'),
+            content_type='application/pdf'
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
+        return response
+
+    @action(detail=True, methods=['get'], url_path='documento-previa',
+            permission_classes=[IsAuthenticated])
+    def documento_previa(self, request, uuid=None):
+        paa = self.get_object()
+
+        if not paa.documento_previa:
+            return Response(
+                {"mensagem": "Documento prévia não gerado"},
+                status=400
+            )
+
+        if not paa.documento_previa.concluido:
+            return Response(
+                {"mensagem": "Documento prévia não concluído"},
+                status=400
+            )
+
+        filename = 'documento_previa_paa.pdf'
+        response = HttpResponse(
+            open(paa.documento_previa.arquivo_pdf.path, 'rb'),
+            content_type='application/pdf'
+        )
+        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+
+        return response
+
+    @action(detail=True, methods=['get'], url_path='status-geracao',
+            permission_classes=[IsAuthenticated])
+    def satus_geracao(self, request, uuid=None):
+        paa = self.get_object()
+
+        if paa.documento_previa:
+            return Response(
+                {"mensagem": paa.documento_previa.__str__(), "versao": paa.documento_previa.versao,
+                 "status": paa.documento_previa.status_geracao},
+                status=200
+            )
+
+        if paa.documento_final:
+            return Response(
+                {"mensagem": paa.documento_final.__str__(), "versao": paa.documento_final.versao,
+                 "status": paa.documento_final.status_geracao},
+                status=200
+            )
+
+        return Response(
+            {"mensagem": "Documento pendente de geração"}, status=200
+        )
