@@ -159,17 +159,6 @@ class PrioridadePaaAdmin(admin.ModelAdmin):
         qs = super().get_queryset(request)
         return queryset_prioridades_paa(qs)
 
-    actions = ["criar_lote_prioridades"]
-
-    def criar_lote_prioridades(modeladmin, request, queryset):
-        import uuid
-        for obj in queryset:
-            for item in range(10):
-                clone = obj
-                clone.pk = None
-                clone.uuid = uuid.uuid4()
-                clone.save()
-
 
 @admin.register(ObjetivoPaa)
 class ObjetivoPaaAdmin(admin.ModelAdmin):
