@@ -1,5 +1,6 @@
 import pytest
 from datetime import date
+from freezegun import freeze_time
 from rest_framework import status
 
 pytestmark = pytest.mark.django_db
@@ -96,3 +97,37 @@ def test_get_recursos_proprios_previstos(jwt_authenticated_client_sme, flag_paa,
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 1
+
+
+@freeze_time('2025-06-15')
+def test_get_paa_vigente_e_anteriores(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory):
+    periodo_2024 = periodo_paa_factory.create(
+        referencia="Periodo 2024", data_inicial=date(2024, 1, 1), data_final=date(2024, 12, 31))
+    periodo_2025 = periodo_paa_factory.create(
+        referencia="Periodo 2025", data_inicial=date(2025, 1, 1), data_final=date(2025, 12, 31))
+
+    paa_2024 = paa_factory.create(periodo_paa=periodo_2024)
+    paa_2025 = paa_factory.create(periodo_paa=periodo_2025, associacao=paa_2024.associacao)
+
+    response = jwt_authenticated_client_sme.get(
+        f"/api/paa/paa-vigente-e-anteriores/?associacao_uuid={paa_2025.associacao.uuid}"
+    )
+
+    result = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['vigente']['uuid'] == str(paa_2025.uuid)
+    assert len(result['anteriores']) == 1
+    assert result['anteriores'][0]['uuid'] == str(paa_2024.uuid)
+
+
+@freeze_time('2026-01-01')
+def test_get_paa_vigente_e_anteriores_sem_periodo(jwt_authenticated_client_sme, flag_paa, associacao, periodo_paa_factory):
+    periodo_paa_factory.create(
+        referencia="Periodo 2024", data_inicial=date(2024, 1, 1), data_final=date(2024, 12, 31))
+
+    response = jwt_authenticated_client_sme.get(
+        f"/api/paa/paa-vigente-e-anteriores/?associacao_uuid={associacao.uuid}"
+    )
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND

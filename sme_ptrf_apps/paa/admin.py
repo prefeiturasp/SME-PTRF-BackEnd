@@ -15,7 +15,9 @@ from sme_ptrf_apps.paa.models import (
     AtividadeEstatutaria,
     AtaPaa,
     ParticipanteAtaPaa,
-    AtividadeEstatutariaPaa
+    AtividadeEstatutariaPaa,
+    OutroRecurso,
+    DocumentoPaa
 )
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 
@@ -68,6 +70,12 @@ class PaaAdmin(admin.ModelAdmin):
     list_filter = ('periodo_paa', 'associacao')
     raw_id_fields = ['periodo_paa', 'associacao']
     inlines = [AtividadeEstatutariaPaaInline]
+    actions = ["gerar_documento"]
+
+    def gerar_documento(self, request, queryset):
+        from sme_ptrf_apps.paa.services.documento_paa_pdf_service import gerar_arquivo_documento_paa_pdf
+        for paa in queryset:
+            return gerar_arquivo_documento_paa_pdf(paa)
 
 
 @admin.register(ProgramaPdde)
@@ -235,7 +243,7 @@ class ParticipanteAtaPaaAdmin(admin.ModelAdmin):
     get_unidade.short_description = 'Unidade'
 
     def get_periodo_paa(self, obj):
-        return f'{obj.ata_paa.paa.periodo_paa.referencia}' if obj and obj.ata_paa and obj.ata_paa.paa and obj.ata_paa.paa.periodo_paa else ''
+        return f'{obj.ata_paa.paa.periodo_paa.referencia}' if obj and obj.ata_paa and obj.ata_paa.paa and obj.ata_paa.paa.periodo_paa else ''  # noqa
 
     get_periodo_paa.short_description = 'Período PAA'
 
@@ -261,3 +269,13 @@ class ParticipanteAtaPaaAdmin(admin.ModelAdmin):
     ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     raw_id_fields = ('ata_paa',)
+
+
+@admin.register(OutroRecurso)
+class OutroRecursoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'aceita_capital', 'aceita_custeio', 'aceita_livre_aplicacao')
+    search_fields = ('nome', )
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+
+admin.site.register(DocumentoPaa)

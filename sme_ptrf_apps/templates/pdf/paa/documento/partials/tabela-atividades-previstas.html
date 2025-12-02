@@ -1,0 +1,69 @@
+{% load static %}
+{% load formata_valores %}
+
+<section class="row">
+    <article id="bloco-6" class="col mb-3 p-0">
+      <p class="font-14 pt-1 pl-2 pb-2 mb-0 border-left border-right border-top"><strong>Bloco 6 - Atividades Previstas</strong></p>
+      <table class="tabela border tabela-zebra mb-2 mt-0">
+        <thead>
+          <tr style="background: #f8f9fa;">
+            <th colspan="5" style="padding: 6px;">Atividades Estatutárias</th>
+          </tr>
+
+          <tr style="background: #f8f9fa;">
+            <th>Tipo de Atividade</th>
+            <th>Data</th>
+            <th>Atividades Estatutárias Previstas</th>
+            <th>Mês/Ano</th>
+          </tr>
+        </thead>
+
+        <tbody class="nao-quebra-linha">
+          {% for atividade in dados.atividades_estatutarias %}
+            <tr>
+              <td>{{ atividade.tipo_atividade }}</td>
+              <td>{{ atividade.data }}</td>
+              <td>{{ atividade.atividades_previstas }}</td>
+              <td>{{ atividade.mes_ano }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <table class="tabela border tabela-zebra mb-2 mt-0">
+
+      <thead>
+          <tr style="background: #f8f9fa;">
+            <th colspan="5" style="padding: 6px;">Recursos Próprios</th>
+          </tr>
+
+          <tr style="background: #f8f9fa;">
+            <th>Tipo de Atividade</th>
+            <th>Data</th>
+            <th>Descrição das receitas e atividades previstas</th>
+            <th>Valor Estimado</th>
+          </tr>
+        </thead>
+
+        <tbody class="nao-quebra-linha">
+          {% for recurso in dados.recursos_proprios.items %}
+            <tr>
+              <td>{{ recurso.fonte_recurso }}</td>
+              <td>{{ recurso.data_prevista }}</td>
+              <td>{{ recurso.descricao }}</td>
+              <td>{{ recurso.valor|formata_valor }}</td>
+            </tr>
+          {% endfor %}
+
+          <tr style="background: #f8f9fa; font-weight: bold;">
+            <td>TOTAL</td>
+            <td></td>
+            <td></td>
+            <td>{{ dados.recursos_proprios.total_recursos_proprios|formata_valor }}</td>
+          </tr>
+        </tbody>
+        </table>
+
+      </table>
+    </article>
+  </section>
