@@ -277,7 +277,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
     @action(detail=True, methods=['get'], url_path='atividades-estatutarias-previstas',
             permission_classes=[IsAuthenticated])
     def atividades_estatutarias_previstas(self, request, uuid=None):
-        from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_paa_serializer import AtividadeEstatutariaPaaSerializer
+        from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_paa_serializer import AtividadeEstatutariaPaaSerializer  # noqa
 
         paa = self.get_object()
 
@@ -305,14 +305,15 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             return Response({"mensagem": "O documento final já foi gerado."}, status=400)
 
         errors = []
+        # definido no frontend quando o editor estiver vazio
+        CAMPO_EDITOR_VAZIO = "<p></p>"
+        if not paa.texto_introducao or paa.texto_introducao.strip() == CAMPO_EDITOR_VAZIO:
+            errors.append("É necessário inserir o texto de introdução")
 
         if not paa.objetivos.exists():
             errors.append("É necessário indicar pelo menos um objetivo no PAA")
 
-        if not paa.texto_introducao:
-            errors.append("É necessário inserir o texto de introdução")
-
-        if not paa.texto_conclusao:
+        if not paa.texto_conclusao or paa.texto_conclusao.strip() == CAMPO_EDITOR_VAZIO:
             errors.append("É necessário inserir o texto de conclusão")
 
         if errors:
@@ -320,6 +321,10 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
                 {"mensagem": "\n".join(errors)},
                 status=400
             )
+
+        confirmar = bool(int(self.request.data.get('confirmar', 0)))
+        if not confirmar:
+            return Response({"confirmar": "Geração não foi confirmada"}, status=status.HTTP_400_BAD_REQUEST)
 
         gerar_documento_paa_async.apply_async(
             args=[str(paa.uuid), usuario.username]
@@ -336,7 +341,9 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         usuario = request.user
 
         if paa.documento_final:
-            return Response({"mensagem": "O documento final já foi gerado e não é mais possível gerar prévias."}, status=400)
+            return Response(
+                {"mensagem": "O documento final já foi gerado e não é mais possível gerar prévias."},
+                status=400)
 
         gerar_previa_documento_paa_async.apply_async(
             args=[str(paa.uuid), usuario.username]
