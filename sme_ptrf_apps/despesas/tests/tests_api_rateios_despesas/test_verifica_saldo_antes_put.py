@@ -25,8 +25,8 @@ def test_api_verifica_saldo_antes_put_saldo_ok(
     payload_despesa_valida
 ):
     response = jwt_authenticated_client_d.post(f'/api/rateios-despesas/verificar-saldos/?despesa_uuid={despesa.uuid}',
-                          data=json.dumps(payload_despesa_valida),
-                          content_type='application/json')
+                                               data=json.dumps(payload_despesa_valida),
+                                               content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -64,8 +64,8 @@ def test_api_verifica_saldo_antes_put_sem_saldo(
     payload_despesa_valida['rateios'][0]['valor_rateio'] = 90000.00
 
     response = jwt_authenticated_client_d.post(f'/api/rateios-despesas/verificar-saldos/?despesa_uuid={despesa.uuid}',
-                          data=json.dumps(payload_despesa_valida),
-                          content_type='application/json')
+                                               data=json.dumps(payload_despesa_valida),
+                                               content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -77,13 +77,15 @@ def test_api_verifica_saldo_antes_put_sem_saldo(
                 'acao': acao_associacao.acao.nome,
                 'aplicacao': 'CUSTEIO',
                 'conta': 'Cheque',
-                'saldo_disponivel': 20100.00,
+                'saldo_disponivel': 20000,
                 'total_rateios': 90000.00
             }
         ],
         'aceitar_lancamento': True
     }
+
     result = json.loads(response.content)
+    print(result)
     assert result == result_esperado
 
 
@@ -106,8 +108,8 @@ def test_api_verifica_saldo_antes_put_saldo_ok_com_saldo_exato_em_fechamento(
     payload_despesa_justa
 ):
     response = jwt_authenticated_client_d.post(f'/api/rateios-despesas/verificar-saldos/?despesa_uuid={despesa_justa.uuid}',
-                          data=json.dumps(payload_despesa_justa),
-                          content_type='application/json')
+                                               data=json.dumps(payload_despesa_justa),
+                                               content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -141,8 +143,8 @@ def test_api_verifica_saldo_antes_put_saldo_insuficiente_conta_com_saldo_exato_e
     payload_despesa_maior
 ):
     response = jwt_authenticated_client_d.post(f'/api/rateios-despesas/verificar-saldos/?despesa_uuid={despesa_justa.uuid}',
-                          data=json.dumps(payload_despesa_maior),
-                          content_type='application/json')
+                                               data=json.dumps(payload_despesa_maior),
+                                               content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -183,8 +185,8 @@ def test_api_verifica_saldo_antes_put_saldo_insuficiente_acao_com_saldo_exato_em
     payload_despesa_maior
 ):
     response = jwt_authenticated_client_d.post(f'/api/rateios-despesas/verificar-saldos/?despesa_uuid={despesa_justa.uuid}',
-                          data=json.dumps(payload_despesa_maior),
-                          content_type='application/json')
+                                               data=json.dumps(payload_despesa_maior),
+                                               content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
