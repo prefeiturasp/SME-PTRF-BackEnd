@@ -17,7 +17,8 @@ from sme_ptrf_apps.paa.models import (
     ParticipanteAtaPaa,
     AtividadeEstatutariaPaa,
     OutroRecurso,
-    DocumentoPaa
+    DocumentoPaa,
+    OutroRecursoPeriodoPaa,
 )
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 
@@ -275,6 +276,15 @@ class ParticipanteAtaPaaAdmin(admin.ModelAdmin):
 class OutroRecursoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'aceita_capital', 'aceita_custeio', 'aceita_livre_aplicacao')
     search_fields = ('nome', )
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+
+@admin.register(OutroRecursoPeriodoPaa)
+class OutroRecursoPeriodoPaaAdmin(admin.ModelAdmin):
+    list_display = ('periodo_paa', 'outro_recurso', 'ativo')
+    search_fields = ('periodo_paa__referencia', 'outro_recurso__nome')
+    raw_id_fields = ('periodo_paa', 'outro_recurso')
+    filter_horizontal = ('unidades',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 
