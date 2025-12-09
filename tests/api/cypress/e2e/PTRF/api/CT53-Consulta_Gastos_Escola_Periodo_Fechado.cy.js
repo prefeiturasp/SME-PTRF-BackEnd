@@ -19,11 +19,23 @@ Cypress.on('uncaught:exception', (err, runnable) => {
 
   describe('Gastos da Escola - Consulta', () => {
 
-    it('CT01-Consulta_Gastos_Escola_Periodo_Fechado',()=>{
+    it('CT53-Consulta_Gastos_Escola_Periodo_Fechado',()=>{
 
     Comum.visitarPaginaPTRF();
 
     Comum.login(usuario.Usuario, usuario.Senha);
+
+    Comum.selecionarCeuVilaAlpina();
+
+    Gastos.selecionarGastosDaEscola();
+
+    Gastos.selecionarFiltrarMaisFiltros(); 
+    
+    Gastos.selecionarAplicacaoCusteio();
+    
+    Comum.selecionarPerfil();
+
+    Comum.logout();
     
   })  
 
