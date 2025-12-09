@@ -1,0 +1,109 @@
+{% load mathfilters %}
+{% load formata_valores %}
+{% load i18n %}
+
+<!doctype html>
+<html lang="pt-br">
+{% load static %}
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link href="{{ base_static_url }}/css/bootstrap/bootstrap-4.6.0.min.css" rel="stylesheet">
+  <link href="{{ base_static_url }}/css/ata-paa-pdf.css" rel="stylesheet">
+
+  <title>Ata de Apresentação do PAA</title>
+</head>
+<body>
+
+{# ************************* Cabecalho das páginas *************************  #}
+<header>
+  <div class="d-flex w-100 mx-auto">
+    <div class="col-3 d-flex align-items-center border-rigth-logo">
+      <img src="{{ base_static_url }}/images/logo_PrefSP_sem_fundo_horizontal_colorida.svg" alt="logo">
+    </div>
+
+    <div class="col-5 d-flex align-items-center justify-content-end ml-3">
+      <p class="mb-0 bottom-left">
+        <span class="titulo font-14"><strong>{{ dados.cabecalho.titulo }}</strong></span><br/>
+        <span class="font-12 mb-0"><strong>{{ dados.cabecalho.subtitulo }}</strong></span>
+      </p>
+    </div>
+
+    <div class="col-4 d-flex align-items-center justify-content-end ml-auto">
+      <p class="mb-0 font-12 border px-3 py-2 text-right">
+        <span>Período de execução:</span><br/>
+        <span><strong>{{ dados.cabecalho.periodo_data_inicio }} até {{ dados.cabecalho.periodo_data_fim }}</strong></span><br/>
+      </p>
+    </div>
+  </div>
+</header>
+
+
+{# ************************* Fim Cabecalho das páginas *************************  #}
+
+{# ************************* Rodape ************************* #}
+<p id="nome-associacao-rodape" class="font-10">
+  <i>{{ dados.dados_texto_da_ata.unidade_tipo }} {{ dados.dados_texto_da_ata.unidade_nome }} -
+    Documento final gerado pelo usuário {{ dados.dados_texto_da_ata.usuario }}, via SIG-Escola, em: {% now "j/m/Y H:i:s" %}</i>
+</p>
+{# ************************* Fim Rodape ************************* #}
+
+<section class="conteudo">
+  {# Bloco 1 - Identificação da Associação #}
+  {% include "./partials/bloco-identificacao-associacao.html" %}
+
+  {# Bloco 2 - Introdução #}
+  {% include "./partials/bloco-introducao.html" %}
+
+  {# Bloco de Prioridades PTRF #}
+  {% for grupo in dados.prioridades %}
+    {% if grupo.titulo == "Prioridades PTRF" and grupo.items|length > 0 %}
+      <section class="row mt-4">
+        <article class="col mb-3 border p-0">
+          <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>Bloco {{ dados.numeros_blocos.ptrf }} - {{ grupo.titulo }}</strong></p>
+          {% include "./partials/tabela-prioridades.html" %}
+        </article>
+      </section>
+    {% endif %}
+  {% endfor %}
+
+  {# Bloco de Prioridades PDDE #}
+  {% for grupo in dados.prioridades %}
+    {% if grupo.titulo == "Prioridades PDDE" and grupo.items|length > 0 %}
+      <section class="row mt-4">
+        <article class="col mb-3 border p-0">
+          <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>Bloco {{ dados.numeros_blocos.pdde }} - {{ grupo.titulo }}</strong></p>
+          {% include "./partials/tabela-prioridades.html" %}
+        </article>
+      </section>
+    {% endif %}
+  {% endfor %}
+
+  {# Bloco de Prioridades Recursos Próprios #}
+  {% for grupo in dados.prioridades %}
+    {% if grupo.titulo == "Prioridades Recursos próprios" and grupo.items|length > 0 %}
+      <section class="row mt-4">
+        <article class="col mb-3 border p-0">
+          <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>Bloco {{ dados.numeros_blocos.recursos_proprios }} - {{ grupo.titulo }}</strong></p>
+          {% include "./partials/tabela-prioridades.html" %}
+        </article>
+      </section>
+    {% endif %}
+  {% endfor %}
+
+  {# Bloco de Atividades Estatutárias #}
+  {% include "./partials/bloco-atividades-estatutarias.html" with numero_bloco=dados.numeros_blocos.atividades_estatutarias %}
+
+  {# Bloco de Manifestações #}
+  {% include "./partials/bloco-manifestacoes.html" with numero_bloco=dados.numeros_blocos.manifestacoes %}
+
+  {# Bloco de Lista de Presença #}
+  {% include "./partials/bloco-lista-presenca.html" with numero_bloco=dados.numeros_blocos.lista_presenca %}
+
+</section>
+
+</body>
+</html>

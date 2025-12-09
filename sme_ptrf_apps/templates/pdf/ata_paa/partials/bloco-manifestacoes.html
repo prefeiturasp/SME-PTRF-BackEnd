@@ -1,0 +1,37 @@
+{# Bloco X - Manifestações #}
+<section class="row mt-4">
+  <article class="col mb-3 border p-0">
+    <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>Bloco {{ numero_bloco }} - Manifestações</strong></p>
+    <div class="col-12">
+      {% if dados.dados_texto_da_ata.comentarios %}
+      <p class="font-12 texto-justificado pt-2 pb-2 mb-0">
+        {{ dados.dados_texto_da_ata.comentarios|linebreaks }}
+      </p>
+      {% else %}
+      <p class="font-12 texto-justificado pt-2 pb-2 mb-0">
+        Não houve manifestações.
+      </p>
+      {% endif %}
+      
+      {% if dados.dados_da_ata.parecer_conselho == "APROVADA" %}
+      <p class="font-12 texto-justificado pb-2 mb-0">
+        Os presentes manifestaram que estão de acordo com o PAA apresentado. Sem ressalvas.
+      </p>
+      <p class="font-12 texto-justificado pb-2 mb-0">
+        <strong>Diante ao exposto, o Plano Anual de Atividades foi aprovado. Os presentes concordaram com o PAA apresentado.</strong>
+      </p>
+      {% elif dados.dados_da_ata.parecer_conselho == "REJEITADA" %}
+      <p class="font-12 texto-justificado pb-2 mb-0">
+        <strong>Diante ao exposto, o Plano Anual de Atividades foi reprovado. Os presentes não concordaram com o PAA apresentado.</strong>
+        {% if dados.dados_texto_da_ata.justificativa %}
+        {{ dados.dados_texto_da_ata.justificativa|linebreaks }}
+        {% endif %}
+      </p>
+      {% endif %}
+      <p class="font-12 texto-justificado pb-2 mb-0">
+        Esgotados os assuntos, o (a) senhor (a) presidente ofereceu a palavra a quem dela desejasse fazer uso e, como não houve manifestação, agradeceu a presença de todos e considerou encerrada a reunião, a qual eu, (secretário/a) lavrei a presente ata, que vai por mim assinada
+      </p>
+    </div>
+  </article>
+</section>
+
