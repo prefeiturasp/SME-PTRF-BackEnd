@@ -263,7 +263,13 @@ def info_acao_associacao_no_periodo(
 
         }
 
-    def fechamento_sumarizado_por_acao(fechamentos_periodo, conta=None):
+    def fechamento_sumarizado_por_acao(fechamentos_periodo, conta=None, considera_exclude_despesa=False):
+        """
+        `considera_exclude_despesa` só deve ser True quando o saldo é obtido
+        exclusivamente do fechamento, sem recálculo de receitas ou despesas.
+        Esse parâmetro é utilizado apenas no cenário de edição de despesa.
+        """        
+
         info = resultado_vazio()
         logger.debug(f'Buscando fechamentos da conta {conta}...')
         for fechamento_periodo in fechamentos_periodo:
@@ -312,7 +318,7 @@ def info_acao_associacao_no_periodo(
             info['receitas_nao_conciliadas_livre'] += fechamento_periodo.total_receitas_nao_conciliadas_livre
             info['saldo_bancario_livre'] += fechamento_periodo.saldo_reprogramado_livre
 
-            if exclude_despesa:
+            if exclude_despesa and considera_exclude_despesa:
                 despesa = Despesa.objects.get(uuid=exclude_despesa)
                 rateios = despesa.rateios.filter(acao_associacao=fechamento_periodo.acao_associacao).filter(conta_associacao=fechamento_periodo.conta_associacao)
                 for rateio in rateios.all():
@@ -415,7 +421,7 @@ def info_acao_associacao_no_periodo(
         )
 
         if fechamentos_periodo_anterior:
-            sumario_periodo_anterior = fechamento_sumarizado_por_acao(fechamentos_periodo_anterior, conta=conta)
+            sumario_periodo_anterior = fechamento_sumarizado_por_acao(fechamentos_periodo_anterior, conta=conta, considera_exclude_despesa=False)
             info['saldo_anterior_capital'] = sumario_periodo_anterior['saldo_atual_capital']
             info['saldo_atual_capital'] = info['saldo_anterior_capital']
             info['saldo_anterior_custeio'] = sumario_periodo_anterior['saldo_atual_custeio']
@@ -482,7 +488,7 @@ def info_acao_associacao_no_periodo(
                                                                            periodo=periodo)
     if fechamentos_periodo:
         logger.info(f'Get fechamentos sumarizados por ação. Conta:{conta}')
-        return fechamento_sumarizado_por_acao(fechamentos_periodo, conta=conta)
+        return fechamento_sumarizado_por_acao(fechamentos_periodo, conta=conta, considera_exclude_despesa=True)
     else:
         logger.info(f'Get periodo aberto sumarizado por ação. Período:{periodo} Ação:{acao_associacao} Conta:{conta}')
         return periodo_aberto_sumarizado_por_acao(periodo,
@@ -665,7 +671,12 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
             'saldo_atual_livre': 0,
         }
 
-    def fechamento_sumarizado_por_conta(fechamentos_periodo):
+    def fechamento_sumarizado_por_conta(fechamentos_periodo, considera_exclude_despesa=False):
+        """
+        `considera_exclude_despesa` só deve ser True quando o saldo é obtido
+        exclusivamente do fechamento, sem recálculo de receitas ou despesas.
+        Esse parâmetro é utilizado apenas no cenário de edição de despesa.
+        """
         info = resultado_vazio()
         for fechamento_periodo in fechamentos_periodo:
             info['saldo_anterior_custeio'] += fechamento_periodo.saldo_anterior_custeio
@@ -685,7 +696,7 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
             info['repasses_no_periodo_livre'] += fechamento_periodo.total_repasses_livre
             info['saldo_atual_livre'] += fechamento_periodo.saldo_reprogramado_livre
 
-        if exclude_despesa:
+        if exclude_despesa and considera_exclude_despesa:
             despesa = Despesa.objects.get(uuid=exclude_despesa)
             for rateio in despesa.rateios.all():
                 if rateio.aplicacao_recurso == APLICACAO_CAPITAL:
@@ -765,7 +776,7 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
 
         if fechamentos_periodo_anterior:
             logger.info(f'Encontrados fechamentos de períodos anteriores ao período {periodo} para a conta {conta_associacao}')
-            sumario_periodo_anterior = fechamento_sumarizado_por_conta(fechamentos_periodo_anterior)
+            sumario_periodo_anterior = fechamento_sumarizado_por_conta(fechamentos_periodo_anterior, considera_exclude_despesa=False)
 
             info['saldo_anterior_capital'] = sumario_periodo_anterior['saldo_atual_capital']
             info['saldo_atual_capital'] = info['saldo_anterior_capital']
@@ -818,7 +829,7 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
                                                                             periodo=periodo)
     if fechamentos_periodo:
         logger.info(f'Encontrato fechamentos no período {periodo} e conta {conta_associacao}. Usando fechamento.')
-        return fechamento_sumarizado_por_conta(fechamentos_periodo)
+        return fechamento_sumarizado_por_conta(fechamentos_periodo, considera_exclude_despesa=True)
     else:
         logger.info(f'Não encontrato fechamentos no período {periodo} e conta {conta_associacao}. Calculando saldo.')
         return periodo_aberto_sumarizado_por_conta(periodo, conta_associacao)
