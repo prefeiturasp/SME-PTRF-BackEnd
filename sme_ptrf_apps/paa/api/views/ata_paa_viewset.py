@@ -18,6 +18,8 @@ from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComL
 from sme_ptrf_apps.utils.choices_to_json import choices_to_json
 from sme_ptrf_apps.paa.models import AtaPaa, Paa
 from sme_ptrf_apps.paa.api.serializers.ata_paa_serializer import AtaPaaSerializer, AtaPaaCreateSerializer, AtaPaaLookUpSerializer
+from sme_ptrf_apps.paa.services.ata_paa_service import validar_geracao_ata_paa
+from sme_ptrf_apps.paa.tasks.gerar_ata_paa import gerar_ata_paa_async
 from .docs.ata_paa_docs import DOCS
 
 
@@ -122,4 +124,88 @@ class AtaPaaViewSet(WaffleFlagMixin,
         }
 
         return Response(result)
+
+    @action(detail=False, methods=['post'], url_path='gerar-ata',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def gerar_ata(self, request):
+        """
+        Endpoint para gerar a ata PAA final
+        """
+        paa_uuid = request.data.get('paa_uuid')
+        
+        if not paa_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário informar o uuid do PAA.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            paa = Paa.objects.get(uuid=paa_uuid)
+        except Paa.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto PAA para o uuid {paa_uuid} não foi encontrado na base."
+            }
+            logger.error('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            ata_paa = AtaPaa.objects.get(
+                paa=paa,
+                tipo_ata=AtaPaa.ATA_APRESENTACAO
+            )
+        except AtaPaa.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"Ata PAA não encontrada para o PAA {paa_uuid}. É necessário criar a ata antes de gerar."
+            }
+            logger.error('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Valida se pode gerar
+        validacao = validar_geracao_ata_paa(ata_paa)
+        
+        if not validacao.get('is_valid'):
+            return Response(
+                {
+                    'mensagem': validacao.get('mensagem'),
+                    'confirmar': False
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Verifica confirmação
+        confirmar = bool(int(request.data.get('confirmar', 0)))
+        if not confirmar:
+            return Response(
+                {
+                    'mensagem': 'É necessário confirmar a geração da ata.',
+                    'confirmar': True
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Inicia a geração assíncrona
+        try:
+            gerar_ata_paa_async.apply_async(
+                args=[str(ata_paa.uuid), request.user.username]
+            )
+            
+            logger.info(f'Geração da ata PAA {ata_paa.uuid} iniciada pelo usuário {request.user.username}')
+            
+            return Response(
+                {
+                    'mensagem': 'Geração da ata final iniciada. Aguarde o processamento.',
+                    'status': 'EM_PROCESSAMENTO'
+                },
+                status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            logger.error(f'Erro ao iniciar geração da ata PAA: {str(e)}', exc_info=True)
+            erro = {
+                'erro': 'erro_ao_iniciar_geracao',
+                'mensagem': f'Erro ao iniciar a geração da ata: {str(e)}'
+            }
+            return Response(erro, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 

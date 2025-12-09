@@ -1,0 +1,295 @@
+@charset "UTF-8";
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  src: url(../fonts/Roboto-Regular.ttf);
+}
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 700;
+  src: url(../fonts/Roboto-Bold.ttf);
+}
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  font-style: italic;
+  src: url(../fonts/Roboto-Italic.ttf);
+}
+
+@page {
+  size: A4;
+  padding: 1cm 0 0 0;
+  margin: 2cm 1cm 1cm 3cm;
+  @top-center {
+    content: element(cabecalho);
+  }
+
+  @bottom-right {
+    color: #000;
+    content: counter(page) "/" counter(pages);
+    font-size: 8pt;
+    padding: 0 1cm;
+    margin: -2mm -9mm 0 0;
+    font-weight: bold;
+    font-style: italic;
+  }
+
+  @bottom-left {
+    color: #000;
+    /*content: counter(page) "/" counter(pages);*/
+    content: element(nome-associacao);
+    font-size: 9pt;
+    margin: 0 0 0 -2cm;
+  }
+}
+
+html {
+  font-family: Roboto, sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 10pt;
+}
+
+html body section#cabecalho,
+header {
+  background: #eeeeee;
+  width: 215mm;
+  padding: 1cm 1cm 0.5cm 0.5cm;
+  margin: 0;
+}
+
+html body section#cabecalho .titulo,
+html body section#cabecalho .subtitulo,
+html body header .subtitulo {
+  font-weight: bold;
+  color: #0c0c0c;
+  font-family: Roboto, serif;
+}
+
+html body section#cabecalho .subtitulo,
+html body header .subtitulo {
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+header {
+  position: running(cabecalho);
+}
+
+#nome-associacao-rodape {
+  position: running(nome-associacao);
+}
+
+.border-rigth-logo {
+  border-right: 1px solid #a4a4a4;
+}
+
+.font-18 {
+  font-size: 18px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-16 {
+  font-size: 16px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-14 {
+  font-size: 14px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-12 {
+  font-size: 12px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.titulo-bloco {
+  font-size: 13px;
+  font-weight: 900;
+  color: #000;
+  font-family: Roboto, serif;
+}
+
+.font-11 {
+  font-size: 10px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-10 {
+  font-size: 10px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.conteudo {
+  margin: 0 0 0 -2cm;
+  width: 72%;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.tabela-totais {
+  color: #000 !important;
+}
+
+.tabela-acoes .td-livre-aplicacao-ausente {
+  width: calc(100% / 5) !important;
+}
+
+.tabela-despesas-com-pagamento-antecipado {
+  width: 100% !important;
+}
+
+.tabela-acoes .td-livre-aplicacao-ausente {
+  background-color: #e5e5e5 !important;
+}
+
+.tabela-totais .td-livre-aplicacao-ausente {
+  background-color: #e5e5e5 !important;
+}
+
+.titulo-visualizacao-da-ata {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.titulo-tabela-acoes,
+.titulo-tabela-despesas-com-pagamento-antecipado {
+  color: #00585e;
+  font-weight: bold;
+  font-size: 11px;
+}
+
+.tabela-acoes,
+.tabela-totais,
+.tabela-devolucoes-ao-tesouro,
+.tabela-despesas-com-pagamento-antecipado,
+.tabela-prioridades,
+.tabela-atividades,
+.tabela-identificacao,
+.tabela-presentes {
+  max-width: 100%;
+  width: 100%;
+  color: #000 !important;
+  font-size: 8pt !important;
+}
+
+article.border table {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+article.border .table {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+.tabela-zebra tbody tr:nth-child(odd) {
+  background-color: #ffffff !important;
+}
+
+.tabela-zebra tbody tr:nth-child(even) {
+  background-color: #f7f8f9 !important;
+}
+
+table.tabela-zebra tbody tr:nth-child(odd) {
+  background-color: #ffffff !important;
+}
+
+table.tabela-zebra tbody tr:nth-child(even) {
+  background-color: #f7f8f9 !important;
+}
+
+.tabela-acoes th,
+.tabela-assinaturas th,
+.tabela-devolucoes-ao-tesouro th,
+.tabela-despesas-com-pagamento-antecipado th,
+.tabela-prioridades th,
+.tabela-atividades th {
+  padding: 5px !important;
+  background-color: #f5f6f8 !important;
+}
+
+.tabela-totais th {
+  padding: 5px !important;
+  background-color: #2b7d83 !important;
+  color: #fff !important;
+}
+
+.tabela-devolucoes-ao-tesouro th {
+  background-color: #a4a4a4 !important;
+  color: #fff !important;
+}
+
+.tabela-acoes td,
+.tabela-totais td,
+.tabela-devolucoes-ao-tesouro td,
+.tabela-prioridades td,
+.tabela-atividades td,
+.tabela-identificacao td {
+  padding: 3px !important;
+  background-color: inherit !important;
+}
+
+.tabela-assinaturas td {
+  padding: 3px !important;
+}
+
+.bloco-identificacao {
+  padding: 12px !important;
+}
+
+.bloco-identificacao p {
+  margin-bottom: 8px !important;
+}
+.tr-titulo {
+  background-color: #e0f7f9;
+  color: #000;
+}
+
+.texto-despesas-titulo {
+  font-family: Roboto, serif;
+  font-style: normal;
+  letter-spacing: normal;
+}
+
+.texto-despesas-valor {
+  font-family: Roboto, serif;
+  font-style: normal;
+  color: #00585e;
+  font-weight: bold;
+}
+
+#parecer-do-conselho-fiscal-quebra-de-pagina {
+  page-break-before: always;
+}
+
+.titulo-membros-conselho-fiscal {
+  color: #2b7d83;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.tabela-membros-conselho-fiscal thead {
+  background-color: #0c4309;
+}
+
+.texto-justificado {
+  text-align: justify;
+}
+
+html body .conteudo .nao-quebra-linha tbody tr {
+  break-after: avoid !important;
+  break-inside: avoid !important;
+}
