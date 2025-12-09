@@ -21,5 +21,17 @@ describe("Gastos da Escola - Consulta", () => {
     Comum.visitarPaginaPTRF();
 
     Comum.login(usuario.Usuario, usuario.Senha);
+
+    Comum.selecionarCeuVilaAlpina();
+
+    Gastos.selecionarGastosDaEscola();
+
+    Gastos.selecionarFiltrarMaisFiltros(); 
+    
+    Gastos.selecionarAplicacaoCusteio();
+    
+    Comum.selecionarPerfil();
+
+    Comum.logout();
   });
 });
