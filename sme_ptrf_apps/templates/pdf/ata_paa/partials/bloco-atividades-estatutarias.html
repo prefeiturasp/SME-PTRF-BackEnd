@@ -1,0 +1,29 @@
+{# Bloco X - Atividades Estatutárias #}
+{% if dados.atividades_estatutarias|length > 0 %}
+<section class="row mt-4">
+  <article class="col mb-3 border p-0">
+    <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>Bloco {{ numero_bloco }} - Atividades estatutárias</strong></p>
+    <table class="table tabela-atividades tabela-zebra">
+      <thead>
+        <tr class="tr-titulo">
+          <th scope="col" style="width: 20%">Tipo de Atividades</th>
+          <th scope="col" style="width: 15%">Data</th>
+          <th scope="col" style="width: 45%">Atividades Estatutárias Previstas</th>
+          <th scope="col" style="width: 20%">Mês/Ano</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for atividade in dados.atividades_estatutarias %}
+        <tr>
+          <td>{{ atividade.tipo_atividade }}</td>
+          <td>{{ atividade.data }}</td>
+          <td>{{ atividade.atividades_previstas }}</td>
+          <td>{{ atividade.mes_ano }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </article>
+</section>
+{% endif %}
+
