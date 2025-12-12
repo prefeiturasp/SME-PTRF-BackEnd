@@ -4,7 +4,6 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 
-
 class CargoComposicao(ModeloBase):
     history = AuditlogHistoryField()
 
@@ -42,8 +41,10 @@ class CargoComposicao(ModeloBase):
     }
 
     CARGO_ASSOCIACAO_CHOICES = (
-        (CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA, CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA]),
-        (CARGO_ASSOCIACAO_VICE_PRESIDENTE_DIRETORIA_EXECUTIVA, CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_VICE_PRESIDENTE_DIRETORIA_EXECUTIVA]),
+        (CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA,
+         CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA]),
+        (CARGO_ASSOCIACAO_VICE_PRESIDENTE_DIRETORIA_EXECUTIVA,
+         CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_VICE_PRESIDENTE_DIRETORIA_EXECUTIVA]),
         (CARGO_ASSOCIACAO_SECRETARIO, CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_SECRETARIO]),
         (CARGO_ASSOCIACAO_TESOUREIRO, CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_TESOUREIRO]),
         (CARGO_ASSOCIACAO_VOGAL_1, CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_VOGAL_1]),
@@ -51,16 +52,19 @@ class CargoComposicao(ModeloBase):
         (CARGO_ASSOCIACAO_VOGAL_3, CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_VOGAL_3]),
         (CARGO_ASSOCIACAO_VOGAL_4, CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_VOGAL_4]),
         (CARGO_ASSOCIACAO_VOGAL_5, CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_VOGAL_5]),
-        (CARGO_ASSOCIACAO_PRESIDENTE_CONSELHO_FISCAL, CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_PRESIDENTE_CONSELHO_FISCAL]),
+        (CARGO_ASSOCIACAO_PRESIDENTE_CONSELHO_FISCAL,
+         CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_PRESIDENTE_CONSELHO_FISCAL]),
         (CARGO_ASSOCIACAO_CONSELHEIRO_1, CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_CONSELHEIRO_1]),
         (CARGO_ASSOCIACAO_CONSELHEIRO_2, CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_CONSELHEIRO_2]),
         (CARGO_ASSOCIACAO_CONSELHEIRO_3, CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_CONSELHEIRO_3]),
         (CARGO_ASSOCIACAO_CONSELHEIRO_4, CARGO_ASSOCIACAO_NOMES[CARGO_ASSOCIACAO_CONSELHEIRO_4]),
     )
 
-    composicao = models.ForeignKey('Composicao', verbose_name="Composição", on_delete=models.CASCADE, related_name='cargos_da_composicao_da_composicao')
+    composicao = models.ForeignKey('Composicao', verbose_name="Composição",
+                                   on_delete=models.CASCADE, related_name='cargos_da_composicao_da_composicao')
 
-    ocupante_do_cargo = models.ForeignKey('OcupanteCargo', verbose_name="Ocupante do Cargo", on_delete=models.CASCADE, related_name='cargos_da_composicao_do_ocupante', null=True, blank=True)
+    ocupante_do_cargo = models.ForeignKey('OcupanteCargo', verbose_name="Ocupante do Cargo",
+                                          on_delete=models.CASCADE, related_name='cargos_da_composicao_do_ocupante', null=True, blank=True)
 
     cargo_associacao = models.CharField(
         'Cargo Associação',
@@ -91,6 +95,32 @@ class CargoComposicao(ModeloBase):
 
     def data_inicio_posterior_a_data_informada(self, data):
         return self.data_inicio_no_cargo > data
+
+    @classmethod
+    def ordenar_por_cargo(cls, participante):
+        cargos = {
+            cls.CARGO_ASSOCIACAO_NOMES[cls.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA]: 1,
+            cls.CARGO_ASSOCIACAO_NOMES[cls.CARGO_ASSOCIACAO_VICE_PRESIDENTE_DIRETORIA_EXECUTIVA]: 2,
+            cls.CARGO_ASSOCIACAO_NOMES[cls.CARGO_ASSOCIACAO_SECRETARIO]: 3,
+            cls.CARGO_ASSOCIACAO_NOMES[cls.CARGO_ASSOCIACAO_TESOUREIRO]: 4,
+            
+            'Vogal': 5,
+            cls.CARGO_ASSOCIACAO_NOMES[cls.CARGO_ASSOCIACAO_VOGAL_1]: 5,
+            cls.CARGO_ASSOCIACAO_NOMES[cls.CARGO_ASSOCIACAO_VOGAL_2]: 6,
+            cls.CARGO_ASSOCIACAO_NOMES[cls.CARGO_ASSOCIACAO_VOGAL_3]: 7,
+            cls.CARGO_ASSOCIACAO_NOMES[cls.CARGO_ASSOCIACAO_VOGAL_4]: 8,
+            cls.CARGO_ASSOCIACAO_NOMES[cls.CARGO_ASSOCIACAO_VOGAL_5]: 9,
+
+            cls.CARGO_ASSOCIACAO_NOMES[cls.CARGO_ASSOCIACAO_PRESIDENTE_CONSELHO_FISCAL]: 10,
+
+            'Conselheiro': 7,
+            cls.CARGO_ASSOCIACAO_NOMES[cls.CARGO_ASSOCIACAO_CONSELHEIRO_1]: 11,
+            cls.CARGO_ASSOCIACAO_NOMES[cls.CARGO_ASSOCIACAO_CONSELHEIRO_2]: 12,
+            cls.CARGO_ASSOCIACAO_NOMES[cls.CARGO_ASSOCIACAO_CONSELHEIRO_3]: 13,
+            cls.CARGO_ASSOCIACAO_NOMES[cls.CARGO_ASSOCIACAO_CONSELHEIRO_4]: 14,
+        }
+
+        return cargos.get(participante['cargo'], 99)
 
 
 auditlog.register(CargoComposicao)

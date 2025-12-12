@@ -235,14 +235,14 @@ class ServicoCargosOcupantesComposicao:
                 if cargo_associacao in temp_diretoria_executiva:
                     temp_diretoria_executiva[cargo_associacao].append({
                         'id': ocupante.id,
-                        'cargo': re.sub(r'\d+', '', cargo_nome).strip() if cargo_nome else None,
+                        'cargo': cargo_nome,
                         'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else ocupante.cpf_responsavel,
                         'nome': ocupante.nome,
                     })
                 else:
                     temp_diretoria_executiva[cargo_associacao] = [{
                         'id': ocupante.id,
-                        'cargo': re.sub(r'\d+', '', cargo_nome).strip() if cargo_nome else None,
+                        'cargo': cargo_nome,
                         'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else ocupante.cpf_responsavel,
                         'nome': ocupante.nome,
                     }]
@@ -250,14 +250,14 @@ class ServicoCargosOcupantesComposicao:
                 if cargo_associacao in temp_conselho_fiscal:
                     temp_conselho_fiscal[cargo_associacao].append({
                         'id': ocupante.id,
-                        'cargo': re.sub(r'\d+', '', cargo_nome).strip() if cargo_nome else None,
+                        'cargo': cargo_nome,
                         'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else ocupante.cpf_responsavel,
                         'nome': ocupante.nome,
                     })
                 else:
                     temp_conselho_fiscal[cargo_associacao] = [{
                         'id': ocupante.id,
-                        'cargo': re.sub(r'\d+', '', cargo_nome).strip() if cargo_nome else None,
+                        'cargo': cargo_nome,
                         'identificacao': ocupante.codigo_identificacao if ocupante.codigo_identificacao else ocupante.cpf_responsavel,
                         'nome': ocupante.nome,
                     }]

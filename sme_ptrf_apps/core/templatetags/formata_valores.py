@@ -3,12 +3,19 @@ import re
 import unicodedata
 
 from django import template
-
 import logging
 
 register = template.Library()
 
 LOGGER = logging.getLogger(__name__)
+
+
+@register.filter(name='remove_digitos')
+def remove_digitos(valor):
+    if not valor:
+        return ""
+
+    return re.sub(r'\d+', '', str(valor))
 
 
 @register.filter(name='formata_valor')
