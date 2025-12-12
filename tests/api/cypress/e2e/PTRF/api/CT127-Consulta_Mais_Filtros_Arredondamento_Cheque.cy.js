@@ -22,15 +22,17 @@ Cypress.on('uncaught:exception', (err, runnable) => {
     return false
   })
 
-  describe('Credito Escola - Consulta - Mais iltros - Tipo_Cartao', () => {
+  describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cheque', () => {
 
-    it('CT126-Consulta_Mais_Filtros_Repasse_Cheque',()=>{
+    it('CT127-Consulta_Mais_Filtros_Arredondamento_Cheque',()=>{
 
     Comum.visitarPaginaPTRF();
 
     Comum.login(usuario.Usuario, usuario.Senha);
 
     Comum.selecionarCeuVilaAlpina();
+
+    Creditos.selecionarCreditosDaEscola();
 
     Comum.logout();
     
