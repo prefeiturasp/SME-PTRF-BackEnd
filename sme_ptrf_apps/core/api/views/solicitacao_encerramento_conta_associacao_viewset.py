@@ -13,15 +13,18 @@ from sme_ptrf_apps.users.permissoes import (
 
 from ..serializers import SolicitacaoEncerramentoContaAssociacaoSerializer
 from ...models import SolicitacaoEncerramentoContaAssociacao, MotivoRejeicaoEncerramentoContaAssociacao
-
+from .docs.solicitacao_encerramento_conta_associacao_docs import DOCS
+from drf_spectacular.utils import extend_schema_view
 logger = logging.getLogger(__name__)
 
+
+@extend_schema_view(**DOCS)
 class SolicitacaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
-                        mixins.RetrieveModelMixin,
-                        mixins.CreateModelMixin,
-                        mixins.UpdateModelMixin,
-                        mixins.DestroyModelMixin,
-                        GenericViewSet):
+                                                    mixins.RetrieveModelMixin,
+                                                    mixins.CreateModelMixin,
+                                                    mixins.UpdateModelMixin,
+                                                    mixins.DestroyModelMixin,
+                                                    GenericViewSet):
     permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
     queryset = SolicitacaoEncerramentoContaAssociacao.objects.all()
@@ -45,7 +48,9 @@ class SolicitacaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
         if not solicitacao.rejeitada:
             erro = {
                 'erro': 'status_nao_permite_operacao',
-                'mensagem': f'Impossível aprovar solicitação com status diferente de {SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA}'
+                'mensagem': (
+                    'Impossível aprovar solicitação com status diferente '
+                    f'de {SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA}')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -64,7 +69,9 @@ class SolicitacaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
         if not solicitacao.pendente:
             erro = {
                 'erro': 'status_nao_permite_operacao',
-                'mensagem': f'Impossível aprovar solicitação com status diferente de {SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE}'
+                'mensagem': (
+                    'Impossível aprovar solicitação com status diferente '
+                    f'de {SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE}')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -95,11 +102,12 @@ class SolicitacaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-
         if not solicitacao.pendente:
             erro = {
                 'erro': 'status_nao_permite_operacao',
-                'mensagem': f'Impossível aprovar solicitação com status diferente de {SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE}'
+                'mensagem': (
+                    'Impossível aprovar solicitação com status diferente '
+                    f'de {SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE}')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -111,4 +119,3 @@ class SolicitacaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
         serializer = self.get_serializer(solicitacao)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
-
