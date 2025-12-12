@@ -447,7 +447,9 @@
         <tr>
           <td>
             <p class='mb-0'><strong>{{ info.nome }}</strong></p>
-            <p class='mb-0'>{{ info.cargo }}</p>
+            <p class='mb-0'>
+              {{ info.cargo }}{% if info.professor_gremio %} / Professor Orientador{% endif %}
+            </p>
           </td>
           <td></td>
         </tr>
