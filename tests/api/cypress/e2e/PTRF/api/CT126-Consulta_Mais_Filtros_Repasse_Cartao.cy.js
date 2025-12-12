@@ -8,8 +8,13 @@ const usuario = usuarios.Kellen;
 import ComumPaginaPTRF from "../../../support/Paginas/ComumPaginaPTRF";
 const Comum = new ComumPaginaPTRF();
 
-import GastosEscolaPagina from "../../../support/Paginas/GastosEscolaPagina";
-const Gastos = new GastosEscolaPagina();
+import CreditosEscolaPagina from "../../../support/Paginas/CreditosEscolaPagina";
+
+const Creditos = new CreditosEscolaPagina();
+
+Cypress.on("uncaught:exception", (err, runnable) => {
+  return false;
+});
 
 
 Cypress.on('uncaught:exception', (err, runnable) => {
@@ -17,9 +22,9 @@ Cypress.on('uncaught:exception', (err, runnable) => {
     return false
   })
 
-  describe('Gastos da Escola - Editar', () => {
+  describe('Credito Escola - Consulta - Mais iltros - Tipo_Cartao', () => {
 
-    it('CT88-Editar_Gastos_Escola_Danfe_Custeio_Ptrf_Basico',()=>{
+    it('CT126-Consulta_Mais_Filtros_Repasse_Cheque',()=>{
 
     Comum.visitarPaginaPTRF();
 
@@ -27,15 +32,8 @@ Cypress.on('uncaught:exception', (err, runnable) => {
 
     Comum.selecionarCeuVilaAlpina();
 
-    Gastos.selecionarGastosDaEscola();
-
-    Gastos.selecionarFiltrarMaisFiltros(); 
-    
-    Gastos.selecionarAplicacaoCusteio();
-    
-    Comum.selecionarPerfil();
-
     Comum.logout();
+    
   })  
 
 })

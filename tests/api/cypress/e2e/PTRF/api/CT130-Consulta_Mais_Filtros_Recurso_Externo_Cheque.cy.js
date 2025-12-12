@@ -10,14 +10,17 @@ const Comum = new ComumPaginaPTRF();
 
 import CreditosEscolaPagina from "../../../support/Paginas/CreditosEscolaPagina";
 
-const Creditos = new CreditosEscolaPagina
+const Creditos = new CreditosEscolaPagina();
 
 Cypress.on("uncaught:exception", (err, runnable) => {
   return false;
 });
 
-describe("Credito Escola - Consulta", () => {
-  it("CT96-Consulta_Creditos_Escola_Arredondamento", () => {
+
+  describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cheque', () => {
+
+    it('CT130-Consulta_Mais_Filtros_Recurso_Externo_Cheque',()=>{
+
     Comum.visitarPaginaPTRF();
 
     Comum.login(usuario.Usuario, usuario.Senha);
@@ -25,5 +28,9 @@ describe("Credito Escola - Consulta", () => {
     Comum.selecionarCeuVilaAlpina();
 
     Creditos.selecionarCreditosDaEscola();
-  });
-});
+
+    Comum.logout();
+    
+  })  
+
+})
