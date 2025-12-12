@@ -15,6 +15,7 @@ class Participante(ModeloBase):
     membro = models.BooleanField('Membro ?', default=False)
     conselho_fiscal = models.BooleanField('Pertence ao conselho fiscal ?', default=False)
     presente = models.BooleanField('Presente ?', default=True)
+    professor_gremio = models.BooleanField('Professor do grêmio ?', default=False)
 
     def eh_conselho_fiscal(self):
         if "Presidente do conselho fiscal" in self.cargo or "Conselheiro" in self.cargo:
@@ -58,7 +59,7 @@ class Participante(ModeloBase):
         }
 
         return result
-    
+
     @staticmethod
     def ordenar_por_cargo(participante):
         cargos = {
@@ -71,11 +72,11 @@ class Participante(ModeloBase):
             'Conselheiro': 7,
         }
         return cargos.get(participante['cargo'], 8)  # 8 para cargos não listados
-    
+
     @classmethod
     def participantes_ordenados_por_cargo(cls, ata, membro):
         presentes_ata_membros = cls.objects.filter(ata=ata, membro=membro).values()
-        
+
         presentes_ata_membros_ordenados = sorted(presentes_ata_membros, key=cls.ordenar_por_cargo)
         return presentes_ata_membros_ordenados
 
