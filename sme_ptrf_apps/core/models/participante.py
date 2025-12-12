@@ -62,16 +62,9 @@ class Participante(ModeloBase):
 
     @staticmethod
     def ordenar_por_cargo(participante):
-        cargos = {
-            'Presidente da diretoria executiva': 1,
-            'Vice-Presidente da diretoria executiva': 2,
-            'Secretário': 3,
-            'Tesoureiro': 4,
-            'Vogal': 5,
-            'Presidente do conselho fiscal': 6,
-            'Conselheiro': 7,
-        }
-        return cargos.get(participante['cargo'], 8)  # 8 para cargos não listados
+        from sme_ptrf_apps.mandatos.models import CargoComposicao
+
+        return CargoComposicao.ordenar_por_cargo(participante)
 
     @classmethod
     def participantes_ordenados_por_cargo(cls, ata, membro):
