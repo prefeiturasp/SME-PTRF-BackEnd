@@ -19,6 +19,9 @@ from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 
 from sme_ptrf_apps.users.permissoes import PermissaoAPIApenasSmeComLeituraOuGravacao
 
+from drf_spectacular.utils import extend_schema_view
+from .docs.programas_pdde_docs import DOCS
+
 
 class ProgramaPddeFiltro(django_filters.FilterSet):
     nome = django_filters.CharFilter(lookup_expr='icontains')
@@ -28,6 +31,7 @@ class ProgramaPddeFiltro(django_filters.FilterSet):
         fields = ['nome', ]
 
 
+@extend_schema_view(**DOCS)
 class ProgramaPddeViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
