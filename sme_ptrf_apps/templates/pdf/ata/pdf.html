@@ -421,7 +421,7 @@
       <tr>
         <td>
           <p class='mb-0'><strong>{{ info.nome }}</strong></p>
-          <p class='mb-0'>{{ info.cargo }}</p>
+          <p class='mb-0'>{{ info.cargo|remove_digitos }}</p>
         </td>
         {% if info.presente %}
           <td></td>
@@ -448,7 +448,7 @@
           <td>
             <p class='mb-0'><strong>{{ info.nome }}</strong></p>
             <p class='mb-0'>
-              {{ info.cargo }}{% if info.professor_gremio %} / Professor Orientador{% endif %}
+              {{ info.cargo|remove_digitos }}{% if info.professor_gremio %} / Professor Orientador{% endif %}
             </p>
           </td>
           <td></td>
@@ -483,7 +483,7 @@
           <tr>
             <td>
               <p class='mb-0'><strong>{{ info.nome }}</strong></p>
-              <p class='mb-0'>{{ info.cargo }}</p>
+              <p class='mb-0'>{{ info.cargo|remove_digitos }}</p>
             </td>
             {% if info.presente %}
               <td></td>
