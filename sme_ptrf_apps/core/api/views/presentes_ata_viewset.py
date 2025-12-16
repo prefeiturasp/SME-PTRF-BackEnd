@@ -313,6 +313,7 @@ class PresentesAtaViewSet(mixins.CreateModelMixin,
                 'cargo': participante["cargo"],
                 'membro': participante["membro"],
                 'presente': participante["presente"],
+                'professor_gremio': participante.get('professor_gremio', False),
                 'presidente_da_reuniao': participante["id"] == ata.presidente_da_reuniao.id if ata.presidente_da_reuniao else False,  # noqa
                 'secretario_da_reuniao': participante["id"] == ata.secretario_da_reuniao.id if ata.secretario_da_reuniao else False  # noqa
             }

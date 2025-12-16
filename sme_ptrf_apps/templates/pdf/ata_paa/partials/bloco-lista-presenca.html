@@ -1,0 +1,58 @@
+{# Bloco X - Lista de presença #}
+{% if dados.presentes_na_ata.presentes_ata_membros|length > 0 or dados.presentes_na_ata.presentes_ata_nao_membros|length > 0 %}
+<section class="row mt-4">
+  <article class="col mb-3 border p-0">
+    <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>Bloco {{ numero_bloco }} - Lista de presença</strong></p>
+    <div class="p-2">
+      <p class="font-12 mt-3 mb-2 titulo-membros-conselho-fiscal">Membros da Diretoria Executiva e do Conselho Fiscal</p>
+      <table class="table table-bordered tabela-assinaturas">
+        <thead>
+          <tr>
+            <th scope="col">Nome e cargo</th>
+            <th scope="col" style="width: 150px;">Assinatura</th>
+          </tr>
+        </thead>
+        {% for info in dados.presentes_na_ata.presentes_ata_membros %}
+          <tbody>
+          <tr>
+            <td>
+              <p class='mb-0'><strong>{{ info.nome }}</strong></p>
+              <p class='mb-0'>{% if info.professor_gremio %}{{ info.cargo }} - Professor do Grêmio{% else %}{{ info.cargo }}{% endif %}</p>
+            </td>
+            {% if info.presente %}
+              <td style="width: 150px;"></td>
+            {% else %}
+              <td style="width: 150px;">Ausente</td>
+            {% endif %}
+          </tr>
+          </tbody>
+        {% endfor %}
+      </table>
+
+      {% if dados.presentes_na_ata.presentes_ata_nao_membros|length > 0 %}
+        <p class="font-12 mt-4 mb-2 titulo-membros-conselho-fiscal">DEMAIS PRESENTES</p>
+        <table class="table table-bordered tabela-assinaturas">
+          <thead>
+            <tr>
+              <th scope="col">Nome e cargo</th>
+              <th scope="col" style="width: 150px;">Assinatura</th>
+            </tr>
+          </thead>
+          {% for info in dados.presentes_na_ata.presentes_ata_nao_membros %}
+            <tbody>
+            <tr>
+              <td>
+                <p class='mb-0'><strong>{{ info.nome }}</strong></p>
+                <p class='mb-0'>{% if info.professor_gremio %}{{ info.cargo }} - Professor do Grêmio{% else %}{{ info.cargo }}{% endif %}</p>
+              </td>
+              <td style="width: 150px;"></td>
+            </tr>
+            </tbody>
+          {% endfor %}
+        </table>
+      {% endif %}
+    </div>
+  </article>
+</section>
+{% endif %}
+

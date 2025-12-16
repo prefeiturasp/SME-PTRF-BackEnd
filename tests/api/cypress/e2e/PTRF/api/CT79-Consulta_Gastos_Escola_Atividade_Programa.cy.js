@@ -17,6 +17,18 @@ const Gastos = new GastosEscolaPagina();
     Comum.visitarPaginaPTRF();
 
     Comum.login(usuario.Usuario, usuario.Senha);
+
+    Comum.selecionarCeuVilaAlpina();
+
+    Gastos.selecionarGastosDaEscola();
+
+    Gastos.selecionarFiltrarMaisFiltros(); 
+    
+    Gastos.selecionarAplicacaoCusteio();
+    
+    Comum.selecionarPerfil();
+
+    Comum.logout();
     
   })  
 

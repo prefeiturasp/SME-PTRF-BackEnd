@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 class AtaPaaLookUpSerializer(serializers.ModelSerializer):
     nome = serializers.SerializerMethodField('get_nome_ata')
     alterado_em = serializers.SerializerMethodField('get_alterado_em')
+    completa = serializers.SerializerMethodField('get_completa')
 
     def get_nome_ata(self, obj):
         return obj.nome
@@ -25,15 +26,19 @@ class AtaPaaLookUpSerializer(serializers.ModelSerializer):
     def get_alterado_em(self, obj):
         return obj.preenchida_em
 
+    def get_completa(self, obj):
+        return obj.completa
+
     class Meta:
         model = AtaPaa
-        fields = ('uuid', 'nome', 'alterado_em')
+        fields = ('uuid', 'nome', 'alterado_em', 'completa')
 
 
 class AtaPaaSerializer(serializers.ModelSerializer):
     nome = serializers.SerializerMethodField('get_nome_ata')
     hora_reuniao = serializers.SerializerMethodField('get_hora_reuniao')
     associacao = serializers.SerializerMethodField('get_associacao')
+    completa = serializers.SerializerMethodField('get_completa')
     paa = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
@@ -57,6 +62,9 @@ class AtaPaaSerializer(serializers.ModelSerializer):
             return AssociacaoInfoAtaSerializer(obj.paa.associacao).data
         return None
 
+    def get_completa(self, obj):
+        return obj.completa
+
     class Meta:
         model = AtaPaa
         fields = (
@@ -77,6 +85,8 @@ class AtaPaaSerializer(serializers.ModelSerializer):
             'hora_reuniao',
             'justificativa',
             'composicao',
+            'completa',
+            'alterado_em',
         )
 
 

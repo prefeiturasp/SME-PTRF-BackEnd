@@ -149,6 +149,33 @@ class AtaPaa(ModeloBase):
     @property
     def documento_gerado(self):
       return self.status_geracao_pdf == self.STATUS_CONCLUIDO
+  
+    @property
+    def completa(self):
+        campos_basicos = bool(
+            self.tipo_ata and
+            self.tipo_reuniao and
+            self.data_reuniao and
+            self.hora_reuniao and
+            self.local_reuniao and
+            self.convocacao and
+            self.presidente_da_reuniao and
+            self.secretario_da_reuniao and
+            self.parecer_conselho
+        )
+        
+        if not campos_basicos:
+            return False
+
+        if self.parecer_conselho == self.PARECER_REJEITADA:
+            if not self.justificativa or not self.justificativa.strip():
+                return False
+
+        tem_professor_gremio = self.presentes_na_ata_paa.filter(professor_gremio=True).exists()
+        if not tem_professor_gremio:
+            return False
+        
+        return True
     
     def __str__(self):
       return f"Ata PAA {self.paa.periodo_paa.referencia} - {self.ATA_NOMES[self.tipo_ata]} - {self.data_reuniao}"
