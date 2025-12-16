@@ -6,13 +6,25 @@ from ..serializers import MotivoRejeicaoEncerramentoContaAssociacaoSerializer
 from ...models import MotivoRejeicaoEncerramentoContaAssociacao
 from ..utils.pagination import CustomPagination
 
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiTypes
 
+
+@extend_schema_view(
+    list=extend_schema(
+        parameters=[
+            OpenApiParameter('nome', OpenApiTypes.STR, OpenApiParameter.QUERY)
+        ],
+        responses={
+            200: MotivoRejeicaoEncerramentoContaAssociacaoSerializer(many=True)
+        }
+    )
+)
 class MotivoRejeicaoEncerramentoContaAssociacaoViewset(mixins.ListModelMixin,
-                        mixins.RetrieveModelMixin,
-                        mixins.CreateModelMixin,
-                        mixins.UpdateModelMixin,
-                        mixins.DestroyModelMixin,
-                        GenericViewSet):
+                                                       mixins.RetrieveModelMixin,
+                                                       mixins.CreateModelMixin,
+                                                       mixins.UpdateModelMixin,
+                                                       mixins.DestroyModelMixin,
+                                                       GenericViewSet):
     permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
     queryset = MotivoRejeicaoEncerramentoContaAssociacao.objects.all()
