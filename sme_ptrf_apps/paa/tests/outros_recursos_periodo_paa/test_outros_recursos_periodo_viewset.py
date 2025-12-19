@@ -186,5 +186,5 @@ def test_importar_unidades_origem_inexistente(
         format="json",
     )
 
-    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["detail"] == "Recurso de origem não encontrado."
