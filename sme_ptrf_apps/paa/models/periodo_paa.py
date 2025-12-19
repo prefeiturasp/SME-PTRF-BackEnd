@@ -19,6 +19,7 @@ class PeriodoPaa(ModeloBase):
     class Meta:
         verbose_name = 'Período PAA'
         verbose_name_plural = 'Períodos PAA'
+        ordering = ('-data_inicial',)
 
     def __str__(self):
         return self.referencia

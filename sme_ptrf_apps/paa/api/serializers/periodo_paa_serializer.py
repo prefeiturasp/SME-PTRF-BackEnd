@@ -15,6 +15,7 @@ class PeriodoPaaSerializer(serializers.ModelSerializer):
         model = PeriodoPaa
         fields = ('uuid', 'id', 'referencia', 'data_inicial', 'data_final', 'editavel',
                   'qtd_outros_recursos_habilitados', 'outros_recursos')
+        ordering = ('-data_inicial',)
 
     def create(self, validated_data):
         referencia = validated_data.get('referencia')
