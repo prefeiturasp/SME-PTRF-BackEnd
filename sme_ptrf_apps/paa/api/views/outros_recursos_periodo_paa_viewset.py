@@ -9,6 +9,10 @@ from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa
 from sme_ptrf_apps.paa.api.serializers import OutrosRecursosPeriodoPaaSerializer
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoApiSME
+from sme_ptrf_apps.paa.services.outros_recursos_periodo_service import (
+    OutroRecursoPeriodoPaaService,
+    ImportacaoUnidadesOutroRecursoException
+)
 
 
 class OutroRecursoPeriodoPaaFiltro(django_filters.FilterSet):
@@ -39,25 +43,16 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
         permission_classes=[IsAuthenticated & PermissaoApiSME]
     )
     def importar_unidades(self, request, uuid=None):
-        destino = self.get_object()
-        origem_uuid = request.data.get('origem_uuid')
-
-        if not origem_uuid:
+        try:
+            OutroRecursoPeriodoPaaService.importar_unidades(
+                destino=self.get_object(),
+                origem_uuid=request.data.get('origem_uuid')
+            )
+        except ImportacaoUnidadesOutroRecursoException as e:
             return Response(
-                {'detail': 'origem_uuid é obrigatório.'},
+                {'detail': str(e)},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        try:
-            origem = OutroRecursoPeriodoPaa.objects.get(uuid=origem_uuid)
-        except OutroRecursoPeriodoPaa.DoesNotExist:
-            return Response(
-                {'detail': 'Recurso de origem não encontrado.'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        for unidade in origem.unidades.all():
-            destino.unidades.add(unidade)
 
         return Response(
             {'detail': 'Unidades importadas com sucesso.'},
