@@ -1,11 +1,18 @@
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 import django_filters
 from waffle.mixins import WaffleFlagMixin
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa
 from sme_ptrf_apps.paa.api.serializers import OutrosRecursosPeriodoPaaSerializer
-from sme_ptrf_apps.users.permissoes import PermissaoApiUe
+from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoApiSME
+from sme_ptrf_apps.paa.services.outros_recursos_periodo_service import (
+    OutroRecursoPeriodoPaaService,
+    ImportacaoUnidadesOutroRecursoException
+)
 
 
 class OutroRecursoPeriodoPaaFiltro(django_filters.FilterSet):
@@ -28,3 +35,26 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     pagination_class = CustomPagination
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     filterset_class = OutroRecursoPeriodoPaaFiltro
+
+    @action(
+        detail=True,
+        methods=['post'],
+        url_path='importar-unidades',
+        permission_classes=[IsAuthenticated & PermissaoApiSME]
+    )
+    def importar_unidades(self, request, uuid=None):
+        try:
+            OutroRecursoPeriodoPaaService.importar_unidades(
+                destino=self.get_object(),
+                origem_uuid=request.data.get('origem_uuid')
+            )
+        except ImportacaoUnidadesOutroRecursoException as e:
+            return Response(
+                {'detail': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            {'detail': 'Unidades importadas com sucesso.'},
+            status=status.HTTP_200_OK
+        )
