@@ -2,7 +2,7 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 from ...models import OutroRecursoPeriodoPaa
-from sme_ptrf_apps.core.fixtures.factories import FlagFactory
+from sme_ptrf_apps.core.fixtures.factories import FlagFactory, UnidadeFactory
 from sme_ptrf_apps.paa.fixtures.factories import OutroRecursoPeriodoFactory
 
 BASE_URL = reverse("api:outros-recursos-periodos-paa-list")
@@ -113,3 +113,78 @@ def test_exclui_outros_recursos_periodos_inexistente(jwt_authenticated_client_sm
     response = jwt_authenticated_client_sme.delete(url)
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_importar_unidades_com_sucesso(
+    jwt_authenticated_client_sme,
+    periodo_paa,
+):
+    # Origem com unidades
+    unidades = UnidadeFactory.create_batch(3)
+
+    origem = OutroRecursoPeriodoFactory.create(
+        periodo_paa=periodo_paa
+    )
+    origem.unidades.add(*unidades)
+
+    destino = OutroRecursoPeriodoFactory.create(
+        periodo_paa=periodo_paa
+    )
+
+    url = reverse("api:outros-recursos-periodos-paa-importar-unidades", args=[destino.uuid])
+    response = jwt_authenticated_client_sme.post(
+        url,
+        data={"origem_uuid": origem.uuid},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    destino.refresh_from_db()
+    assert destino.unidades.count() == 3
+
+    for unidade in unidades:
+        assert unidade in destino.unidades.all()
+
+
+@pytest.mark.django_db
+def test_importar_unidades_sem_origem_uuid(
+    jwt_authenticated_client_sme,
+    periodo_paa,
+):
+    destino = OutroRecursoPeriodoFactory.create(
+        periodo_paa=periodo_paa
+    )
+
+    url = reverse("api:outros-recursos-periodos-paa-importar-unidades", args=[destino.uuid])
+
+    response = jwt_authenticated_client_sme.post(
+        url,
+        data={},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["detail"] == "origem_uuid é obrigatório."
+
+
+@pytest.mark.django_db
+def test_importar_unidades_origem_inexistente(
+    jwt_authenticated_client_sme,
+    periodo_paa,
+):
+    destino = OutroRecursoPeriodoFactory.create(
+        periodo_paa=periodo_paa
+    )
+
+    url = reverse("api:outros-recursos-periodos-paa-importar-unidades", args=[destino.uuid])
+
+    response = jwt_authenticated_client_sme.post(
+        url,
+        data={"origem_uuid": "00000000-0000-0000-0000-000000000000"},
+        format="json",
+    )
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.data["detail"] == "Recurso de origem não encontrado."
