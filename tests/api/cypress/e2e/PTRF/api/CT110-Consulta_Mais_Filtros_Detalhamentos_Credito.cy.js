@@ -3,6 +3,7 @@
 // Fixture (3 níveis acima)
 import usuarios from "../../../fixtures/usuariosPTRF.json";
 const usuario = usuarios.Kellen;
+import 'cypress-xpath';
 
 // Páginas (3 níveis acima)
 import ComumPaginaPTRF from "../../../support/Paginas/ComumPaginaPTRF";
@@ -24,9 +25,19 @@ Cypress.on("uncaught:exception", (err, runnable) => {
 
     Comum.login(usuario.Usuario, usuario.Senha);
 
-    Comum.selecionarCeuVilaAlpina();
+    Comum.selecionarCeuEmefMariaClara();
 
     Creditos.selecionarCreditosDaEscola();
+
+    cy.wait(3000);
+
+    Creditos.selecionarMaisFiltros();
+
+    Creditos.selecionarDetalhamentoMaisFiltros();
+
+    Creditos.selecionarFiltrarMaisFiltros();
+    
+    Comum.selecionarPerfil();
 
     Comum.logout();
     

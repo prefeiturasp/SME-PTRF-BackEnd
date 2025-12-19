@@ -15,8 +15,7 @@
     "supportFile": "./support/e2e.js",
     "dependencies": {
         "cypress-cloud": "^2.0.0-beta.1",
-        "cypress-real-events": "^1.7.4",
-        "cypress-xpath": "^2.0.1"
+        "cypress-real-events": "^1.7.4"
     },
     "devDependencies": {
         "@babel/core": "^7.26.0",
@@ -35,6 +34,7 @@
         "cypress-cucumber-preprocessor": "^4.3.1",
         "cypress-plugin-steps": "^1.1.1",
         "cypress-postgresql": "^1.0.8",
+        "cypress-xpath": "^2.0.1",
         "dotenv": "^16.4.7",
         "esbuild": "^0.25.2",
         "json-loader": "^0.5.7",
