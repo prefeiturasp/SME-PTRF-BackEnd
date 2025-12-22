@@ -18,6 +18,18 @@ describe("Gastos da Escola - Cadastro", () => {
 
     Comum.visitarPaginaPTRF();
     Comum.login(usuario.Usuario, usuario.Senha);
+    
+    Comum.selecionarCeuVilaAlpina();
+
+    Gastos.selecionarGastosDaEscola();
+    
+    cy.wait(3000);
+
+    Gastos.selecionarCadastrarDespesa();
+
+    Gastos.validarCadastroDespesaComprovanteGeneroAlimenticioPtrf_Basico();
+
+    Comum.logout();
 
   });
 
