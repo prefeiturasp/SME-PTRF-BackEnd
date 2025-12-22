@@ -135,56 +135,6 @@ class UnidadesViewSet(viewsets.ModelViewSet):
         list_unidades = monta_unidade_para_atribuicao(self.get_queryset(), dre_uuid, periodo_uuid)
         return Response(list_unidades)
 
-    @action(detail=False, url_path='excludes', permission_classes=[IsAuthenticated & PermissaoApiUe],
-            serializer_class=UnidadeListSerializer, methods=['post'])
-    def excludes(self, request, *args, **kwargs):
-        """
-        Retorna lista de unidades, excluindo as que estiverem na lista de exclude_uuids.
-        Considerado como Post para recebimento de lista de exclude (que pode ser grande).
-        Recurso utilizado para componentização de Vinculo de Unidades (front), uma vez que o comportamento
-        possa mudar de acordo com a instancia/Modelo Relacionado.
-
-        Parâmetros:
-            exclude_uuids (list): lista de uuids de unidades a serem excluídas
-            pagination (dict): dicionário com page_size como chave e quantidade de unidades por página como valor
-            Exemplo:
-                {
-                    exclude_uuids: ["uuid-1234", "uuid-5678"],
-                    pagination: { page: 1, page_size: 10 },
-                }
-
-        Retorna:
-            dict: dicionário com a lista de unidades e informações de paginação
-        """
-        from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
-        exclude_uuids = request.data.get("exclude_uuids", [])
-        filtros = request.data.get("filters", {})
-        pagination = request.data.get("pagination", {})
-        qs = Unidade.objects.all()
-        if exclude_uuids:
-            qs = qs.exclude(uuid__in=exclude_uuids)
-
-        nome_eol = filtros.get('nome_ou_codigo')
-        if nome_eol is not None:
-            qs = qs.filter(Q(codigo_eol=nome_eol) | Q(nome__unaccent__icontains=nome_eol))
-
-        dre_uuid = filtros.get('dre')
-        if dre_uuid:
-            qs = qs.filter(Q(dre__uuid=dre_uuid))
-
-        tipo_unidade = filtros.get('tipo_unidade')
-        print('tipo_unidade', tipo_unidade)
-        if tipo_unidade:
-            qs = qs.filter(Q(tipo_unidade=tipo_unidade))
-
-        paginator = CustomPagination()
-        paginator.page_size = pagination.get("page_size", 10)
-
-        page = paginator.paginate_queryset(qs, request)
-        serializer = UnidadeListSerializer(page, many=True)
-
-        return paginator.get_paginated_response(serializer.data)
-
     @action(detail=False, url_path='tipos-unidades', permission_classes=[IsAuthenticated & PermissaoApiUe],
             serializer_class=UnidadeListSerializer, methods=['get'])
     def tipo_unidades(self, request, *args, **kwargs):
