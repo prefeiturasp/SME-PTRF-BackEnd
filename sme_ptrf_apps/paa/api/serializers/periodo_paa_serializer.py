@@ -2,17 +2,20 @@ from rest_framework import serializers
 
 from sme_ptrf_apps.paa.models import PeriodoPaa
 from sme_ptrf_apps.paa.utils import ajustar_data_inicial_e_final, validar_data_final
+from sme_ptrf_apps.paa.api.serializers.outros_recursos_periodo_paa_serializer import OutrosRecursosPeriodoPaaSerializer
 
 
 class PeriodoPaaSerializer(serializers.ModelSerializer):
     data_inicial = serializers.DateField(required=True)
     data_final = serializers.DateField(required=True)
     qtd_outros_recursos_habilitados = serializers.IntegerField(read_only=True, required=False)
+    outros_recursos = OutrosRecursosPeriodoPaaSerializer(source='outrorecursoperiodopaa_set', many=True, read_only=True)
 
     class Meta:
         model = PeriodoPaa
         fields = ('uuid', 'id', 'referencia', 'data_inicial', 'data_final', 'editavel',
-                  'qtd_outros_recursos_habilitados',)
+                  'qtd_outros_recursos_habilitados', 'outros_recursos')
+        ordering = ('-data_inicial',)
 
     def create(self, validated_data):
         referencia = validated_data.get('referencia')
