@@ -126,9 +126,12 @@ class CreditosEscolaElementos {
   selecionarDataCredito = () => {
     return cy.get(".react-datepicker__input-container > .form-control");
   };
+
   selecionarDataCreditoCalendario = () => {
     return cy.get(".react-datepicker__month-container");
+    
   };
+
   selecionarTipoContaCheque = () => {
     return cy.get("#conta_associacao").select("Cheque");
   };
