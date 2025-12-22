@@ -7,7 +7,7 @@ from sme_ptrf_apps.paa.models.programa_pdde import ProgramaPdde
 
 class AcaoPdde(ModeloIdNome):
     history = AuditlogHistoryField()
-    
+
     # Status Choice
     STATUS_ATIVA = 'ATIVA'
     STATUS_INATIVA = 'INATIVA'
@@ -31,7 +31,7 @@ class AcaoPdde(ModeloIdNome):
         choices=STATUS_CHOICES,
         default=STATUS_ATIVA
     )
-    
+
     def programa_objeto(self):
         return self.programa
 

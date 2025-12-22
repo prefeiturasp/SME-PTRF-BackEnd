@@ -1,4 +1,5 @@
 import pytest
+import uuid
 from django.urls import reverse
 from rest_framework import status
 from ...models import OutroRecursoPeriodoPaa
@@ -6,6 +7,17 @@ from sme_ptrf_apps.core.fixtures.factories import FlagFactory, UnidadeFactory
 from sme_ptrf_apps.paa.fixtures.factories import OutroRecursoPeriodoFactory
 
 BASE_URL = reverse("api:outros-recursos-periodos-paa-list")
+
+
+@pytest.fixture
+def unidade_teste(unidade_factory):
+    return unidade_factory.create(
+        uuid='f92d2caf-d71f-4ed0-87b2-6d326fb648a6',
+        codigo_eol='108500',
+        tipo_unidade='EMEF',
+        nome='TESTE',
+        sigla='TST'
+    )
 
 
 @pytest.fixture
@@ -188,3 +200,285 @@ def test_importar_unidades_origem_inexistente(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.data["detail"] == "Recurso de origem não encontrado."
+
+
+@pytest.mark.django_db
+def test_vincular_unidade_sucesso(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    outros_recursos_periodo,
+    unidade_teste
+):
+    response_dict = {
+        "sucesso": True,
+        "mensagem": "Unidade vinculada com sucesso!",
+        "unidade": "EMEF XPTO",
+        "ja_vinculada": False,
+    }
+
+    unidade_uuid = unidade_teste.uuid
+
+    url = reverse(
+        "api:outros-recursos-periodos-paa-vincular-unidade",
+        kwargs={
+            "uuid": outros_recursos_periodo.uuid,
+            "unidade_uuid": unidade_uuid,
+        },
+    )
+
+    response = jwt_authenticated_client_sme.post(url)
+
+    assert response.status_code == 200, response.status_code
+    assert response.data["mensagem"] == response_dict['mensagem']
+
+
+@pytest.mark.django_db
+def test_vincular_unidade_ja_vinculada(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    outros_recursos_periodo,
+    unidade_teste
+):
+    outros_recursos_periodo.unidades.add(unidade_teste)
+
+    unidade_uuid = unidade_teste.uuid
+
+    url = reverse(
+        "api:outros-recursos-periodos-paa-vincular-unidade",
+        kwargs={
+            "uuid": outros_recursos_periodo.uuid,
+            "unidade_uuid": unidade_uuid,
+        },
+    )
+
+    response = jwt_authenticated_client_sme.post(url)
+
+    assert response.status_code == 200, response.status_code
+    assert response.data["mensagem"] == "Unidade já estava vinculada ao período.", response.data["mensagem"]
+
+
+@pytest.mark.django_db
+def test_vincular_unidade_nao_encontrada(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    outros_recursos_periodo,
+):
+
+    unidade_uuid = uuid.uuid4()
+
+    url = reverse(
+        "api:outros-recursos-periodos-paa-vincular-unidade",
+        kwargs={
+            "uuid": outros_recursos_periodo.uuid,
+            "unidade_uuid": unidade_uuid,
+        },
+    )
+
+    response = jwt_authenticated_client_sme.post(url)
+
+    assert response.status_code == 404
+    assert "mensagem" in response.data
+    assert response.data["mensagem"] == "Unidade não encontrada."
+
+
+@pytest.mark.django_db
+def test_vincular_unidade_validacao(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    outros_recursos_periodo_inativo,
+    unidade_teste
+):
+    unidade_uuid = unidade_teste.uuid
+
+    url = reverse(
+        "api:outros-recursos-periodos-paa-vincular-unidade",
+        kwargs={
+            "uuid": outros_recursos_periodo_inativo.uuid,
+            "unidade_uuid": unidade_uuid,
+        },
+    )
+
+    response = jwt_authenticated_client_sme.post(url)
+
+    assert response.status_code == 400
+    assert response.data["mensagem"] == "Não é possível vincular unidades a um período inativo."
+
+
+@pytest.mark.django_db
+def test_vincular_em_lote_sucesso(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    outros_recursos_periodo,
+    unidade_teste
+):
+    url = reverse(
+        "api:outros-recursos-periodos-paa-vincular-em-lote",
+        kwargs={
+            "uuid": outros_recursos_periodo.uuid,
+        },
+    )
+
+    payload = {
+        "unidade_uuids": [unidade_teste.uuid]
+    }
+
+    response = jwt_authenticated_client_sme.post(url, payload, format='json')
+
+    assert response.status_code == 200
+    assert response.data["mensagem"] == "Unidades vinculadas com sucesso!"
+
+
+@pytest.mark.django_db
+def test_vincular_em_lote_passando_lista_vazia(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    outros_recursos_periodo,
+):
+    url = reverse(
+        "api:outros-recursos-periodos-paa-vincular-em-lote",
+        kwargs={
+            "uuid": outros_recursos_periodo.uuid,
+        },
+    )
+
+    payload = {
+        "unidade_uuids": []
+    }
+
+    response = jwt_authenticated_client_sme.post(url, payload, format='json')
+
+    assert response.status_code == 400
+    assert response.data["mensagem"] == "Nenhuma unidade foi informada."
+
+
+@pytest.mark.django_db
+def test_vincular_em_lote_passando_uuid_invalido(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    outros_recursos_periodo,
+):
+    url = reverse(
+        "api:outros-recursos-periodos-paa-vincular-em-lote",
+        kwargs={
+            "uuid": outros_recursos_periodo.uuid,
+        },
+    )
+
+    payload = {
+        "unidade_uuids": [uuid.uuid4()]
+    }
+
+    response = jwt_authenticated_client_sme.post(url, payload, format='json')
+
+    assert response.status_code == 404
+    assert response.data["mensagem"] == "Nenhuma unidade válida foi encontrada."
+
+
+@pytest.mark.django_db
+def test_desvincular_unidade_sucesso(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    outros_recursos_periodo,
+    unidade_teste
+):
+    outros_recursos_periodo.unidades.add(unidade_teste)
+
+    url = reverse(
+        "api:outros-recursos-periodos-paa-desvincular-unidade",
+        kwargs={
+            "uuid": outros_recursos_periodo.uuid,
+            "unidade_uuid": unidade_teste.uuid,
+        },
+    )
+
+    response = jwt_authenticated_client_sme.post(url, format='json')
+
+    assert response.status_code == 200, response.status_code
+    assert response.data["mensagem"] == "Unidade desvinculada com sucesso!"
+
+
+@pytest.mark.django_db
+def test_desvincular_unidade_inexistente(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    outros_recursos_periodo,
+    unidade_teste
+):
+    url = reverse(
+        "api:outros-recursos-periodos-paa-desvincular-unidade",
+        kwargs={
+            "uuid": outros_recursos_periodo.uuid,
+            "unidade_uuid": unidade_teste.uuid,
+        },
+    )
+
+    response = jwt_authenticated_client_sme.post(url, format='json')
+
+    assert response.status_code == 404
+    assert response.data["mensagem"] == "Unidade não encontrada ou já desvinculada."
+
+
+@pytest.mark.django_db
+def test_desvincular_unidade_em_lote_sucesso(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    outros_recursos_periodo,
+    unidade_teste
+):
+    outros_recursos_periodo.unidades.add(unidade_teste)
+
+    url = reverse(
+        "api:outros-recursos-periodos-paa-desvincular-em-lote",
+        kwargs={"uuid": outros_recursos_periodo.uuid},
+    )
+
+    payload = {
+        "unidade_uuids": [unidade_teste.uuid]
+    }
+
+    response = jwt_authenticated_client_sme.post(url, payload, format='json')
+
+    assert response.status_code == 200, response.status_code
+    assert response.data["mensagem"] == "Unidades desvinculadas com sucesso!"
+
+
+@pytest.mark.django_db
+def test_desvincular_unidade_em_lote_passando_lista_vazia(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    outros_recursos_periodo,
+):
+    url = reverse(
+        "api:outros-recursos-periodos-paa-desvincular-em-lote",
+        kwargs={"uuid": outros_recursos_periodo.uuid},
+    )
+
+    payload = {
+        "unidade_uuids": []
+    }
+
+    response = jwt_authenticated_client_sme.post(url, payload, format='json')
+
+    assert response.status_code == 400, response.status_code
+    assert response.data["mensagem"] == "Nenhuma unidade foi informada."
+
+
+@pytest.mark.django_db
+def test_desvincular_unidade_inexistente_em_lote(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    outros_recursos_periodo,
+):
+    url = reverse(
+        "api:outros-recursos-periodos-paa-desvincular-em-lote",
+        kwargs={"uuid": outros_recursos_periodo.uuid},
+    )
+
+    payload = {
+        "unidade_uuids": [uuid.uuid4()]
+    }
+
+    response = jwt_authenticated_client_sme.post(url, payload, format='json')
+
+    assert response.status_code == 404, response.status_code
+    assert response.data["mensagem"] == "Nenhuma unidade encontrada ou já desvinculada."
