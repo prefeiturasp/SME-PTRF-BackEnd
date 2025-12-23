@@ -17,6 +17,8 @@ class ReceitaPrevistaOutroRecursoPeriodoFiltro(django_filters.FilterSet):
         field_name="outro_recurso_periodo__outro_recurso__uuid", lookup_expr="exact", label="UUID Outro Recurso")
     periodo_paa_uuid = django_filters.CharFilter(
         field_name="outro_recurso_periodo__periodo_paa__uuid", lookup_expr="exact", label="UUID Período PAA")
+    paa_uuid = django_filters.CharFilter(
+        field_name="paa__uuid", lookup_expr="exact", label="UUID do PAA")
 
     class Meta:
         model = ReceitaPrevistaOutroRecursoPeriodo

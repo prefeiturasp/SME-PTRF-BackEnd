@@ -1,12 +1,12 @@
 from rest_framework import serializers, validators
 from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa, PeriodoPaa, OutroRecurso
 from sme_ptrf_apps.core.api.serializers import UnidadeSerializer
+from .outros_recursos_serializer import OutroRecursoSerializer
 
 
 class OutrosRecursosPeriodoPaaSerializer(serializers.ModelSerializer):
     uso_associacao = serializers.CharField(read_only=True)
-    outro_recurso_nome = serializers.CharField(read_only=True, source='outro_recurso.nome')
-    outro_recurso_cor = serializers.CharField(read_only=True, source='outro_recurso.cor')
+    outro_recurso_objeto = OutroRecursoSerializer(read_only=True, many=False, source='outro_recurso')
     periodo_paa = serializers.SlugRelatedField(
         queryset=PeriodoPaa.objects.all(),
         slug_field='uuid',
@@ -35,9 +35,9 @@ class OutrosRecursosPeriodoPaaSerializer(serializers.ModelSerializer):
     class Meta:
         model = OutroRecursoPeriodoPaa
         fields = ('id', 'uuid', 'outro_recurso', 'periodo_paa', 'ativo', 'unidades',
-                  'uso_associacao', 'outro_recurso_nome', 'outro_recurso_cor'
+                  'uso_associacao', 'outro_recurso_objeto',
                   )
-        read_only_fields = ('uuid', 'id', 'uso_associacao', 'outro_recurso_nome', 'outro_recurso_cor')
+        read_only_fields = ('uuid', 'id', 'uso_associacao', 'outro_recurso_objeto', 'criado_em', 'alterado_em')
         validators = [
             validators.UniqueTogetherValidator(
                 queryset=OutroRecursoPeriodoPaa.objects.all(),

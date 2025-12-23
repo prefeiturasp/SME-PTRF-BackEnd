@@ -405,6 +405,8 @@ class OutroRecursoPeriodoPaaListagemService:
             periodo_paa=self.periodo_paa,
             ativo=True,
         ).filter(
+            # Considera unidade vinculada quando o Outro Recurso Período não tem nenhuma unidade vinculada
+            # Ou a unidade em questão está diretamente vinculada
             Q(unidades__in=[self.unidade]) | Q(unidades__isnull=True)
         ).distinct().order_by('outro_recurso__nome')
 
