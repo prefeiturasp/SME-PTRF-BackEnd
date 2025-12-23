@@ -16,3 +16,4 @@ from .atividade_estatutaria_paa_factory import *
 from .outros_recursos_factory import *
 from .documento_paa_factory import *
 from .outros_recursos_periodo_factory import *
+from .receitas_previstas_outro_recurso_periodo_factory import *

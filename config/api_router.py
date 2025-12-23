@@ -100,6 +100,7 @@ from sme_ptrf_apps.paa.api.views import (
     PaaViewSet,
     AcoesPddeViewSet,
     ProgramaPddeViewSet,
+    ReceitaPrevistaOutroRecursoPeriodoViewSet,
     ReceitaPrevistaPaaViewSet,
     ReceitaPrevistaPddeViewSet,
     FonteRecursoPaaViewSet,
@@ -260,6 +261,8 @@ router.register("motivos-rejeicao-encerramento-conta", MotivoRejeicaoEncerrament
                 basename="motivos-rejeicao-encerramento-conta")
 router.register("programas-pdde", ProgramaPddeViewSet, basename="programas-pdde")
 router.register("acoes-pdde", AcoesPddeViewSet, basename="acoes-pdde")
+router.register("receitas-previstas-outros-recursos-periodo", ReceitaPrevistaOutroRecursoPeriodoViewSet,
+                basename="receitas-previstas-outros-recursos-periodo")
 router.register("receitas-previstas-paa", ReceitaPrevistaPaaViewSet, basename="receitas-previstas-paa")
 router.register("receitas-previstas-pdde", ReceitaPrevistaPddeViewSet, basename="receitas-previstas-pdde")
 router.register("mandatos", MandatosViewSet, basename="mandatos")

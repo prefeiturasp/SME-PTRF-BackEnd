@@ -1,8 +1,10 @@
 
 from typing import List, Dict, Any, Optional, Tuple
 from django.db import transaction
+from django.db.models import Q
 from sme_ptrf_apps.core.models.unidade import Unidade
-from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa
+from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa, PeriodoPaa
+from sme_ptrf_apps.paa.api.serializers.outros_recursos_periodo_paa_serializer import OutrosRecursosPeriodoPaaSerializer
 import logging
 
 logger = logging.getLogger(__name__)
@@ -386,3 +388,34 @@ class OutroRecursoPeriodoPaaService:
             return
 
         destino.unidades.add(*unidades)
+
+
+class OutroRecursoPeriodoPaaListagemService:
+    def __init__(self, periodo_paa: PeriodoPaa, unidade: Unidade):
+        self.periodo_paa = periodo_paa
+        self.unidade = unidade
+
+    def queryset_listar_outros_recursos_periodo_unidade(self):
+        """
+        Retorna uma lista de recursos vinculados ao Período do PAA,
+        filtrados por período, ativo e vinculados a uma unidade.
+        A lista é ordenada por nome do recurso.
+        """
+        return OutroRecursoPeriodoPaa.objects.filter(
+            periodo_paa=self.periodo_paa,
+            ativo=True,
+        ).filter(
+            Q(unidades__in=[self.unidade]) | Q(unidades__isnull=True)
+        ).distinct().order_by('outro_recurso__nome')
+
+    def serialized_listar_outros_recursos_periodo_unidade(self):
+        """
+        Retorna a lista serializada de recursos vinculados ao PAA,
+        filtrados por período, ativo e vinculados a uma unidade.
+        A lista é ordenada por nome do recurso.
+        """
+        qs = self.queryset_listar_outros_recursos_periodo_unidade()
+
+        serializer = OutrosRecursosPeriodoPaaSerializer(qs, many=True)
+
+        return serializer.data

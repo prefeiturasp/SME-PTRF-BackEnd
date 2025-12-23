@@ -296,6 +296,20 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['get'], url_path='outros-recursos-do-periodo',
+            permission_classes=[IsAuthenticated])
+    def outros_recursos_periodo(self, request, uuid=None):
+        from sme_ptrf_apps.paa.services.outros_recursos_periodo_service import OutroRecursoPeriodoPaaListagemService
+
+        paa = self.get_object()
+
+        service = OutroRecursoPeriodoPaaListagemService(
+            periodo_paa=paa.periodo_paa,
+            unidade=paa.associacao.unidade
+        )
+        data = service.serialized_listar_outros_recursos_periodo_unidade()
+        return Response(data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["post"], url_path="gerar-documento")
     def gerar_documento(self, request, uuid=None):
         paa = self.get_object()
