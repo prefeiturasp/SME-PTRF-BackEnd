@@ -3,8 +3,9 @@ from typing import List, Dict, Any, Optional, Tuple
 from django.db import transaction
 from django.db.models import Q
 from sme_ptrf_apps.core.models.unidade import Unidade
-from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa, PeriodoPaa
-from sme_ptrf_apps.paa.api.serializers.outros_recursos_periodo_paa_serializer import OutrosRecursosPeriodoPaaSerializer
+from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa, PeriodoPaa, ReceitaPrevistaOutroRecursoPeriodo
+from sme_ptrf_apps.paa.api.serializers.receita_prevista_outro_recurso_periodo_serializer import (
+    ReceitaPrevistaOutroRecursoPeriodoSerializer)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -410,14 +411,22 @@ class OutroRecursoPeriodoPaaListagemService:
             Q(unidades__in=[self.unidade]) | Q(unidades__isnull=True)
         ).distinct().order_by('outro_recurso__nome')
 
-    def serialized_listar_outros_recursos_periodo_unidade(self):
+    def queryset_listar_outros_recursos_periodo_receitas_previstas(self):
         """
-        Retorna a lista serializada de recursos vinculados ao PAA,
-        filtrados por período, ativo e vinculados a uma unidade.
-        A lista é ordenada por nome do recurso.
+        Reutiliza a consulta de Outros Recursos do Período do PAA, somente ativos,
+        para retornar um queryset de Receitas Previstas de Outros Recursos do Período.
         """
-        qs = self.queryset_listar_outros_recursos_periodo_unidade()
+        outros_recursos_periodo = self.queryset_listar_outros_recursos_periodo_unidade()
 
-        serializer = OutrosRecursosPeriodoPaaSerializer(qs, many=True)
+        return ReceitaPrevistaOutroRecursoPeriodo.objects.filter(
+            outro_recurso_periodo__in=outros_recursos_periodo)
 
+    def serialized_listar_outros_recursos_periodo_receitas_previstas(self):
+        """
+        Reutiliza o filtro de Outros recursos do Período do PAA, somente, ativos e
+        Vinculados à devida Unidade
+        """
+        qs = self.queryset_listar_outros_recursos_periodo_receitas_previstas()
+
+        serializer = ReceitaPrevistaOutroRecursoPeriodoSerializer(qs, many=True)
         return serializer.data

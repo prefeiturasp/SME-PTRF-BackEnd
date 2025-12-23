@@ -30,7 +30,7 @@ class ReceitaPrevistaOutroRecursoPeriodoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReceitaPrevistaOutroRecursoPeriodo
         fields = (
-            'id', 'uuid', 'paa', 'outro_recurso_periodo',
+            'uuid', 'paa', 'outro_recurso_periodo',
             'previsao_valor_capital', 'previsao_valor_custeio', 'previsao_valor_livre',
             'saldo_custeio', 'saldo_capital', 'saldo_livre', 'outro_recurso_objeto'
         )

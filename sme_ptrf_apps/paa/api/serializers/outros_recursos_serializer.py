@@ -14,8 +14,8 @@ class OutroRecursoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OutroRecurso
-        fields = ('id', 'uuid', 'nome', 'aceita_capital', 'aceita_custeio', 'aceita_livre_aplicacao', 'cor')
-        read_only_fields = ('id', 'uuid',)
+        fields = ('uuid', 'nome', 'aceita_capital', 'aceita_custeio', 'aceita_livre_aplicacao', 'cor')
+        read_only_fields = ('uuid',)
         validators = [
             validators.UniqueTogetherValidator(
                 queryset=OutroRecurso.objects.all(),
