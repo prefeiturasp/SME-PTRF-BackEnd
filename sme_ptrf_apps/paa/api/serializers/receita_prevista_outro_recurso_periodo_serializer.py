@@ -1,6 +1,4 @@
 from rest_framework import serializers, validators
-from .outros_recursos_serializer import OutroRecursoSerializer
-
 from sme_ptrf_apps.paa.models import (
     ReceitaPrevistaOutroRecursoPeriodo, Paa, OutroRecursoPeriodoPaa)
 
@@ -15,7 +13,6 @@ class ReceitaPrevistaOutroRecursoPeriodoSerializer(serializers.ModelSerializer):
             'null': 'PAA não foi informado.'
         },
     )
-    outro_recurso_objeto = OutroRecursoSerializer(read_only=True, many=False)
 
     outro_recurso_periodo = serializers.SlugRelatedField(
         queryset=OutroRecursoPeriodoPaa.objects.filter(ativo=True),
@@ -32,11 +29,11 @@ class ReceitaPrevistaOutroRecursoPeriodoSerializer(serializers.ModelSerializer):
         fields = (
             'uuid', 'paa', 'outro_recurso_periodo',
             'previsao_valor_capital', 'previsao_valor_custeio', 'previsao_valor_livre',
-            'saldo_custeio', 'saldo_capital', 'saldo_livre', 'outro_recurso_objeto'
+            'saldo_custeio', 'saldo_capital', 'saldo_livre'
         )
         read_only_fields = (
             'uuid', 'saldo_custeio', 'saldo_capital', 'saldo_livre',
-            'criado_em', 'alterado_em', 'outro_recurso_objeto'
+            'criado_em', 'alterado_em'
         )
         validators = [
             validators.UniqueTogetherValidator(

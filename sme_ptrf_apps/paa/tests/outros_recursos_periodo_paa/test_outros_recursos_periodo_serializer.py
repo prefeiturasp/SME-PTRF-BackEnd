@@ -11,8 +11,10 @@ def test_outros_recursos_list_serializer(outros_recursos_periodo):
     assert 'uuid' in serializer.data
     assert 'periodo_paa' in serializer.data
     assert 'outro_recurso' in serializer.data
-    assert 'outro_recurso_nome' in serializer.data
+    assert 'outro_recurso_objeto' in serializer.data
     assert 'ativo' in serializer.data
+    assert 'uso_associacao' in serializer.data
+    assert 'unidades' in serializer.data
 
 
 @pytest.mark.django_db

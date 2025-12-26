@@ -3,9 +3,13 @@ from typing import List, Dict, Any, Optional, Tuple
 from django.db import transaction
 from django.db.models import Q
 from sme_ptrf_apps.core.models.unidade import Unidade
-from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa, PeriodoPaa, ReceitaPrevistaOutroRecursoPeriodo
+from sme_ptrf_apps.paa.models import (
+    OutroRecursoPeriodoPaa, PeriodoPaa, ReceitaPrevistaOutroRecursoPeriodo
+)
 from sme_ptrf_apps.paa.api.serializers.receita_prevista_outro_recurso_periodo_serializer import (
     ReceitaPrevistaOutroRecursoPeriodoSerializer)
+from sme_ptrf_apps.paa.api.serializers.outros_recursos_periodo_paa_serializer import (
+    OutrosRecursosPeriodoPaaSerializer)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -405,28 +409,36 @@ class OutroRecursoPeriodoPaaListagemService:
         return OutroRecursoPeriodoPaa.objects.filter(
             periodo_paa=self.periodo_paa,
             ativo=True,
+        ).select_related(
+            'outro_recurso',
+            'periodo_paa'
+        ).prefetch_related(
+            'unidades'
         ).filter(
             # Considera unidade vinculada quando o Outro Recurso Período não tem nenhuma unidade vinculada
             # Ou a unidade em questão está diretamente vinculada
             Q(unidades__in=[self.unidade]) | Q(unidades__isnull=True)
         ).distinct().order_by('outro_recurso__nome')
 
-    def queryset_listar_outros_recursos_periodo_receitas_previstas(self):
+    def serialized_listar_outros_recursos_periodo_unidades(self):
         """
-        Reutiliza a consulta de Outros Recursos do Período do PAA, somente ativos,
-        para retornar um queryset de Receitas Previstas de Outros Recursos do Período.
+        Retorna uma lista de recursos vinculados ao Período do PAA,
+        filtrados por período, ativo, serializados.
         """
-        outros_recursos_periodo = self.queryset_listar_outros_recursos_periodo_unidade()
-
-        return ReceitaPrevistaOutroRecursoPeriodo.objects.filter(
-            outro_recurso_periodo__in=outros_recursos_periodo)
+        return OutrosRecursosPeriodoPaaSerializer(
+            self.queryset_listar_outros_recursos_periodo_unidade(), many=True).data
 
     def serialized_listar_outros_recursos_periodo_receitas_previstas(self):
         """
         Reutiliza o filtro de Outros recursos do Período do PAA, somente, ativos e
-        Vinculados à devida Unidade
+        Vinculados e referencia de receitas previstas
         """
-        qs = self.queryset_listar_outros_recursos_periodo_receitas_previstas()
+        serialized_outros_recursos_periodo = self.serialized_listar_outros_recursos_periodo_unidades()
 
-        serializer = ReceitaPrevistaOutroRecursoPeriodoSerializer(qs, many=True)
-        return serializer.data
+        for serialized_outro_recurso in serialized_outros_recursos_periodo:
+            receita = ReceitaPrevistaOutroRecursoPeriodo.objects.filter(
+                outro_recurso_periodo__uuid=serialized_outro_recurso['uuid'])
+            serialized_outro_recurso['receitas_previstas'] = ReceitaPrevistaOutroRecursoPeriodoSerializer(
+                receita, many=True).data
+
+        return serialized_outros_recursos_periodo
