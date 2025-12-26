@@ -32,8 +32,7 @@ class ReceitaPrevistaOutroRecursoPeriodoSerializer(serializers.ModelSerializer):
             'saldo_custeio', 'saldo_capital', 'saldo_livre'
         )
         read_only_fields = (
-            'uuid', 'saldo_custeio', 'saldo_capital', 'saldo_livre',
-            'criado_em', 'alterado_em'
+            'uuid', 'criado_em', 'alterado_em'
         )
         validators = [
             validators.UniqueTogetherValidator(
