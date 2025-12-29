@@ -21,3 +21,4 @@ from .ata_paa_serializer import AtaPaaSerializer, AtaPaaCreateSerializer, AtaPaa
 from .presentes_ata_paa_serializer import PresentesAtaPaaSerializer, PresentesAtaPaaCreateSerializer
 from .outros_recursos_serializer import OutroRecursoSerializer
 from .outros_recursos_periodo_paa_serializer import OutrosRecursosPeriodoPaaSerializer
+from .receita_prevista_outro_recurso_periodo_serializer import ReceitaPrevistaOutroRecursoPeriodoSerializer
