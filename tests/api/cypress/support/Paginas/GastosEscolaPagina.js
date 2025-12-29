@@ -508,7 +508,7 @@ class GastosEscolaPagina {
         Gastos.cadastroEspecificacaoCusteio().select('PIS/COFINS/CSLL');
         Gastos.cadastroAcaoCusteio().select('Material Pedagógico');
         Gastos.cadastroTipoContaCusteio().select('Cartão');
-        Gastos.cadastroValorCusteio().type('100000');      
+        //Gastos.cadastroValorCusteio().type('100000');      
     }
 
     validarCadastroDespesaComprovanteTributosTarifasMaterialComplementar() {

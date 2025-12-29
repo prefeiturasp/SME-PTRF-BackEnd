@@ -32,8 +32,6 @@ Cypress.on('uncaught:exception', (err, runnable) => {
     Gastos.selecionarCadastrarDespesa();
 
     Gastos.validarCadastroGastosEscolaDanfeChequeCusteioPtrfBasico();
-    
-    Comum.selecionarPerfil();
 
     Comum.logout();
     

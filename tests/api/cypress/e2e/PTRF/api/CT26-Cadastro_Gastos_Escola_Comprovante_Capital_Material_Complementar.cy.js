@@ -34,8 +34,6 @@ Cypress.on('uncaught:exception', (err, runnable) => {
     cy.wait(2000); 
 
     Gastos.validarCadastroDespesaComprovanteCapitalMaterialComplementar();
-    
-    Comum.selecionarPerfil();
 
     Comum.logout();
     
