@@ -81,7 +81,7 @@ DOCS = dict(
     somatorio_total_por_programas=extend_schema(
         description=(
             "Retorna os totais consolidados por programa PDDE relacionados a um PAA específico. "
-            "Inclui somatórios de valores e quantidades."),
+            "Inclui somatórios de valores e quantidades. Retorna todos os programas sem paginação."),
         parameters=[
             OpenApiParameter(
                 name='paa_uuid',
@@ -89,13 +89,6 @@ DOCS = dict(
                 location=OpenApiParameter.QUERY,
                 required=True,
                 description='UUID do PAA (Plano de Aplicação Anual)'
-            ),
-            OpenApiParameter(
-                name='page_size',
-                type=OpenApiTypes.INT,
-                location=OpenApiParameter.QUERY,
-                required=False,
-                description='Tamanho da página (padrão: 1000)'
             ),
         ],
         responses={

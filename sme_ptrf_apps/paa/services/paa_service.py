@@ -54,9 +54,9 @@ class PaaService:
         return response
 
     @classmethod
-    def somatorio_totais_por_programa_pdde(cls, paa_uuid, page_size=1000):
-        # Obtem todos os programas com paginação
-        qs_programas = ProgramaPdde.objects.prefetch_related('acaopdde_set').all()[:page_size]
+    def somatorio_totais_por_programa_pdde(cls, paa_uuid):
+        # Obtem todos os programas sem paginação
+        qs_programas = ProgramaPdde.objects.prefetch_related('acaopdde_set').all()
         programas = []
         for qs_programa in qs_programas:
             # Objeto padrão por programa
