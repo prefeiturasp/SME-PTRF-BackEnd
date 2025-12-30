@@ -307,7 +307,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             periodo_paa=paa.periodo_paa,
             unidade=paa.associacao.unidade
         )
-        data = service.serialized_listar_outros_recursos_periodo_receitas_previstas()
+        data = service.serialized_listar_outros_recursos_periodo_receitas_previstas(paa)
         return Response(data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"], url_path="gerar-documento")

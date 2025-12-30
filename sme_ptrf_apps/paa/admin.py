@@ -98,9 +98,12 @@ class AcaoPddeAdmin(admin.ModelAdmin):
 
 @admin.register(ReceitaPrevistaOutroRecursoPeriodo)
 class ReceitaPrevistaOutroRecursoPeriodoAdmin(admin.ModelAdmin):
-    list_display = ('outro_recurso_periodo', 'previsao_valor_custeio', 'previsao_valor_capital', 'previsao_valor_livre')
+    list_display = (
+        'outro_recurso_periodo', 'previsao_valor_custeio', 'previsao_valor_capital', 'previsao_valor_livre',
+        'unidade_nome'
+    )
     search_fields = ('outro_recurso_periodo___recurso__nome', 'outro_recurso_periodo__periodo_paa__referencia')
-    list_filter = ('outro_recurso_periodo__outro_recurso', 'paa')
+    list_filter = ('outro_recurso_periodo__outro_recurso', 'paa', 'paa__associacao')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     raw_id_fields = ('outro_recurso_periodo', 'paa')
 
