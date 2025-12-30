@@ -21,6 +21,10 @@ class ReceitaPrevistaOutroRecursoPeriodo(ModeloBase):
     previsao_valor_livre = models.DecimalField('Previsão Valor Livre Aplicação',
                                                max_digits=20, decimal_places=2, default=0)
 
+    def unidade_nome(self):
+        return self.paa.associacao.unidade.nome
+    unidade_nome.short_description = "Unidade"
+
     def outro_recurso_objeto(self):
         return self.outro_recurso_periodo.outro_recurso
 

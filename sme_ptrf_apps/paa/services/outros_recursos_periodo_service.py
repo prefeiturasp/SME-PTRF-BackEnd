@@ -428,7 +428,7 @@ class OutroRecursoPeriodoPaaListagemService:
         return OutrosRecursosPeriodoPaaSerializer(
             self.queryset_listar_outros_recursos_periodo_unidade(), many=True).data
 
-    def serialized_listar_outros_recursos_periodo_receitas_previstas(self):
+    def serialized_listar_outros_recursos_periodo_receitas_previstas(self, paa):
         """
         Reutiliza o filtro de Outros recursos do Período do PAA, somente, ativos e
         Vinculados e referencia de receitas previstas
@@ -437,6 +437,7 @@ class OutroRecursoPeriodoPaaListagemService:
 
         for serialized_outro_recurso in serialized_outros_recursos_periodo:
             receita = ReceitaPrevistaOutroRecursoPeriodo.objects.filter(
+                paa=paa,
                 outro_recurso_periodo__uuid=serialized_outro_recurso['uuid'])
             serialized_outro_recurso['receitas_previstas'] = ReceitaPrevistaOutroRecursoPeriodoSerializer(
                 receita, many=True).data
