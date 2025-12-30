@@ -9,13 +9,16 @@ const Comum = new ComumPaginaPTRF();
 import CreditosEscolaPagina from "../../../support/Paginas/CreditosEscolaPagina";
 const Creditos = new CreditosEscolaPagina();
 
-Cypress.on("uncaught:exception", (err, runnable) => {
-  // quando retorna falso previne o  Cypress de falhar o teste
-  return false;
-});
 
-describe("Credito Escola - Cadastro", () => {
-  it("CT17-Cadastro_de_Credito_Rendimento_Campos_em_Branco", () => {
+Cypress.on('uncaught:exception', (err, runnable) => {
+    // quando retorna falso previne o  Cypress de falhar o teste
+    return false
+  })
+
+  describe('Credito Escola - Consulta', () => {
+
+    it('CT07-Consulta_Escola_Arredondamento_Sem_Retorno',()=>{
+
     Comum.visitarPaginaPTRF();
 
     Comum.login(usuario.Usuario, usuario.Senha);
@@ -26,10 +29,16 @@ describe("Credito Escola - Cadastro", () => {
 
     cy.wait(3000);
 
-    Creditos.validarCreditosCadastrados();
+    Creditos.selecionarArredondamento();
 
-    Creditos.selecionarCadastrarCredito();
+    Creditos.filtrarReceita();
+
+    Creditos.validarRetornoSemResultado();
+    
+    Comum.selecionarPerfil();
 
     Comum.logout();
-  });
-});
+    
+  })  
+
+})

@@ -19,5 +19,19 @@ describe("Credito Escola - Cadastro", () => {
     Comum.visitarPaginaPTRF();
 
     Comum.login(usuario.Usuario, usuario.Senha);
+
+    Comum.selecionarCeuVilaAlpina();
+
+    Creditos.selecionarCreditosDaEscola();
+
+    cy.wait(2000);
+
+    Creditos.selecionarRendimento();
+
+    Creditos.filtrarReceita();
+
+    Creditos.validarCreditosCadastrados();
+
+    Comum.logout();
   });
 });

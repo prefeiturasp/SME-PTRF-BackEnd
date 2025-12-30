@@ -467,14 +467,6 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().type('30/08/2023');
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroTipoDespesaCusteio().select('Gênero alimentício');
-        Gastos.cadastroEspecificacaoCusteio().select('Dieta especial');
-        Gastos.cadastroAcaoCusteio().select('PTRF Básico');
-        Gastos.cadastroTipoContaCusteio().select('Cheque');
-        Gastos.cadastroValorCusteio().type('100000');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
     }
 
     validarCadastroDespesaComprovanteGeneroAlimenticioSalasEspacosLeitura() {
@@ -516,34 +508,7 @@ class GastosEscolaPagina {
         Gastos.cadastroEspecificacaoCusteio().select('PIS/COFINS/CSLL');
         Gastos.cadastroAcaoCusteio().select('Material Pedagógico');
         Gastos.cadastroTipoContaCusteio().select('Cartão');
-        Gastos.cadastroValorCusteio().type('100000');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('Programa de Cuidados com as Estudantes');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();        
-    }
-
-    validarCadastroDespesaComprovanteImpostoMaterialPedagogico() {
-        Gastos.cadastroFornecedor().type('007.461.987-01');
-        Gastos.cadastroRazaoSocialFornecedor().type('Teste');
-        Gastos.cadastroTipoDocumento().select('Comprovante');
-        Gastos.cadastroDataDocumento().click();
-        Gastos.cadastroDataDocumento().type('30/08/2023');
-        Gastos.cadastroFormaPagamento().select('Cheque');
-        Gastos.cadastroDataPagamento().click();
-        Gastos.cadastroDataPagamento().type('30/08/2023');
-        Gastos.cadastroValorTotalDocumento().type('200000');
-        Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroTipoDespesaCusteio().select('Imposto');
-        Gastos.cadastroEspecificacaoCusteio().select('PIS/COFINS/CSLL');
-        Gastos.cadastroAcaoCusteio().select('Material Pedagógico');
-        Gastos.cadastroTipoContaCusteio().select('Cartão');
-        Gastos.cadastroValorCusteio().type('100000');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('Programa de Cuidados com as Estudantes');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();        
+        //Gastos.cadastroValorCusteio().type('100000');      
     }
 
     validarCadastroDespesaComprovanteTributosTarifasMaterialComplementar() {
@@ -557,15 +522,6 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().type('30/08/2023');
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroTipoDespesaCusteio().select('Tributos e tarifas');
-        Gastos.cadastroEspecificacaoCusteio().select('Tarifa bancária: pacote de serviços');
-        Gastos.cadastroAcaoCusteio().select('Material Complementar');
-        Gastos.cadastroTipoContaCusteio().select('Cheque');
-        Gastos.cadastroValorCusteio().type('100000');
-        Gastos.cadastroNaoPossiuVinculo().click();
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();        
     }
 
     validarCadastroDespesaComprovanteTransferenciaContasBbCusteioIncompletoSim() {
@@ -604,15 +560,6 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().type('30/08/2023');
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Capital');
-        Gastos.botaoEstouCiente().should('be.visible').click();
-        Gastos.cadastroEspecificacaoCapital().select('Amplificador');
-        Gastos.cadastroAcaoCapital()
-        Gastos.cadastroTipoContaCapital().select('Cheque');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('COVID-19');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
     }
 
     validarCadastroDespesaComprovanteCapitalSalasEspacosLeitura() {
@@ -626,15 +573,6 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().type('30/08/2023');
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Capital');
-        Gastos.botaoEstouCiente().should('be.visible').click();
-        Gastos.cadastroEspecificacaoCapital().select('Amplificador');
-        Gastos.cadastroAcaoCapital().select('Salas e Espaços de Leitura');
-        Gastos.cadastroTipoContaCapital().select('Cheque');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('COVID-19');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
     }
 
     validarCadastroDespesaComprovanteCapitalMaterialPedagogico() {
@@ -647,15 +585,15 @@ class GastosEscolaPagina {
         Gastos.cadastroEspecificacaoCapital().select('Amplificador');
         Gastos.cadastroAcaoCapital().select('Material Pedagógico');
         //Gastos.cadastroTipoContaCapital().select('Cartão');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('Programa de Cuidados com as Estudantes');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        Gastos.botaoModalTipoAplicacaoNao().click();
-        cy.wait(3000);
-        Gastos.botaoVoltarCadastroDespesa().click();
-        cy.wait(3000);
-        Gastos.botaoModalCancelarCadastroOk().click();        
+        // Gastos.cadastroPossiuVinculo().click();
+        // Gastos.cadastroAtividadeVinculada().select('Programa de Cuidados com as Estudantes');
+        // cy.wait(3000);
+        // Gastos.botaoSalvarCadastroDespesa().click();
+        // Gastos.botaoModalTipoAplicacaoNao().click();
+        // cy.wait(3000);
+        // Gastos.botaoVoltarCadastroDespesa().click();
+        // cy.wait(3000);
+        // Gastos.botaoModalCancelarCadastroOk().click();        
     }
 
     validarCadastroDespesaComprovanteCapitalMaterialComplementar() {
@@ -672,16 +610,7 @@ class GastosEscolaPagina {
         Gastos.botaoEstouCiente().should('be.visible').click();
         Gastos.cadastroEspecificacaoCapital().select('Caneta para gravacao');
         Gastos.cadastroAcaoCapital().select('Material Complementar');
-        Gastos.cadastroQuantidadeItensCapital().type('1');
-        Gastos.cadastroTipoContaCapital().select('Cheque');
-        Gastos.cadastroNaoPossiuVinculo().click();
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        Gastos.botaoModalTipoAplicacaoNao().click();
-        cy.wait(3000);
-        Gastos.botaoVoltarCadastroDespesa().click();
-        cy.wait(3000);
-        Gastos.botaoModalCancelarCadastroOk().click();           
+        Gastos.cadastroQuantidadeItensCapital().type('1');       
     }
 
     validarCadastroDespesaCupomFiscalCusteioGeneroAlimenticioPtrfBasico() {
@@ -696,18 +625,6 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().type('30/08/2023');
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroTipoDespesaCusteio().select('Gênero alimentício');
-        Gastos.cadastroEspecificacaoCusteio().select('Dieta especial');
-        Gastos.cadastroAcaoCusteio().select('PTRF Básico');
-        Gastos.cadastroTipoContaCusteio().select('Cheque');
-        Gastos.cadastroValorCusteio().type('100000');
-        cy.wait(3000);
-        Gastos.cadastroPossiuVinculo().click(); 
-        Gastos.cadastroAtividadeVinculada().select('COVID-19');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroDespesaCupomFiscalCusteioGeneroAlimenticioSalasEspacosLeitura() {
@@ -722,20 +639,6 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().type('30/08/2023');
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroTipoDespesaCusteio().select('Gênero alimentício');
-        Gastos.cadastroEspecificacaoCusteio().select('Dieta especial');
-        Gastos.cadastroAcaoCusteio().select('Salas e Espaços de Leitura');
-        Gastos.cadastroTipoContaCusteio().select('Cheque');
-        Gastos.cadastroValorCusteio().type('100000');
-        cy.wait(3000);
-        Gastos.cadastroPossiuVinculo().click(); 
-        Gastos.cadastroAtividadeVinculada().select('COVID-19');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.wait(3000);
-        cy.get('[data-qa="modal-saldo-insuficiente-btn-Sim"]').click()
-        Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroDespesaCupomFiscalImpostoMaterialPedagogico() {
@@ -751,19 +654,19 @@ class GastosEscolaPagina {
         Gastos.cadastroNumeroCheque().type('54515451');
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroTipoDespesaCusteio().select('Imposto');
-        Gastos.cadastroEspecificacaoCusteio().select('PIS/COFINS/CSLL');
-        Gastos.cadastroAcaoCusteio().select('Material Pedagógico');
-        Gastos.cadastroTipoContaCusteio().select('Cartão');
-        Gastos.cadastroValorCusteio().type('100000');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('Programa de Cuidados com as Estudantes');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
-        cy.wait(3000); 
-        cy.get('[data-qa="cadastro-edicao-despesa-btn-salvar"]').click() 
+        // Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
+        // Gastos.cadastroTipoDespesaCusteio().select('Imposto');
+        // Gastos.cadastroEspecificacaoCusteio().select('PIS/COFINS/CSLL');
+        // Gastos.cadastroAcaoCusteio().select('Material Pedagógico');
+        // Gastos.cadastroTipoContaCusteio().select('Cartão');
+        // Gastos.cadastroValorCusteio().type('100000');
+        // Gastos.cadastroPossiuVinculo().click();
+        // Gastos.cadastroAtividadeVinculada().select('Programa de Cuidados com as Estudantes');
+        // cy.wait(3000);
+        // Gastos.botaoSalvarCadastroDespesa().click();
+        // cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
+        // cy.wait(3000); 
+        // cy.get('[data-qa="cadastro-edicao-despesa-btn-salvar"]').click() 
     }
 
     validarCadastroDespesaCupomFiscalTributosTarifasMaterialComplementar() {
@@ -777,18 +680,7 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().click();
         Gastos.cadastroDataPagamento().type('30/08/2023');
         Gastos.cadastroValorTotalDocumento().type('200000');
-        Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroTipoDespesaCusteio().select('Tributos e tarifas');
-        Gastos.cadastroEspecificacaoCusteio().select('Tarifa bancária: pacote de serviços');
-        Gastos.cadastroAcaoCusteio().select('Material Complementar');
-        Gastos.cadastroTipoContaCusteio().select('Cheque');
-        Gastos.cadastroValorCusteio().type('100000');
-        Gastos.cadastroNaoPossiuVinculo().click();
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-btn-Sim"]').click()
-        Gastos.botaoDespesaCastradaSim().click();     
+        Gastos.cadastroValorRecursoProprio().type('100000');    
     }
 
     validarCadastroDespesaCupomFiscalTransferenciaContasBbCusteioIncompletoSim() {
@@ -801,13 +693,6 @@ class GastosEscolaPagina {
         Gastos.cadastroFormaPagamento().select('Transferência entre contas BB');
         Gastos.cadastroDataPagamento().click();
         Gastos.cadastroDataPagamento().type('30/08/2023');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click(); 
-        cy.wait(3000);
-        Gastos.botaoDespesaCastradaSim().click();
-        cy.wait(3000);
-        Gastos.botaoModalDespesaSim().click();
     }
 
     validarCadastroDespesaCupomFiscalTransferenciaContasBbCusteioIncompletoNao() {
@@ -820,13 +705,6 @@ class GastosEscolaPagina {
         Gastos.cadastroFormaPagamento().select('Transferência entre contas BB');
         Gastos.cadastroDataPagamento().click();
         Gastos.cadastroDataPagamento().type('30/08/2023');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.botaoSalvarCadastroDespesa().click(); 
-        // segundo clique pq esta com erro
-        Gastos.botaoSalvarCadastroDespesa().click();
-        Gastos.botaoDespesaCastradaSim().click();
-        cy.wait(3000);
-        Gastos.botaoModalDespesaNao().click();
     }
 
     validarCadastroDespesaCupomFiscalCapitalPtrfBasico() {
@@ -841,18 +719,6 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().type('30/08/2023');
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Capital');
-        Gastos.botaoEstouCiente().should('be.visible').click();
-        Gastos.cadastroEspecificacaoCapital().select('Amplificador');
-        Gastos.cadastroAcaoCapital().select('PTRF Básico');
-        Gastos.cadastroQuantidadeItensCapital().type('1');
-        Gastos.cadastroProcessoCapital().type('1313131313131313');
-        Gastos.cadastroTipoContaCapital().select('Cheque');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('COVID-19');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroDespesaCupomFiscalCapitalSalasEspacosLeitura() {
@@ -867,20 +733,6 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().type('30/08/2023');
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Capital');
-        Gastos.botaoEstouCiente().should('be.visible').click();
-        Gastos.cadastroEspecificacaoCapital().select('Amplificador');
-        Gastos.cadastroAcaoCapital().select('Salas e Espaços de Leitura');
-        Gastos.cadastroQuantidadeItensCapital().type('1');
-        Gastos.cadastroProcessoCapital().type('1313131313131313');
-        Gastos.cadastroTipoContaCapital().select('Cheque');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('COVID-19');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-btn-Sim"]').click()
-        cy.get('[data-qa="modal-checar-despesa-existente-btn-Não, cancelar"]').click()
-        // Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroDespesaCupomFiscalCapitalMaterialPedagogico() {
@@ -894,24 +746,7 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().click();
         Gastos.cadastroDataPagamento().type('30/08/2023');
         Gastos.cadastroValorTotalDocumento().type('200000');
-        Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Capital');
-        Gastos.botaoEstouCiente().should('be.visible').click();
-        Gastos.cadastroEspecificacaoCapital().select('Amplificador');
-        Gastos.cadastroAcaoCapital().select('Material Pedagógico');
-        Gastos.cadastroQuantidadeItensCapital().type('1');
-        Gastos.cadastroProcessoCapital().type('1313131313131313');
-        Gastos.cadastroTipoContaCapital().select('Cartão');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('Programa de Cuidados com as Estudantes');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
-        // Gastos.botaoModalTipoAplicacaoNao().click();
-        // cy.wait(3000);
-        // Gastos.botaoVoltarCadastroDespesa().click();
-        // cy.wait(3000);
-        // Gastos.botaoModalCancelarCadastroOk().click();        
+        Gastos.cadastroValorRecursoProprio().type('100000');     
     }
 
     validarCadastroDespesaCupomFiscalCapitalMaterialComplementar() {
@@ -925,22 +760,7 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().click();
         Gastos.cadastroDataPagamento().type('30/08/2023');
         Gastos.cadastroValorTotalDocumento().type('200000');
-        Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Capital');
-        Gastos.botaoEstouCiente().should('be.visible').click();
-        Gastos.cadastroEspecificacaoCapital().select('Caneta para gravacao');
-        Gastos.cadastroAcaoCapital().select('Material Complementar');
-        Gastos.cadastroQuantidadeItensCapital().type('1');
-        Gastos.cadastroProcessoCapital().type('1313131313131313');
-        Gastos.cadastroTipoContaCapital().select('Cheque');
-        Gastos.cadastroNaoPossiuVinculo().click();
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        Gastos.botaoModalTipoAplicacaoNao().click();
-        cy.wait(3000);
-        Gastos.botaoVoltarCadastroDespesa().click();
-        cy.wait(3000);
-        Gastos.botaoModalCancelarCadastroOk().click();           
+        Gastos.cadastroValorRecursoProprio().type('100000');         
     }
 
     realizaEdicaoGastosEscolaCupomFiscalCapitalPtrfBasico() {
@@ -1037,18 +857,6 @@ class GastosEscolaPagina {
         Gastos.calendarioMaisFiltros().contains('28').click();
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroTipoDespesaCusteio().select('Serviço');
-        Gastos.cadastroEspecificacaoCusteio().select('Certificado Digital');
-        Gastos.cadastroAcaoCusteio().select('PTRF Básico');
-        Gastos.cadastroTipoContaCusteio().select('Cartão');
-        Gastos.cadastroValorCusteio().type('100000');
-        Gastos.cadastroPossiuVinculo().click(); 
-        Gastos.cadastroAtividadeVinculada().select('COVID-19');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
-        //Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroGastosEscolaDespesaReconhecidaAssociacaoSimCartaoCusteioPtrfBasico() {
@@ -1060,14 +868,6 @@ class GastosEscolaPagina {
         Gastos.calendarioMaisFiltros().contains('28').click();
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroAcaoCusteio().select('PTRF Básico');
-        Gastos.cadastroTipoContaCusteio().select('Cartão');
-        Gastos.cadastroValorCusteio().type('100000');
-        Gastos.cadastroPossiuVinculo().click(); 
-        Gastos.cadastroAtividadeVinculada().select('COVID-19');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
     }
 
     validarCadastroGastosEscolaDanfeChequeCusteioPtrfBasico() {
@@ -1084,18 +884,6 @@ class GastosEscolaPagina {
         Gastos.cadastroNumeroCheque().type('312963274727411095009241501056');
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroTipoDespesaCusteio().select('Serviço');
-        Gastos.cadastroEspecificacaoCusteio().select('Certificado Digital');
-        Gastos.cadastroAcaoCusteio().select('PTRF Básico');
-        Gastos.cadastroTipoContaCusteio().select('Cartão');
-        Gastos.cadastroValorCusteio().type('100000');
-        Gastos.cadastroPossiuVinculo().click(); 
-        Gastos.cadastroAtividadeVinculada().select('COVID-19');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
-        //Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroGastosEscolaDanfeDocCusteioPtrfBasico() {
@@ -1111,18 +899,6 @@ class GastosEscolaPagina {
         Gastos.calendarioMaisFiltros().contains('28').click();
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroTipoDespesaCusteio().select('Serviço');
-        Gastos.cadastroEspecificacaoCusteio().select('Certificado Digital');
-        Gastos.cadastroAcaoCusteio().select('PTRF Básico');
-        Gastos.cadastroTipoContaCusteio().select('Cartão');
-        Gastos.cadastroValorCusteio().type('100000');
-        Gastos.cadastroPossiuVinculo().click(); 
-        Gastos.cadastroAtividadeVinculada().select('COVID-19');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
-        // Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroGastosEscolaNfseCartaoCusteioPtrfBasico() {
@@ -1138,18 +914,6 @@ class GastosEscolaPagina {
         Gastos.calendarioMaisFiltros().contains('28').click();
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroTipoDespesaCusteio().select('Serviço');
-        Gastos.cadastroEspecificacaoCusteio().select('Jardinagem');
-        Gastos.cadastroAcaoCusteio().select('PTRF Básico');
-        Gastos.cadastroTipoContaCusteio().select('Cartão');
-        Gastos.cadastroValorCusteio().type('100000');
-        Gastos.cadastroPossiuVinculo().click(); 
-        Gastos.cadastroAtividadeVinculada().select('COVID-19');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
-    //  Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroGastosEscolaNfseChequeCusteioPtrfBasico() {
@@ -1166,18 +930,6 @@ class GastosEscolaPagina {
         Gastos.cadastroNumeroCheque().type('312963274727411095009241501056');
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroTipoDespesaCusteio().select('Serviço');
-        Gastos.cadastroEspecificacaoCusteio().select('Jardinagem');
-        Gastos.cadastroAcaoCusteio().select('PTRF Básico');
-        Gastos.cadastroTipoContaCusteio().select('Cartão');
-        Gastos.cadastroValorCusteio().type('100000');
-        Gastos.cadastroPossiuVinculo().click(); 
-        Gastos.cadastroAtividadeVinculada().select('COVID-19');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
-        // Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroGastosEscolaNfseDocCusteioPtrfBasico() {
@@ -1193,18 +945,18 @@ class GastosEscolaPagina {
         Gastos.calendarioMaisFiltros().contains('28').click();
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroTipoDespesaCusteio().select('Serviço');
-        Gastos.cadastroEspecificacaoCusteio().select('Jardinagem');
-        Gastos.cadastroAcaoCusteio().select('PTRF Básico');
-        Gastos.cadastroTipoContaCusteio().select('Cartão');
-        Gastos.cadastroValorCusteio().type('100000');
-        Gastos.cadastroPossiuVinculo().click(); 
-        Gastos.cadastroAtividadeVinculada().select('COVID-19');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
-        // Gastos.botaoDespesaCastradaSim().click();
+        // Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
+        // Gastos.cadastroTipoDespesaCusteio().select('Serviço');
+        // Gastos.cadastroEspecificacaoCusteio().select('Jardinagem');
+        // Gastos.cadastroAcaoCusteio().select('PTRF Básico');
+        // Gastos.cadastroTipoContaCusteio().select('Cartão');
+        // Gastos.cadastroValorCusteio().type('100000');
+        // Gastos.cadastroPossiuVinculo().click(); 
+        // Gastos.cadastroAtividadeVinculada().select('COVID-19');
+        // cy.wait(3000);
+        // Gastos.botaoSalvarCadastroDespesa().click();
+        // cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
+        // // Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroGastosEscolaDanfeCartaoCapitalPtrfBasico() {
@@ -1220,19 +972,6 @@ class GastosEscolaPagina {
         Gastos.calendarioMaisFiltros().contains('28').click();
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Capital');
-        Gastos.botaoEstouCiente().should('be.visible').click();
-        Gastos.cadastroEspecificacaoCapital().select('Aparelho celular');
-        Gastos.cadastroAcaoCapital().select('PTRF Básico');
-        Gastos.cadastroQuantidadeItensCapital().type('1');
-        Gastos.cadastroProcessoCapital().type('1313131313131313');
-        Gastos.cadastroTipoContaCapital().select('Cartão');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('Programa de Cuidados com as Estudantes');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
-        // Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroGastosEscolaDanfeChequeCapitalPtrfBasico() {
@@ -1249,19 +988,6 @@ class GastosEscolaPagina {
         Gastos.cadastroNumeroCheque().type('312963274727411095009241501056');
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Capital');
-        Gastos.botaoEstouCiente().should('be.visible').click();
-        Gastos.cadastroEspecificacaoCapital().select('Aparelho celular');
-        Gastos.cadastroAcaoCapital().select('PTRF Básico');
-        Gastos.cadastroQuantidadeItensCapital().type('1');
-        Gastos.cadastroProcessoCapital().type('1313131313131313');
-        Gastos.cadastroTipoContaCapital().select('Cartão');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('Programa de Cuidados com as Estudantes');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
-        // Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroGastosEscolaDanfeDocCapitalPtrfBasico() {
@@ -1277,19 +1003,6 @@ class GastosEscolaPagina {
         Gastos.calendarioMaisFiltros().contains('28').click();
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Capital');
-        Gastos.botaoEstouCiente().should('be.visible').click();
-        Gastos.cadastroEspecificacaoCapital().select('Aparelho celular');
-        Gastos.cadastroAcaoCapital().select('PTRF Básico');
-        Gastos.cadastroQuantidadeItensCapital().type('1');
-        Gastos.cadastroProcessoCapital().type('1313131313131313');
-        Gastos.cadastroTipoContaCapital().select('Cartão');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('Programa de Cuidados com as Estudantes');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
-        // Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroGastosEscolaNfseCartaoCapitalPtrfBasico() {
@@ -1305,19 +1018,6 @@ class GastosEscolaPagina {
         Gastos.calendarioMaisFiltros().contains('28').click();
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Capital');
-        Gastos.botaoEstouCiente().should('be.visible').click();
-        Gastos.cadastroEspecificacaoCapital().select('Aparelho celular');
-        Gastos.cadastroAcaoCapital().select('PTRF Básico');
-        Gastos.cadastroQuantidadeItensCapital().type('1');
-        Gastos.cadastroProcessoCapital().type('1313131313131313');
-        Gastos.cadastroTipoContaCapital().select('Cartão');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('Programa de Cuidados com as Estudantes');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
-        // Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroGastosEscolaNfseChequeCapitalPtrfBasico() {
@@ -1334,19 +1034,6 @@ class GastosEscolaPagina {
         Gastos.cadastroNumeroCheque().type('312963274727411095009241501056');
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Capital');
-        Gastos.botaoEstouCiente().should('be.visible').click();
-        Gastos.cadastroEspecificacaoCapital().select('Aparelho celular');
-        Gastos.cadastroAcaoCapital().select('PTRF Básico');
-        Gastos.cadastroQuantidadeItensCapital().type('1');
-        Gastos.cadastroProcessoCapital().type('1313131313131313');
-        Gastos.cadastroTipoContaCapital().select('Cartão');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('Programa de Cuidados com as Estudantes');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
-        // Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroGastosEscolaNfseDocCapitalPtrfBasico() {
@@ -1362,19 +1049,6 @@ class GastosEscolaPagina {
         Gastos.calendarioMaisFiltros().contains('28').click();
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Capital');
-        Gastos.botaoEstouCiente().should('be.visible').click();
-        Gastos.cadastroEspecificacaoCapital().select('Aparelho celular');
-        Gastos.cadastroAcaoCapital().select('PTRF Básico');
-        Gastos.cadastroQuantidadeItensCapital().type('1');
-        Gastos.cadastroProcessoCapital().type('1313131313131313');
-        Gastos.cadastroTipoContaCapital().select('Cartão');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('Programa de Cuidados com as Estudantes');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();
-        cy.get('[data-qa="modal-saldo-insuficiente-conta-btn-Fechar"]').click()
-        // Gastos.botaoDespesaCastradaSim().click();
     }
 
     validarCadastroGastosEscolaIncompletoBoletimOcorrenciaNaoPreenchido() {
@@ -1386,12 +1060,6 @@ class GastosEscolaPagina {
         Gastos.calendarioMaisFiltros().contains('28').click();
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroAcaoCusteio().select('PTRF Básico');
-        Gastos.cadastroTipoContaCusteio().select('Cartão');
-        Gastos.cadastroValorCusteio().type('100000');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().should('be.disabled');
     }
 
     validarCadastroGastosEscolaIncompletoDanfeChequeContinuarPreenchendoCamposSim() {

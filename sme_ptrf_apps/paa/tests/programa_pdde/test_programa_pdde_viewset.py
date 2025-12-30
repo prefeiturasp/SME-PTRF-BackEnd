@@ -201,7 +201,7 @@ def test_obtem_programas_somatorio(jwt_authenticated_client_sme,
         saldo_custeio=110.00, saldo_capital=150.00, saldo_livre=200.00,
         previsao_valor_custeio=140.00, previsao_valor_capital=312.00, previsao_valor_livre=415.00)
 
-    response = jwt_authenticated_client_sme.get(f"/api/programas-pdde/totais/?paa_uuid={paa.uuid}")
+    response = jwt_authenticated_client_sme.get(f"/api/programas-pdde/totais/?paa_uuid={paa.uuid}&pagination=false")
 
     assert response.status_code == status.HTTP_200_OK
     assert 'programas' in response.data
@@ -231,7 +231,7 @@ def test_obtem_programas_somatorio_com_page_size_padrao(jwt_authenticated_client
                                                         paa,
                                                         receita_prevista_pdde_factory
                                                         ):
-    """Testa o comportamento padrão do page_size (1000) quando não informado"""
+    """Testa que retorna todos os programas sem paginação"""
     acao_pdde1 = acao_pdde_factory.create(
         programa=programa_pdde,
         aceita_capital=True,
@@ -252,8 +252,8 @@ def test_obtem_programas_somatorio_com_page_size_padrao(jwt_authenticated_client
         saldo_custeio=50.00, saldo_capital=100.00, saldo_livre=150.00,
         previsao_valor_custeio=75.00, previsao_valor_capital=125.00, previsao_valor_livre=175.00)
 
-    # Testa sem page_size (deve usar padrão 1000)
-    response = jwt_authenticated_client_sme.get(f"/api/programas-pdde/totais/?paa_uuid={paa.uuid}")
+    # Testa sem paginação (deve retornar todos os programas)
+    response = jwt_authenticated_client_sme.get(f"/api/programas-pdde/totais/?paa_uuid={paa.uuid}&pagination=false")
 
     assert response.status_code == status.HTTP_200_OK
     assert 'programas' in response.data
@@ -262,91 +262,6 @@ def test_obtem_programas_somatorio_com_page_size_padrao(jwt_authenticated_client
     assert len(response.data["programas"]) == 3
 
 
-@pytest.mark.django_db
-def test_obtem_programas_somatorio_com_page_size_customizado(jwt_authenticated_client_sme,
-                                                            flag_paa,
-                                                            programa_pdde,
-                                                            programa_pdde_2,
-                                                            programa_pdde_3,
-                                                            acao_pdde_factory,
-                                                            paa,
-                                                            receita_prevista_pdde_factory
-                                                            ):
-    """Testa o page_size customizado limitando a 2 programas"""
-    acao_pdde1 = acao_pdde_factory.create(
-        programa=programa_pdde,
-        aceita_capital=True,
-        aceita_custeio=True,
-        aceita_livre_aplicacao=True)
-    acao_pdde2 = acao_pdde_factory.create(
-        programa=programa_pdde_2,
-        aceita_capital=True,
-        aceita_custeio=True,
-        aceita_livre_aplicacao=True)
-    acao_pdde3 = acao_pdde_factory.create(
-        programa=programa_pdde_3,
-        aceita_capital=True,
-        aceita_custeio=True,
-        aceita_livre_aplicacao=True)
-
-    receita_prevista_pdde_factory.create(
-        paa=paa, acao_pdde=acao_pdde1,
-        saldo_custeio=100.00, saldo_capital=200.00, saldo_livre=300.00,
-        previsao_valor_custeio=150.00, previsao_valor_capital=250.00, previsao_valor_livre=350.00)
-    receita_prevista_pdde_factory.create(
-        paa=paa, acao_pdde=acao_pdde2,
-        saldo_custeio=50.00, saldo_capital=100.00, saldo_livre=150.00,
-        previsao_valor_custeio=75.00, previsao_valor_capital=125.00, previsao_valor_livre=175.00)
-    receita_prevista_pdde_factory.create(
-        paa=paa, acao_pdde=acao_pdde3,
-        saldo_custeio=25.00, saldo_capital=50.00, saldo_livre=75.00,
-        previsao_valor_custeio=30.00, previsao_valor_capital=60.00, previsao_valor_livre=90.00)
-
-    # Testa com page_size=2 (deve retornar apenas 2 programas)
-    response = jwt_authenticated_client_sme.get(f"/api/programas-pdde/totais/?paa_uuid={paa.uuid}&page_size=2")
-
-    assert response.status_code == status.HTTP_200_OK
-    assert 'programas' in response.data
-    assert 'total' in response.data
-    # Verifica se retornou apenas 2 programas devido ao page_size
-    assert len(response.data["programas"]) == 2
-
-
-@pytest.mark.django_db
-def test_obtem_programas_somatorio_com_page_size_invalido(jwt_authenticated_client_sme,
-                                                         flag_paa,
-                                                         programa_pdde,
-                                                         programa_pdde_2,
-                                                         programa_pdde_3,
-                                                         acao_pdde_factory,
-                                                         paa,
-                                                         receita_prevista_pdde_factory
-                                                         ):
-    """Testa o page_size inválido (deve usar padrão 1000)"""
-    acao_pdde1 = acao_pdde_factory.create(
-        programa=programa_pdde,
-        aceita_capital=True,
-        aceita_custeio=True,
-        aceita_livre_aplicacao=True)
-    acao_pdde2 = acao_pdde_factory.create(
-        programa=programa_pdde_2,
-        aceita_capital=True,
-        aceita_custeio=True,
-        aceita_livre_aplicacao=True)
-
-    receita_prevista_pdde_factory.create(
-        paa=paa, acao_pdde=acao_pdde1,
-        saldo_custeio=100.00, saldo_capital=200.00, saldo_livre=300.00,
-        previsao_valor_custeio=150.00, previsao_valor_capital=250.00, previsao_valor_livre=350.00)
-    receita_prevista_pdde_factory.create(
-        paa=paa, acao_pdde=acao_pdde2,
-        saldo_custeio=50.00, saldo_capital=100.00, saldo_livre=150.00,
-        previsao_valor_custeio=75.00, previsao_valor_capital=125.00, previsao_valor_livre=175.00)
-
-    # Testa com page_size inválido (deve usar padrão 1000)
-    response = jwt_authenticated_client_sme.get(f"/api/programas-pdde/totais/?paa_uuid={paa.uuid}&page_size=abc")
-
-    assert response.status_code == status.HTTP_200_OK
     assert 'programas' in response.data
     assert 'total' in response.data
     # Verifica se retornou todos os programas (3 programas criados) pois page_size inválido usa padrão
