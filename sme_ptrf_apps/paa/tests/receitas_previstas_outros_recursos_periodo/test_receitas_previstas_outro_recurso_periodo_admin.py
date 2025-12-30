@@ -1,7 +1,9 @@
 
 def test_list_display(receitas_previstas_outros_recursos_periodo_admin):
     assert receitas_previstas_outros_recursos_periodo_admin.list_display == (
-        'outro_recurso_periodo', 'previsao_valor_custeio', 'previsao_valor_capital', 'previsao_valor_livre')
+        'outro_recurso_periodo', 'previsao_valor_custeio', 'previsao_valor_capital', 'previsao_valor_livre',
+        'unidade_nome'
+    )
 
 
 def test_search_fields(receitas_previstas_outros_recursos_periodo_admin):
@@ -15,7 +17,7 @@ def test_raw_id_fields(receitas_previstas_outros_recursos_periodo_admin):
 
 def test_list_filter(receitas_previstas_outros_recursos_periodo_admin):
     assert receitas_previstas_outros_recursos_periodo_admin.list_filter == (
-        'outro_recurso_periodo__outro_recurso', 'paa')
+        'outro_recurso_periodo__outro_recurso', 'paa', 'paa__associacao')
 
 
 def test_readonly_fields(receitas_previstas_outros_recursos_periodo_admin):
