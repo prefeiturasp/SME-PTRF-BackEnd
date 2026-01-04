@@ -190,3 +190,52 @@ def test_concluir_v2_com_saldo_alterado_sem_solicitacao(
 
         assert "mensagem" in response.data
         assert "O saldo bancário" in response.data["mensagem"][0]
+
+
+@override_flag("novo-processo-pc", active=True)
+def test_concluir_v2_com_pc_periodo_anterior_nao_gerada(
+    jwt_authenticated_client_a,
+    associacao_factory,
+    periodo_factory,
+):
+    url = "/api/prestacoes-contas/concluir-v2/"
+    associacao = associacao_factory()
+    periodo_anterior = periodo_factory()
+    periodo = periodo_factory(periodo_anterior=periodo_anterior)
+    payload = {
+        "associacao_uuid": str(associacao.uuid),
+        "periodo_uuid": str(periodo.uuid),
+    }
+
+    response = jwt_authenticated_client_a.post(url, format="json", data=payload)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "erro_de_validacao" in response.data["erro"]
+
+
+@override_flag("novo-processo-pc", active=True)
+def test_concluir_v2_com_pc_periodo_anterior_gerada(
+    jwt_authenticated_client_a,
+    associacao_factory,
+    periodo_factory,
+    prestacao_conta_factory
+):
+    url = "/api/prestacoes-contas/concluir-v2/"
+    associacao = associacao_factory()
+    periodo_anterior = periodo_factory()
+    periodo = periodo_factory(periodo_anterior=periodo_anterior)
+    payload = {
+        "associacao_uuid": str(associacao.uuid),
+        "periodo_uuid": str(periodo.uuid),
+    }
+
+    prestacao_conta_factory(
+        associacao=associacao,
+        periodo=periodo_anterior,
+        status=PrestacaoConta.STATUS_DEVOLVIDA,
+        data_recebimento=periodo.data_inicio_realizacao_despesas
+    )
+
+    response = jwt_authenticated_client_a.post(url, format="json", data=payload)
+
+    assert response.status_code == status.HTTP_200_OK

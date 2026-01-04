@@ -224,6 +224,14 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             logger=logger_pc,
         )
 
+        if not pc_service.validar_geracao_pc_periodo_anterior():
+            erro = {
+                'erro': 'erro_de_validacao',
+                'mensagem': "Você não pode iniciar uma prestação de contas sem que a PC de período anterior tenha sido gerada antes."
+            }
+            logger_pc.error('Erro validação PC de período anterior', stack_info=True, exc_info=True)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             pc = pc_service.iniciar_tasks_de_conclusao_de_pc(
                 usuario=request.user,
