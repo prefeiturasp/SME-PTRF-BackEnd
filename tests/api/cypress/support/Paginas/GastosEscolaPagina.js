@@ -466,7 +466,6 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().click();
         Gastos.cadastroDataPagamento().type('30/08/2023');
         Gastos.cadastroValorTotalDocumento().type('200000');
-        Gastos.cadastroValorRecursoProprio().type('100000');
     }
 
     validarCadastroDespesaComprovanteGeneroAlimenticioSalasEspacosLeitura() {
