@@ -1,11 +1,12 @@
 import pytest
+from freezegun import freeze_time
 
 from sme_ptrf_apps.core.models import Associacao, MembroAssociacao
 from sme_ptrf_apps.mandatos.models import Composicao, CargoComposicao, OcupanteCargo
 
 pytestmark = pytest.mark.django_db
 
-
+@freeze_time('2025-12-01 10:20:00')
 def test_solicitacao_migracao_unidade(
     settings,
     mandato_2023_a_2025__teste_solicitacao_de_migracao,
@@ -49,7 +50,7 @@ def test_solicitacao_migracao_unidade(
     assert ocupante_do_cargo.cargo_educacao == membro_associacao_teste_solicitacao_de_migracao.cargo_educacao
     assert ocupante_do_cargo.cpf_responsavel == membro_associacao_teste_solicitacao_de_migracao.cpf
 
-
+@freeze_time('2025-12-01 10:20:00')
 def test_solicitacao_migracao_dre(
     settings,
     mandato_2023_a_2025__teste_solicitacao_de_migracao,
@@ -103,7 +104,7 @@ def test_solicitacao_migracao_dre(
         assert ocupante_do_cargo.cargo_educacao == membro_associacao.cargo_educacao
         assert ocupante_do_cargo.cpf_responsavel == membro_associacao.cpf
 
-
+@freeze_time('2025-12-01 10:20:00')
 def test_solicitacao_migracao_todas_as_unidades(
     settings,
     mandato_2023_a_2025__teste_solicitacao_de_migracao,
