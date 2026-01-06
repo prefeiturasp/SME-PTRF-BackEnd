@@ -9,6 +9,7 @@ from rest_framework.response import Response
 
 from ..serializers import UnidadeSerializer, UnidadeListSerializer
 from ...models import Unidade
+from ...choices.tipos_unidade import TIPOS_CHOICE
 from ...services import monta_unidade_para_atribuicao
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
@@ -133,3 +134,10 @@ class UnidadesViewSet(viewsets.ModelViewSet):
 
         list_unidades = monta_unidade_para_atribuicao(self.get_queryset(), dre_uuid, periodo_uuid)
         return Response(list_unidades)
+
+    @action(detail=False, url_path='tipos-unidades', permission_classes=[IsAuthenticated & PermissaoApiUe],
+            serializer_class=UnidadeListSerializer, methods=['get'])
+    def tipo_unidades(self, request, *args, **kwargs):
+        tipos = [{'id': choice[0], 'nome': choice[1]} for choice in TIPOS_CHOICE]
+        tipos_ordenados = sorted(tipos, key=lambda item: item['nome'])
+        return Response(tipos_ordenados)

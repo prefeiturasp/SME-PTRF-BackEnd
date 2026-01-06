@@ -23,6 +23,18 @@ describe("Gastos da Escola - Cadastro", () => {
     Comum.visitarPaginaPTRF();
     Comum.login(usuario.Usuario, usuario.Senha);
 
+    Comum.selecionarCeuVilaAlpina();
+
+    Gastos.selecionarGastosDaEscola();  
+
+    Gastos.selecionarCadastrarDespesa();
+
+    Gastos.validarCadastroDespesaComprovanteImpostoMaterialPedagogico();
+    
+    Comum.selecionarPerfil();
+
+    Comum.logout();
+
   });
 
 });

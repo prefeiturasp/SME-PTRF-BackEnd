@@ -26,7 +26,8 @@ class CreditosEscolaElementos {
     return cy.get(".form-inline > .d-flex > .btn").contains("Filtrar");
   };
   botaoMaisFiltros = () => {
-    return cy.get(".btn btn btn-outline-success").contains("Mais Filtros");
+    return cy.get("button.btn.btn-outline-success").contains("Mais Filtros");
+    
 
   };
   botaoFiltrarMaisFiltros = () => {
@@ -125,9 +126,12 @@ class CreditosEscolaElementos {
   selecionarDataCredito = () => {
     return cy.get(".react-datepicker__input-container > .form-control");
   };
+
   selecionarDataCreditoCalendario = () => {
     return cy.get(".react-datepicker__month-container");
+    
   };
+
   selecionarTipoContaCheque = () => {
     return cy.get("#conta_associacao").select("Cheque");
   };

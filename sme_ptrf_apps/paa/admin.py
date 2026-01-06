@@ -19,6 +19,7 @@ from sme_ptrf_apps.paa.models import (
     OutroRecurso,
     DocumentoPaa,
     OutroRecursoPeriodoPaa,
+    ReceitaPrevistaOutroRecursoPeriodo,
 )
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 
@@ -93,6 +94,18 @@ class AcaoPddeAdmin(admin.ModelAdmin):
     search_fields = ('nome', 'programa__nome')
     list_filter = ('programa',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+
+@admin.register(ReceitaPrevistaOutroRecursoPeriodo)
+class ReceitaPrevistaOutroRecursoPeriodoAdmin(admin.ModelAdmin):
+    list_display = (
+        'outro_recurso_periodo', 'previsao_valor_custeio', 'previsao_valor_capital', 'previsao_valor_livre',
+        'unidade_nome'
+    )
+    search_fields = ('outro_recurso_periodo___recurso__nome', 'outro_recurso_periodo__periodo_paa__referencia')
+    list_filter = ('outro_recurso_periodo__outro_recurso', 'paa', 'paa__associacao')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    raw_id_fields = ('outro_recurso_periodo', 'paa')
 
 
 @admin.register(ReceitaPrevistaPaa)
@@ -276,7 +289,15 @@ class ParticipanteAtaPaaAdmin(admin.ModelAdmin):
 class OutroRecursoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'aceita_capital', 'aceita_custeio', 'aceita_livre_aplicacao')
     search_fields = ('nome', )
-    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em', 'cor')
+    actions = ['gerar_cor']
+
+    def gerar_cor(self, request, queryset):
+        from sme_ptrf_apps.paa.models.outros_recursos import gerar_cor
+        for obj in queryset:
+            obj.cor = gerar_cor()
+            obj.save()
+    gerar_cor.short_description = 'Gerar nova cor para o recurso'
 
 
 @admin.register(OutroRecursoPeriodoPaa)

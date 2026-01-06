@@ -617,3 +617,13 @@ class PrestacaoContaService:
         # [HISTÓRIA #134189] DESCONSIDERA VALIDAÇÃO TEMPORARIAMENTE DEVIDO A INSCONSISTÊNCIAS NO FLUXO DE ANÁLISE DRE
         # return contas_alteradas
         return []
+
+    def validar_geracao_pc_periodo_anterior(self):
+        if self.periodo and self.periodo.periodo_anterior:
+            pc_periodo_anterior_gerada = self.associacao.prestacoes_de_conta_da_associacao.filter(
+                periodo=self.periodo.periodo_anterior
+            )
+            if not pc_periodo_anterior_gerada.exists():
+                return False
+
+        return True

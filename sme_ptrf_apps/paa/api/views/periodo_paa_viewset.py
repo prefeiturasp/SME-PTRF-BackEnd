@@ -23,12 +23,12 @@ class PeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
     lookup_field = 'uuid'
-    queryset = PeriodoPaa.objects.all().order_by('data_inicial')
+    queryset = PeriodoPaa.objects.all()
     serializer_class = PeriodoPaaSerializer
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        qs = self.queryset
+        qs = self.queryset.order_by('-data_inicial', 'referencia')
 
         # Adiciona a contagem de recursos habilitados no período
         qs = qs.annotate(

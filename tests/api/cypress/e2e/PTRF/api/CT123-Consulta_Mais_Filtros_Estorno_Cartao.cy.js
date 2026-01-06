@@ -19,15 +19,35 @@ Cypress.on("uncaught:exception", (err, runnable) => {
 
   describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
 
-    it('CT23-Consulta_Mais_Filtros_Estorno_Cartao',()=>{
+    it('CT123-Consulta_Mais_Filtros_Estorno_Cartao',()=>{
 
     Comum.visitarPaginaPTRF();
 
     Comum.login(usuario.Usuario, usuario.Senha);
 
-    Comum.selecionarCeuVilaAlpina();
+    Comum.selecionarCeuEmefMariaClara();
+
+    cy.wait(3000);
 
     Creditos.selecionarCreditosDaEscola();
+
+    Creditos.selecionarMaisFiltros();
+
+    Creditos.selecionarEstornoMaisFiltos();
+
+    Creditos.selecionarDetalhamentoMaisFiltros();
+
+    Creditos.realizaConsultaTipoContaCartao();
+
+    Creditos.realizaConsultaAcaoPtrf();
+
+    Creditos.realizaConsultaDataInicio();
+
+    Creditos.realizaConsultaDataFim();
+
+    Creditos.selecionarFiltrarMaisFiltros();
+    
+    Comum.selecionarPerfil();
 
     Comum.logout();
     
