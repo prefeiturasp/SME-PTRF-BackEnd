@@ -8,4 +8,4 @@ def test_search_fields(outros_recursos_admin):
 
 
 def test_readonly_fields(outros_recursos_admin):
-    assert outros_recursos_admin.readonly_fields == ('uuid', 'id', 'criado_em', 'alterado_em')
+    assert outros_recursos_admin.readonly_fields == ('uuid', 'id', 'criado_em', 'alterado_em', 'cor')

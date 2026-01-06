@@ -24,6 +24,16 @@ Cypress.on('uncaught:exception', (err, runnable) => {
     Comum.visitarPaginaPTRF();
 
     Comum.login(usuario.Usuario, usuario.Senha);
+
+    Comum.selecionarCeuVilaAlpina();
+
+    Gastos.selecionarGastosDaEscola();  
+
+    Gastos.selecionarCadastrarDespesa();
+
+    Gastos.validarCadastroGastosEscolaDanfeChequeCapitalPtrfBasico();
+
+    Comum.logout();
     
   })  
 

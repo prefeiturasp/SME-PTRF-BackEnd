@@ -1,15 +1,13 @@
-///<reference types="cypress" />
+//<reference types="cypress" />
 
-// Fixture (3 níveis acima)
 import usuarios from "../../../fixtures/usuariosPTRF.json";
-const usuario = usuarios.Kellen;
+const usuario = usuarios.Josue;
 
-// Páginas (3 níveis acima)
 import ComumPaginaPTRF from "../../../support/Paginas/ComumPaginaPTRF";
 const Comum = new ComumPaginaPTRF();
 
-import GastosEscolaPagina from "../../../support/Paginas/CreditosEscolaPagina";
-const Gastos = new GastosEscolaPagina();
+import CreditosEscolaPagina from "../../../support/Paginas/CreditosEscolaPagina";
+const Creditos = new CreditosEscolaPagina();
 
 Cypress.on("uncaught:exception", (err, runnable) => {
   // quando retorna falso previne o  Cypress de falhar o teste
@@ -21,5 +19,17 @@ describe("Credito Escola - Consulta", () => {
     Comum.visitarPaginaPTRF();
 
     Comum.login(usuario.Usuario, usuario.Senha);
+
+    Comum.selecionarCeuVilaAlpina();
+
+    Creditos.selecionarCreditosDaEscola();
+
+    cy.wait(3000);
+
+    Creditos.selecionarRecursoExterno();
+
+    Creditos.filtrarReceita();
+
+    Comum.logout();
   });
 });

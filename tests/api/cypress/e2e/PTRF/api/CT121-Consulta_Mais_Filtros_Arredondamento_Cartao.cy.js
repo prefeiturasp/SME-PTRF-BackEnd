@@ -24,9 +24,29 @@ Cypress.on("uncaught:exception", (err, runnable) => {
 
     Comum.login(usuario.Usuario, usuario.Senha);
 
-    Comum.selecionarCeuVilaAlpina();
+    Comum.selecionarCeuEmefMariaClara();
+
+    cy.wait(3000);
 
     Creditos.selecionarCreditosDaEscola();
+
+    Creditos.selecionarMaisFiltros();
+
+    Creditos.selecionarArredondamentoMaisFiltros();
+
+    Creditos.selecionarDetalhamentoMaisFiltros();
+
+    Creditos.realizaConsultaTipoContaCartao();
+
+    Creditos.realizaConsultaAcaoPtrf();
+
+    Creditos.realizaConsultaDataInicio();
+
+    Creditos.realizaConsultaDataFim();
+
+    Creditos.selecionarFiltrarMaisFiltros();
+    
+    Comum.selecionarPerfil();
 
     Comum.logout();
     
