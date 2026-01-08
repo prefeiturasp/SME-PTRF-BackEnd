@@ -296,12 +296,13 @@ def test_delete_atividade_estatutaria(jwt_authenticated_client_sme, atividade_es
 
 @pytest.mark.django_db
 def test_ordena_atividade_estatutaria_movendo_para_cima(
-    jwt_authenticated_client_sme
+    jwt_authenticated_client_sme,
+    atividade_estatutaria_factory
 ):
-    a1 = AtividadeEstatutaria.objects.create(nome="A", mes=1, tipo="ORDINARIA", ordem=1)
-    a2 = AtividadeEstatutaria.objects.create(nome="B", mes=1, tipo="ORDINARIA", ordem=2)
-    a3 = AtividadeEstatutaria.objects.create(nome="C", mes=1, tipo="ORDINARIA", ordem=3)
-    a4 = AtividadeEstatutaria.objects.create(nome="D", mes=1, tipo="ORDINARIA", ordem=4)
+    a1 = atividade_estatutaria_factory.create(nome="A", mes=1, tipo="ORDINARIA", ordem=1)
+    a2 = atividade_estatutaria_factory.create(nome="B", mes=1, tipo="ORDINARIA", ordem=2)
+    a3 = atividade_estatutaria_factory.create(nome="C", mes=1, tipo="ORDINARIA", ordem=3)
+    a4 = atividade_estatutaria_factory.create(nome="D", mes=1, tipo="ORDINARIA", ordem=4)
 
     url = reverse(
         "api:atividades-estatutarias-ordenar",
@@ -327,12 +328,13 @@ def test_ordena_atividade_estatutaria_movendo_para_cima(
 
 @pytest.mark.django_db
 def test_ordena_atividade_estatutaria_movendo_para_baixo(
-    jwt_authenticated_client_sme
+    jwt_authenticated_client_sme,
+    atividade_estatutaria_factory
 ):
-    a1 = AtividadeEstatutaria.objects.create(nome="A", mes=1, tipo="ORDINARIA", ordem=1)
-    a2 = AtividadeEstatutaria.objects.create(nome="B", mes=1, tipo="ORDINARIA", ordem=2)
-    a3 = AtividadeEstatutaria.objects.create(nome="C", mes=1, tipo="ORDINARIA", ordem=3)
-    a4 = AtividadeEstatutaria.objects.create(nome="D", mes=1, tipo="ORDINARIA", ordem=4)
+    a1 = atividade_estatutaria_factory.create(nome="A", mes=1, tipo="ORDINARIA", ordem=1)
+    a2 = atividade_estatutaria_factory.create(nome="B", mes=1, tipo="ORDINARIA", ordem=2)
+    a3 = atividade_estatutaria_factory.create(nome="C", mes=1, tipo="ORDINARIA", ordem=3)
+    a4 = atividade_estatutaria_factory.create(nome="D", mes=1, tipo="ORDINARIA", ordem=4)
 
     url = reverse(
         "api:atividades-estatutarias-ordenar",
@@ -357,9 +359,10 @@ def test_ordena_atividade_estatutaria_movendo_para_baixo(
 
 @pytest.mark.django_db
 def test_ordena_atividade_estatutaria_destino_inexistente(
-    jwt_authenticated_client_sme
+    jwt_authenticated_client_sme,
+    atividade_estatutaria_factory
 ):
-    atividade = AtividadeEstatutaria.objects.create(
+    atividade = atividade_estatutaria_factory.create(
         nome="A", mes=1, tipo="ORDINARIA", ordem=1
     )
 
