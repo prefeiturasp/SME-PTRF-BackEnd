@@ -185,7 +185,7 @@ class ObjetivoPaaAdmin(admin.ModelAdmin):
 
 @admin.register(AtividadeEstatutaria)
 class AtividadeEstatutariaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'status', 'mes', 'tipo')
+    list_display = ('nome', 'status', 'mes', 'tipo', 'ordem')
     list_filter = ('status', 'mes', 'tipo')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
     raw_id_fields = ('paa', )
