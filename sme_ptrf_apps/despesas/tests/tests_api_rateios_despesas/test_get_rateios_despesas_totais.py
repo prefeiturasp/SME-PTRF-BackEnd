@@ -141,9 +141,8 @@ def test_api_get_despesas_totais_search_despesas_por_especificacao(jwt_authentic
 
 
 @pytest.fixture
-def despesa_11_03_2020(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_11_03_2020(associacao, tipo_documento, tipo_transacao, despesa_factory):
+    return despesa_factory.create(
         associacao=associacao,
         numero_documento='9999999',
         data_documento=date(2020, 3, 11),
@@ -160,9 +159,9 @@ def despesa_11_03_2020(associacao, tipo_documento, tipo_transacao):
 def rateio_despesa_11_03_2020(associacao, despesa_11_03_2020, conta_associacao, acao,
                               tipo_aplicacao_recurso_custeio,
                               tipo_custeio_material,
-                              especificacao_material_eletrico, acao_associacao_role_cultural):
-    return baker.make(
-        'RateioDespesa',
+                              especificacao_material_eletrico, acao_associacao_role_cultural,
+                              rateio_despesa_factory):
+    return rateio_despesa_factory.create(
         despesa=despesa_11_03_2020,
         associacao=associacao,
         conta_associacao=conta_associacao,
@@ -171,7 +170,6 @@ def rateio_despesa_11_03_2020(associacao, despesa_11_03_2020, conta_associacao, 
         tipo_custeio=tipo_custeio_material,
         especificacao_material_servico=especificacao_material_eletrico,
         valor_rateio=999.00,
-
     )
 
 
@@ -207,6 +205,222 @@ def test_api_get_despesas_totais_por_periodo(jwt_authenticated_client_d, associa
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
+
+
+def test_api_get_despesas_totais_por_periodo_apenas_data_inicio(jwt_authenticated_client_d, associacao,
+                                                                 conta_associacao,
+                                                                 acao_associacao_role_cultural,
+                                                                 tipo_aplicacao_recurso_custeio,
+                                                                 tipo_custeio_material,
+                                                                 especificacao_material_eletrico,
+                                                                 despesa_factory,
+                                                                 rateio_despesa_factory):
+    despesa_10_03_2020 = despesa_factory.create(
+        associacao=associacao,
+        numero_documento='8888888',
+        data_documento=date(2020, 3, 10),
+        data_transacao=date(2020, 3, 9),
+        valor_total=200.00,
+    )
+    
+    rateio_despesa_10_03_2020 = rateio_despesa_factory.create(
+        despesa=despesa_10_03_2020,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_material,
+        especificacao_material_servico=especificacao_material_eletrico,
+        valor_rateio=200.00,
+    )
+
+    despesa_11_03_2020 = despesa_factory.create(
+        associacao=associacao,
+        numero_documento='9999999',
+        data_documento=date(2020, 3, 11),
+        data_transacao=date(2020, 3, 10),
+        valor_total=300.00,
+    )
+    
+    rateio_despesa_11_03_2020 = rateio_despesa_factory.create(
+        despesa=despesa_11_03_2020,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_material,
+        especificacao_material_servico=especificacao_material_eletrico,
+        valor_rateio=300.00,
+    )
+
+    response = jwt_authenticated_client_d.get(
+        f'/api/rateios-despesas/totais/?associacao__uuid={associacao.uuid}&data_inicio=2020-03-11',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    total_despesas_sem_filtro = rateio_despesa_10_03_2020.valor_rateio + rateio_despesa_11_03_2020.valor_rateio
+    total_despesas_com_filtro = rateio_despesa_11_03_2020.valor_rateio
+
+    results = {
+        "associacao_uuid": f'{associacao.uuid}',
+        "total_despesas_sem_filtro": total_despesas_sem_filtro,
+        "total_despesas_com_filtro": total_despesas_com_filtro
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == results
+
+
+def test_api_get_despesas_totais_por_periodo_apenas_data_fim(jwt_authenticated_client_d, associacao,
+                                                              conta_associacao,
+                                                              acao_associacao_role_cultural,
+                                                              tipo_aplicacao_recurso_custeio,
+                                                              tipo_custeio_material,
+                                                              especificacao_material_eletrico,
+                                                              despesa_factory,
+                                                              rateio_despesa_factory):
+    despesa_10_03_2020 = despesa_factory.create(
+        associacao=associacao,
+        numero_documento='8888888',
+        data_documento=date(2020, 3, 10),
+        data_transacao=date(2020, 3, 9),
+        valor_total=200.00,
+    )
+    
+    rateio_despesa_10_03_2020 = rateio_despesa_factory.create(
+        despesa=despesa_10_03_2020,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_material,
+        especificacao_material_servico=especificacao_material_eletrico,
+        valor_rateio=200.00,
+    )
+
+    despesa_11_03_2020 = despesa_factory.create(
+        associacao=associacao,
+        numero_documento='9999999',
+        data_documento=date(2020, 3, 11),
+        data_transacao=date(2020, 3, 10),
+        valor_total=300.00,
+    )
+    
+    rateio_despesa_11_03_2020 = rateio_despesa_factory.create(
+        despesa=despesa_11_03_2020,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_material,
+        especificacao_material_servico=especificacao_material_eletrico,
+        valor_rateio=300.00,
+    )
+
+    response = jwt_authenticated_client_d.get(
+        f'/api/rateios-despesas/totais/?associacao__uuid={associacao.uuid}&data_fim=2020-03-10',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    total_despesas_sem_filtro = rateio_despesa_10_03_2020.valor_rateio + rateio_despesa_11_03_2020.valor_rateio
+    total_despesas_com_filtro = rateio_despesa_10_03_2020.valor_rateio
+
+    results = {
+        "associacao_uuid": f'{associacao.uuid}',
+        "total_despesas_sem_filtro": total_despesas_sem_filtro,
+        "total_despesas_com_filtro": total_despesas_com_filtro
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == results
+
+
+def test_api_get_despesas_totais_por_periodo_com_filtro_informacoes(jwt_authenticated_client_d, associacao,
+                                                                     conta_associacao,
+                                                                     acao_associacao_role_cultural,
+                                                                     tipo_aplicacao_recurso_custeio,
+                                                                     tipo_custeio_material,
+                                                                     especificacao_material_eletrico,
+                                                                     despesa_factory,
+                                                                     rateio_despesa_factory):
+    despesa_11_03_2020 = despesa_factory.create(
+        associacao=associacao,
+        numero_documento='9999999',
+        data_documento=date(2020, 3, 11),
+        data_transacao=date(2020, 3, 10),
+        valor_total=300.00,
+    )
+    
+    rateio_despesa_11_03_2020 = rateio_despesa_factory.create(
+        despesa=despesa_11_03_2020,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_material,
+        especificacao_material_servico=especificacao_material_eletrico,
+        valor_rateio=300.00,
+    )
+
+    response = jwt_authenticated_client_d.get(
+        f'/api/rateios-despesas/totais/?associacao__uuid={associacao.uuid}&data_inicio=2020-03-11&data_fim=2020-03-11&filtro_informacoes=8',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    total_despesas_sem_filtro = rateio_despesa_11_03_2020.valor_rateio
+
+    assert response.status_code == status.HTTP_200_OK
+    assert "associacao_uuid" in result
+    assert "total_despesas_sem_filtro" in result
+    assert "total_despesas_com_filtro" in result
+    assert result["associacao_uuid"] == f'{associacao.uuid}'
+    assert result["total_despesas_sem_filtro"] == total_despesas_sem_filtro
+
+
+def test_api_get_despesas_totais_por_periodo_com_aplicacao_recurso(jwt_authenticated_client_d, associacao,
+                                                                    conta_associacao,
+                                                                    acao_associacao_role_cultural,
+                                                                    tipo_aplicacao_recurso_custeio,
+                                                                    tipo_custeio_material,
+                                                                    especificacao_material_eletrico,
+                                                                    despesa_factory,
+                                                                    rateio_despesa_factory):
+
+    despesa_11_03_2020 = despesa_factory.create(
+        associacao=associacao,
+        numero_documento='9999999',
+        data_documento=date(2020, 3, 11),
+        data_transacao=date(2020, 3, 10),
+        valor_total=300.00,
+    )
+    
+    rateio_despesa_11_03_2020 = rateio_despesa_factory.create(
+        despesa=despesa_11_03_2020,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao_role_cultural,
+        aplicacao_recurso=tipo_aplicacao_recurso_custeio,
+        tipo_custeio=tipo_custeio_material,
+        especificacao_material_servico=especificacao_material_eletrico,
+        valor_rateio=300.00,
+    )
+
+    response = jwt_authenticated_client_d.get(
+        f'/api/rateios-despesas/totais/?associacao__uuid={associacao.uuid}&data_inicio=2020-03-11&data_fim=2020-03-11&aplicacao_recurso=CUSTEIO',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    total_despesas_sem_filtro = rateio_despesa_11_03_2020.valor_rateio
+    total_despesas_com_filtro = rateio_despesa_11_03_2020.valor_rateio
+
+    results = {
+        "associacao_uuid": f'{associacao.uuid}',
+        "total_despesas_sem_filtro": total_despesas_sem_filtro,
+        "total_despesas_com_filtro": total_despesas_com_filtro
+    }
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result == results
 
 
 @pytest.fixture
