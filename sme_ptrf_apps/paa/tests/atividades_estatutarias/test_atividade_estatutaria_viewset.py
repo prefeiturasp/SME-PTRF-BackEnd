@@ -1,4 +1,5 @@
 import pytest
+import uuid
 from django.urls import reverse
 
 from rest_framework import status
@@ -291,3 +292,84 @@ def test_delete_atividade_estatutaria(jwt_authenticated_client_sme, atividade_es
     response = jwt_authenticated_client_sme.delete(url)
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert not AtividadeEstatutaria.objects.filter(uuid=obj.uuid).exists()
+
+
+@pytest.mark.django_db
+def test_ordena_atividade_estatutaria_movendo_para_cima(
+    jwt_authenticated_client_sme
+):
+    a1 = AtividadeEstatutaria.objects.create(nome="A", mes=1, tipo="ORDINARIA", ordem=1)
+    a2 = AtividadeEstatutaria.objects.create(nome="B", mes=1, tipo="ORDINARIA", ordem=2)
+    a3 = AtividadeEstatutaria.objects.create(nome="C", mes=1, tipo="ORDINARIA", ordem=3)
+    a4 = AtividadeEstatutaria.objects.create(nome="D", mes=1, tipo="ORDINARIA", ordem=4)
+
+    url = reverse(
+        "api:atividades-estatutarias-ordenar",
+        kwargs={"uuid": str(a4.uuid)},
+    )
+
+    payload = {"destino": str(a2.uuid)}
+
+    response = jwt_authenticated_client_sme.patch(url, payload, format="json")
+
+    assert response.status_code == status.HTTP_200_OK
+
+    a1.refresh_from_db()
+    a2.refresh_from_db()
+    a3.refresh_from_db()
+    a4.refresh_from_db()
+
+    assert a1.ordem == 1
+    assert a4.ordem == 2
+    assert a2.ordem == 3
+    assert a3.ordem == 4
+
+
+@pytest.mark.django_db
+def test_ordena_atividade_estatutaria_movendo_para_baixo(
+    jwt_authenticated_client_sme
+):
+    a1 = AtividadeEstatutaria.objects.create(nome="A", mes=1, tipo="ORDINARIA", ordem=1)
+    a2 = AtividadeEstatutaria.objects.create(nome="B", mes=1, tipo="ORDINARIA", ordem=2)
+    a3 = AtividadeEstatutaria.objects.create(nome="C", mes=1, tipo="ORDINARIA", ordem=3)
+    a4 = AtividadeEstatutaria.objects.create(nome="D", mes=1, tipo="ORDINARIA", ordem=4)
+
+    url = reverse(
+        "api:atividades-estatutarias-ordenar",
+        kwargs={"uuid": a2.uuid},
+    )
+
+    payload = {"destino": str(a4.uuid)}
+    response = jwt_authenticated_client_sme.patch(url, payload, format="json")
+
+    assert response.status_code == status.HTTP_200_OK
+
+    a1.refresh_from_db()
+    a2.refresh_from_db()
+    a3.refresh_from_db()
+    a4.refresh_from_db()
+
+    assert a1.ordem == 1
+    assert a3.ordem == 2
+    assert a4.ordem == 3
+    assert a2.ordem == 4
+
+
+@pytest.mark.django_db
+def test_ordena_atividade_estatutaria_destino_inexistente(
+    jwt_authenticated_client_sme
+):
+    atividade = AtividadeEstatutaria.objects.create(
+        nome="A", mes=1, tipo="ORDINARIA", ordem=1
+    )
+
+    url = reverse(
+        "api:atividades-estatutarias-ordenar",
+        kwargs={"uuid": atividade.uuid},
+    )
+
+    payload = {"destino": str(uuid.uuid4())}
+
+    response = jwt_authenticated_client_sme.patch(url, payload, format="json")
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
