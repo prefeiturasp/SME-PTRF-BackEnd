@@ -206,6 +206,9 @@ class PrioridadePaaListSerializer(serializers.ModelSerializer):
     acao_associacao = serializers.SerializerMethodField()
     acao_associacao_objeto = serializers.SerializerMethodField()
 
+    outro_recurso = serializers.SerializerMethodField()
+    outro_recurso_objeto = serializers.SerializerMethodField()
+
     def get_acao_associacao(self, obj):
         if obj.acao_associacao:
             return obj.acao_associacao.uuid
@@ -232,6 +235,17 @@ class PrioridadePaaListSerializer(serializers.ModelSerializer):
     def get_prioridade_objeto(self, obj):
         return list(filter(lambda x: x.get('key') == obj.prioridade, SimNaoChoices.to_dict()))[0]
 
+    def get_outro_recurso(self, obj):
+        if obj.outro_recurso:
+            return obj.outro_recurso.uuid
+
+    def get_outro_recurso_objeto(self, obj):
+        if obj.outro_recurso:
+            return {
+                'uuid': obj.outro_recurso.uuid,
+                'nome': obj.outro_recurso.nome
+            }
+
     class Meta:
         model = PrioridadePaa
         fields = (
@@ -253,5 +267,7 @@ class PrioridadePaaListSerializer(serializers.ModelSerializer):
             'tipo_despesa_custeio_objeto',
             'especificacao_material',
             'especificacao_material_objeto',
-            'valor_total'
+            'valor_total',
+            'outro_recurso',
+            'outro_recurso_objeto'
         )

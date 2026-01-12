@@ -179,6 +179,7 @@ class PrioridadePaaRelatorioViewSet(WaffleFlagMixin, ModelViewSet):
         "tipo_aplicacao",
         "tipo_despesa_custeio__uuid",
         "especificacao_material__uuid",
+        "outro_recurso__uuid",
     )
 
     def get_queryset(self):
