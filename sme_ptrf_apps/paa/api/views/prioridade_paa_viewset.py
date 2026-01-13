@@ -20,6 +20,8 @@ from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComG
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 
 logger = logging.getLogger(__name__)
+
+
 class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [PermissaoApiUe]
@@ -56,11 +58,27 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
     @action(detail=False, methods=['get'], url_path='tabelas',
             permission_classes=[PermissaoApiUe])
     def tabelas(self, request, *args, **kwrgs):
+        from sme_ptrf_apps.paa.models.outros_recursos_periodo_paa import OutroRecursoPeriodoPaa
+        from sme_ptrf_apps.paa.models.paa import Paa
+        paa_uuid = request.query_params.get('paa__uuid')
+
+        try:
+            paa = Paa.objects.get(uuid=paa_uuid)
+        except Exception:
+            paa = None
+
+        if paa:
+            outros_recursos = OutroRecursoPeriodoPaa.objects.disponiveis_para_paa(paa)
+            outros_recursos = [{"uuid": outro_recurso_periodo.outro_recurso.uuid, "nome": outro_recurso_periodo.outro_recurso.nome}
+                               for outro_recurso_periodo in outros_recursos]
+        else:
+            outros_recursos = None
+
         tabelas = dict(
             prioridades=SimNaoChoices.to_dict(),
             recursos=RecursoOpcoesEnum.to_dict(),
             tipos_aplicacao=TipoAplicacaoOpcoesEnum.to_dict(),
-        )
+            outros_recursos=outros_recursos)
 
         return Response(tabelas, status=status.HTTP_200_OK)
 
@@ -108,14 +126,14 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
         """
         Cenário de exceção: quando tentar atualizar uma prioridade que já foi removida
         Atualiza uma PrioridadePaa existente.
-        
+
         Valida os dados através do serializer e aplica a validação de valor.
         Retorna os dados da prioridade atualizada ou erros de validação.
         """
         try:
             self.get_object()
             return super().update(request, *args, **kwargs)
-            
+
         except (Http404, NotFound):
             return Response(
                 {"mensagem": "Prioridade não encontrada ou já foi removida da base de dados."},

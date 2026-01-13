@@ -1,7 +1,16 @@
+from django.db.models import Q
 from django.db import models
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
+
+
+class OutroRecursoPeriodoPaaQuerySet(models.QuerySet):
+    def disponiveis_para_paa(self, paa):
+        return self.filter(
+            Q(unidades=paa.associacao.unidade) | Q(unidades__isnull=True),
+            periodo_paa=paa.periodo_paa,
+        ).distinct()
 
 
 class OutroRecursoPeriodoPaa(ModeloBase):
@@ -13,6 +22,8 @@ class OutroRecursoPeriodoPaa(ModeloBase):
                                       blank=False, null=True)
     unidades = models.ManyToManyField('core.Unidade', blank=True)
     ativo = models.BooleanField(default=True)
+
+    objects = OutroRecursoPeriodoPaaQuerySet.as_manager()
 
     def __str__(self):
         return f'{self.outro_recurso} - {self.periodo_paa}'

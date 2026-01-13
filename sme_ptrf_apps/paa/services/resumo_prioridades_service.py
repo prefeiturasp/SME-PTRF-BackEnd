@@ -416,9 +416,11 @@ class ResumoPrioridadesService:
 
         return tipo_recurso_map
 
-    def calcula_node_recursos_proprios(self) -> dict:
+    def calcula_node_outros_recursos(self) -> dict:
         """
-            Retorna o resumo das prioridades para o PAA de Recursos Próprios.
+            Node de Outros Recursos Total.
+
+            Node envolve Recursos Próprios + Outros Recursos
 
             O resumo é um dicionário com as seguintes chaves:
             - key: identificador do recurso
@@ -428,67 +430,68 @@ class ResumoPrioridadesService:
             - livre_aplicacao: valor total da livre aplicação
             - parent: identificação do nível pai da hierarquia do tipo de recurso
             - children: lista de nodes filhos (receitas, despesas e saldos)
-
-            O item Recursos Próprios deve agrupar seus respectivos filhos e considerar apenas seus valores totalizados
-            pelo level 2 (receita, despesas previstas e saldo), uma vez que, as despesas previstas de
-            Recursos Próprios apresentariam replicadas para cada linha de um item de Recursos Próprios
-
-            Retorna um dicionário com a estrutura do Node Pai para montagem de tabela de hierarquias no frontend.
-            Node 1: Recursos Próprios
-                - Node 2: Item Recursos Próprios (level oculto no frontend)
-                    - Node 3: Receitas
-                    - Node 3: Despesas previstas
-                    - Node 3: Saldo
         """
 
-        from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import RecursoProprioPaaListSerializer
+        from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa
+        from sme_ptrf_apps.paa.models.receita_prevista_outro_recurso_periodo import ReceitaPrevistaOutroRecursoPeriodo
 
-        # Queryset Somente de Prioridades do PAA de Recursos Próprios
         prioridades_recurso_proprio_qs = self.paa.prioridadepaa_set.filter(
             recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name)
 
-        # Queryset de instâncias de recursos próprios ordenados pela descrição
-        recurso_proprio_qs = self.paa.recursopropriopaa_set.all().order_by('descricao')
+        prioridades_outros_recursos_qs = self.paa.prioridadepaa_set.filter(
+            recurso=RecursoOpcoesEnum.OUTRO_RECURSO.name)
 
-        # Dados de Recursos Próprios Serializados
-        recurso_proprio_data = RecursoProprioPaaListSerializer(recurso_proprio_qs, many=True).data
+        outros_recursos_qs = OutroRecursoPeriodoPaa.objects.disponiveis_para_paa(self.paa)
 
-        # Agrupar os valores de prioridades de Recursos Próprios
-        # Considerar regra de negócio, exclusivamente, para não exibir itens de Recursos Próprios separadamente
-        # O item Recursos Próprios deve agrupar seus respectivos filhos e considerar apenas seus valores totalizados
-        # pelo level 2 (receita, despesas previstas e saldo), uma vez que, as despesas previstas de
-        # Recursos Próprios apresentariam replicadas para cada linha de um item de Recursos Próprios
-        recurso_proprio_data = [{
-            'uuid': 'item_recursos',
-            'descricao': 'Total de Recursos Próprios',
-            'valor': sum(item['valor'] for item in recurso_proprio_data)
-        }]
+        recursos_proprios_data = [
+            {
+                "uuid": RecursoOpcoesEnum.RECURSO_PROPRIO.name,
+                "recurso": "Recursos Próprios",
+                "cor": "rgb(135, 0, 81)",
+                "total_recursos_proprios": self.paa.get_total_recursos_proprios(),
+                "prioridades_qs": prioridades_recurso_proprio_qs
+            }
+        ]
 
-        def calcula_receitas(item) -> dict:
-            """
-                Calcula as receitas de um item de Recursos Próprios para montagem de tabela de hierarquias no frontend.
-                Retorna um dicionário com a estrutura do Node 3 de "Receita".
-                :param item: Dado de um item de Recursos Próprios para compor o dict de retorno
-                :return: Dicionário com a estrutura do Node 3 de Receita
-            """
+        outros_recursos_data = recursos_proprios_data + [
+            {
+                "uuid": f"{item.outro_recurso.uuid}",
+                "recurso": item.outro_recurso.nome,
+                "cor": item.outro_recurso.cor,
+                "prioridades_qs": prioridades_outros_recursos_qs
 
-            def get_valor_livre(item) -> Decimal:
-                """
-                    Retorna o valor de livre aplicação de um item de Recursos Próprios.
-                    :param item: Dado de um item de Recursos Próprios
-                    :return: Decimal com o valor de receita de livre aplicação
-                """
-                return Decimal(item.get('valor') or 0)
+            }
+            for item in outros_recursos_qs
+        ]
 
+        def calcula_receitas_recursos_proprios(item) -> dict:
             return {
                 'key': item.get('uuid') + '_' + 'receita',
                 "recurso": 'Receita',
                 "custeio": Decimal(0),
                 "capital": Decimal(0),
-                "livre_aplicacao": get_valor_livre(item),
+                "livre_aplicacao": item.get("total_recursos_proprios", 0),
             }
 
-        def calcula_despesas(item, receitas) -> dict:
+        def calcula_receitas_outros_recursos(item, receitas_previstas_qs) -> dict:
+            valor_custeio = 0
+            valor_capital = 0
+            valor_livre = 0
+
+            for receita in receitas_previstas_qs:
+                valor_custeio += receita.previsao_valor_custeio + receita.saldo_custeio
+                valor_capital += receita.previsao_valor_capital + receita.saldo_capital
+                valor_livre += receita.previsao_valor_livre + receita.saldo_livre
+
+            return {
+                'key': item.get('uuid') + '_' + 'receita',
+                "recurso": 'Receita',
+                "custeio": valor_custeio,
+                "capital": valor_capital,
+                "livre_aplicacao": valor_livre,
+            }
+
+        def calcula_despesas(item, prioridades_qs) -> dict:
             """
                 Calcula as despesas previstas de um item de Recursos Próprios para montagem de tabela de
                 hierarquias no frontend.
@@ -497,8 +500,7 @@ class ResumoPrioridadesService:
                 :return: Dicionário com a estrutura do Node 3 de "Despesas previstas".
             """
 
-            # Valores relacionados às "Prioridades do PAA" de Recurso Próprio e tipo CUSTEIO
-            despesa_custeio = prioridades_recurso_proprio_qs.filter(
+            despesa_custeio = prioridades_qs.filter(
                 tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
                 acao_pdde__isnull=True,
                 acao_associacao__isnull=True,
@@ -506,8 +508,7 @@ class ResumoPrioridadesService:
                 total=Sum('valor_total')
             ).get('total') or 0
 
-            # Valores relacionados às "Prioridades do PAA" de Recurso Próprio e tipo CAPITAL
-            despesa_capital = prioridades_recurso_proprio_qs.filter(
+            despesa_capital = prioridades_qs.filter(
                 tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name,
                 acao_pdde__isnull=True,
                 acao_associacao__isnull=True,
@@ -523,56 +524,58 @@ class ResumoPrioridadesService:
                 "livre_aplicacao": 0,
             }
 
-        # Estrutura do Node Pai para montagem de tabela de hierarquias no frontend
-        # Node 1
-        tipo_recurso_map = {
-            'key': RecursoOpcoesEnum.RECURSO_PROPRIO.name,
-            'recurso': 'Recursos Próprios',
+        # Estrutura do Node Pai
+        outros_recursos_total = {
+            'key': RecursoOpcoesEnum.OUTRO_RECURSO.name,
+            'recurso': 'Outros Recursos Total',
             'custeio': 0,
             'capital': 0,
             'livre_aplicacao': 0,
             'children': []
         }
 
-        # Obter a lista de Recursos Próprios do PAA, serializada
-        for item in recurso_proprio_data:
-            # hierarquia filhos do Node Pai
-            children = tipo_recurso_map['children']
+        for item in outros_recursos_data:
+            node_outros_recursos_total = outros_recursos_total['children']
 
-            # Node 3 - Valores da Receita (Custeio, Capital, Livre)
-            receitas = calcula_receitas(item)
+            # Último node - Valores da Receita (Custeio, Capital, Livre)
+            if item.get('uuid') == RecursoOpcoesEnum.RECURSO_PROPRIO.name:
+                receitas = calcula_receitas_recursos_proprios(item)
+            else:
+                receitas_previstas = ReceitaPrevistaOutroRecursoPeriodo.objects.filter(
+                    paa=self.paa,
+                    outro_recurso_periodo__outro_recurso__uuid=item.get('uuid'),
+                )
 
-            # Node 3 - Valores da Despesas (Custeio, Capital, Livre)
-            despesas = calcula_despesas(item, receitas)
+                receitas = calcula_receitas_outros_recursos(item, receitas_previstas)
 
-            # Node 3 - Valores Saldo
+            # Último node - Valores da Despesas (Custeio, Capital, Livre)
+            despesas = calcula_despesas(item, item.get('prioridades_qs'))
+
+            # Último node - Saldo (Custeio, Capital, Livre)
             saldo = self.calcula_saldos(item.get('uuid'), receitas, despesas)
 
-            # Node 2 - Item Recursos Próprios
-            node = {
+            node_recurso = {
                 'key': item.get('uuid'),
-                "recurso": item.get('descricao'),
+                "recurso": item.get('recurso'),
                 "custeio": saldo['custeio'],
                 "capital": saldo['capital'],
                 "livre_aplicacao": saldo['livre_aplicacao'],
-                "parent": RecursoOpcoesEnum.RECURSO_PROPRIO.name,
+                "parent": RecursoOpcoesEnum.OUTRO_RECURSO.name,
+                "cor": item.get('cor', None),
                 "children": []
             }
 
-            # Adicionar o Node 2 ao Node 1
-            children.append(node)
+            node_outros_recursos_total.append(node_recurso)
 
-            # Adicionar os Nodes 3 ao Node 2
-            node['children'].append(receitas)
-            node['children'].append(despesas)
-            node['children'].append(saldo)
+            node_recurso['children'].append(receitas)
+            node_recurso['children'].append(despesas)
+            node_recurso['children'].append(saldo)
 
-            # Somar os valores de totais ao Node 1
-            tipo_recurso_map['custeio'] += saldo['custeio']
-            tipo_recurso_map['capital'] += saldo['capital']
-            tipo_recurso_map['livre_aplicacao'] += saldo['livre_aplicacao']
+            outros_recursos_total['custeio'] += saldo['custeio']
+            outros_recursos_total['capital'] += saldo['capital']
+            outros_recursos_total['livre_aplicacao'] += saldo['livre_aplicacao']
 
-        return tipo_recurso_map
+        return outros_recursos_total
 
     def resumo_prioridades(self):
         """
@@ -599,11 +602,11 @@ class ResumoPrioridadesService:
         tipo_recurso_map = {
             RecursoOpcoesEnum.PTRF.name: self.calcula_node_ptrf(),
             RecursoOpcoesEnum.PDDE.name: self.calcula_node_pdde(),
-            RecursoOpcoesEnum.RECURSO_PROPRIO.name: self.calcula_node_recursos_proprios(),
+            RecursoOpcoesEnum.OUTRO_RECURSO.name: self.calcula_node_outros_recursos(),
         }
 
         # Retorna a lista de dados para cada tipo de recurso
-        dados = [tipo_recurso_map[recurso.name] for recurso in RecursoOpcoesEnum]
+        dados = list(tipo_recurso_map.values())
 
         return dados
 
@@ -633,11 +636,9 @@ class ResumoPrioridadesService:
             return
 
         try:
-            # Obtém o resumo de prioridades
             resumo_data = self.resumo_prioridades()
 
-            # Busca o recurso no resumo de prioridades
-            recurso_data = next((item for item in resumo_data if item.get('key') == recurso), {})
+            recurso_data = find_by_key(resumo_data, recurso) or {}
 
             if not recurso_data:
                 raise serializers.ValidationError({'mensagem': 'Recurso não encontrado no resumo de prioridades.'})
@@ -773,13 +774,10 @@ class ResumoPrioridadesService:
             Retorna:
                 Decimal: Saldo total disponível para a ação
             """
+
             # Obtem o Node [PTRF, PDDE ou RECURSO_PROPRIO]
-            node_acao_data = next(
-                (item for item in recurso_data.get('children', []) if item.get('key') == key_acao), {})
-            # Obter a linha de saldos da ação
-            saldos_resumo = next((
-                item for item in node_acao_data.get(
-                    'children', []) if item.get('key') == '{}_{}'.format(key_acao, 'saldo')), {})
+            saldos_resumo = next(
+                (item for item in recurso_data.get('children', []) if item.get('key') == '{}_{}'.format(key_acao, 'saldo')), {})
 
             # Valida se os saldos foram encontrados
             if not saldos_resumo:
@@ -815,13 +813,10 @@ class ResumoPrioridadesService:
             return
 
         try:
-            # Obtém o resumo de prioridades
             resumo_data = self.resumo_prioridades()
 
-            # Busca o recurso no resumo de prioridades
-            recurso_data = next((item for item in resumo_data if item.get('key') == recurso), {})
+            recurso_data = find_by_key(resumo_data, recurso) or {}
 
-            # Erro quando não encontra o NODE do recurso
             if not recurso_data:
                 raise serializers.ValidationError(
                     {
@@ -854,7 +849,7 @@ class ResumoPrioridadesService:
                     return saldo_disponivel
 
             if recurso == RecursoOpcoesEnum.RECURSO_PROPRIO.name:
-                saldo_disponivel = obtem_saldos(recurso_data, 'item_recursos')
+                saldo_disponivel = obtem_saldos(recurso_data, RecursoOpcoesEnum.RECURSO_PROPRIO.name)
                 if saldo_disponivel < valor_total:
                     raise serializers.ValidationError(
                         {
@@ -872,3 +867,17 @@ class ResumoPrioridadesService:
         except Exception as e:
             logger.error(f"Erro ao validar valor da prioridade: {str(e)}")
             raise
+
+
+def find_by_key(data, key):
+    for item in data:
+        if item.get("key") == key:
+            return item
+
+        children = item.get("children", [])
+        if children:
+            found = find_by_key(children, key)
+            if found:
+                return found
+
+    return None

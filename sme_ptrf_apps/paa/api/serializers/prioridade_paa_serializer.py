@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from sme_ptrf_apps.paa.models import Paa, PrioridadePaa, ProgramaPdde, AcaoPdde
+from sme_ptrf_apps.paa.models import Paa, PrioridadePaa, ProgramaPdde, AcaoPdde, OutroRecurso
 from sme_ptrf_apps.paa.models.prioridade_paa import SimNaoChoices
 from sme_ptrf_apps.core.models import AcaoAssociacao
 from sme_ptrf_apps.despesas.models import TipoCusteio, EspecificacaoMaterialServico
@@ -61,6 +61,12 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
         error_messages={'null': 'Ação da Associação não foi informada.'},
         queryset=AcaoAssociacao.objects.all())
 
+    outro_recurso = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        error_messages={'null': 'Outro Recurso não foi informado.'},
+        queryset=OutroRecurso.objects.all())
+
     tipo_despesa_custeio = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
@@ -95,7 +101,7 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PrioridadePaa
-        fields = ('uuid', 'paa', 'prioridade', 'recurso', 'acao_associacao', 'programa_pdde', 'acao_pdde',
+        fields = ('uuid', 'paa', 'prioridade', 'recurso', 'acao_associacao', 'outro_recurso', 'programa_pdde', 'acao_pdde',
                   'tipo_aplicacao', 'tipo_despesa_custeio', 'especificacao_material', 'valor_total', 'copia_de')
 
     def validate(self, attrs):
