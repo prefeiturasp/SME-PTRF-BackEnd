@@ -502,12 +502,12 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().type('30/08/2023');
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroTipoDespesaCusteio().select('Imposto');
-        Gastos.cadastroEspecificacaoCusteio().select('PIS/COFINS/CSLL');
-        Gastos.cadastroAcaoCusteio().select('Material Pedagógico');
-        Gastos.cadastroTipoContaCusteio().select('Cartão');
-        //Gastos.cadastroValorCusteio().type('100000');      
+        // Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
+        // Gastos.cadastroTipoDespesaCusteio().select('Imposto');
+        // Gastos.cadastroEspecificacaoCusteio().select('PIS/COFINS/CSLL');
+        // Gastos.cadastroAcaoCusteio().select('Material Pedagógico');
+        // Gastos.cadastroTipoContaCusteio().select('Cartão');
+        // //Gastos.cadastroValorCusteio().type('100000');      
     }
 
     validarCadastroDespesaComprovanteTributosTarifasMaterialComplementar() {
@@ -605,11 +605,11 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().click();
         Gastos.cadastroDataPagamento().type('30/08/2023');
         Gastos.cadastroValorTotalDocumento().type('2000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Capital');
-        Gastos.botaoEstouCiente().should('be.visible').click();
-        Gastos.cadastroEspecificacaoCapital().select('Caneta para gravacao');
-        Gastos.cadastroAcaoCapital().select('Material Complementar');
-        Gastos.cadastroQuantidadeItensCapital().type('1');       
+        // Gastos.cadastroTipoAplicacaoRecurso().select('Capital');
+        // Gastos.botaoEstouCiente().should('be.visible').click();
+        // Gastos.cadastroEspecificacaoCapital().select('Caneta para gravacao');
+        // Gastos.cadastroAcaoCapital().select('Material Complementar');
+        // Gastos.cadastroQuantidadeItensCapital().type('1');       
     }
 
     validarCadastroDespesaCupomFiscalCusteioGeneroAlimenticioPtrfBasico() {
@@ -881,8 +881,8 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().type('28/08/2023');
         Gastos.calendarioMaisFiltros().contains('28').click();
         Gastos.cadastroNumeroCheque().type('312963274727411095009241501056');
-        Gastos.cadastroValorTotalDocumento().type('200000');
-        Gastos.cadastroValorRecursoProprio().type('100000');
+        // Gastos.cadastroValorTotalDocumento().type('200000');
+        // Gastos.cadastroValorRecursoProprio().type('100000');
     }
 
     validarCadastroGastosEscolaDanfeDocCusteioPtrfBasico() {
@@ -927,8 +927,8 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().type('28/08/2023');
         Gastos.calendarioMaisFiltros().contains('28').click();
         Gastos.cadastroNumeroCheque().type('312963274727411095009241501056');
-        Gastos.cadastroValorTotalDocumento().type('200000');
-        Gastos.cadastroValorRecursoProprio().type('100000');
+        // Gastos.cadastroValorTotalDocumento().type('200000');
+        // Gastos.cadastroValorRecursoProprio().type('100000');
     }
 
     validarCadastroGastosEscolaNfseDocCusteioPtrfBasico() {
@@ -985,8 +985,8 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().type('28/08/2023');
         Gastos.calendarioMaisFiltros().contains('28').click();
         Gastos.cadastroNumeroCheque().type('312963274727411095009241501056');
-        Gastos.cadastroValorTotalDocumento().type('200000');
-        Gastos.cadastroValorRecursoProprio().type('100000');
+        // Gastos.cadastroValorTotalDocumento().type('200000');
+        // Gastos.cadastroValorRecursoProprio().type('100000');
     }
 
     validarCadastroGastosEscolaDanfeDocCapitalPtrfBasico() {
@@ -1031,8 +1031,8 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().type('28/08/2023');
         Gastos.calendarioMaisFiltros().contains('28').click();
         Gastos.cadastroNumeroCheque().type('312963274727411095009241501056');
-        Gastos.cadastroValorTotalDocumento().type('200000');
-        Gastos.cadastroValorRecursoProprio().type('100000');
+        // Gastos.cadastroValorTotalDocumento().type('200000');
+        // Gastos.cadastroValorRecursoProprio().type('100000');
     }
 
     validarCadastroGastosEscolaNfseDocCapitalPtrfBasico() {

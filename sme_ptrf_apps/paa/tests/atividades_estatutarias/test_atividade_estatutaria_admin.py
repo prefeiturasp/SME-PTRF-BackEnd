@@ -1,6 +1,6 @@
 
 def test_list_display(atividade_estatutaria_admin):
-    assert atividade_estatutaria_admin.list_display == ('nome', 'status', 'mes', 'tipo')
+    assert atividade_estatutaria_admin.list_display == ('nome', 'status', 'mes', 'tipo', 'ordem')
 
 
 def test_search_fields(atividade_estatutaria_admin):

@@ -9,23 +9,27 @@ def queryset_prioridades_paa(qs):
         When(valor_total__isnull=True, prioridade=True, recurso=RecursoOpcoesEnum.PTRF.name, then=Value(1)),
         When(valor_total__isnull=True, prioridade=True, recurso=RecursoOpcoesEnum.PDDE.name, then=Value(2)),
         When(valor_total__isnull=True, prioridade=True, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name, then=Value(3)),
+        When(valor_total__isnull=True, prioridade=True, recurso=RecursoOpcoesEnum.OUTRO_RECURSO.name, then=Value(4)),
 
         # Prioridade Não Sem Valor - Para os casos de duplicidades, aparecerem no topo da tabela
-        When(valor_total__isnull=True, prioridade=False, recurso=RecursoOpcoesEnum.PTRF.name, then=Value(4)),
-        When(valor_total__isnull=True, prioridade=False, recurso=RecursoOpcoesEnum.PDDE.name, then=Value(5)),
-        When(valor_total__isnull=True, prioridade=False, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name, then=Value(6)),
+        When(valor_total__isnull=True, prioridade=False, recurso=RecursoOpcoesEnum.PTRF.name, then=Value(5)),
+        When(valor_total__isnull=True, prioridade=False, recurso=RecursoOpcoesEnum.PDDE.name, then=Value(6)),
+        When(valor_total__isnull=True, prioridade=False, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name, then=Value(7)),
+        When(valor_total__isnull=True, prioridade=False, recurso=RecursoOpcoesEnum.OUTRO_RECURSO.name, then=Value(8)),
 
         # Prioridade Sim
-        When(prioridade=True, recurso=RecursoOpcoesEnum.PTRF.name, then=Value(7)),
-        When(prioridade=True, recurso=RecursoOpcoesEnum.PDDE.name, then=Value(8)),
-        When(prioridade=True, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name, then=Value(9)),
+        When(prioridade=True, recurso=RecursoOpcoesEnum.PTRF.name, then=Value(9)),
+        When(prioridade=True, recurso=RecursoOpcoesEnum.PDDE.name, then=Value(10)),
+        When(prioridade=True, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name, then=Value(11)),
+        When(prioridade=True, recurso=RecursoOpcoesEnum.OUTRO_RECURSO.name, then=Value(12)),
 
         # Prioridade Não
-        When(prioridade=False, recurso=RecursoOpcoesEnum.PTRF.name, then=Value(10)),
-        When(prioridade=False, recurso=RecursoOpcoesEnum.PDDE.name, then=Value(11)),
-        When(prioridade=False, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name, then=Value(12)),
+        When(prioridade=False, recurso=RecursoOpcoesEnum.PTRF.name, then=Value(13)),
+        When(prioridade=False, recurso=RecursoOpcoesEnum.PDDE.name, then=Value(14)),
+        When(prioridade=False, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name, then=Value(15)),
+        When(prioridade=False, recurso=RecursoOpcoesEnum.OUTRO_RECURSO.name, then=Value(16)),
         default=Value(99),
-        output_field=IntegerField()
+        output_field=IntegerField(),
     )
 
     # Alfabética
@@ -33,6 +37,7 @@ def queryset_prioridades_paa(qs):
         When(recurso=RecursoOpcoesEnum.PTRF.name, then=F('acao_associacao__acao__nome')),
         When(recurso=RecursoOpcoesEnum.PDDE.name, then=F('acao_pdde__nome')),
         When(recurso=RecursoOpcoesEnum.RECURSO_PROPRIO, then=F('especificacao_material__descricao')),
+        When(recurso=RecursoOpcoesEnum.OUTRO_RECURSO, then=F('outro_recurso__nome')),
         default=Value(''),
         output_field=CharField()
     )
