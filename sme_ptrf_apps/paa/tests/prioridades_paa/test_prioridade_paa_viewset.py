@@ -299,6 +299,24 @@ def test_cria_prioridade_paa_pdde_custeio(jwt_authenticated_client_sme, flag_paa
 
 
 @pytest.mark.django_db
+def test_cria_prioridade_paa_outro_recurso(jwt_authenticated_client_sme, flag_paa,
+                                           paa, especificacao_material):
+    data = {
+        "paa": str(paa.uuid),
+        "prioridade": 1,
+        "recurso": "OUTRO_RECURSO",
+        "tipo_aplicacao": "CAPITAL",
+        "especificacao_material": str(especificacao_material.uuid),
+        "valor_total": 20
+    }
+    response = jwt_authenticated_client_sme.post("/api/prioridades-paa/", data)
+    result = response.json()
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result['outro_recurso'] == ["Outro Recurso não informada quando o tipo de Recurso é OUTRO_RECURSO."]
+    assert result.keys() == {'outro_recurso'}
+
+
+@pytest.mark.django_db
 @patch('sme_ptrf_apps.paa.services.resumo_prioridades_service.ResumoPrioridadesService.resumo_prioridades')
 def test_cria_prioridade_paa_recurso_proprio_capital(mock_resumo, jwt_authenticated_client_sme, flag_paa,
                                                      paa, especificacao_material):
@@ -308,30 +326,25 @@ def test_cria_prioridade_paa_recurso_proprio_capital(mock_resumo, jwt_authentica
             'key': RecursoOpcoesEnum.RECURSO_PROPRIO.name,
             'children': [
                 {
-                    'key': 'item_recursos',
-                    'children': [
-                        {
-                            'key': 'item_recursos_receita',
-                            'recurso': 'Receita',
-                            'custeio': 0,
-                            'capital': 0,
-                            'livre_aplicacao': 0
-                        },
-                        {
-                            'key': 'item_recursos_despesas',
-                            'recurso': 'Despesas previstas',
-                            'custeio': 0,
-                            'capital': 0,
-                            'livre_aplicacao': 0
-                        },
-                        {
-                            'key': 'item_recursos_saldo',
-                            'recurso': 'Saldo',
-                            'custeio': 0,
-                            'capital': 0,
-                            'livre_aplicacao': 20
-                        }
-                    ]
+                    'key': f'{RecursoOpcoesEnum.RECURSO_PROPRIO.name}_receita',
+                    'recurso': 'Receita',
+                    'custeio': 0,
+                    'capital': 0,
+                    'livre_aplicacao': 0
+                },
+                {
+                    'key': f'{RecursoOpcoesEnum.RECURSO_PROPRIO.name}_despesas',
+                    'recurso': 'Despesas previstas',
+                    'custeio': 0,
+                    'capital': 0,
+                    'livre_aplicacao': 0
+                },
+                {
+                    'key': f'{RecursoOpcoesEnum.RECURSO_PROPRIO.name}_saldo',
+                    'recurso': 'Saldo',
+                    'custeio': 0,
+                    'capital': 0,
+                    'livre_aplicacao': 20
                 }
             ]
         }
@@ -347,6 +360,7 @@ def test_cria_prioridade_paa_recurso_proprio_capital(mock_resumo, jwt_authentica
     }
     response = jwt_authenticated_client_sme.post("/api/prioridades-paa/", data)
     result = response.json()
+
     assert response.status_code == status.HTTP_201_CREATED, response.status_code
     assert result['paa'] == str(paa.uuid)
     assert result['prioridade'] == 1
@@ -364,6 +378,7 @@ def test_cria_prioridade_paa_recurso_proprio_capital(mock_resumo, jwt_authentica
         'prioridade',
         'recurso',
         'acao_associacao',
+        'outro_recurso',
         'programa_pdde',
         'acao_pdde',
         'tipo_aplicacao',
@@ -436,6 +451,7 @@ def test_altera_prioridade_custeio_para_capital_com_sucesso(mock_resumo, jwt_aut
         'prioridade',
         'recurso',
         'acao_associacao',
+        'outro_recurso',
         'programa_pdde',
         'acao_pdde',
         'tipo_aplicacao',
@@ -473,6 +489,7 @@ def test_altera_prioridade_ptrf_para_recursos_proprios_com_sucesso(jwt_authentic
         'prioridade',
         'recurso',
         'acao_associacao',
+        'outro_recurso',
         'programa_pdde',
         'acao_pdde',
         'tipo_aplicacao',

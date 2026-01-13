@@ -144,6 +144,15 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'especificacao_material': 'Especificação de Material e Serviço não informado.'})
 
+        if attrs.get('recurso') == RecursoOpcoesEnum.OUTRO_RECURSO.name:
+            # Requer Ação associacao quando o Recurso é PTRF
+            if not attrs.get('outro_recurso'):
+                raise serializers.ValidationError(
+                    {'outro_recurso': f'Outro Recurso não informada quando o tipo de Recurso é {RecursoOpcoesEnum.OUTRO_RECURSO.name}.'})
+        else:
+            # Limpa Ação associacao quando o Recurso é diferente de PTRF
+            attrs['outro_recurso'] = None
+
         # Valida se o valor da prioridade não excede os recursos disponíveis
         # Para recursos PTRF, PDDE, Recursos Próprios e Outros Recursos
         if (attrs.get('valor_total') and

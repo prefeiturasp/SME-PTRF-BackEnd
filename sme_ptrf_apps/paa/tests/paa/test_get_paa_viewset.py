@@ -42,7 +42,7 @@ def test_action_resumo_prioridades(jwt_authenticated_client_sme, flag_paa, paa_f
     assert len(result) == 3
     assert result[0]['key'] == 'PTRF'
     assert result[1]['key'] == 'PDDE'
-    assert result[2]['key'] == 'RECURSO_PROPRIO'
+    assert result[2]['key'] == 'OUTRO_RECURSO'
 
 
 def test_get_objetivos_disponiveis(jwt_authenticated_client_sme, flag_paa, objetivo_paa_factory):
