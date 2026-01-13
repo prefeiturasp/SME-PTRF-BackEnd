@@ -15,9 +15,19 @@ Cypress.on("uncaught:exception", (err, runnable) => {
 });
 
 describe("Credito Escola - Cadastro", () => {
-  it("CT07-Cadastro_de_Credito_Rendimento_Cheque_Livre_Aplicacao", () => {
+  it("CT139-Cadastro_de_Credito_Repasse_Valor_Capital_Incompleto", () => {
     Comum.visitarPaginaPTRF();
 
     Comum.login(usuario.Usuario, usuario.Senha);
+
+    Comum.selecionarCeuVilaAlpina();
+
+    Creditos.selecionarCreditosDaEscola();
+
+    cy.wait(3000);
+
+    Creditos.selecionarCadastrarCredito();
+
+    Comum.logout();
   });
 });

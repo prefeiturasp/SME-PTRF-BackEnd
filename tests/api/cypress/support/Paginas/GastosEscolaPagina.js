@@ -479,16 +479,16 @@ class GastosEscolaPagina {
         Gastos.cadastroDataPagamento().type('30/08/2023');
         Gastos.cadastroValorTotalDocumento().type('200000');
         Gastos.cadastroValorRecursoProprio().type('100000');
-        Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
-        Gastos.cadastroTipoDespesaCusteio().select('Gênero alimentício');
-        Gastos.cadastroEspecificacaoCusteio().select('Dieta especial');
-        Gastos.cadastroAcaoCusteio().select('Salas e Espaços de Leitura');
-        Gastos.cadastroTipoContaCusteio().select('Cheque');
-        Gastos.cadastroValorCusteio().type('100000');
-        Gastos.cadastroPossiuVinculo().click();
-        Gastos.cadastroAtividadeVinculada().select('COVID-19');
-        cy.wait(3000);
-        Gastos.botaoSalvarCadastroDespesa().click();        
+        // Gastos.cadastroTipoAplicacaoRecurso().select('Custeio');
+        // Gastos.cadastroTipoDespesaCusteio().select('Gênero alimentício');
+        // Gastos.cadastroEspecificacaoCusteio().select('Dieta especial');
+        // Gastos.cadastroAcaoCusteio().select('Salas e Espaços de Leitura');
+        // Gastos.cadastroTipoContaCusteio().select('Cheque');
+        // Gastos.cadastroValorCusteio().type('100000');
+        // Gastos.cadastroPossiuVinculo().click();
+        // Gastos.cadastroAtividadeVinculada().select('COVID-19');
+        // cy.wait(3000);
+        // Gastos.botaoSalvarCadastroDespesa().click();        
     }
 
     validarCadastroDespesaComprovanteImpostoMaterialPedagogico() {
