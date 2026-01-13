@@ -145,12 +145,13 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
                 {'especificacao_material': 'Especificação de Material e Serviço não informado.'})
 
         # Valida se o valor da prioridade não excede os recursos disponíveis
-        # Para recursos PTRF, PDDE e Recursos Próprios
+        # Para recursos PTRF, PDDE, Recursos Próprios e Outros Recursos
         if (attrs.get('valor_total') and
             attrs.get('tipo_aplicacao') and
             ((attrs.get('recurso') == RecursoOpcoesEnum.PTRF.name and attrs.get('acao_associacao')) or
              (attrs.get('recurso') == RecursoOpcoesEnum.PDDE.name and attrs.get('acao_pdde')) or
-             (attrs.get('recurso') == RecursoOpcoesEnum.RECURSO_PROPRIO.name))):
+             (attrs.get('recurso') == RecursoOpcoesEnum.RECURSO_PROPRIO.name) or
+             (attrs.get('recurso') == RecursoOpcoesEnum.OUTRO_RECURSO.name))):
             from sme_ptrf_apps.paa.services import ResumoPrioridadesService
             resumo_service = ResumoPrioridadesService(attrs.get('paa'))
 
@@ -160,6 +161,8 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
                 acao_uuid = str(attrs.get('acao_associacao').uuid)
             elif attrs.get('recurso') == RecursoOpcoesEnum.PDDE.name:
                 acao_uuid = str(attrs.get('acao_pdde').uuid)
+            elif attrs.get('recurso') == RecursoOpcoesEnum.OUTRO_RECURSO.name:
+                acao_uuid = str(attrs.get('outro_recurso').uuid)
             # Para Recursos Próprios, acao_uuid permanece None
 
             # Se estamos atualizando uma prioridade existente, passa o UUID e valor atual da prioridade

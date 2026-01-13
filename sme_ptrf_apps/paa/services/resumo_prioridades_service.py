@@ -418,18 +418,10 @@ class ResumoPrioridadesService:
 
     def calcula_node_outros_recursos(self) -> dict:
         """
-            Node de Outros Recursos Total.
+            Node Outros Recursos Total: (Recursos próprios + Outros Recursos)
 
-            Node envolve Recursos Próprios + Outros Recursos
-
-            O resumo é um dicionário com as seguintes chaves:
-            - key: identificador do recurso
-            - recurso: descrição do recurso
-            - custeio: valor total do custeio
-            - capital: valor total do capital
-            - livre_aplicacao: valor total da livre aplicação
-            - parent: identificação do nível pai da hierarquia do tipo de recurso
-            - children: lista de nodes filhos (receitas, despesas e saldos)
+            Recursos próprios: Item único e de posição fixa
+            Outros Recursos: Lista de acordo com outros recursos habilitados para a unidade no período
         """
 
         from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa
@@ -584,7 +576,7 @@ class ResumoPrioridadesService:
             O resumo é um dicionário com as seguintes chaves:
             - PTRF: resumo dos recursos PTRF
             - PDDE: resumo dos recursos PDDE
-            - RECURSO_PROPRIO: resumo dos recursos próprios
+            - OUTRO_RECURSO: resumo dos outros recursos (Recursos próprios + Outros Recursos)
 
             Cada chave tem como valor outro dicionário com as seguintes chaves:
             - key: identificador do recurso
@@ -638,7 +630,7 @@ class ResumoPrioridadesService:
         try:
             resumo_data = self.resumo_prioridades()
 
-            recurso_data = find_by_key(resumo_data, recurso) or {}
+            recurso_data = buscar_chave_em_todos_os_niveis(resumo_data, recurso) or {}
 
             if not recurso_data:
                 raise serializers.ValidationError({'mensagem': 'Recurso não encontrado no resumo de prioridades.'})
@@ -767,17 +759,19 @@ class ResumoPrioridadesService:
             os valores de custeio e capital (de acordo com o tipo de aplicacao [CUSTEIO ou CAPITAL]).
 
             Parâmetros:
-                recurso_data (dict): Dicionário com os dados da key do recurso [PTRF, PDDE ou RECURSO_PROPRIO]
-                key_acao (str): UUID da ação (associação ou PDDE), em caso de Recursos Próprios,
-                este valor recebe 'item_recursos'
+                recurso_data (dict): Dicionário com os dados da key do recurso [PTRF, PDDE, RECURSO_PROPRIO ou OUTRO_RECURSO]
+                key_acao (str): UUID da ação (associação, PDDE ou Outro Recurso), em caso de Recursos Próprios,
+                este valor recebe 'RECURSO_PROPRIO'
 
             Retorna:
                 Decimal: Saldo total disponível para a ação
             """
 
-            # Obtem o Node [PTRF, PDDE ou RECURSO_PROPRIO]
-            saldos_resumo = next(
-                (item for item in recurso_data.get('children', []) if item.get('key') == '{}_{}'.format(key_acao, 'saldo')), {})
+            # Obtem o Node [PTRF, PDDE, RECURSO_PROPRIO ou OUTRO_RECURSO]
+            saldos_resumo = buscar_chave_em_todos_os_niveis(
+                recurso_data.get("children", []),
+                f"{key_acao}_saldo"
+            )
 
             # Valida se os saldos foram encontrados
             if not saldos_resumo:
@@ -815,7 +809,7 @@ class ResumoPrioridadesService:
         try:
             resumo_data = self.resumo_prioridades()
 
-            recurso_data = find_by_key(resumo_data, recurso) or {}
+            recurso_data = buscar_chave_em_todos_os_niveis(resumo_data, recurso) or {}
 
             if not recurso_data:
                 raise serializers.ValidationError(
@@ -859,6 +853,18 @@ class ResumoPrioridadesService:
                         })
                 else:
                     return saldo_disponivel
+
+            if recurso == RecursoOpcoesEnum.OUTRO_RECURSO.name:
+                saldo_disponivel = obtem_saldos(recurso_data, acao_uuid)
+                if saldo_disponivel < valor_total:
+                    raise serializers.ValidationError(
+                        {
+                            'mensagem': (
+                                'O valor indicado para a prioridade excede o valor disponível de receita prevista.'),
+                            'detail': saldo_disponivel
+                        })
+                else:
+                    return saldo_disponivel
             return
 
         except serializers.ValidationError as ex:
@@ -869,14 +875,14 @@ class ResumoPrioridadesService:
             raise
 
 
-def find_by_key(data, key):
+def buscar_chave_em_todos_os_niveis(data, key):
     for item in data:
         if item.get("key") == key:
             return item
 
         children = item.get("children", [])
         if children:
-            found = find_by_key(children, key)
+            found = buscar_chave_em_todos_os_niveis(children, key)
             if found:
                 return found
 
