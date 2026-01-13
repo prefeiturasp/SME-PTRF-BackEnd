@@ -87,39 +87,33 @@ def test_calcula_node_pdde(receita_prevista_pdde_resumo_recursos):
 
 
 @pytest.mark.django_db
-@patch("sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer.RecursoProprioPaaListSerializer")
-def test_calcula_node_recursos_proprios(mock_serializer, resumo_recursos_paa):
-    mock_serializer.return_value.data = [
-        {
-            "uuid": "rec-1",
-            "descricao": "R1",
-            "valor": Decimal("500")
-        },
-        {
-            "uuid": "rec-2",
-            "descricao": "R2",
-            "valor": Decimal("500")
-        }
-    ]
+def test_calcula_node_outros_recursos(resumo_recursos_paa, recurso_proprio_paa_factory, prioridade_paa_factory):
+    recurso_proprio_paa_factory.create(paa=resumo_recursos_paa, descricao="ABC 007", valor=1000.00)
+    prioridade_paa_factory.create(
+        paa=resumo_recursos_paa,
+        recurso="RECURSO_PROPRIO",
+        valor_total=200,
+        acao_pdde=None,
+        acao_associacao=None
+    )
 
     service = ResumoPrioridadesService(paa=resumo_recursos_paa)
-    result = service.calcula_node_recursos_proprios()
-
-    assert result["key"] == RecursoOpcoesEnum.RECURSO_PROPRIO.name
-    assert result["children"][0]["recurso"] == "Total de Recursos Próprios"
+    result = service.calcula_node_outros_recursos()
+    assert result["key"] == RecursoOpcoesEnum.OUTRO_RECURSO.name
+    assert result["children"][0]["recurso"] == RecursoOpcoesEnum.RECURSO_PROPRIO.value
     assert result["children"][0]["custeio"] == 0
     assert result["children"][0]["capital"] == 0
-    assert result["children"][0]["livre_aplicacao"] == 1000  # 500 + 500
+    assert result["children"][0]["livre_aplicacao"] == 800
 
 
 @pytest.mark.django_db
 @patch.object(ResumoPrioridadesService, "calcula_node_ptrf")
 @patch.object(ResumoPrioridadesService, "calcula_node_pdde")
-@patch.object(ResumoPrioridadesService, "calcula_node_recursos_proprios")
+@patch.object(ResumoPrioridadesService, "calcula_node_outros_recursos")
 def test_resumo_prioridades(mock_recursos, mock_pdde, mock_ptrf, resumo_recursos_paa):
     mock_ptrf.return_value = {"key": "PTRF"}
     mock_pdde.return_value = {"key": "PDDE"}
-    mock_recursos.return_value = {"key": "RECURSO_PROPRIO"}
+    mock_recursos.return_value = {"key": "OUTRO_RECURSO"}
 
     service = ResumoPrioridadesService(paa=resumo_recursos_paa)
     result = service.resumo_prioridades()
@@ -127,8 +121,8 @@ def test_resumo_prioridades(mock_recursos, mock_pdde, mock_ptrf, resumo_recursos
     assert isinstance(result, list)
     assert {"key": "PTRF"} in result
     assert {"key": "PDDE"} in result
-    assert {"key": "RECURSO_PROPRIO"} in result
-    assert len(result) == 3  # PTRF, PDDE e RECURSO_PROPRIO
+    assert {"key": "OUTRO_RECURSO"} in result
+    assert len(result) == 3  # PTRF, PDDE e OUTRO_RECURSO
     assert result[0]["key"] == "PTRF"
 
 
@@ -347,28 +341,83 @@ def test_validar_valor_prioridade_recursos_proprios_sucesso(mock_resumo, resumo_
             'key': RecursoOpcoesEnum.RECURSO_PROPRIO.name,
             'children': [
                 {
-                    'key': 'item_recursos',
-                    'children': [
+                    'key': f'{RecursoOpcoesEnum.RECURSO_PROPRIO.name}_receita',
+                    'recurso': 'Receita',
+                    'custeio': Decimal('0.00'),
+                    'capital': Decimal('0.00'),
+                    'livre_aplicacao': Decimal('1000.00')
+                },
+                {
+                    'key': f'{RecursoOpcoesEnum.RECURSO_PROPRIO.name}_despesas',
+                    'recurso': 'Despesas previstas',
+                    'custeio': Decimal('0.00'),
+                    'capital': Decimal('0.00'),
+                    'livre_aplicacao': Decimal('0.00')
+                },
+                {
+                    'key': f'{RecursoOpcoesEnum.RECURSO_PROPRIO.name}_saldo',
+                    'recurso': 'Saldo',
+                    'custeio': Decimal('0.00'),
+                    'capital': Decimal('0.00'),
+                    'livre_aplicacao': Decimal('1000.00')
+                }
+            ]
+        }
+    ]
+
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+    try:
+        service.validar_valor_prioridade(
+            valor_total=Decimal('5000.00'),
+            acao_uuid=RecursoOpcoesEnum.RECURSO_PROPRIO.name,
+            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+            recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name
+        )
+        assert True
+    except Exception as ex:
+        assert 'O valor indicado para a prioridade excede o valor disponível de receita prevista.' in str(ex)
+
+
+@pytest.mark.django_db
+@patch.object(ResumoPrioridadesService, "resumo_prioridades")
+def test_validar_valor_prioridade_outros_recursos(mock_resumo, resumo_recursos_paa):
+    mock_resumo.return_value = [
+        {
+            "key": f"{RecursoOpcoesEnum.OUTRO_RECURSO.name}",
+            "recurso": "Outros Recursos Total",
+            "custeio": 700,
+            "capital": 0,
+            "livre_aplicacao": -72988.89,
+            "children": [
+                {
+                    "key": "UUID-Outro-Recurso-Periodo",
+                    "recurso": "Prêmio de Excelência",
+                    "custeio": 700,
+                    "capital": 0,
+                    "livre_aplicacao": 36011.11,
+                    "parent": f"{RecursoOpcoesEnum.OUTRO_RECURSO.name}",
+                    "cor": "#3482b3",
+                    "children": [
                         {
-                            'key': 'item_recursos_receita',
-                            'recurso': 'Receita',
-                            'custeio': Decimal('0.00'),
-                            'capital': Decimal('0.00'),
-                            'livre_aplicacao': Decimal('1000.00')
+                            "key": "UUID-Outro-Recurso-Periodo_receita",
+                            "recurso": "Receita",
+                            "custeio": 0,
+                            "capital": 0,
+                            "livre_aplicacao": 5000
                         },
                         {
-                            'key': 'item_recursos_despesas',
-                            'recurso': 'Despesas previstas',
-                            'custeio': Decimal('0.00'),
-                            'capital': Decimal('0.00'),
-                            'livre_aplicacao': Decimal('0.00')
+                            "key": "UUID-Outro-Recurso-Periodo_despesa",
+                            "recurso": "Despesas previstas",
+                            "custeio": 0,
+                            "capital": 0,
+                            "livre_aplicacao": 2000
                         },
                         {
-                            'key': 'item_recursos_saldo',
-                            'recurso': 'Saldo',
-                            'custeio': Decimal('0.00'),
-                            'capital': Decimal('0.00'),
-                            'livre_aplicacao': Decimal('1000.00')
+                            "key": "UUID-Outro-Recurso-Periodo_saldo",
+                            "recurso": "Saldo",
+                            "custeio": 700,
+                            "capital": 0,
+                            "livre_aplicacao": 3000
                         }
                     ]
                 }
@@ -380,9 +429,9 @@ def test_validar_valor_prioridade_recursos_proprios_sucesso(mock_resumo, resumo_
     try:
         service.validar_valor_prioridade(
             valor_total=Decimal('5000.00'),
-            acao_uuid='item_recursos',
-            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
-            recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name
+            acao_uuid="UUID-Outro-Recurso-Periodo",
+            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name,
+            recurso=RecursoOpcoesEnum.OUTRO_RECURSO.name
         )
         assert True
     except Exception as ex:

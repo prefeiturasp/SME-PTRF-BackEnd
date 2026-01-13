@@ -5,6 +5,7 @@ class RecursoOpcoesEnum(Enum):
     PTRF = "PTRF"
     PDDE = "PDDE"
     RECURSO_PROPRIO = "Recursos Próprios"
+    OUTRO_RECURSO = "Outros Recursos"
 
     @classmethod
     def choices(cls):
