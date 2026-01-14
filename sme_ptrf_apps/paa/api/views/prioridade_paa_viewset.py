@@ -158,6 +158,7 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
             'paa': str(original.paa.uuid) if original.paa else None,
             'prioridade': int(original.prioridade),
             'recurso': original.recurso,
+            'outro_recurso': str(original.outro_recurso.uuid) if original.outro_recurso else None,
             'acao_associacao': str(original.acao_associacao.uuid) if original.acao_associacao else None,
             'programa_pdde': str(original.programa_pdde.uuid) if original.programa_pdde else None,
             'acao_pdde': str(original.acao_pdde.uuid) if original.acao_pdde else None,
