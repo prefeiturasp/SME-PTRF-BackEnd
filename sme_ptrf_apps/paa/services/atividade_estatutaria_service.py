@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import QuerySet, F
+from django.db.models import QuerySet, F, Max
 from sme_ptrf_apps.paa.models.atividade_estatutaria import AtividadeEstatutaria
 
 
@@ -70,3 +70,29 @@ class AtividadeEstatutariaOrdenacaoService:
 
             origem.ordem = ordem_destino
             origem.save(update_fields=['ordem'])
+
+    @classmethod
+    def create_atividade_estatutaria(cls, validated_data) -> AtividadeEstatutaria:
+        with transaction.atomic():
+            ultima_ordem = (
+                AtividadeEstatutaria.objects
+                .all()
+                .aggregate(max_ordem=Max("ordem"))
+                .get("max_ordem")
+            )
+
+            validated_data["ordem"] = (ultima_ordem or 0) + 1
+            return AtividadeEstatutaria.objects.create(**validated_data)
+
+    @classmethod
+    def delete_atividade_estatutaria(cls, atividade: AtividadeEstatutaria):
+        with transaction.atomic():
+            ordem_removida = atividade.ordem
+
+            atividade.delete()
+            (
+                AtividadeEstatutaria.objects.filter(
+                    ordem__gt=ordem_removida
+                )
+                .update(ordem=F("ordem") - 1)
+            )
