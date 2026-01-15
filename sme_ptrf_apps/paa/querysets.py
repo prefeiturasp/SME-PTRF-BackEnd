@@ -37,7 +37,7 @@ def queryset_prioridades_paa(qs):
         When(recurso=RecursoOpcoesEnum.PTRF.name, then=F('acao_associacao__acao__nome')),
         When(recurso=RecursoOpcoesEnum.PDDE.name, then=F('acao_pdde__nome')),
         When(recurso=RecursoOpcoesEnum.RECURSO_PROPRIO, then=F('especificacao_material__descricao')),
-        When(recurso=RecursoOpcoesEnum.OUTRO_RECURSO, then=F('outro_recurso__nome')),
+        When(recurso=RecursoOpcoesEnum.OUTRO_RECURSO.name, then=F('outro_recurso__nome')),
         default=Value(''),
         output_field=CharField()
     )
@@ -52,6 +52,7 @@ def queryset_prioridades_paa(qs):
         'especificacao_material',
         'especificacao_material__tipo_custeio',
         'tipo_despesa_custeio',
+        'outro_recurso'
     )
 
     return qs.annotate(ordem_customizada=PRIORIDADEPAA_ORDENACAO_PRIORIDADE_RECURSO) \

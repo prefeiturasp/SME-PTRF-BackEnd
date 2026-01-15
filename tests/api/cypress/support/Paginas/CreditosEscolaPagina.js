@@ -272,6 +272,10 @@ class CreditosEscolaPagina {
     cy.wait(3000);
   }
 
+  validar_soma() {
+    Creditos.validarSomaCreditos().should("be.visible");
+  }
+
   selecionarMaisFiltros() {
     Creditos.botaoMaisFiltros().click();
   }
@@ -294,6 +298,10 @@ class CreditosEscolaPagina {
 
   selecionarCadastrarCredito() {
     Creditos.botaoCadastrarCredito().click();
+  }
+
+  salvarCadastroCredito() {
+    Creditos.botaoSalvarCadastroCredito().click();
   }
 
   selecionarValoresReprogramados() {
