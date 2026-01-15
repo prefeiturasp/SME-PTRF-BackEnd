@@ -1,13 +1,16 @@
 import logging
 from datetime import datetime
 from django.db.models import Sum, Q
+from sme_ptrf_apps.paa.utils import numero_decimal
 from sme_ptrf_apps.paa.models.atividade_estatutaria import AtividadeEstatutaria
+from sme_ptrf_apps.paa.models.prioridade_paa import PrioridadePaa
 from sme_ptrf_apps.paa.models.acao_pdde import AcaoPdde
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 from sme_ptrf_apps.paa.enums import TipoAplicacaoOpcoesEnum, RecursoOpcoesEnum
 from sme_ptrf_apps.paa.choices import StatusChoices
 
 from sme_ptrf_apps.mandatos.services import ServicoCargosDaComposicao
+from sme_ptrf_apps.paa.services.outros_recursos_periodo_service import OutroRecursoPeriodoPaaListagemService
 from sme_ptrf_apps.core.models import MembroAssociacao
 from sme_ptrf_apps.core.models import (
     AcaoAssociacao,
@@ -239,19 +242,114 @@ def criar_recursos_proprios(paa):
             "valor": recurso.valor,
         })
 
-    prioridades = paa.prioridadepaa_set.filter(recurso=RecursoOpcoesEnum.RECURSO_PROPRIO)
+    outros_recursos_periodo = OutroRecursoPeriodoPaaListagemService(
+        periodo_paa=paa.periodo_paa,
+        unidade=paa.associacao.unidade
+    ).serialized_listar_outros_recursos_periodo_receitas_previstas(paa)
 
-    total_prioridades_recursos_proprios = prioridades.aggregate(
+    prioridades_recursos_proprios = PrioridadePaa.objects.filter(
+        paa=paa, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name)
+
+    total_prioridades_recursos_proprios = numero_decimal(prioridades_recursos_proprios.aggregate(
         total=Sum("valor_total")
-    )["total"] or 0
+    )["total"] or 0)
 
-    saldo_recursos_proprios = paa.get_total_recursos_proprios() - total_prioridades_recursos_proprios
+    total_recursos_proprios = paa.get_total_recursos_proprios()
+    saldo_recursos_proprios = numero_decimal(
+        paa.get_total_recursos_proprios() - total_prioridades_recursos_proprios)
+
+    items_outros_recursos = []
+
+    # Outros Recursos Itens
+    for orp in outros_recursos_periodo:
+
+        outro_recurso_objeto = orp.get('outro_recurso_objeto', {})
+        recurso_prioridades = PrioridadePaa.objects.filter(
+            paa=paa,
+            outro_recurso__uuid=outro_recurso_objeto.get('uuid'))
+
+        total_despesa_capital = recurso_prioridades.filter(
+            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name
+        ).aggregate(
+            total=Sum("valor_total")
+        )["total"] or 0
+
+        total_despesa_custeio = recurso_prioridades.filter(
+            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name
+        ).aggregate(
+            total=Sum("valor_total")
+        )["total"] or 0
+
+        total_receita_custeio = 0
+        total_receita_capital = 0
+        total_receita_livre = 0
+
+        receitas_previstas = orp.get('receitas_previstas', [])
+
+        for receita in receitas_previstas:
+
+            total_receita_custeio += (
+                numero_decimal(receita.get("previsao_valor_custeio")) +
+                numero_decimal(receita.get("saldo_custeio"))
+            )
+
+            total_receita_capital += (
+                numero_decimal(receita.get("previsao_valor_capital")) +
+                numero_decimal(receita.get("saldo_capital"))
+            )
+
+            total_receita_livre += (
+                numero_decimal(receita.get("previsao_valor_livre")) +
+                numero_decimal(receita.get("saldo_livre"))
+            )
+
+        items_outros_recursos.append({
+            "nome": outro_recurso_objeto.get('nome'),
+            "total_receita_custeio": total_receita_custeio,
+            "total_receita_capital": total_receita_capital,
+            "total_receita_livre": total_receita_livre,
+            "total_despesa_custeio": total_despesa_custeio,
+            "total_despesa_capital": total_despesa_capital,
+            "total_despesa_livre": 0,
+            "saldo_custeio": total_receita_custeio - total_despesa_custeio,
+            "saldo_capital": total_receita_capital - total_despesa_capital,
+            "saldo_livre": total_receita_livre,
+        })
+
+    total_receitas_outros = sum(
+        item["total_receita_custeio"] +
+        item["total_receita_capital"] +
+        item["total_receita_livre"]
+        for item in items_outros_recursos
+    )
+
+    total_despesas_outros = sum(
+        item["total_despesa_custeio"] +
+        item["total_despesa_capital"] +
+        item["total_despesa_livre"]
+        for item in items_outros_recursos
+    )
+
+    total_saldo_outros = sum(
+        item["saldo_custeio"] +
+        item["saldo_capital"] +
+        item["saldo_livre"]
+        for item in items_outros_recursos
+    )
+
+    total_receitas = total_receitas_outros + total_recursos_proprios
+    total_despesas = total_despesas_outros + total_prioridades_recursos_proprios
+    total_saldo = total_saldo_outros + total_recursos_proprios
 
     return {
         "items": recursos,
-        "total_recursos_proprios": paa.get_total_recursos_proprios(),
+        "total_recursos_proprios": total_recursos_proprios,
         "total_prioridades_recursos_proprios": total_prioridades_recursos_proprios,
         "saldo_recursos_proprios": saldo_recursos_proprios,
+        "items_outros_recursos": items_outros_recursos,
+        "total_receitas": total_receitas,
+        "total_despesas": total_despesas,
+        "total_saldo": total_saldo,
     }
 
 
@@ -266,15 +364,39 @@ def criar_atividades_estatutarias(paa):
             "tipo_atividade": atividade.get_tipo_display(),
             "data": atividade_paa.data.strftime("%d/%m/%Y") if atividade_paa else "",
             "atividades_previstas": atividade.nome,
-            "mes_ano": f"{MESES_PT[atividade_paa.data.month - 1]}/{atividade_paa.data.year}" if atividade_paa else MESES_PT[atividade.mes],
+            "mes_ano": (
+                f"{MESES_PT[atividade_paa.data.month - 1]}/{atividade_paa.data.year}"
+                if atividade_paa
+                else MESES_PT[atividade.mes]
+            ),
         })
 
     return items
 
 
 def criar_grupos_prioridades(paa):
+
+    def ordenar_recursos(prioridades):
+        def chave(i):
+            eh_proprio = i["recurso"] == "Recurso Próprio"
+            return (not eh_proprio, i["recurso"])
+
+        return sorted(prioridades, key=chave)
+
     def filtrar_prioridade(prioridades, prioridade, recurso):
-        return [i for i in prioridades if i["prioridade"] == prioridade and i["recurso_tipo"] == recurso]
+        if isinstance(recurso, str):
+            recurso = [recurso]
+
+        lista_filtrada = [
+            i for i in prioridades
+            if i["prioridade"] == prioridade and
+            i["recurso_tipo"] in recurso
+        ]
+        # Ordenação exceptional
+        if recurso == ["RECURSO_PROPRIO", "OUTRO_RECURSO"]:
+            return ordenar_recursos(lista_filtrada)
+
+        return lista_filtrada
 
     def calcular_total_grupo(items):
         total = 0
@@ -294,8 +416,12 @@ def criar_grupos_prioridades(paa):
             recurso = prioridade.acao_associacao.acao.nome
         elif prioridade.recurso == "PDDE":
             recurso = prioridade.acao_pdde.nome
+        elif prioridade.recurso == 'RECURSO_PROPRIO':
+            recurso = "Recurso Próprio"
+        elif prioridade.recurso == 'OUTRO_RECURSO':
+            recurso = prioridade.outro_recurso.nome
         else:
-            recurso = "Recursos Próprios"
+            recurso = '--'
 
         items.append({
             "recurso_tipo": prioridade.recurso,
@@ -310,11 +436,12 @@ def criar_grupos_prioridades(paa):
     grupos = [
         {"titulo": "Prioridades PTRF", "items": filtrar_prioridade(items, True, "PTRF")},
         {"titulo": "Prioridades PDDE", "items": filtrar_prioridade(items, True, "PDDE")},
-        {"titulo": "Prioridades Recursos próprios", "items": filtrar_prioridade(items, True, "RECURSO_PROPRIO")},
+        {"titulo": "Prioridades Outros Recursos",
+            "items": filtrar_prioridade(items, True, ["RECURSO_PROPRIO", "OUTRO_RECURSO"])},
         {"titulo": "Não Prioridades PTRF", "items": filtrar_prioridade(items, False, "PTRF")},
         {"titulo": "Não Prioridades PDDE", "items": filtrar_prioridade(items, False, "PDDE")},
-        {"titulo": "Não Prioridades Recursos próprios",
-            "items": filtrar_prioridade(items, False, "RECURSO_PROPRIO")},
+        {"titulo": "Não Prioridades Outros Recursos",
+            "items": filtrar_prioridade(items, False, ["RECURSO_PROPRIO", "OUTRO_RECURSO"])},
     ]
 
     for grupo in grupos:
