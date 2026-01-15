@@ -64,6 +64,15 @@ class AtividadeEstatutariaViewSet(WaffleFlagMixin, ModelViewSet):
     def get_queryset(self):
         return AtividadeEstatutariaOrdenacaoService.obter_queryset_ordenado()
 
+    def perform_create(self, serializer):
+        instance = AtividadeEstatutariaOrdenacaoService.create_atividade_estatutaria(
+            validated_data=serializer.validated_data,
+        )
+        serializer.instance = instance
+
+    def perform_destroy(self, instance):
+        AtividadeEstatutariaOrdenacaoService.delete_atividade_estatutaria(atividade=instance)
+
     @action(detail=False, methods=['get'], url_path='tabelas',
             permission_classes=[PermissaoApiUe])
     def tabelas(self, request, *args, **kwrgs):
