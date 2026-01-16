@@ -113,3 +113,30 @@ def test_obter_total_recurso_proprio_paa(jwt_authenticated_client_sme, flag_paa,
     response = jwt_authenticated_client_sme.get("/api/recursos-proprios-paa/total/")
     assert response.status_code == status.HTTP_200_OK
     assert response.data["total"] == 750.00
+
+
+@pytest.mark.django_db
+def test_filtra_recursos_proprios_por_paa_uuid(jwt_authenticated_client_sme, flag_paa, recurso_proprio_paa_factory, paa_factory, fonte_recurso_paa, associacao):
+    paa1 = paa_factory.create(associacao=associacao)
+    paa2 = paa_factory.create(associacao=associacao)
+    
+    recurso_proprio_paa_factory.create(descricao="Recurso PAA 1", valor=100.00, paa=paa1, fonte_recurso=fonte_recurso_paa, associacao=associacao)
+    recurso_proprio_paa_factory.create(descricao="Recurso PAA 2", valor=200.00, paa=paa2, fonte_recurso=fonte_recurso_paa, associacao=associacao)
+
+    response = jwt_authenticated_client_sme.get(f"/api/recursos-proprios-paa/?paa__uuid={paa1.uuid}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["count"] == 1
+    assert response.data["results"][0]["descricao"] == "Recurso PAA 1"
+
+
+@pytest.mark.django_db
+def test_filtra_total_recursos_proprios_por_paa_uuid(jwt_authenticated_client_sme, flag_paa, recurso_proprio_paa_factory, paa_factory, fonte_recurso_paa, associacao):
+    paa1 = paa_factory.create(associacao=associacao)
+    paa2 = paa_factory.create(associacao=associacao)
+    
+    recurso_proprio_paa_factory.create(descricao="Recurso PAA 1", valor=100.00, paa=paa1, fonte_recurso=fonte_recurso_paa, associacao=associacao)
+    recurso_proprio_paa_factory.create(descricao="Recurso PAA 2", valor=200.00, paa=paa2, fonte_recurso=fonte_recurso_paa, associacao=associacao)
+
+    response = jwt_authenticated_client_sme.get(f"/api/recursos-proprios-paa/total/?paa__uuid={paa1.uuid}")
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["total"] == 100.00
