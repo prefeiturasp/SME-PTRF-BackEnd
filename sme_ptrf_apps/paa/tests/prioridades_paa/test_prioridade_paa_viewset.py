@@ -129,8 +129,6 @@ def test_list_ordenacao_customizada_prioridade_paa(
 
     assert result['results'][6]['uuid'] == str(item3.uuid)
 
-    
-
 
 @pytest.mark.django_db
 def test_list_ordenacao_customizada_prioridade_paa_relatorio(
@@ -473,7 +471,8 @@ def test_altera_prioridade_custeio_para_capital_com_sucesso(mock_resumo, jwt_aut
 @pytest.mark.django_db
 def test_altera_prioridade_ptrf_para_recursos_proprios_com_sucesso(jwt_authenticated_client_sme,
                                                                    flag_paa,
-                                                                   prioridade_paa_ptrf_custeio):
+                                                                   prioridade_paa_ptrf_custeio,
+                                                                   recurso_proprio_paa):
     prioridade_paa = prioridade_paa_ptrf_custeio
     payload = {
         "paa": str(prioridade_paa.paa.uuid),
@@ -486,6 +485,7 @@ def test_altera_prioridade_ptrf_para_recursos_proprios_com_sucesso(jwt_authentic
     }
     response = jwt_authenticated_client_sme.patch(f"/api/prioridades-paa/{prioridade_paa.uuid}/", payload)
     result = response.json()
+
     assert response.status_code == status.HTTP_200_OK
     assert result['acao_associacao'] is None
     assert result['acao_pdde'] is None
@@ -506,6 +506,27 @@ def test_altera_prioridade_ptrf_para_recursos_proprios_com_sucesso(jwt_authentic
         'valor_total',
         'copia_de'
     }
+
+
+@pytest.mark.django_db
+def test_altera_prioridade_ptrf_para_recursos_proprios_sem_saldo_suficiente(jwt_authenticated_client_sme,
+                                                                            flag_paa,
+                                                                            prioridade_paa_ptrf_custeio):
+    prioridade_paa = prioridade_paa_ptrf_custeio
+    payload = {
+        "paa": str(prioridade_paa.paa.uuid),
+        "prioridade": SimNaoChoices.SIM,
+        "recurso": RecursoOpcoesEnum.RECURSO_PROPRIO.name,
+        "tipo_aplicacao": TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+        "tipo_despesa_custeio": str(prioridade_paa.tipo_despesa_custeio.uuid),
+        "especificacao_material": str(prioridade_paa.especificacao_material.uuid),
+        "valor_total": 20
+    }
+    response = jwt_authenticated_client_sme.patch(f"/api/prioridades-paa/{prioridade_paa.uuid}/", payload)
+    result = response.json()
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "O valor indicado para a prioridade excede o valor disponível de receita prevista." in result.get("mensagem")
 
 
 @pytest.mark.django_db
