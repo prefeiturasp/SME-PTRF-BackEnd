@@ -2,6 +2,7 @@ import pytest
 from datetime import date
 from freezegun import freeze_time
 from rest_framework import status
+from sme_ptrf_apps.paa.choices import StatusChoices
 
 pytestmark = pytest.mark.django_db
 
@@ -62,7 +63,7 @@ def test_get_objetivos_disponiveis(jwt_authenticated_client_sme, flag_paa, objet
 def test_get_atividades_estatutarias_disponiveis(jwt_authenticated_client_sme, flag_paa, atividade_estatutaria_factory):
 
     atividade_1 = atividade_estatutaria_factory()
-    atividade_estatutaria_factory()
+    atividade_estatutaria_factory(status=StatusChoices.ATIVO)
 
     response = jwt_authenticated_client_sme.get(
         f"/api/paa/{str(atividade_1.paa.uuid)}/atividades-estatutarias-disponiveis/")

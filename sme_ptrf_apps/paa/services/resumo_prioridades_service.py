@@ -483,7 +483,7 @@ class ResumoPrioridadesService:
                 "livre_aplicacao": valor_livre,
             }
 
-        def calcula_despesas(item, prioridades_qs) -> dict:
+        def calcula_despesas_recursos_proprios(item, prioridades_qs) -> dict:
             """
                 Calcula as despesas previstas de um item de Recursos Próprios para montagem de tabela de
                 hierarquias no frontend.
@@ -516,6 +516,41 @@ class ResumoPrioridadesService:
                 "livre_aplicacao": 0,
             }
 
+        def calcula_despesas_outros_recursos(item, prioridades_qs) -> dict:
+            """
+                Calcula as despesas previstas de um item de Recursos Próprios para montagem de tabela de
+                hierarquias no frontend.
+                :param item: Dado de um item de Recursos Próprios para compor o dict de retorno
+                :param receitas: Dicionário com informações de despesas previstas de Recursos Próprios
+                :return: Dicionário com a estrutura do Node 3 de "Despesas previstas".
+            """
+
+            despesa_custeio = prioridades_qs.filter(
+                tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+                acao_pdde__isnull=True,
+                acao_associacao__isnull=True,
+                outro_recurso__uuid=item.get('uuid')
+            ).aggregate(
+                total=Sum('valor_total')
+            ).get('total') or 0
+
+            despesa_capital = prioridades_qs.filter(
+                tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name,
+                acao_pdde__isnull=True,
+                acao_associacao__isnull=True,
+                outro_recurso__uuid=item.get('uuid')
+            ).aggregate(
+                total=Sum('valor_total')
+            ).get('total') or 0
+
+            return {
+                'key': item.get('uuid') + '_' + 'despesa',
+                "recurso": 'Despesas previstas',
+                "custeio": despesa_custeio,
+                "capital": despesa_capital,
+                "livre_aplicacao": 0,
+            }
+
         # Estrutura do Node Pai
         outros_recursos_total = {
             'key': RecursoOpcoesEnum.OUTRO_RECURSO.name,
@@ -529,9 +564,9 @@ class ResumoPrioridadesService:
         for item in outros_recursos_data:
             node_outros_recursos_total = outros_recursos_total['children']
 
-            # Último node - Valores da Receita (Custeio, Capital, Livre)
             if item.get('uuid') == RecursoOpcoesEnum.RECURSO_PROPRIO.name:
                 receitas = calcula_receitas_recursos_proprios(item)
+                despesas = calcula_despesas_recursos_proprios(item, item.get('prioridades_qs'))
             else:
                 receitas_previstas = ReceitaPrevistaOutroRecursoPeriodo.objects.filter(
                     paa=self.paa,
@@ -539,9 +574,7 @@ class ResumoPrioridadesService:
                 )
 
                 receitas = calcula_receitas_outros_recursos(item, receitas_previstas)
-
-            # Último node - Valores da Despesas (Custeio, Capital, Livre)
-            despesas = calcula_despesas(item, item.get('prioridades_qs'))
+                despesas = calcula_despesas_outros_recursos(item, item.get('prioridades_qs'))
 
             # Último node - Saldo (Custeio, Capital, Livre)
             saldo = self.calcula_saldos(item.get('uuid'), receitas, despesas)

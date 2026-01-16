@@ -265,10 +265,11 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
     def atividades_estatutarias_disponiveis(self, request, uuid=None):
         from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_serializer import AtividadeEstatutariaSerializer
         from sme_ptrf_apps.paa.models.atividade_estatutaria import AtividadeEstatutaria
+        from sme_ptrf_apps.paa.choices import StatusChoices
 
         paa = self.get_object()
 
-        objetivos = AtividadeEstatutaria.objects.filter(Q(paa__isnull=True) | Q(paa=paa)).ordenadas()
+        objetivos = AtividadeEstatutaria.objects.filter(Q(paa__isnull=True) | Q(paa=paa), status=StatusChoices.ATIVO).ordenadas()
 
         serializer = AtividadeEstatutariaSerializer(objetivos, many=True)
 
