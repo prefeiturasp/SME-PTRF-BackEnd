@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from django.db.models import Sum, Q
+from django.db.models import Sum
 from sme_ptrf_apps.paa.utils import numero_decimal
 from sme_ptrf_apps.paa.models.atividade_estatutaria import AtividadeEstatutaria
 from sme_ptrf_apps.paa.models.prioridade_paa import PrioridadePaa
@@ -9,7 +9,6 @@ from sme_ptrf_apps.paa.models.outros_recursos_periodo_paa import OutroRecursoPer
 from sme_ptrf_apps.paa.models.receita_prevista_outro_recurso_periodo import ReceitaPrevistaOutroRecursoPeriodo
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 from sme_ptrf_apps.paa.enums import TipoAplicacaoOpcoesEnum, RecursoOpcoesEnum
-from sme_ptrf_apps.paa.choices import StatusChoices
 
 from sme_ptrf_apps.mandatos.services import ServicoCargosDaComposicao
 from sme_ptrf_apps.core.models import MembroAssociacao
@@ -355,8 +354,7 @@ def criar_recursos_proprios(paa):
 def criar_atividades_estatutarias(paa):
     items = []
 
-    atividades = AtividadeEstatutaria.objects.filter(
-        Q(paa__isnull=True) | Q(paa=paa), status=StatusChoices.ATIVO).ordenadas()
+    atividades = AtividadeEstatutaria.disponiveis_ordenadas(paa)
 
     for atividade in atividades:
         atividade_paa = paa.atividadeestatutariapaa_set.filter(atividade_estatutaria=atividade).first()

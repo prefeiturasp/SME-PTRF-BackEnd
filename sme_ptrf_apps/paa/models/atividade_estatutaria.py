@@ -1,34 +1,9 @@
 from django.db import models
 from auditlog.models import AuditlogHistoryField
-from django.db.models import Case, When, F, IntegerField, DateTimeField, Value, BooleanField
 from auditlog.registry import auditlog
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.paa.enums import TipoAtividadeEstatutariaEnum
 from sme_ptrf_apps.paa.choices import Mes, StatusChoices
-
-
-class AtividadeEstatutariaQuerySet(models.QuerySet):
-    def ordenadas(self):
-        return (
-            self.annotate(
-                paa_is_null=Case(
-                    When(paa__isnull=True, then=Value(True)),
-                    default=Value(False),
-                    output_field=BooleanField(),
-                )
-            )
-            .order_by(
-                '-paa_is_null',
-                Case(
-                    When(paa__isnull=True, then=F('ordem')),
-                    output_field=IntegerField(),
-                ),
-                Case(
-                    When(paa__isnull=False, then=F('criado_em')),
-                    output_field=DateTimeField(),
-                ),
-            )
-        )
 
 
 class AtividadeEstatutaria(ModeloBase):
@@ -42,8 +17,6 @@ class AtividadeEstatutaria(ModeloBase):
     paa = models.ForeignKey('paa.Paa', on_delete=models.PROTECT, verbose_name="PAA", blank=True, null=True)
     ordem = models.PositiveIntegerField(default=0)
 
-    objects = AtividadeEstatutariaQuerySet.as_manager()
-
     def __str__(self):
         return self.nome
 
@@ -51,6 +24,53 @@ class AtividadeEstatutaria(ModeloBase):
         verbose_name = "Atividade Estatutária"
         verbose_name_plural = "Atividades Estatutárias"
         unique_together = ['nome', 'mes', 'tipo']
+
+    @classmethod
+    def disponiveis_ordenadas(cls, paa):
+        from sme_ptrf_apps.paa.models.atividade_estatutaria_paa import AtividadeEstatutariaPaa
+        from django.db.models.functions import Coalesce
+        from datetime import date
+        from django.db.models import (
+            Case, When, Value, IntegerField,
+            DateField, Q, Subquery, OuterRef, F
+        )
+        """
+        Retorna:
+        - Atividades base (sem PAA), ordenadas por 'ordem'
+        - Atividades do PAA, ordenadas por 'data'
+        """
+
+        data_paa_subquery = (
+            AtividadeEstatutariaPaa.objects
+            .filter(
+                paa=paa,
+                atividade_estatutaria=OuterRef('pk')
+            )
+            .order_by('data')
+            .values('data')[:1]
+        )
+
+        atividades_base = (
+            cls.objects
+            .filter(
+                Q(paa__isnull=True) | Q(paa=paa),
+                status=StatusChoices.ATIVO,
+            )
+            .annotate(
+                data_paa_ordem=Coalesce(
+                    Subquery(data_paa_subquery, output_field=DateField()),
+                    date(9999, 12, 31)
+                ),
+                ordem_final=Case(
+                    When(ordem=0, then=Value(9999)),
+                    default=F('ordem'),
+                    output_field=IntegerField(),
+                )
+            )
+            .order_by('ordem_final', 'data_paa_ordem')
+        )
+
+        return atividades_base
 
 
 auditlog.register(AtividadeEstatutaria)
