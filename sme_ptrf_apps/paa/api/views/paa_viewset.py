@@ -268,7 +268,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
 
         paa = self.get_object()
 
-        objetivos = AtividadeEstatutaria.objects.filter(Q(paa__isnull=True) | Q(paa=paa)).ordenadas()
+        objetivos = AtividadeEstatutaria.disponiveis_ordenadas(paa)
 
         serializer = AtividadeEstatutariaSerializer(objetivos, many=True)
 
