@@ -7,10 +7,15 @@ from auditlog.registry import auditlog
 
 class OutroRecursoPeriodoPaaQuerySet(models.QuerySet):
     def disponiveis_para_paa(self, paa):
-        return self.filter(
-            Q(unidades=paa.associacao.unidade) | Q(unidades__isnull=True),
-            periodo_paa=paa.periodo_paa,
-        ).distinct()
+        return (
+            self.filter(
+                Q(unidades=paa.associacao.unidade) | Q(unidades__isnull=True),
+                ativo=True,
+                periodo_paa=paa.periodo_paa,
+            )
+            .select_related('outro_recurso', 'periodo_paa')
+            .distinct()
+        )
 
 
 class OutroRecursoPeriodoPaa(ModeloBase):
