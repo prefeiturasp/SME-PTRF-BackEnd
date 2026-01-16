@@ -145,7 +145,6 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
                 {'especificacao_material': 'Especificação de Material e Serviço não informado.'})
 
         if attrs.get('recurso') == RecursoOpcoesEnum.OUTRO_RECURSO.name:
-            # Requer Ação associacao quando o Recurso é PTRF
             if not attrs.get('outro_recurso'):
                 raise serializers.ValidationError(
                     {'outro_recurso': f'Outro Recurso não informada quando o tipo de Recurso é {RecursoOpcoesEnum.OUTRO_RECURSO.name}.'})
@@ -177,11 +176,37 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
             # Se estamos atualizando uma prioridade existente, passa o UUID e valor atual da prioridade
             prioridade_uuid = None
             valor_atual_prioridade = None
+
             if self.instance and hasattr(self.instance, 'uuid'):
                 prioridade_uuid = str(self.instance.uuid)
 
+                acao_associacao_mudou = (
+                    self.instance is not None and attrs.get('acao_associacao') is not None and self.instance.acao_associacao != attrs.get('acao_associacao')
+                )
+                acao_pdde_mudou = (
+                    self.instance is not None and attrs.get('acao_pdde') is not None and self.instance.acao_pdde != attrs.get('acao_pdde')
+                )
+                tipo_aplicacao_mudou = (
+                    self.instance is not None and attrs.get('tipo_aplicacao') is not None and self.instance.tipo_aplicacao != attrs.get('tipo_aplicacao')
+                )
+                recurso_mudou = (
+                    self.instance is not None and attrs.get('recurso') is not None and self.instance.recurso != attrs.get('recurso')
+                )
+                outro_recurso_mudou = (
+                    self.instance is not None and attrs.get('outro_recurso') is not None and self.instance.outro_recurso != attrs.get('outro_recurso')
+                )
+                # Caso um desses campos sejam modificados, o valor atual da prioridade não deve ser incrementado,
+                # pois não reflete o saldo real para o recurso/ação/tipo aplicação
+                considerar_valor_atual_prioridade = (
+                    not acao_associacao_mudou and
+                    not acao_pdde_mudou and
+                    not tipo_aplicacao_mudou and
+                    not recurso_mudou and
+                    not outro_recurso_mudou
+                )
+
                 # OR 0 evita os registros de Cópia com valores = None
-                valor_atual_prioridade = self.instance.valor_total or 0
+                valor_atual_prioridade = self.instance.valor_total or 0 if considerar_valor_atual_prioridade else 0
             resumo_service.validar_valor_prioridade(
                 attrs.get('valor_total'),
                 acao_uuid,
