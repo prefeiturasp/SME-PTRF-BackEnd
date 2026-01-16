@@ -131,15 +131,13 @@ def test_criar_grupos_prioridades_junta_recurso_proprio_e_outro(
 
 
 @pytest.mark.django_db
-@patch(
-    "sme_ptrf_apps.paa.services.dados_documento_paa_service.OutroRecursoPeriodoPaaListagemService"
-)
 def test_criar_recursos_proprios_calcula_totais_corretamente(
-    mock_service,
     paa,
     prioridade_paa_factory,
     recurso_proprio_paa_factory,
     outro_recurso_factory,
+    outro_recurso_periodo_factory,
+    receita_prevista_outro_recurso_periodo_factory
 ):
     recurso_proprio_paa_factory(
         paa=paa,
@@ -170,6 +168,8 @@ def test_criar_recursos_proprios_calcula_totais_corretamente(
     # Outro recurso
     outro_recurso = outro_recurso_factory(nome="Prêmio Qualidade")
 
+    outro_recurso_periodo = outro_recurso_periodo_factory(outro_recurso=outro_recurso, periodo_paa=paa.periodo_paa)
+
     prioridade_paa_factory(
         paa=paa,
         recurso="OUTRO_RECURSO",
@@ -188,24 +188,16 @@ def test_criar_recursos_proprios_calcula_totais_corretamente(
         prioridade=True
     )
 
-    mock_service.return_value.serialized_listar_outros_recursos_periodo_receitas_previstas.return_value = [
-        {
-            "outro_recurso_objeto": {
-                "uuid": outro_recurso.uuid,
-                "nome": outro_recurso.nome,
-            },
-            "receitas_previstas": [
-                {
-                    "previsao_valor_custeio": Decimal("100"),
-                    "saldo_custeio": Decimal("10"),
-                    "previsao_valor_capital": Decimal("50"),
-                    "saldo_capital": Decimal("5"),
-                    "previsao_valor_livre": Decimal("0"),
-                    "saldo_livre": Decimal("0"),
-                }
-            ]
-        }
-    ]
+    receita_prevista_outro_recurso_periodo_factory(
+        paa=paa,
+        outro_recurso_periodo=outro_recurso_periodo,
+        previsao_valor_custeio=110,
+        saldo_custeio=50,
+        previsao_valor_capital=55,
+        saldo_capital=5,
+        previsao_valor_livre=0,
+        saldo_livre=0
+    )
 
     # Mock do método do PAA
     paa.get_total_recursos_proprios = lambda: Decimal("500")
@@ -227,11 +219,11 @@ def test_criar_recursos_proprios_calcula_totais_corretamente(
     assert item_outro["total_despesa_custeio"] == Decimal("80")
     assert item_outro["total_despesa_capital"] == Decimal("20")
 
-    assert item_outro["total_receita_custeio"] == Decimal("110")
-    assert item_outro["total_receita_capital"] == Decimal("55")
+    assert item_outro["total_receita_custeio"] == Decimal("160")
+    assert item_outro["total_receita_capital"] == Decimal("60")
 
     # Totais finais
-    assert resultado["total_receitas"] == Decimal("665")
+    assert resultado["total_receitas"] == Decimal("720")
     assert resultado["total_despesas"] == Decimal("300")
 
     assert resultado["total_saldo"] == (
