@@ -1,10 +1,9 @@
 
 from typing import List, Dict, Any, Optional, Tuple
 from django.db import transaction
-from django.db.models import Q
 from sme_ptrf_apps.core.models.unidade import Unidade
 from sme_ptrf_apps.paa.models import (
-    OutroRecursoPeriodoPaa, PeriodoPaa, ReceitaPrevistaOutroRecursoPeriodo
+    OutroRecursoPeriodoPaa, Paa, ReceitaPrevistaOutroRecursoPeriodo
 )
 from sme_ptrf_apps.paa.api.serializers.receita_prevista_outro_recurso_periodo_serializer import (
     ReceitaPrevistaOutroRecursoPeriodoSerializer)
@@ -396,8 +395,8 @@ class OutroRecursoPeriodoPaaService:
 
 
 class OutroRecursoPeriodoPaaListagemService:
-    def __init__(self, periodo_paa: PeriodoPaa, unidade: Unidade):
-        self.periodo_paa = periodo_paa
+    def __init__(self, paa: Paa, unidade: Unidade):
+        self.paa = paa
         self.unidade = unidade
 
     def queryset_listar_outros_recursos_periodo_unidade(self):
@@ -406,19 +405,7 @@ class OutroRecursoPeriodoPaaListagemService:
         filtrados por período, ativo e vinculados a uma unidade.
         A lista é ordenada por nome do recurso.
         """
-        return OutroRecursoPeriodoPaa.objects.filter(
-            periodo_paa=self.periodo_paa,
-            ativo=True,
-        ).select_related(
-            'outro_recurso',
-            'periodo_paa'
-        ).prefetch_related(
-            'unidades'
-        ).filter(
-            # Considera unidade vinculada quando o Outro Recurso Período não tem nenhuma unidade vinculada
-            # Ou a unidade em questão está diretamente vinculada
-            Q(unidades__in=[self.unidade]) | Q(unidades__isnull=True)
-        ).distinct().order_by('outro_recurso__nome')
+        return OutroRecursoPeriodoPaa.objects.disponiveis_para_paa(self.paa).order_by('outro_recurso__nome')
 
     def serialized_listar_outros_recursos_periodo_unidades(self):
         """

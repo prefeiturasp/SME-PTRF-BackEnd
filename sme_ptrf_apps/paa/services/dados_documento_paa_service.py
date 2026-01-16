@@ -5,12 +5,13 @@ from sme_ptrf_apps.paa.utils import numero_decimal
 from sme_ptrf_apps.paa.models.atividade_estatutaria import AtividadeEstatutaria
 from sme_ptrf_apps.paa.models.prioridade_paa import PrioridadePaa
 from sme_ptrf_apps.paa.models.acao_pdde import AcaoPdde
+from sme_ptrf_apps.paa.models.outros_recursos_periodo_paa import OutroRecursoPeriodoPaa
+from sme_ptrf_apps.paa.models.receita_prevista_outro_recurso_periodo import ReceitaPrevistaOutroRecursoPeriodo
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 from sme_ptrf_apps.paa.enums import TipoAplicacaoOpcoesEnum, RecursoOpcoesEnum
 from sme_ptrf_apps.paa.choices import StatusChoices
 
 from sme_ptrf_apps.mandatos.services import ServicoCargosDaComposicao
-from sme_ptrf_apps.paa.services.outros_recursos_periodo_service import OutroRecursoPeriodoPaaListagemService
 from sme_ptrf_apps.core.models import MembroAssociacao
 from sme_ptrf_apps.core.models import (
     AcaoAssociacao,
@@ -242,10 +243,7 @@ def criar_recursos_proprios(paa):
             "valor": recurso.valor,
         })
 
-    outros_recursos_periodo = OutroRecursoPeriodoPaaListagemService(
-        periodo_paa=paa.periodo_paa,
-        unidade=paa.associacao.unidade
-    ).serialized_listar_outros_recursos_periodo_receitas_previstas(paa)
+    outros_recursos_periodo = OutroRecursoPeriodoPaa.objects.disponiveis_para_paa(paa)
 
     prioridades_recursos_proprios = PrioridadePaa.objects.filter(
         paa=paa, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name)
@@ -262,11 +260,14 @@ def criar_recursos_proprios(paa):
 
     # Outros Recursos Itens
     for orp in outros_recursos_periodo:
-
-        outro_recurso_objeto = orp.get('outro_recurso_objeto', {})
         recurso_prioridades = PrioridadePaa.objects.filter(
             paa=paa,
-            outro_recurso__uuid=outro_recurso_objeto.get('uuid'))
+            outro_recurso=orp.outro_recurso)
+
+        receitas_previstas = ReceitaPrevistaOutroRecursoPeriodo.objects.filter(
+            paa=paa,
+            outro_recurso_periodo__outro_recurso=orp.outro_recurso,
+        )
 
         total_despesa_capital = recurso_prioridades.filter(
             tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name
@@ -284,27 +285,25 @@ def criar_recursos_proprios(paa):
         total_receita_capital = 0
         total_receita_livre = 0
 
-        receitas_previstas = orp.get('receitas_previstas', [])
-
         for receita in receitas_previstas:
 
             total_receita_custeio += (
-                numero_decimal(receita.get("previsao_valor_custeio")) +
-                numero_decimal(receita.get("saldo_custeio"))
+                numero_decimal(receita.previsao_valor_custeio) +
+                numero_decimal(receita.saldo_custeio)
             )
 
             total_receita_capital += (
-                numero_decimal(receita.get("previsao_valor_capital")) +
-                numero_decimal(receita.get("saldo_capital"))
+                numero_decimal(receita.previsao_valor_capital) +
+                numero_decimal(receita.saldo_capital)
             )
 
             total_receita_livre += (
-                numero_decimal(receita.get("previsao_valor_livre")) +
-                numero_decimal(receita.get("saldo_livre"))
+                numero_decimal(receita.previsao_valor_livre) +
+                numero_decimal(receita.saldo_livre)
             )
 
         items_outros_recursos.append({
-            "nome": outro_recurso_objeto.get('nome'),
+            "nome": orp.outro_recurso.nome,
             "total_receita_custeio": total_receita_custeio,
             "total_receita_capital": total_receita_capital,
             "total_receita_livre": total_receita_livre,
@@ -356,7 +355,8 @@ def criar_recursos_proprios(paa):
 def criar_atividades_estatutarias(paa):
     items = []
 
-    atividades = AtividadeEstatutaria.objects.filter(Q(paa__isnull=True) | Q(paa=paa), status=StatusChoices.ATIVO)
+    atividades = AtividadeEstatutaria.objects.filter(
+        Q(paa__isnull=True) | Q(paa=paa), status=StatusChoices.ATIVO).ordenadas()
 
     for atividade in atividades:
         atividade_paa = paa.atividadeestatutariapaa_set.filter(atividade_estatutaria=atividade).first()
