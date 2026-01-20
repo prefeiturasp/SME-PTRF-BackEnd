@@ -268,7 +268,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
 
         paa = self.get_object()
 
-        objetivos = AtividadeEstatutaria.objects.filter(Q(paa__isnull=True) | Q(paa=paa)).order_by(Lower("nome"))
+        objetivos = AtividadeEstatutaria.disponiveis_ordenadas(paa)
 
         serializer = AtividadeEstatutariaSerializer(objetivos, many=True)
 
@@ -304,7 +304,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         paa = self.get_object()
 
         service = OutroRecursoPeriodoPaaListagemService(
-            periodo_paa=paa.periodo_paa,
+            paa=paa,
             unidade=paa.associacao.unidade
         )
         data = service.serialized_listar_outros_recursos_periodo_receitas_previstas(paa)

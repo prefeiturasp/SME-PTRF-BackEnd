@@ -27,6 +27,11 @@ def acao_pdde():
 
 
 @pytest.fixture
+def outro_recurso():
+    return baker.make('OutroRecurso')
+
+
+@pytest.fixture
 def prioridade_paa_ptrf_custeio(paa, acao_associacao, especificacao_material_servico, tipo_custeio):
     import uuid
     return baker.make('PrioridadePaa',
@@ -42,3 +47,8 @@ def prioridade_paa_ptrf_custeio(paa, acao_associacao, especificacao_material_ser
                       tipo_despesa_custeio=tipo_custeio,
                       valor_total=20
                       )
+
+
+@pytest.fixture
+def recurso_proprio_paa(paa, recurso_proprio_paa_factory):
+    return recurso_proprio_paa_factory.create(paa=paa, descricao="Um recurso próprio", valor=100.00)

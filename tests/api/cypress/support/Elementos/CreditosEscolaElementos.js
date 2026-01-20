@@ -255,6 +255,11 @@ class CreditosEscolaElementos {
     return cy.get(".table > thead > tr > :nth-child(1)");
   };
 
+  validarSomaCreditos = () => {
+    return cy.get(".mb-3");
+  };
+
+
   //----------------------- Retorno de Mensagens apresentadas em tela -------------------------\\
   semResultado = () => {
     return cy

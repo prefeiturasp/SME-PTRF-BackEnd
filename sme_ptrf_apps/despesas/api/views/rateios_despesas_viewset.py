@@ -215,12 +215,22 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
             if filter_value:
                 filtered_queryset = filtered_queryset.exclude(despesa__status='INATIVO').filter(**{field: filter_value})
 
+        # Aplicar filtro de data se fornecido
+        data_inicio = request.query_params.get('data_inicio')
+        data_fim = request.query_params.get('data_fim')
+        if data_inicio is not None and data_fim is not None and data_inicio != '' and data_fim != '':
+            filtered_queryset = filtered_queryset.filter(despesa__data_documento__range=[data_inicio, data_fim])
+        elif data_inicio is not None and data_inicio != '':
+            filtered_queryset = filtered_queryset.filter(despesa__data_documento__gte=data_inicio)
+        elif data_fim is not None and data_fim != '':
+            filtered_queryset = filtered_queryset.filter(despesa__data_documento__lte=data_fim)
+
         filtro_informacoes = self.request.query_params.get('filtro_informacoes')
         filtro_informacoes_list = filtro_informacoes.split(',') if filtro_informacoes else []
 
         if filtro_informacoes_list:
             ids_para_excluir = [
-                item.id for item in filtered_queryset if filtra_despesas_por_tags(item, filtro_informacoes_list)]
+                item.id for item in filtered_queryset if filtra_despesas_por_tags(item, filtro_informacoes_list, rateio=True)]
             filtered_queryset = filtered_queryset.exclude(id__in=ids_para_excluir)
 
         filtro_vinculo_atividades = self.request.query_params.get('filtro_vinculo_atividades')

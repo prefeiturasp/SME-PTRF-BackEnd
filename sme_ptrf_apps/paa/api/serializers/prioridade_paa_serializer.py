@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from sme_ptrf_apps.paa.models import Paa, PrioridadePaa, ProgramaPdde, AcaoPdde
+from sme_ptrf_apps.paa.models import Paa, PrioridadePaa, ProgramaPdde, AcaoPdde, OutroRecurso
 from sme_ptrf_apps.paa.models.prioridade_paa import SimNaoChoices
 from sme_ptrf_apps.core.models import AcaoAssociacao
 from sme_ptrf_apps.despesas.models import TipoCusteio, EspecificacaoMaterialServico
@@ -61,6 +61,12 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
         error_messages={'null': 'Ação da Associação não foi informada.'},
         queryset=AcaoAssociacao.objects.all())
 
+    outro_recurso = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        error_messages={'null': 'Outro Recurso não foi informado.'},
+        queryset=OutroRecurso.objects.all())
+
     tipo_despesa_custeio = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
@@ -95,7 +101,7 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PrioridadePaa
-        fields = ('uuid', 'paa', 'prioridade', 'recurso', 'acao_associacao', 'programa_pdde', 'acao_pdde',
+        fields = ('uuid', 'paa', 'prioridade', 'recurso', 'acao_associacao', 'outro_recurso', 'programa_pdde', 'acao_pdde',
                   'tipo_aplicacao', 'tipo_despesa_custeio', 'especificacao_material', 'valor_total', 'copia_de')
 
     def validate(self, attrs):
@@ -138,13 +144,22 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'especificacao_material': 'Especificação de Material e Serviço não informado.'})
 
+        if attrs.get('recurso') == RecursoOpcoesEnum.OUTRO_RECURSO.name:
+            if not attrs.get('outro_recurso'):
+                raise serializers.ValidationError(
+                    {'outro_recurso': f'Outro Recurso não informada quando o tipo de Recurso é {RecursoOpcoesEnum.OUTRO_RECURSO.name}.'})
+        else:
+            # Limpa Ação associacao quando o Recurso é diferente de PTRF
+            attrs['outro_recurso'] = None
+
         # Valida se o valor da prioridade não excede os recursos disponíveis
-        # Para recursos PTRF, PDDE e Recursos Próprios
+        # Para recursos PTRF, PDDE, Recursos Próprios e Outros Recursos
         if (attrs.get('valor_total') and
             attrs.get('tipo_aplicacao') and
             ((attrs.get('recurso') == RecursoOpcoesEnum.PTRF.name and attrs.get('acao_associacao')) or
              (attrs.get('recurso') == RecursoOpcoesEnum.PDDE.name and attrs.get('acao_pdde')) or
-             (attrs.get('recurso') == RecursoOpcoesEnum.RECURSO_PROPRIO.name))):
+             (attrs.get('recurso') == RecursoOpcoesEnum.RECURSO_PROPRIO.name) or
+             (attrs.get('recurso') == RecursoOpcoesEnum.OUTRO_RECURSO.name))):
             from sme_ptrf_apps.paa.services import ResumoPrioridadesService
             resumo_service = ResumoPrioridadesService(attrs.get('paa'))
 
@@ -154,16 +169,44 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
                 acao_uuid = str(attrs.get('acao_associacao').uuid)
             elif attrs.get('recurso') == RecursoOpcoesEnum.PDDE.name:
                 acao_uuid = str(attrs.get('acao_pdde').uuid)
+            elif attrs.get('recurso') == RecursoOpcoesEnum.OUTRO_RECURSO.name:
+                acao_uuid = str(attrs.get('outro_recurso').uuid)
             # Para Recursos Próprios, acao_uuid permanece None
 
             # Se estamos atualizando uma prioridade existente, passa o UUID e valor atual da prioridade
             prioridade_uuid = None
             valor_atual_prioridade = None
+
             if self.instance and hasattr(self.instance, 'uuid'):
                 prioridade_uuid = str(self.instance.uuid)
 
+                acao_associacao_mudou = (
+                    self.instance is not None and attrs.get('acao_associacao') is not None and self.instance.acao_associacao != attrs.get('acao_associacao')
+                )
+                acao_pdde_mudou = (
+                    self.instance is not None and attrs.get('acao_pdde') is not None and self.instance.acao_pdde != attrs.get('acao_pdde')
+                )
+                tipo_aplicacao_mudou = (
+                    self.instance is not None and attrs.get('tipo_aplicacao') is not None and self.instance.tipo_aplicacao != attrs.get('tipo_aplicacao')
+                )
+                recurso_mudou = (
+                    self.instance is not None and attrs.get('recurso') is not None and self.instance.recurso != attrs.get('recurso')
+                )
+                outro_recurso_mudou = (
+                    self.instance is not None and attrs.get('outro_recurso') is not None and self.instance.outro_recurso != attrs.get('outro_recurso')
+                )
+                # Caso um desses campos sejam modificados, o valor atual da prioridade não deve ser incrementado,
+                # pois não reflete o saldo real para o recurso/ação/tipo aplicação
+                considerar_valor_atual_prioridade = (
+                    not acao_associacao_mudou and
+                    not acao_pdde_mudou and
+                    not tipo_aplicacao_mudou and
+                    not recurso_mudou and
+                    not outro_recurso_mudou
+                )
+
                 # OR 0 evita os registros de Cópia com valores = None
-                valor_atual_prioridade = self.instance.valor_total or 0
+                valor_atual_prioridade = self.instance.valor_total or 0 if considerar_valor_atual_prioridade else 0
             resumo_service.validar_valor_prioridade(
                 attrs.get('valor_total'),
                 acao_uuid,
@@ -206,6 +249,9 @@ class PrioridadePaaListSerializer(serializers.ModelSerializer):
     acao_associacao = serializers.SerializerMethodField()
     acao_associacao_objeto = serializers.SerializerMethodField()
 
+    outro_recurso = serializers.SerializerMethodField()
+    outro_recurso_objeto = serializers.SerializerMethodField()
+
     def get_acao_associacao(self, obj):
         if obj.acao_associacao:
             return obj.acao_associacao.uuid
@@ -232,6 +278,17 @@ class PrioridadePaaListSerializer(serializers.ModelSerializer):
     def get_prioridade_objeto(self, obj):
         return list(filter(lambda x: x.get('key') == obj.prioridade, SimNaoChoices.to_dict()))[0]
 
+    def get_outro_recurso(self, obj):
+        if obj.outro_recurso:
+            return obj.outro_recurso.uuid
+
+    def get_outro_recurso_objeto(self, obj):
+        if obj.outro_recurso:
+            return {
+                'uuid': obj.outro_recurso.uuid,
+                'nome': obj.outro_recurso.nome
+            }
+
     class Meta:
         model = PrioridadePaa
         fields = (
@@ -253,5 +310,7 @@ class PrioridadePaaListSerializer(serializers.ModelSerializer):
             'tipo_despesa_custeio_objeto',
             'especificacao_material',
             'especificacao_material_objeto',
-            'valor_total'
+            'valor_total',
+            'outro_recurso',
+            'outro_recurso_objeto'
         )

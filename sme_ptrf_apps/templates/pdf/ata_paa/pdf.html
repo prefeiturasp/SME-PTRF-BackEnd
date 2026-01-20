@@ -15,6 +15,15 @@
   <link href="{{ base_static_url }}/css/ata-paa-pdf.css" rel="stylesheet">
 
   <title>Ata de Apresentação do PAA</title>
+
+  <style>
+    .border {
+        border: none !important;
+    }
+    .border-bottom {
+        border-bottom: none !important;
+    }
+  </style>
 </head>
 <body>
 
@@ -63,7 +72,7 @@
     {% if grupo.titulo == "Prioridades PTRF" and grupo.items|length > 0 %}
       <section class="row mt-4">
         <article class="col mb-3 border p-0">
-          <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>Bloco {{ dados.numeros_blocos.ptrf }} - {{ grupo.titulo }}</strong></p>
+          <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>{{ grupo.titulo }}</strong></p>
           {% include "./partials/tabela-prioridades.html" %}
         </article>
       </section>
@@ -75,7 +84,7 @@
     {% if grupo.titulo == "Prioridades PDDE" and grupo.items|length > 0 %}
       <section class="row mt-4">
         <article class="col mb-3 border p-0">
-          <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>Bloco {{ dados.numeros_blocos.pdde }} - {{ grupo.titulo }}</strong></p>
+          <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>{{ grupo.titulo }}</strong></p>
           {% include "./partials/tabela-prioridades.html" %}
         </article>
       </section>
@@ -84,10 +93,10 @@
 
   {# Bloco de Prioridades Recursos Próprios #}
   {% for grupo in dados.prioridades %}
-    {% if grupo.titulo == "Prioridades Recursos próprios" and grupo.items|length > 0 %}
+    {% if grupo.titulo == "Prioridades Outros Recursos" and grupo.items|length > 0 %}
       <section class="row mt-4">
         <article class="col mb-3 border p-0">
-          <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>Bloco {{ dados.numeros_blocos.recursos_proprios }} - {{ grupo.titulo }}</strong></p>
+          <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>{{ grupo.titulo }}</strong></p>
           {% include "./partials/tabela-prioridades.html" %}
         </article>
       </section>

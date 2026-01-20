@@ -81,7 +81,6 @@ class ExportacaoDadosMembrosApmService:
         self.cria_registro_central_download()
         self.filtra_range_data("criado_em")
         self.exporta_membros_apm_csv()
-        
 
     def exporta_membros_apm_csv(self):
         dados = self.monta_dados()
@@ -106,70 +105,89 @@ class ExportacaoDadosMembrosApmService:
         linhas_vertical = []
 
         for instance in self.queryset:
-            logger.info(f"Iniciando extração de dados de membros apm, id: {instance.id}.")
+            logger.info(
+                f"Iniciando extração de dados de membros apm, id: {instance.id}."
+            )
 
             if not CargoComposicao.objects.filter(id=instance.id).exists():
-                logger.info(f"Este registro não existe mais na base de dados, portanto será pulado")
+                logger.info(
+                    "Este registro não existe mais na base de dados, portanto será pulado"
+                )
                 continue
 
             linha_horizontal = []
 
             for _, campo in self.cabecalho:
-                if campo == "composicao__mandato__data_inicial":
-                    campo = get_recursive_attr(instance, campo)
-                    data_inicial_formatada = campo.strftime("%d/%m/%Y")
-                    linha_horizontal.append(data_inicial_formatada)
+                if not campo:
+                    linha_horizontal.append("")
                     continue
-                if campo == "composicao__mandato__data_final":
-                    campo = get_recursive_attr(instance, campo)
-                    data_final_formatada = campo.strftime("%d/%m/%Y")
-                    linha_horizontal.append(data_final_formatada)
-                    continue
-                if campo == "composicao__data_inicial":
-                    campo = get_recursive_attr(instance, campo)
-                    data_inicial_formatada = campo.strftime("%d/%m/%Y")
-                    linha_horizontal.append(data_inicial_formatada)
-                    continue
-                if campo == "composicao__data_final":
-                    campo = get_recursive_attr(instance, campo)
-                    data_final_formatada = campo.strftime("%d/%m/%Y")
-                    linha_horizontal.append(data_final_formatada)
-                    continue
-                if campo == "ocupante_do_cargo__cpf_responsavel":
-                    representacao = get_recursive_attr(instance, 'ocupante_do_cargo__representacao')
-                    if representacao == OcupanteCargo.REPRESENTACAO_CARGO_SERVIDOR:
-                        campo = get_recursive_attr(instance, 'ocupante_do_cargo__codigo_identificacao')
-                        linha_horizontal.append(campo)
-                        continue
-                    campo = get_recursive_attr(instance, 'ocupante_do_cargo__cpf_responsavel').replace(".", "").replace("-", "").replace(" ", "")
-                    if len(campo) < 10:
-                        masked_cpf = ""
+
+                # Datas do mandato
+                if campo in (
+                    "composicao__mandato__data_inicial",
+                    "composicao__mandato__data_final",
+                    "composicao__data_inicial",
+                    "composicao__data_final",
+                    "data_inicio_no_cargo",
+                    "data_fim_no_cargo",
+                ):
+                    valor = get_recursive_attr(instance, campo)
+                    if valor:
+                        linha_horizontal.append(valor.strftime("%d/%m/%Y"))
                     else:
-                        start = campo[:3]
-                        end = campo[-2:]
-                        middle = "X" * (len(campo) - len(start) - len(end))
-                        masked_cpf = start + middle + end
-                    linha_horizontal.append(masked_cpf)
+                        linha_horizontal.append("")
                     continue
-                if campo == "data_inicio_no_cargo":
-                    campo = get_recursive_attr(instance, campo)
-                    data_inicial_formatada = campo.strftime("%d/%m/%Y")
-                    linha_horizontal.append(data_inicial_formatada)
-                    continue
-                if campo == "data_fim_no_cargo":
-                    campo = get_recursive_attr(instance, campo)
-                    if campo:
-                        data_final_formatada = campo.strftime("%d/%m/%Y")
-                        linha_horizontal.append(data_final_formatada)
+
+                # CPF / Código de identificação
+                if campo == "ocupante_do_cargo__cpf_responsavel":
+                    representacao = get_recursive_attr(
+                        instance,
+                        "ocupante_do_cargo__representacao",
+                    )
+
+                    if representacao == OcupanteCargo.REPRESENTACAO_CARGO_SERVIDOR:
+                        valor = get_recursive_attr(
+                            instance,
+                            "ocupante_do_cargo__codigo_identificacao",
+                        )
+                        linha_horizontal.append(valor or "")
                         continue
-                    linha_horizontal.append('')
 
-                campo = get_recursive_attr(instance, campo)
-                linha_horizontal.append(campo)
+                    cpf = get_recursive_attr(
+                        instance,
+                        "ocupante_do_cargo__cpf_responsavel",
+                    )
 
-            logger.info(f"Escrevendo linha {linha_horizontal} de membros apm, id: {instance.id}.")
+                    if not cpf:
+                        linha_horizontal.append("")
+                        continue
+
+                    cpf = (
+                        cpf.replace(".", "")
+                        .replace("-", "")
+                        .replace(" ", "")
+                    )
+
+                    if len(cpf) < 10:
+                        linha_horizontal.append("")
+                    else:
+                        start = cpf[:3]
+                        end = cpf[-2:]
+                        middle = "X" * (len(cpf) - len(start) - len(end))
+                        linha_horizontal.append(start + middle + end)
+                    continue
+
+                # Campo padrão
+                valor = get_recursive_attr(instance, campo)
+                linha_horizontal.append(valor or "")
+
+            logger.info(
+                f"Escrevendo linha {linha_horizontal} de membros apm, id: {instance.id}."
+            )
             linhas_vertical.append(linha_horizontal)
-            logger.info(f"Finalizando extração de dados de membros apm, id: {instance.id}.")
+            logger.info(
+                f"Finalizando extração de dados de membros apm, id: {instance.id}."
+            )
 
         return linhas_vertical
 
@@ -197,7 +215,7 @@ class ExportacaoDadosMembrosApmService:
         return self.queryset
 
     def cria_registro_central_download(self):
-        logger.info(f"Criando registro na central de download")
+        logger.info("Criando registro na central de download")
 
         obj = gerar_arquivo_download(
             self.user,

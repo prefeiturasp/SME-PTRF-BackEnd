@@ -1,3 +1,4 @@
+from decimal import Decimal, InvalidOperation
 from datetime import date
 from calendar import monthrange
 from typing import List
@@ -33,3 +34,18 @@ def validar_data_final(data_inicial: date, data_final: date) -> bool:
         return False, "Data final deve ser maior que a data inicial"
 
     return data_final >= data_inicial, "Data final deve ser maior que a data inicial"
+
+
+def numero_decimal(valor: str) -> Decimal:
+    """
+    Docstring for numero_decimal
+
+    :param valor: string numérica
+    :type valor: str
+    :return: Retorna um decimal para fazer operações
+    :rtype: Decimal
+    """
+    try:
+        return Decimal(valor)
+    except (TypeError, InvalidOperation):
+        return Decimal("0")
