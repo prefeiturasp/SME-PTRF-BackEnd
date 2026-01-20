@@ -70,7 +70,8 @@ class AtividadeEstatutariaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AtividadeEstatutaria
-        fields = ('uuid', 'id', 'nome', 'status', 'tipo', 'mes', 'status_label', 'tipo_label', 'mes_label', 'paa')
+        fields = ('uuid', 'id', 'nome', 'status', 'tipo', 'mes',
+                  'status_label', 'tipo_label', 'mes_label', 'paa', 'ordem')
         read_only_fields = ('uuid', 'id', 'status_label', 'tipo_label', 'mes_label', 'paa')
         validators = [
             UniqueTogetherValidator(

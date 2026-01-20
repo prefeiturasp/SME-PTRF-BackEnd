@@ -9,8 +9,14 @@ def get_recursive_attr(instance, fields):
 
     Exemplo: get_recursive_attr(instance, items__subitems, default).
     """
+    if not fields:
+        return None
+
     if fields and isinstance(fields, str):
         fields = fields.split('__')
+
+    if not fields:
+        return None
 
     field = getattr(instance, fields.pop(0))
 

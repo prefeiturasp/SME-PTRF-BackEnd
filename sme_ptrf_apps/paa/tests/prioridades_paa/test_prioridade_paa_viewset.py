@@ -39,9 +39,9 @@ def test_list_default_prioridade_paa_relatorio(jwt_authenticated_client_sme, fla
 
 @pytest.mark.django_db
 def test_list_ordenacao_customizada_prioridade_paa(
-        jwt_authenticated_client_sme, flag_paa, paa, programa_pdde, acao_pdde, acao_associacao):
+        jwt_authenticated_client_sme, flag_paa, paa, programa_pdde, acao_pdde, acao_associacao, outro_recurso):
 
-    # Deve estar no ranking 4
+    # Deve estar no ranking 5
     item1 = PrioridadePaaFactory(
         paa=paa,
         prioridade=0,
@@ -49,7 +49,7 @@ def test_list_ordenacao_customizada_prioridade_paa(
         acao_associacao=acao_associacao,
         acao_pdde=None
     )
-    # Deve estar no ranking 5
+    # Deve estar no ranking 6
     item2 = PrioridadePaaFactory(
         paa=paa,
         prioridade=0,
@@ -58,7 +58,7 @@ def test_list_ordenacao_customizada_prioridade_paa(
         acao_pdde=acao_pdde,
         programa_pdde=programa_pdde
     )
-    # Deve estar no ranking 6
+    # Deve estar no ranking 7
     item3 = PrioridadePaaFactory(
         paa=paa,
         prioridade=0,
@@ -93,35 +93,41 @@ def test_list_ordenacao_customizada_prioridade_paa(
         acao_pdde=None,
         programa_pdde=None
     )
+    # Deve estar no ranking 4
+    itemOutroRecurso = PrioridadePaaFactory(
+        paa=paa,
+        prioridade=1,
+        recurso=RecursoOpcoesEnum.OUTRO_RECURSO.name,
+        outro_recurso=outro_recurso,
+        acao_associacao=None,
+        acao_pdde=None,
+        programa_pdde=None
+    )
     response = jwt_authenticated_client_sme.get("/api/prioridades-paa/")
     result = response.json()
     assert response.status_code == status.HTTP_200_OK
     assert 'results' in result
-    assert len(result['results']) == 6
+    assert len(result['results']) == 7
     assert 'count' in result
-    assert result['count'] == 6
+    assert result['count'] == 7
     assert 'next' in result['links']
     assert result['links']['next'] is None
     assert 'previous' in result['links']
     assert result['links']['previous'] is None
 
-    # Item 4 deve estar no ranking 1
     assert result['results'][0]['uuid'] == str(item4.uuid)
 
-    # Item 5 deve estar no ranking 2
     assert result['results'][1]['uuid'] == str(item5.uuid)
 
-    # Item 6 deve estar no ranking 3
     assert result['results'][2]['uuid'] == str(item6.uuid)
 
-    # Item 1 deve estar no ranking 4
-    assert result['results'][3]['uuid'] == str(item1.uuid)
+    assert result['results'][3]['uuid'] == str(itemOutroRecurso.uuid)
 
-    # Item 2 deve estar no ranking 5
-    assert result['results'][4]['uuid'] == str(item2.uuid)
+    assert result['results'][4]['uuid'] == str(item1.uuid)
 
-    # Item 3 deve estar no ranking 6
-    assert result['results'][5]['uuid'] == str(item3.uuid)
+    assert result['results'][5]['uuid'] == str(item2.uuid)
+
+    assert result['results'][6]['uuid'] == str(item3.uuid)
 
 
 @pytest.mark.django_db
@@ -299,6 +305,24 @@ def test_cria_prioridade_paa_pdde_custeio(jwt_authenticated_client_sme, flag_paa
 
 
 @pytest.mark.django_db
+def test_cria_prioridade_paa_outro_recurso(jwt_authenticated_client_sme, flag_paa,
+                                           paa, especificacao_material):
+    data = {
+        "paa": str(paa.uuid),
+        "prioridade": 1,
+        "recurso": "OUTRO_RECURSO",
+        "tipo_aplicacao": "CAPITAL",
+        "especificacao_material": str(especificacao_material.uuid),
+        "valor_total": 20
+    }
+    response = jwt_authenticated_client_sme.post("/api/prioridades-paa/", data)
+    result = response.json()
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result['outro_recurso'] == ["Outro Recurso não informada quando o tipo de Recurso é OUTRO_RECURSO."]
+    assert result.keys() == {'outro_recurso'}
+
+
+@pytest.mark.django_db
 @patch('sme_ptrf_apps.paa.services.resumo_prioridades_service.ResumoPrioridadesService.resumo_prioridades')
 def test_cria_prioridade_paa_recurso_proprio_capital(mock_resumo, jwt_authenticated_client_sme, flag_paa,
                                                      paa, especificacao_material):
@@ -308,30 +332,25 @@ def test_cria_prioridade_paa_recurso_proprio_capital(mock_resumo, jwt_authentica
             'key': RecursoOpcoesEnum.RECURSO_PROPRIO.name,
             'children': [
                 {
-                    'key': 'item_recursos',
-                    'children': [
-                        {
-                            'key': 'item_recursos_receita',
-                            'recurso': 'Receita',
-                            'custeio': 0,
-                            'capital': 0,
-                            'livre_aplicacao': 0
-                        },
-                        {
-                            'key': 'item_recursos_despesas',
-                            'recurso': 'Despesas previstas',
-                            'custeio': 0,
-                            'capital': 0,
-                            'livre_aplicacao': 0
-                        },
-                        {
-                            'key': 'item_recursos_saldo',
-                            'recurso': 'Saldo',
-                            'custeio': 0,
-                            'capital': 0,
-                            'livre_aplicacao': 20
-                        }
-                    ]
+                    'key': f'{RecursoOpcoesEnum.RECURSO_PROPRIO.name}_receita',
+                    'recurso': 'Receita',
+                    'custeio': 0,
+                    'capital': 0,
+                    'livre_aplicacao': 0
+                },
+                {
+                    'key': f'{RecursoOpcoesEnum.RECURSO_PROPRIO.name}_despesas',
+                    'recurso': 'Despesas previstas',
+                    'custeio': 0,
+                    'capital': 0,
+                    'livre_aplicacao': 0
+                },
+                {
+                    'key': f'{RecursoOpcoesEnum.RECURSO_PROPRIO.name}_saldo',
+                    'recurso': 'Saldo',
+                    'custeio': 0,
+                    'capital': 0,
+                    'livre_aplicacao': 20
                 }
             ]
         }
@@ -347,6 +366,7 @@ def test_cria_prioridade_paa_recurso_proprio_capital(mock_resumo, jwt_authentica
     }
     response = jwt_authenticated_client_sme.post("/api/prioridades-paa/", data)
     result = response.json()
+
     assert response.status_code == status.HTTP_201_CREATED, response.status_code
     assert result['paa'] == str(paa.uuid)
     assert result['prioridade'] == 1
@@ -364,6 +384,7 @@ def test_cria_prioridade_paa_recurso_proprio_capital(mock_resumo, jwt_authentica
         'prioridade',
         'recurso',
         'acao_associacao',
+        'outro_recurso',
         'programa_pdde',
         'acao_pdde',
         'tipo_aplicacao',
@@ -436,6 +457,7 @@ def test_altera_prioridade_custeio_para_capital_com_sucesso(mock_resumo, jwt_aut
         'prioridade',
         'recurso',
         'acao_associacao',
+        'outro_recurso',
         'programa_pdde',
         'acao_pdde',
         'tipo_aplicacao',
@@ -449,7 +471,8 @@ def test_altera_prioridade_custeio_para_capital_com_sucesso(mock_resumo, jwt_aut
 @pytest.mark.django_db
 def test_altera_prioridade_ptrf_para_recursos_proprios_com_sucesso(jwt_authenticated_client_sme,
                                                                    flag_paa,
-                                                                   prioridade_paa_ptrf_custeio):
+                                                                   prioridade_paa_ptrf_custeio,
+                                                                   recurso_proprio_paa):
     prioridade_paa = prioridade_paa_ptrf_custeio
     payload = {
         "paa": str(prioridade_paa.paa.uuid),
@@ -462,6 +485,7 @@ def test_altera_prioridade_ptrf_para_recursos_proprios_com_sucesso(jwt_authentic
     }
     response = jwt_authenticated_client_sme.patch(f"/api/prioridades-paa/{prioridade_paa.uuid}/", payload)
     result = response.json()
+
     assert response.status_code == status.HTTP_200_OK
     assert result['acao_associacao'] is None
     assert result['acao_pdde'] is None
@@ -473,6 +497,7 @@ def test_altera_prioridade_ptrf_para_recursos_proprios_com_sucesso(jwt_authentic
         'prioridade',
         'recurso',
         'acao_associacao',
+        'outro_recurso',
         'programa_pdde',
         'acao_pdde',
         'tipo_aplicacao',
@@ -481,6 +506,27 @@ def test_altera_prioridade_ptrf_para_recursos_proprios_com_sucesso(jwt_authentic
         'valor_total',
         'copia_de'
     }
+
+
+@pytest.mark.django_db
+def test_altera_prioridade_ptrf_para_recursos_proprios_sem_saldo_suficiente(jwt_authenticated_client_sme,
+                                                                            flag_paa,
+                                                                            prioridade_paa_ptrf_custeio):
+    prioridade_paa = prioridade_paa_ptrf_custeio
+    payload = {
+        "paa": str(prioridade_paa.paa.uuid),
+        "prioridade": SimNaoChoices.SIM,
+        "recurso": RecursoOpcoesEnum.RECURSO_PROPRIO.name,
+        "tipo_aplicacao": TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+        "tipo_despesa_custeio": str(prioridade_paa.tipo_despesa_custeio.uuid),
+        "especificacao_material": str(prioridade_paa.especificacao_material.uuid),
+        "valor_total": 20
+    }
+    response = jwt_authenticated_client_sme.patch(f"/api/prioridades-paa/{prioridade_paa.uuid}/", payload)
+    result = response.json()
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert "O valor indicado para a prioridade excede o valor disponível de receita prevista." in result.get("mensagem")
 
 
 @pytest.mark.django_db
@@ -636,6 +682,8 @@ def test_duplicar_prioridade(jwt_authenticated_client_sme, flag_paa, prioridade_
     # Não considera uuid, pois a factory prioridade_paa_ptrf_custeio não é recurso PDDE
     assert result['programa_pdde'] == prioridade_paa_ptrf_custeio.programa_pdde
     assert result['acao_pdde'] == prioridade_paa_ptrf_custeio.acao_pdde
+
+    assert result['outro_recurso'] == prioridade_paa_ptrf_custeio.outro_recurso
 
     assert result['tipo_aplicacao'] == prioridade_paa_ptrf_custeio.tipo_aplicacao
     assert result['tipo_despesa_custeio'] == str(prioridade_paa_ptrf_custeio.tipo_despesa_custeio.uuid)

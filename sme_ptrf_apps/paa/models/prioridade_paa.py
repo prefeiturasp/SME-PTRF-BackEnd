@@ -44,6 +44,9 @@ class PrioridadePaa(ModeloBase):
     acao_pdde = models.ForeignKey(AcaoPdde, on_delete=models.PROTECT, null=True, blank=True,
                                   help_text='Exibido quando o recurso é do tipo PDDE')
 
+    outro_recurso = models.ForeignKey("OutroRecurso", on_delete=models.PROTECT, null=True, blank=True,
+                                      help_text='Exibido quando o recurso é do tipo Outros Recursos')
+
     tipo_aplicacao = models.CharField(max_length=10, null=True, blank=True,
                                       default=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
                                       choices=TipoAplicacaoOpcoesEnum.choices())
