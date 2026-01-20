@@ -118,7 +118,7 @@ def test_criar_grupos_prioridades_junta_recurso_proprio_e_outro(
     assert len(items) == 3
 
     # recurso próprio primeiro
-    assert items[0]["recurso"] == "Recurso Próprio"
+    assert items[0]["recurso"] == "Recursos Próprios"
 
     # ordem alfabética dos outros
     assert [i["recurso"] for i in items[1:]] == [

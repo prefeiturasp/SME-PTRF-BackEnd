@@ -376,7 +376,7 @@ def criar_grupos_prioridades(paa):
 
     def ordenar_recursos(prioridades):
         def chave(i):
-            eh_proprio = i["recurso"] == "Recurso Próprio"
+            eh_proprio = i["recurso"] == "Recursos Próprios"
             return (not eh_proprio, i["recurso"])
 
         return sorted(prioridades, key=chave)
@@ -415,7 +415,7 @@ def criar_grupos_prioridades(paa):
         elif prioridade.recurso == "PDDE":
             recurso = prioridade.acao_pdde.nome
         elif prioridade.recurso == 'RECURSO_PROPRIO':
-            recurso = "Recurso Próprio"
+            recurso = "Recursos Próprios"
         elif prioridade.recurso == 'OUTRO_RECURSO':
             recurso = prioridade.outro_recurso.nome
         else:
