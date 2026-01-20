@@ -328,16 +328,9 @@ def criar_recursos_proprios(paa):
         for item in items_outros_recursos
     )
 
-    total_saldo_outros = sum(
-        item["saldo_custeio"] +
-        item["saldo_capital"] +
-        item["saldo_livre"]
-        for item in items_outros_recursos
-    )
-
     total_receitas = total_receitas_outros + total_recursos_proprios
     total_despesas = total_despesas_outros + total_prioridades_recursos_proprios
-    total_saldo = total_saldo_outros + total_recursos_proprios
+    total_saldo = total_receitas - total_despesas
 
     return {
         "items": recursos,

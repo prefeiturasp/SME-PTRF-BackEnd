@@ -226,12 +226,4 @@ def test_criar_recursos_proprios_calcula_totais_corretamente(
     assert resultado["total_receitas"] == Decimal("720")
     assert resultado["total_despesas"] == Decimal("300")
 
-    assert resultado["total_saldo"] == (
-        resultado["total_recursos_proprios"] +
-        sum(
-            item["saldo_custeio"] +
-            item["saldo_capital"] +
-            item["saldo_livre"]
-            for item in resultado["items_outros_recursos"]
-        )
-    )
+    assert resultado["total_saldo"] == resultado["total_receitas"] - resultado["total_despesas"]
