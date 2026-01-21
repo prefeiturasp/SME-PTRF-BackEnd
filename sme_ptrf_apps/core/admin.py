@@ -61,15 +61,32 @@ from .models import (
     ItemResumoPorAcao,
     ItemCredito,
     ItemDespesa,
-    PrestacaoContaReprovadaNaoApresentacao
+    PrestacaoContaReprovadaNaoApresentacao,
+    Recurso
 )
 
 from django.db.models import Count
 from django.utils.safestring import mark_safe
+from django.utils.html import format_html
 
 admin.site.register(ParametroFiqueDeOlhoPc)
 admin.site.register(ModeloCarga)
 admin.site.register(MotivoRejeicaoEncerramentoContaAssociacao)
+
+
+@admin.register(Recurso)
+class MinhaClasseAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'nome_exibicao', 'legado', 'ativo', 'cor_preview')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    search_fields = ('uuid', 'nome', 'nome_exibicao',)
+
+    def cor_preview(self, obj):
+        return format_html(
+            '<div style="width:24px; height:24px; background:{}; border:1px solid #ccc;"></div>',
+            obj.cor
+        )
+
+    cor_preview.short_description = "Cor"
 
 
 @admin.register(Acao)
