@@ -2,6 +2,7 @@ from django.db import models
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.core.models import Parametros
 
 class AtaPaa(ModeloBase):
     history = AuditlogHistoryField()
@@ -150,6 +151,35 @@ class AtaPaa(ModeloBase):
     def documento_gerado(self):
       return self.status_geracao_pdf == self.STATUS_CONCLUIDO
   
+    @classmethod
+    def unidade_precisa_professor_gremio(cls, tipo_unidade):
+        """
+        Verifica se o tipo de unidade precisa do campo professor do grêmio na ata do PAA.
+        
+        Args:
+            tipo_unidade: String com o tipo de unidade (ex: 'EMEF', 'EMEI', etc.)
+            
+        Returns:
+            bool: True se o tipo de unidade precisa de professor do grêmio, False caso contrário
+        """
+        parametros = Parametros.objects.first()
+        if not parametros or not parametros.tipos_unidades_professor_gremio:
+            return False
+        return tipo_unidade in parametros.tipos_unidades_professor_gremio
+
+    @property
+    def precisa_professor_gremio(self):
+        """
+        Verifica se a unidade da associação precisa do campo professor do grêmio.
+        
+        Returns:
+            bool: True se precisa de professor do grêmio, False caso contrário
+        """
+        if not self.paa or not self.paa.associacao or not self.paa.associacao.unidade:
+            return False
+        tipo_unidade = self.paa.associacao.unidade.tipo_unidade
+        return self.unidade_precisa_professor_gremio(tipo_unidade)
+
     @property
     def completa(self):
         campos_basicos = bool(
@@ -171,9 +201,11 @@ class AtaPaa(ModeloBase):
             if not self.justificativa or not self.justificativa.strip():
                 return False
 
-        tem_professor_gremio = self.presentes_na_ata_paa.filter(professor_gremio=True).exists()
-        if not tem_professor_gremio:
-            return False
+        # Só exige professor do grêmio se a unidade precisar
+        if self.precisa_professor_gremio:
+            tem_professor_gremio = self.presentes_na_ata_paa.filter(professor_gremio=True).exists()
+            if not tem_professor_gremio:
+                return False
         
         return True
     

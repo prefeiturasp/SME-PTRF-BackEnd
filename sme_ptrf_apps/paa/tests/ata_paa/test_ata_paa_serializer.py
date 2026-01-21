@@ -31,4 +31,27 @@ def test_serializer(ata_paa):
     assert serializer.data['nome']
     assert serializer.data['hora_reuniao'] == "00:00"
     assert serializer.data['justificativa'] == ""
+    assert 'precisa_professor_gremio' in serializer.data
+    assert isinstance(serializer.data['precisa_professor_gremio'], bool)
+
+
+def test_serializer_precisa_professor_gremio_true(ata_paa, parametros):
+    """Testa se serializer retorna precisa_professor_gremio=True quando unidade precisa"""
+    parametros.tipos_unidades_professor_gremio = ['EMEF']
+    parametros.save()
+    
+    ata_paa.paa.associacao.unidade.tipo_unidade = 'EMEF'
+    ata_paa.paa.associacao.unidade.save()
+    
+    serializer = AtaPaaSerializer(ata_paa)
+    assert serializer.data['precisa_professor_gremio'] is True
+
+
+def test_serializer_precisa_professor_gremio_false(ata_paa, parametros):
+    """Testa se serializer retorna precisa_professor_gremio=False quando unidade não precisa"""
+    parametros.tipos_unidades_professor_gremio = []
+    parametros.save()
+    
+    serializer = AtaPaaSerializer(ata_paa)
+    assert serializer.data['precisa_professor_gremio'] is False
 

@@ -39,6 +39,7 @@ class AtaPaaSerializer(serializers.ModelSerializer):
     hora_reuniao = serializers.SerializerMethodField('get_hora_reuniao')
     associacao = serializers.SerializerMethodField('get_associacao')
     completa = serializers.SerializerMethodField('get_completa')
+    precisa_professor_gremio = serializers.SerializerMethodField('get_precisa_professor_gremio')
     paa = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
@@ -65,6 +66,9 @@ class AtaPaaSerializer(serializers.ModelSerializer):
     def get_completa(self, obj):
         return obj.completa
 
+    def get_precisa_professor_gremio(self, obj):
+        return obj.precisa_professor_gremio
+
     class Meta:
         model = AtaPaa
         fields = (
@@ -86,6 +90,7 @@ class AtaPaaSerializer(serializers.ModelSerializer):
             'justificativa',
             'composicao',
             'completa',
+            'precisa_professor_gremio',
             'alterado_em',
         )
 
