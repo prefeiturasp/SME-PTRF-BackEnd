@@ -75,7 +75,7 @@ admin.site.register(MotivoRejeicaoEncerramentoContaAssociacao)
 
 
 @admin.register(Recurso)
-class Recursodmin(admin.ModelAdmin):
+class RecursoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'nome_exibicao', 'legado', 'ativo', 'cor_preview')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('uuid', 'nome', 'nome_exibicao',)
