@@ -61,15 +61,32 @@ from .models import (
     ItemResumoPorAcao,
     ItemCredito,
     ItemDespesa,
-    PrestacaoContaReprovadaNaoApresentacao
+    PrestacaoContaReprovadaNaoApresentacao,
+    Recurso
 )
 
 from django.db.models import Count
 from django.utils.safestring import mark_safe
+from django.utils.html import format_html
 
 admin.site.register(ParametroFiqueDeOlhoPc)
 admin.site.register(ModeloCarga)
 admin.site.register(MotivoRejeicaoEncerramentoContaAssociacao)
+
+
+@admin.register(Recurso)
+class RecursoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'nome_exibicao', 'legado', 'ativo', 'cor_preview')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    search_fields = ('uuid', 'nome', 'nome_exibicao',)
+
+    def cor_preview(self, obj):
+        return format_html(
+            '<div style="width:24px; height:24px; background:{}; border:1px solid #ccc;"></div>',
+            obj.cor
+        )
+
+    cor_preview.short_description = "Cor"
 
 
 @admin.register(Acao)
@@ -497,6 +514,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
                 prestacao_conta.save()
 
         self.message_user(request, "PCs setadas ao status anterior da retificação com sucesso!")
+
 
 @admin.register(Ata)
 class AtaAdmin(admin.ModelAdmin):
@@ -1130,7 +1148,7 @@ class DreArquivoDownloadFilter(admin.SimpleListFilter):
         """Retorna lista de DREs disponíveis"""
         from sme_ptrf_apps.core.models import Unidade
         dres = Unidade.objects.filter(tipo_unidade='DRE').order_by('nome')
-        
+
         return [(dre.codigo_eol, dre.nome) for dre in dres]
 
     def queryset(self, request, queryset):
@@ -1163,14 +1181,14 @@ class ArquivoDownloadAdmin(admin.ModelAdmin):
             elif name:
                 return name
         return '-'
-    
+
     get_nome_usuario.short_description = 'Usuário'
     get_nome_usuario.admin_order_field = 'usuario__username'
 
     def get_dre_nome(self, obj):
         """Retorna o nome da DRE"""
         return obj.dre.nome if obj.dre else '-'
-    
+
     get_dre_nome.short_description = 'DRE'
     get_dre_nome.admin_order_field = 'dre__nome'
 
