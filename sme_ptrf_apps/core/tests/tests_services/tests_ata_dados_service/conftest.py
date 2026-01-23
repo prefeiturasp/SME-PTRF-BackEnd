@@ -54,8 +54,8 @@ def ata_tipo_conta_cartao():
 
 
 @pytest.fixture
-def ata_acao_ptrf():
-    return baker.make('Acao', nome='PTRF')
+def ata_acao_ptrf(acao_factory):
+    return acao_factory(nome='PTRF')
 
 
 @pytest.fixture

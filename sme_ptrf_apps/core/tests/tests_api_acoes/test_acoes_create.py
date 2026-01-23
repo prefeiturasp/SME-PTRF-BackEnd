@@ -11,10 +11,13 @@ pytestmark = pytest.mark.django_db
 
 def test_create_acao(
     jwt_authenticated_client_a,
+    recurso_factory
 ):
+    recurso = recurso_factory()
     payload_acao_nova = {
         'nome': 'Nova',
         'e_recursos_proprios': False,
+        'recurso': f"{recurso.uuid}"
     }
     response = jwt_authenticated_client_a.post(
         '/api/acoes/', data=json.dumps(payload_acao_nova), content_type='application/json')

@@ -5,13 +5,13 @@ from datetime import date
 
 
 @pytest.fixture
-def acao_x():
-    return baker.make('Acao', nome='X')
+def acao_x(acao_factory):
+    return acao_factory.create(nome='X')
 
 
 @pytest.fixture
-def acao_y():
-    return baker.make('Acao', nome='Y')
+def acao_y(acao_factory):
+    return acao_factory.create(nome='Y')
 
 
 @pytest.fixture
