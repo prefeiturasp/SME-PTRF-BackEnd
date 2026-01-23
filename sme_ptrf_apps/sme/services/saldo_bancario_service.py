@@ -6,38 +6,46 @@ from django.contrib.auth import get_user_model
 
 from sme_ptrf_apps.core.models import Associacao, Unidade, Periodo, TipoConta
 from sme_ptrf_apps.core.choices.tipos_unidade import TIPOS_CHOICE
-from sme_ptrf_apps.core.models.parametros import Parametros
 
 logger = logging.getLogger(__name__)
+
 
 def filtrar_por_data_inicio_e_data_encerramento_conta(queryset, periodo):
     query_result = queryset
 
     if periodo.data_fim_realizacao_despesas:
-        query_conta_iniciada_no_periodo_ou_anterior = {Q(conta_associacao__data_inicio__isnull=True) | Q(conta_associacao__data_inicio__lte=periodo.data_fim_realizacao_despesas)}
+        query_conta_iniciada_no_periodo_ou_anterior = {Q(conta_associacao__data_inicio__isnull=True) | Q(
+            conta_associacao__data_inicio__lte=periodo.data_fim_realizacao_despesas)}
         query_result = queryset.filter(*query_conta_iniciada_no_periodo_ou_anterior)
 
-    query_conta_encerrada_no_periodo_ou_posterior = {Q(conta_associacao__solicitacao_encerramento__isnull=True) | Q(conta_associacao__solicitacao_encerramento__data_de_encerramento_na_agencia__gte=periodo.data_inicio_realizacao_despesas)}
+    dt_ini_rd = periodo.data_inicio_realizacao_despesas
+    query_conta_encerrada_no_periodo_ou_posterior = {Q(conta_associacao__solicitacao_encerramento__isnull=True) | Q(
+        conta_associacao__solicitacao_encerramento__data_de_encerramento_na_agencia__gte=dt_ini_rd)}
     query_result = query_result.filter(*query_conta_encerrada_no_periodo_ou_posterior)
 
     return query_result
 
+
 def filtrar_associacoes_por_conta_data_inicio_e_data_encerramento(queryset, periodo, conta):
     query_result = queryset
     if periodo.data_fim_realizacao_despesas:
-        query_conta_iniciada_no_periodo_ou_anterior = {Q(contas__data_inicio__isnull=True) | Q(contas__data_inicio__lte=periodo.data_fim_realizacao_despesas)}
+        query_conta_iniciada_no_periodo_ou_anterior = {Q(contas__data_inicio__isnull=True) | Q(
+            contas__data_inicio__lte=periodo.data_fim_realizacao_despesas)}
         query_result = queryset.filter(*query_conta_iniciada_no_periodo_ou_anterior, contas__tipo_conta__uuid=conta)
 
-    query_conta_encerrada_no_periodo_ou_posterior = {Q(contas__solicitacao_encerramento__isnull=True) | Q(contas__solicitacao_encerramento__data_de_encerramento_na_agencia__gte=periodo.data_inicio_realizacao_despesas)}
+    query_conta_encerrada_no_periodo_ou_posterior = {Q(contas__solicitacao_encerramento__isnull=True) | Q(
+        contas__solicitacao_encerramento__data_de_encerramento_na_agencia__gte=periodo.data_inicio_realizacao_despesas)}
     query_result = query_result.filter(*query_conta_encerrada_no_periodo_ou_posterior, contas__tipo_conta__uuid=conta)
 
     return Associacao.objects.filter(id__in=query_result.values_list('id', flat=True).distinct('id'))
+
 
 def saldo_por_tipo_de_unidade(queryset, periodo, conta):
     saldo_por_tipo_unidade = queryset.filter(
         Q(associacao__periodo_inicial__isnull=False) &
         Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
-            Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
+            Q(associacao__data_de_encerramento__isnull=True) | Q(
+                associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
         ),
         periodo__uuid=periodo.uuid,
         conta_associacao__tipo_conta__uuid=conta
@@ -50,7 +58,8 @@ def saldo_por_tipo_de_unidade(queryset, periodo, conta):
     )
 
     total_unidades_por_tipo = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo)
-    total_unidades_por_tipo = filtrar_associacoes_por_conta_data_inicio_e_data_encerramento(total_unidades_por_tipo, periodo, conta)
+    total_unidades_por_tipo = filtrar_associacoes_por_conta_data_inicio_e_data_encerramento(
+        total_unidades_por_tipo, periodo, conta)
     total_unidades_por_tipo = total_unidades_por_tipo.values('unidade__tipo_unidade').annotate(
         qtde=Count('uuid')
     )
@@ -80,12 +89,14 @@ def saldo_por_tipo_de_unidade(queryset, periodo, conta):
 
     return lista_de_saldos_bancarios_por_tipo
 
+
 def saldo_por_dre(queryset, periodo, conta):
 
     saldo_por_dre = queryset.filter(
         Q(associacao__periodo_inicial__isnull=False) &
         Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
-            Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
+            Q(associacao__data_de_encerramento__isnull=True) | Q(
+                associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
         ),
         periodo__uuid=periodo.uuid,
         conta_associacao__tipo_conta__uuid=conta
@@ -97,7 +108,8 @@ def saldo_por_dre(queryset, periodo, conta):
         qtde_dre_informadas=Count('uuid'), saldo_bancario_informado=Sum('saldo_extrato')
     )
 
-    total_unidades_por_dre = Associacao.objects.exclude(cnpj__exact='').values('unidade__dre','unidade__dre__nome').annotate(qtde=Count('uuid'))
+    total_unidades_por_dre = Associacao.objects.exclude(cnpj__exact='').values(
+        'unidade__dre', 'unidade__dre__nome').annotate(qtde=Count('uuid'))
 
     total_unidades_por_dre_dict = {}
     for unidade in total_unidades_por_dre:
@@ -106,8 +118,10 @@ def saldo_por_dre(queryset, periodo, conta):
         total_unidades_por_dre_dict[unidade['unidade__dre']] = unidade
 
     total_unidades_por_dre_associacao_ativa = Associacao.get_associacoes_ativas_no_periodo(periodo=periodo)
-    total_unidades_por_dre_associacao_ativa = filtrar_associacoes_por_conta_data_inicio_e_data_encerramento(total_unidades_por_dre_associacao_ativa, periodo, conta)
-    total_unidades_por_dre_associacao_ativa = total_unidades_por_dre_associacao_ativa.values('unidade__dre','unidade__dre__nome').annotate(qtde=Count('uuid'))
+    total_unidades_por_dre_associacao_ativa = filtrar_associacoes_por_conta_data_inicio_e_data_encerramento(
+        total_unidades_por_dre_associacao_ativa, periodo, conta)
+    total_unidades_por_dre_associacao_ativa = total_unidades_por_dre_associacao_ativa.values(
+        'unidade__dre', 'unidade__dre__nome').annotate(qtde=Count('uuid'))
 
     for unidade in total_unidades_por_dre_associacao_ativa:
         if unidade['unidade__dre'] in total_unidades_por_dre_dict:
@@ -119,8 +133,14 @@ def saldo_por_dre(queryset, periodo, conta):
 
     for nome in total_unidades_por_dre_dict_list:
         if nome['unidade__dre'] is not None and nome['unidade__dre__nome'] is not None:
-            result[nome['unidade__dre']] = {"nome_dre": formata_nome_dre(nome['unidade__dre__nome']), "qtde_dre_informadas": 0,
-                                            "saldo_bancario_informado": 0, "total_unidades": 0}
+            result[nome['unidade__dre']] = {
+                "nome_dre": formata_nome_dre(
+                    nome['unidade__dre__nome']
+                ),
+                "qtde_dre_informadas": 0,
+                "saldo_bancario_informado": 0,
+                "total_unidades": 0,
+            }
             result[nome["unidade__dre"]]["total_unidades"] = nome["qtde"]
 
     for saldo in saldo_por_dre:
@@ -152,7 +172,8 @@ def saldo_por_ue_dre(queryset, periodo, conta):
         saldo_por_tipo_da_dre = queryset.filter(
             Q(associacao__periodo_inicial__isnull=False) &
             Q(associacao__periodo_inicial__referencia__lt=periodo.referencia) & (
-                Q(associacao__data_de_encerramento__isnull=True) | Q(associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
+                Q(associacao__data_de_encerramento__isnull=True) | Q(
+                    associacao__data_de_encerramento__gt=periodo.data_inicio_realizacao_despesas)
             ),
             periodo__uuid=periodo.uuid,
             conta_associacao__tipo_conta__uuid=conta,
@@ -161,13 +182,22 @@ def saldo_por_ue_dre(queryset, periodo, conta):
 
         saldo_por_tipo_da_dre = filtrar_por_data_inicio_e_data_encerramento_conta(saldo_por_tipo_da_dre, periodo)
 
-        saldo_por_tipo_da_dre = saldo_por_tipo_da_dre.values('associacao__unidade__tipo_unidade', 'associacao__unidade__dre__sigla', 'associacao__unidade__dre__codigo_eol').annotate(
-            saldo_bancario_informado=Sum('saldo_extrato')
+        saldo_por_tipo_da_dre = (
+            saldo_por_tipo_da_dre
+            .values(
+                'associacao__unidade__tipo_unidade',
+                'associacao__unidade__dre__sigla',
+                'associacao__unidade__dre__codigo_eol',
+            )
+            .annotate(
+                saldo_bancario_informado=Sum('saldo_extrato')
+            )
         )
 
         saldos_por_ue_dre.extend(saldo_por_tipo_da_dre)
 
-        result[dre.codigo_eol] = {"sigla_dre": dre.sigla, "uuid_dre": dre.uuid, "nome_dre": formata_nome_dre(dre.nome), "associacoes": []}
+        result[dre.codigo_eol] = {"sigla_dre": dre.sigla, "uuid_dre": dre.uuid,
+                                  "nome_dre": formata_nome_dre(dre.nome), "associacoes": []}
 
         for tipo in choices:
             result[dre.codigo_eol]['associacoes'].append({"associacao": tipo, "saldo_total": 0})
@@ -235,15 +265,17 @@ def gerar_dados_extrato_dres_exportacao_xlsx(periodo_uuid, conta_uuid, username)
 
     usuario = get_user_model().objects.get(username=username)
 
-    filtered_relation = FilteredRelation(
-        'observacoes_conciliacao_da_associacao',
-        condition=Q(observacoes_conciliacao_da_associacao__periodo=periodo_relation)
-    )
-
     qs = Associacao.objects.annotate(
-        obs_periodo=filtered_relation
+        obs_periodo=FilteredRelation(
+            'observacoes_conciliacao_da_associacao',
+            condition=Q(
+                observacoes_conciliacao_da_associacao__periodo=periodo_relation,
+                observacoes_conciliacao_da_associacao__conta_associacao__isnull=False
+            )
+        )
     ).filter(
-        Q(obs_periodo__conta_associacao__tipo_conta__uuid=conta_uuid) | Q(obs_periodo__isnull=True)
+        obs_periodo__conta_associacao__tipo_conta__uuid=conta_uuid,
+        obs_periodo__isnull=False
     ).values(
         'unidade__codigo_eol',
         'unidade__nome',
