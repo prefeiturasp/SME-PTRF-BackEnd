@@ -4,6 +4,7 @@ from datetime import date
 
 from model_bakery import baker
 
+
 @pytest.fixture
 def payload_despesa_anterior_ao_uso_do_sistema(
     associacao,
@@ -229,6 +230,7 @@ def payload_despesa_status_incompleto_eh_despesa_sem_comprovacao_fiscal(
     }
     return payload
 
+
 @pytest.fixture
 def payload_despesa_status_completo_eh_despesa_sem_comprovacao_fiscal(
     associacao,
@@ -265,6 +267,7 @@ def payload_despesa_status_completo_eh_despesa_sem_comprovacao_fiscal(
         ]
     }
     return payload
+
 
 @pytest.fixture
 def payload_despesa_com_conta_associacao_inativa(
@@ -308,10 +311,10 @@ def payload_despesa_com_conta_associacao_inativa(
     }
     return payload
 
+
 @pytest.fixture
-def tapi_periodo_2019_2():
-    return baker.make(
-        'Periodo',
+def tapi_periodo_2019_2(periodo_factory):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=date(2019, 9, 1),
         data_fim_realizacao_despesas=date(2019, 11, 30),
@@ -370,6 +373,7 @@ def tapi_rateio_despesa_estornada(associacao, tapi_despesa, conta_associacao, ti
         numero_processo_incorporacao_capital='Teste123456'
 
     )
+
 
 @pytest.fixture
 def tapi_tipo_receita_estorno(tipo_conta):
@@ -470,6 +474,7 @@ def tapi_rateio_despesa_com_imposto(associacao, tapi_despesa_com_imposto, conta_
         numero_processo_incorporacao_capital='Teste123456'
 
     )
+
 
 @pytest.fixture
 def tapi_rateio_despesa_com_conta_associacao_inativa(associacao, tapi_despesa, conta_associacao_inativa, tipo_aplicacao_recurso, tipo_custeio, especificacao_material_servico, acao_associacao):

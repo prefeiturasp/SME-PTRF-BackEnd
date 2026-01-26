@@ -62,7 +62,7 @@ def test_get_objetivos_disponiveis(jwt_authenticated_client_sme, flag_paa, objet
 
 def test_get_atividades_estatutarias_disponiveis(jwt_authenticated_client_sme, flag_paa, atividade_estatutaria_factory):
 
-    atividade_1 = atividade_estatutaria_factory()
+    atividade_1 = atividade_estatutaria_factory(status=StatusChoices.ATIVO)
     atividade_estatutaria_factory(status=StatusChoices.ATIVO)
 
     response = jwt_authenticated_client_sme.get(

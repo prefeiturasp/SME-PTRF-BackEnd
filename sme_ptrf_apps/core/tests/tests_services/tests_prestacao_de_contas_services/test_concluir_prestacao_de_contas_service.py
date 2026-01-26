@@ -83,16 +83,16 @@ def test_deve_sumarizar_transacoes_incluindo_nao_conferidas(associacao,
     fechamento = prestacao.fechamentos_da_prestacao.first()
 
     total_receitas_capital_esperado = receita_2020_1_role_repasse_capital_conferida.valor + \
-                                      receita_2020_1_role_repasse_capital_nao_conferida.valor
+        receita_2020_1_role_repasse_capital_nao_conferida.valor
     assert fechamento.total_receitas_capital == total_receitas_capital_esperado
     assert fechamento.total_receitas_nao_conciliadas_capital == receita_2020_1_role_repasse_capital_nao_conferida.valor
 
     total_repasses_capital_esperado = receita_2020_1_role_repasse_capital_conferida.valor + \
-                                      receita_2020_1_role_repasse_capital_nao_conferida.valor
+        receita_2020_1_role_repasse_capital_nao_conferida.valor
     assert fechamento.total_repasses_capital == total_repasses_capital_esperado
 
     total_receitas_custeio_esperado = receita_2020_1_role_rendimento_custeio_conferida.valor + \
-                                      receita_2020_1_role_repasse_custeio_conferida.valor
+        receita_2020_1_role_repasse_custeio_conferida.valor
     assert fechamento.total_receitas_custeio == total_receitas_custeio_esperado
     assert fechamento.total_receitas_nao_conciliadas_custeio == 0
 
@@ -104,15 +104,14 @@ def test_deve_sumarizar_transacoes_incluindo_nao_conferidas(associacao,
     assert fechamento.total_despesas_nao_conciliadas_capital == 0
 
     total_despesas_custeio = rateio_despesa_2020_role_custeio_conferido.valor_rateio + \
-                             rateio_despesa_2020_role_custeio_nao_conferido.valor_rateio
+        rateio_despesa_2020_role_custeio_nao_conferido.valor_rateio
     assert fechamento.total_despesas_custeio == total_despesas_custeio
     assert fechamento.total_despesas_nao_conciliadas_custeio == rateio_despesa_2020_role_custeio_nao_conferido.valor_rateio
 
 
 @pytest.fixture
-def _periodo_2019_2(periodo):
-    return baker.make(
-        'Periodo',
+def _periodo_2019_2(periodo_factory, periodo):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=date(2019, 6, 1),
         data_fim_realizacao_despesas=date(2019, 12, 30),
@@ -124,9 +123,8 @@ def _periodo_2019_2(periodo):
 
 
 @pytest.fixture
-def _periodo_2020_1(_periodo_2019_2):
-    return baker.make(
-        'Periodo',
+def _periodo_2020_1(periodo_factory, _periodo_2019_2):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=date(2020, 1, 1),
         data_fim_realizacao_despesas=date(2020, 6, 30),
@@ -168,6 +166,7 @@ def _receita_2020_1(associacao, conta_associacao, acao_associacao, tipo_receita_
         conferido=True,
     )
 
+
 @pytest.fixture
 def comentario_analise_prestacao_com_associacao_e_periodo(associacao, periodo_2020_1):
     return baker.make(
@@ -179,6 +178,7 @@ def comentario_analise_prestacao_com_associacao_e_periodo(associacao, periodo_20
         notificado=False,
         notificado_em=None
     )
+
 
 @pytest.mark.django_db(transaction=False)
 def test_fechamentos_devem_ser_vinculados_a_anteriores(_fechamento_2019_2,
@@ -274,16 +274,16 @@ def test_deve_sumarizar_transacoes_considerando_conta(associacao,
     fechamento = prestacao.fechamentos_da_prestacao.filter(conta_associacao=conta_associacao_cartao).first()
 
     total_receitas_capital_esperado = receita_2020_1_role_repasse_capital_conferida.valor + \
-                                      receita_2020_1_role_repasse_capital_nao_conferida.valor
+        receita_2020_1_role_repasse_capital_nao_conferida.valor
     assert fechamento.total_receitas_capital == total_receitas_capital_esperado
     assert fechamento.total_receitas_nao_conciliadas_capital == receita_2020_1_role_repasse_capital_nao_conferida.valor
 
     total_repasses_capital_esperado = receita_2020_1_role_repasse_capital_conferida.valor + \
-                                      receita_2020_1_role_repasse_capital_nao_conferida.valor
+        receita_2020_1_role_repasse_capital_nao_conferida.valor
     assert fechamento.total_repasses_capital == total_repasses_capital_esperado
 
     total_receitas_custeio_esperado = receita_2020_1_role_rendimento_custeio_conferida.valor + \
-                                      receita_2020_1_role_repasse_custeio_conferida.valor
+        receita_2020_1_role_repasse_custeio_conferida.valor
     assert fechamento.total_receitas_custeio == total_receitas_custeio_esperado
     assert fechamento.total_receitas_nao_conciliadas_custeio == 0
 
@@ -295,7 +295,7 @@ def test_deve_sumarizar_transacoes_considerando_conta(associacao,
     assert fechamento.total_despesas_nao_conciliadas_capital == 0
 
     total_despesas_custeio = rateio_despesa_2020_role_custeio_conferido.valor_rateio + \
-                             rateio_despesa_2020_role_custeio_nao_conferido.valor_rateio
+        rateio_despesa_2020_role_custeio_nao_conferido.valor_rateio
     assert fechamento.total_despesas_custeio == total_despesas_custeio
     assert fechamento.total_despesas_nao_conciliadas_custeio == rateio_despesa_2020_role_custeio_nao_conferido.valor_rateio
 
@@ -366,26 +366,27 @@ def test_relacoes_de_bens_devem_ser_criadas_por_conta(associacao,
 
     assert prestacao.relacoes_de_bens_da_prestacao.count() == 1, "Deveriam ter sido criados uma, 1 contas."
 
+
 @pytest.mark.django_db(transaction=False)
-def test_comentarios_de_analise_sem_pc_atribuida_devem_ser_atualizados( associacao,
-                                                                        comentario_analise_prestacao_com_associacao_e_periodo,
-                                                                        periodo_2020_1,
-                                                                        receita_2020_1_role_repasse_custeio_conferida,
-                                                                        receita_2020_1_ptrf_repasse_capital_conferida,
-                                                                        receita_2020_1_role_repasse_capital_nao_conferida,
-                                                                        receita_2019_2_role_repasse_capital_conferida,
-                                                                        receita_2020_1_role_repasse_capital_conferida,
-                                                                        receita_2020_1_role_rendimento_custeio_conferida,
-                                                                        receita_2020_1_role_repasse_custeio_conferida_outra_conta,
-                                                                        despesa_2020_1,
-                                                                        rateio_despesa_2020_role_custeio_conferido,
-                                                                        rateio_despesa_2020_role_custeio_nao_conferido,
-                                                                        rateio_despesa_2020_role_capital_conferido_nao_exibir_em_relacao_de_bens,
-                                                                        despesa_2019_2,
-                                                                        rateio_despesa_2019_role_conferido,
-                                                                        acao_associacao_ptrf,
-                                                                        settings,
-                                                                        task_celery_criada):
+def test_comentarios_de_analise_sem_pc_atribuida_devem_ser_atualizados(associacao,
+                                                                       comentario_analise_prestacao_com_associacao_e_periodo,
+                                                                       periodo_2020_1,
+                                                                       receita_2020_1_role_repasse_custeio_conferida,
+                                                                       receita_2020_1_ptrf_repasse_capital_conferida,
+                                                                       receita_2020_1_role_repasse_capital_nao_conferida,
+                                                                       receita_2019_2_role_repasse_capital_conferida,
+                                                                       receita_2020_1_role_repasse_capital_conferida,
+                                                                       receita_2020_1_role_rendimento_custeio_conferida,
+                                                                       receita_2020_1_role_repasse_custeio_conferida_outra_conta,
+                                                                       despesa_2020_1,
+                                                                       rateio_despesa_2020_role_custeio_conferido,
+                                                                       rateio_despesa_2020_role_custeio_nao_conferido,
+                                                                       rateio_despesa_2020_role_capital_conferido_nao_exibir_em_relacao_de_bens,
+                                                                       despesa_2019_2,
+                                                                       rateio_despesa_2019_role_conferido,
+                                                                       acao_associacao_ptrf,
+                                                                       settings,
+                                                                       task_celery_criada):
     from sme_ptrf_apps.core.tasks import concluir_prestacao_de_contas_async
     from celery.result import EagerResult
 

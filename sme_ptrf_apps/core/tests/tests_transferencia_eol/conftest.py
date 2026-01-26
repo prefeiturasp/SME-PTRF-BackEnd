@@ -5,10 +5,10 @@ from model_bakery import baker
 
 from sme_ptrf_apps.core.choices import MembroEnum
 
+
 @pytest.fixture
-def transf_eol_periodo_2022_2():
-    return baker.make(
-        'Periodo',
+def transf_eol_periodo_2022_2(periodo_factory):
+    return periodo_factory(
         referencia='2022.2',
         data_inicio_realizacao_despesas=datetime.date(2022, 7, 1),
         data_fim_realizacao_despesas=datetime.date(2022, 12, 31),
@@ -55,6 +55,7 @@ def transferencia_eol(tipo_conta, transf_eol_tipo_conta_cartao):
         status_processamento='PENDENTE',
         log_execucao='Teste',
     )
+
 
 @pytest.fixture
 def transferencia_eol_copiar_todas_contas(tipo_conta, transf_eol_tipo_conta_cartao):
@@ -302,6 +303,7 @@ def transf_eol_acao_associacao_ptrf_nova(transf_eol_associacao_nova, transf_eol_
         acao=transf_eol_acao_ptrf
     )
 
+
 @pytest.fixture
 def transf_eol_conta_associacao_cartao_nova(
     transf_eol_associacao_nova,
@@ -315,7 +317,6 @@ def transf_eol_conta_associacao_cartao_nova(
         agencia='45678',
         numero_conta='999999-x',
     )
-
 
 
 @pytest.fixture

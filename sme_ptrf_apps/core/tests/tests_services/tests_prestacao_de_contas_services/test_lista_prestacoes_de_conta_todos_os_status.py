@@ -18,9 +18,8 @@ def dre_teste_model_consolidado_dre():
 
 
 @pytest.fixture
-def periodo_anterior():
-    return baker.make(
-        'Periodo',
+def periodo_anterior(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 8, 31),
