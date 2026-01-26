@@ -15,7 +15,7 @@ class ReceitaPrevistaOutroRecursoPeriodoSerializer(serializers.ModelSerializer):
     )
 
     outro_recurso_periodo = serializers.SlugRelatedField(
-        queryset=OutroRecursoPeriodoPaa.objects.filter(ativo=True),
+        queryset=OutroRecursoPeriodoPaa.objects.all(),
         slug_field='uuid',
         required=True,
         error_messages={

@@ -299,7 +299,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
     @action(detail=True, methods=['get'], url_path='outros-recursos-do-periodo',
             permission_classes=[IsAuthenticated])
     def outros_recursos_periodo(self, request, uuid=None):
-        from sme_ptrf_apps.paa.services.outros_recursos_periodo_service import OutroRecursoPeriodoPaaListagemService
+        from sme_ptrf_apps.paa.services import OutroRecursoPeriodoPaaListagemService
 
         paa = self.get_object()
 

@@ -9,12 +9,15 @@ from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa
 from sme_ptrf_apps.paa.api.serializers import OutrosRecursosPeriodoPaaSerializer
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoApiSME
-from sme_ptrf_apps.paa.services.outros_recursos_periodo_service import (
-    OutroRecursoPeriodoPaaService,
-    OutroRecursoPeriodoPaaUnidadeService,
+from sme_ptrf_apps.paa.services import (
+    OutroRecursoPeriodoPaaImportacaoService,
+    OutroRecursoPeriodoPaaVinculoUnidadeService,
+    OutroRecursoPeriodoDesabilitacaoService,
     ImportacaoUnidadesOutroRecursoException,
     UnidadeNaoEncontradaException,
-    ValidacaoVinculoException
+    ValidacaoVinculoException,
+    ConfirmacaoVinculoException,
+    DesabilitacaoRecursoException,
 )
 
 from django.db.models import Q
@@ -54,7 +57,7 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     )
     def importar_unidades(self, request, uuid=None):
         try:
-            OutroRecursoPeriodoPaaService.importar_unidades(
+            OutroRecursoPeriodoPaaImportacaoService.importar_unidades(
                 destino=self.get_object(),
                 origem_uuid=request.data.get('origem_uuid')
             )
@@ -69,7 +72,7 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
             status=status.HTTP_200_OK
         )
 
-    def _get_service(self) -> OutroRecursoPeriodoPaaUnidadeService:
+    def _get_service_vinculo_unidade(self) -> OutroRecursoPeriodoPaaVinculoUnidadeService:
         """
         Retorna uma instância do service para o objeto atual.
 
@@ -77,7 +80,14 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
             Instância configurada do service
         """
         instance = self.get_object()
-        return OutroRecursoPeriodoPaaUnidadeService(instance)
+        return OutroRecursoPeriodoPaaVinculoUnidadeService(instance)
+
+    def _get_service_desabilitacao(self) -> OutroRecursoPeriodoDesabilitacaoService:
+        """
+        Retorna uma instância do service de desabilitação para o objeto atual.
+        """
+        instance = self.get_object()
+        return OutroRecursoPeriodoDesabilitacaoService(instance)
 
     @extend_schema(
         parameters=[
@@ -161,11 +171,7 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     @extend_schema(
         responses={
             200: {
-                'type': 'object',
-                'properties': {
-                    'mensagem': {'type': 'string'},
-                    'unidade': {'type': 'string'}
-                }
+                'mensagem': {'type': 'string'},
             },
             400: {'description': 'Validação falhou'},
             404: {'description': 'Unidade não encontrada ou não vinculada'}
@@ -175,31 +181,83 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def desvincular_unidade(self, request, unidade_uuid, *args, **kwargs):
         """Desvincula uma unidade do recurso período."""
-        service = self._get_service()
+        service = self._get_service_vinculo_unidade()
+        confirmado = request.data.get('confirmado', False)
         try:
-            resultado = service.desvincular_unidade(unidade_uuid)
+            if not confirmado:
+                try:
+                    service.validar_confirmacao_para_desvinculo_unidades([unidade_uuid])
+                except ConfirmacaoVinculoException as e:
+                    logger.warning(f"Validação requer confirmação ao desvincular individual: {str(e)}")
+                    return Response({"confirmar": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+            resultado = service.desvincular_unidades([unidade_uuid])
             return Response(resultado, status=status.HTTP_200_OK)
 
         except UnidadeNaoEncontradaException as e:
-            logger.error(f"Unidade não encontrada ou não vinculada: {unidade_uuid}", exc_info=True)
-            return Response(
-                {"mensagem": str(e)},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            logger.error(str(e), exc_info=True)
+            return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
         except ValidacaoVinculoException as e:
-            logger.warning(f"Validação falhou ao desvincular: {str(e)}")
-            return Response(
-                {"mensagem": str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            logger.error(str(e), exc_info=True)
+            return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            logger.error(f"Erro inesperado ao desvincular unidade: {unidade_uuid}. {str(e)}", exc_info=True)
-            return Response(
-                {"mensagem": "Erro interno ao processar a solicitação."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            msg_erro = f"Erro inesperado ao desvincular unidade: {unidade_uuid}. {str(e)}"
+            logger.error(msg_erro, exc_info=True)
+            return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'unidade_uuids': {
+                        'type': 'array',
+                        'items': {'type': 'string', 'format': 'uuid'}
+                    }
+                },
+                'required': ['unidade_uuids']
+            }
+        },
+        responses={
+            200: {
+                'mensagem': {'type': 'string'},
+            },
+            400: {'description': 'Validação falhou'},
+            404: {'description': 'Nenhuma unidade encontrada'}
+        }
+    )
+    @action(detail=True, methods=['POST'], url_path='desvincular-em-lote',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def desvincular_em_lote(self, request, *args, **kwargs):
+        """Desvincula múltiplas unidades do período em lote."""
+        service = self._get_service_vinculo_unidade()
+        unidade_uuids = request.data.get('unidade_uuids', [])
+        confirmado = request.data.get('confirmado', False)
+
+        try:
+            if not confirmado:
+                try:
+                    service.validar_confirmacao_para_desvinculo_unidades(unidade_uuids)
+                except ConfirmacaoVinculoException as e:
+                    logger.warning(f"Validação requer confirmação ao desvincular em lote: {str(e)}")
+                    return Response({"confirmar": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+            resultado = service.desvincular_unidades(unidade_uuids)
+            return Response(resultado, status=status.HTTP_200_OK)
+
+        except UnidadeNaoEncontradaException as e:
+            logger.error(str(e), exc_info=True)
+            return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
+
+        except ValidacaoVinculoException as e:
+            logger.error(str(e), exc_info=True)
+            return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            msg_erro = "Erro ao desvincular em lote"
+            logger.error(f'{msg_erro} - {str(e)}', exc_info=True)
+            return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
         request={
@@ -227,47 +285,24 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
             404: {'description': 'Nenhuma unidade encontrada'}
         }
     )
-    @action(detail=True, methods=['POST'], url_path='desvincular-em-lote',
+    @action(detail=True, methods=['POST'], url_path='vincular-todas-unidades',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def desvincular_em_lote(self, request, *args, **kwargs):
-        """Desvincula múltiplas unidades do período em lote."""
-        service = self._get_service()
-        unidade_uuids = request.data.get('unidade_uuids', [])
+    def vincular_todas_unidades(self, request, *args, **kwargs):
+        """Habilita o recurso para todas as unidades."""
+        service = self._get_service_vinculo_unidade()
 
         try:
-            resultado = service.desvincular_unidades_em_lote(unidade_uuids)
+            resultado = service.vincular_todas_unidades()
             return Response(resultado, status=status.HTTP_200_OK)
-
-        except UnidadeNaoEncontradaException as e:
-            logger.error("Nenhuma unidade encontrada no lote para desvincular", exc_info=True)
-            return Response(
-                {"mensagem": str(e)},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        except ValidacaoVinculoException as e:
-            logger.warning(f"Validação falhou ao desvincular lote: {str(e)}")
-            return Response(
-                {"mensagem": str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
         except Exception as e:
-            logger.error(f"Erro inesperado ao desvincular lote. {str(e)}", exc_info=True)
-            return Response(
-                {"mensagem": "Erro interno ao processar a solicitação."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            msg_erro = "Erro ao vincular todas as unidades."
+            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
         responses={
             200: {
-                'type': 'object',
-                'properties': {
-                    'mensagem': {'type': 'string'},
-                    'unidade': {'type': 'string'},
-                    'ja_vinculada': {'type': 'boolean'}
-                }
+                'mensagem': {'type': 'string'},
             },
             400: {'description': 'Validação falhou'},
             404: {'description': 'Unidade não encontrada'}
@@ -277,31 +312,33 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def vincular_unidade(self, request, unidade_uuid, *args, **kwargs):
         """Vincula uma unidade ao recurso do período."""
-        service = self._get_service()
+        service = self._get_service_vinculo_unidade()
+        confirmado = request.data.get('confirmado', False)
+
         try:
-            resultado = service.vincular_unidade(unidade_uuid)
+            if not confirmado:
+                try:
+                    service.validar_confirmacao_para_vinculo_unidades([unidade_uuid])
+                except ConfirmacaoVinculoException as e:
+                    logger.warning(f"Validação requer confirmação ao vincular individual: {str(e)}")
+                    return Response({"confirmar": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+            resultado = service.vincular_unidades([unidade_uuid])
             return Response(resultado, status=status.HTTP_200_OK)
 
         except UnidadeNaoEncontradaException as e:
-            logger.error(f"Unidade não encontrada: {unidade_uuid}. {str(e)}", exc_info=True)
-            return Response(
-                {"mensagem": str(e)},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            logger.error(f"{str(e)}", exc_info=True)
+            return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
         except ValidacaoVinculoException as e:
-            logger.warning(f"Validação falhou ao vincular: {str(e)}")
-            return Response(
-                {"mensagem": str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            msg_erro = f"Validação falhou ao vincular: {str(e)}"
+            logger.error(msg_erro, exc_info=True)
+            return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            logger.error(f"Erro inesperado ao vincular unidade: {unidade_uuid}. {str(e)}", exc_info=True)
-            return Response(
-                {"mensagem": "Erro interno ao processar a solicitação."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            msg_erro = "Erro ao vincular unidade."
+            logger.error(f"{msg_erro}. {str(e)}", exc_info=True)
+            return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
         request={
@@ -318,14 +355,7 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
         },
         responses={
             200: {
-                'type': 'object',
-                'properties': {
-                    'mensagem': {'type': 'string'},
-                    'total_solicitado': {'type': 'integer'},
-                    'total_vinculado': {'type': 'integer'},
-                    'total_ja_vinculado': {'type': 'integer'},
-                    'unidades_vinculadas': {'type': 'array', 'items': {'type': 'string'}}
-                }
+                'mensagem': {'type': 'string'},
             },
             400: {'description': 'Validação falhou'},
             404: {'description': 'Nenhuma unidade encontrada'}
@@ -335,30 +365,126 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def vincular_em_lote(self, request, *args, **kwargs):
         """Vincula múltiplas unidades ao recurso do período em lote."""
-        service = self._get_service()
+        service = self._get_service_vinculo_unidade()
         unidade_uuids = request.data.get('unidade_uuids', [])
+        confirmado = request.data.get('confirmado', False)
 
         try:
-            resultado = service.vincular_unidades_em_lote(unidade_uuids)
+            if not confirmado:
+                try:
+                    service.validar_confirmacao_para_vinculo_unidades(unidade_uuids)
+                except ConfirmacaoVinculoException as e:
+                    logger.warning(f"Validação requer confirmação ao vincular em lote: {str(e)}")
+                    return Response({"confirmar": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+            resultado = service.vincular_unidades(unidade_uuids)
             return Response(resultado, status=status.HTTP_200_OK)
 
         except UnidadeNaoEncontradaException as e:
             logger.error(f"Nenhuma unidade encontrada no lote. {str(e)}", exc_info=True)
-            return Response(
-                {"mensagem": str(e)},
-                status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
         except ValidacaoVinculoException as e:
-            logger.warning(f"Validação falhou ao vincular lote: {str(e)}")
-            return Response(
-                {"mensagem": str(e)},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            logger.warning(f"Validação ao vincular lote: {str(e)}")
+            return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
-            logger.error(f"Erro inesperado ao vincular lote {str(e)}", exc_info=True)
+            msg_erro = f'Falha ao vincular em lote: {str(e)}'
+            logger.error(msg_erro, exc_info=True)
+            return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'recurso': {'type': 'string'},
+                    'periodo': {'type': 'string'},
+                    'total_paas': {'type': 'integer'},
+                    'paas_em_elaboracao': {'type': 'integer'},
+                    'paas_gerados_ou_retificacao': {'type': 'integer'},
+                    'detalhes': {
+                        'type': 'object',
+                        'properties': {
+                            'em_elaboracao': {'type': 'array'},
+                            'gerados_ou_retificacao': {'type': 'array'}
+                        }
+                    }
+                }
+            },
+            404: {'description': 'Recurso não encontrado'}
+        }
+    )
+    @action(
+        detail=True,
+        methods=['GET'],
+        url_path='informacoes-desabilitacao',
+        permission_classes=[IsAuthenticated & PermissaoApiUe]
+    )
+    def informacoes_desabilitacao(self, request, uuid=None):
+        """
+        Obtém informações sobre os impactos da desabilitação do recurso.
+        Usado para exibir na modal de confirmação.
+        """
+        try:
+            service = self._get_service_desabilitacao()
+            informacoes = service.obter_informacoes_para_confirmacao()
+
+            return Response(informacoes, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            msg_error = f"Erro ao obter informações de desabilitação: {str(e)}"
+            logger.error(msg_error, exc_info=True)
+            return Response({'mensagem': msg_error}, status=status.HTTP_400_BAD_REQUEST)
+
+    @extend_schema(
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'sucesso': {'type': 'boolean'},
+                    'mensagem': {'type': 'string'},
+                    'recurso': {'type': 'string'},
+                    'periodo': {'type': 'string'},
+                    'total_paas': {'type': 'integer'},
+                    'paas_processados': {'type': 'array'}
+                }
+            },
+            400: {'description': 'Erro ao desabilitar recurso'},
+            404: {'description': 'Recurso não encontrado'}
+        }
+    )
+    @action(
+        detail=True,
+        methods=['PATCH'],
+        url_path='desabilitar',
+        permission_classes=[IsAuthenticated & PermissaoApiUe]
+    )
+    def desabilitar(self, request, uuid=None):
+        """
+        Desabilita o recurso aplicando as regras de negócio conforme o status dos PAAs.
+
+        Status do PAA:
+        - Em elaboração: remove o recurso de Receitas Previstas e Prioridades
+        - Gerado/Em retificação: mantém o recurso em Receitas Previstas e Prioridades
+        """
+        try:
+            instance = self.get_object()
+
+            if not instance.ativo:
+                return Response({'mensagem': 'O recurso já está desabilitado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            service = self._get_service_desabilitacao()
+            resultado = service.desabilitar_outro_recurso_periodo()
+
+            return Response(resultado, status=status.HTTP_200_OK)
+
+        except DesabilitacaoRecursoException as e:
+            logger.error(f"Erro ao desabilitar recurso: {str(e)}", exc_info=True)
+            return Response({'mensagem': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            logger.error(f"Erro inesperado ao desabilitar recurso: {str(e)}", exc_info=True)
             return Response(
-                {"mensagem": "Erro interno ao processar a solicitação."},
+                {'mensagem': 'Erro ao desabilitar outro recurso.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
