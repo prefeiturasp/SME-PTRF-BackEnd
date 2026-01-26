@@ -3,10 +3,10 @@ import datetime
 import pytest
 from model_bakery import baker
 
+
 @pytest.fixture
-def periodo_2019_2():
-    return baker.make(
-        'Periodo',
+def periodo_2019_2(periodo_factory):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=datetime.date(2019, 7, 1),
         data_fim_realizacao_despesas=datetime.date(2019, 12, 31),
@@ -15,9 +15,8 @@ def periodo_2019_2():
 
 
 @pytest.fixture
-def periodo_2020_1(periodo_2019_2):
-    return baker.make(
-        'Periodo',
+def periodo_2020_1(periodo_factory, periodo_2019_2):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=datetime.date(2020, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2020, 6, 30),
@@ -244,6 +243,7 @@ def despesa_2020_1(associacao, tipo_documento, tipo_transacao):
         valor_recursos_proprios=10.00,
     )
 
+
 @pytest.fixture
 def despesa_2020_1_inativa(associacao, tipo_documento, tipo_transacao):
     return baker.make(
@@ -297,10 +297,10 @@ def rateio_despesa_2020_role_conferido(associacao, despesa_2020_1, conta_associa
 
 @pytest.fixture
 def rateio_despesa_2020_role_conferido_inativa(associacao, despesa_2020_1_inativa, conta_associacao_cartao, acao,
-                                       tipo_aplicacao_recurso_custeio,
-                                       tipo_custeio_servico,
-                                       especificacao_instalacao_eletrica, acao_associacao_role_cultural,
-                                       periodo_2020_1):
+                                               tipo_aplicacao_recurso_custeio,
+                                               tipo_custeio_servico,
+                                               especificacao_instalacao_eletrica, acao_associacao_role_cultural,
+                                               periodo_2020_1):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_2020_1_inativa,
@@ -363,9 +363,9 @@ def rateio_despesa_2020_role_nao_conferido(associacao, despesa_2020_1, conta_ass
 
 @pytest.fixture
 def rateio_despesa_2020_role_nao_conferido_inativa(associacao, despesa_2020_1_inativa, conta_associacao_cartao, acao,
-                                           tipo_aplicacao_recurso_custeio,
-                                           tipo_custeio_servico,
-                                           especificacao_instalacao_eletrica, acao_associacao_role_cultural):
+                                                   tipo_aplicacao_recurso_custeio,
+                                                   tipo_custeio_servico,
+                                                   especificacao_instalacao_eletrica, acao_associacao_role_cultural):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_2020_1_inativa,
@@ -646,6 +646,7 @@ def devolucao_prestacao_conta_2020_1_teste_analises(prestacao_conta_2020_1_teste
         data_limite_ue=datetime.date(2020, 8, 1),
     )
 
+
 @pytest.fixture
 def devolucao_prestacao_conta_2020_1_teste_inativa_analises(prestacao_conta_2020_1_teste_inativa_analises):
     return baker.make(
@@ -680,6 +681,7 @@ def analise_prestacao_conta_2020_1_teste_analises_com_falha_geracao_doc_apos_ace
         status_versao_apresentacao_apos_acertos='FALHA_AO_GERAR'
     )
 
+
 @pytest.fixture
 def analise_prestacao_conta_2020_1_teste_inativa_analises(
     prestacao_conta_2020_1_teste_inativa_analises,
@@ -690,6 +692,7 @@ def analise_prestacao_conta_2020_1_teste_inativa_analises(
         prestacao_conta=prestacao_conta_2020_1_teste_inativa_analises,
         devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1_teste_inativa_analises
     )
+
 
 @pytest.fixture
 def analise_prestacao_conta_2020_1_teste_analises_sem_versao(
@@ -703,6 +706,7 @@ def analise_prestacao_conta_2020_1_teste_analises_sem_versao(
         versao="-",
         status_versao='NAO_GERADO'
     )
+
 
 @pytest.fixture
 def analise_prestacao_conta_2020_1_teste_analises_com_versao_rascunho_em_processamento(
@@ -789,6 +793,7 @@ def devolucao_ao_tesouro_parcial_ajuste(prestacao_conta_2020_1_teste_analises, t
         visao_criacao='DRE'
     )
 
+
 @pytest.fixture
 def devolucao_ao_tesouro_parcial_ajuste_inativa(prestacao_conta_2020_1_teste_inativa_analises, tipo_devolucao_ao_tesouro_teste, despesa_2020_1_inativa):
     return baker.make(
@@ -803,6 +808,7 @@ def devolucao_ao_tesouro_parcial_ajuste_inativa(prestacao_conta_2020_1_teste_ina
         visao_criacao='DRE'
     )
 
+
 @pytest.fixture
 def solicitacao_acerto_lancamento_devolucao_teste_analises(
     analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises,
@@ -815,6 +821,7 @@ def solicitacao_acerto_lancamento_devolucao_teste_analises(
         devolucao_ao_tesouro=None,
         detalhamento="teste"
     )
+
 
 @pytest.fixture
 def solicitacao_devolucao_ao_tesouro_teste_analises(
@@ -830,6 +837,7 @@ def solicitacao_devolucao_ao_tesouro_teste_analises(
         motivo='teste',
     )
 
+
 @pytest.fixture
 def solicitacao_acerto_lancamento_devolucao_teste_inativa_analises(
     analise_lancamento_despesa_prestacao_conta_2020_1_teste_inativa_analises,
@@ -842,6 +850,7 @@ def solicitacao_acerto_lancamento_devolucao_teste_inativa_analises(
         devolucao_ao_tesouro=None,
         detalhamento="teste"
     )
+
 
 @pytest.fixture
 def solicitacao_devolucao_ao_tesouro_teste_inativa_analises(
@@ -858,7 +867,6 @@ def solicitacao_devolucao_ao_tesouro_teste_inativa_analises(
     )
 
 
-
 @pytest.fixture
 def solicitacao_acerto_lancamento_basico_tipo_teste_analises(
     analise_lancamento_receita_prestacao_conta_2020_1_teste_analises,
@@ -871,6 +879,7 @@ def solicitacao_acerto_lancamento_basico_tipo_teste_analises(
         devolucao_ao_tesouro=None,
         detalhamento="teste 2"
     )
+
 
 @pytest.fixture
 def tipo_documento_prestacao_conta_declaracao():
@@ -940,6 +949,7 @@ def analise_documento_prestacao_conta_2020_1_ata_ajuste(
         resultado='AJUSTE'
     )
 
+
 @pytest.fixture
 def solicitacao_acerto_documento_ata_teste_analises(
     analise_documento_prestacao_conta_2020_1_ata_ajuste,
@@ -950,6 +960,7 @@ def solicitacao_acerto_documento_ata_teste_analises(
         analise_documento=analise_documento_prestacao_conta_2020_1_ata_ajuste,
         tipo_acerto=tipo_acerto_documento_assinatura,
     )
+
 
 @pytest.fixture
 def analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste(
@@ -965,6 +976,7 @@ def analise_documento_prestacao_conta_2020_1_declaracao_cartao_ajuste(
         conta_associacao=conta_associacao_cartao,
         resultado='AJUSTE'
     )
+
 
 @pytest.fixture
 def solicitacao_acerto_documento_declaracao_cartao_teste_analises(

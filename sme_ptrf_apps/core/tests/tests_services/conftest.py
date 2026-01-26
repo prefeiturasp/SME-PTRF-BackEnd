@@ -9,9 +9,8 @@ from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (APLICACAO_C
 
 
 @pytest.fixture
-def periodo_2019_2():
-    return baker.make(
-        'Periodo',
+def periodo_2019_2(periodo_factory):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=datetime.date(2019, 9, 1),
         data_fim_realizacao_despesas=datetime.date(2019, 11, 30),
@@ -23,9 +22,8 @@ def periodo_2019_2():
 
 
 @pytest.fixture
-def periodo_2020_1(periodo_2019_2):
-    return baker.make(
-        'Periodo',
+def periodo_2020_1(periodo_factory, periodo_2019_2):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=datetime.date(2020, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2020, 6, 30),
@@ -36,9 +34,8 @@ def periodo_2020_1(periodo_2019_2):
     )
 
 @pytest.fixture
-def periodo_2022_1(periodo_2019_2):
-    return baker.make(
-        'Periodo',
+def periodo_2022_1(periodo_factory, periodo_2019_2):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=datetime.date(2020, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2020, 6, 30),

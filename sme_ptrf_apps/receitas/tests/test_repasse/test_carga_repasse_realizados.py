@@ -125,9 +125,8 @@ def test_carga_com_erro_formatacao(arquivo_carga, tipo_conta_cheque):
 
 
 @pytest.fixture
-def periodo_2020_u():
-    return baker.make(
-        'Periodo',
+def periodo_2020_u(periodo_factory):
+    return periodo_factory(
         referencia='2020.u',
         data_inicio_realizacao_despesas=datetime.date(2020, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2020, 12, 31),
@@ -236,9 +235,8 @@ def arquivo_carga_associacao_periodo_com_pc(arquivo_associacao_periodo_com_pc):
 
 
 @pytest.fixture
-def periodo_pc():
-    return baker.make(
-        'Periodo',
+def periodo_pc(periodo_factory):
+    return periodo_factory(
         referencia='2024.1',
         data_inicio_realizacao_despesas=datetime.date(2024, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2024, 6, 30),

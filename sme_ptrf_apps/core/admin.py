@@ -274,12 +274,28 @@ class AcaoAssociacaoAdmin(admin.ModelAdmin):
     raw_id_fields = ('associacao',)
 
 
+class PeriodoAdminForm(ModelForm):
+    class Meta:
+        model = Periodo
+        fields = "__all__"
+
+    def clean_recurso(self):
+        from sme_ptrf_apps.core.services.periodo_services import validar_troca_recurso
+        recurso = self.cleaned_data["recurso"]
+
+        validar_troca_recurso(self.instance, recurso)
+
+        return recurso
+
+
 @admin.register(Periodo)
 class PeriodoAdmin(admin.ModelAdmin):
+    form = PeriodoAdminForm
     list_display = (
         'referencia', 'data_inicio_realizacao_despesas', 'data_fim_realizacao_despesas', 'data_prevista_repasse',
-        'data_inicio_prestacao_contas', 'data_fim_prestacao_contas')
+        'data_inicio_prestacao_contas', 'data_fim_prestacao_contas', 'recurso')
     search_fields = ('uuid', 'referencia')
+    list_filter = ("recurso__nome",)
     readonly_fields = ('uuid', 'id')
 
 
