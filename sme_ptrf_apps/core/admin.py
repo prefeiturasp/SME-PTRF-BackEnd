@@ -62,7 +62,8 @@ from .models import (
     ItemCredito,
     ItemDespesa,
     PrestacaoContaReprovadaNaoApresentacao,
-    Recurso
+    Recurso,
+    PeriodoInicialAssociacao
 )
 
 from django.db.models import Count
@@ -159,6 +160,11 @@ class SolicitacaoEncerramentoContaAssociacaoAdmin(admin.ModelAdmin):
                      'conta_associacao__associacao__unidade__dre__codigo_eol')
 
 
+class PeriodoInicialAssociacaoInline(admin.TabularInline):
+    extra = 0
+    model = PeriodoInicialAssociacao
+
+
 @admin.register(Associacao)
 class AssociacaoAdmin(admin.ModelAdmin):
     def get_nome_escola(self, obj):
@@ -185,6 +191,8 @@ class AssociacaoAdmin(admin.ModelAdmin):
     list_display_links = ('nome', 'cnpj')
 
     actions = ['define_status_nao_finalizado_valores_reprogramados', 'migrar_valores_reprogramados']
+
+    inlines = [PeriodoInicialAssociacaoInline]
 
     def define_status_nao_finalizado_valores_reprogramados(self, request, queryset):
         for associacao in queryset.all():
