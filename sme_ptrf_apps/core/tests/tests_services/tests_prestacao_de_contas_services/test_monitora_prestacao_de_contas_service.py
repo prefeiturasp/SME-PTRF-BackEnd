@@ -1,3 +1,4 @@
+from sme_ptrf_apps.core.services.prestacao_contas_services import concluir_prestacao_de_contas
 import time
 from datetime import date
 
@@ -7,8 +8,6 @@ from model_bakery import baker
 from sme_ptrf_apps.core.models import PrestacaoConta
 
 pytestmark = pytest.mark.django_db
-
-from sme_ptrf_apps.core.services.prestacao_contas_services import concluir_prestacao_de_contas
 
 
 @pytest.mark.django_db(True)
@@ -36,9 +35,8 @@ def usuario_notificavel():
 
 @pytest.mark.django_db(True)
 @pytest.fixture
-def periodo_anterior():
-    return baker.make(
-        'Periodo',
+def periodo_anterior(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 8, 31),
@@ -47,9 +45,8 @@ def periodo_anterior():
 
 @pytest.mark.django_db(True)
 @pytest.fixture
-def periodo(periodo_anterior):
-    return baker.make(
-        'Periodo',
+def periodo(periodo_factory, periodo_anterior):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=date(2019, 9, 1),
         data_fim_realizacao_despesas=date(2019, 11, 30),

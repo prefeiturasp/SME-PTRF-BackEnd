@@ -69,9 +69,8 @@ def usuario_para_teste():
     return user
 
 @pytest.fixture
-def periodo_2020_1():
-    return baker.make(
-        'Periodo',
+def periodo_2020_1(periodo_factory):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=datetime.date(2020, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2020, 6, 30),

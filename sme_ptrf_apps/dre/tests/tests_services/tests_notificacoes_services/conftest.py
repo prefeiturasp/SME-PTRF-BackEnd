@@ -86,9 +86,8 @@ def dre_teste_service_notificacao_analise_consolidado_dre_nao_eh_a_dre_do_membro
 
 
 @pytest.fixture
-def periodo_anterior_teste_api_comentario_analise_consolidado_dre():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_teste_api_comentario_analise_consolidado_dre(periodo_factory):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 6, 16),
         data_fim_realizacao_despesas=date(2021, 12, 31),
@@ -96,9 +95,8 @@ def periodo_anterior_teste_api_comentario_analise_consolidado_dre():
 
 
 @pytest.fixture
-def periodo_teste_api_comentario_analise_consolidado_dre(periodo_anterior_teste_api_comentario_analise_consolidado_dre):
-    return baker.make(
-        'Periodo',
+def periodo_teste_api_comentario_analise_consolidado_dre(periodo_factory, periodo_anterior_teste_api_comentario_analise_consolidado_dre):
+    return periodo_factory(
         referencia='2022.1',
         data_inicio_realizacao_despesas=date(2022, 1, 1),
         data_fim_realizacao_despesas=date(2022, 12, 31),
@@ -152,6 +150,7 @@ def comentario_analise_consolidado_dre_03(consolidado_dre_teste_api_comentario_a
         notificado_em=None,
     )
 
+
 @pytest.fixture
 def comissao_exame_contas_teste_service():
     return baker.make('Comissao', nome='Exame de Contas')
@@ -183,6 +182,7 @@ def membro_comissao_teste_service(comissao_exame_contas_teste_service, dre_teste
     )
     return membro
 
+
 @pytest.fixture
 def nao_membro_comissao_de_exame_teste_service(comissao_nao_exame_contas_teste_service, dre_teste_service_notificacao_analise_consolidado_dre):
     membro = baker.make(
@@ -198,9 +198,8 @@ def nao_membro_comissao_de_exame_teste_service(comissao_nao_exame_contas_teste_s
 
 
 @pytest.fixture
-def periodo_2021_4_pc_2021_06_18_a_2021_06_30():
-    return baker.make(
-        'Periodo',
+def periodo_2021_4_pc_2021_06_18_a_2021_06_30(periodo_factory):
+    return periodo_factory(
         referencia='2021.4',
         data_inicio_realizacao_despesas=date(2021, 4, 1),
         data_fim_realizacao_despesas=date(2021, 6, 30),
@@ -258,8 +257,8 @@ def visao_dre():
 
 @pytest.fixture
 def usuario_notificavel(
-    unidade_a,
-    visao_dre):
+        unidade_a,
+        visao_dre):
     from django.contrib.auth import get_user_model
 
     senha = 'Sgp0418'
@@ -286,6 +285,7 @@ def usuario_tecnico_notificavel():
     user.save()
     return user
 
+
 @pytest.fixture
 def tecnico_notificavel(unidade_a, visao_dre, dre, usuario_tecnico_notificavel):
     email = 'notificavel@amcom.com.br'
@@ -301,9 +301,8 @@ def tecnico_notificavel(unidade_a, visao_dre, dre, usuario_tecnico_notificavel):
 
 
 @pytest.fixture
-def periodo_anterior_teste_service_consolidado_dre():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_teste_service_consolidado_dre(periodo_factory):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 6, 16),
         data_fim_realizacao_despesas=date(2021, 12, 31),
@@ -311,23 +310,23 @@ def periodo_anterior_teste_service_consolidado_dre():
 
 
 @pytest.fixture
-def periodo_teste_service_consolidado_dre(periodo_anterior_teste_service_consolidado_dre):
-    return baker.make(
-        'Periodo',
+def periodo_teste_service_consolidado_dre(periodo_factory, periodo_anterior_teste_service_consolidado_dre):
+    return periodo_factory(
         referencia='2022.1',
         data_inicio_realizacao_despesas=date(2022, 1, 1),
         data_fim_realizacao_despesas=date(2022, 12, 31),
         periodo_anterior=periodo_anterior_teste_service_consolidado_dre,
     )
 
+
 @pytest.fixture
 @freeze_time("2022-10-21")
 def analise_consolidado_dre_01_prazo_acerto_vencido():
     return baker.make(
         'AnaliseConsolidadoDre',
-        data_devolucao=datetime.now() - timedelta(days = 1 ),
-        data_limite=datetime.now() - timedelta(days = 1 ),
-        data_retorno_analise=datetime.now() - timedelta(days = 1 ),
+        data_devolucao=datetime.now() - timedelta(days=1),
+        data_limite=datetime.now() - timedelta(days=1),
+        data_retorno_analise=datetime.now() - timedelta(days=1),
     )
 
 
@@ -378,4 +377,3 @@ def consolidado_dre_devolucao_apos_acertos_em_analise(periodo_teste_service_cons
         eh_parcial=False,
         sequencia_de_publicacao=0
     )
-

@@ -11,7 +11,6 @@ from sme_ptrf_apps.core.services.associacoes_service import ValidaSePodeEditarPe
 pytestmark = pytest.mark.django_db
 
 
-
 @pytest.fixture
 def receita_100_no_periodo_02(associacao_02_02, conta_associacao, acao_associacao, tipo_receita, periodo):
     return baker.make(
@@ -23,6 +22,7 @@ def receita_100_no_periodo_02(associacao_02_02, conta_associacao, acao_associaca
         acao_associacao=acao_associacao,
         tipo_receita=tipo_receita,
     )
+
 
 @pytest.fixture
 def despesa_100_no_periodo02(associacao_02_02, tipo_documento, tipo_transacao, periodo):
@@ -38,6 +38,7 @@ def despesa_100_no_periodo02(associacao_02_02, tipo_documento, tipo_transacao, p
         data_transacao=periodo.data_inicio_realizacao_despesas + datetime.timedelta(days=3),
         valor_total=100.00,
     )
+
 
 @pytest.fixture
 def rateio_despesa_100_no_periodo02(associacao_02_02, despesa_100_no_periodo02, conta_associacao, acao, tipo_aplicacao_recurso_custeio, tipo_custeio_material, especificacao_material_eletrico, acao_associacao):
@@ -58,12 +59,12 @@ def rateio_despesa_100_no_periodo02(associacao_02_02, despesa_100_no_periodo02, 
 
 
 @pytest.fixture
-def periodo_anterior_sem_fim_realizacao_despesas_02():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_sem_fim_realizacao_despesas_02(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
     )
+
 
 @pytest.fixture
 def associacao_02_02(unidade, periodo_anterior_sem_fim_realizacao_despesas_02):
@@ -79,6 +80,7 @@ def associacao_02_02(unidade, periodo_anterior_sem_fim_realizacao_despesas_02):
         status_valores_reprogramados='NAO_FINALIZADO'
     )
 
+
 def test_valida_se_pode_editar_periodo_inicial_deve_retornar_true(associacao_02_02):
     response = ValidaSePodeEditarPeriodoInicial(associacao=associacao_02_02).response
 
@@ -89,6 +91,7 @@ def test_valida_se_pode_editar_periodo_inicial_deve_retornar_true(associacao_02_
     }
 
     assert response == esperado
+
 
 def test_valida_se_pode_editar_periodo_inicial_deve_retornar_erro_valores_reprogramados(associacao):
     response = ValidaSePodeEditarPeriodoInicial(associacao=associacao).response
@@ -137,4 +140,3 @@ def test_valida_se_pode_editar_periodo_inicial_deve_retornar_erro_tem_gastos(
 
     assert response["pode_editar_periodo_inicial"] == False
     assert "- Despesa(s)" in response["mensagem_pode_editar_periodo_inicial"]
-

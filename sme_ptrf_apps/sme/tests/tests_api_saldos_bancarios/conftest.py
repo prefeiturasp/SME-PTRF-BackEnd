@@ -9,9 +9,8 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def periodo_anterior_saldos_bancarios():
-    return baker.make(
-        'core.Periodo',
+def periodo_anterior_saldos_bancarios(periodo_factory):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=date(2020, 1, 1),
         data_fim_realizacao_despesas=date(2020, 6, 30),
@@ -19,9 +18,8 @@ def periodo_anterior_saldos_bancarios():
 
 
 @pytest.fixture
-def periodo_saldos_bancarios(periodo_anterior_saldos_bancarios):
-    return baker.make(
-        'core.Periodo',
+def periodo_saldos_bancarios(periodo_factory, periodo_anterior_saldos_bancarios):
+    return periodo_factory(
         referencia='2020.2',
         data_inicio_realizacao_despesas=date(2020, 7, 1),
         data_fim_realizacao_despesas=date(2020, 12, 31),
@@ -32,9 +30,8 @@ def periodo_saldos_bancarios(periodo_anterior_saldos_bancarios):
     )
 
 @pytest.fixture
-def periodo_posterior_saldos_bancarios(periodo_saldos_bancarios):
-    return baker.make(
-        'core.Periodo',
+def periodo_posterior_saldos_bancarios(periodo_factory, periodo_saldos_bancarios):
+    return periodo_factory(
         referencia='2021.1',
         data_inicio_realizacao_despesas=date(2021, 1, 1),
         data_fim_realizacao_despesas=date(2021, 7, 1),

@@ -782,9 +782,13 @@ def acao_associacao_role_cultural(associacao, acao_role_cultural):
 
 
 @pytest.fixture
-def periodo_anterior():
-    return baker.make(
-        'Periodo',
+def recurso_legado(recurso_factory):
+    return recurso_factory.objects.filter(legado=True)
+
+
+@pytest.fixture
+def periodo_anterior(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 8, 31),
@@ -792,9 +796,8 @@ def periodo_anterior():
 
 
 @pytest.fixture
-def periodo(periodo_anterior):
-    return baker.make(
-        'Periodo',
+def periodo(periodo_factory, periodo_anterior):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=date(2019, 9, 1),
         data_fim_realizacao_despesas=date(2019, 11, 30),
@@ -806,9 +809,8 @@ def periodo(periodo_anterior):
 
 
 @pytest.fixture
-def periodo_aberto(periodo_anterior):
-    return baker.make(
-        'Periodo',
+def periodo_aberto(periodo_factory, periodo_anterior):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=date(2019, 9, 1),
         data_fim_realizacao_despesas=None,
@@ -820,9 +822,8 @@ def periodo_aberto(periodo_anterior):
 
 
 @pytest.fixture
-def periodo_2020_1(periodo):
-    return baker.make(
-        'Periodo',
+def periodo_2020_1(periodo_factory, periodo):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=date(2020, 1, 1),
         data_fim_realizacao_despesas=date(2020, 6, 30),
@@ -834,9 +835,8 @@ def periodo_2020_1(periodo):
 
 
 @pytest.fixture
-def periodo_2020_2(periodo_2020_1):
-    return baker.make(
-        'Periodo',
+def periodo_2020_2(periodo_factory, periodo_2020_1):
+    return periodo_factory(
         referencia='2020.2',
         data_inicio_realizacao_despesas=date(2020, 7, 1),
         data_fim_realizacao_despesas=date(2020, 12, 31),
@@ -845,9 +845,8 @@ def periodo_2020_2(periodo_2020_1):
 
 
 @pytest.fixture
-def periodo_2021_1(periodo_2020_2):
-    return baker.make(
-        'Periodo',
+def periodo_2021_1(periodo_factory, periodo_2020_2):
+    return periodo_factory(
         referencia='2021.1',
         data_inicio_realizacao_despesas=date(2021, 1, 1),
         data_fim_realizacao_despesas=date(2021, 6, 30),
@@ -856,9 +855,8 @@ def periodo_2021_1(periodo_2020_2):
 
 
 @pytest.fixture
-def periodo_2021_2(periodo_2021_1):
-    return baker.make(
-        'Periodo',
+def periodo_2021_2(periodo_factory, periodo_2021_1):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 7, 1),
         data_fim_realizacao_despesas=None,
@@ -867,9 +865,8 @@ def periodo_2021_2(periodo_2021_1):
 
 
 @pytest.fixture
-def periodo_2019_1():
-    return baker.make(
-        'Periodo',
+def periodo_2019_1(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 5, 31),
@@ -878,9 +875,8 @@ def periodo_2019_1():
 
 
 @pytest.fixture
-def periodo_2019_2(periodo_2019_1):
-    return baker.make(
-        'Periodo',
+def periodo_2019_2(periodo_factory, periodo_2019_1):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=date(2019, 6, 1),
         data_fim_realizacao_despesas=date(2019, 12, 30),
@@ -892,9 +888,8 @@ def periodo_2019_2(periodo_2019_1):
 
 
 @pytest.fixture
-def periodo_fim_em_2020_06_30():
-    return baker.make(
-        'Periodo',
+def periodo_fim_em_2020_06_30(periodo_factory):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=date(2020, 1, 1),
         data_fim_realizacao_despesas=date(2020, 6, 30),
@@ -906,9 +901,8 @@ def periodo_fim_em_2020_06_30():
 
 
 @pytest.fixture
-def periodo_fim_em_aberto():
-    return baker.make(
-        'Periodo',
+def periodo_fim_em_aberto(periodo_factory):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=date(2020, 1, 1),
         data_fim_realizacao_despesas=None,
@@ -920,9 +914,8 @@ def periodo_fim_em_aberto():
 
 
 @pytest.fixture
-def periodo_futuro():
-    return baker.make(
-        'Periodo',
+def periodo_futuro(periodo_factory):
+    return periodo_factory(
         referencia='2020.3',
         data_inicio_realizacao_despesas=date(2020, 6, 15),
         data_fim_realizacao_despesas=None,

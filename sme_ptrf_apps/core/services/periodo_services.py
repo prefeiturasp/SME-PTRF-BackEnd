@@ -1,3 +1,7 @@
+from django.core.exceptions import ValidationError
+from django.apps import apps
+from functools import lru_cache
+from django.db import models
 from datetime import timedelta
 from ..models import Associacao, Periodo, PrestacaoConta
 
@@ -178,3 +182,39 @@ def periodo_aceita_alteracoes_na_associacao(periodo, associacao):
     prestacao = PrestacaoConta.by_periodo(associacao=associacao, periodo=periodo)
     periodo_bloqueado = True if prestacao and prestacao.status != PrestacaoConta.STATUS_DEVOLVIDA else False
     return not periodo_bloqueado
+
+
+@lru_cache
+def _models_com_fk_para_periodo():
+    Periodo = apps.get_model('core', 'Periodo')
+    refs = []
+
+    for model in apps.get_models():
+        for field in model._meta.fields:
+            if (
+                isinstance(field, models.ForeignKey) and
+                field.related_model == Periodo
+            ):
+                refs.append((model, field.name))
+
+    return refs
+
+
+def periodo_em_uso(periodo):
+    for model, field_name in _models_com_fk_para_periodo():
+        if model.objects.filter(**{field_name: periodo}).exists():
+            return True
+    return False
+
+
+def validar_troca_recurso(periodo, recurso_novo):
+    if not periodo.pk:
+        return
+
+    if periodo.recurso_id == recurso_novo.id:
+        return
+
+    if periodo_em_uso(periodo):
+        raise ValidationError(
+            "Não é possível alterar o recurso de um período já utilizado."
+        )
