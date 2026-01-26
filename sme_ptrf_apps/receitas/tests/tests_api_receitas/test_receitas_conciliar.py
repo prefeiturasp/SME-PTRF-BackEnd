@@ -42,6 +42,9 @@ def test_api_conciliar_receita_com_periodo(jwt_authenticated_client_p, receita_n
     # Converte campos não string em strings para que a comparação funcione
     result_esperado['uuid'] = f'{result_esperado["uuid"]}'
     result_esperado['data'] = f'{result_esperado["data"]}'
+    result_esperado['acao_associacao']['acao']['recurso'] = f'{result_esperado["acao_associacao"]["acao"]["recurso"]}'
+    result_esperado['repasse']['acao_associacao']['acao']['recurso'] = \
+        f'{result_esperado["repasse"]["acao_associacao"]["acao"]["recurso"]}'
 
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado

@@ -55,7 +55,8 @@ def test_retrieve_acao_associacao(
             "aceita_livre": acao_associacao.acao.aceita_livre,
             "exibir_paa": True,
             "tem_receitas_previstas_paa_em_elaboracao": False,
-            "tem_prioridades_paa_em_elaboracao": False
+            "tem_prioridades_paa_em_elaboracao": False,
+            "recurso": f'{acao_associacao.acao.recurso.uuid}'
         },
         'status': acao_associacao.status,
         'criado_em': acao_associacao.criado_em.isoformat("T"),

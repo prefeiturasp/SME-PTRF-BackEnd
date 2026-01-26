@@ -23,7 +23,8 @@ def test_api_acoes_list(jwt_authenticated_client_a, acao_x, acao_y):
             "aceita_livre": acao_x.aceita_livre,
             "exibir_paa": True,
             "tem_receitas_previstas_paa_em_elaboracao": False,
-            "tem_prioridades_paa_em_elaboracao": False
+            "tem_prioridades_paa_em_elaboracao": False,
+            "recurso": f'{acao_x.recurso.uuid}'
         },
         {
             'id': acao_y.id,
@@ -36,7 +37,8 @@ def test_api_acoes_list(jwt_authenticated_client_a, acao_x, acao_y):
             "aceita_livre": acao_y.aceita_livre,
             "exibir_paa": True,
             "tem_receitas_previstas_paa_em_elaboracao": False,
-            "tem_prioridades_paa_em_elaboracao": False
+            "tem_prioridades_paa_em_elaboracao": False,
+            "recurso": f'{acao_y.recurso.uuid}'
         }
     ]
 
@@ -60,7 +62,8 @@ def test_api_acoes_list_por_nome(jwt_authenticated_client_a, acao_xpto, acao_y):
             "aceita_livre": acao_xpto.aceita_livre,
             "exibir_paa": True,
             "tem_receitas_previstas_paa_em_elaboracao": False,
-            "tem_prioridades_paa_em_elaboracao": False
+            "tem_prioridades_paa_em_elaboracao": False,
+            "recurso": f'{acao_xpto.recurso.uuid}'
         },
     ]
 

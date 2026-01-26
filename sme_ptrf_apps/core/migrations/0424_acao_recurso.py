@@ -14,7 +14,7 @@ def atualiza_recurso_acoes(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("core", "0421_recurso_recurso_unique_recurso_legado"),
+        ("core", "0423_periodoinicialassociacao"),
     ]
 
     operations = [
