@@ -81,6 +81,9 @@ class PrioridadePaa(ModeloBase):
 
         if self.recurso == RecursoOpcoesEnum.RECURSO_PROPRIO.name:
             return 'Recursos Próprios'
+
+        if self.recurso == RecursoOpcoesEnum.OUTRO_RECURSO.name:
+            return self.outro_recurso.nome if self.outro_recurso else 'Informar Recurso'
     nome.short_description = 'Ação'
 
     @classmethod

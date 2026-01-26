@@ -48,6 +48,7 @@ class PeriodoPaaSerializer(serializers.ModelSerializer):
         return instance
 
     def update(self, instance, validated_data):
+        from sme_ptrf_apps.paa.services import PeriodoPaaService
         referencia = validated_data.get('referencia')
         data_inicial = validated_data.get('data_inicial') or instance.data_inicial
         data_final = validated_data.get('data_final') or instance.data_final
@@ -57,6 +58,15 @@ class PeriodoPaaSerializer(serializers.ModelSerializer):
 
         # Validar se a data final é maior ou igual à data inicial ou se tem o mesmo mês com dias diferentes
         data_final_e_valida, mensagem = validar_data_final(data_inicial_ajustada, data_final_ajustada)
+
+        if data_final_ajustada != instance.data_final or data_inicial_ajustada != instance.data_inicial:
+            if PeriodoPaaService(instance).existe_paas_gerados_no_periodo():
+                raise serializers.ValidationError({
+                    'non_field_errors': (
+                        'Não é possível realizar alteração, foram encontrados PAA`s gerados no período.'
+                    )
+                })
+
         if not data_final_e_valida:
             raise serializers.ValidationError({
                 'non_field_errors': mensagem
