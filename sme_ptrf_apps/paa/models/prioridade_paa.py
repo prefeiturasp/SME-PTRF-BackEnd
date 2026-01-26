@@ -34,7 +34,9 @@ class PrioridadePaa(ModeloBase):
     recurso = models.CharField(
         max_length=20, choices=RecursoOpcoesEnum.choices(), null=True, blank=False)
 
-    acao_associacao = models.ForeignKey(AcaoAssociacao, on_delete=models.PROTECT, null=True, blank=True,
+    acao_associacao = models.ForeignKey(AcaoAssociacao, on_delete=models.PROTECT, 
+                                        related_name="prioridade_paa_da_associacao",
+                                        null=True, blank=True,
                                         help_text='Exibido quando o recurso é do tipo PTRF')
 
     programa_pdde = models.ForeignKey(ProgramaPdde, on_delete=models.PROTECT,

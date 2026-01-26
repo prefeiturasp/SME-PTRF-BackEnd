@@ -25,6 +25,7 @@ def test_api_rateio_desconciliar_despesa(jwt_authenticated_client_d, rateio_desp
     result_esperado['despesa'] = f'{result_esperado["despesa"]}'
     result_esperado['data_documento'] = f'{result_esperado["data_documento"]}'
     result_esperado['data_transacao'] = f'{result_esperado["data_transacao"]}'
+    result_esperado['acao_associacao']['acao']['recurso'] = f'{result_esperado["acao_associacao"]["acao"]["recurso"]}'
 
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado

@@ -6,6 +6,7 @@ from auditlog.models import LogEntry
 from auditlog.admin import LogEntryAdmin
 from rangefilter.filters import DateRangeFilter
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
+from sme_ptrf_apps.core.services.acao_associacao_service import checa_se_pode_alterar_recurso
 from sme_ptrf_apps.core.services import associacao_pode_implantar_saldo
 from sme_ptrf_apps.core.tasks.regerar_demonstrativos_financeiros import regerar_demonstrativo_financeiro_async
 from .models import (
@@ -90,9 +91,27 @@ class RecursoAdmin(admin.ModelAdmin):
     cor_preview.short_description = "Cor"
 
 
+class AcaoAdminForm(ModelForm):
+    class Meta:
+        model = Acao
+        fields = "__all__"
+
+    def clean(self):
+        obj = self.instance
+
+        if not checa_se_pode_alterar_recurso(obj):
+            self.add_error(
+                "recurso",
+                "Um vínculo entre uma Ação e um Recurso só pode ser desfeito "
+                "se não houver cadastro realizado na ação vinculada ao recurso."
+            )
+
+
 @admin.register(Acao)
 class AcaoAdmin(admin.ModelAdmin):
+    form = AcaoAdminForm
     readonly_fields = ('uuid', 'id')
+    list_filter = ("recurso__nome",)
 
     def save_model(self, request, obj, form, change):
         """

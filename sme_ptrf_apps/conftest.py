@@ -37,7 +37,7 @@ from sme_ptrf_apps.core.fixtures.factories import (
     PrestacaoContaReprovadaNaoApresentacaoFactory, DemonstrativoFinanceiroFactory,
     ItemResumoPorAcaoFactory, ItemDespesaFactory, ItemCreditoFactory, ArquivoDownloadFactory,
     TipoDevolucaoAoTesouroFactory, FlagFactory, AtaFactory, ParticipanteFactory,
-    AnaliseContaPrestacaoContaFactory, PDFFactory
+    AnaliseContaPrestacaoContaFactory, PDFFactory, RecursoFactory
 )
 from sme_ptrf_apps.users.fixtures.factories import (
     UsuarioFactory, UnidadeEmSuporteFactory, GrupoAcessoFactory, VisaoFactory,
@@ -92,7 +92,7 @@ factories_to_register = [
     PrioridadePaaFactory, AtaFactory, ParticipanteFactory, AnaliseContaPrestacaoContaFactory,
     PDFFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory, AtaPaaFactory, ParticipanteAtaPaaFactory,
     AtividadeEstatutariaPaaFactory, OutroRecursoFactory, DocumentoPaaFactory, OutroRecursoPeriodoFactory,
-    ReceitaPrevistaOutroRecursoPeriodoFactory,
+    ReceitaPrevistaOutroRecursoPeriodoFactory, RecursoFactory
 ]
 
 for factory in factories_to_register:
@@ -184,18 +184,24 @@ def tipo_conta_teste():
 
 
 @pytest.fixture
-def acao():
-    return baker.make('Acao', nome='PTRF')
+def acao(acao_factory):
+    return acao_factory(nome="PTRF")
 
 
 @pytest.fixture
-def acao_aceita_custeio():
-    return baker.make('Acao', nome='PTRF-aceita-custeio', aceita_custeio=True)
+def acao_aceita_custeio(acao_factory):
+    return acao_factory(
+        nome="PTRF-aceita-custeio",
+        aceita_custeio=True,
+    )
 
 
 @pytest.fixture
-def acao_recurso_externo_valor_reprogramado():
-    return baker.make('Acao', nome='PTRF', e_recursos_proprios=True)
+def acao_recurso_externo_valor_reprogramado(acao_factory):
+    return acao_factory(
+        nome="PTRF",
+        e_recursos_proprios=True,
+    )
 
 
 @pytest.fixture
@@ -204,13 +210,18 @@ def acao_ptrf(acao):
 
 
 @pytest.fixture
-def acao_de_destaque():
-    return baker.make('Acao', nome='ZZZZZ', posicao_nas_pesquisas='AAAAAAAAAA')
+def acao_de_destaque(acao_factory):
+    return acao_factory(
+        nome="ZZZZZ",
+        posicao_nas_pesquisas="AAAAAAAAAA",
+    )
 
 
 @pytest.fixture
-def acao_role_cultural():
-    return baker.make('Acao', nome='Rolê Cultural')
+def acao_role_cultural(acao_factory):
+    return acao_factory(
+        nome="Rolê Cultural",
+    )
 
 
 @pytest.fixture
@@ -3139,30 +3150,6 @@ def task_celery_criada_2(periodo_2020_1, associacao):
 
 @pytest.fixture
 def receita_prevista_paa(acao_associacao, paa):
-    """
-    Fixture para criar instancia de teste de 'ReceitaPrevistaPaa' associada à Ação e
-    Associação por meio da instância AcaoAssociacao.
-
-    Para a instância AcaoAssociacao utiliza-se as seguintes fixtures:
-    Ação (com o seguinte baker): baker.make('Acao', nome='PTRF')
-    Associação (com o baker)   : baker.make(
-                                    'Associacao',
-                                    nome='Escola Teste',
-                                    cnpj='52.302.275/0001-83',
-                                    unidade=unidade,
-                                    periodo_inicial=periodo_anterior,
-                                    ccm='0.000.00-0',
-                                    email="ollyverottoboni@gmail.com",
-                                    processo_regularidade='123456'
-                                )
-    Returns:
-        Instance de teste 'ReceitaPrevistaPaa' com os campos preenchidos:
-        - acao_associacao
-        - previsao_valor_custeio
-        - previsao_valor_capital
-        - previsao_valor_livre
-    """
-
     return baker.make(
         'ReceitaPrevistaPaa',
         paa=paa,
