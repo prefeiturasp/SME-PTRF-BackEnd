@@ -184,9 +184,8 @@ def associacao_04(unidade_04, periodo):
 
 
 @pytest.fixture
-def periodo_anterior():
-    return baker.make(
-        'Periodo',
+def periodo_anterior(periodo_factory):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 6, 16),
         data_fim_realizacao_despesas=date(2021, 12, 31),
@@ -194,9 +193,8 @@ def periodo_anterior():
 
 
 @pytest.fixture
-def periodo(periodo_anterior):
-    return baker.make(
-        'Periodo',
+def periodo(periodo_factory, periodo_anterior):
+    return periodo_factory(
         referencia='2022.1',
         data_inicio_realizacao_despesas=date(2022, 1, 1),
         data_fim_realizacao_despesas=date(2022, 12, 31),
@@ -235,6 +233,7 @@ def prestacao_conta_aprovada_01(periodo, associacao_01, consolidado_dre):
         publicada=True,
         consolidado_dre=consolidado_dre
     )
+
 
 @pytest.fixture
 def prestacao_conta_aprovada_02(periodo, associacao_02, consolidado_dre):

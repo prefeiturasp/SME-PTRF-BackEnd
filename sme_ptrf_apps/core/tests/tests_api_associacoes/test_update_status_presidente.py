@@ -9,10 +9,10 @@ from ...models import Associacao
 
 pytestmark = pytest.mark.django_db
 
+
 @pytest.fixture
-def periodo_2019_1():
-    return baker.make(
-        'Periodo',
+def periodo_2019_1(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 6, 30),

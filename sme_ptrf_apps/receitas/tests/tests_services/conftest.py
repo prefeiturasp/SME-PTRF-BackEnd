@@ -4,9 +4,8 @@ from model_bakery import baker
 
 
 @pytest.fixture
-def periodo_2022_teste_periodo(periodo_2021_teste_periodo):
-    return baker.make(
-        'Periodo',
+def periodo_2022_teste_periodo(periodo_factory, periodo_2021_teste_periodo):
+    return periodo_factory(
         referencia='2022.1',
         data_inicio_realizacao_despesas=date(2022, 1, 1),
         data_fim_realizacao_despesas=date(2022, 12, 31),
@@ -14,21 +13,19 @@ def periodo_2022_teste_periodo(periodo_2021_teste_periodo):
     )
 
 
-
 @pytest.fixture
-def periodo_2021_teste_periodo(periodo_2020_teste_periodo):
-    return baker.make(
-        'Periodo',
+def periodo_2021_teste_periodo(periodo_factory, periodo_2020_teste_periodo):
+    return periodo_factory(
         referencia='2021.1',
         data_inicio_realizacao_despesas=date(2021, 1, 1),
         data_fim_realizacao_despesas=date(2021, 12, 31),
         periodo_anterior=periodo_2020_teste_periodo,
     )
 
+
 @pytest.fixture
-def periodo_2020_teste_periodo(periodo_anterior_teste_periodo):
-    return baker.make(
-        'Periodo',
+def periodo_2020_teste_periodo(periodo_factory, periodo_anterior_teste_periodo):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=date(2020, 1, 1),
         data_fim_realizacao_despesas=date(2020, 12, 31),
@@ -37,9 +34,8 @@ def periodo_2020_teste_periodo(periodo_anterior_teste_periodo):
 
 
 @pytest.fixture
-def periodo_anterior_teste_periodo():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_teste_periodo(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 12, 31),
@@ -58,7 +54,6 @@ def associacao_sem_data_de_encerramento_teste_periodo(unidade, periodo_anterior_
         email="ollyverottoboni2@gmail.com",
         processo_regularidade='123456',
     )
-
 
 
 @pytest.fixture

@@ -42,6 +42,7 @@ def relatorio_consolidado_dre_01(consolidado_dre_teste_model_comentario_analise_
         consolidado_dre=consolidado_dre_teste_model_comentario_analise_consolidado_dre,
     )
 
+
 @pytest.fixture
 def analise_documento_consolidado_dre_01(
     analise_consolidado_dre_01,
@@ -54,10 +55,10 @@ def analise_documento_consolidado_dre_01(
         detalhamento="Este é o detalhamento da analise de documento 0",
     )
 
+
 @pytest.fixture
-def periodo_anterior_teste_model_comentario_analise_consolidado_dre():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_teste_model_comentario_analise_consolidado_dre(periodo_factory):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 6, 16),
         data_fim_realizacao_despesas=date(2021, 12, 31),
@@ -65,9 +66,8 @@ def periodo_anterior_teste_model_comentario_analise_consolidado_dre():
 
 
 @pytest.fixture
-def periodo_teste_model_comentario_analise_consolidado_dre(periodo_anterior_teste_model_comentario_analise_consolidado_dre):
-    return baker.make(
-        'Periodo',
+def periodo_teste_model_comentario_analise_consolidado_dre(periodo_factory, periodo_anterior_teste_model_comentario_analise_consolidado_dre):
+    return periodo_factory(
         referencia='2022.1',
         data_inicio_realizacao_despesas=date(2022, 1, 1),
         data_fim_realizacao_despesas=date(2022, 12, 31),
@@ -134,7 +134,7 @@ def jwt_authenticated_client_sme_teste_analise_documento_consolidado_dre(client,
         resp = api_client.post('/api/login',
                                {'login': usuario_permissao_sme.username, 'senha': usuario_permissao_sme.password},
 
-              format='json')
+                               format='json')
         resp_data = resp.json()
         api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
     return api_client

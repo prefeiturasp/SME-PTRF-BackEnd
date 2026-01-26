@@ -33,7 +33,14 @@ class Periodo(ModeloBase):
                                                                       blank=True, null=True, default=False)
 
     notificacao_proximidade_fim_pc_realizada = models.BooleanField('Notificação proximidade fim PC realizada',
-                                                                      blank=True, null=True, default=False)
+                                                                   blank=True, null=True, default=False)
+    recurso = models.ForeignKey(
+        "core.Recurso",
+        verbose_name="Recurso",
+        on_delete=models.PROTECT,
+        null=False,
+        blank=False,
+    )
 
     def __str__(self):
         return f"{self.referencia} - {self.data_inicio_realizacao_despesas} a {self.data_fim_realizacao_despesas}"
@@ -78,7 +85,6 @@ class Periodo(ModeloBase):
         periodos_da_data = cls.objects.filter(data_inicio_realizacao_despesas__lte=data).filter(
             Q(data_fim_realizacao_despesas__gte=data) | Q(data_fim_realizacao_despesas__isnull=True))
         return periodos_da_data.first() if periodos_da_data else None
-
 
     def notificacao_inicio_prestacao_de_contas_realizada(self):
         self.notificacao_inicio_periodo_pc_realizada = True

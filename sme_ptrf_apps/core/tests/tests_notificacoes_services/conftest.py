@@ -278,9 +278,9 @@ def usuario_notificavel_que_nao_possui_unidade_encerramento_conta(
 
 @pytest.fixture
 def usuario_nao_notificavel(
-    unidade_a,
-    grupo_nao_notificavel,
-    visao_ue):
+        unidade_a,
+        grupo_nao_notificavel,
+        visao_ue):
     from django.contrib.auth import get_user_model
 
     senha = 'Sgp0418'
@@ -297,9 +297,8 @@ def usuario_nao_notificavel(
 
 
 @pytest.fixture
-def periodo_2020_4_pc_2021_01_01_a_2021_01_15():
-    return baker.make(
-        'Periodo',
+def periodo_2020_4_pc_2021_01_01_a_2021_01_15(periodo_factory):
+    return periodo_factory(
         referencia='2020.4',
         data_inicio_realizacao_despesas=date(2020, 10, 1),
         data_fim_realizacao_despesas=date(2020, 12, 31),
@@ -311,9 +310,8 @@ def periodo_2020_4_pc_2021_01_01_a_2021_01_15():
 
 
 @pytest.fixture
-def periodo_2021_1_pc_2021_04_1_a_2021_04_15(periodo_2020_4_pc_2021_01_01_a_2021_01_15):
-    return baker.make(
-        'Periodo',
+def periodo_2021_1_pc_2021_04_1_a_2021_04_15(periodo_factory, periodo_2020_4_pc_2021_01_01_a_2021_01_15):
+    return periodo_factory(
         referencia='2021.1',
         data_inicio_realizacao_despesas=date(2021, 1, 1),
         data_fim_realizacao_despesas=date(2021, 3, 31),
@@ -325,9 +323,8 @@ def periodo_2021_1_pc_2021_04_1_a_2021_04_15(periodo_2020_4_pc_2021_01_01_a_2021
 
 
 @pytest.fixture
-def periodo_2021_2_pc_2021_07_01_a_2021_07_15(periodo_2021_1_pc_2021_04_1_a_2021_04_15):
-    return baker.make(
-        'Periodo',
+def periodo_2021_2_pc_2021_07_01_a_2021_07_15(periodo_factory, periodo_2021_1_pc_2021_04_1_a_2021_04_15):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 4, 1),
         data_fim_realizacao_despesas=date(2021, 6, 30),
@@ -339,9 +336,8 @@ def periodo_2021_2_pc_2021_07_01_a_2021_07_15(periodo_2021_1_pc_2021_04_1_a_2021
 
 
 @pytest.fixture
-def periodo_2021_3_pc_2021_06_12_a_2021_06_17(periodo_2021_1_pc_2021_04_1_a_2021_04_15):
-    return baker.make(
-        'Periodo',
+def periodo_2021_3_pc_2021_06_12_a_2021_06_17(periodo_factory, periodo_2021_1_pc_2021_04_1_a_2021_04_15):
+    return periodo_factory(
         referencia='2021.3',
         data_inicio_realizacao_despesas=date(2021, 4, 1),
         data_fim_realizacao_despesas=date(2021, 6, 30),
@@ -353,9 +349,8 @@ def periodo_2021_3_pc_2021_06_12_a_2021_06_17(periodo_2021_1_pc_2021_04_1_a_2021
 
 
 @pytest.fixture
-def periodo_2021_4_pc_2021_06_18_a_2021_06_30():
-    return baker.make(
-        'Periodo',
+def periodo_2021_4_pc_2021_06_18_a_2021_06_30(periodo_factory):
+    return periodo_factory(
         referencia='2021.4',
         data_inicio_realizacao_despesas=date(2021, 4, 1),
         data_fim_realizacao_despesas=date(2021, 6, 30),
@@ -368,9 +363,8 @@ def periodo_2021_4_pc_2021_06_18_a_2021_06_30():
 
 
 @pytest.fixture
-def periodo_notifica_pendencia_envio_pc():
-    return baker.make(
-        'Periodo',
+def periodo_notifica_pendencia_envio_pc(periodo_factory):
+    return periodo_factory(
         referencia='2021.5',
         data_inicio_realizacao_despesas=date(2021, 4, 1),
         data_fim_realizacao_despesas=date(2021, 6, 15),
@@ -393,9 +387,8 @@ def prestacao_nao_notifica_pendencia_envio_pc(periodo_notifica_pendencia_envio_p
 
 
 @pytest.fixture
-def periodo_notifica_proximidade_fim_pc():
-    return baker.make(
-        'Periodo',
+def periodo_notifica_proximidade_fim_pc(periodo_factory):
+    return periodo_factory(
         referencia='2021.6',
         data_inicio_realizacao_despesas=date(2021, 4, 1),
         data_fim_realizacao_despesas=date(2021, 6, 15),
@@ -408,9 +401,8 @@ def periodo_notifica_proximidade_fim_pc():
 
 
 @pytest.fixture
-def periodo_notifica_pc_aprovada():
-    return baker.make(
-        'Periodo',
+def periodo_notifica_pc_aprovada(periodo_factory):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 6, 16),
         data_fim_realizacao_despesas=date(2021, 12, 31),
@@ -431,6 +423,7 @@ def prestacao_notifica_pc_devolvida_para_acertos(periodo_notifica_pendencia_envi
         status="DEVOLVIDA"
     )
 
+
 @pytest.fixture
 def prestacao_notifica_pc_aprovada(periodo_notifica_pc_aprovada, associacao_a):
     return baker.make(
@@ -439,6 +432,7 @@ def prestacao_notifica_pc_aprovada(periodo_notifica_pc_aprovada, associacao_a):
         associacao=associacao_a,
         status="APROVADA"
     )
+
 
 @pytest.fixture
 def prestacao_notifica_pc_aprovada_com_ressalvas(periodo_notifica_pc_aprovada, associacao_a):
@@ -466,6 +460,7 @@ def motivo_aprovacao_ressalva_x():
         'dre.MotivoAprovacaoRessalva',
         motivo='X'
     )
+
 
 @pytest.fixture
 def motivo_reprovacao_x():
@@ -514,6 +509,7 @@ def devolucao_nao_notifica_proximidade_fim_entrega_ajustes_pc_em_analise(prestac
         data_limite_ue=date(2021, 6, 26),
     )
 
+
 @pytest.fixture
 def parametro_proximidade_inicio_pc_5_dias():
     return baker.make(
@@ -528,6 +524,7 @@ def parametro_proximidade_fim_pc_5_dias():
         'Parametros',
         dias_antes_fim_periodo_pc_para_notificacao=5,
     )
+
 
 @pytest.fixture
 def parametro_proximidade_fim_entrega_ajustes_5_dias():
