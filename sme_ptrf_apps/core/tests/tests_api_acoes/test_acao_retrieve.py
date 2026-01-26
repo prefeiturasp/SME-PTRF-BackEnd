@@ -27,7 +27,8 @@ def test_retrieve_acao(
         "aceita_livre": acao_x.aceita_livre,
         "exibir_paa": True,
         "tem_receitas_previstas_paa_em_elaboracao": False,
-        "tem_prioridades_paa_em_elaboracao": False
+        "tem_prioridades_paa_em_elaboracao": False,
+        "recurso": f'{acao_x.recurso.uuid}'
     }
 
     assert response.status_code == status.HTTP_200_OK

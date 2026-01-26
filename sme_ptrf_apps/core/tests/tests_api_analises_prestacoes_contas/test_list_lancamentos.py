@@ -135,6 +135,7 @@ def monta_result_esperado(lancamentos_esperados, periodo, conta, inativa=False):
                         'exibir_paa': rateio.acao_associacao.acao.exibir_paa,
                         'tem_receitas_previstas_paa_em_elaboracao': False,
                         'tem_prioridades_paa_em_elaboracao': False,
+                        'recurso': f'{rateio.acao_associacao.acao.recurso.uuid}'
                     }
                 },
                 "conferido": rateio.conferido,

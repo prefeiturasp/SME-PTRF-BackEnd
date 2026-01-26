@@ -33,13 +33,13 @@ def transf_eol_tipo_conta_cartao():
 
 
 @pytest.fixture
-def transf_eol_acao_ptrf():
-    return baker.make('Acao', nome='PTRF')
+def transf_eol_acao_ptrf(acao_factory):
+    return acao_factory(nome='PTRF')
 
 
 @pytest.fixture
-def transf_eol_acao_role():
-    return baker.make('Acao', nome='Rolê Cultural')
+def transf_eol_acao_role(acao_factory):
+    return acao_factory(nome='Rolê Cultural')
 
 
 @pytest.fixture

@@ -200,15 +200,15 @@ Foram criados 0 repasses. Erro na importação de 1 repasse(s)."""
 
 
 @pytest.fixture
-def acao_role_cultural_teste():
-    return baker.make('Acao', nome='Role Cultural')
+def acao_role_cultural_teste(acao_factory):
+    return acao_factory(nome='Role Cultural')
 
 
 @pytest.fixture
-def acao_ptrf_basico():
-    return baker.make('Acao', nome='PTRF Básico',
-                      aceita_capital=True, aceita_custeio=True,
-                      aceita_livre=True)
+def acao_ptrf_basico(acao_factory):
+    return acao_factory(nome='PTRF Básico',
+                        aceita_capital=True, aceita_custeio=True,
+                        aceita_livre=True)
 
 
 @pytest.fixture
