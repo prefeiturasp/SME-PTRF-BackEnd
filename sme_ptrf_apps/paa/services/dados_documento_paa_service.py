@@ -358,7 +358,7 @@ def criar_atividades_estatutarias(paa):
             "mes_ano": (
                 f"{MESES_PT[atividade_paa.data.month - 1]}/{atividade_paa.data.year}"
                 if atividade_paa
-                else MESES_PT[atividade.mes]
+                else MESES_PT[atividade.mes - 1]
             ),
         })
 
