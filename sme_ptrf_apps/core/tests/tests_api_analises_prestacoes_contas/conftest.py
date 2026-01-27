@@ -921,9 +921,8 @@ def analise_documento_prestacao_conta_2020_1_declaracao_cartao_correta(
 
 
 @pytest.fixture
-def tipo_conta_carteira():
-    return baker.make(
-        'TipoConta',
+def tipo_conta_carteira(tipo_conta_factory):
+    return tipo_conta_factory(
         nome='Carteira',
     )
 
