@@ -933,14 +933,13 @@ def test_api_get_info_para_ata_com_duas_contas(jwt_authenticated_client_a,
                              'numero_conta': '123456-x',
                              'uuid': f'{conta_associacao.uuid}'},
 
-        'acoes':  acoes_esperadas,
+        'acoes': acoes_esperadas,
         'totais': totais_esperados,
     }
 
-
     resultado_esperado_1 = {
         'uuid': f'{prestacao_uuid}',
-        'contas': [info_conta_cartao, info_conta_cheque, ],
+        'contas': [info_conta_cartao, info_conta_cheque],
     }
 
     resultado_esperado_2 = {

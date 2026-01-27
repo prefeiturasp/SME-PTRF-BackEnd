@@ -583,9 +583,8 @@ def acao_associacao_encerramento_conta(associacao_encerramento_conta, acao):
 
 
 @pytest.fixture
-def tipo_conta_encerramento_conta():
-    return baker.make(
-        'TipoConta',
+def tipo_conta_encerramento_conta(tipo_conta_factory):
+    return tipo_conta_factory(
         nome='Cheque encerramento conta',
         banco_nome='Banco do Inter',
         agencia='67945',

@@ -9,8 +9,8 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def tipo_conta():
-    return baker.make('TipoConta', nome='Teste')
+def tipo_conta(tipo_conta_factory):
+    return tipo_conta_factory(nome='Teste')
 
 
 def test_api_list_tipos_conta(jwt_authenticated_client_a, tipo_conta):
@@ -27,8 +27,8 @@ def test_api_list_tipos_conta(jwt_authenticated_client_a, tipo_conta):
             'numero_conta': '',
             'permite_inativacao': False,
             'apenas_leitura': tipo_conta.apenas_leitura,
-            'uuid': f'{tipo_conta.uuid}'
-
+            'uuid': f'{tipo_conta.uuid}',
+            'recurso': f"{tipo_conta.recurso.uuid}"
         }
     ]
 

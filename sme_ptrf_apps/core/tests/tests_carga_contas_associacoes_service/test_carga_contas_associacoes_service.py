@@ -68,13 +68,13 @@ def arquivo_com_erro():
 
 
 @pytest.fixture
-def tipo_conta_cartao():
-    return baker.make('TipoConta', nome='Cartão')
+def tipo_conta_cartao(tipo_conta_factory):
+    return tipo_conta_factory(nome='Cartão')
 
 
 @pytest.fixture
-def tipo_conta_debito():
-    return baker.make('TipoConta', nome='Débito')
+def tipo_conta_debito(tipo_conta_factory):
+    return tipo_conta_factory(nome='Débito')
 
 
 @pytest.fixture

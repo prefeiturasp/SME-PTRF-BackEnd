@@ -306,8 +306,8 @@ def tipo_conta_cheque(tipo_conta):
 
 
 @pytest.fixture
-def tipo_conta_cartao():
-    return baker.make('TipoConta', nome='Cartão')
+def tipo_conta_cartao(tipo_conta_factory):
+    return tipo_conta_factory(nome='Cartão')
 
 
 @pytest.fixture

@@ -10,8 +10,8 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def tipo_conta():
-    return baker.make('TipoConta', nome='Teste')
+def tipo_conta(tipo_conta_factory):
+    return tipo_conta_factory(nome='Teste')
 
 
 def test_view_set(tipo_conta, usuario_permissao_associacao):

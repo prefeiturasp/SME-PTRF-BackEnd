@@ -48,8 +48,8 @@ def consolidado_dre_teste_model_lauda(dre_teste_model_lauda, periodo_teste_model
 
 
 @pytest.fixture
-def tipo_conta_cartao_teste_model_lauda():
-    return baker.make('TipoConta', nome='Cartão')
+def tipo_conta_cartao_teste_model_lauda(tipo_conta_factory):
+    return tipo_conta_factory(nome='Cartão')
 
 
 @pytest.fixture
