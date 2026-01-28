@@ -41,6 +41,7 @@ def test_api_retrieve_ata_associacao(jwt_authenticated_client_a, associacao, ata
         'retificacoes': '',
         'hora_reuniao': '00:00',
         'justificativa_repasses_pendentes':'',
+        'precisa_professor_gremio': False,
     }
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado
@@ -81,7 +82,7 @@ def test_api_retrieve_ata_retificacao_associacao(jwt_authenticated_client_a, ass
         'retificacoes': 'Teste',
         'hora_reuniao': '00:00',
         'justificativa_repasses_pendentes': '',
-
+        'precisa_professor_gremio': False,
     }
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado
