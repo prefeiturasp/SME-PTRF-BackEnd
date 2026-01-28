@@ -191,6 +191,17 @@ class Ata(ModeloBase):
         return self.status_geracao_pdf == Ata.STATUS_CONCLUIDO
 
     @property
+    def precisa_professor_gremio(self):
+        """
+        Verifica se a unidade da associação precisa do campo professor do grêmio.
+        
+        Returns:
+            bool: True se precisa de professor do grêmio, False caso contrário
+        """
+        from sme_ptrf_apps.core.services.ata_service import verifica_precisa_professor_gremio_ata
+        return verifica_precisa_professor_gremio_ata(self)
+
+    @property
     def completa(self):
         from sme_ptrf_apps.core.services.associacoes_service import tem_repasses_pendentes_periodos_ate_agora
         

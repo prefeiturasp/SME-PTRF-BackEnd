@@ -137,3 +137,79 @@ def test_completa_sem_campos_com_flag_ativa(ata_prestacao_conta_iniciada, associ
     ata_prestacao_conta_iniciada.save()
     
     assert ata_prestacao_conta_iniciada.completa is False
+
+
+def test_precisa_professor_gremio_retorna_bool(ata_prestacao_conta_iniciada):
+    """Testa se precisa_professor_gremio retorna um booleano"""
+    assert isinstance(ata_prestacao_conta_iniciada.precisa_professor_gremio, bool)
+
+
+def test_precisa_professor_gremio_sem_periodo(ata_prestacao_conta_iniciada):
+    """Testa se precisa_professor_gremio retorna False quando não há período"""
+    periodo_original = ata_prestacao_conta_iniciada.periodo
+    ata_prestacao_conta_iniciada.periodo = None
+    assert ata_prestacao_conta_iniciada.precisa_professor_gremio is False
+    ata_prestacao_conta_iniciada.periodo = periodo_original
+
+
+def test_precisa_professor_gremio_sem_tipo_configurado(ata_prestacao_conta_iniciada, parametros):
+    """Testa se precisa_professor_gremio retorna False quando tipo de unidade não está configurado"""
+    parametros.tipos_unidades_professor_gremio = []
+    parametros.save()
+    
+    assert ata_prestacao_conta_iniciada.precisa_professor_gremio is False
+
+
+def test_precisa_professor_gremio_com_tipo_configurado_sem_despesas(ata_prestacao_conta_iniciada, parametros):
+    """Testa se precisa_professor_gremio retorna False quando tipo está configurado mas não há despesas"""
+    tipo_unidade = ata_prestacao_conta_iniciada.associacao.unidade.tipo_unidade
+    parametros.tipos_unidades_professor_gremio = [tipo_unidade]
+    parametros.save()
+    
+    assert ata_prestacao_conta_iniciada.precisa_professor_gremio is False
+
+
+def test_precisa_professor_gremio_com_despesas_completas_gremio_no_periodo(
+    ata_prestacao_conta_iniciada, parametros, acao_factory, acao_associacao_factory, 
+    despesa_factory, rateio_despesa_factory
+):
+    """Testa se precisa_professor_gremio retorna True quando há despesas completas com ação grêmio no período"""
+    from sme_ptrf_apps.despesas.models import RateioDespesa
+    
+    tipo_unidade = ata_prestacao_conta_iniciada.associacao.unidade.tipo_unidade
+    parametros.tipos_unidades_professor_gremio = [tipo_unidade]
+    parametros.save()
+    
+    # Cria ação "Orçamento Grêmio Estudantil"
+    acao_gremio = acao_factory(nome='Orçamento Grêmio Estudantil')
+    acao_associacao = acao_associacao_factory(
+        associacao=ata_prestacao_conta_iniciada.associacao,
+        acao=acao_gremio,
+        status='ATIVA'
+    )
+    
+    # Cria despesa completa no período
+    periodo = ata_prestacao_conta_iniciada.periodo
+    despesa = despesa_factory(
+        associacao=ata_prestacao_conta_iniciada.associacao,
+        data_transacao=periodo.data_inicio_realizacao_despesas
+    )
+    
+    rateio_despesa_factory(
+        despesa=despesa,
+        acao_associacao=acao_associacao,
+        associacao=ata_prestacao_conta_iniciada.associacao,
+        conferido=True,
+        valor_rateio=100.00
+    )
+    
+    assert ata_prestacao_conta_iniciada.precisa_professor_gremio is True
+
+
+def test_precisa_professor_gremio_sem_acao_gremio(ata_prestacao_conta_iniciada, parametros):
+    """Testa se precisa_professor_gremio retorna False quando não há ação grêmio"""
+    tipo_unidade = ata_prestacao_conta_iniciada.associacao.unidade.tipo_unidade
+    parametros.tipos_unidades_professor_gremio = [tipo_unidade]
+    parametros.save()
+    
+    assert ata_prestacao_conta_iniciada.precisa_professor_gremio is False
