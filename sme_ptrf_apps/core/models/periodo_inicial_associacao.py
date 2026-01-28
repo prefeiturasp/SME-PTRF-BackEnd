@@ -37,7 +37,12 @@ class PeriodoInicialAssociacao(ModeloBase):
     class Meta:
         verbose_name = "Período Inicial de Associação"
         verbose_name_plural = "07.7) Períodos Iniciais de Associação"
-        unique_together = ['associacao', 'recurso', 'periodo_inicial']
+        constraints = [
+            models.UniqueConstraint(
+                fields=["associacao", "recurso"],
+                name="uniq_periodo_inicial_associacao_recurso",
+            )
+        ]
 
     def clean(self):
         super().clean()
