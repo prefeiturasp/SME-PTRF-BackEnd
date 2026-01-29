@@ -1,7 +1,9 @@
 from ckeditor.fields import RichTextField
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase, SingletonModel
+from sme_ptrf_apps.core.choices.tipos_unidade import TIPOS_CHOICE
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -67,6 +69,13 @@ class Parametros(SingletonModel, ModeloBase):
         'Quantos períodos consecutivos com saldo zerado para notificar a possibilidade de inativações de contas',
         default=2
     )
+    
+    tipos_unidades_professor_gremio = ArrayField(
+        models.CharField(max_length=20, choices=TIPOS_CHOICE),
+        blank=True,
+        default=list,
+        verbose_name='Tipos de unidades que possuem professor grêmio na ata do PAA'
+    ) 
 
     def __str__(self):
         return 'Parâmetros do PTRF'

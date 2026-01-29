@@ -1,18 +1,17 @@
 import pytest
 from sme_ptrf_apps.paa.models import PrioridadePaa
-from sme_ptrf_apps.paa.fixtures.factories import PrioridadePaaFactory
 from sme_ptrf_apps.paa.models.prioridade_paa import SimNaoChoices
 
 
 @pytest.mark.django_db
-def test_criacao_prioridade_paa(flag_paa, paa):
-    PrioridadePaaFactory(paa=paa)
+def test_criacao_prioridade_paa(flag_paa, prioridade_paa_factory, paa):
+    prioridade_paa_factory(paa=paa)
     assert PrioridadePaa.objects.count() == 1
 
 
 @pytest.mark.django_db
-def test_prioridade_nome_da_acao_pdde(flag_paa, paa, acao_pdde, programa_pdde):
-    prioridade = PrioridadePaaFactory(
+def test_prioridade_nome_da_acao_pdde(prioridade_paa_factory, flag_paa, paa, acao_pdde, programa_pdde):
+    prioridade = prioridade_paa_factory(
         recurso="PDDE",
         tipo_aplicacao="CAPITAL",
         acao_associacao=None,
@@ -24,8 +23,8 @@ def test_prioridade_nome_da_acao_pdde(flag_paa, paa, acao_pdde, programa_pdde):
 
 
 @pytest.mark.django_db
-def test_prioridade_nome_da_acao_associacao(flag_paa, paa, acao_associacao):
-    prioridade = PrioridadePaaFactory(
+def test_prioridade_nome_da_acao_associacao(prioridade_paa_factory, flag_paa, paa, acao_associacao):
+    prioridade = prioridade_paa_factory(
         recurso="PTRF",
         tipo_aplicacao="CAPITAL",
         acao_associacao=acao_associacao,
@@ -35,8 +34,8 @@ def test_prioridade_nome_da_acao_associacao(flag_paa, paa, acao_associacao):
 
 
 @pytest.mark.django_db
-def test_prioridade_nome_de_recurso_proprio(flag_paa, paa):
-    prioridade = PrioridadePaaFactory(
+def test_prioridade_nome_de_recurso_proprio(prioridade_paa_factory, flag_paa, paa):
+    prioridade = prioridade_paa_factory(
         recurso="RECURSO_PROPRIO",
         acao_associacao=None,
         acao_pdde=None,

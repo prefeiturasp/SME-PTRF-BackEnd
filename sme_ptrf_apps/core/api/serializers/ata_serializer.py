@@ -39,6 +39,7 @@ class AtaSerializer(serializers.ModelSerializer):
         queryset=PrestacaoConta.objects.all()
     )
     completa = serializers.SerializerMethodField('get_completa')
+    precisa_professor_gremio = serializers.SerializerMethodField('get_precisa_professor_gremio')
 
     presentes_na_ata = PresentesAtaSerializer(many=True)
 
@@ -52,6 +53,9 @@ class AtaSerializer(serializers.ModelSerializer):
         if obj.completa:
             return True
         return False
+
+    def get_precisa_professor_gremio(self, obj):
+        return obj.precisa_professor_gremio
 
     class Meta:
         model = Ata
@@ -79,6 +83,7 @@ class AtaSerializer(serializers.ModelSerializer):
             'hora_reuniao',
             'justificativa_repasses_pendentes',
             'completa',
+            'precisa_professor_gremio',
         )
 
 
@@ -129,6 +134,9 @@ class AtaCreateSerializer(serializers.ModelSerializer):
                 presentes_lista.append(presentes_object)
         else:
             for presente in presentes_na_ata:
+                presente.pop('presidente_da_reuniao', None)
+                presente.pop('secretario_da_reuniao', None)
+                
                 presentes_object = PresentesAtaCreateSerializer().create(presente)
                 presentes_object.eh_conselho_fiscal()
                 presentes_lista.append(presentes_object)
@@ -179,6 +187,9 @@ class AtaCreateSerializer(serializers.ModelSerializer):
             
         else:
             for presente in presentes_json:
+                presente.pop('presidente_da_reuniao', None)
+                presente.pop('secretario_da_reuniao', None)
+                
                 presente_object = PresentesAtaCreateSerializer().create(presente)
                 presente_object.eh_conselho_fiscal()
                 presentes_lista.append(presente_object)
