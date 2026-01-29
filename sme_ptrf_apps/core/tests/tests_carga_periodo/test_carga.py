@@ -1,4 +1,6 @@
 import pytest
+from datetime import date
+from waffle.testutils import override_flag
 from django.core.files.uploadedfile import SimpleUploadedFile
 from model_bakery import baker
 
@@ -9,6 +11,7 @@ from sme_ptrf_apps.core.models.arquivo import (
     DELIMITADOR_PONTO_VIRGULA,
     DELIMITADOR_VIRGULA,
     ERRO,
+    SUCESSO,
     PROCESSADO_COM_ERRO)
 
 from sme_ptrf_apps.core.choices.tipos_carga import CARGA_PERIODO_INICIAL
@@ -17,17 +20,34 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
+def recurso_pdde(recurso_factory):
+    return recurso_factory(nome="pdde", legado=False, cor="#fffff")
+
+
+@pytest.fixture
+def recurso_premio(recurso_factory):
+    return recurso_factory(nome="premio", legado=False, cor="#00000")
+
+
+@pytest.fixture
 def arquivo():
     return SimpleUploadedFile(
-        f'periodos_iniciais.csv',
-        bytes(f"""Código eol,periodo\n000256,2019.1\n00094,2019.1""", encoding="utf-8"))
+        'periodos_iniciais.csv',
+        bytes("""Código eol,periodo\n000256,2019.1\n00094,2019.1""", encoding="utf-8"))
 
 
 @pytest.fixture
 def arquivo_processado():
     return SimpleUploadedFile(
-        f'periodos_iniciais.csv',
-        bytes(f"""Código eol,periodo\n123456,2019.2\n00094,2019.1""", encoding="utf-8"))
+        'periodos_iniciais.csv',
+        bytes("""Código eol,periodo\n123456,2019.2\n00094,2019.1""", encoding="utf-8"))
+
+
+@pytest.fixture
+def arquivo_processado_com_recurso():
+    return SimpleUploadedFile(
+        'periodos_iniciais.csv',
+        bytes("""Código eol,periodo,recurso\n123456,2019.2,premio""", encoding="utf-8"))
 
 
 @pytest.fixture
@@ -63,6 +83,43 @@ def arquivo_carga_virgula_processado(arquivo_processado):
     )
 
 
+@pytest.fixture
+def arquivo_carga_com_recurso(arquivo_processado_com_recurso):
+    return baker.make(
+        'Arquivo',
+        identificador='carga_periodos_iniciais',
+        conteudo=arquivo_processado_com_recurso,
+        tipo_carga=CARGA_PERIODO_INICIAL,
+        tipo_delimitador=DELIMITADOR_VIRGULA
+    )
+
+
+@pytest.fixture
+def periodo_premio_2019_2(periodo_factory, recurso_premio):
+    return periodo_factory(
+        referencia='2019.2',
+        data_inicio_realizacao_despesas=date(2019, 9, 1),
+        data_fim_realizacao_despesas=None,
+        data_prevista_repasse=date(2019, 10, 1),
+        data_inicio_prestacao_contas=date(2019, 12, 1),
+        data_fim_prestacao_contas=date(2019, 12, 5),
+        recurso=recurso_premio,
+    )
+
+
+@pytest.fixture
+def periodo_pdde_2019_2(periodo_factory, recurso_pdde):
+    return periodo_factory(
+        referencia='2019.2',
+        data_inicio_realizacao_despesas=date(2019, 9, 1),
+        data_fim_realizacao_despesas=None,
+        data_prevista_repasse=date(2019, 10, 1),
+        data_inicio_prestacao_contas=date(2019, 12, 1),
+        data_fim_prestacao_contas=date(2019, 12, 5),
+        recurso=recurso_pdde,
+    )
+
+
 def test_carga_com_erro_formatacao(arquivo_carga):
     carrega_periodo_inicial(arquivo_carga)
     assert arquivo_carga.log == 'Formato definido (DELIMITADOR_PONTO_VIRGULA) é diferente do formato do arquivo csv (DELIMITADOR_VIRGULA)'
@@ -74,8 +131,10 @@ def test_carga_com_erro(arquivo_carga_virgula):
     msg = """\nErro na linha 1: Associação (000256) não encontrado. Linha ID:1
 Erro na linha 2: Associação (00094) não encontrado. Linha ID:2
 Importados 0 períodos iniciais. Erro na importação de 2 períodos iniciais."""
+    print(arquivo_carga_virgula.log)
     assert arquivo_carga_virgula.log == msg
     assert arquivo_carga_virgula.status == ERRO
+
 
 def test_carga_com_erro_periodo_inicial_valores_reprogramados(arquivo_carga_virgula_processado, periodo, associacao):
     carrega_periodo_inicial(arquivo_carga_virgula_processado)
@@ -83,11 +142,13 @@ def test_carga_com_erro_periodo_inicial_valores_reprogramados(arquivo_carga_virg
     assert msg in arquivo_carga_virgula_processado.log
     assert arquivo_carga_virgula_processado.status == ERRO
 
+
 def test_carga_com_erro_periodo_inicial_despesas(arquivo_carga_virgula_processado, periodo, associacao, despesa_no_periodo):
     carrega_periodo_inicial(arquivo_carga_virgula_processado)
     msg = """Não é permitido alterar o período inicial da Associação. Há cadastros já realizados pela Associação no primeiro período de uso do sistema: - Valores Reprogramados - Despesa(s)."""
     assert msg in arquivo_carga_virgula_processado.log
     assert arquivo_carga_virgula_processado.status == ERRO
+
 
 def test_carga_com_erro_periodo_inicial_receitas(arquivo_carga_virgula_processado, periodo, associacao, despesa_no_periodo, receita_100_no_periodo_capital):
     carrega_periodo_inicial(arquivo_carga_virgula_processado)
@@ -95,11 +156,13 @@ def test_carga_com_erro_periodo_inicial_receitas(arquivo_carga_virgula_processad
     assert msg in arquivo_carga_virgula_processado.log
     assert arquivo_carga_virgula_processado.status == ERRO
 
+
 def test_carga_com_erro_periodo_inicial_prestacao_conta(arquivo_carga_virgula_processado, periodo, associacao, despesa_no_periodo, receita_100_no_periodo_capital, prestacao_conta):
     carrega_periodo_inicial(arquivo_carga_virgula_processado)
     msg = """Não é permitido alterar o período inicial da Associação. Há cadastros já realizados pela Associação no primeiro período de uso do sistema: - Valores Reprogramados - Despesa(s) - Crédito(s) - Prestação de Contas."""
     assert msg in arquivo_carga_virgula_processado.log
     assert arquivo_carga_virgula_processado.status == ERRO
+
 
 def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao_status_nao_finalizado):
     carrega_periodo_inicial(arquivo_carga_virgula_processado)
@@ -107,3 +170,19 @@ def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, as
 Importados 1 períodos iniciais. Erro na importação de 1 períodos iniciais."""
     assert arquivo_carga_virgula_processado.log == msg
     assert arquivo_carga_virgula_processado.status == PROCESSADO_COM_ERRO
+
+
+@override_flag('premio-excelencia', active=True)
+def test_carga_com_erro_periodo_inicial_recurso(arquivo_carga_com_recurso, periodo_pdde_2019_2, associacao_status_nao_finalizado):
+    carrega_periodo_inicial(arquivo_carga_com_recurso)
+    msg = "Erro na linha 1: Recurso (premio) não encontrado."
+    assert msg in arquivo_carga_com_recurso.log
+    assert arquivo_carga_com_recurso.status == ERRO
+
+
+@override_flag('premio-excelencia', active=True)
+def test_carga_com_periodo_inicial_recurso(arquivo_carga_com_recurso, periodo_premio_2019_2, associacao_status_nao_finalizado):
+    carrega_periodo_inicial(arquivo_carga_com_recurso)
+    msg = "Importados 1 períodos iniciais. Erro na importação de 0 períodos iniciais."
+    assert msg in arquivo_carga_com_recurso.log
+    assert arquivo_carga_com_recurso.status == SUCESSO
