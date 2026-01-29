@@ -64,9 +64,8 @@ def periodo_teste_2(periodo_factory):
 
 
 @pytest.fixture
-def tipo_conta():
-    return baker.make(
-        'TipoConta',
+def tipo_conta(tipo_conta_factory):
+    return tipo_conta_factory(
         nome='Cheque',
         banco_nome='Banco do Inter',
         agencia='67945',

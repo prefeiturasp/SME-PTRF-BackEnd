@@ -49,8 +49,8 @@ def df_periodo_2021_1(periodo_factory, df_periodo_2020_2):
 
 
 @pytest.fixture
-def df_tipo_conta_cartao():
-    return baker.make('TipoConta', nome='Cartão')
+def df_tipo_conta_cartao(tipo_conta_factory):
+    return tipo_conta_factory(nome='Cartão')
 
 
 @pytest.fixture

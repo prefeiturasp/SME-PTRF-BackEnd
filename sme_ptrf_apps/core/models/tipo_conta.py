@@ -12,11 +12,17 @@ class TipoConta(ModeloIdNome):
     """
     history = AuditlogHistoryField()
     banco_nome = models.CharField('Nome do banco', max_length=50, blank=True, default='')
-    agencia = models.CharField('Nº agência',  max_length=15, blank=True, default='')
+    agencia = models.CharField('Nº agência', max_length=15, blank=True, default='')
     numero_conta = models.CharField('Nº conta', max_length=30, blank=True, default='')
     numero_cartao = models.CharField('Nº do cartão', max_length=80, blank=True, default='')
     apenas_leitura = models.BooleanField("Apenas Leitura?", default=False)
     permite_inativacao = models.BooleanField("Permite inativação da conta?", default=False)
+    recurso = models.ForeignKey(
+        "core.Recurso",
+        verbose_name="Recurso",
+        on_delete=models.PROTECT,
+        null=False
+    )
 
     class Meta:
         verbose_name = "Tipo de conta"

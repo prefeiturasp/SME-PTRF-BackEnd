@@ -157,9 +157,8 @@ def request_factory() -> RequestFactory:
 
 
 @pytest.fixture
-def tipo_conta():
-    return baker.make(
-        'TipoConta',
+def tipo_conta(tipo_conta_factory):
+    return tipo_conta_factory(
         nome='Cheque',
         banco_nome='Banco do Inter',
         agencia='67945',
@@ -174,13 +173,18 @@ def tipo_conta_cheque(tipo_conta):
 
 
 @pytest.fixture
-def tipo_conta_cartao():
-    return baker.make('TipoConta', nome='Cartão')
+def tipo_conta_cartao(tipo_conta_factory):
+    return tipo_conta_factory(nome='Cartão')
 
 
 @pytest.fixture
-def tipo_conta_teste():
-    return baker.make('TipoConta', nome='Teste')
+def tipo_conta_cartao_incompleta(tipo_conta_factory):
+    return tipo_conta_factory(nome='Cartão', banco_nome='')
+
+
+@pytest.fixture
+def tipo_conta_teste(tipo_conta_factory):
+    return tipo_conta_factory(nome='Teste')
 
 
 @pytest.fixture
@@ -647,21 +651,25 @@ def conta_associacao_tipo_teste(associacao, tipo_conta_teste, periodo_2020_1):
 
 
 @pytest.fixture
-def conta_associacao_incompleta(associacao_cadastro_incompleto, tipo_conta_cartao):
+def conta_associacao_incompleta(associacao_cadastro_incompleto, tipo_conta_cartao_incompleta):
     return baker.make(
         'ContaAssociacao',
         associacao=associacao_cadastro_incompleto,
-        tipo_conta=tipo_conta_cartao,
-        data_inicio='2020-01-01'
+        tipo_conta=tipo_conta_cartao_incompleta,
+        data_inicio='2020-01-01',
+        banco_nome='',
+        status='ATIVA'
     )
 
 
 @pytest.fixture
-def conta_associacao_incompleta_002(associacao, tipo_conta_cartao):
+def conta_associacao_incompleta_002(associacao, tipo_conta_cartao_incompleta):
     return baker.make(
         'ContaAssociacao',
         associacao=associacao,
-        tipo_conta=tipo_conta_cartao,
+        tipo_conta=tipo_conta_cartao_incompleta,
+        banco_nome='',
+        status='ATIVA'
     )
 
 

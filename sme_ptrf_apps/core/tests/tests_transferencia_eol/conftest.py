@@ -17,17 +17,15 @@ def transf_eol_periodo_2022_2(periodo_factory):
 
 
 @pytest.fixture
-def transf_eol_tipo_conta_cheque():
-    return baker.make(
-        'TipoConta',
+def transf_eol_tipo_conta_cheque(tipo_conta_factory):
+    return tipo_conta_factory(
         nome='Cheque transferencia_eol',
     )
 
 
 @pytest.fixture
-def transf_eol_tipo_conta_cartao():
-    return baker.make(
-        'TipoConta',
+def transf_eol_tipo_conta_cartao(tipo_conta_factory):
+    return tipo_conta_factory(
         nome='Cartão',
     )
 
