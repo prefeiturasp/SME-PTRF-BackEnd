@@ -10,6 +10,7 @@ from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
 from sme_ptrf_apps.core.services.acao_associacao_service import checa_se_pode_alterar_recurso
 from sme_ptrf_apps.core.services import associacao_pode_implantar_saldo
 from sme_ptrf_apps.core.tasks.regerar_demonstrativos_financeiros import regerar_demonstrativo_financeiro_async
+from sme_ptrf_apps.core.choices.tipos_unidade import TIPOS_CHOICE
 from .models import (
     Acao,
     AcaoAssociacao,
@@ -924,8 +925,47 @@ class CensoAdmin(admin.ModelAdmin):
     list_filter = ['ano', ]
 
 
+class ParametrosAdminForm(ModelForm):
+    tipos_unidades_professor_gremio = forms.MultipleChoiceField(
+        choices=TIPOS_CHOICE,
+        required=False,
+        widget=FilteredSelectMultiple(
+            verbose_name='Tipos de unidades',
+            is_stacked=False
+        ),
+        label='Tipos de unidades que exigem professor do grêmio na ata do PAA'
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and hasattr(self.instance, 'tipos_unidades_professor_gremio'):
+            self.fields['tipos_unidades_professor_gremio'].initial = (
+                self.instance.tipos_unidades_professor_gremio or []
+            )
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.tipos_unidades_professor_gremio = (
+            self.cleaned_data.get('tipos_unidades_professor_gremio', [])
+        )
+        if commit:
+            instance.save()
+        return instance
+
+    class Media:
+        css = {
+            'all': ('admin/css/widgets.css',)
+        }
+        js = ('admin/js/core.js', 'admin/js/SelectBox.js', 'admin/js/SelectFilter2.js')
+
+    class Meta:
+        model = Parametros
+        fields = '__all__'
+
+
 @admin.register(Parametros)
 class ParametrosAdmin(admin.ModelAdmin):
+    form = ParametrosAdminForm
     exclude = ('fique_de_olho', 'fique_de_olho_relatorio_dre')
 
     def get_tempo_notificar_nao_demonstrados(self, obj):
@@ -973,6 +1013,7 @@ class ParametrosAdmin(admin.ModelAdmin):
                     'dias_antes_fim_periodo_pc_para_notificacao',
                     'dias_antes_fim_prazo_ajustes_pc_para_notificacao',
                     'numero_periodos_consecutivos',
+                    'tipos_unidades_professor_gremio',
                     'texto_pagina_valores_reprogramados_ue'
                 )
         }),

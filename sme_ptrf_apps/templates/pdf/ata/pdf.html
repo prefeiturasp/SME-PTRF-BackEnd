@@ -443,17 +443,23 @@
       </tr>
       </thead>
       {% for info in dados.presentes_na_ata.presentes_ata_nao_membros %}
+        {% if not info.professor_gremio or info.identificacao %}
         <tbody>
         <tr>
           <td>
             <p class='mb-0'><strong>{{ info.nome }}</strong></p>
             <p class='mb-0'>
-              {{ info.cargo|remove_digitos }}{% if info.professor_gremio %} / Professor Orientador{% endif %}
+              {% if info.professor_gremio %}
+                {% if info.cargo %}{{ info.cargo|remove_digitos }} / Professor Orientador{% else %}Professor Orientador{% endif %}
+              {% else %}
+                {{ info.cargo|remove_digitos }}
+              {% endif %}
             </p>
           </td>
           <td></td>
         </tr>
         </tbody>
+        {% endif %}
       {% endfor %}
     </table>
   {% endif %}
