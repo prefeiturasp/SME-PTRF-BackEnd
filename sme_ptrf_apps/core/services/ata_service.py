@@ -4,6 +4,8 @@ from sme_ptrf_apps.core.models.ata import Ata
 from sme_ptrf_apps.core.services.ata_dados_service import gerar_dados_ata
 from sme_ptrf_apps.core.services.ata_pdf_service import gerar_arquivo_ata_pdf
 from sme_ptrf_apps.core.services.associacoes_service import retorna_repasses_pendentes_periodos_ate_agora
+from sme_ptrf_apps.despesas.models import RateioDespesa
+from sme_ptrf_apps.core.models import Parametros
 
 LOGGER = logging.getLogger(__name__)
 
@@ -81,3 +83,70 @@ def validar_campos_ata(ata: Ata = None) -> dict:
     if campos_invalidos_traduzidos:
         return {'is_valid': False, 'campos': campos_invalidos_traduzidos}
     return {'is_valid': True}
+
+
+def unidade_precisa_professor_gremio(tipo_unidade: str) -> bool:
+    """
+    Verifica se o tipo de unidade precisa do campo professor do grêmio na ata.
+    
+    Args:
+        tipo_unidade: String com o tipo de unidade (ex: 'EMEF', 'EMEI', etc.)
+        
+    Returns:
+        bool: True se o tipo de unidade precisa de professor do grêmio, False caso contrário
+    """
+    parametros = Parametros.objects.first()
+    if not parametros or not parametros.tipos_unidades_professor_gremio:
+        return False
+    return tipo_unidade in parametros.tipos_unidades_professor_gremio
+
+
+def verifica_precisa_professor_gremio_ata(ata: Ata) -> bool:
+    """
+    Verifica se a unidade da associação precisa do campo professor do grêmio na ata.
+    
+    A regra é:
+    1. O tipo de unidade deve estar na lista configurada em parametros.tipos_unidades_professor_gremio
+    2. Deve haver despesas completas com rateio de ação "Orçamento Grêmio Estudantil" 
+       no período da prestação de contas
+    
+    Args:
+        ata: Instância de Ata
+        
+    Returns:
+        bool: True se precisa de professor do grêmio, False caso contrário
+    """
+    if not ata.associacao or not ata.associacao.unidade:
+        return False
+
+    tipo_unidade = ata.associacao.unidade.tipo_unidade
+    if not unidade_precisa_professor_gremio(tipo_unidade):
+        return False
+
+    if not ata.periodo:
+        return False
+    
+    periodo = ata.periodo
+    associacao = ata.associacao
+
+    acao_gremio = associacao.acoes.filter(
+        acao__nome__icontains='Orçamento Grêmio Estudantil',
+        status='ATIVA'
+    ).first()
+    
+    if not acao_gremio:
+        return False
+
+    rateios_query = RateioDespesa.completos.filter(
+        acao_associacao=acao_gremio,
+        associacao=associacao
+    ).filter(
+        despesa__data_transacao__gte=periodo.data_inicio_realizacao_despesas
+    )
+    
+    if periodo.data_fim_realizacao_despesas:
+        rateios_query = rateios_query.filter(
+            despesa__data_transacao__lte=periodo.data_fim_realizacao_despesas
+        )
+    
+    return rateios_query.exists()

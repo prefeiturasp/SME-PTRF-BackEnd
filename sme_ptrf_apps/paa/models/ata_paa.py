@@ -151,6 +151,11 @@ class AtaPaa(ModeloBase):
       return self.status_geracao_pdf == self.STATUS_CONCLUIDO
   
     @property
+    def precisa_professor_gremio(self):
+        from sme_ptrf_apps.paa.services.ata_paa_service import verifica_precisa_professor_gremio
+        return verifica_precisa_professor_gremio(self)
+
+    @property
     def completa(self):
         campos_basicos = bool(
             self.tipo_ata and
@@ -170,10 +175,6 @@ class AtaPaa(ModeloBase):
         if self.parecer_conselho == self.PARECER_REJEITADA:
             if not self.justificativa or not self.justificativa.strip():
                 return False
-
-        tem_professor_gremio = self.presentes_na_ata_paa.filter(professor_gremio=True).exists()
-        if not tem_professor_gremio:
-            return False
         
         return True
     
