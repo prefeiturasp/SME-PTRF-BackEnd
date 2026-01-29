@@ -917,10 +917,10 @@ def test_api_get_info_para_ata_com_duas_contas(jwt_authenticated_client_a,
     ]
 
     info_conta_cartao = {
-        'conta_associacao': {'agencia': '',
-                             'banco_nome': '',
+        'conta_associacao': {'agencia': f'{conta_associacao_cartao.agencia}',
+                             'banco_nome': f'{conta_associacao_cartao.banco_nome}',
                              'nome': 'Cartão',
-                             'numero_conta': '',
+                             'numero_conta': f'{conta_associacao_cartao.numero_conta}',
                              'uuid': f'{conta_associacao_cartao.uuid}'},
         'acoes': acoes_esperadas,
         'totais': totais_esperados,

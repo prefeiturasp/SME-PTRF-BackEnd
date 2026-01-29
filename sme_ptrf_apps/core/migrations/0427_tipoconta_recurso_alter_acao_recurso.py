@@ -14,7 +14,7 @@ def atualiza_recurso_tipos_de_conta(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("core", "0424_acao_recurso"),
+        ("core", "0426_alter_recurso_cor"),
     ]
 
     operations = [

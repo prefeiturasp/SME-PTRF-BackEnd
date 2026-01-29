@@ -21,7 +21,7 @@ class TipoConta(ModeloIdNome):
         "core.Recurso",
         verbose_name="Recurso",
         on_delete=models.PROTECT,
-        null=True
+        null=False
     )
 
     class Meta:

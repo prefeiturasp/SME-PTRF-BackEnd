@@ -2,7 +2,6 @@ import json
 
 import pytest
 
-from model_bakery import baker
 from rest_framework import status
 
 pytestmark = pytest.mark.django_db
@@ -10,11 +9,11 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def tipo_conta(tipo_conta_factory):
-    return tipo_conta_factory(nome='Teste')
+    return tipo_conta_factory(nome='Teste', agencia='', banco_nome='', numero_cartao='', numero_conta='', )
 
 
 def test_api_list_tipos_conta(jwt_authenticated_client_a, tipo_conta):
-    response = jwt_authenticated_client_a.get(f'/api/tipos-conta/', content_type='application/json')
+    response = jwt_authenticated_client_a.get('/api/tipos-conta/', content_type='application/json')
     result = json.loads(response.content)
 
     resultado_esperado = [
