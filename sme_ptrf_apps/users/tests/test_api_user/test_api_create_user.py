@@ -121,7 +121,7 @@ def test_criar_usuario_servidor_com_visoes(
     mock_atribuir_perfil_core_sso.assert_called_once_with(login='9876543', visao='UE')
 
 
-def test_criar_usuario_servidor_sem_email_e_sem_nome(
+def test_criar_usuario_servidor_sem_email(
         jwt_authenticated_client_u,
         grupo_1,
         visao_ue,
@@ -131,7 +131,7 @@ def test_criar_usuario_servidor_sem_email_e_sem_nome(
     payload = {
         'e_servidor': True,
         'username': "9876543",
-        'name': "",
+        'name': "Usuário novo",
         'email': "",
         'visao': "UE",
         'groups': [
@@ -149,7 +149,7 @@ def test_criar_usuario_servidor_sem_email_e_sem_nome(
     esperado = {
         'username': '9876543',
         'email': '',
-        'name': '',
+        'name': 'Usuário novo',
         'e_servidor': True,
         'groups': [grupo_1.id, ],
         'visoes': [visao_ue.id, ],

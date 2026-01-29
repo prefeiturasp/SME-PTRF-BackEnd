@@ -1,7 +1,6 @@
 import logging
 from django.contrib import admin, messages
-from django import forms
-from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.contrib.admin import SimpleListFilter
 from django.forms import ModelForm, ValidationError
 from django.utils.timezone import localtime, make_aware, get_current_timezone
 from auditlog.models import LogEntry
@@ -884,11 +883,39 @@ class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
     raw_id_fields = ['periodo', 'associacao', 'conta_associacao',]
 
 
+class TipoContaAdminForm(ModelForm):
+    class Meta:
+        model = TipoConta
+        fields = "__all__"
+
+    def clean_recurso(self):
+        from sme_ptrf_apps.core.services.tipo_conta_service import validar_troca_recurso
+        recurso = self.cleaned_data["recurso"]
+        validar_troca_recurso(self.instance, recurso)
+        return recurso
+
+
+class RecursoNomeFilter(SimpleListFilter):
+    title = 'Nome do Recurso'
+    parameter_name = 'recurso__nome'
+
+    def lookups(self, request, model_admin):
+        return [
+            (recurso.nome, recurso.nome) for recurso in Recurso.objects.order_by('nome').distinct()
+        ]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(recurso__nome=self.value())
+        return queryset
+
+
 @admin.register(TipoConta)
 class TipoContaAdmin(admin.ModelAdmin):
-    list_display = ['uuid', 'nome']
+    form = TipoContaAdminForm
+    list_display = ['uuid', 'nome', 'recurso']
     search_fields = ['nome']
-    list_filter = ['nome', ]
+    list_filter = ['nome', RecursoNomeFilter,]
     readonly_fields = ('id', 'uuid',)
 
 

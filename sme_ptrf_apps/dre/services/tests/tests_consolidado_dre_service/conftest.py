@@ -112,8 +112,8 @@ def prestacao_conta_pc3(periodo, outra_associacao, retificacao_dre):
 
 
 @pytest.fixture
-def tipo_conta_cartao_teste_model_lauda_vinculada_a_retificacao():
-    return baker.make('TipoConta', nome='Cartão')
+def tipo_conta_cartao_teste_model_lauda_vinculada_a_retificacao(tipo_conta_factory):
+    return tipo_conta_factory(nome='Cartão')
 
 
 @pytest.fixture

@@ -343,15 +343,14 @@ def membro_associacao_cadastro_incompleto_014(associacao_cadastro_incompleto):
     )
 
 @pytest.fixture
-def tipo_conta_encerramento_conta():
-    return baker.make(
-        'TipoConta',
+def tipo_conta_encerramento_conta(tipo_conta_factory):
+    return tipo_conta_factory(
         nome='Cheque encerramento conta',
         banco_nome='Banco do Inter',
         agencia='67945',
         numero_conta='935556-x',
         numero_cartao='987644164221',
-        permite_inativacao=True
+        permite_inativacao=True,
     )
 
 @pytest.fixture

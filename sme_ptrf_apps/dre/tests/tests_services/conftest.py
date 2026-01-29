@@ -220,8 +220,8 @@ def tipo_conta_cheque_teste_service(tipo_conta):
 
 
 @pytest.fixture
-def tipo_conta_cartao_teste_service():
-    return baker.make('TipoConta', nome='Cartão')
+def tipo_conta_cartao_teste_service(tipo_conta_factory):
+    return tipo_conta_factory(nome='Cartão')
 
 
 @pytest.fixture

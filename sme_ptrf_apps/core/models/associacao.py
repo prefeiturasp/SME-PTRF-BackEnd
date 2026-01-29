@@ -353,6 +353,7 @@ class Associacao(ModeloIdNome):
             pendencia_novo_mandato = False
 
         pendencia_cadastro = not self.nome or not self.ccm
+
         pendencia_contas = self.contas.filter(Q(banco_nome__exact='') | Q(agencia__exact='') | Q(numero_conta__exact='',
                                                                                                  status=ContaAssociacao.STATUS_ATIVA)).exists()
         if pendencia_cadastro or pendencia_membros or pendencia_contas or pendencia_novo_mandato:

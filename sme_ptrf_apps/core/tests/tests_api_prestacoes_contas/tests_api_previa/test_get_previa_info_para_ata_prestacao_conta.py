@@ -90,10 +90,10 @@ def test_api_get_previa_info_para_ata(
     info_contas_esperadas = [
         {
 
-            'conta_associacao': {'agencia': '',
-                                 'banco_nome': '',
+            'conta_associacao': {'agencia': f'{conta_associacao_cartao.agencia}',
+                                 'banco_nome': f'{conta_associacao_cartao.banco_nome}',
                                  'nome': 'Cartão',
-                                 'numero_conta': '',
+                                 'numero_conta': f'{conta_associacao_cartao.numero_conta}',
                                  'uuid': f'{conta_associacao_cartao.uuid}'},
             'acoes': [
                 {
