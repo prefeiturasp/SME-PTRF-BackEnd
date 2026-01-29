@@ -20,3 +20,20 @@ def test_parametros_model(parametros):
     assert parametros.texto_pagina_suporte_sme == 'Teste SME'
     assert parametros.texto_pagina_valores_reprogramados_ue == 'Teste UE'
     assert parametros.texto_pagina_valores_reprogramados_dre == 'Teste DRE'
+    assert parametros.tipos_unidades_professor_gremio == []
+
+
+def test_parametros_tipos_unidades_professor_gremio(parametros):
+    """Testa se o campo tipos_unidades_professor_gremio pode ser definido e recuperado"""
+    parametros.tipos_unidades_professor_gremio = ['EMEF', 'EMEI']
+    parametros.save()
+    
+    parametros.refresh_from_db()
+    assert parametros.tipos_unidades_professor_gremio == ['EMEF', 'EMEI']
+    
+    parametros.tipos_unidades_professor_gremio = ['EMEF', 'EMEI', 'CEU']
+    parametros.save()
+    
+    parametros.refresh_from_db()
+    assert len(parametros.tipos_unidades_professor_gremio) == 3
+    assert 'CEU' in parametros.tipos_unidades_professor_gremio

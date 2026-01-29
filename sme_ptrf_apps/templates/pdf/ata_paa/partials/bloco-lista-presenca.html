@@ -13,6 +13,7 @@
           </tr>
         </thead>
         {% for info in dados.presentes_na_ata.presentes_ata_membros %}
+          {% if not info.professor_gremio or info.identificacao %}
           <tbody>
           <tr>
             <td>
@@ -26,6 +27,7 @@
             {% endif %}
           </tr>
           </tbody>
+          {% endif %}
         {% endfor %}
       </table>
 
@@ -39,6 +41,7 @@
             </tr>
           </thead>
           {% for info in dados.presentes_na_ata.presentes_ata_nao_membros %}
+            {% if not info.professor_gremio or info.identificacao %}
             <tbody>
             <tr>
               <td>
@@ -48,6 +51,7 @@
               <td style="width: 150px;"></td>
             </tr>
             </tbody>
+            {% endif %}
           {% endfor %}
         </table>
       {% endif %}
