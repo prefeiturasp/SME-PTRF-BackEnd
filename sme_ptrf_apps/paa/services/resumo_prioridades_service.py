@@ -7,6 +7,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class ValidacaoSaldoIndisponivel(serializers.ValidationError):
+    """ raise para Validação de Saldo Indisponível """
+    pass
+
+
 class ResumoPrioridadesService:
     def __init__(self, paa):
         self.paa = paa
@@ -635,138 +640,6 @@ class ResumoPrioridadesService:
 
         return dados
 
-    def validar_valor_prioridade_temp(self, valor_total, acao_uuid, tipo_aplicacao, recurso, prioridade_uuid=None,
-                                      valor_atual_prioridade=None):
-        """
-        Valida se o valor da prioridade não excede os valores disponíveis de receita.
-
-        Args:
-            valor_total (Decimal): Valor total da prioridade
-            acao_uuid (str): UUID da ação (associação ou PDDE) - pode ser None para Recursos Próprios
-            tipo_aplicacao (str): Tipo de aplicação (CUSTEIO ou CAPITAL)
-            recurso (str): Tipo de recurso (PTRF, PDDE ou RECURSO_PROPRIO)
-            prioridade_uuid (str, optional): UUID da prioridade sendo atualizada (para exclusão do cálculo)
-            valor_atual_prioridade (Decimal, optional): Valor atual da prioridade sendo atualizada
-
-        Raises:
-            serializers.ValidationError: Se o valor exceder os recursos disponíveis
-        """
-        # Validação de parâmetros
-        if not valor_total or not tipo_aplicacao or not recurso:
-            logger.error(f"Erro ao validar valor da prioridade: Parâmetros inválidos | valor_total={valor_total}, acao_uuid={acao_uuid}, tipo_aplicacao={tipo_aplicacao}, recurso={recurso}")  # noqa
-            return
-
-        if recurso != RecursoOpcoesEnum.RECURSO_PROPRIO.name and not acao_uuid:
-            logger.error(f"Erro ao validar valor da prioridade: acao_uuid é obrigatório para recursos PTRF e PDDE | valor_total={valor_total}, acao_uuid={acao_uuid}, tipo_aplicacao={tipo_aplicacao}, recurso={recurso}")  # noqa
-            return
-
-        try:
-            resumo_data = self.resumo_prioridades()
-
-            recurso_data = buscar_chave_em_todos_os_niveis(resumo_data, recurso) or {}
-
-            if not recurso_data:
-                raise serializers.ValidationError({'mensagem': 'Recurso não encontrado no resumo de prioridades.'})
-
-            # Obtém dados da ação baseado no tipo de recurso
-            if recurso == RecursoOpcoesEnum.RECURSO_PROPRIO.name:
-                if not recurso_data.get('children') or len(recurso_data['children']) == 0:
-                    raise serializers.ValidationError(
-                        {'mensagem': 'Item de Recursos Próprios não encontrado no resumo de prioridades.'})
-                acao_data = recurso_data['children'][0]
-            else:
-                acao_data = next((acao for acao in recurso_data.get('children', []) if acao.get('key') == acao_uuid), {})  # noqa
-                if not acao_data:
-                    raise serializers.ValidationError({'mensagem': 'Ação não encontrada no resumo de prioridades.'})
-
-            # Obtém os dados de receita e despesas dos children da ação
-            receita_data = None
-            despesa_data = None
-
-            for child in acao_data.get('children', []):
-                if child.get('recurso') == 'Receita':
-                    receita_data = child
-                elif child.get('recurso') == 'Despesas previstas':
-                    despesa_data = child
-
-            if not receita_data:
-                raise serializers.ValidationError(
-                    {'mensagem': 'O valor indicado para a prioridade excede o valor disponível de receita prevista.'})
-
-            # Converte valores para Decimal
-            valores_receita = {
-                'custeio': Decimal(str(receita_data.get('custeio', 0))),
-                'capital': Decimal(str(receita_data.get('capital', 0))),
-                'livre_aplicacao': Decimal(str(receita_data.get('livre_aplicacao', 0)))
-            }
-
-            valores_despesa = {
-                'custeio': Decimal(str(despesa_data.get('custeio', 0))) if despesa_data else Decimal('0'),
-                'capital': Decimal(str(despesa_data.get('capital', 0))) if despesa_data else Decimal('0'),
-                'livre_aplicacao': Decimal(str(despesa_data.get('livre_aplicacao', 0))) if despesa_data else Decimal('0')  # noqa
-            }
-
-            # Ajusta despesas se for atualização
-            if prioridade_uuid and valor_atual_prioridade is not None:
-                valor_atual = Decimal(str(valor_atual_prioridade))
-
-                if recurso == RecursoOpcoesEnum.RECURSO_PROPRIO.name:
-                    valores_despesa['livre_aplicacao'] -= valor_atual
-                else:
-                    if tipo_aplicacao == TipoAplicacaoOpcoesEnum.CUSTEIO.name:
-                        valores_despesa['custeio'] -= valor_atual
-                    elif tipo_aplicacao == TipoAplicacaoOpcoesEnum.CAPITAL.name:
-                        valores_despesa['capital'] -= valor_atual
-
-            valor_prioridade = Decimal(str(valor_total))
-
-            # Validação especial para aumentos quando saldo está zerado
-            if valor_atual_prioridade is not None and valor_prioridade > Decimal(str(valor_atual_prioridade)):
-                # Calcula o valor disponível SEM considerar a prioridade atual
-                if recurso == RecursoOpcoesEnum.RECURSO_PROPRIO.name:
-                    valor_disponivel_sem_prioridade = valores_receita['livre_aplicacao'] - valores_despesa['livre_aplicacao']  # noqa
-                else:
-                    if tipo_aplicacao == TipoAplicacaoOpcoesEnum.CUSTEIO.name:
-                        saldo_custeio = valores_receita['custeio'] - valores_despesa['custeio']
-                        saldo_livre = valores_receita['livre_aplicacao'] - valores_despesa['livre_aplicacao']
-                        valor_disponivel_sem_prioridade = saldo_custeio + saldo_livre
-                    elif tipo_aplicacao == TipoAplicacaoOpcoesEnum.CAPITAL.name:
-                        saldo_capital = valores_receita['capital'] - valores_despesa['capital']
-                        saldo_livre = valores_receita['livre_aplicacao'] - valores_despesa['livre_aplicacao']
-                        valor_disponivel_sem_prioridade = saldo_capital + saldo_livre
-                    else:
-                        valor_disponivel_sem_prioridade = Decimal('0')
-
-                if valor_disponivel_sem_prioridade <= 0:
-                    raise serializers.ValidationError(
-                        {'mensagem': (
-                            'O valor indicado para a prioridade excede o valor disponível de receita prevista.')}
-                    )
-
-            # Validação final do valor disponível
-            if recurso == RecursoOpcoesEnum.RECURSO_PROPRIO.name:
-                valor_disponivel = valores_receita['livre_aplicacao'] - valores_despesa['livre_aplicacao']
-            else:
-                if tipo_aplicacao == TipoAplicacaoOpcoesEnum.CUSTEIO.name:
-                    saldo_custeio = valores_receita['custeio'] - valores_despesa['custeio']
-                    saldo_livre = valores_receita['livre_aplicacao'] - valores_despesa['livre_aplicacao']
-                    valor_disponivel = saldo_custeio + saldo_livre
-                elif tipo_aplicacao == TipoAplicacaoOpcoesEnum.CAPITAL.name:
-                    saldo_capital = valores_receita['capital'] - valores_despesa['capital']
-                    saldo_livre = valores_receita['livre_aplicacao'] - valores_despesa['livre_aplicacao']
-                    valor_disponivel = saldo_capital + saldo_livre
-                else:
-                    valor_disponivel = Decimal('0')
-            if valor_prioridade > valor_disponivel:
-                raise serializers.ValidationError(
-                    {'mensagem': 'O valor indicado para a prioridade excede o valor disponível de receita prevista.'}
-                )
-
-        except serializers.ValidationError:
-            raise
-        except Exception as e:
-            logger.error(f"Erro ao validar valor da prioridade: {str(e)}")
-
     def validar_valor_prioridade(self, valor_total, acao_uuid, tipo_aplicacao, recurso, prioridade_uuid=None,
                                  valor_atual_prioridade=None):
         """
@@ -792,7 +665,8 @@ class ResumoPrioridadesService:
             os valores de custeio e capital (de acordo com o tipo de aplicacao [CUSTEIO ou CAPITAL]).
 
             Parâmetros:
-                recurso_data (dict): Dicionário com os dados da key do recurso [PTRF, PDDE, RECURSO_PROPRIO ou OUTRO_RECURSO]
+                recurso_data (dict): Dicionário com os dados da key do
+                                    recurso [PTRF, PDDE, RECURSO_PROPRIO ou OUTRO_RECURSO]
                 key_acao (str): UUID da ação (associação, PDDE ou Outro Recurso), em caso de Recursos Próprios,
                 este valor recebe 'RECURSO_PROPRIO'
 
@@ -809,7 +683,9 @@ class ResumoPrioridadesService:
             # Valida se os saldos foram encontrados
             if not saldos_resumo:
                 raise serializers.ValidationError(
-                    {'mensagem': f'Saldos de recursos {recurso} não encontrados no resumo de prioridades.'})
+                    {'mensagem': (
+                        f'Saldos de recursos {recurso} não encontrados no resumo de prioridades. '
+                        f'(acao_uuid={acao_uuid})')})
 
             # inicializa o saldo de Livre Aplicação
             saldo_disponivel = saldos_resumo.get('livre_aplicacao')
@@ -828,14 +704,14 @@ class ResumoPrioridadesService:
 
             # Considera o saldo de Capital quando tipo de aplicação for CAPITAL
             if tipo_aplicacao == TipoAplicacaoOpcoesEnum.CAPITAL.name:
-                logger.info(f"Adicionando saldo de capital | acao_uuid={acao_uuid}, tipo_aplicacao={tipo_aplicacao}, recurso={recurso}, saldo_custeio={saldos_resumo.get('capital')}")  # noqa
+                logger.info(f"Adicionando saldo de capital | acao_uuid={acao_uuid}, tipo_aplicacao={tipo_aplicacao}, recurso={recurso}, saldo_capital={saldos_resumo.get('capital')}")  # noqa
                 saldo_disponivel += Decimal(saldos_resumo.get('capital'))
 
-            logger.info(f"Saldo disponível calculado | acao_uuid={acao_uuid}, tipo_aplicacao={tipo_aplicacao}, recurso={recurso}, saldo_custeio={saldo_disponivel}")  # noqa
+            logger.info(f"Saldo disponível calculado | acao_uuid={acao_uuid}, tipo_aplicacao={tipo_aplicacao}, recurso={recurso}, valor_total={valor_total}, saldo_disponivel={saldo_disponivel}")  # noqa
             return round(saldo_disponivel, 2)
 
         # Validação de parâmetros
-        if not valor_total or not tipo_aplicacao or not recurso:
+        if valor_total is None or not tipo_aplicacao or not recurso:
             logger.error(f"Erro ao validar valor da prioridade: Parâmetros inválidos | valor_total={valor_total}, acao_uuid={acao_uuid}, tipo_aplicacao={tipo_aplicacao}, recurso={recurso}")  # noqa
             return
 
@@ -854,7 +730,7 @@ class ResumoPrioridadesService:
             if recurso == RecursoOpcoesEnum.PTRF.name:
                 saldo_disponivel = obtem_saldos(recurso_data, acao_uuid)
                 if saldo_disponivel < valor_total:
-                    raise serializers.ValidationError(
+                    raise ValidacaoSaldoIndisponivel(
                         {
                             'mensagem': (
                                 'O valor indicado para a prioridade excede o valor disponível de receita prevista.'),
@@ -866,7 +742,7 @@ class ResumoPrioridadesService:
             if recurso == RecursoOpcoesEnum.PDDE.name:
                 saldo_disponivel = obtem_saldos(recurso_data, acao_uuid)
                 if saldo_disponivel < valor_total:
-                    raise serializers.ValidationError(
+                    raise ValidacaoSaldoIndisponivel(
                         {
                             'mensagem': (
                                 'O valor indicado para a prioridade excede o valor disponível de receita prevista.'),
@@ -878,7 +754,7 @@ class ResumoPrioridadesService:
             if recurso == RecursoOpcoesEnum.RECURSO_PROPRIO.name:
                 saldo_disponivel = obtem_saldos(recurso_data, RecursoOpcoesEnum.RECURSO_PROPRIO.name)
                 if saldo_disponivel < valor_total:
-                    raise serializers.ValidationError(
+                    raise ValidacaoSaldoIndisponivel(
                         {
                             'mensagem': (
                                 'O valor indicado para a prioridade excede o valor disponível de receita prevista.'),
@@ -890,7 +766,7 @@ class ResumoPrioridadesService:
             if recurso == RecursoOpcoesEnum.OUTRO_RECURSO.name:
                 saldo_disponivel = obtem_saldos(recurso_data, acao_uuid)
                 if saldo_disponivel < valor_total:
-                    raise serializers.ValidationError(
+                    raise ValidacaoSaldoIndisponivel(
                         {
                             'mensagem': (
                                 'O valor indicado para a prioridade excede o valor disponível de receita prevista.'),
