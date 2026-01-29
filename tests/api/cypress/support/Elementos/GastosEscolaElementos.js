@@ -23,7 +23,8 @@ class GastosEscolaElementos {
     botaoDespesaCastradaSim = () => { return cy.get('[data-qa="modal-checar-despesa-existente-btn-Sim, salvar"]')};
     botaoSaldoInsuficienteOk = () => { return cy.get('[data-qa="modal-saldo-insuficiente-btn-OK"]')};
     botaoModalCancelarCadastroOk = () => { return cy.get('[data-qa="modal-despesa-cancelar-cadastro-btn-OK"]')};
-    botaoModalCancelarCadastroFechar = () => { return cy.get('[data-qa="modal-despesa-cancelar-cadastro-btn-Fechar"]')};      
+    botaoModalCancelarCadastroFechar = () => { return cy.get('[data-qa="modal-despesa-cancelar-cadastro-btn-Fechar"]')};
+    botaoModalDespesaIncompleta = () => { return cy.get('.modal-content').contains('Não')};      
     botaoFechar = () => { return cy.get('.modal-footer > .btn').contains('Fechar')};
 
 
