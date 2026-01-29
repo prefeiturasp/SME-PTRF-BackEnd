@@ -30,10 +30,6 @@ class Recurso(ModeloIdNome, TemAtivo):
         max_length=7,
         help_text='Será usada na estilização do site.',
         choices=CorChoices.choices,
-        unique=True,
-        error_messages={
-            "unique": "Esta cor já está sendo usada por outro recurso."
-        }
     )
 
     legado = models.BooleanField(verbose_name="Legado?",

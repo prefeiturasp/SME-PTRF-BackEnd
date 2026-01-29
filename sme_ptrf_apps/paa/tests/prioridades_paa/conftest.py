@@ -22,8 +22,8 @@ def programa_pdde():
 
 
 @pytest.fixture
-def acao_pdde(acao_factory):
-    return acao_factory(nome="AcaoPdde")
+def acao_pdde(acao_pdde_factory):
+    return acao_pdde_factory(nome="AcaoPdde")
 
 
 @pytest.fixture
