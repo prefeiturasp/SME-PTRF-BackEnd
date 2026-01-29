@@ -4,6 +4,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 
+from django.db import transaction
 from django.db.models import Sum
 import django_filters
 from waffle.mixins import WaffleFlagMixin
@@ -11,7 +12,8 @@ from drf_spectacular.utils import extend_schema_view
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.paa.models import RecursoProprioPaa
-from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import RecursoProprioPaaCreateSerializer, RecursoProprioPaaListSerializer
+from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import (
+    RecursoProprioPaaCreateSerializer, RecursoProprioPaaListSerializer)
 from .docs.recurso_proprio_paa_docs import DOCS
 
 
@@ -35,9 +37,14 @@ class RecursoProprioPaaViewSet(WaffleFlagMixin, ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         from django.db.models.deletion import ProtectedError
+        from sme_ptrf_apps.paa.services import PrioridadesPaaImpactadasReceitasPrevistasRecursoProprioService
         obj = self.get_object()
         try:
-            self.perform_destroy(obj)
+            with transaction.atomic():
+                recurso = {'valor': obj.valor}
+                service = PrioridadesPaaImpactadasReceitasPrevistasRecursoProprioService(recurso, obj)
+                service.limpar_valor_prioridades_impactadas_ao_excluir_instancia()
+                self.perform_destroy(obj)
         except ProtectedError:
             content = {
                 'erro': 'ProtectedError',

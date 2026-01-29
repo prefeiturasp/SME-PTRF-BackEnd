@@ -5,7 +5,12 @@ from django.db import transaction, models
 from sme_ptrf_apps.paa.models import PrioridadePaa
 from sme_ptrf_apps.paa.enums import PaaStatusEnum, RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
 from sme_ptrf_apps.paa.services import ResumoPrioridadesService, ValidacaoSaldoIndisponivel
-from sme_ptrf_apps.paa.models import ReceitaPrevistaPaa, ReceitaPrevistaOutroRecursoPeriodo, ReceitaPrevistaPdde
+from sme_ptrf_apps.paa.models import (
+    ReceitaPrevistaPaa,
+    ReceitaPrevistaOutroRecursoPeriodo,
+    ReceitaPrevistaPdde,
+    RecursoProprioPaa,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -69,6 +74,9 @@ class PrioridadesPaaImpactadasBaseService(ABC):
         if isinstance(self.instance_receita_prevista, ReceitaPrevistaPaa):
             return self.instance_receita_prevista.acao_associacao.uuid
 
+        if isinstance(self.instance_receita_prevista, RecursoProprioPaa):
+            return self.instance_receita_prevista.associacao.uuid
+
         raise NotImplementedError
 
     def _get_valor_custeio_edicao(self):
@@ -87,6 +95,9 @@ class PrioridadesPaaImpactadasBaseService(ABC):
 
         if isinstance(self.instance_receita_prevista, ReceitaPrevistaPaa):
             return Decimal(self.receita_prevista.get('previsao_valor_custeio'))
+
+        if isinstance(self.instance_receita_prevista, RecursoProprioPaa):
+            return 0
 
         raise NotImplementedError
 
@@ -107,6 +118,9 @@ class PrioridadesPaaImpactadasBaseService(ABC):
         if isinstance(self.instance_receita_prevista, ReceitaPrevistaPaa):
             return self.instance_receita_prevista.previsao_valor_custeio
 
+        if isinstance(self.instance_receita_prevista, RecursoProprioPaa):
+            return 0
+
         raise NotImplementedError
 
     def _get_valor_capital_edicao(self):
@@ -125,6 +139,9 @@ class PrioridadesPaaImpactadasBaseService(ABC):
 
         if isinstance(self.instance_receita_prevista, ReceitaPrevistaPaa):
             return Decimal(self.receita_prevista.get('previsao_valor_capital'))
+
+        if isinstance(self.instance_receita_prevista, RecursoProprioPaa):
+            return 0
 
         raise NotImplementedError
 
@@ -145,6 +162,9 @@ class PrioridadesPaaImpactadasBaseService(ABC):
         if isinstance(self.instance_receita_prevista, ReceitaPrevistaPaa):
             return self.instance_receita_prevista.previsao_valor_capital
 
+        if isinstance(self.instance_receita_prevista, RecursoProprioPaa):
+            return 0
+
         raise NotImplementedError
 
     def _get_valor_livre_edicao(self):
@@ -164,6 +184,9 @@ class PrioridadesPaaImpactadasBaseService(ABC):
         if isinstance(self.instance_receita_prevista, ReceitaPrevistaPaa):
             return Decimal(self.receita_prevista.get('previsao_valor_livre'))
 
+        if isinstance(self.instance_receita_prevista, RecursoProprioPaa):
+            return Decimal(self.receita_prevista.get('valor'))
+
         raise NotImplementedError
 
     def _get_valor_livre_atual(self):
@@ -182,6 +205,9 @@ class PrioridadesPaaImpactadasBaseService(ABC):
 
         if isinstance(self.instance_receita_prevista, ReceitaPrevistaPaa):
             return self.instance_receita_prevista.previsao_valor_livre
+
+        if isinstance(self.instance_receita_prevista, RecursoProprioPaa):
+            return self.instance_receita_prevista.valor
 
         raise NotImplementedError
 
@@ -432,3 +458,51 @@ class PrioridadesPaaImpactadasReceitasPrevistasOutroRecursoPeriodoService(Priori
         )
         logger.info(f"query_base: {qs.values('uuid', 'valor_total', 'tipo_aplicacao')}")
         return qs
+
+
+class PrioridadesPaaImpactadasReceitasPrevistasRecursoProprioService(PrioridadesPaaImpactadasBaseService):
+    def __init__(self, receita_prevista: dict, instance_receita_prevista: RecursoProprioPaa = None):
+        super().__init__(receita_prevista, instance_receita_prevista)
+
+    def get_recurso(self):
+        return RecursoOpcoesEnum.RECURSO_PROPRIO.name
+
+    def get_acao_receita(self):
+        # RECURSO_PROPRIO utiliza o proprio Enum para o Node de saldo em Resumo de Recurso
+        return self.get_recurso()
+
+    def _query_base(self) -> models.QuerySet:
+        qs = super()._query_base()
+        paa = self.instance_receita_prevista.paa
+        logger.info(f"paa: {paa}")
+        qs = qs.filter(
+            paa__associacao=paa.associacao,
+            recurso=self.recurso,
+        )
+        logger.info(f"query_base: {qs.values('uuid', 'valor_total', 'tipo_aplicacao')}")
+        return qs
+
+    @transaction.atomic
+    def limpar_valor_prioridades_impactadas_ao_excluir_instancia(self):
+        """
+        Define como NULL o valor_total das prioridades impactadas pela exclusão do Recurso Próprio
+        """
+        qs = self._query_base()
+        if not self._validar_pre_condicoes():
+            return []
+
+        prioridades_impactadas = qs.filter(
+            tipo_aplicacao__in=[
+                TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+                TipoAplicacaoOpcoesEnum.CAPITAL.name
+            ])
+
+        if prioridades_impactadas.exists():
+            logger.info(
+                f"Limpando valor_total de {prioridades_impactadas.count()} prioridades "
+                f"para acao {str(self.acao_receita)} impactadas pela exclusão de Recurso Próprio"
+            )
+            logger.info('#### LIMPAR PRIORIDADES ####')
+            prioridades_impactadas.update(valor_total=None)
+
+        return list(prioridades_impactadas.values_list('uuid', flat=True))

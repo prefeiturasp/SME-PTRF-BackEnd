@@ -26,4 +26,5 @@ from .prioridades_impactadas_receitas_previstas_service import (
     PrioridadesPaaImpactadasReceitasPrevistasPTRFService,
     PrioridadesPaaImpactadasReceitasPrevistasPDDEService,
     PrioridadesPaaImpactadasReceitasPrevistasOutroRecursoPeriodoService,
+    PrioridadesPaaImpactadasReceitasPrevistasRecursoProprioService,
 )
