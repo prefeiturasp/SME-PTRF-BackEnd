@@ -22,7 +22,7 @@ def criar_recurso_legado(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("core", "0420_participante_professor_gremio"),
+        ("core", "0421_parametros_tipos_unidades_professor_gremio"),
     ]
 
     operations = [
@@ -93,12 +93,8 @@ class Migration(migrations.Migration):
                             ("#C65A1E", "Laranja"),
                             ("#4B2E83", "Roxo Profundo"),
                         ],
-                        error_messages={
-                            "unique": "Esta cor já está sendo usada por outro recurso."
-                        },
                         help_text="Será usada na estilização do site.",
                         max_length=7,
-                        unique=True,
                     ),
                 ),
                 (
@@ -123,6 +119,6 @@ class Migration(migrations.Migration):
                 name="unique_recurso_legado",
                 violation_error_message="Já existe um recurso marcado como legado.",
             ),
-        ),
+        ),      
         migrations.RunPython(criar_recurso_legado, reverse_code=migrations.RunPython.noop)
     ]
