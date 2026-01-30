@@ -141,7 +141,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                                          "anterior a data de transação.")})
 
         # Verifica prioridades do PAA impactadas
-        # self._verificar_prioridades_paa_impactadas(data, self.instance)
+        self._verificar_prioridades_paa_impactadas(data, self.instance)
 
         return data
 
