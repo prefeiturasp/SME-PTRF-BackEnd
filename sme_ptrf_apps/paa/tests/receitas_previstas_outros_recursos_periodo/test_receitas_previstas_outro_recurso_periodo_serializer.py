@@ -70,3 +70,30 @@ def test_campos_read_only_nao_podem_ser_setados(paa, outro_recurso_periodo):
 
     assert instance.id != 999
     assert instance.uuid != "valor-indevido"
+
+
+def test_receita_prevista_outro_recurso_serializer_bloqueia_edicao_com_documento_final_concluido(
+    receita_prevista_outro_recurso_periodo
+):
+    """Testa que não é possível editar receita prevista de outros recursos quando documento final está concluído"""
+    from sme_ptrf_apps.paa.fixtures.factories.documento_paa_factory import DocumentoPaaFactory
+    
+    DocumentoPaaFactory.create(
+        paa=receita_prevista_outro_recurso_periodo.paa,
+        versao="FINAL",
+        status_geracao="CONCLUIDO"
+    )
+    
+    payload = {
+        "previsao_valor_custeio": "1000.00",
+    }
+    
+    serializer = ReceitaPrevistaOutroRecursoPeriodoSerializer(
+        instance=receita_prevista_outro_recurso_periodo,
+        data=payload,
+        partial=True
+    )
+    
+    assert not serializer.is_valid()
+    assert 'mensagem' in serializer.errors
+    assert 'Não é possível editar receitas previstas de outros recursos após a geração do documento final do PAA.' in serializer.errors['mensagem']
