@@ -29,7 +29,7 @@ def criar_periodos_iniciais_por_recurso(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("core", "0422_periodo_recurso"),
+        ("core", "0423_periodo_recurso"),
     ]
 
     operations = [
@@ -87,8 +87,14 @@ class Migration(migrations.Migration):
             options={
                 "verbose_name": "Período Inicial de Associação",
                 "verbose_name_plural": "07.7) Períodos Iniciais de Associação",
-                'unique_together': {('associacao', 'recurso', 'periodo_inicial')},
             },
+        ),
+        migrations.AddConstraint(
+            model_name="periodoinicialassociacao",
+            constraint=models.UniqueConstraint(
+                fields=("associacao", "recurso"),
+                name="uniq_periodo_inicial_associacao_recurso",
+            ),
         ),
         migrations.RunPython(criar_periodos_iniciais_por_recurso, reverse_code=migrations.RunPython.noop),
     ]
