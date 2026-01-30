@@ -1,3 +1,4 @@
+import logging
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -15,6 +16,8 @@ from sme_ptrf_apps.paa.models import RecursoProprioPaa
 from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import (
     RecursoProprioPaaCreateSerializer, RecursoProprioPaaListSerializer)
 from .docs.recurso_proprio_paa_docs import DOCS
+
+logger = logging.getLogger(__name__)
 
 
 @extend_schema_view(**DOCS)
@@ -37,20 +40,38 @@ class RecursoProprioPaaViewSet(WaffleFlagMixin, ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         from django.db.models.deletion import ProtectedError
-        from sme_ptrf_apps.paa.services import PrioridadesPaaImpactadasReceitasPrevistasRecursoProprioService
+        from sme_ptrf_apps.paa.services import (
+            PrioridadesPaaImpactadasReceitasPrevistasRecursoProprioService,
+            ConfirmarExlusaoPrioridadesPaaRecursoProprioService
+        )
+        confirmar_limpeza_prioridades_paa = request.query_params.get('confirmar_limpeza_prioridades_paa')
+        confirmar_limpeza_prioridades_paa = confirmar_limpeza_prioridades_paa in ['true', 'True', 1]
+
         obj = self.get_object()
-        try:
-            with transaction.atomic():
-                recurso = {'valor': obj.valor}
-                service = PrioridadesPaaImpactadasReceitasPrevistasRecursoProprioService(recurso, obj)
-                service.limpar_valor_prioridades_impactadas_ao_excluir_instancia()
+
+        with transaction.atomic():
+            recurso = {'valor': obj.valor}
+            service = PrioridadesPaaImpactadasReceitasPrevistasRecursoProprioService(recurso, obj)
+            try:
+                service.limpar_valor_prioridades_impactadas_ao_excluir_instancia(confirmar_limpeza_prioridades_paa)
+            except ConfirmarExlusaoPrioridadesPaaRecursoProprioService as e:
+                return Response({"confirmar": [str(e)]}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                msg_error = 'Falha ao limpar prioridades impactadas pelo Recurso Próprio!'
+                logger.error(f'{msg_error}: {str(e)}')
+                return Response(
+                    {"mensagem": msg_error},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            try:
                 self.perform_destroy(obj)
-        except ProtectedError:
-            content = {
-                'erro': 'ProtectedError',
-                'mensagem': 'Essa operação não pode ser realizada. Há dados vinculados a esse Recurso'
-            }
-            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+            except ProtectedError:
+                content = {
+                    'erro': 'ProtectedError',
+                    'mensagem': 'Essa operação não pode ser realizada. Há dados vinculados a esse Recurso'
+                }
+                return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 

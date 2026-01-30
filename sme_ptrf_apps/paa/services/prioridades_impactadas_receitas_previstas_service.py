@@ -15,6 +15,10 @@ from sme_ptrf_apps.paa.models import (
 logger = logging.getLogger(__name__)
 
 
+class ConfirmarExlusaoPrioridadesPaaRecursoProprioService(Exception):
+    pass
+
+
 class PrioridadesPaaImpactadasBaseService(ABC):
     """
     Service para sincronizar prioridades do PAA quando Receitas Previstas PTRF, PDDE, Outros Recursos.
@@ -245,6 +249,9 @@ class PrioridadesPaaImpactadasBaseService(ABC):
 
     def _validar_pre_condicoes(self) -> bool:
         """Valida se as pré-condições estão satisfeitas."""
+        if not self.instance_receita_prevista:
+            logger.error(f"Receita sem instância(Não há objeto de edição): {self.instance_receita_prevista}")
+            return False
         if not self.acao_receita:
             logger.error(f"Receita prevista sem acao definida: {self.acao_receita}")
             return False
@@ -483,7 +490,7 @@ class PrioridadesPaaImpactadasReceitasPrevistasRecursoProprioService(Prioridades
         return qs
 
     @transaction.atomic
-    def limpar_valor_prioridades_impactadas_ao_excluir_instancia(self):
+    def limpar_valor_prioridades_impactadas_ao_excluir_instancia(self, confirmar=False):
         """
         Define como NULL o valor_total das prioridades impactadas pela exclusão do Recurso Próprio
         """
@@ -503,6 +510,12 @@ class PrioridadesPaaImpactadasReceitasPrevistasRecursoProprioService(Prioridades
                 f"para acao {str(self.acao_receita)} impactadas pela exclusão de Recurso Próprio"
             )
             logger.info('#### LIMPAR PRIORIDADES ####')
+            if not confirmar:
+                raise ConfirmarExlusaoPrioridadesPaaRecursoProprioService(
+                    "Existem prioridades cadastradas que utilizam o valor da receita prevista. "
+                    "O valor total será removido das prioridades cadastradas e é necessário revisá-las para "
+                    "alterar o valor total."
+                )
             prioridades_impactadas.update(valor_total=None)
 
         return list(prioridades_impactadas.values_list('uuid', flat=True))
