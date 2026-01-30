@@ -51,9 +51,11 @@ class DespesaSerializer(serializers.ModelSerializer):
     tipo_transacao = TipoTransacaoSerializer()
     rateios = RateioDespesaSerializer(many=True)
     despesas_impostos = DespesaImpostoSerializer(many=True, required=False, allow_null=True)
-    despesa_geradora_do_imposto = serializers.SerializerMethodField(method_name="get_despesa_de_imposto", required=False, allow_null=True)
+    despesa_geradora_do_imposto = serializers.SerializerMethodField(
+        method_name="get_despesa_de_imposto", required=False, allow_null=True)
     motivos_pagamento_antecipado = MotivoPagamentoAntecipadoSerializer(many=True)
-    despesa_anterior_ao_uso_do_sistema_editavel = serializers.SerializerMethodField(method_name="get_despesa_anterior_ao_uso_do_sistema_editavel", required=False, allow_null=True)
+    despesa_anterior_ao_uso_do_sistema_editavel = serializers.SerializerMethodField(
+        method_name="get_despesa_anterior_ao_uso_do_sistema_editavel", required=False, allow_null=True)
 
     def get_despesa_anterior_ao_uso_do_sistema_editavel(self, despesa):
         associacao = despesa.associacao
@@ -62,14 +64,17 @@ class DespesaSerializer(serializers.ModelSerializer):
 
         if not pcs_da_associacao:
             editavel = True
-        elif despesa.despesa_anterior_ao_uso_do_sistema and despesa.despesa_anterior_ao_uso_do_sistema_pc_concluida and pcs_da_associacao:
+        elif (despesa.despesa_anterior_ao_uso_do_sistema and
+              despesa.despesa_anterior_ao_uso_do_sistema_pc_concluida and
+              pcs_da_associacao):
             editavel = False
 
         return editavel
 
     def get_despesa_de_imposto(self, despesa):
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
-        return DespesaImpostoSerializer(despesa_geradora_do_imposto, many=False).data if despesa_geradora_do_imposto else None
+        return DespesaImpostoSerializer(
+            despesa_geradora_do_imposto, many=False).data if despesa_geradora_do_imposto else None
 
     class Meta:
         model = Despesa
@@ -84,6 +89,12 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     )
     rateios = RateioDespesaCreateSerializer(many=True, required=False)
     despesas_impostos = DespesaImpostoSerializer(many=True, required=False, allow_null=True)
+    confirmar_limpeza_prioridades_paa = serializers.BooleanField(
+        required=False,
+        default=False,
+        write_only=True,
+        help_text='Se True, confirma a limpeza do valor das prioridades do PAA impactadas.'
+    )
 
     def validate(self, data):
         from sme_ptrf_apps.core.models import Periodo
@@ -92,9 +103,12 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         if data['data_transacao']:
             periodo = Periodo.da_data(data['data_transacao'])
 
-            if self.instance and self.instance.prestacao_conta and self.instance.prestacao_conta.devolvida_para_acertos and periodo:
+            if (self.instance and self.instance.prestacao_conta and
+                    self.instance.prestacao_conta.devolvida_para_acertos and
+                    periodo):
                 if periodo.referencia != self.instance.prestacao_conta.periodo.referencia:
-                    raise serializers.ValidationError({"mensagem": "Permitido apenas datas dentro do período referente à devolução."})
+                    raise serializers.ValidationError({
+                        "mensagem": "Permitido apenas datas dentro do período referente à devolução."})
 
         if data['data_transacao']:
             for rateio in rateios:
@@ -102,9 +116,14 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                 conta_associacao = rateio['conta_associacao']
 
                 if conta_associacao and (conta_associacao.data_inicio > data_transacao):
-                    raise serializers.ValidationError({"mensagem": "Um ou mais rateios possuem conta com data de início posterior a data de transação."})
-                if conta_associacao and (conta_associacao.data_encerramento and conta_associacao.data_encerramento < data_transacao):
-                    raise serializers.ValidationError({"mensagem": "Um ou mais rateios possuem conta com data de encerramento anterior a data de transação."})
+                    raise serializers.ValidationError({
+                        "mensagem": (
+                            "Um ou mais rateios possuem conta com data de início posterior a data de transação.")})
+                if (conta_associacao and
+                        (conta_associacao.data_encerramento and conta_associacao.data_encerramento < data_transacao)):
+                    raise serializers.ValidationError({
+                        "mensagem": ("Um ou mais rateios possuem conta com data de encerramento anterior a "
+                                     "data de transação.")})
 
         for imposto in despesas_impostos:
             data_transacao = imposto['data_transacao']
@@ -113,10 +132,43 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                 for rateio in imposto['rateios']:
                     conta_associacao = rateio['conta_associacao']
                     if conta_associacao and (conta_associacao.data_inicio > data_transacao):
-                        raise serializers.ValidationError({"mensagem": "Um ou mais rateios de imposto possuem conta com data de início posterior a data de transação."})
-                    if conta_associacao and (conta_associacao.data_encerramento and conta_associacao.data_encerramento < data_transacao):
-                        raise serializers.ValidationError({"mensagem": "Um ou mais rateios de imposto possuem conta com data de encerramento anterior a data de transação."})
+                        raise serializers.ValidationError({
+                            "mensagem": ("Um ou mais rateios de imposto possuem conta com data de início posterior a "
+                                         "data de transação.")})
+                    if conta_associacao and (conta_associacao.data_encerramento and conta_associacao.data_encerramento < data_transacao):  # noqa
+                        raise serializers.ValidationError({
+                            "mensagem": ("Um ou mais rateios de imposto possuem conta com data de encerramento "
+                                         "anterior a data de transação.")})
+
+        # Verifica prioridades do PAA impactadas
+        self._verificar_prioridades_paa_impactadas(data, self.instance)
+
         return data
+
+    def _verificar_prioridades_paa_impactadas(self, data, instance_despesa) -> list:
+        """
+        Verifica se há prioridades do PAA que serão impactadas pelos
+        rateios da despesa.
+        """
+        from sme_ptrf_apps.paa.services import PrioridadesPaaImpactadasDespesaRateioService
+
+        confirmar_limpeza = data.get('confirmar_limpeza_prioridades_paa', False)
+
+        rateios = data.get('rateios', [])
+        prioridades_impactadas = []
+
+        for rateio in rateios:
+            service = PrioridadesPaaImpactadasDespesaRateioService(rateio, instance_despesa)
+            prioridades = service.verificar_prioridades_impactadas()
+            prioridades_impactadas.extend(prioridades)
+
+        if prioridades_impactadas and not confirmar_limpeza:
+            raise serializers.ValidationError({
+                "confirmar": (
+                    "Existem prioridades cadastradas que utilizam o valor da receita prevista. "
+                    "O valor total será removido das prioridades cadastradas e é necessário revisá-las para "
+                    "alterar o valor total.")
+            })
 
     def create(self, validated_data):
 
@@ -151,6 +203,13 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
         rateios = validated_data.pop('rateios')
 
+        # Remover a flag de confirmação do validated_data
+        confirmar_limpeza_prioridades = validated_data.pop('confirmar_limpeza_prioridades_paa', False)
+
+        # Limpa prioridades do PAA se confirmado
+        if confirmar_limpeza_prioridades:
+            self._limpar_prioridades_paa(rateios=rateios, instance_despesa=None)
+
         despesas_impostos = validated_data.pop('despesas_impostos') if validated_data.get('despesas_impostos') else None
 
         motivos_pagamento_antecipado = validated_data.pop('motivos_pagamento_antecipado', None)
@@ -160,9 +219,12 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         data_documento = validated_data['data_documento']
 
         if data_transacao and data_documento:
-            if data_transacao < data_documento and not motivos_pagamento_antecipado and not outros_motivos_pagamento_antecipado:
+            if (data_transacao < data_documento and not motivos_pagamento_antecipado and
+                    not outros_motivos_pagamento_antecipado):
                 raise serializers.ValidationError({
-                                                      "detail": "Quando a Data da transação for menor que a Data do Documento é necessário enviar os motivos do pagamento antecipado"})
+                    "detail": (
+                        "Quando a Data da transação for menor que a Data do Documento é necessário enviar "
+                        "os motivos do pagamento antecipado")})
             elif data_transacao >= data_documento:
                 motivos_pagamento_antecipado = []
                 outros_motivos_pagamento_antecipado = ""
@@ -239,6 +301,16 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
         return despesa
 
+    def _limpar_prioridades_paa(self, rateios, instance_despesa):
+        """
+        Limpa o valor_total das prioridades do PAA impactadas pelos rateios da despesa.
+        """
+        from sme_ptrf_apps.paa.services import PrioridadesPaaImpactadasDespesaRateioService
+
+        for rateio in rateios:
+            service = PrioridadesPaaImpactadasDespesaRateioService(rateio, instance_despesa)
+            service.limpar_valor_prioridades_impactadas()
+
     def update(self, instance, validated_data):
         data_de_encerramento = validated_data['associacao'].data_de_encerramento \
             if validated_data['associacao'] and validated_data['associacao'].data_de_encerramento else None
@@ -271,6 +343,12 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
         rateios = validated_data.pop('rateios')
 
+        # Remove flag de confirmação do validated_data (não é campo do model)
+        confirmar_limpeza_prioridades = validated_data.pop('confirmar_limpeza_prioridades_paa', False)
+        # Limpa prioridades do PAA se confirmado
+        if confirmar_limpeza_prioridades:
+            self._limpar_prioridades_paa(rateios, instance)
+
         despesas_impostos = validated_data.pop('despesas_impostos') if 'despesas_impostos' in validated_data else []
 
         motivos_pagamento_antecipado = validated_data.pop('motivos_pagamento_antecipado', None)
@@ -280,8 +358,12 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         data_documento = validated_data['data_documento']
 
         if data_transacao and data_documento:
-            if data_transacao < data_documento and not motivos_pagamento_antecipado and not outros_motivos_pagamento_antecipado:
-                raise serializers.ValidationError({"detail": "Quando a Data da transação for menor que a Data do Documento é necessário enviar os motivos do pagamento antecipado"})
+            if (data_transacao < data_documento and not motivos_pagamento_antecipado and
+                    not outros_motivos_pagamento_antecipado):
+                raise serializers.ValidationError({
+                    "detail": (
+                        "Quando a Data da transação for menor que a Data do Documento é necessário enviar "
+                        "os motivos do pagamento antecipado")})
             elif data_transacao >= data_documento:
                 motivos_pagamento_antecipado = []
                 outros_motivos_pagamento_antecipado = ""
@@ -363,7 +445,8 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                                     log.info(f"Rateio NÃO encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
                                     continue
                             else:
-                                log.info(f"Não encontrada chave uuid de rateio R${rateio['valor_rateio']}. Será criado.")
+                                log.info(
+                                    f"Não encontrada chave uuid de rateio R${rateio['valor_rateio']}. Será criado.")
                                 rateio_object = RateioDespesaCreateSerializer().create(rateio)
                                 rateios_do_imposto_lista.append(rateio_object)
                                 uuid_rateios_do_imposto_lista.append(rateio_object.uuid)
@@ -374,12 +457,12 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                                 if rateio.uuid not in uuid_rateios_do_imposto_lista:
                                     log.info(f"Rateio de imposto será apagado {rateio.uuid}")
                                     rateio.delete()
-                                    log.info(f"Apagado o rateio de imposto")
+                                    log.info("Apagado o rateio de imposto")
                     else:
                         log.info(f"Despesa Imposto NÃO encontrada {despesa_imposto['uuid']}")
                         continue
                 else:
-                    log.info(f"Não encontrada chave uuid de despesa imposto. Será criado.")
+                    log.info("Não encontrada chave uuid de despesa imposto. Será criado.")
                     despesa_imposto_updated = Despesa.objects.create(**despesa_imposto)
                     despesa_imposto_updated.verifica_data_documento_vazio()
                     rateios_do_imposto_lista = []
@@ -464,19 +547,21 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
                                                                     required=False)
 
     informacoes = serializers.SerializerMethodField(method_name='get_informacoes', required=False)
-    
-    periodo_referencia = serializers.SerializerMethodField(method_name="get_periodo_referencia", required=False, allow_null=True)
+
+    periodo_referencia = serializers.SerializerMethodField(
+        method_name="get_periodo_referencia", required=False, allow_null=True)
 
     def get_despesa_de_imposto(self, despesa):
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
-        return DespesaImpostoSerializer(despesa_geradora_do_imposto, many=False).data if despesa_geradora_do_imposto else None
+        return DespesaImpostoSerializer(
+            despesa_geradora_do_imposto, many=False).data if despesa_geradora_do_imposto else None
 
     def get_recurso_externo(self, despesa):
         return despesa.receitas_saida_do_recurso.first().uuid if despesa.receitas_saida_do_recurso.exists() else None
 
     def get_informacoes(self, despesa):
         return despesa.tags_de_informacao
-    
+
     def get_periodo_referencia(self, despesa):
         if not despesa.data_documento:
             return None
@@ -487,9 +572,10 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
     class Meta:
         model = Despesa
         fields = (
-        'uuid', 'associacao', 'numero_documento', 'status', 'tipo_documento', 'data_documento', 'cpf_cnpj_fornecedor',
-        'nome_fornecedor', 'valor_total', 'valor_ptrf', 'data_transacao', 'tipo_transacao', 'documento_transacao',
-        'rateios', 'receitas_saida_do_recurso', 'despesa_geradora_do_imposto', 'despesas_impostos', 'informacoes', 'periodo_referencia')
+            'uuid', 'associacao', 'numero_documento', 'status', 'tipo_documento', 'data_documento',
+            'cpf_cnpj_fornecedor', 'nome_fornecedor', 'valor_total', 'valor_ptrf', 'data_transacao', 'tipo_transacao',
+            'documento_transacao', 'rateios', 'receitas_saida_do_recurso', 'despesa_geradora_do_imposto',
+            'despesas_impostos', 'informacoes', 'periodo_referencia')
 
 
 class DespesaConciliacaoSerializer(serializers.ModelSerializer):

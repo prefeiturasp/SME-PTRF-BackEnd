@@ -1,5 +1,5 @@
 from django_filters import rest_framework as filters
-from rest_framework import mixins, status
+from rest_framework import mixins, status, serializers
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -26,7 +26,7 @@ from ..serializers.tipo_transacao_serializer import TipoTransacaoSerializer
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from django.db.models import Subquery
-from sme_ptrf_apps.core.models import Associacao
+from sme_ptrf_apps.core.models import Associacao, AcaoAssociacao
 from django.db.models import Q
 import datetime
 
@@ -465,3 +465,34 @@ class DespesasViewSet(mixins.CreateModelMixin,
         status_response = response.pop("status")
 
         return Response(response, status=status_response)
+
+    @action(detail=True, url_path='validar-prioridades-impactadas', methods=['put'],
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def validar_prioridades_impactadas(self, request, uuid=None):
+        from sme_ptrf_apps.paa.services import PrioridadesPaaImpactadasDespesaRateioService
+
+        instance_despesa = self.get_object()
+        rateios = request.data.get('rateios', [])
+        associacoes = Associacao.objects.filter(
+            uuid__in=[r.get('associacao') for r in rateios if r.get('associacao', None)])
+
+        acoes_associacoes = AcaoAssociacao.objects.filter(
+            uuid__in=[r.get('acao_associacao') for r in rateios if r.get('acao_associacao', None)])
+
+        prioridades_impactadas = []
+        for rateio in rateios:
+            rateio['associacao'] = associacoes.filter(uuid=rateio.get('associacao')).first()
+            rateio['acao_associacao'] = acoes_associacoes.filter(uuid=rateio.get('acao_associacao')).first()
+            service = PrioridadesPaaImpactadasDespesaRateioService(rateio, instance_despesa)
+            prioridades = service.verificar_prioridades_impactadas()
+            prioridades_impactadas.extend(prioridades)
+
+        if prioridades_impactadas:
+            raise serializers.ValidationError({
+                "confirmar": (
+                    "Existem prioridades cadastradas que utilizam o valor da receita prevista. "
+                    "O valor total será removido das prioridades cadastradas e é necessário revisá-las para "
+                    "alterar o valor total.")
+            })
+
+        return Response(status=status.HTTP_200_OK)
