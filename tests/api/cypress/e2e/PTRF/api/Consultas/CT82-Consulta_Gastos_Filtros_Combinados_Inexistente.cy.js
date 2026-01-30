@@ -11,32 +11,51 @@ const Comum = new ComumPaginaPTRF();
 import GastosEscolaPagina from "../../../../support/Paginas/GastosEscolaPagina";
 const Gastos = new GastosEscolaPagina();
 
-
 Cypress.on('uncaught:exception', (err, runnable) => {
-    // quando retorna falso previne o  Cypress de falhar o teste
-    return false
-  })
+  // quando retorna falso previne o Cypress de falhar o teste
+  return false;
+});
 
-  describe('Gastos da Escola - Consulta', () => {
+describe('Gastos da Escola - Consulta', () => {
 
-    it('CT82-Consulta_Gastos_Filtros_Combinados_Inexistente.',()=>{
+  it('CT82-Consulta_Gastos_Filtros_Combinados_Inexistente', () => {
 
     Comum.visitarPaginaPTRF();
-
     Comum.login(usuario.Usuario, usuario.Senha);
 
     Comum.selecionarCeuVilaAlpina();
 
     Gastos.selecionarGastosDaEscola();
-
     Gastos.selecionarFiltrarMaisFiltros(); 
-    
     Gastos.selecionarAplicacaoCusteio();
-    
+
     Comum.selecionarPerfil();
+    Comum.logout();
+  });
+
+  it('CT244-Consulta_Gastos_Sair_e_Reacessar_Com_Filtro', () => {
+
+    Comum.visitarPaginaPTRF();
+    Comum.login(usuario.Usuario, usuario.Senha);
+
+    Comum.selecionarCeuVilaAlpina();
+
+    Gastos.selecionarGastosDaEscola();
+    Gastos.selecionarFiltrarMaisFiltros(); 
+    Gastos.selecionarAplicacaoCusteio();
 
     Comum.logout();
-    
-  })  
 
-})
+    // novo acesso
+    Comum.visitarPaginaPTRF();
+    Comum.login(usuario.Usuario, usuario.Senha);
+
+    Comum.selecionarCeuVilaAlpina();
+    Gastos.selecionarGastosDaEscola();
+    Gastos.selecionarFiltrarMaisFiltros(); 
+    Gastos.selecionarAplicacaoCusteio();
+
+    Comum.logout();
+  });
+
+});

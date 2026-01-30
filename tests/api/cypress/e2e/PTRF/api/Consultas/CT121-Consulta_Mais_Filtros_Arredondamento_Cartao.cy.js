@@ -9,47 +9,120 @@ import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
 const Comum = new ComumPaginaPTRF();
 
 import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina";
-
 const Creditos = new CreditosEscolaPagina();
 
 Cypress.on("uncaught:exception", (err, runnable) => {
   return false;
 });
 
-  describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
+describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
 
-    it('CT121-Consulta_Mais_Filtros_Arredondamento_Cartao',()=>{
+  it('CT121-Consulta_Mais_Filtros_Arredondamento_Cartao', () => {
 
     Comum.visitarPaginaPTRF();
-
     Comum.login(usuario.Usuario, usuario.Senha);
-
     Comum.selecionarCeuEmefMariaClara();
 
     cy.wait(3000);
 
     Creditos.selecionarCreditosDaEscola();
-
     Creditos.selecionarMaisFiltros();
-
     Creditos.selecionarArredondamentoMaisFiltros();
-
     Creditos.selecionarDetalhamentoMaisFiltros();
-
     Creditos.realizaConsultaTipoContaCartao();
+    Creditos.realizaConsultaAcaoPtrf();
+    Creditos.realizaConsultaDataInicio();
+    Creditos.realizaConsultaDataFim();
+    Creditos.selecionarFiltrarMaisFiltros();
 
+    Comum.selecionarPerfil();
+    Comum.logout();
+  });
+
+  it('CT161-Consulta_Mais_Filtros_Arredondamento_Cartao_Sem_Data', () => {
+
+    Comum.visitarPaginaPTRF();
+    Comum.login(usuario.Usuario, usuario.Senha);
+    Comum.selecionarCeuEmefMariaClara();
+
+    cy.wait(3000);
+
+    Creditos.selecionarCreditosDaEscola();
+    Creditos.selecionarMaisFiltros();
+    Creditos.selecionarArredondamentoMaisFiltros();
+    Creditos.selecionarDetalhamentoMaisFiltros();
+    Creditos.realizaConsultaTipoContaCartao();
     Creditos.realizaConsultaAcaoPtrf();
 
-    Creditos.realizaConsultaDataInicio();
-
-    Creditos.realizaConsultaDataFim();
-
+    // 🔹 Sem data início e fim
     Creditos.selecionarFiltrarMaisFiltros();
-    
+
     Comum.selecionarPerfil();
-
     Comum.logout();
-    
-  })  
+  });
 
-})
+  it('CT162-Consulta_Mais_Filtros_Arredondamento_Cartao_Sem_Acao', () => {
+
+    Comum.visitarPaginaPTRF();
+    Comum.login(usuario.Usuario, usuario.Senha);
+    Comum.selecionarCeuEmefMariaClara();
+
+    cy.wait(3000);
+
+    Creditos.selecionarCreditosDaEscola();
+    Creditos.selecionarMaisFiltros();
+    Creditos.selecionarArredondamentoMaisFiltros();
+    Creditos.selecionarDetalhamentoMaisFiltros();
+    Creditos.realizaConsultaTipoContaCartao();
+
+    // 🔹 Sem ação PTRF
+    Creditos.realizaConsultaDataInicio();
+    Creditos.realizaConsultaDataFim();
+    Creditos.selecionarFiltrarMaisFiltros();
+
+    Comum.selecionarPerfil();
+    Comum.logout();
+  });
+
+  it('CT163-Consulta_Mais_Filtros_Arredondamento_Cartao_Somente_Tipo_Conta', () => {
+
+    Comum.visitarPaginaPTRF();
+    Comum.login(usuario.Usuario, usuario.Senha);
+    Comum.selecionarCeuEmefMariaClara();
+
+    cy.wait(3000);
+
+    Creditos.selecionarCreditosDaEscola();
+    Creditos.selecionarMaisFiltros();
+    Creditos.selecionarArredondamentoMaisFiltros();
+    Creditos.selecionarDetalhamentoMaisFiltros();
+
+    // 🔹 Apenas tipo de conta Cartão
+    Creditos.realizaConsultaTipoContaCartao();
+    Creditos.selecionarFiltrarMaisFiltros();
+
+    Comum.selecionarPerfil();
+    Comum.logout();
+  });
+
+  it('CT164-Consulta_Mais_Filtros_Arredondamento_Cartao_Sem_Filtros_Complementares', () => {
+
+    Comum.visitarPaginaPTRF();
+    Comum.login(usuario.Usuario, usuario.Senha);
+    Comum.selecionarCeuEmefMariaClara();
+
+    cy.wait(3000);
+
+    Creditos.selecionarCreditosDaEscola();
+    Creditos.selecionarMaisFiltros();
+    Creditos.selecionarArredondamentoMaisFiltros();
+    Creditos.selecionarDetalhamentoMaisFiltros();
+
+    // 🔹 Sem tipo de conta, ação e datas
+    Creditos.selecionarFiltrarMaisFiltros();
+
+    Comum.selecionarPerfil();
+    Comum.logout();
+  });
+
+});
