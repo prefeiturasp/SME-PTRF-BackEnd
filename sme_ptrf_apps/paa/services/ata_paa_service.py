@@ -1,11 +1,11 @@
 import logging
 
-from sme_ptrf_apps.paa.models import AtaPaa, Paa
-from sme_ptrf_apps.paa.enums import PaaStatusEnum
+from sme_ptrf_apps.paa.models import AtaPaa
 from sme_ptrf_apps.paa.services.ata_paa_dados_service import gerar_dados_ata_paa
 from sme_ptrf_apps.paa.services.ata_paa_pdf_service import gerar_arquivo_ata_paa_pdf
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.core.models import Parametros
+from sme_ptrf_apps.paa.services.paa_service import PaaService
 
 LOGGER = logging.getLogger(__name__)
 
@@ -25,11 +25,7 @@ def gerar_arquivo_ata_paa(ata_paa: AtaPaa, usuario=None):
         
         ata_paa.arquivo_pdf_concluir()
         
-        # Atualiza o status do PAA para GERADO
-        paa = ata_paa.paa
-        paa.status = PaaStatusEnum.GERADO.name
-        paa.save()
-        LOGGER.info(f'Status do PAA {paa.uuid} atualizado para GERADO')
+        PaaService.concluir_paa(ata_paa.paa)
         
         return ata_paa
     except Exception as e:

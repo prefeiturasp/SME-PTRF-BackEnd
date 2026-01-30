@@ -42,4 +42,15 @@ class ReceitaPrevistaPaaSerializer(serializers.ModelSerializer):
         if not attrs.get('acao_associacao') and not self.instance:
             # Valida se acao_associacao foi informada no create
             raise serializers.ValidationError({'acao_associacao': 'O campo Ação de Associação é obrigatório.'})
+
+        paa = attrs.get('paa') or (self.instance.paa if self.instance else None)
+        
+        if paa:
+            # Bloqueia edição quando o documento final foi gerado
+            documento_final = paa.documento_final
+            if documento_final and documento_final.concluido:
+                raise serializers.ValidationError({
+                    'mensagem': 'Não é possível editar receitas previstas após a geração do documento final do PAA.'
+                })
+        
         return super().validate(attrs)

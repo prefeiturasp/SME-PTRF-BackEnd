@@ -34,6 +34,26 @@ class ReceitaPrevistaPddeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'acao_pdde': 'O campo Ação PDDE é obrigatório.'})
         if not attrs.get('paa') and not self.instance:
             raise serializers.ValidationError({'paa': 'PAA não informado.'})
+
+        paa = attrs.get('paa') or (self.instance.paa if self.instance else None)
+        
+        # Resolve paa if it's a string (UUID) to the actual Paa object
+        if paa and isinstance(paa, str):
+            try:
+                paa = Paa.objects.get(uuid=paa)
+            except Paa.DoesNotExist:
+                # If paa doesn't exist, skip the documento_final check
+                # The field validation will handle the error
+                paa = None
+        
+        if paa:
+            # Bloqueia edição quando o documento final foi gerado
+            documento_final = paa.documento_final
+            if documento_final and documento_final.concluido:
+                raise serializers.ValidationError({
+                    'mensagem': 'Não é possível editar receitas previstas PDDE após a geração do documento final do PAA.'
+                })
+        
         return super().validate(attrs)
 
 

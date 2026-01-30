@@ -52,3 +52,26 @@ def test_receita_prevista_serializer_list_serializer_sem_erro_validate():
         'acao_pdde': '32309a0f-9d86-404b-908a-16f25cb76d5b',
     }
     assert ReceitaPrevistaPddeSerializer().validate(data) == data
+
+
+def test_receita_prevista_pdde_serializer_bloqueia_edicao_com_documento_final_concluido(
+    receita_prevista_pdde
+):
+    """Testa que não é possível editar receita prevista PDDE quando documento final está concluído"""
+    from sme_ptrf_apps.paa.fixtures.factories.documento_paa_factory import DocumentoPaaFactory
+    
+    DocumentoPaaFactory.create(paa=receita_prevista_pdde.paa, versao="FINAL", status_geracao="CONCLUIDO")
+    
+    payload = {
+        "previsao_valor_custeio": "1000.00",
+    }
+    
+    serializer = ReceitaPrevistaPddeSerializer(
+        instance=receita_prevista_pdde,
+        data=payload,
+        partial=True
+    )
+    
+    assert not serializer.is_valid()
+    assert 'mensagem' in serializer.errors
+    assert 'Não é possível editar receitas previstas PDDE após a geração do documento final do PAA.' in serializer.errors['mensagem']
