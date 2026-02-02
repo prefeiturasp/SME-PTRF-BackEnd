@@ -936,7 +936,7 @@ class ParametrosAdminForm(ModelForm):
             verbose_name='Tipos de unidades',
             is_stacked=False
         ),
-        label='Tipos de unidades que exigem professor do grêmio na ata do PAA'
+        label='Tipos de unidades que exigem professor do grêmio na ata'
     )
 
     def __init__(self, *args, **kwargs):
