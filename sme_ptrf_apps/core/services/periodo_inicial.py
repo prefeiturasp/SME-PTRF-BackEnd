@@ -70,7 +70,7 @@ def processa_periodo_inicial(reader, arquivo):
                     not flag_premio_ativa or (recurso and recurso.legado)
                 )
 
-                if deve_validar_periodo_inicial and associacao.periodo_inicial:
+                if deve_validar_periodo_inicial:
                     if associacao.periodo_inicial and data_referencia <= associacao.periodo_inicial.data_fim_realizacao_despesas:
                         raise_erro("O período informado é anterior ao período inicial da associação")
 
@@ -78,6 +78,12 @@ def processa_periodo_inicial(reader, arquivo):
                     if not response["pode_editar_periodo_inicial"]:
                         mensagem = " ".join(response["mensagem_pode_editar_periodo_inicial"])
                         raise_erro(mensagem)
+
+                    associacao.periodo_inicial = periodo
+                    associacao.save()
+
+                    logger.info("Periodo inicial da associação %s importado com sucesso.", associacao)
+                    importados += 1
 
                 if flag_premio_ativa and recurso:
                     periodo_inicial = associacao.periodos_iniciais.filter(recurso=recurso)
@@ -92,11 +98,8 @@ def processa_periodo_inicial(reader, arquivo):
 
                     vincular_periodo_inicial_associacao(associacao, periodo, recurso)
 
-                associacao.periodo_inicial = periodo
-                associacao.save()
-                logger.info("Periodo inicial da associação %s importado com sucesso.", associacao)
-                importados += 1
-
+                    logger.info("Periodo inicial da associação %s importado com sucesso.", associacao)
+                    importados += 1
             except Exception as e:
                 msg = f"Erro na linha {index}: {str(e)}"
                 logger.info(msg)
