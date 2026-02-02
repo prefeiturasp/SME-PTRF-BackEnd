@@ -54,13 +54,14 @@ class ReceitaPrevistaOutroRecursoPeriodoSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         paa = attrs.get('paa') or (self.instance.paa if self.instance else None)
-        
+
         if paa:
             # Bloqueia edição quando o documento final foi gerado
             documento_final = paa.documento_final
             if documento_final and documento_final.concluido:
                 raise serializers.ValidationError({
-                    'mensagem': 'Não é possível editar receitas previstas de outros recursos após a geração do documento final do PAA.'
+                    'mensagem': ('Não é possível editar receitas previstas de outros recursos após a geração do '
+                                 'documento final do PAA.')
                 })
 
         self._verificar_prioridades_paa_impactadas(attrs, self.instance)
@@ -83,8 +84,7 @@ class ReceitaPrevistaOutroRecursoPeriodoSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 "confirmar": (
                     "Existem prioridades cadastradas que utilizam o valor da receita prevista. "
-                    "O valor total será removido das prioridades cadastradas e é necessário revisá-las para "
-                    "alterar o valor total.")
+                    "Será necessário revisar as prioridades para atualizar o valor total.")
             })
 
     def _limpar_prioridades_paa(self, receita_prevista_attrs, instance_despesa):
