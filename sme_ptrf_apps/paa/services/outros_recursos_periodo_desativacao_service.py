@@ -83,9 +83,6 @@ class OutroRecursoPeriodoDesabilitacaoService(OutroRecursoPeriodoBaseService):
         }
 
         try:
-            # Desabilitar o recurso
-            self.outro_recurso_periodo.ativo = False
-            self.outro_recurso_periodo.save()
 
             # Processar cada PAA de acordo com seu status
             for paa in paas_afetados:
@@ -102,6 +99,12 @@ class OutroRecursoPeriodoDesabilitacaoService(OutroRecursoPeriodoBaseService):
                     }
                     logger.info(str(info))
                 resultado['paas_processados'].append(info)
+
+            # Ao habilitar o recurso, ele torna-se disponível para todas as unidades
+            self.outro_recurso_periodo.unidades.clear()
+            # Desabilitar o recurso
+            self.outro_recurso_periodo.ativo = False
+            self.outro_recurso_periodo.save()
 
             logger.info(
                 f"Recurso {self.outro_recurso_periodo.outro_recurso.nome} desabilitado com sucesso. "
