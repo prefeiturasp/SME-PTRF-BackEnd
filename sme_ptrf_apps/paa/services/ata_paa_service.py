@@ -64,7 +64,7 @@ def validar_geracao_ata_paa(ata_paa: AtaPaa) -> dict:
 
 def unidade_precisa_professor_gremio(tipo_unidade: str) -> bool:
     """
-    Verifica se o tipo de unidade precisa do campo professor do grêmio na ata do PAA.
+    Verifica se o tipo de unidade precisa do campo professor do grêmio na ata.
     
     Args:
         tipo_unidade: String com o tipo de unidade (ex: 'EMEF', 'EMEI', etc.)

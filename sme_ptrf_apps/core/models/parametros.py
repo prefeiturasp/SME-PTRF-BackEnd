@@ -74,7 +74,7 @@ class Parametros(SingletonModel, ModeloBase):
         models.CharField(max_length=20, choices=TIPOS_CHOICE),
         blank=True,
         default=list,
-        verbose_name='Tipos de unidades que possuem professor grêmio na ata do PAA'
+        verbose_name='Tipos de unidades que possuem professor grêmio na ata'
     ) 
 
     def __str__(self):

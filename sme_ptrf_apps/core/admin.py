@@ -1,6 +1,5 @@
 import logging
 from django.contrib import admin, messages
-from django.contrib.admin import SimpleListFilter
 from django import forms
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.forms import ModelForm, ValidationError
@@ -80,6 +79,15 @@ admin.site.register(ModeloCarga)
 admin.site.register(MotivoRejeicaoEncerramentoContaAssociacao)
 
 
+def custom_titled_filter(title):
+    class Wrapper(admin.FieldListFilter):
+        def __new__(cls, *args, **kwargs):
+            instance = admin.FieldListFilter.create(*args, **kwargs)
+            instance.title = title
+            return instance
+    return Wrapper
+
+
 @admin.register(Recurso)
 class RecursoAdmin(admin.ModelAdmin):
     list_display = ('nome', 'nome_exibicao', 'legado', 'ativo', 'cor_preview')
@@ -114,8 +122,11 @@ class AcaoAdminForm(ModelForm):
 @admin.register(Acao)
 class AcaoAdmin(admin.ModelAdmin):
     form = AcaoAdminForm
+    list_display = ('nome', 'recurso',)
     readonly_fields = ('uuid', 'id')
-    list_filter = ("recurso__nome",)
+    list_filter = (
+        ('recurso__nome', custom_titled_filter('Recurso')),
+    )
 
     def save_model(self, request, obj, form, change):
         """
@@ -326,7 +337,9 @@ class PeriodoAdmin(admin.ModelAdmin):
         'referencia', 'data_inicio_realizacao_despesas', 'data_fim_realizacao_despesas', 'data_prevista_repasse',
         'data_inicio_prestacao_contas', 'data_fim_prestacao_contas', 'recurso')
     search_fields = ('uuid', 'referencia')
-    list_filter = ("recurso__nome",)
+    list_filter = (
+        ('recurso__nome', custom_titled_filter('Recurso')),
+    )
     readonly_fields = ('uuid', 'id')
 
 
@@ -897,27 +910,15 @@ class TipoContaAdminForm(ModelForm):
         return recurso
 
 
-class RecursoNomeFilter(SimpleListFilter):
-    title = 'Nome do Recurso'
-    parameter_name = 'recurso__nome'
-
-    def lookups(self, request, model_admin):
-        return [
-            (recurso.nome, recurso.nome) for recurso in Recurso.objects.order_by('nome').distinct()
-        ]
-
-    def queryset(self, request, queryset):
-        if self.value():
-            return queryset.filter(recurso__nome=self.value())
-        return queryset
-
-
 @admin.register(TipoConta)
 class TipoContaAdmin(admin.ModelAdmin):
     form = TipoContaAdminForm
     list_display = ['uuid', 'nome', 'recurso']
     search_fields = ['nome']
-    list_filter = ['nome', RecursoNomeFilter,]
+    list_filter = (
+        'nome',
+        ('recurso__nome', custom_titled_filter('Recurso')),
+    )    
     readonly_fields = ('id', 'uuid',)
 
 
@@ -935,7 +936,7 @@ class ParametrosAdminForm(ModelForm):
             verbose_name='Tipos de unidades',
             is_stacked=False
         ),
-        label='Tipos de unidades que exigem professor do grêmio na ata do PAA'
+        label='Tipos de unidades que exigem professor do grêmio na ata'
     )
 
     def __init__(self, *args, **kwargs):
