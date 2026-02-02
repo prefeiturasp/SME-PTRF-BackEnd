@@ -1,4 +1,7 @@
 def checa_se_pode_alterar_recurso(acao):
+    if not acao.pk:
+        return True
+
     verificacoes = [
         acao.associacoes_da_acao.exists(),
         acao.associacoes_da_acao.filter(rateios_da_associacao__isnull=False).exists(),
