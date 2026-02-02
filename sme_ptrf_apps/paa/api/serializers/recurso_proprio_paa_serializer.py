@@ -58,8 +58,7 @@ class RecursoProprioPaaCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 "confirmar": (
                     "Existem prioridades cadastradas que utilizam o valor da receita prevista. "
-                    "O valor total será removido das prioridades cadastradas e é necessário revisá-las para "
-                    "alterar o valor total.")
+                    "Será necessário revisar as prioridades para atualizar o valor total.")
             })
 
     def _limpar_prioridades_paa(self, recurso_attrs, instance_despesa):

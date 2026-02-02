@@ -307,6 +307,20 @@ class OutroRecursoPeriodoPaaVinculoUnidadeService(OutroRecursoPeriodoBaseService
                     paas_processados.append(info)
 
         # Vincular a nova unidade
+        # mantem as unidades com PAA Gerado/Retificacao que tenham receitas/prioridades do respectivo Outro Recurso
+        paas = self._paas_afetados_gerado_retificado()
+        unidades_paa_gerado_retificado_com_receitas_prioridades = []
+        for paa in paas:
+            receitas = self._receitas_previstas_outro_recurso_periodo_afetadas(paa).exists()
+            prioridades = self._prioridades_afetadas(paa).exists()
+            if receitas or prioridades:
+                unidades_paa_gerado_retificado_com_receitas_prioridades.append(paa.associacao.unidade)
+
+        logger.info((
+            "Mantendo Unidades com PAA Gerado/Retificacao ao vincular: "
+            f"{str(unidades_paa_gerado_retificado_com_receitas_prioridades)}"))
+        unidades_atualizadas += unidades_paa_gerado_retificado_com_receitas_prioridades
+
         self.outro_recurso_periodo.unidades.set(unidades_atualizadas)
 
         log_unidades = ', '.join([str(unidade) for unidade in unidades])
@@ -367,6 +381,24 @@ class OutroRecursoPeriodoPaaVinculoUnidadeService(OutroRecursoPeriodoBaseService
         # desvincular as unidades (filtra todas atuais, exceto as unidades a desvincular)
         unidades_atualizadas = list(self.outro_recurso_periodo.unidades.exclude(uuid__in=unidades_uuid))
         logger.info(f"Unidades atualizadas no Outro Recurso Período: {str([str(u) for u in unidades_atualizadas])}")
+
+        # mantem as unidades com PAA Gerado/Retificacao
+        # mantem as unidades com PAA Gerado/Retificacao que tenham receitas/prioridades do respectivo Outro Recurso
+        paas = self._paas_afetados_gerado_retificado()
+        unidades_paa_gerado_retificado_com_receitas_prioridades = []
+        for paa in paas:
+            receitas = self._receitas_previstas_outro_recurso_periodo_afetadas(paa).exists()
+            prioridades = self._prioridades_afetadas(paa).exists()
+            if receitas or prioridades:
+                unidades_paa_gerado_retificado_com_receitas_prioridades.append(paa.associacao.unidade)
+
+        logger.info((
+            "Mantendo Unidades com PAA Gerado/Retificacao ao desvincular: "
+            f"{str(unidades_paa_gerado_retificado_com_receitas_prioridades)}"))
+        unidades_atualizadas += unidades_paa_gerado_retificado_com_receitas_prioridades
+        if unidades_atualizadas:
+            # verifica se está parcial, para incluir a unidade com PAA GERADO/RETIFICACAO
+            unidades_atualizadas += unidades_paa_gerado_retificado_com_receitas_prioridades
 
         # define as unidades atualizadas
         self.outro_recurso_periodo.unidades.set(unidades_atualizadas)
