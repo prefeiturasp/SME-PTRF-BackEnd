@@ -511,10 +511,9 @@ class PrioridadesPaaImpactadasReceitasPrevistasRecursoProprioService(Prioridades
             )
             logger.info('#### LIMPAR PRIORIDADES ####')
             if not confirmar:
-                raise ConfirmarExlusaoPrioridadesPaaRecursoProprioService(
+                raise ConfirmarExlusaoPrioridadesPaaRecursoProprioService((
                     "Existem prioridades cadastradas que utilizam o valor da receita prevista. "
-                    "O valor total será removido das prioridades cadastradas e é necessário revisá-las para "
-                    "alterar o valor total."
+                    "Será necessário revisar as prioridades para atualizar o valor total.")
                 )
             prioridades_impactadas.update(valor_total=None)
 

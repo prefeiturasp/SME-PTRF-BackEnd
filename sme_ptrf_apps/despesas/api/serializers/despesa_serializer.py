@@ -11,6 +11,7 @@ from ...models import Despesa, RateioDespesa, TipoDocumento, TipoTransacao
 from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
 from ....core.models import Associacao, Periodo
 from django.core.exceptions import ValidationError
+from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
 
 log = logging.getLogger(__name__)
 
@@ -141,7 +142,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                                          "anterior a data de transação.")})
 
         # Verifica prioridades do PAA impactadas
-        self._verificar_prioridades_paa_impactadas(data, self.instance)
+        # self._verificar_prioridades_paa_impactadas(data, self.instance)
 
         return data
 
@@ -166,11 +167,12 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({
                 "confirmar": (
                     "Existem prioridades cadastradas que utilizam o valor da receita prevista. "
-                    "O valor total será removido das prioridades cadastradas e é necessário revisá-las para "
-                    "alterar o valor total.")
+                    "Será necessário revisar as prioridades para atualizar o valor total.")
             })
 
     def create(self, validated_data):
+        # Remover a flag de confirmação do validated_data
+        confirmar_limpeza_prioridades = validated_data.pop('confirmar_limpeza_prioridades_paa', False)  # noqa
 
         data_de_encerramento = validated_data['associacao'].data_de_encerramento \
             if validated_data['associacao'] and validated_data['associacao'].data_de_encerramento else None
@@ -202,13 +204,6 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             raise ValidationError(erro)
 
         rateios = validated_data.pop('rateios')
-
-        # Remover a flag de confirmação do validated_data
-        confirmar_limpeza_prioridades = validated_data.pop('confirmar_limpeza_prioridades_paa', False)
-
-        # Limpa prioridades do PAA se confirmado
-        if confirmar_limpeza_prioridades:
-            self._limpar_prioridades_paa(rateios=rateios, instance_despesa=None)
 
         despesas_impostos = validated_data.pop('despesas_impostos') if validated_data.get('despesas_impostos') else None
 
@@ -247,6 +242,12 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         despesa.motivos_pagamento_antecipado.set(motivos_list)
         despesa.outros_motivos_pagamento_antecipado = outros_motivos_pagamento_antecipado
         despesa.atualiza_status()
+
+        if despesa.status == STATUS_COMPLETO:
+            # Limpa prioridades do PAA se confirmado
+            # if confirmar_limpeza_prioridades:
+            self._limpar_prioridades_paa(rateios=rateios, instance_despesa=None)
+
         log.info("Despesa {}, Rateios: {}".format(despesa.uuid, rateios_lista))
 
         log.info("Criação de despesa finalizada!")
@@ -312,6 +313,9 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             service.limpar_valor_prioridades_impactadas()
 
     def update(self, instance, validated_data):
+        # Remove flag de confirmação do validated_data (não é campo do model)
+        confirmar_limpeza_prioridades = validated_data.pop('confirmar_limpeza_prioridades_paa', False)  # noqa
+
         data_de_encerramento = validated_data['associacao'].data_de_encerramento \
             if validated_data['associacao'] and validated_data['associacao'].data_de_encerramento else None
 
@@ -342,12 +346,6 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             raise ValidationError(erro)
 
         rateios = validated_data.pop('rateios')
-
-        # Remove flag de confirmação do validated_data (não é campo do model)
-        confirmar_limpeza_prioridades = validated_data.pop('confirmar_limpeza_prioridades_paa', False)
-        # Limpa prioridades do PAA se confirmado
-        if confirmar_limpeza_prioridades:
-            self._limpar_prioridades_paa(rateios, instance)
 
         despesas_impostos = validated_data.pop('despesas_impostos') if 'despesas_impostos' in validated_data else []
 
@@ -505,6 +503,11 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         data_transacao = validated_data['data_transacao'] if validated_data['data_transacao'] else None
         if data_transacao:
             despesa.set_despesa_anterior_ao_uso_do_sistema()
+
+        if despesa.status == STATUS_COMPLETO:
+            # Limpa prioridades do PAA se confirmado
+            # if confirmar_limpeza_prioridades:
+            self._limpar_prioridades_paa(rateios, instance)
 
         return despesa
 
