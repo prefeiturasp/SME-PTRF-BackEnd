@@ -382,7 +382,6 @@ class OutroRecursoPeriodoPaaVinculoUnidadeService(OutroRecursoPeriodoBaseService
         unidades_atualizadas = list(self.outro_recurso_periodo.unidades.exclude(uuid__in=unidades_uuid))
         logger.info(f"Unidades atualizadas no Outro Recurso Período: {str([str(u) for u in unidades_atualizadas])}")
 
-        # mantem as unidades com PAA Gerado/Retificacao
         # mantem as unidades com PAA Gerado/Retificacao que tenham receitas/prioridades do respectivo Outro Recurso
         paas = self._paas_afetados_gerado_retificado()
         unidades_paa_gerado_retificado_com_receitas_prioridades = []
@@ -413,13 +412,23 @@ class OutroRecursoPeriodoPaaVinculoUnidadeService(OutroRecursoPeriodoBaseService
             f"PAAs afetados com remoção de receitas e prioridades: {str(paas_processados)}"
         )
 
+        mensagem_retorno = (
+            'Unidades desvinculadas com sucesso!'
+            if len(unidades_uuid) > 1
+            else 'Unidade desvinculada com sucesso!'
+        )
+
+        # Verifica se apenas uma unidade está sendo desvinculada
+        # E se ela possui Paa Gerado/Retificado com receitas/prioridades
+        uuids_uniades_paas_gerados_retificados = [
+            str(u.uuid) for u in unidades_paa_gerado_retificado_com_receitas_prioridades]
+        if len(unidades_uuid) == 1 and unidades_uuid[0] in uuids_uniades_paas_gerados_retificados:
+            mensagem_retorno = 'Não é possível desvincular uma unidade com Paa Gerado/Em Retificação!'
+            raise ValidacaoVinculoException(mensagem_retorno)
+
         return {
             'sucesso': True,
-            'mensagem': (
-                'Unidades desvinculadas com sucesso!'
-                if len(unidades_uuid) > 1
-                else 'Unidade desvinculada com sucesso!'
-            ),
+            'mensagem': mensagem_retorno,
             'unidade': str(logs_unidades),
             'ja_vinculada': False
         }
