@@ -7,9 +7,8 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def periodo_anterior_teste_acompanahmento_de_relatorios_consolidados():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_teste_acompanahmento_de_relatorios_consolidados(periodo_factory):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 6, 16),
         data_fim_realizacao_despesas=date(2021, 12, 31),
@@ -18,10 +17,10 @@ def periodo_anterior_teste_acompanahmento_de_relatorios_consolidados():
 
 @pytest.fixture
 def periodo_teste_acompanahmento_de_relatorios_consolidados(
+    periodo_factory,
     periodo_anterior_teste_acompanahmento_de_relatorios_consolidados
 ):
-    return baker.make(
-        'Periodo',
+    return periodo_factory(
         referencia='2022.1',
         data_inicio_realizacao_despesas=date(2022, 1, 1),
         data_fim_realizacao_despesas=date(2022, 12, 31),

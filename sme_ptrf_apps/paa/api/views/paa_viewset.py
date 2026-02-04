@@ -102,6 +102,15 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def ativar_atualizacao_saldo(self, request, uuid):
         instance = self.get_object()
+        
+        # Bloqueia descongelar saldos quando o documento final foi gerado
+        documento_final = instance.documento_final
+        if documento_final and documento_final.concluido:
+            return Response(
+                {'mensagem': 'Não é possível descongelar saldos após a geração do documento final do PAA.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         associacao = instance.associacao
 
         saldos_por_acao_paa_service = SaldosPorAcaoPaaService(paa=instance, associacao=associacao)
@@ -299,7 +308,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
     @action(detail=True, methods=['get'], url_path='outros-recursos-do-periodo',
             permission_classes=[IsAuthenticated])
     def outros_recursos_periodo(self, request, uuid=None):
-        from sme_ptrf_apps.paa.services.outros_recursos_periodo_service import OutroRecursoPeriodoPaaListagemService
+        from sme_ptrf_apps.paa.services import OutroRecursoPeriodoPaaListagemService
 
         paa = self.get_object()
 

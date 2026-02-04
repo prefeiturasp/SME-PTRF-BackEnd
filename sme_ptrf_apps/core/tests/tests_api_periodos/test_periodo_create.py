@@ -18,7 +18,8 @@ def payload_periodo(periodo_2021_2):
         'data_prevista_repasse': '2021-07-01',
         'data_inicio_prestacao_contas': '2021-10-01',
         'data_fim_prestacao_contas': '2021-10-15',
-        'periodo_anterior': f'{periodo_2021_2.uuid}'
+        'periodo_anterior': f'{periodo_2021_2.uuid}',
+        'recurso': f'{periodo_2021_2.recurso.uuid}'
     }
     return payload
 
@@ -32,7 +33,8 @@ def payload_periodo_anterior_nulo(periodo_2021_2):
         'data_prevista_repasse': '2021-07-01',
         'data_inicio_prestacao_contas': '2021-10-01',
         'data_fim_prestacao_contas': '2021-10-15',
-        'periodo_anterior': None
+        'periodo_anterior': None,
+        'recurso': f'{periodo_2021_2.recurso.uuid}'
     }
     return payload
 

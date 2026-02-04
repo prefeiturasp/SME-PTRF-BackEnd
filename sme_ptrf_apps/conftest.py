@@ -37,7 +37,7 @@ from sme_ptrf_apps.core.fixtures.factories import (
     PrestacaoContaReprovadaNaoApresentacaoFactory, DemonstrativoFinanceiroFactory,
     ItemResumoPorAcaoFactory, ItemDespesaFactory, ItemCreditoFactory, ArquivoDownloadFactory,
     TipoDevolucaoAoTesouroFactory, FlagFactory, AtaFactory, ParticipanteFactory,
-    AnaliseContaPrestacaoContaFactory, PDFFactory
+    AnaliseContaPrestacaoContaFactory, PDFFactory, RecursoFactory
 )
 from sme_ptrf_apps.users.fixtures.factories import (
     UsuarioFactory, UnidadeEmSuporteFactory, GrupoAcessoFactory, VisaoFactory,
@@ -92,7 +92,7 @@ factories_to_register = [
     PrioridadePaaFactory, AtaFactory, ParticipanteFactory, AnaliseContaPrestacaoContaFactory,
     PDFFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory, AtaPaaFactory, ParticipanteAtaPaaFactory,
     AtividadeEstatutariaPaaFactory, OutroRecursoFactory, DocumentoPaaFactory, OutroRecursoPeriodoFactory,
-    ReceitaPrevistaOutroRecursoPeriodoFactory,
+    ReceitaPrevistaOutroRecursoPeriodoFactory, RecursoFactory
 ]
 
 for factory in factories_to_register:
@@ -157,9 +157,8 @@ def request_factory() -> RequestFactory:
 
 
 @pytest.fixture
-def tipo_conta():
-    return baker.make(
-        'TipoConta',
+def tipo_conta(tipo_conta_factory):
+    return tipo_conta_factory(
         nome='Cheque',
         banco_nome='Banco do Inter',
         agencia='67945',
@@ -174,28 +173,39 @@ def tipo_conta_cheque(tipo_conta):
 
 
 @pytest.fixture
-def tipo_conta_cartao():
-    return baker.make('TipoConta', nome='Cartão')
+def tipo_conta_cartao(tipo_conta_factory):
+    return tipo_conta_factory(nome='Cartão')
 
 
 @pytest.fixture
-def tipo_conta_teste():
-    return baker.make('TipoConta', nome='Teste')
+def tipo_conta_cartao_incompleta(tipo_conta_factory):
+    return tipo_conta_factory(nome='Cartão', banco_nome='')
 
 
 @pytest.fixture
-def acao():
-    return baker.make('Acao', nome='PTRF')
+def tipo_conta_teste(tipo_conta_factory):
+    return tipo_conta_factory(nome='Teste')
 
 
 @pytest.fixture
-def acao_aceita_custeio():
-    return baker.make('Acao', nome='PTRF-aceita-custeio', aceita_custeio=True)
+def acao(acao_factory):
+    return acao_factory(nome="PTRF")
 
 
 @pytest.fixture
-def acao_recurso_externo_valor_reprogramado():
-    return baker.make('Acao', nome='PTRF', e_recursos_proprios=True)
+def acao_aceita_custeio(acao_factory):
+    return acao_factory(
+        nome="PTRF-aceita-custeio",
+        aceita_custeio=True,
+    )
+
+
+@pytest.fixture
+def acao_recurso_externo_valor_reprogramado(acao_factory):
+    return acao_factory(
+        nome="PTRF",
+        e_recursos_proprios=True,
+    )
 
 
 @pytest.fixture
@@ -204,13 +214,18 @@ def acao_ptrf(acao):
 
 
 @pytest.fixture
-def acao_de_destaque():
-    return baker.make('Acao', nome='ZZZZZ', posicao_nas_pesquisas='AAAAAAAAAA')
+def acao_de_destaque(acao_factory):
+    return acao_factory(
+        nome="ZZZZZ",
+        posicao_nas_pesquisas="AAAAAAAAAA",
+    )
 
 
 @pytest.fixture
-def acao_role_cultural():
-    return baker.make('Acao', nome='Rolê Cultural')
+def acao_role_cultural(acao_factory):
+    return acao_factory(
+        nome="Rolê Cultural",
+    )
 
 
 @pytest.fixture
@@ -636,21 +651,25 @@ def conta_associacao_tipo_teste(associacao, tipo_conta_teste, periodo_2020_1):
 
 
 @pytest.fixture
-def conta_associacao_incompleta(associacao_cadastro_incompleto, tipo_conta_cartao):
+def conta_associacao_incompleta(associacao_cadastro_incompleto, tipo_conta_cartao_incompleta):
     return baker.make(
         'ContaAssociacao',
         associacao=associacao_cadastro_incompleto,
-        tipo_conta=tipo_conta_cartao,
-        data_inicio='2020-01-01'
+        tipo_conta=tipo_conta_cartao_incompleta,
+        data_inicio='2020-01-01',
+        banco_nome='',
+        status='ATIVA'
     )
 
 
 @pytest.fixture
-def conta_associacao_incompleta_002(associacao, tipo_conta_cartao):
+def conta_associacao_incompleta_002(associacao, tipo_conta_cartao_incompleta):
     return baker.make(
         'ContaAssociacao',
         associacao=associacao,
-        tipo_conta=tipo_conta_cartao,
+        tipo_conta=tipo_conta_cartao_incompleta,
+        banco_nome='',
+        status='ATIVA'
     )
 
 
@@ -782,9 +801,13 @@ def acao_associacao_role_cultural(associacao, acao_role_cultural):
 
 
 @pytest.fixture
-def periodo_anterior():
-    return baker.make(
-        'Periodo',
+def recurso_legado(recurso_factory):
+    return recurso_factory.objects.filter(legado=True)
+
+
+@pytest.fixture
+def periodo_anterior(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 8, 31),
@@ -792,9 +815,8 @@ def periodo_anterior():
 
 
 @pytest.fixture
-def periodo(periodo_anterior):
-    return baker.make(
-        'Periodo',
+def periodo(periodo_factory, periodo_anterior):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=date(2019, 9, 1),
         data_fim_realizacao_despesas=date(2019, 11, 30),
@@ -806,9 +828,8 @@ def periodo(periodo_anterior):
 
 
 @pytest.fixture
-def periodo_aberto(periodo_anterior):
-    return baker.make(
-        'Periodo',
+def periodo_aberto(periodo_factory, periodo_anterior):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=date(2019, 9, 1),
         data_fim_realizacao_despesas=None,
@@ -820,9 +841,8 @@ def periodo_aberto(periodo_anterior):
 
 
 @pytest.fixture
-def periodo_2020_1(periodo):
-    return baker.make(
-        'Periodo',
+def periodo_2020_1(periodo_factory, periodo):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=date(2020, 1, 1),
         data_fim_realizacao_despesas=date(2020, 6, 30),
@@ -834,9 +854,8 @@ def periodo_2020_1(periodo):
 
 
 @pytest.fixture
-def periodo_2020_2(periodo_2020_1):
-    return baker.make(
-        'Periodo',
+def periodo_2020_2(periodo_factory, periodo_2020_1):
+    return periodo_factory(
         referencia='2020.2',
         data_inicio_realizacao_despesas=date(2020, 7, 1),
         data_fim_realizacao_despesas=date(2020, 12, 31),
@@ -845,9 +864,8 @@ def periodo_2020_2(periodo_2020_1):
 
 
 @pytest.fixture
-def periodo_2021_1(periodo_2020_2):
-    return baker.make(
-        'Periodo',
+def periodo_2021_1(periodo_factory, periodo_2020_2):
+    return periodo_factory(
         referencia='2021.1',
         data_inicio_realizacao_despesas=date(2021, 1, 1),
         data_fim_realizacao_despesas=date(2021, 6, 30),
@@ -856,9 +874,8 @@ def periodo_2021_1(periodo_2020_2):
 
 
 @pytest.fixture
-def periodo_2021_2(periodo_2021_1):
-    return baker.make(
-        'Periodo',
+def periodo_2021_2(periodo_factory, periodo_2021_1):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 7, 1),
         data_fim_realizacao_despesas=None,
@@ -867,9 +884,8 @@ def periodo_2021_2(periodo_2021_1):
 
 
 @pytest.fixture
-def periodo_2019_1():
-    return baker.make(
-        'Periodo',
+def periodo_2019_1(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 5, 31),
@@ -878,9 +894,8 @@ def periodo_2019_1():
 
 
 @pytest.fixture
-def periodo_2019_2(periodo_2019_1):
-    return baker.make(
-        'Periodo',
+def periodo_2019_2(periodo_factory, periodo_2019_1):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=date(2019, 6, 1),
         data_fim_realizacao_despesas=date(2019, 12, 30),
@@ -892,9 +907,8 @@ def periodo_2019_2(periodo_2019_1):
 
 
 @pytest.fixture
-def periodo_fim_em_2020_06_30():
-    return baker.make(
-        'Periodo',
+def periodo_fim_em_2020_06_30(periodo_factory):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=date(2020, 1, 1),
         data_fim_realizacao_despesas=date(2020, 6, 30),
@@ -906,9 +920,8 @@ def periodo_fim_em_2020_06_30():
 
 
 @pytest.fixture
-def periodo_fim_em_aberto():
-    return baker.make(
-        'Periodo',
+def periodo_fim_em_aberto(periodo_factory):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=date(2020, 1, 1),
         data_fim_realizacao_despesas=None,
@@ -920,9 +933,8 @@ def periodo_fim_em_aberto():
 
 
 @pytest.fixture
-def periodo_futuro():
-    return baker.make(
-        'Periodo',
+def periodo_futuro(periodo_factory):
+    return periodo_factory(
         referencia='2020.3',
         data_inicio_realizacao_despesas=date(2020, 6, 15),
         data_fim_realizacao_despesas=None,
@@ -3146,30 +3158,6 @@ def task_celery_criada_2(periodo_2020_1, associacao):
 
 @pytest.fixture
 def receita_prevista_paa(acao_associacao, paa):
-    """
-    Fixture para criar instancia de teste de 'ReceitaPrevistaPaa' associada à Ação e
-    Associação por meio da instância AcaoAssociacao.
-
-    Para a instância AcaoAssociacao utiliza-se as seguintes fixtures:
-    Ação (com o seguinte baker): baker.make('Acao', nome='PTRF')
-    Associação (com o baker)   : baker.make(
-                                    'Associacao',
-                                    nome='Escola Teste',
-                                    cnpj='52.302.275/0001-83',
-                                    unidade=unidade,
-                                    periodo_inicial=periodo_anterior,
-                                    ccm='0.000.00-0',
-                                    email="ollyverottoboni@gmail.com",
-                                    processo_regularidade='123456'
-                                )
-    Returns:
-        Instance de teste 'ReceitaPrevistaPaa' com os campos preenchidos:
-        - acao_associacao
-        - previsao_valor_custeio
-        - previsao_valor_capital
-        - previsao_valor_livre
-    """
-
     return baker.make(
         'ReceitaPrevistaPaa',
         paa=paa,

@@ -43,9 +43,8 @@ def visao_sme_gestao_usuario():
 
 
 @pytest.fixture
-def periodo_gestao_usuarior():
-    return baker.make(
-        'Periodo',
+def periodo_gestao_usuarior(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 8, 31),

@@ -8,9 +8,8 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def periodo_implantacao_2019_1():
-    return baker.make(
-        'Periodo',
+def periodo_implantacao_2019_1(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 6, 30),
@@ -19,9 +18,8 @@ def periodo_implantacao_2019_1():
 
 
 @pytest.fixture
-def periodo_fechamento_2019_2(periodo_implantacao_2019_1):
-    return baker.make(
-        'Periodo',
+def periodo_fechamento_2019_2(periodo_factory, periodo_implantacao_2019_1):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=date(2019, 7, 1),
         data_fim_realizacao_despesas=date(2019, 12, 31),
@@ -30,9 +28,8 @@ def periodo_fechamento_2019_2(periodo_implantacao_2019_1):
 
 
 @pytest.fixture
-def periodo_fechamento_2020_1(periodo_fechamento_2019_2):
-    return baker.make(
-        'Periodo',
+def periodo_fechamento_2020_1(periodo_factory, periodo_fechamento_2019_2):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=date(2020, 1, 1),
         data_fim_realizacao_despesas=date(2020, 6, 30),
@@ -52,6 +49,7 @@ def fechamento_implantacao_2019_1(periodo_implantacao_2019_1, associacao, conta_
         status=STATUS_IMPLANTACAO,
     )
 
+
 @pytest.fixture
 def prestacao_conta_2019_2(periodo_fechamento_2019_2, associacao):
     return baker.make(
@@ -63,11 +61,15 @@ def prestacao_conta_2019_2(periodo_fechamento_2019_2, associacao):
     )
 
 # DOCUMENTO: INCLUSAO_CREDITO.
+
+
 @pytest.fixture
 def tipo_acerto_documento_inclusao_credito():
     return baker.make(
         'TipoAcertoDocumento', categoria="INCLUSAO_CREDITO"
     )
+
+
 @pytest.fixture
 def solicitacao_acerto_documento_inclusao_credito(
     analise_documento,
@@ -80,11 +82,15 @@ def solicitacao_acerto_documento_inclusao_credito(
     )
 
 # DOCUMENTO: INCLUSAO_GASTO.
+
+
 @pytest.fixture
 def tipo_acerto_documento_inclusao_gasto():
     return baker.make(
         'TipoAcertoDocumento', categoria="INCLUSAO_GASTO"
     )
+
+
 @pytest.fixture
 def solicitacao_acerto_documento_inclusao_gasto(
     analise_documento,
@@ -97,11 +103,15 @@ def solicitacao_acerto_documento_inclusao_gasto(
     )
 
 # DOCUMENTO: EDICAO_INFORMACAO.
+
+
 @pytest.fixture
 def tipo_acerto_documento_edicao_informacao():
     return baker.make(
         'TipoAcertoDocumento', categoria="EDICAO_INFORMACAO"
     )
+
+
 @pytest.fixture
 def solicitacao_acerto_documento_edicao_informacao(
     analise_documento,
@@ -114,11 +124,15 @@ def solicitacao_acerto_documento_edicao_informacao(
     )
 
 # DOCUMENTO: AJUSTES_EXTERNOS. (Não demanda exclusão de documentos e fechamentos)
+
+
 @pytest.fixture
 def tipo_acerto_documento_ajustes_externos():
     return baker.make(
         'TipoAcertoDocumento', categoria="AJUSTES_EXTERNOS"
     )
+
+
 @pytest.fixture
 def solicitacao_acerto_documento_ajustes_externos(
     analise_documento,
@@ -131,11 +145,15 @@ def solicitacao_acerto_documento_ajustes_externos(
     )
 
 # DOCUMENTO: SOLICITACAO_ESCLARECIMENTO. (Não demanda exclusão de documentos e fechamentos)
+
+
 @pytest.fixture
 def tipo_acerto_documento_solicitacao_esclarecimento():
     return baker.make(
         'TipoAcertoDocumento', categoria="SOLICITACAO_ESCLARECIMENTO"
     )
+
+
 @pytest.fixture
 def solicitacao_acerto_documento_solicitacao_esclarecimento(
     analise_documento,
@@ -148,11 +166,15 @@ def solicitacao_acerto_documento_solicitacao_esclarecimento(
     )
 
 # LANCAMENTO: DEVOLUCAO (Não demanda exclusão de documentos e fechamentos)
+
+
 @pytest.fixture
 def tipo_acerto_lancamento_devolucao():
     return baker.make(
         'TipoAcertoLancamento', categoria="DEVOLUCAO"
     )
+
+
 @pytest.fixture
 def solicitacao_acerto_lancamento_devolucao(
     analise_lancamento,
@@ -165,11 +187,15 @@ def solicitacao_acerto_lancamento_devolucao(
     )
 
 # LANCAMENTO: EDICAO_LANCAMENTO
+
+
 @pytest.fixture
 def tipo_acerto_lancamento_edicao_lancamento():
     return baker.make(
         'TipoAcertoLancamento', categoria="EDICAO_LANCAMENTO"
     )
+
+
 @pytest.fixture
 def solicitacao_acerto_lancamento_edicao_lancamento(
     analise_lancamento,
@@ -182,11 +208,15 @@ def solicitacao_acerto_lancamento_edicao_lancamento(
     )
 
 # LANCAMENTO: CONCILIACAO_LANCAMENTO
+
+
 @pytest.fixture
 def tipo_acerto_lancamento_conciliacao_lancamento():
     return baker.make(
         'TipoAcertoLancamento', categoria="CONCILIACAO_LANCAMENTO"
     )
+
+
 @pytest.fixture
 def solicitacao_acerto_lancamento_conciliacao_lancamento(
     analise_lancamento,
@@ -201,11 +231,15 @@ def solicitacao_acerto_lancamento_conciliacao_lancamento(
     )
 
 # LANCAMENTO: DESCONCILIACAO_LANCAMENTO
+
+
 @pytest.fixture
 def tipo_acerto_lancamento_desconciliacao_lancamento():
     return baker.make(
         'TipoAcertoLancamento', categoria="DESCONCILIACAO_LANCAMENTO"
     )
+
+
 @pytest.fixture
 def solicitacao_acerto_lancamento_desconciliacao_lancamento(
     analise_lancamento,
@@ -218,11 +252,15 @@ def solicitacao_acerto_lancamento_desconciliacao_lancamento(
     )
 
 # LANCAMENTO: EXCLUSAO_LANCAMENTO
+
+
 @pytest.fixture
 def tipo_acerto_lancamento_exclusao_lancamento():
     return baker.make(
         'TipoAcertoLancamento', categoria="EXCLUSAO_LANCAMENTO"
     )
+
+
 @pytest.fixture
 def solicitacao_acerto_lancamento_exclusao_lancamento(
     analise_lancamento,
@@ -235,11 +273,15 @@ def solicitacao_acerto_lancamento_exclusao_lancamento(
     )
 
 # LANCAMENTO: AJUSTES_EXTERNOS (Não demanda exclusão de documentos e fechamentos)
+
+
 @pytest.fixture
 def tipo_acerto_lancamento_ajustes_externos():
     return baker.make(
         'TipoAcertoLancamento', categoria="AJUSTES_EXTERNOS"
     )
+
+
 @pytest.fixture
 def solicitacao_acerto_lancamento_ajustes_externos(
     analise_lancamento,
@@ -252,11 +294,15 @@ def solicitacao_acerto_lancamento_ajustes_externos(
     )
 
 # LANCAMENTO: SOLICITACAO_ESCLARECIMENTO (Não demanda exclusão de documentos e fechamentos)
+
+
 @pytest.fixture
 def tipo_acerto_lancamento_solicitacao_esclarecimento():
     return baker.make(
         'TipoAcertoLancamento', categoria="SOLICITACAO_ESCLARECIMENTO"
     )
+
+
 @pytest.fixture
 def solicitacao_acerto_lancamento_solicitacao_esclarecimento(
     analise_lancamento,
@@ -268,12 +314,14 @@ def solicitacao_acerto_lancamento_solicitacao_esclarecimento(
         tipo_acerto=tipo_acerto_lancamento_solicitacao_esclarecimento
     )
 
+
 @pytest.fixture
 def analise_prestacao_conta_2019_2(prestacao_conta_2019_2):
     return baker.make(
         'AnalisePrestacaoConta',
         prestacao_conta=prestacao_conta_2019_2
     )
+
 
 @pytest.fixture
 def prestacao_conta_2019_2_em_analise(periodo_fechamento_2019_2, associacao, analise_prestacao_conta_2019_2):
@@ -288,6 +336,7 @@ def prestacao_conta_2019_2_em_analise(periodo_fechamento_2019_2, associacao, ana
         criado_em=date(2019, 8, 1)
     )
 
+
 @pytest.fixture
 def analise_documento(analise_prestacao_conta_2019_2):
     return baker.make(
@@ -295,6 +344,7 @@ def analise_documento(analise_prestacao_conta_2019_2):
         analise_prestacao_conta=analise_prestacao_conta_2019_2,
         resultado='AJUSTE'
     )
+
 
 @pytest.fixture
 def analise_lancamento(analise_prestacao_conta_2019_2):
@@ -367,6 +417,7 @@ def prestacao_conta_2020_1_devolvida(periodo_fechamento_2020_1, associacao):
         status="DEVOLVIDA"
     )
 
+
 def test_pode_devolver_se_os_acertos_nao_demandam_exclusao_de_documentos_e_fechamentos(
     prestacao_conta_2020_1_em_analise,
     fechamento_2020_1,
@@ -381,6 +432,7 @@ def test_pode_devolver_se_os_acertos_nao_demandam_exclusao_de_documentos_e_fecha
 ):
     assert prestacao_conta_2019_2_em_analise.pode_devolver()
 
+
 def test_nao_pode_devolver_se_tiver_acerto_documento_inclusao_credito(
     prestacao_conta_2020_1_em_analise,
     fechamento_2020_1,
@@ -390,6 +442,7 @@ def test_nao_pode_devolver_se_tiver_acerto_documento_inclusao_credito(
     solicitacao_acerto_documento_inclusao_credito
 ):
     assert not prestacao_conta_2019_2_em_analise.pode_devolver()
+
 
 def test_nao_pode_devolver_se_tiver_acerto_documento_inclusao_gasto(
     prestacao_conta_2020_1_em_analise,
@@ -401,6 +454,7 @@ def test_nao_pode_devolver_se_tiver_acerto_documento_inclusao_gasto(
 ):
     assert not prestacao_conta_2019_2_em_analise.pode_devolver()
 
+
 def test_nao_pode_devolver_se_tiver_acerto_documento_edicao_informacao(
     prestacao_conta_2020_1_em_analise,
     fechamento_2020_1,
@@ -411,6 +465,7 @@ def test_nao_pode_devolver_se_tiver_acerto_documento_edicao_informacao(
 ):
     assert not prestacao_conta_2019_2_em_analise.pode_devolver()
 
+
 def test_nao_pode_devolver_se_tiver_acerto_lancamento_edicao_lancamento(
     prestacao_conta_2020_1_em_analise,
     fechamento_2020_1,
@@ -419,7 +474,8 @@ def test_nao_pode_devolver_se_tiver_acerto_lancamento_edicao_lancamento(
     fechamento_implantacao_2019_1,
     solicitacao_acerto_lancamento_edicao_lancamento
 ):
-    assert not prestacao_conta_2019_2_em_analise.pode_devolver() 
+    assert not prestacao_conta_2019_2_em_analise.pode_devolver()
+
 
 def test_nao_pode_devolver_se_tiver_acerto_lancamento_conciliacao_lancamento(
     prestacao_conta_2020_1_em_analise,
@@ -429,7 +485,8 @@ def test_nao_pode_devolver_se_tiver_acerto_lancamento_conciliacao_lancamento(
     fechamento_implantacao_2019_1,
     solicitacao_acerto_lancamento_conciliacao_lancamento
 ):
-    assert not prestacao_conta_2019_2_em_analise.pode_devolver() 
+    assert not prestacao_conta_2019_2_em_analise.pode_devolver()
+
 
 def test_nao_pode_devolver_se_tiver_acerto_lancamento_desconciliacao_lancamento(
     prestacao_conta_2020_1_em_analise,
@@ -441,6 +498,7 @@ def test_nao_pode_devolver_se_tiver_acerto_lancamento_desconciliacao_lancamento(
 ):
     assert not prestacao_conta_2019_2_em_analise.pode_devolver()
 
+
 def test_nao_pode_devolver_se_tiver_acerto_lancamento_exclusao_lancamento(
     prestacao_conta_2020_1_em_analise,
     fechamento_2020_1,
@@ -449,7 +507,8 @@ def test_nao_pode_devolver_se_tiver_acerto_lancamento_exclusao_lancamento(
     fechamento_implantacao_2019_1,
     solicitacao_acerto_lancamento_exclusao_lancamento
 ):
-    assert not prestacao_conta_2019_2_em_analise.pode_devolver() 
+    assert not prestacao_conta_2019_2_em_analise.pode_devolver()
+
 
 def test_pode_devolver_se_nao_houver_fechamentos_posteriores(
     prestacao_conta_2019_2,

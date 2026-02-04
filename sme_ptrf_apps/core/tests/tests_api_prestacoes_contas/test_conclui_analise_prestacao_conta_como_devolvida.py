@@ -44,9 +44,8 @@ def prestacao_conta_em_analise(periodo, associacao):
 
 
 @pytest.fixture
-def periodo_anterior_01():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_01(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 8, 31),
@@ -54,9 +53,8 @@ def periodo_anterior_01():
 
 
 @pytest.fixture
-def periodo_01(periodo_anterior_01):
-    return baker.make(
-        'Periodo',
+def periodo_01(periodo_factory, periodo_anterior_01):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=date(2019, 9, 1),
         data_fim_realizacao_despesas=date(2019, 11, 30),

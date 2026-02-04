@@ -59,10 +59,11 @@ def jwt_authenticated_client_sme_teste_analise_documento_consolidado_dre(client,
         resp = api_client.post('/api/login',
                                {'login': usuario_permissao_sme.username, 'senha': usuario_permissao_sme.password},
 
-              format='json')
+                               format='json')
         resp_data = resp.json()
         api_client.credentials(HTTP_AUTHORIZATION='JWT {0}'.format(resp_data['token']))
     return api_client
+
 
 @pytest.fixture
 def permissoes_ver_relatorio_consolidado_dre():
@@ -83,8 +84,8 @@ def grupo_ver_relatorio_consolidado_dre(permissoes_ver_relatorio_consolidado_dre
 
 @pytest.fixture
 def usuario_permissao_ver_relatorio_consolidado(
-    unidade,
-    grupo_ver_relatorio_consolidado_dre):
+        unidade,
+        grupo_ver_relatorio_consolidado_dre):
     from django.contrib.auth import get_user_model
     senha = 'Sgp0418'
     login = '7210418'
@@ -247,9 +248,8 @@ def dre_teste_model_comentario_analise_consolidado_dre():
 
 
 @pytest.fixture
-def periodo_anterior_teste_model_comentario_analise_consolidado_dre():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_teste_model_comentario_analise_consolidado_dre(periodo_factory):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 6, 16),
         data_fim_realizacao_despesas=date(2021, 12, 31),
@@ -258,9 +258,9 @@ def periodo_anterior_teste_model_comentario_analise_consolidado_dre():
 
 @pytest.fixture
 def periodo_teste_model_comentario_analise_consolidado_dre(
-    periodo_anterior_teste_model_comentario_analise_consolidado_dre):
-    return baker.make(
-        'Periodo',
+        periodo_factory,
+        periodo_anterior_teste_model_comentario_analise_consolidado_dre):
+    return periodo_factory(
         referencia='2022.1',
         data_inicio_realizacao_despesas=date(2022, 1, 1),
         data_fim_realizacao_despesas=date(2022, 12, 31),
@@ -270,7 +270,7 @@ def periodo_teste_model_comentario_analise_consolidado_dre(
 
 @pytest.fixture
 def consolidado_dre_teste_model_comentario_analise_consolidado_dre(
-    periodo_teste_model_comentario_analise_consolidado_dre, dre_teste_model_comentario_analise_consolidado_dre):
+        periodo_teste_model_comentario_analise_consolidado_dre, dre_teste_model_comentario_analise_consolidado_dre):
     return baker.make(
         'ConsolidadoDRE',
         dre=dre_teste_model_comentario_analise_consolidado_dre,
@@ -294,6 +294,7 @@ def analise_documento_consolidado_dre_teste_download_documentos(
         ata_parecer_tecnico=None,
     )
 
+
 @pytest.fixture
 def dre_teste_analise_documento_consolidado_dre_teste_download_documentos():
     return baker.make(
@@ -304,10 +305,10 @@ def dre_teste_analise_documento_consolidado_dre_teste_download_documentos():
         sigla='A'
     )
 
+
 @pytest.fixture
-def periodo_anterior_teste_api_consolidado_dre():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_teste_api_consolidado_dre(periodo_factory):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 6, 16),
         data_fim_realizacao_despesas=date(2021, 12, 31),
@@ -315,9 +316,8 @@ def periodo_anterior_teste_api_consolidado_dre():
 
 
 @pytest.fixture
-def periodo_teste_api_consolidado_dre(periodo_anterior_teste_api_consolidado_dre):
-    return baker.make(
-        'Periodo',
+def periodo_teste_api_consolidado_dre(periodo_factory, periodo_anterior_teste_api_consolidado_dre):
+    return periodo_factory(
         referencia='2022.1',
         data_inicio_realizacao_despesas=date(2022, 1, 1),
         data_fim_realizacao_despesas=date(2022, 12, 31),
@@ -338,6 +338,7 @@ def consolidado_dre_teste_api_consolidado_dre(periodo_teste_api_consolidado_dre,
 @pytest.fixture
 def tipo_conta_cheque_teste_api(tipo_conta):
     return tipo_conta
+
 
 @pytest.fixture
 def ano_analise_regularidade_2022_teste_api():

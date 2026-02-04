@@ -53,25 +53,26 @@ def arquivo_associacao_encerrada():
             f"""Id_Linha,Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao\n10,999999,99000.98,99000.98,,PTRF Básico""",
             encoding="utf-8"))
 
+
 @pytest.fixture
-def periodo_teste_2():
-    return baker.make(
-        'Periodo',
+def periodo_teste_2(periodo_factory):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=datetime.date(2020, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2020, 6, 30),
     )
 
+
 @pytest.fixture
-def tipo_conta():
-    return baker.make(
-        'TipoConta',
+def tipo_conta(tipo_conta_factory):
+    return tipo_conta_factory(
         nome='Cheque',
         banco_nome='Banco do Inter',
         agencia='67945',
         numero_conta='935556-x',
         numero_cartao='987644164221'
     )
+
 
 @pytest.fixture
 def arquivo_carga(arquivo, tipo_conta, periodo_teste_2):
@@ -85,23 +86,24 @@ def arquivo_carga(arquivo, tipo_conta, periodo_teste_2):
         periodo=periodo_teste_2
     )
 
+
 @pytest.fixture
-def periodo_2024():
-    return baker.make(
-        'Periodo',
+def periodo_2024(periodo_factory):
+    return periodo_factory(
         referencia='2024.1',
         data_inicio_realizacao_despesas=datetime.date(2024, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2024, 8, 31),
     )
 
+
 @pytest.fixture
-def periodo_teste_2():
-    return baker.make(
-        'Periodo',
+def periodo_teste_2(periodo_factory):
+    return periodo_factory(
         referencia='2023.1',
         data_inicio_realizacao_despesas=datetime.date(2023, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2023, 6, 30),
     )
+
 
 @pytest.fixture
 def arquivo_carga_cartao_deve_criar_conta(arquivo_deve_criar_conta, tipo_conta, periodo_teste_2):
@@ -114,15 +116,16 @@ def arquivo_carga_cartao_deve_criar_conta(arquivo_deve_criar_conta, tipo_conta, 
         tipo_de_conta=tipo_conta,
         periodo=periodo_teste_2
     )
-    
+
+
 @pytest.fixture
-def periodo_teste_4():
-    return baker.make(
-        'Periodo',
+def periodo_teste_4(periodo_factory):
+    return periodo_factory(
         referencia='2023.1',
         data_inicio_realizacao_despesas=datetime.date(2020, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2023, 6, 30),
     )
+
 
 @pytest.fixture
 def arquivo_carga_virgula(arquivo, tipo_conta, periodo_teste_4):
@@ -136,14 +139,15 @@ def arquivo_carga_virgula(arquivo, tipo_conta, periodo_teste_4):
         tipo_de_conta=tipo_conta,
     )
 
+
 @pytest.fixture
-def periodo_teste_5():
-    return baker.make(
-        'Periodo',
+def periodo_teste_5(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=datetime.date(2019, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2019, 11, 30),
     )
+
 
 @pytest.fixture
 def arquivo_carga_virgula_processado(arquivo_processado, periodo_teste_5, tipo_conta):
@@ -156,18 +160,19 @@ def arquivo_carga_virgula_processado(arquivo_processado, periodo_teste_5, tipo_c
         periodo=periodo_teste_5,
         tipo_de_conta=tipo_conta,
     )
-    
+
+
 @pytest.fixture
-def periodo_teste_1():
-    return baker.make(
-        'Periodo',
+def periodo_teste_1(periodo_factory):
+    return periodo_factory(
         referencia='2029.1',
         data_inicio_realizacao_despesas=datetime.date(2019, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2019, 11, 30),
     )
 
+
 @pytest.fixture
-def arquivo_carga_virgula_processado_com_associacao_encerrada(arquivo_associacao_encerrada, periodo_teste_1,tipo_conta):
+def arquivo_carga_virgula_processado_com_associacao_encerrada(arquivo_associacao_encerrada, periodo_teste_1, tipo_conta):
     return baker.make(
         'Arquivo',
         identificador='2019_01_01_a_2019_11_30_cheque_2',
@@ -194,15 +199,15 @@ Foram criados 0 repasses. Erro na importação de 1 repasse(s)."""
 
 
 @pytest.fixture
-def acao_role_cultural_teste():
-    return baker.make('Acao', nome='Role Cultural')
+def acao_role_cultural_teste(acao_factory):
+    return acao_factory(nome='Role Cultural')
 
 
 @pytest.fixture
-def acao_ptrf_basico():
-    return baker.make('Acao', nome='PTRF Básico',
-                      aceita_capital=True, aceita_custeio=True,
-                      aceita_livre=True)
+def acao_ptrf_basico(acao_factory):
+    return acao_factory(nome='PTRF Básico',
+                        aceita_capital=True, aceita_custeio=True,
+                        aceita_livre=True)
 
 
 @pytest.fixture
@@ -252,6 +257,7 @@ def test_carga_deve_criar_conta(
     conta_associacao_cartao = ContaAssociacao.objects.get(tipo_conta=tipo_conta, associacao=associacao)
     assert conta_associacao_cartao.data_inicio == datetime.date(2023, 1, 1)
 
+
 def test_carga_deve_gerar_erro_periodo_anterior_a_criacao_da_conta(
     arquivo_carga_cartao_deve_criar_conta,
     associacao,
@@ -277,17 +283,20 @@ def test_carga_em_conta_encerrada_deve_gerar_erro(periodos_de_2019_ate_2023, aca
     acao_associacao_factory.create(associacao=associacao, acao=acao)
     tipo_conta = tipo_conta_factory.create(nome='Cheque')
     conta = conta_associacao_factory.create(associacao=associacao, data_inicio='2018-10-20', tipo_conta=tipo_conta)
-    solicitacao_encerramento_conta_associacao_factory.create(conta_associacao=conta, status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA)
-    periodo = periodo_factory.create(data_inicio_realizacao_despesas=datetime.date(2023, 1, 1), data_fim_realizacao_despesas=datetime.date(2023, 5, 30))
+    solicitacao_encerramento_conta_associacao_factory.create(
+        conta_associacao=conta, status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA)
+    periodo = periodo_factory.create(data_inicio_realizacao_despesas=datetime.date(
+        2023, 1, 1), data_fim_realizacao_despesas=datetime.date(2023, 5, 30))
 
     conteudo_arquivo = SimpleUploadedFile(f'2020_01_01_a_2020_06_30_cheque.csv',
-        bytes(f"""Linha_ID,Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao\n10,666666,200,200,,Acao teste""", encoding="utf-8"))
+                                          bytes(f"""Linha_ID,Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao\n10,666666,200,200,,Acao teste""", encoding="utf-8"))
 
-    arquivo = arquivo_factory.create(identificador='2020_01_01_a_2020_06_30_cheque', conteudo=conteudo_arquivo, tipo_carga=CARGA_REPASSE_PREVISTO, tipo_delimitador=DELIMITADOR_VIRGULA, tipo_de_conta=tipo_conta, periodo=periodo)
+    arquivo = arquivo_factory.create(identificador='2020_01_01_a_2020_06_30_cheque', conteudo=conteudo_arquivo,
+                                     tipo_carga=CARGA_REPASSE_PREVISTO, tipo_delimitador=DELIMITADOR_VIRGULA, tipo_de_conta=tipo_conta, periodo=periodo)
 
     carrega_repasses_previstos(arquivo)
 
-    msg= """Erro na linha 1: A conta possui pedido de encerramento aprovado pela DRE.\nForam criados 0 repasses. Erro na importação de 1 repasse(s)."""
+    msg = """Erro na linha 1: A conta possui pedido de encerramento aprovado pela DRE.\nForam criados 0 repasses. Erro na importação de 1 repasse(s)."""
 
     assert arquivo.log == msg
     assert arquivo.status == ERRO
@@ -316,9 +325,8 @@ def arquivo_carga_associacao_periodo_com_pc(arquivo_associacao_periodo_com_pc, t
 
 
 @pytest.fixture
-def periodo_pc():
-    return baker.make(
-        'Periodo',
+def periodo_pc(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=datetime.date(2019, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2019, 11, 30),

@@ -8,6 +8,7 @@ from auditlog.models import LogEntry
 from auditlog.admin import LogEntryAdmin
 from rangefilter.filters import DateRangeFilter
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
+from sme_ptrf_apps.core.services.acao_associacao_service import checa_se_pode_alterar_recurso
 from sme_ptrf_apps.core.services import associacao_pode_implantar_saldo
 from sme_ptrf_apps.core.tasks.regerar_demonstrativos_financeiros import regerar_demonstrativo_financeiro_async
 from sme_ptrf_apps.core.choices.tipos_unidade import TIPOS_CHOICE
@@ -64,20 +65,68 @@ from .models import (
     ItemResumoPorAcao,
     ItemCredito,
     ItemDespesa,
-    PrestacaoContaReprovadaNaoApresentacao
+    PrestacaoContaReprovadaNaoApresentacao,
+    Recurso,
+    PeriodoInicialAssociacao
 )
 
 from django.db.models import Count
 from django.utils.safestring import mark_safe
+from django.utils.html import format_html
 
 admin.site.register(ParametroFiqueDeOlhoPc)
 admin.site.register(ModeloCarga)
 admin.site.register(MotivoRejeicaoEncerramentoContaAssociacao)
 
 
+def custom_titled_filter(title):
+    class Wrapper(admin.FieldListFilter):
+        def __new__(cls, *args, **kwargs):
+            instance = admin.FieldListFilter.create(*args, **kwargs)
+            instance.title = title
+            return instance
+    return Wrapper
+
+
+@admin.register(Recurso)
+class RecursoAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'nome_exibicao', 'legado', 'ativo', 'cor_preview')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    search_fields = ('uuid', 'nome', 'nome_exibicao',)
+
+    def cor_preview(self, obj):
+        return format_html(
+            '<div style="width:24px; height:24px; background:{}; border:1px solid #ccc;"></div>',
+            obj.cor
+        )
+
+    cor_preview.short_description = "Cor"
+
+
+class AcaoAdminForm(ModelForm):
+    class Meta:
+        model = Acao
+        fields = "__all__"
+
+    def clean(self):
+        obj = self.instance
+
+        if not checa_se_pode_alterar_recurso(obj):
+            self.add_error(
+                "recurso",
+                "Um vínculo entre uma Ação e um Recurso só pode ser desfeito "
+                "se não houver cadastro realizado na ação vinculada ao recurso."
+            )
+
+
 @admin.register(Acao)
 class AcaoAdmin(admin.ModelAdmin):
+    form = AcaoAdminForm
+    list_display = ('nome', 'recurso',)
     readonly_fields = ('uuid', 'id')
+    list_filter = (
+        ('recurso__nome', custom_titled_filter('Recurso')),
+    )
 
     def save_model(self, request, obj, form, change):
         """
@@ -145,6 +194,11 @@ class SolicitacaoEncerramentoContaAssociacaoAdmin(admin.ModelAdmin):
                      'conta_associacao__associacao__unidade__dre__codigo_eol')
 
 
+class PeriodoInicialAssociacaoInline(admin.TabularInline):
+    extra = 0
+    model = PeriodoInicialAssociacao
+
+
 @admin.register(Associacao)
 class AssociacaoAdmin(admin.ModelAdmin):
     def get_nome_escola(self, obj):
@@ -171,6 +225,8 @@ class AssociacaoAdmin(admin.ModelAdmin):
     list_display_links = ('nome', 'cnpj')
 
     actions = ['define_status_nao_finalizado_valores_reprogramados', 'migrar_valores_reprogramados']
+
+    inlines = [PeriodoInicialAssociacaoInline]
 
     def define_status_nao_finalizado_valores_reprogramados(self, request, queryset):
         for associacao in queryset.all():
@@ -260,12 +316,30 @@ class AcaoAssociacaoAdmin(admin.ModelAdmin):
     raw_id_fields = ('associacao',)
 
 
+class PeriodoAdminForm(ModelForm):
+    class Meta:
+        model = Periodo
+        fields = "__all__"
+
+    def clean_recurso(self):
+        from sme_ptrf_apps.core.services.periodo_services import validar_troca_recurso
+        recurso = self.cleaned_data["recurso"]
+
+        validar_troca_recurso(self.instance, recurso)
+
+        return recurso
+
+
 @admin.register(Periodo)
 class PeriodoAdmin(admin.ModelAdmin):
+    form = PeriodoAdminForm
     list_display = (
         'referencia', 'data_inicio_realizacao_despesas', 'data_fim_realizacao_despesas', 'data_prevista_repasse',
-        'data_inicio_prestacao_contas', 'data_fim_prestacao_contas')
+        'data_inicio_prestacao_contas', 'data_fim_prestacao_contas', 'recurso')
     search_fields = ('uuid', 'referencia')
+    list_filter = (
+        ('recurso__nome', custom_titled_filter('Recurso')),
+    )
     readonly_fields = ('uuid', 'id')
 
 
@@ -500,6 +574,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
                 prestacao_conta.save()
 
         self.message_user(request, "PCs setadas ao status anterior da retificação com sucesso!")
+
 
 @admin.register(Ata)
 class AtaAdmin(admin.ModelAdmin):
@@ -823,11 +898,27 @@ class PrevisaoRepasseSmeAdmin(admin.ModelAdmin):
     raw_id_fields = ['periodo', 'associacao', 'conta_associacao',]
 
 
+class TipoContaAdminForm(ModelForm):
+    class Meta:
+        model = TipoConta
+        fields = "__all__"
+
+    def clean_recurso(self):
+        from sme_ptrf_apps.core.services.tipo_conta_service import validar_troca_recurso
+        recurso = self.cleaned_data["recurso"]
+        validar_troca_recurso(self.instance, recurso)
+        return recurso
+
+
 @admin.register(TipoConta)
 class TipoContaAdmin(admin.ModelAdmin):
-    list_display = ['uuid', 'nome']
+    form = TipoContaAdminForm
+    list_display = ['uuid', 'nome', 'recurso']
     search_fields = ['nome']
-    list_filter = ['nome', ]
+    list_filter = (
+        'nome',
+        ('recurso__nome', custom_titled_filter('Recurso')),
+    )    
     readonly_fields = ('id', 'uuid',)
 
 
@@ -845,7 +936,7 @@ class ParametrosAdminForm(ModelForm):
             verbose_name='Tipos de unidades',
             is_stacked=False
         ),
-        label='Tipos de unidades que exigem professor do grêmio na ata do PAA'
+        label='Tipos de unidades que exigem professor do grêmio na ata'
     )
 
     def __init__(self, *args, **kwargs):
@@ -1173,7 +1264,7 @@ class DreArquivoDownloadFilter(admin.SimpleListFilter):
         """Retorna lista de DREs disponíveis"""
         from sme_ptrf_apps.core.models import Unidade
         dres = Unidade.objects.filter(tipo_unidade='DRE').order_by('nome')
-        
+
         return [(dre.codigo_eol, dre.nome) for dre in dres]
 
     def queryset(self, request, queryset):
@@ -1206,14 +1297,14 @@ class ArquivoDownloadAdmin(admin.ModelAdmin):
             elif name:
                 return name
         return '-'
-    
+
     get_nome_usuario.short_description = 'Usuário'
     get_nome_usuario.admin_order_field = 'usuario__username'
 
     def get_dre_nome(self, obj):
         """Retorna o nome da DRE"""
         return obj.dre.nome if obj.dre else '-'
-    
+
     get_dre_nome.short_description = 'DRE'
     get_dre_nome.admin_order_field = 'dre__nome'
 

@@ -42,9 +42,8 @@ def associacao_teste_ata(unidade, periodo_anterior):
 
 
 @pytest.fixture
-def periodo_2022_1_teste_ata(periodo):
-    return baker.make(
-        'Periodo',
+def periodo_2022_1_teste_ata(periodo_factory, periodo):
+    return periodo_factory(
         referencia='2022.1',
         data_inicio_realizacao_despesas=date(2022, 1, 1),
         data_fim_realizacao_despesas=date(2022, 12, 31),

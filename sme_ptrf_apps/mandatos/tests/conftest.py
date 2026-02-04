@@ -124,9 +124,8 @@ def unidade_teste_solicitacao_de_migracao_02(dre_teste_solicitacao_de_migracao):
 
 
 @pytest.fixture
-def periodo_anterior_teste_solicitacao_de_migracao():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_teste_solicitacao_de_migracao(periodo_factory):
+    return periodo_factory(
         referencia='2023.1',
         data_inicio_realizacao_despesas=date(2023, 1, 1),
         data_fim_realizacao_despesas=date(2023, 8, 31),
@@ -618,7 +617,7 @@ def composicao_01_testes_service_data_saida_do_cargo(mandato_2023_a_2025_testes_
 
 @pytest.fixture
 def composicao_02_testes_service_data_saida_do_cargo_nao_deve_criar_nova_composicao(
-    mandato_2023_a_2025_testes_service_data_saida_do_cargo, associacao):
+        mandato_2023_a_2025_testes_service_data_saida_do_cargo, associacao):
     return baker.make(
         'Composicao',
         associacao=associacao,
@@ -630,7 +629,7 @@ def composicao_02_testes_service_data_saida_do_cargo_nao_deve_criar_nova_composi
 
 @pytest.fixture
 def composicao_03_testes_service_data_saida_do_cargo_nao_deve_criar_nova_composicao(
-    mandato_2023_a_2025_testes_service_data_saida_do_cargo, associacao):
+        mandato_2023_a_2025_testes_service_data_saida_do_cargo, associacao):
     return baker.make(
         'Composicao',
         associacao=associacao,

@@ -21,10 +21,10 @@ def usuario_dre_teste_falha_geracao_pc(
     user.save()
     return user
 
+
 @pytest.fixture
-def periodo_anterior_teste_falha_geracao_pc():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_teste_falha_geracao_pc(periodo_factory):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 6, 16),
         data_fim_realizacao_despesas=date(2021, 12, 31),
@@ -32,9 +32,8 @@ def periodo_anterior_teste_falha_geracao_pc():
 
 
 @pytest.fixture
-def periodo_teste_falha_geracao_pc(periodo_anterior_teste_falha_geracao_pc):
-    return baker.make(
-        'Periodo',
+def periodo_teste_falha_geracao_pc(periodo_factory, periodo_anterior_teste_falha_geracao_pc):
+    return periodo_factory(
         referencia='2022.1',
         data_inicio_realizacao_despesas=date(2022, 1, 1),
         data_fim_realizacao_despesas=date(2022, 12, 31),

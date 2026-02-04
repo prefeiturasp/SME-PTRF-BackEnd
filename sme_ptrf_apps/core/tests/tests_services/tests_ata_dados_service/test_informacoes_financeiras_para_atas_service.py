@@ -68,10 +68,10 @@ def test_info_financeira_estrutura_resultado(
                     }
                 ],
                 'conta_associacao': {
-                    'agencia': '',
-                    'banco_nome': '',
+                    'agencia': f'{ata_conta_associacao_cartao.agencia}',
+                    'banco_nome': f'{ata_conta_associacao_cartao.banco_nome}',
                     'nome': 'Cartão',
-                    'numero_conta': '',
+                    'numero_conta': f'{ata_conta_associacao_cartao.numero_conta}',
                     'uuid': f'{ata_conta_associacao_cartao.uuid}'
                 },
                 'totais': {

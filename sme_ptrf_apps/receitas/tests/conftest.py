@@ -35,7 +35,7 @@ def tipo_receita_devolucao(tipo_conta):
 
 @pytest.fixture
 def receita_data_de_encerramento(associacao_com_data_de_encerramento, conta_associacao, acao_associacao, tipo_receita, prestacao_conta_iniciada,
-            detalhe_tipo_receita, periodo_2020_1, despesa_saida_recurso):
+                                 detalhe_tipo_receita, periodo_2020_1, despesa_saida_recurso):
     return baker.make(
         'Receita',
         associacao=associacao_com_data_de_encerramento,
@@ -611,9 +611,8 @@ def tipo_receita_e_repasse():
 
 
 @pytest.fixture
-def periodo_anterior_inativar_receita():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_inativar_receita(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 8, 31),
@@ -621,9 +620,8 @@ def periodo_anterior_inativar_receita():
 
 
 @pytest.fixture
-def periodo_inativar_receita(periodo_anterior_inativar_receita):
-    return baker.make(
-        'Periodo',
+def periodo_inativar_receita(periodo_factory, periodo_anterior_inativar_receita):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=date(2019, 9, 1),
         data_fim_realizacao_despesas=date(2019, 11, 30),
@@ -787,4 +785,3 @@ def receita_deve_inativar_estorno(
         rateio_estornado=rateio_saida_recurso,
         periodo_conciliacao=periodo_inativar_receita,
     )
-

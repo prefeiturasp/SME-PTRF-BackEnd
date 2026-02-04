@@ -29,3 +29,4 @@ from .flag_factory import *
 from .ata_factory import *
 from .analise_conta_prestacao_conta_factory import *
 from .pdf_factory import *
+from .recurso_factory import *

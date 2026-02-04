@@ -30,6 +30,7 @@ def conta_associacao_cartao(associacao, tipo_conta_cartao):
         data_inicio=date(2019, 9, 1)
     )
 
+
 @pytest.fixture
 def conta_outra_associacao(outra_associacao, tipo_conta_cartao):
     return baker.make(
@@ -38,6 +39,7 @@ def conta_outra_associacao(outra_associacao, tipo_conta_cartao):
         tipo_conta=tipo_conta_cartao,
         data_inicio=date(2019, 9, 1)
     )
+
 
 @pytest.fixture
 def solicitacao_encerramento_conta_outra_associacao(conta_outra_associacao, periodo_2020_1):
@@ -48,6 +50,7 @@ def solicitacao_encerramento_conta_outra_associacao(conta_outra_associacao, peri
         status='APROVADA'
     )
 
+
 @pytest.fixture
 def solicitacao_encerramento_conta_outra_associacao_periodo_anterior(conta_outra_associacao, periodo_anterior):
     return baker.make(
@@ -57,6 +60,7 @@ def solicitacao_encerramento_conta_outra_associacao_periodo_anterior(conta_outra
         status='APROVADA'
     )
 
+
 @pytest.fixture
 def solicitacao_encerramento_conta_outra_associacao_periodo_anterior_status_pendente(conta_outra_associacao, periodo):
     return baker.make(
@@ -65,6 +69,7 @@ def solicitacao_encerramento_conta_outra_associacao_periodo_anterior_status_pend
         data_de_encerramento_na_agencia=periodo.data_inicio_realizacao_despesas,
         status='PENDENTE'
     )
+
 
 @pytest.fixture
 def prestacao_conta(periodo, associacao):
@@ -77,6 +82,7 @@ def prestacao_conta(periodo, associacao):
         status='APROVADA',
     )
 
+
 @pytest.fixture
 def outra_prestacao_conta(periodo, outra_associacao):
     return baker.make(
@@ -87,6 +93,7 @@ def outra_prestacao_conta(periodo, outra_associacao):
         data_ultima_analise=date(2020, 10, 1),
         status='APROVADA',
     )
+
 
 @pytest.fixture
 def fechamento_conta_cartao(periodo, associacao, conta_associacao_cartao, acao_associacao, prestacao_conta):
@@ -254,9 +261,8 @@ def consolidado_dre(
 
 
 @pytest.fixture
-def periodo_anterior_consolidado_dre():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_consolidado_dre(periodo_factory):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 6, 16),
         data_fim_realizacao_despesas=date(2021, 12, 31),
@@ -264,9 +270,8 @@ def periodo_anterior_consolidado_dre():
 
 
 @pytest.fixture
-def periodo_consolidado_dre(periodo_anterior_consolidado_dre):
-    return baker.make(
-        'Periodo',
+def periodo_consolidado_dre(periodo_factory, periodo_anterior_consolidado_dre):
+    return periodo_factory(
         referencia='2022.1',
         data_inicio_realizacao_despesas=date(2022, 1, 1),
         data_fim_realizacao_despesas=date(2022, 12, 31),
@@ -760,7 +765,7 @@ def test_api_get_info_execucao_financeira_relatorio_tipos_com_contas_criadas_no_
         content_type='application/json')
     result = json.loads(response.content)
 
-    result_uuids =  []
+    result_uuids = []
     for item in result['por_tipo_de_conta']:
         result_uuids.append(item['tipo_conta_uuid'])
 
@@ -768,6 +773,7 @@ def test_api_get_info_execucao_financeira_relatorio_tipos_com_contas_criadas_no_
 
     assert response.status_code == status.HTTP_200_OK
     assert result_uuids == resultado_esperado
+
 
 def test_api_get_info_execucao_financeira_relatorio_tipos_de_conta_das_associacoes_do_consolidado(
     jwt_authenticated_client_relatorio_consolidado,
@@ -784,7 +790,7 @@ def test_api_get_info_execucao_financeira_relatorio_tipos_de_conta_das_associaco
         content_type='application/json')
     result = json.loads(response.content)
 
-    result_uuids =  []
+    result_uuids = []
     for item in result['por_tipo_de_conta']:
         result_uuids.append(item['tipo_conta_uuid'])
 
@@ -792,6 +798,7 @@ def test_api_get_info_execucao_financeira_relatorio_tipos_de_conta_das_associaco
 
     assert response.status_code == status.HTTP_200_OK
     assert result_uuids == resultado_esperado
+
 
 def test_api_get_info_execucao_financeira_relatorio_tipos_com_contas_encerradas_no_periodo_posterior(
     jwt_authenticated_client_relatorio_consolidado,
@@ -810,7 +817,7 @@ def test_api_get_info_execucao_financeira_relatorio_tipos_com_contas_encerradas_
         content_type='application/json')
     result = json.loads(response.content)
 
-    result_uuids =  []
+    result_uuids = []
     for item in result['por_tipo_de_conta']:
         result_uuids.append(item['tipo_conta_uuid'])
 
@@ -818,6 +825,7 @@ def test_api_get_info_execucao_financeira_relatorio_tipos_com_contas_encerradas_
 
     assert response.status_code == status.HTTP_200_OK
     assert result_uuids == resultado_esperado
+
 
 def test_api_get_info_execucao_financeira_relatorio_tipos_com_contas_encerradas_no_periodo_anterior(
     jwt_authenticated_client_relatorio_consolidado,
@@ -836,7 +844,7 @@ def test_api_get_info_execucao_financeira_relatorio_tipos_com_contas_encerradas_
         content_type='application/json')
     result = json.loads(response.content)
 
-    result_uuids =  []
+    result_uuids = []
     for item in result['por_tipo_de_conta']:
         result_uuids.append(item['tipo_conta_uuid'])
 
@@ -844,6 +852,7 @@ def test_api_get_info_execucao_financeira_relatorio_tipos_com_contas_encerradas_
 
     assert response.status_code == status.HTTP_200_OK
     assert result_uuids == resultado_esperado
+
 
 def test_api_get_info_execucao_financeira_relatorio_tipos_com_contas_encerradas_no_periodo_anterior_status_pendente(
     jwt_authenticated_client_relatorio_consolidado,
@@ -862,7 +871,7 @@ def test_api_get_info_execucao_financeira_relatorio_tipos_com_contas_encerradas_
         content_type='application/json')
     result = json.loads(response.content)
 
-    result_uuids =  []
+    result_uuids = []
     for item in result['por_tipo_de_conta']:
         result_uuids.append(item['tipo_conta_uuid'])
 
@@ -870,6 +879,7 @@ def test_api_get_info_execucao_financeira_relatorio_tipos_com_contas_encerradas_
 
     assert response.status_code == status.HTTP_200_OK
     assert result_uuids == resultado_esperado
+
 
 def test_api_get_info_execucao_financeira_relatorio_sem_passa_dre(jwt_authenticated_client_relatorio_consolidado, dre,
                                                                   periodo, tipo_conta):

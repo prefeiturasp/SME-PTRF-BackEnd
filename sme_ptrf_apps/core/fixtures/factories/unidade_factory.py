@@ -17,7 +17,7 @@ class DreFactory(DjangoModelFactory):
     nome = Sequence(lambda n: f"DIRETORIA REGIONAL DE EDUCACAO {fake.unique.name().upper()}")
     tipo_unidade = "DRE"
     codigo_eol = Sequence(lambda n: str(fake.unique.random_int(min=100000, max=999999)))
-    sigla = Sequence(lambda n: fake.unique.lexify(text="??", letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
+    sigla = Sequence(lambda n: f"S{n}")
     dre_cnpj = Sequence(lambda n: fake.unique.cnpj())
     dre_diretor_regional_rf = Sequence(lambda n: str(fake.unique.random_int(min=1000000, max=9999999)))
     dre_diretor_regional_nome = Sequence(lambda n: fake.unique.name().upper())
