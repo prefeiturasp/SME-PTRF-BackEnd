@@ -11,13 +11,14 @@ from sme_ptrf_apps.core.services.associacoes_service import ValidaDataDeEncerram
 
 pytestmark = pytest.mark.django_db
 
+
 @pytest.fixture
-def periodo_anterior_sem_fim_realizacao_despesas():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_sem_fim_realizacao_despesas(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
     )
+
 
 @pytest.fixture
 def associacao_02(unidade, periodo_anterior_sem_fim_realizacao_despesas):
@@ -91,7 +92,8 @@ def test_valida_data_de_encerramento_deve_gerar_erro_data_menor_que_data_periodo
     data_de_encerramento = datetime.datetime.strptime(data_de_encerramento, '%Y-%m-%d')
     data_de_encerramento = data_de_encerramento.date()
 
-    response = ValidaDataDeEncerramento(associacao=associacao, data_de_encerramento=data_de_encerramento, periodo_inicial=periodo_anterior).response
+    response = ValidaDataDeEncerramento(
+        associacao=associacao, data_de_encerramento=data_de_encerramento, periodo_inicial=periodo_anterior).response
 
     esperado = {
         "erro": "data_invalida",
@@ -113,7 +115,8 @@ def test_valida_data_de_encerramento_deve_passar_data_maior_que_data_periodo_ini
     data_de_encerramento = datetime.datetime.strptime(data_de_encerramento, '%Y-%m-%d')
     data_de_encerramento = data_de_encerramento.date()
 
-    response = ValidaDataDeEncerramento(associacao=associacao, data_de_encerramento=data_de_encerramento, periodo_inicial=periodo_anterior).response
+    response = ValidaDataDeEncerramento(
+        associacao=associacao, data_de_encerramento=data_de_encerramento, periodo_inicial=periodo_anterior).response
 
     esperado = {
         'erro': 'data_valida',

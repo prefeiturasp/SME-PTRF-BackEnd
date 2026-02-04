@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from requests import ConnectTimeout, ReadTimeout
 from rest_framework import serializers, status
+from django.db import transaction
 from rest_framework.fields import SerializerMethodField
 from rest_framework.response import Response
 
@@ -120,6 +121,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
         model = User
         fields = ["username", "email", "name", "e_servidor", "visao", "groups", "unidade", "visoes", "id"]
 
+    @transaction.atomic
     def create(self, validated_data):
         dados_usuario = {
             "login": validated_data["username"],
@@ -142,12 +144,16 @@ class UserCreateSerializer(serializers.ModelSerializer):
             logger.info(f'Usuário {validated_data["username"]} criado/atualizado no CoreSSO com sucesso.')
 
         except Exception as e:
-            logger.error(f'Erro ao tentar cria/atualizar usuário {validated_data["username"]} no CoreSSO: {str(e)}')
+            erro_lancado = f'Erro ao tentar cria/atualizar usuário {validated_data["username"]} no CoreSSO: {str(e)}'
+            logger.error(erro_lancado)
+
+            raise serializers.ValidationError(erro_lancado)
 
         user = User.criar_usuario(dados=validated_data)
 
         return user
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         dados_usuario = {
             "login": validated_data["username"],
@@ -170,7 +176,10 @@ class UserCreateSerializer(serializers.ModelSerializer):
             logger.info(f'Usuário {validated_data["username"]} criado/atualizado no CoreSSO com sucesso.')
 
         except Exception as e:
-            logger.error(f'Erro ao tentar cria/atualizar usuário {validated_data["username"]} no CoreSSO: {str(e)}')
+            erro_lancado = f'Erro ao tentar cria/atualizar usuário {validated_data["username"]} no CoreSSO: {str(e)}'
+            logger.error(erro_lancado)
+
+            raise serializers.ValidationError(erro_lancado)
 
         visao = validated_data.pop('visao') if 'visao' in validated_data else None
         if visao:

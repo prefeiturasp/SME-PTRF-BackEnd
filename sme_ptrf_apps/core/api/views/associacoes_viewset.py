@@ -157,8 +157,8 @@ class AssociacoesViewSet(ModelViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            periodo = Periodo.objects.filter(uuid=periodo_uuid).get()
-        except (ValidationError, Exception):
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
             erro = {
                 'erro': 'parametro_invalido',
                 'mensagem': f"Não foi encontrado o objeto periodo para o uuid {periodo_uuid}"

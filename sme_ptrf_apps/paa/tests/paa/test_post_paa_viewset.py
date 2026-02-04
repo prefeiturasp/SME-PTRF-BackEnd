@@ -53,6 +53,22 @@ def test_ativar_atualizacao_saldo(
     assert paa.saldo_congelado_em is None
 
 
+def test_ativar_atualizacao_saldo_bloqueia_com_documento_final_concluido(
+        jwt_authenticated_client_sme, periodo_paa_2025_1, flag_paa, paa_factory, acao_associacao_factory):
+    """Testa que não é possível descongelar saldos quando documento final está concluído"""
+    from sme_ptrf_apps.paa.fixtures.factories.documento_paa_factory import DocumentoPaaFactory
+    
+    paa = paa_factory.create(periodo_paa=periodo_paa_2025_1)
+    DocumentoPaaFactory.create(paa=paa, versao="FINAL", status_geracao="CONCLUIDO")
+    
+    acao_associacao_factory.create(associacao=paa.associacao)
+    
+    response = jwt_authenticated_client_sme.post(f"/api/paa/{paa.uuid}/ativar-atualizacao-saldo/")
+    
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()['mensagem'] == 'Não é possível descongelar saldos após a geração do documento final do PAA.'
+
+
 def test_action_importar_prioridades_paa_atual_nao_encontrado(
         jwt_authenticated_client_sme, flag_paa):
 

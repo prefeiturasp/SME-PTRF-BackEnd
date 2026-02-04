@@ -10,8 +10,8 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def acao_e_recurso_proprio():
-    return baker.make('Acao', nome='PTRF-Recurso-Proprio', e_recursos_proprios=True)
+def acao_e_recurso_proprio(acao_factory):
+    return acao_factory(nome='PTRF-Recurso-Proprio', e_recursos_proprios=True)
 
 
 @pytest.fixture
@@ -43,8 +43,8 @@ def payload_despesa_recurso_proprio(
         "numero_documento": "634767",
         "tipo_transacao": tipo_transacao.id,
         "data_transacao": "2020-03-10",
-        "valor_total": 11000.50, # "valor_realizado"
-        "valor_original": 11000.50, # "valor documento"
+        "valor_total": 11000.50,  # "valor_realizado"
+        "valor_original": 11000.50,  # "valor documento"
         "motivos_pagamento_antecipado": [],
         "outros_motivos_pagamento_antecipado": "",
         "rateios": [
@@ -65,19 +65,20 @@ def payload_despesa_recurso_proprio(
 
 
 def test_cadastrar_despesa_recurso_proprio(jwt_authenticated_client_d,
-    tipo_aplicacao_recurso,
-    tipo_custeio,
-    tipo_documento,
-    tipo_transacao,
-    acao,
-    acao_associacao_e_recurso_proprio,
-    associacao,
-    tipo_conta,
-    conta_associacao,
-    payload_despesa_recurso_proprio):
+                                           tipo_aplicacao_recurso,
+                                           tipo_custeio,
+                                           tipo_documento,
+                                           tipo_transacao,
+                                           acao,
+                                           acao_associacao_e_recurso_proprio,
+                                           associacao,
+                                           tipo_conta,
+                                           conta_associacao,
+                                           payload_despesa_recurso_proprio):
     from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
 
-    response = jwt_authenticated_client_d.post('/api/despesas/', data=json.dumps(payload_despesa_recurso_proprio), content_type='application/json')
+    response = jwt_authenticated_client_d.post(
+        '/api/despesas/', data=json.dumps(payload_despesa_recurso_proprio), content_type='application/json')
 
     assert response.status_code == status.HTTP_201_CREATED
 

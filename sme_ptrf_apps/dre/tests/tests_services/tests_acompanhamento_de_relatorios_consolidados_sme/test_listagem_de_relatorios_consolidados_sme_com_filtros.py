@@ -75,9 +75,8 @@ def associacao_teste_listagem_05(periodo_anterior_teste_listagem_com_filtros_01)
 
 
 @pytest.fixture
-def periodo_anterior_teste_listagem_com_filtros_01():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_teste_listagem_com_filtros_01(periodo_factory):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 6, 16),
         data_fim_realizacao_despesas=date(2021, 12, 31),
@@ -85,9 +84,8 @@ def periodo_anterior_teste_listagem_com_filtros_01():
 
 
 @pytest.fixture
-def periodo_teste_listagem_com_filtros_01(periodo_anterior_teste_listagem_com_filtros_01):
-    return baker.make(
-        'Periodo',
+def periodo_teste_listagem_com_filtros_01(periodo_factory, periodo_anterior_teste_listagem_com_filtros_01):
+    return periodo_factory(
         referencia='2022.1',
         data_inicio_realizacao_despesas=date(2022, 1, 1),
         data_fim_realizacao_despesas=date(2022, 12, 31),

@@ -22,6 +22,12 @@ class Acao(ModeloIdNome):
     exibir_paa = models.BooleanField(
         'Exibir no PAA?', default=True,
         help_text='Considera a Ação para o PAA (Receitas previstas PAA, Prioridades do PAA)')
+    recurso = models.ForeignKey(
+        "core.Recurso",
+        verbose_name="Recurso",
+        on_delete=models.PROTECT,
+        null=False
+    )
 
     def tem_receitas_previstas_paa_em_elaboracao(self):
         return self.receitas_previstas_paa_em_elaboracao_acao_ptrf().exists()

@@ -36,6 +36,7 @@ def unidade_teste_api_consolidado_dre_01(dre_teste_api_consolidado_dre):
         dre_designacao_ano='2022',
     )
 
+
 @pytest.fixture
 def unidade_teste_api_consolidado_dre_02(dre_teste_api_consolidado_dre):
     return baker.make(
@@ -62,9 +63,10 @@ def unidade_teste_api_consolidado_dre_02(dre_teste_api_consolidado_dre):
         dre_designacao_ano='2022',
     )
 
+
 @pytest.fixture
 def associacao_teste_api_consolidado_dre_01(unidade_teste_api_consolidado_dre_01, periodo_teste_api_consolidado_dre, periodo_anterior_teste_api_consolidado_dre):
-    
+
     return baker.make(
         'Associacao',
         nome='Escola Teste',
@@ -75,6 +77,7 @@ def associacao_teste_api_consolidado_dre_01(unidade_teste_api_consolidado_dre_01
         email="ollyverottoboni@gmail.com",
         processo_regularidade='123456'
     )
+
 
 @pytest.fixture
 def associacao_teste_api_consolidado_dre_02(unidade_teste_api_consolidado_dre_02, periodo_teste_api_consolidado_dre):
@@ -89,6 +92,7 @@ def associacao_teste_api_consolidado_dre_02(unidade_teste_api_consolidado_dre_02
         processo_regularidade='123456'
     )
 
+
 @pytest.fixture
 def dre_teste_api_consolidado_dre():
     return baker.make(
@@ -99,10 +103,10 @@ def dre_teste_api_consolidado_dre():
         sigla='A'
     )
 
+
 @pytest.fixture
-def periodo_anterior_teste_api_consolidado_dre():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_teste_api_consolidado_dre(periodo_factory):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 6, 16),
         data_fim_realizacao_despesas=date(2021, 12, 31),
@@ -110,9 +114,8 @@ def periodo_anterior_teste_api_consolidado_dre():
 
 
 @pytest.fixture
-def periodo_teste_api_consolidado_dre(periodo_anterior_teste_api_consolidado_dre):
-    return baker.make(
-        'Periodo',
+def periodo_teste_api_consolidado_dre(periodo_factory, periodo_anterior_teste_api_consolidado_dre):
+    return periodo_factory(
         referencia='2022.1',
         data_inicio_realizacao_despesas=date(2022, 1, 1),
         data_fim_realizacao_despesas=date(2022, 12, 31),
@@ -277,6 +280,7 @@ def comentario_analise_consolidado_dre_02(consolidado_dre_teste_api_consolidado_
 def tipo_conta_cheque_teste_api(tipo_conta):
     return tipo_conta
 
+
 @pytest.fixture
 def ano_analise_regularidade_2022_teste_api():
     return baker.make('AnoAnaliseRegularidade', ano=2022)
@@ -336,6 +340,7 @@ def ata_parecer_tecnico_teste_api(
         sequencia_de_publicacao=1
     )
 
+
 @pytest.fixture
 @freeze_time('2022-06-25 13:59:00')
 def ata_parecer_tecnico_teste_api_preenchida(
@@ -359,6 +364,7 @@ def ata_parecer_tecnico_teste_api_preenchida(
         sequencia_de_publicacao=1
     )
 
+
 @pytest.fixture
 def visao_dre_teste_api():
     return baker.make('Visao', nome='DRE')
@@ -378,6 +384,7 @@ def usuario_dre_teste_api(
     user.visoes.add(visao_dre_teste_api)
     user.save()
     return user
+
 
 @pytest.fixture
 @freeze_time('2022-06-25 13:59:00')

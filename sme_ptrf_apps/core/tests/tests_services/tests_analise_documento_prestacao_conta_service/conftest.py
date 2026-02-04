@@ -101,6 +101,7 @@ def tipo_documento_prestacao_conta_demonstrativo_financeiro_edicao_informacao_te
         nome='Tipo Documento Demonstrativo Financeiro'
     )
 
+
 @pytest.fixture
 def tipo_acerto_documento_edicao_informacao_teste_service(
     tipo_documento_prestacao_conta_demonstrativo_financeiro_edicao_informacao_teste_service
@@ -179,6 +180,7 @@ def observacao_conciliacao_teste_service(periodo_teste_service, conta_associacao
         saldo_extrato=1000
     )
 
+
 @pytest.fixture
 def observacao_conciliacao_teste_service_02(periodo_teste_service, conta_associacao_teste_service):
     return baker.make(
@@ -194,9 +196,8 @@ def observacao_conciliacao_teste_service_02(periodo_teste_service, conta_associa
 
 
 @pytest.fixture
-def periodo_anterior_teste_service():
-    return baker.make(
-        'Periodo',
+def periodo_anterior_teste_service(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 8, 31),
@@ -204,9 +205,8 @@ def periodo_anterior_teste_service():
 
 
 @pytest.fixture
-def periodo_teste_service(periodo_anterior_teste_service):
-    return baker.make(
-        'Periodo',
+def periodo_teste_service(periodo_factory, periodo_anterior_teste_service):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=date(2019, 9, 1),
         data_fim_realizacao_despesas=date(2019, 11, 30),
@@ -218,9 +218,8 @@ def periodo_teste_service(periodo_anterior_teste_service):
 
 
 @pytest.fixture
-def tipo_conta_teste_service():
-    return baker.make(
-        'TipoConta',
+def tipo_conta_teste_service(tipo_conta_factory):
+    return tipo_conta_factory(
         nome='Cheque',
         banco_nome='Banco do Inter',
         agencia='67945',

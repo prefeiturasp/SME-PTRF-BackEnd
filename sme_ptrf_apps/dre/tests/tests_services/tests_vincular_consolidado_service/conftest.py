@@ -10,9 +10,8 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def vcs_periodo_2022_1():
-    return baker.make(
-        'Periodo',
+def vcs_periodo_2022_1(periodo_factory):
+    return periodo_factory(
         referencia='2022.1',
         data_inicio_realizacao_despesas=date(2022, 1, 1),
         data_fim_realizacao_despesas=date(2022, 12, 31),

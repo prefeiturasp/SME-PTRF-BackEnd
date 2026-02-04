@@ -9,9 +9,8 @@ from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (APLICACAO_C
 
 
 @pytest.fixture
-def ata_periodo_2019_2():
-    return baker.make(
-        'Periodo',
+def ata_periodo_2019_2(periodo_factory):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=datetime.date(2019, 7, 1),
         data_fim_realizacao_despesas=datetime.date(2019, 12, 31),
@@ -20,9 +19,8 @@ def ata_periodo_2019_2():
 
 
 @pytest.fixture
-def ata_periodo_2020_1(ata_periodo_2019_2):
-    return baker.make(
-        'Periodo',
+def ata_periodo_2020_1(periodo_factory, ata_periodo_2019_2):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=datetime.date(2020, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2020, 6, 30),
@@ -31,9 +29,8 @@ def ata_periodo_2020_1(ata_periodo_2019_2):
 
 
 @pytest.fixture
-def ata_periodo_2020_2(ata_periodo_2020_1):
-    return baker.make(
-        'Periodo',
+def ata_periodo_2020_2(periodo_factory, ata_periodo_2020_1):
+    return periodo_factory(
         referencia='2020.2',
         data_inicio_realizacao_despesas=datetime.date(2020, 7, 1),
         data_fim_realizacao_despesas=datetime.date(2020, 12, 31),
@@ -42,9 +39,8 @@ def ata_periodo_2020_2(ata_periodo_2020_1):
 
 
 @pytest.fixture
-def ata_periodo_2021_1(ata_periodo_2020_2):
-    return baker.make(
-        'Periodo',
+def ata_periodo_2021_1(periodo_factory, ata_periodo_2020_2):
+    return periodo_factory(
         referencia='2021.1',
         data_inicio_realizacao_despesas=datetime.date(2021, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2021, 6, 30),
@@ -53,13 +49,13 @@ def ata_periodo_2021_1(ata_periodo_2020_2):
 
 
 @pytest.fixture
-def ata_tipo_conta_cartao():
-    return baker.make('TipoConta', nome='Cartão')
+def ata_tipo_conta_cartao(tipo_conta_factory):
+    return tipo_conta_factory(nome='Cartão')
 
 
 @pytest.fixture
-def ata_acao_ptrf():
-    return baker.make('Acao', nome='PTRF')
+def ata_acao_ptrf(acao_factory):
+    return acao_factory(nome='PTRF')
 
 
 @pytest.fixture
@@ -295,6 +291,7 @@ def ata_rateio_despesa_2019_2_cartao_ptrf_custeio_nao_conferido(
         conferido=False,
     )
 
+
 @pytest.fixture
 def ata_rateio_despesa_2019_2_cartao_ptrf_custeio_conferido_em_2020_2(
     associacao,
@@ -347,6 +344,7 @@ def ata_rateio_despesa_2019_2_cartao_ptrf_custeio_conferido_em_2021_1(
         conferido=True,
         periodo_conciliacao=ata_periodo_2021_1,
     )
+
 
 @pytest.fixture
 def ata_prestacao_conta_2020_1(ata_periodo_2020_1, associacao):

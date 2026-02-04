@@ -6,6 +6,7 @@ from rest_framework import status
 
 pytestmark = pytest.mark.django_db
 
+
 @freeze_time('2020-07-10 10:20:00')
 def test_status_cadastro_somente_pendencia_cadastro(
     jwt_authenticated_client_a,
@@ -26,7 +27,7 @@ def test_status_cadastro_somente_pendencia_cadastro(
     membro_associacao_cadastro_incompleto_014,
 ):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao_cadastro_incompleto.uuid}/status-cadastro/',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     status_cadastro_esperado = {
@@ -38,6 +39,7 @@ def test_status_cadastro_somente_pendencia_cadastro(
 
     assert response.status_code == status.HTTP_200_OK
     assert result == status_cadastro_esperado
+
 
 @freeze_time('2020-07-10 10:20:00')
 def test_status_cadastro_somente_pendencia_contas(
@@ -59,7 +61,7 @@ def test_status_cadastro_somente_pendencia_contas(
     conta_associacao_incompleta_002,
 ):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{conta_associacao_incompleta_002.associacao.uuid}/status-cadastro/',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     status_cadastro_esperado = {
@@ -72,13 +74,14 @@ def test_status_cadastro_somente_pendencia_contas(
     assert response.status_code == status.HTTP_200_OK
     assert result == status_cadastro_esperado
 
+
 @freeze_time('2020-07-10 10:20:00')
 def test_status_cadastro_somente_pendencia_membros(
     jwt_authenticated_client_a,
     associacao,
 ):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-cadastro/',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     status_cadastro_esperado = {
@@ -104,7 +107,7 @@ def test_status_cadastro_somente_pendencia_novo_mandato(
     composicao_factory.create(mandato=mandato)
 
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-cadastro/',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     status_cadastro_esperado = {
@@ -124,7 +127,7 @@ def test_status_cadastro_todas_as_pendencias(
     conta_associacao_incompleta,
 ):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{conta_associacao_incompleta.associacao.uuid}/status-cadastro/',
-                          content_type='application/json')
+                                              content_type='application/json')
     result = json.loads(response.content)
 
     status_cadastro_esperado = {
@@ -136,4 +139,3 @@ def test_status_cadastro_todas_as_pendencias(
 
     assert response.status_code == status.HTTP_200_OK
     assert result == status_cadastro_esperado
-

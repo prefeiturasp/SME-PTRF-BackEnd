@@ -10,8 +10,8 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def acao_x():
-    return baker.make('Acao', nome='X')
+def acao_x(acao_factory):
+    return acao_factory.create(nome='X')
 
 
 def test_view_set(acao_x, usuario_permissao_associacao):

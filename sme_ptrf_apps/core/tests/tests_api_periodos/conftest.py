@@ -1,13 +1,11 @@
 import pytest
 
 from datetime import date
-from model_bakery import baker
 
 
 @pytest.fixture
-def periodo_2020_4():
-    return baker.make(
-        'Periodo',
+def periodo_2020_4(periodo_factory):
+    return periodo_factory(
         referencia='2020.4',
         data_inicio_realizacao_despesas=date(2020, 10, 1),
         data_fim_realizacao_despesas=date(2020, 12, 31),
@@ -19,9 +17,8 @@ def periodo_2020_4():
 
 
 @pytest.fixture
-def periodo_2021_1(periodo_2020_4):
-    return baker.make(
-        'Periodo',
+def periodo_2021_1(periodo_factory, periodo_2020_4):
+    return periodo_factory(
         referencia='2021.1',
         data_inicio_realizacao_despesas=date(2021, 1, 1),
         data_fim_realizacao_despesas=date(2021, 3, 31),
@@ -33,9 +30,8 @@ def periodo_2021_1(periodo_2020_4):
 
 
 @pytest.fixture
-def periodo_2021_2(periodo_2021_1):
-    return baker.make(
-        'Periodo',
+def periodo_2021_2(periodo_factory, periodo_2021_1):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 4, 1),
         data_fim_realizacao_despesas=date(2021, 6, 30),
@@ -47,9 +43,8 @@ def periodo_2021_2(periodo_2021_1):
 
 
 @pytest.fixture
-def periodo_2021_2_aberto(periodo_2021_1):
-    return baker.make(
-        'Periodo',
+def periodo_2021_2_aberto(periodo_factory, periodo_2021_1):
+    return periodo_factory(
         referencia='2021.2',
         data_inicio_realizacao_despesas=date(2021, 4, 1),
         data_fim_realizacao_despesas=None,
@@ -58,4 +53,3 @@ def periodo_2021_2_aberto(periodo_2021_1):
         data_fim_prestacao_contas=date(2021, 7, 15),
         periodo_anterior=periodo_2021_1,
     )
-

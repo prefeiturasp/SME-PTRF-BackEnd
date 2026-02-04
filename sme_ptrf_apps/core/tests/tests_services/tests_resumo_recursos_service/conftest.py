@@ -6,9 +6,8 @@ from model_bakery import baker
 
 
 @pytest.fixture
-def rr_periodo_2019_1():
-    return baker.make(
-        'Periodo',
+def rr_periodo_2019_1(periodo_factory):
+    return periodo_factory(
         referencia='2019.1',
         data_inicio_realizacao_despesas=date(2019, 1, 1),
         data_fim_realizacao_despesas=date(2019, 6, 30),
@@ -16,9 +15,8 @@ def rr_periodo_2019_1():
 
 
 @pytest.fixture
-def rr_periodo_2019_2(rr_periodo_2019_1):
-    return baker.make(
-        'Periodo',
+def rr_periodo_2019_2(periodo_factory, rr_periodo_2019_1):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=date(2019, 7, 1),
         data_fim_realizacao_despesas=date(2019, 12, 31),
@@ -27,9 +25,8 @@ def rr_periodo_2019_2(rr_periodo_2019_1):
 
 
 @pytest.fixture
-def rr_periodo_2020_1(rr_periodo_2019_2):
-    return baker.make(
-        'Periodo',
+def rr_periodo_2020_1(periodo_factory, rr_periodo_2019_2):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=date(2020, 1, 1),
         data_fim_realizacao_despesas=date(2020, 6, 30),
@@ -38,9 +35,8 @@ def rr_periodo_2020_1(rr_periodo_2019_2):
 
 
 @pytest.fixture
-def rr_periodo_2020_2(rr_periodo_2020_1):
-    return baker.make(
-        'Periodo',
+def rr_periodo_2020_2(periodo_factory, rr_periodo_2020_1):
+    return periodo_factory(
         referencia='2020.2',
         data_inicio_realizacao_despesas=date(2020, 7, 1),
         data_fim_realizacao_despesas=date(2020, 12, 31),
@@ -49,9 +45,8 @@ def rr_periodo_2020_2(rr_periodo_2020_1):
 
 
 @pytest.fixture
-def rr_periodo_2021_1(rr_periodo_2020_2):
-    return baker.make(
-        'Periodo',
+def rr_periodo_2021_1(periodo_factory, rr_periodo_2020_2):
+    return periodo_factory(
         referencia='2021.1',
         data_inicio_realizacao_despesas=date(2021, 1, 1),
         data_fim_realizacao_despesas=date(2021, 6, 30),
@@ -94,6 +89,7 @@ def rr_acao_associacao_ptrf(rr_associacao, acao_ptrf):
         associacao=rr_associacao,
         acao=acao_ptrf
     )
+
 
 @pytest.fixture
 def rr_acao_associacao_role(rr_associacao, acao_role_cultural):
@@ -229,6 +225,7 @@ def rr_receita_650_2020_2_ptrf_cheque_custeio(rr_associacao, rr_conta_associacao
         categoria_receita='CUSTEIO'
     )
 
+
 @pytest.fixture
 def rr_receita_110_2020_1_ptrf_cheque_custeio_inativa(rr_associacao, rr_conta_associacao_cheque, rr_acao_associacao_ptrf, tipo_receita, rr_periodo_2020_1):
     return baker.make(
@@ -243,7 +240,6 @@ def rr_receita_110_2020_1_ptrf_cheque_custeio_inativa(rr_associacao, rr_conta_as
         data_e_hora_de_inativacao=datetime(2020, 1, 2, 10, 20, 30),
         status='INATIVO',
     )
-
 
 
 @pytest.fixture
@@ -389,6 +385,7 @@ def rr_rateio_550_2020_2_ptrf_cheque_custeio(
         valor_rateio=550.00
     )
 
+
 @pytest.fixture
 def rr_despesa_2020_1_inativa(rr_associacao, tipo_documento, tipo_transacao, rr_periodo_2020_1):
     return baker.make(
@@ -428,8 +425,6 @@ def rr_rateio_100_2020_1_ptrf_cheque_custeio_inativo(
         valor_rateio=100.00,
         status='INATIVO',
     )
-
-
 
 
 # Fechamentos  =========================================

@@ -61,7 +61,8 @@ def test_api_list_acoes_associacoes_todas(
                     "aceita_livre": acao_associacao.acao.aceita_livre,
                     "exibir_paa": True,
                     "tem_receitas_previstas_paa_em_elaboracao": False,
-                    "tem_prioridades_paa_em_elaboracao": False
+                    "tem_prioridades_paa_em_elaboracao": False,
+                    "recurso": f'{acao_associacao.acao.recurso.uuid}'
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
@@ -124,7 +125,8 @@ def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
                     "aceita_livre": acao_associacao.acao.aceita_livre,
                     "exibir_paa": True,
                     "tem_receitas_previstas_paa_em_elaboracao": False,
-                    "tem_prioridades_paa_em_elaboracao": False
+                    "tem_prioridades_paa_em_elaboracao": False,
+                    "recurso": f'{acao_associacao.acao.recurso.uuid}'
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
@@ -186,7 +188,8 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
                     "aceita_livre": acao_associacao.acao.aceita_livre,
                     "exibir_paa": True,
                     "tem_receitas_previstas_paa_em_elaboracao": False,
-                    "tem_prioridades_paa_em_elaboracao": False
+                    "tem_prioridades_paa_em_elaboracao": False,
+                    "recurso": f'{acao_associacao.acao.recurso.uuid}'
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
@@ -247,7 +250,8 @@ def test_api_list_associacoes_pelo_eol_escola(jwt_authenticated_client_a,
                     "aceita_livre": acao_associacao.acao.aceita_livre,
                     "exibir_paa": True,
                     "tem_receitas_previstas_paa_em_elaboracao": False,
-                    "tem_prioridades_paa_em_elaboracao": False
+                    "tem_prioridades_paa_em_elaboracao": False,
+                    "recurso": f'{acao_associacao.acao.recurso.uuid}'
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
@@ -310,7 +314,8 @@ def test_api_list_associacoes_por_acao(jwt_authenticated_client_a,
                     "aceita_livre": acao_associacao.acao.aceita_livre,
                     "exibir_paa": True,
                     "tem_receitas_previstas_paa_em_elaboracao": False,
-                    "tem_prioridades_paa_em_elaboracao": False
+                    "tem_prioridades_paa_em_elaboracao": False,
+                    "recurso": f'{acao_associacao.acao.recurso.uuid}'
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
@@ -374,7 +379,8 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
                     "aceita_livre": acao_associacao.acao.aceita_livre,
                     "exibir_paa": True,
                     "tem_receitas_previstas_paa_em_elaboracao": False,
-                    "tem_prioridades_paa_em_elaboracao": False
+                    "tem_prioridades_paa_em_elaboracao": False,
+                    "recurso": f'{acao_associacao.acao.recurso.uuid}'
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
@@ -433,7 +439,8 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
                 "aceita_livre": acao_associacao_charli_bingo_000086_x.acao.aceita_livre,
                 "exibir_paa": True,
                 "tem_receitas_previstas_paa_em_elaboracao": False,
-                "tem_prioridades_paa_em_elaboracao": False
+                "tem_prioridades_paa_em_elaboracao": False,
+                "recurso": f'{acao_associacao_charli_bingo_000086_x.acao.recurso.uuid}'
             },
             'status': acao_associacao_charli_bingo_000086_x.status,
             'criado_em': acao_associacao_charli_bingo_000086_x.criado_em.isoformat("T"),
@@ -476,7 +483,8 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
                 "aceita_livre": acao_associacao_charli_bravo_000086_x.acao.aceita_livre,
                 "exibir_paa": True,
                 "tem_receitas_previstas_paa_em_elaboracao": False,
-                "tem_prioridades_paa_em_elaboracao": False
+                "tem_prioridades_paa_em_elaboracao": False,
+                "recurso": f'{acao_associacao_charli_bravo_000086_x.acao.recurso.uuid}'
             },
             'status': acao_associacao_charli_bravo_000086_x.status,
             'criado_em': acao_associacao_charli_bravo_000086_x.criado_em.isoformat("T"),
@@ -534,7 +542,8 @@ def test_api_list_associacoes_por_associacoes_somente_encerradas(jwt_authenticat
                 "aceita_livre": acao_associacao_charli_bingo_000086_x.acao.aceita_livre,
                 "exibir_paa": True,
                 "tem_receitas_previstas_paa_em_elaboracao": False,
-                "tem_prioridades_paa_em_elaboracao": False
+                "tem_prioridades_paa_em_elaboracao": False,
+                "recurso": f'{acao_associacao_charli_bingo_000086_x.acao.recurso.uuid}'
             },
             'status': acao_associacao_charli_bingo_000086_x.status,
             'criado_em': acao_associacao_charli_bingo_000086_x.criado_em.isoformat("T"),
@@ -592,7 +601,8 @@ def test_api_list_associacoes_por_associacoes_somente_nao_encerradas(jwt_authent
                 "aceita_livre": acao_associacao_charli_bravo_000086_x.acao.aceita_livre,
                 "exibir_paa": True,
                 "tem_receitas_previstas_paa_em_elaboracao": False,
-                "tem_prioridades_paa_em_elaboracao": False
+                "tem_prioridades_paa_em_elaboracao": False,
+                "recurso": f'{acao_associacao_charli_bravo_000086_x.acao.recurso.uuid}'
             },
             'status': acao_associacao_charli_bravo_000086_x.status,
             'criado_em': acao_associacao_charli_bravo_000086_x.criado_em.isoformat("T"),

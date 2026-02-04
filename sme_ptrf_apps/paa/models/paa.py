@@ -26,6 +26,29 @@ class Paa(ModeloBase):
     objetivos = models.ManyToManyField('ObjetivoPaa', related_name='paas', blank=True)
     atividades_estatutarias = models.ManyToManyField(
         'AtividadeEstatutaria', through='AtividadeEstatutariaPaa', related_name='paas', blank=True)
+    
+    # Campos para registrar ações disponíveis na conclusão do PAA
+    acoes_conclusao = models.ManyToManyField(
+        'core.Acao', 
+        related_name='paas_acoes_conclusao', 
+        blank=True,
+        verbose_name='Ações disponíveis na conclusão',
+        help_text='Ações do tipo PTRF (core_acao) com exibir_paa=True disponíveis na conclusão do PAA'
+    )
+    acoes_pdde_conclusao = models.ManyToManyField(
+        'AcaoPdde',
+        related_name='paas_acoes_pdde_conclusao',
+        blank=True,
+        verbose_name='Ações PDDE disponíveis na conclusão',
+        help_text='Ações PDDE (paa_acaopdde) com status ATIVA disponíveis na conclusão do PAA'
+    )
+    outros_recursos_periodo_conclusao = models.ManyToManyField(
+        'OutroRecursoPeriodoPaa',
+        related_name='paas_outros_recursos_conclusao',
+        blank=True,
+        verbose_name='Outros Recursos disponíveis na conclusão',
+        help_text='Outros Recursos (paa_outrorecurso) vinculados à unidade e período disponíveis na conclusão do PAA'
+    )
 
     def periodo_paa_objeto(self):
         return self.periodo_paa

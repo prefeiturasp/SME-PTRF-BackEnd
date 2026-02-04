@@ -11,6 +11,7 @@ class ReceitaPrevistaPaa(ModeloBase):
     paa = models.ForeignKey(Paa, on_delete=models.PROTECT,
                             verbose_name="PAA", blank=False, null=True)
     acao_associacao = models.ForeignKey(AcaoAssociacao, on_delete=models.PROTECT,
+                                        related_name="receita_prevista_paa_da_associacao",
                                         verbose_name="Ação de Associação", blank=False, null=True)
     saldo_congelado_custeio = models.DecimalField('Saldo congelado Custeio',
                                                   max_digits=20, decimal_places=2, blank=False, null=True)

@@ -24,9 +24,8 @@ def conta_associacao_teste_solicitar_envio_do_comprovante_do_saldo_da_conta(asso
 
 
 @pytest.fixture
-def periodo_2020_1_teste_solicitar_envio_do_comprovante_do_saldo_da_conta():
-    return baker.make(
-        'Periodo',
+def periodo_2020_1_teste_solicitar_envio_do_comprovante_do_saldo_da_conta(periodo_factory):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=date(2020, 1, 1),
         data_fim_realizacao_despesas=date(2020, 6, 30),
@@ -38,7 +37,7 @@ def periodo_2020_1_teste_solicitar_envio_do_comprovante_do_saldo_da_conta():
 
 @pytest.fixture
 def prestacao_conta_2020_1_teste_solicitar_envio_do_comprovante_do_saldo_da_conta(
-    periodo_2020_1_teste_solicitar_envio_do_comprovante_do_saldo_da_conta, associacao):
+        periodo_2020_1_teste_solicitar_envio_do_comprovante_do_saldo_da_conta, associacao):
     return baker.make(
         'PrestacaoConta',
         periodo=periodo_2020_1_teste_solicitar_envio_do_comprovante_do_saldo_da_conta,
@@ -49,7 +48,7 @@ def prestacao_conta_2020_1_teste_solicitar_envio_do_comprovante_do_saldo_da_cont
 
 @pytest.fixture
 def analise_prestacao_conta_teste_solicitar_envio_do_comprovante_do_saldo_da_conta(
-    prestacao_conta_2020_1_teste_solicitar_envio_do_comprovante_do_saldo_da_conta):
+        prestacao_conta_2020_1_teste_solicitar_envio_do_comprovante_do_saldo_da_conta):
     return baker.make(
         'AnalisePrestacaoConta',
         prestacao_conta=prestacao_conta_2020_1_teste_solicitar_envio_do_comprovante_do_saldo_da_conta,

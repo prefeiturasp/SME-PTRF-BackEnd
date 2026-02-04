@@ -5,9 +5,8 @@ from model_bakery import baker
 
 
 @pytest.fixture
-def periodo_2019_2():
-    return baker.make(
-        'Periodo',
+def periodo_2019_2(periodo_factory):
+    return periodo_factory(
         referencia='2019.2',
         data_inicio_realizacao_despesas=datetime.date(2019, 7, 1),
         data_fim_realizacao_despesas=datetime.date(2019, 12, 31),
@@ -16,9 +15,8 @@ def periodo_2019_2():
 
 
 @pytest.fixture
-def periodo_2020_1(periodo_2019_2):
-    return baker.make(
-        'Periodo',
+def periodo_2020_1(periodo_factory, periodo_2019_2):
+    return periodo_factory(
         referencia='2020.1',
         data_inicio_realizacao_despesas=datetime.date(2020, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2020, 6, 30),
@@ -1403,6 +1401,8 @@ def rateio_despesa_2020_inativa_nao_conferido(
     )
 
 # Todos
+
+
 @pytest.fixture
 def analise_prestacao_conta_2020_1_em_analise_todos(
     prestacao_conta_teste_conferencia
@@ -1411,6 +1411,7 @@ def analise_prestacao_conta_2020_1_em_analise_todos(
         'AnalisePrestacaoConta',
         prestacao_conta=prestacao_conta_teste_conferencia,
     )
+
 
 @pytest.fixture
 def analise_lancamento_despesa_prestacao_conta_todos_01(
@@ -1425,6 +1426,7 @@ def analise_lancamento_despesa_prestacao_conta_todos_01(
         resultado='CORRETO'
     )
 
+
 @pytest.fixture
 def analise_lancamento_despesa_prestacao_conta_2020_1_todos_02(
     analise_prestacao_conta_2020_1_em_analise_todos,
@@ -1437,6 +1439,7 @@ def analise_lancamento_despesa_prestacao_conta_2020_1_todos_02(
         despesa=despesa_2020_1_inativa_conferencia_ajuste,
         resultado='AJUSTE'
     )
+
 
 @pytest.fixture
 def analise_lancamento_despesa_prestacao_conta_2020_1_todos_03(
@@ -1453,4 +1456,3 @@ def analise_lancamento_despesa_prestacao_conta_2020_1_todos_03(
         resultado='CORRETO',
         houve_considerados_corretos_automaticamente=True,
     )
-

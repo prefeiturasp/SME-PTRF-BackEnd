@@ -68,7 +68,6 @@ def arquivo_carga_deve_criar_conta(arquivo_deve_criar_conta):
     )
 
 
-
 @pytest.fixture
 def arquivo_carga(arquivo):
     return baker.make(
@@ -111,11 +110,12 @@ def conta_associacao_cartao_teste_data_inicio(associacao, tipo_conta_cartao):
         data_inicio=datetime.date(2024, 1, 1)
     )
 
+
 @pytest.fixture
-def acao_ptrf_basico():
-    return baker.make('Acao', nome='PTRF Básico',
-                      aceita_capital=True, aceita_custeio=True,
-                      aceita_livre=True)
+def acao_ptrf_basico(acao_factory):
+    return acao_factory(nome='PTRF Básico',
+                        aceita_capital=True, aceita_custeio=True,
+                        aceita_livre=True)
 
 
 def test_carga_com_erro_formatacao(arquivo_carga, tipo_conta_cheque):
@@ -125,9 +125,8 @@ def test_carga_com_erro_formatacao(arquivo_carga, tipo_conta_cheque):
 
 
 @pytest.fixture
-def periodo_2020_u():
-    return baker.make(
-        'Periodo',
+def periodo_2020_u(periodo_factory):
+    return periodo_factory(
         referencia='2020.u',
         data_inicio_realizacao_despesas=datetime.date(2020, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2020, 12, 31),
@@ -144,8 +143,8 @@ Foram criados 0 repasses. Erro na importação de 1 repasse(s)."""
 
 
 @pytest.fixture
-def acao_role_cultural_teste():
-    return baker.make('Acao', nome='Role Cultural')
+def acao_role_cultural_teste(acao_factory):
+    return acao_factory(nome='Role Cultural')
 
 
 def test_carga_processado_com_erro(arquivo_carga_virgula_processado, periodo, associacao, tipo_receita_repasse,
@@ -185,11 +184,12 @@ def test_carga_deve_gerar_erro_periodo_anterior_a_criacao_da_conta(
 ):
     carrega_repasses_realizados(arquivo_carga_deve_criar_conta)
 
-    msg= """\nErro na linha 1: O período informado de repasse é anterior ao período de criação da conta.
+    msg = """\nErro na linha 1: O período informado de repasse é anterior ao período de criação da conta.
 Foram criados 0 repasses. Erro na importação de 1 repasse(s)."""
 
     assert arquivo_carga_deve_criar_conta.log == msg
     assert arquivo_carga_deve_criar_conta.status == ERRO
+
 
 def test_carga_em_conta_encerrada_deve_gerar_erro(periodos_de_2019_ate_2023, acao_factory, acao_associacao_factory, associacao_factory, arquivo_factory, unidade_factory, tipo_conta_factory, conta_associacao_factory, solicitacao_encerramento_conta_associacao_factory):
     from sme_ptrf_apps.core.models.solicitacao_encerramento_conta_associacao import SolicitacaoEncerramentoContaAssociacao
@@ -200,16 +200,18 @@ def test_carga_em_conta_encerrada_deve_gerar_erro(periodos_de_2019_ate_2023, aca
     acao_associacao_factory.create(associacao=associacao, acao=acao)
     tipo_conta = tipo_conta_factory.create(nome='Cheque')
     conta = conta_associacao_factory.create(associacao=associacao, data_inicio='2018-10-20', tipo_conta=tipo_conta)
-    solicitacao_encerramento_conta_associacao_factory.create(conta_associacao=conta, status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA)
+    solicitacao_encerramento_conta_associacao_factory.create(
+        conta_associacao=conta, status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA)
 
     conteudo_arquivo = SimpleUploadedFile(f'carga_repasse_cheque.csv',
-        bytes(f"""Linha_ID,Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao,Data receita,Periodo\n10,666666,99000.98,99000.98,,Acao teste,02/04/2019,2019.2""", encoding="utf-8"))
+                                          bytes(f"""Linha_ID,Código eol,Valor capital,Valor custeio,Valor livre aplicacao,Acao,Data receita,Periodo\n10,666666,99000.98,99000.98,,Acao teste,02/04/2019,2019.2""", encoding="utf-8"))
 
-    arquivo = arquivo_factory.create(identificador='carga_repasse_cheque', conteudo=conteudo_arquivo, tipo_carga=CARGA_REPASSE_REALIZADO, tipo_delimitador=DELIMITADOR_VIRGULA)
+    arquivo = arquivo_factory.create(identificador='carga_repasse_cheque', conteudo=conteudo_arquivo,
+                                     tipo_carga=CARGA_REPASSE_REALIZADO, tipo_delimitador=DELIMITADOR_VIRGULA)
 
     carrega_repasses_realizados(arquivo)
 
-    msg= """\nErro na linha 1: A conta possui pedido de encerramento aprovado pela DRE.\nForam criados 0 repasses. Erro na importação de 1 repasse(s)."""
+    msg = """\nErro na linha 1: A conta possui pedido de encerramento aprovado pela DRE.\nForam criados 0 repasses. Erro na importação de 1 repasse(s)."""
 
     assert arquivo.log == msg
     assert arquivo.status == ERRO
@@ -236,9 +238,8 @@ def arquivo_carga_associacao_periodo_com_pc(arquivo_associacao_periodo_com_pc):
 
 
 @pytest.fixture
-def periodo_pc():
-    return baker.make(
-        'Periodo',
+def periodo_pc(periodo_factory):
+    return periodo_factory(
         referencia='2024.1',
         data_inicio_realizacao_despesas=datetime.date(2024, 1, 1),
         data_fim_realizacao_despesas=datetime.date(2024, 6, 30),

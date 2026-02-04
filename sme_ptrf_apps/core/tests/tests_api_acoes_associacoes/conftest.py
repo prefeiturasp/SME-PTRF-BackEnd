@@ -4,13 +4,13 @@ from datetime import date
 
 
 @pytest.fixture
-def acao_x():
-    return baker.make('Acao', nome='X')
+def acao_x(acao_factory):
+    return acao_factory.create(nome='X')
 
 
 @pytest.fixture
-def acao_y():
-    return baker.make('Acao', nome='Y')
+def acao_y(acao_factory):
+    return acao_factory.create(nome='Y')
 
 
 @pytest.fixture
@@ -46,6 +46,7 @@ def associacao_charli_bravo_000086(unidade_bravo_000086, periodo_anterior):
         periodo_inicial=periodo_anterior,
     )
 
+
 @pytest.fixture
 def associacao_charli_bingo_000086(unidade_bravo_000086, periodo_anterior):
     return baker.make(
@@ -74,6 +75,7 @@ def acao_associacao_charli_bravo_000086_y(associacao_charli_bravo_000086, acao_y
         associacao=associacao_charli_bravo_000086,
         acao=acao_y
     )
+
 
 @pytest.fixture
 def acao_associacao_charli_bingo_000086_x(associacao_charli_bingo_000086, acao_x):

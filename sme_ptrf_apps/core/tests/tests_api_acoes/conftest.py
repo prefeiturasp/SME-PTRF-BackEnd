@@ -4,18 +4,18 @@ from model_bakery import baker
 
 
 @pytest.fixture
-def acao_x():
-    return baker.make('Acao', nome='X')
+def acao_x(acao_factory):
+    return acao_factory.create(nome='X')
 
 
 @pytest.fixture
-def acao_y():
-    return baker.make('Acao', nome='Y')
+def acao_y(acao_factory):
+    return acao_factory.create(nome='Y')
 
 
 @pytest.fixture
-def acao_xpto():
-    return baker.make('Acao', nome='Xpto')
+def acao_xpto(acao_factory):
+    return acao_factory.create(nome='Xpto')
 
 
 @pytest.fixture
@@ -81,6 +81,7 @@ def unidade_delta_000087(dre_alfa):
         dre=dre_alfa,
     )
 
+
 @pytest.fixture
 def unidade_delta_000088(dre_alfa):
     return baker.make(
@@ -102,6 +103,7 @@ def associacao_eco_delta_000087(unidade_delta_000087, periodo_anterior):
         unidade=unidade_delta_000087,
         periodo_inicial=periodo_anterior,
     )
+
 
 @pytest.fixture
 def associacao_eco_delta_000088(unidade_delta_000088, periodo_anterior):
@@ -132,6 +134,7 @@ def acao_associacao_eco_delta_000087_y_inativa(associacao_eco_delta_000087, acao
         acao=acao_y,
         status='INATIVA'
     )
+
 
 @pytest.fixture
 def acao_associacao_eco_delta_000087_z(associacao_eco_delta_000088, acao_x):
