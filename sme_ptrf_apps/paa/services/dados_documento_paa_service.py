@@ -403,20 +403,21 @@ def criar_grupos_prioridades(paa):
     items = []
 
     for prioridade in prioridades:
-        if prioridade.recurso == "PTRF":
-            recurso = prioridade.acao_associacao.acao.nome
-        elif prioridade.recurso == "PDDE":
-            recurso = prioridade.acao_pdde.nome
-        elif prioridade.recurso == 'RECURSO_PROPRIO':
-            recurso = "Recursos Próprios"
-        elif prioridade.recurso == 'OUTRO_RECURSO':
-            recurso = prioridade.outro_recurso.nome
-        else:
-            recurso = '--'
+        # TODO: Remover condicionais após validações
+        # if prioridade.recurso == "PTRF":
+        #     recurso = prioridade.acao_associacao.acao.nome
+        # elif prioridade.recurso == "PDDE":
+        #     recurso = prioridade.acao_pdde.nome
+        # elif prioridade.recurso == 'RECURSO_PROPRIO':
+        #     recurso = "Recursos Próprios"
+        # elif prioridade.recurso == 'OUTRO_RECURSO':
+        #     recurso = prioridade.outro_recurso.nome
+        # else:
+        #     recurso = '--'
 
         items.append({
             "recurso_tipo": prioridade.recurso,
-            "recurso": recurso,
+            "recurso": prioridade.nome(),
             "prioridade": prioridade.prioridade,
             "tipo_aplicacao": prioridade.get_tipo_aplicacao_display(),
             "tipo_despesa_custeio": prioridade.tipo_despesa_custeio.nome if prioridade.tipo_despesa_custeio else "-",
