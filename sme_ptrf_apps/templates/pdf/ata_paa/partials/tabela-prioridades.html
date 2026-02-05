@@ -6,8 +6,8 @@
       <th scope="col" style="width: 15%">Recursos</th>
       <th scope="col" style="width: 15%">Tipo de aplicação</th>
       <th scope="col" style="width: 20%">Tipo de despesa</th>
-      <th scope="col" style="width: 40%">Especificação do bem, material ou serviço</th>
-      <th scope="col" style="width: 10%">Valor total</th>
+      <th scope="col" style="width: 38%">Especificação do bem, material ou serviço</th>
+      <th scope="col" style="width: 12%; text-align: right;">Valor total</th>
     </tr>
   </thead>
   <tbody>
@@ -17,12 +17,12 @@
       <td>{{ item.tipo_aplicacao }}</td>
       <td>{% if item.tipo_despesa_custeio %}{{ item.tipo_despesa_custeio }}{% else %}-{% endif %}</td>
       <td>{% if item.especificacao_material %}{{ item.especificacao_material }}{% else %}-{% endif %}</td>
-      <td>R$ {{ item.valor_total|formata_valor }}</td>
+      <td style="text-align: right;">R$ {{ item.valor_total|formata_valor }}</td>
     </tr>
     {% endfor %}
     <tr style="background: #f8f9fa; font-weight: bold;">
       <td colspan="4"><strong>Total</strong></td>
-      <td><strong>R$ {{ grupo.total|formata_valor }}</strong></td>
+      <td style="text-align: right;"><strong>R$ {{ grupo.total|formata_valor }}</strong></td>
     </tr>
   </tbody>
 </table>
