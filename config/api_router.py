@@ -47,6 +47,7 @@ from sme_ptrf_apps.core.api.views import (
     FalhaGeracaoPcViewSet,
     SolicitacaoEncerramentoContaAssociacaoViewset,
     MotivoRejeicaoEncerramentoContaAssociacaoViewset,
+    RecursoViewSet,
     feature_flags
 )
 from sme_ptrf_apps.core.api.views.prestacoes_contas_reprovadas_nao_apresentacao_viewset import \
@@ -216,6 +217,7 @@ router.register("parametrizacoes-acoes-associacoes", ParametrizacoesAcoesAssocia
                 basename="parametrizacoes-acoes-associacoes")
 router.register("acoes", AcoesViewSet, basename="acoes")
 router.register("arquivos", ArquivoViewSet, basename="arquivos")
+router.register("recursos", RecursoViewSet, basename="recursos")
 router.register("tags", TagsViewSet, basename="tags")
 router.register("modelos-cargas", ModelosCargasViewSet, basename="modelos-cargas")
 router.register("tipos-custeio", TiposCusteioViewSet, basename="tipos-custeio")
