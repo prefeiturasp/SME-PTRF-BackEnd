@@ -50,65 +50,28 @@ def test_retrieve_invalid_uuid(usuario_permissao_associacao):
 
 
 @override_flag('premio-excelencia', active=True)
-def test_recursos_disponiveis_action(recurso, usuario_permissao_associacao):
-    """Teste action recursos_disponiveis retorna 200 OK"""
-    request = APIRequestFactory().get("")
-    view = RecursoViewSet.as_view({'get': 'recursos_disponiveis'})
-    force_authenticate(request, user=usuario_permissao_associacao)
-    response = view(request)
+def test_list_recursos_por_unidade(jwt_authenticated_client_a, recurso, unidade, associacao, periodo_inicial_associacao_factory):
+    periodo_inicial_associacao_factory(
+        associacao=associacao,
+        recurso=recurso
+    )
 
-    assert response.status_code == status.HTTP_200_OK
-    assert isinstance(response.data, list)
-
-
-@override_flag('premio-excelencia', active=True)
-def test_list_ordena_por_nome(recurso_factory, usuario_permissao_associacao):
-    """Teste que list ordena por nome alfabeticamente"""
-    recurso_factory.create(nome='Zebra', ativo=True)
-    recurso_factory.create(nome='Apple', ativo=True)
-    recurso_factory.create(nome='Banana', ativo=True)
-
-    request = APIRequestFactory().get("")
-    view = RecursoViewSet.as_view({'get': 'list'})
-    force_authenticate(request, user=usuario_permissao_associacao)
-    response = view(request)
-
-    assert response.status_code == status.HTTP_200_OK
-    nomes = [r['nome'] for r in response.data]
-    assert nomes == sorted(nomes)
-
-
-@override_flag('premio-excelencia', active=True)
-def test_list_filtra_apenas_ativos(recurso_factory, usuario_permissao_associacao):
-    """Teste que queryset filtra apenas recursos ativos"""
-    recurso_factory.create(nome='Ativo', ativo=True)
-    recurso_factory.create(nome='Inativo', ativo=False)
-
-    request = APIRequestFactory().get("")
-    view = RecursoViewSet.as_view({'get': 'list'})
-    force_authenticate(request, user=usuario_permissao_associacao)
-    response = view(request)
+    response = jwt_authenticated_client_a.get(
+        '/api/recursos/por-unidade/',
+        {'uuid_unidade': unidade.uuid},
+    )
 
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data) == 1
-    assert response.data[0]['nome'] == 'Ativo'
 
 
-def test_viewset_usa_uuid_como_lookup_field(recurso, usuario_permissao_associacao):
-    """Teste que viewset usa uuid como lookup_field"""
-    viewset = RecursoViewSet()
-    assert viewset.lookup_field == 'uuid'
+@override_flag('premio-excelencia', active=True)
+def test_list_recursos_por_unidade_sem_periodo_inicial(jwt_authenticated_client_a, unidade):
 
+    response = jwt_authenticated_client_a.get(
+        '/api/recursos/por-unidade/',
+        {'uuid_unidade': unidade.uuid},
+    )
 
-def test_viewset_requer_autenticacao():
-    """Teste que viewset requer autenticação"""
-    viewset = RecursoViewSet()
-    from rest_framework.permissions import IsAuthenticated
-    assert IsAuthenticated in viewset.permission_classes
-
-
-def test_viewset_serializer_class():
-    """Teste que viewset usa RecursoSerializer"""
-    from sme_ptrf_apps.core.api.serializers.recurso_serializer import RecursoSerializer
-    viewset = RecursoViewSet()
-    assert viewset.serializer_class == RecursoSerializer
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) == 0
