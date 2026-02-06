@@ -3,7 +3,7 @@ import logging
 from datetime import datetime
 
 from datetime import date
-
+from django.utils import timezone
 from django.db.models import Sum
 
 from sme_ptrf_apps.core.choices import MembroEnum
@@ -22,7 +22,31 @@ from waffle import get_waffle_flag_model
 LOGGER = logging.getLogger(__name__)
 
 
+def marcar_processamento_demonstrativo(prestacao, rodando=False):    
+    if not prestacao:
+        return
+
+    if rodando:
+        LOGGER.info("GERANDO DADOS DEMONSTRATIVO | prestacao_id=%s", prestacao.id)
+    else:
+        LOGGER.info(
+            "DEMONSTRATIVO FINALIZADO | prestacao_id=%s",
+            prestacao.id
+        )
+
+    try:
+        prestacao.__class__.objects.filter(id=prestacao.id).update(
+            processando_demonstrativo=rodando,
+            processando_demonstrativo_desde=timezone.now() if rodando else None
+        )
+    except Exception:
+        LOGGER.exception("Erro ao atualizar flag de processamento do demonstrativo")
+
+
 def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao, prestacao, observacao_conciliacao, previa=False):
+    
+    marcar_processamento_demonstrativo(prestacao, rodando=True)
+
     try:
         LOGGER.info("GERANDO DADOS DEMONSTRATIVO...")
         rateios_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
@@ -110,6 +134,7 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
     # except Exception as e:
     #    LOGGER.error("ERRO no DADOS DEMONSTRATIVO: %s", str(e))
     finally:
+        marcar_processamento_demonstrativo(prestacao, rodando=False)
         LOGGER.info("DADOS DEMONSTRATIVO GERADO")
 
     return dados_demonstrativo
