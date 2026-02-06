@@ -19,7 +19,7 @@ from sme_ptrf_apps.users.permissoes import (
 
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
-from ...models import AcaoAssociacao, ContaAssociacao, ObservacaoConciliacao, Periodo, Associacao
+from ...models import AcaoAssociacao, ContaAssociacao, ObservacaoConciliacao, Periodo, Associacao, PrestacaoConta
 from ...services import (
     despesas_conciliadas_por_conta_e_acao_na_conciliacao,
     despesas_nao_conciliadas_por_conta_e_acao_no_periodo,
@@ -727,6 +727,28 @@ class ConciliacoesViewSet(GenericViewSet):
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        
+        prestacao_conta = transacao.prestacao_conta
+
+        # Verifica prestação
+        if prestacao_conta:
+           
+            if prestacao_conta.status != PrestacaoConta.STATUS_NAO_APRESENTADA:
+                erro = {
+                    'erro': 'Gasto referente a uma prestação já submetida.',
+                    'mensagem': f"O gasto para o uuid {transacao_uuid} não já consta numa prestação que de contas que foi submetida."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        
+            if prestacao_conta.processando_demonstrativo:
+                erro = {
+                    'erro': 'Gasto em processamento de demonstrativo.',
+                    'mensagem': "O gasto está em processo de geração do demonstrativo financeiro e não pode ser alterado, tente novamente mais tarde."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
 
         transacao_conciliada = conciliar_transacao(
             periodo=periodo,
@@ -779,6 +801,27 @@ class ConciliacoesViewSet(GenericViewSet):
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        
+        prestacao_conta = transacao.prestacao_conta
+
+        # Verifica prestação
+        if prestacao_conta:
+
+            if prestacao_conta.status != PrestacaoConta.STATUS_NAO_APRESENTADA:
+                erro = {
+                    'erro': 'Gasto referente a uma prestação já submetida.',
+                    'mensagem': f"O gasto para o uuid {transacao_uuid} não já consta numa prestação que de contas que foi submetida."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        
+            if prestacao_conta.processando_demonstrativo:
+                erro = {
+                    'erro': 'Gasto em processamento de demonstrativo.',
+                    'mensagem': "O gasto está em processo de geração do demonstrativo financeiro e não pode ser alterado, tente novamente mais tarde."
+                }
+                logger.info('Erro: %r', erro)
+                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         transacao_desconciliada = desconciliar_transacao(
             conta_associacao=conta_associacao,
