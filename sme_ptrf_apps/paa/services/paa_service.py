@@ -1,4 +1,6 @@
 import logging
+import re
+from html import unescape
 from datetime import date
 
 from django.contrib.staticfiles.storage import staticfiles_storage
@@ -9,7 +11,7 @@ from django.db import transaction
 
 from weasyprint import HTML, CSS
 
-from sme_ptrf_apps.paa.models import ParametroPaa, ProgramaPdde, PrioridadePaa
+from sme_ptrf_apps.paa.models import ParametroPaa, ProgramaPdde, PrioridadePaa, Paa
 from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.services.registrar_acoes_conclusao_paa_service import (
     RegistrarAcoesPtrfConclusaoPaaService,
@@ -197,19 +199,19 @@ class PaaService:
         Marca o PAA como gerado, atualizando seu status para GERADO.
         Registra as ações disponíveis no momento da conclusão do PAA.
         Congela o saldo do PAA.
-        
+
         Args:
             paa: Instância do modelo Paa a ser concluído
-            
+
         Returns:
             Paa: Instância do PAA atualizada
         """
         logger.info(f'Concluindo PAA {paa.uuid}')
-        
+
         with transaction.atomic():
             paa.status = PaaStatusEnum.GERADO.name
             paa.save()
-            
+
             # Registra as ações disponíveis na conclusão do PAA
             RegistrarAcoesPtrfConclusaoPaaService.registrar(paa)
             RegistrarAcoesPddeConclusaoPaaService.registrar(paa)
@@ -218,7 +220,42 @@ class PaaService:
             # Congela o saldo do PAA
             saldos_por_acao_paa_service = SaldosPorAcaoPaaService(paa=paa, associacao=paa.associacao)
             saldos_por_acao_paa_service.congelar_saldos()
-        
+
         logger.info(f'Status do PAA {paa.uuid} atualizado para GERADO, ações registradas e saldo congelado')
-        
+
         return paa
+
+    @classmethod
+    def pode_gerar_documento_final(cls, paa: Paa) -> list[str]:
+
+        def texto_editor_vazio(html: str | None) -> bool:
+            """ Ignora Tags HTML para verificar se há texto no Editor. """
+            if not html:
+                return True
+
+            TAG_RE = re.compile(r"<[^>]+>")
+            texto = unescape(TAG_RE.sub("", html))
+            texto = texto.replace("\xa0", " ").strip()
+
+            return not texto
+
+        if paa.documento_final and paa.documento_final.concluido:
+            return ["O documento final já foi gerado."]
+
+        errors = []
+        # Valida se há prioridades sem ação e/ou valor total
+        prioridades_incompletas = paa.prioridadepaa_set.incompletas().exists()
+        if prioridades_incompletas:
+            errors.append("Prioridades sem ação e/ou valor total.")
+
+        # Valida se Introdução, Objetivos e Conclusão foram preenchidos
+        if texto_editor_vazio(paa.texto_introducao):
+            errors.append("É necessário inserir o texto de introdução")
+
+        if not paa.objetivos.exists():
+            errors.append("É necessário indicar pelo menos um objetivo no PAA")
+
+        if texto_editor_vazio(paa.texto_conclusao):
+            errors.append("É necessário inserir o texto de conclusão")
+
+        return errors
