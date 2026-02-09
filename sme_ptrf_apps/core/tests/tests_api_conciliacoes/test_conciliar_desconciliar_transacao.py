@@ -3,6 +3,7 @@ from rest_framework import status
 
 from sme_ptrf_apps.despesas.models import Despesa, RateioDespesa
 from sme_ptrf_apps.receitas.models import Receita
+from sme_ptrf_apps.core.models import PrestacaoConta
 import json
 
 pytestmark = pytest.mark.django_db
@@ -115,3 +116,101 @@ def test_api_nao_deve_desconciliar_transacao_receita(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result == esperado
 
+
+def test_api_nao_deve_conciliar_transacao_quando_prestacao_ja_submetida(
+    jwt_authenticated_client_a,
+    despesa_2020_1,
+    periodo_2020_1,
+    conta_associacao_cartao,
+    prestacao_conta_2020_1_devolvida
+):
+
+
+    url = f'/api/conciliacoes/conciliar-despesa/?periodo={periodo_2020_1.uuid}'
+    url += f'&conta_associacao={conta_associacao_cartao.uuid}'
+    url += f'&transacao={despesa_2020_1.uuid}'
+
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'erro': 'Gasto referente a uma prestação já submetida.',
+        'mensagem': f"O gasto para o uuid {despesa_2020_1.uuid} não já consta numa prestação que de contas que foi submetida."
+    }
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result == esperado
+
+def test_api_nao_deve_conciliar_transacao_quando_demonstrativo_em_processamento(
+    jwt_authenticated_client_a,
+    despesa_2020_1,
+    periodo_2020_1,
+    conta_associacao_cartao,
+    prestacao_conta_iniciada
+):
+    prestacao_conta_iniciada.processando_demonstrativo = True
+    prestacao_conta_iniciada.save()
+
+    url = f'/api/conciliacoes/conciliar-despesa/?periodo={periodo_2020_1.uuid}'
+    url += f'&conta_associacao={conta_associacao_cartao.uuid}'
+    url += f'&transacao={despesa_2020_1.uuid}'
+
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'erro': 'Gasto em processamento de demonstrativo.',
+        'mensagem': "O gasto está em processo de geração do demonstrativo financeiro e não pode ser alterado, tente novamente mais tarde."
+    }
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result == esperado
+
+def test_api_nao_deve_desconciliar_transacao_quando_prestacao_ja_submetida(
+    jwt_authenticated_client_a,
+    despesa_2020_1,
+    periodo_2020_1,
+    conta_associacao_cartao,
+    prestacao_conta_2020_1_devolvida
+):
+
+
+    url = f'/api/conciliacoes/desconciliar-despesa/?periodo={periodo_2020_1.uuid}'
+    url += f'&conta_associacao={conta_associacao_cartao.uuid}'
+    url += f'&transacao={despesa_2020_1.uuid}'
+
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'erro': 'Gasto referente a uma prestação já submetida.',
+        'mensagem': f"O gasto para o uuid {despesa_2020_1.uuid} não já consta numa prestação que de contas que foi submetida."
+    }
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result == esperado
+
+def test_api_nao_deve_desconciliar_transacao_quando_demonstrativo_em_processamento(
+    jwt_authenticated_client_a,
+    despesa_2020_1,
+    periodo_2020_1,
+    conta_associacao_cartao,
+    prestacao_conta_iniciada
+):
+    prestacao_conta_iniciada.processando_demonstrativo = True
+    prestacao_conta_iniciada.save()
+
+    url = f'/api/conciliacoes/desconciliar-despesa/?periodo={periodo_2020_1.uuid}'
+    url += f'&conta_associacao={conta_associacao_cartao.uuid}'
+    url += f'&transacao={despesa_2020_1.uuid}'
+
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+    result = json.loads(response.content)
+
+    esperado = {
+        'erro': 'Gasto em processamento de demonstrativo.',
+        'mensagem': "O gasto está em processo de geração do demonstrativo financeiro e não pode ser alterado, tente novamente mais tarde."
+    }
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result == esperado
