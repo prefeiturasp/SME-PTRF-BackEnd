@@ -9,6 +9,18 @@ from sme_ptrf_apps.paa.enums import TipoAplicacaoOpcoesEnum, RecursoOpcoesEnum
 from sme_ptrf_apps.paa.models import AcaoPdde, ProgramaPdde
 
 
+class PrioridadePaaQuerySet(models.QuerySet):
+
+    def incompletas(self):
+        return self.filter(
+            models.Q(recurso__isnull=True) |
+            models.Q(valor_total__isnull=True) |
+            models.Q(recurso=RecursoOpcoesEnum.PDDE.name, acao_pdde__isnull=True) |
+            models.Q(recurso=RecursoOpcoesEnum.PTRF.name, acao_associacao__isnull=True) |
+            models.Q(recurso=RecursoOpcoesEnum.OUTRO_RECURSO.name, outro_recurso__isnull=True)
+        )
+
+
 class SimNaoChoices(models.IntegerChoices):
     SIM = 1, "Sim"
     NAO = 0, "Não"
@@ -63,6 +75,8 @@ class PrioridadePaa(ModeloBase):
                                       validators=[MinValueValidator(0, message='Valor total não pode ser negativo.')])
 
     copia_de = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True)
+
+    objects = PrioridadePaaQuerySet.as_manager()
 
     class Meta:
         verbose_name = "Prioridade do PAA"
