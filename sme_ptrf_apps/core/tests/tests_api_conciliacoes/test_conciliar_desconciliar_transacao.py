@@ -3,7 +3,6 @@ from rest_framework import status
 
 from sme_ptrf_apps.despesas.models import Despesa, RateioDespesa
 from sme_ptrf_apps.receitas.models import Receita
-from sme_ptrf_apps.core.models import PrestacaoConta
 import json
 
 pytestmark = pytest.mark.django_db
