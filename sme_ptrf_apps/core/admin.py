@@ -199,6 +199,17 @@ class PeriodoInicialAssociacaoInline(admin.TabularInline):
     model = PeriodoInicialAssociacao
 
 
+@admin.register(PeriodoInicialAssociacao)
+class PeriodoInicialAssociacaoAdmin(admin.ModelAdmin):
+    list_display = ('associacao', 'recurso', 'periodo_inicial')
+    search_fields = ('uuid', 'associacao__unidade__nome', 'associacao__unidade__codigo_eol', )
+    list_filter = (
+        ('recurso__nome', custom_titled_filter('Recurso')),
+        'periodo_inicial'
+    )
+    search_help_text = 'Pesquise por: código eol da associação, nome da associação ou UUID do registro'
+
+
 @admin.register(Associacao)
 class AssociacaoAdmin(admin.ModelAdmin):
     def get_nome_escola(self, obj):
@@ -918,7 +929,7 @@ class TipoContaAdmin(admin.ModelAdmin):
     list_filter = (
         'nome',
         ('recurso__nome', custom_titled_filter('Recurso')),
-    )    
+    )
     readonly_fields = ('id', 'uuid',)
 
 
