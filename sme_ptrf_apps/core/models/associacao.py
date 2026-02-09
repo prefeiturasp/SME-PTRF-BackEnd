@@ -94,7 +94,7 @@ class Associacao(ModeloIdNome):
         on_delete=models.PROTECT,
         verbose_name='período inicial',
         related_name='associacoes_iniciadas_no_periodo', null=True, blank=True,
-        help_text="O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
+        help_text="O período inicial informado é uma referência para o recurso PTRF e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
     )
 
     data_de_encerramento = models.DateField(

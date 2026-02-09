@@ -30,3 +30,4 @@ from .ata_factory import *
 from .analise_conta_prestacao_conta_factory import *
 from .pdf_factory import *
 from .recurso_factory import *
+from .periodo_inicial_associacao_factory import *
