@@ -1,6 +1,6 @@
 import pytest
 from rest_framework import status
-
+from sme_ptrf_apps.core.models import DemonstrativoFinanceiro
 from sme_ptrf_apps.despesas.models import Despesa, RateioDespesa
 from sme_ptrf_apps.receitas.models import Receita
 import json
@@ -145,10 +145,16 @@ def test_api_nao_deve_conciliar_transacao_quando_demonstrativo_em_processamento(
     despesa_2020_1,
     periodo_2020_1,
     conta_associacao_cartao,
-    prestacao_conta_iniciada
+    prestacao_conta_iniciada,
+    demonstrativo_financeiro_factory,
 ):
-    prestacao_conta_iniciada.processando_demonstrativo = True
-    prestacao_conta_iniciada.save()
+
+    # Em processamento
+    demonstrativo_financeiro_factory.create(
+        prestacao_conta=prestacao_conta_iniciada,
+        conta_associacao=conta_associacao_cartao,
+        status=DemonstrativoFinanceiro.STATUS_EM_PROCESSAMENTO
+    )
 
     url = f'/api/conciliacoes/conciliar-despesa/?periodo={periodo_2020_1.uuid}'
     url += f'&conta_associacao={conta_associacao_cartao.uuid}'
@@ -194,10 +200,16 @@ def test_api_nao_deve_desconciliar_transacao_quando_demonstrativo_em_processamen
     despesa_2020_1,
     periodo_2020_1,
     conta_associacao_cartao,
-    prestacao_conta_iniciada
+    prestacao_conta_iniciada,
+    demonstrativo_financeiro_factory,
 ):
-    prestacao_conta_iniciada.processando_demonstrativo = True
-    prestacao_conta_iniciada.save()
+
+    # Em processamento
+    demonstrativo_financeiro_factory.create(
+        prestacao_conta=prestacao_conta_iniciada,
+        conta_associacao=conta_associacao_cartao,
+        status=DemonstrativoFinanceiro.STATUS_EM_PROCESSAMENTO
+    )
 
     url = f'/api/conciliacoes/desconciliar-despesa/?periodo={periodo_2020_1.uuid}'
     url += f'&conta_associacao={conta_associacao_cartao.uuid}'
@@ -213,3 +225,4 @@ def test_api_nao_deve_desconciliar_transacao_quando_demonstrativo_em_processamen
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result == esperado
+
