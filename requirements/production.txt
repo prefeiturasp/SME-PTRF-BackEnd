@@ -10,3 +10,7 @@ psycopg2==2.9.9 --no-binary psycopg2
 # ------------------------------------------------------------------------------
 django-anymail[mailgun]==7.0.0
 gunicorn==20.0.4
+
+# TODO: setuptools está fixado para manter compatibilidade com dependências
+# que ainda utilizam pkg_resources. Remover este pin após migração dessas libs.
+setuptools==81.0.0
