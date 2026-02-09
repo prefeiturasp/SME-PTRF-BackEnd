@@ -355,22 +355,6 @@ def acao_pdde_inativa():
     )
 
 
-# @pytest.fixture
-# def receita_prevista_pdde(paa, acao_pdde_ativa):
-#     """Fixture para ReceitaPrevistaPdde"""
-#     return baker.make(
-#         'ReceitaPrevistaPdde',
-#         paa=paa,
-#         acao_pdde=acao_pdde_ativa,
-#         previsao_valor_custeio=Decimal('2000.00'),
-#         saldo_custeio=Decimal('300.00'),
-#         previsao_valor_capital=Decimal('1000.00'),
-#         saldo_capital=Decimal('150.00'),
-#         previsao_valor_livre=Decimal('500.00'),
-#         saldo_livre=Decimal('50.00')
-#     )
-
-
 @pytest.mark.django_db
 class TestCriarReceitaPrevistasPdde:
     """Testes para a função criar_receitas_previstas_pdde"""
