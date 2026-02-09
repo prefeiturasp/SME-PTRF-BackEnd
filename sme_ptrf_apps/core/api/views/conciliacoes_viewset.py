@@ -729,32 +729,19 @@ class ConciliacoesViewSet(GenericViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
         
-        prestacao_conta = PrestacaoConta.by_periodo(associacao=conta_associacao.associacao, periodo=periodo)
-
-        if prestacao_conta:
-
-            # prestação já submetida
-            if prestacao_conta.status != PrestacaoConta.STATUS_NAO_APRESENTADA:
-                erro = {
-                    'erro': 'Gasto referente a uma prestação já submetida.',
-                    'mensagem': f"O gasto para o uuid {transacao_uuid} não já consta numa prestação que de contas que foi submetida."
-                }
-                logger.info('Erro: %r', erro)
-                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-            # prestação aberta, mas demonstrativo em processamento
-            demo_em_processamento = prestacao_conta.demonstrativos_da_prestacao.filter(
-                status=DemonstrativoFinanceiro.STATUS_EM_PROCESSAMENTO
-            ).exists()
-
-            if demo_em_processamento:
-                erro = {               
-                    'erro': 'Gasto em processamento de demonstrativo.',
-                    'mensagem': "O gasto está em processo de geração do demonstrativo financeiro e não pode ser alterado, tente novamente mais tarde."
-                }
-                logger.info('Erro: %r', erro)
-                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
+        prestacao = PrestacaoConta.by_periodo(
+            associacao=conta_associacao.associacao, 
+            periodo=periodo
+        )
+ 
+        if prestacao:
+            erro = {
+                'erro': 'periodo_bloqueado.',
+                'mensagem': "Não é possível realizar conciliação de depesa. A prestação de contas já foi iniciada"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+ 
         transacao_conciliada = conciliar_transacao(
             periodo=periodo,
             conta_associacao=conta_associacao,
@@ -807,32 +794,18 @@ class ConciliacoesViewSet(GenericViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
         
-        prestacao_conta = transacao.prestacao_conta
+        prestacao = transacao.prestacao_conta
 
-        if prestacao_conta:
+        print('ACHOU2: ', prestacao)
 
-            # prestação já submetida
-            if prestacao_conta.status != PrestacaoConta.STATUS_NAO_APRESENTADA:
-                erro = {
-                    'erro': 'Gasto referente a uma prestação já submetida.',
-                    'mensagem': f"O gasto para o uuid {transacao_uuid} não já consta numa prestação que de contas que foi submetida."
-                }
-                logger.info('Erro: %r', erro)
-                return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
-            # prestação aberta, mas demonstrativo em processamento
-            demo_em_processamento = prestacao_conta.demonstrativos_da_prestacao.filter(
-                status=DemonstrativoFinanceiro.STATUS_EM_PROCESSAMENTO
-            ).exists()
-
-            if demo_em_processamento:
-                erro = {
-                    'erro': 'Gasto em processamento de demonstrativo.',
-                    'mensagem': "O gasto está em processo de geração do demonstrativo financeiro e não pode ser alterado, tente novamente mais tarde."
-                }
-                logger.info('Erro: %r', erro)
-                return Response(erro, status=status.HTTP_400_BAD_REQUEST)      
-
+        if prestacao:
+            erro = {
+                'erro': 'periodo_bloqueado.',
+                'mensagem': "Não é possível realizar desconciliação de depesa. A prestação de contas já foi iniciada"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        
         transacao_desconciliada = desconciliar_transacao(
             conta_associacao=conta_associacao,
             transacao=transacao,
