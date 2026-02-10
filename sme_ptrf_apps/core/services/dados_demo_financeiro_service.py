@@ -1,9 +1,6 @@
 import logging
-
 from datetime import datetime
-
 from datetime import date
-from django.utils import timezone
 from django.db.models import Sum
 
 from sme_ptrf_apps.core.choices import MembroEnum
