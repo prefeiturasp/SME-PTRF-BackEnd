@@ -754,6 +754,26 @@ class ConciliacoesViewSet(GenericViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def desconciliar_despesa(self, request):
 
+        # Define o período de conciliação
+        periodo_uuid = self.request.query_params.get('periodo')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do período de desconciliação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        
         # Define a conta de conciliação
         conta_associacao_uuid = self.request.query_params.get('conta_associacao')
 
@@ -794,7 +814,10 @@ class ConciliacoesViewSet(GenericViewSet):
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
         
-        prestacao = transacao.prestacao_conta
+        prestacao = PrestacaoConta.by_periodo(
+            associacao=conta_associacao.associacao, 
+            periodo=periodo
+        )
 
         if prestacao:
             erro = {

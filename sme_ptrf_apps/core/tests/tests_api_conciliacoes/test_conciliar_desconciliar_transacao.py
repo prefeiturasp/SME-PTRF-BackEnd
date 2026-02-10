@@ -98,9 +98,9 @@ def test_api_nao_deve_desconciliar_transacao_receita(
 
 ):
 
-    url = f'/api/conciliacoes/desconciliar-despesa/'
-    url = f'{url}?conta_associacao={conta_associacao_cartao.uuid}'
-    url = f'{url}&transacao={receita_2020_1_ptrf_repasse_conferida.uuid}'
+    url = f'/api/conciliacoes/desconciliar-despesa/?periodo={periodo_2020_1.uuid}'
+    url += f'&conta_associacao={conta_associacao_cartao.uuid}'
+    url += f'&transacao={receita_2020_1_ptrf_repasse_conferida.uuid}'
 
     response = jwt_authenticated_client_a.patch(url, content_type='application/json')
     result = json.loads(response.content)
