@@ -1,9 +1,6 @@
 import logging
-
 from datetime import datetime
-
 from datetime import date
-
 from django.db.models import Sum
 
 from sme_ptrf_apps.core.choices import MembroEnum
@@ -21,8 +18,8 @@ from waffle import get_waffle_flag_model
 
 LOGGER = logging.getLogger(__name__)
 
-
 def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao, prestacao, observacao_conciliacao, previa=False):
+    
     try:
         LOGGER.info("GERANDO DADOS DEMONSTRATIVO...")
         rateios_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
