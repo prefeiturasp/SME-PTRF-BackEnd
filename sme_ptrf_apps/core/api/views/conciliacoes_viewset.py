@@ -796,8 +796,6 @@ class ConciliacoesViewSet(GenericViewSet):
         
         prestacao = transacao.prestacao_conta
 
-        print('ACHOU2: ', prestacao)
-
         if prestacao:
             erro = {
                 'erro': 'periodo_bloqueado.',
