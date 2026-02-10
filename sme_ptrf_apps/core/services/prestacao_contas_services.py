@@ -525,9 +525,6 @@ def _gerar_arquivos_demonstrativo_financeiro(acoes, periodo, conta_associacao, p
         status=DemonstrativoFinanceiro.STATUS_EM_PROCESSAMENTO,
     )
 
-    if not prestacao:
-        prestacao = PrestacaoConta.objects.filter(associacao=conta_associacao.associacao, periodo=periodo).last()
-
     try:
         observacao_conciliacao = ObservacaoConciliacao.objects.filter(
             periodo__uuid=periodo.uuid, conta_associacao__uuid=conta_associacao.uuid).first()
