@@ -46,7 +46,7 @@ CABECALHO = [
         ('É devolução total?','devolucao_total'),
         ('Valor (Devolução)','valor'),
         ('Data de devolução ao tesouro','data'),
-        ('Justificativa (não realização)','justificativa')
+        ('Justificativa (não realização)','justificativa'),
     ],
 
 
@@ -117,11 +117,14 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
 
     def monta_dados(self):
         linhas_vertical = []
+        despesa_primeira_linha = set()
 
         for instance in self.queryset:
             linha_horizontal = []
 
-            devolucao_ao_tesouro = DevolucaoAoTesouro.objects.filter(despesa_id=instance.solicitacao_acerto_lancamento.analise_lancamento.despesa.id).first()
+            despesa_id = instance.solicitacao_acerto_lancamento.analise_lancamento.despesa.id
+            primeira_linha_da_despesa = despesa_id not in despesa_primeira_linha
+            devolucao_ao_tesouro = DevolucaoAoTesouro.objects.filter(despesa_id=despesa_id).first()
 
             rateios = list(instance.solicitacao_acerto_lancamento.analise_lancamento.despesa.rateios.all())
 
@@ -181,7 +184,7 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                         linha_horizontal.append('Sim' if devolucao_ao_tesouro.devolucao_total else 'Não')
                     else:
                         linha_horizontal.append('')
-                elif campo == 'valor':
+                elif campo == 'valor':                                         
                     linha_horizontal.append(str(devolucao_ao_tesouro.valor).replace(".", ",") if devolucao_ao_tesouro is not None else '')
                 elif campo == 'data':
                     data_formatada = devolucao_ao_tesouro.data.strftime("%d/%m/%Y") if devolucao_ao_tesouro is not None and devolucao_ao_tesouro.data is not None else ''
@@ -192,10 +195,16 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo)
 
-            if len(rateios) > 0:
-                for rateio in rateios:
+            if rateios:
+                for idx, rateio in enumerate(rateios):
                     linha_nova = linha_horizontal.copy()
-                    linha_nova[17] = rateio.aplicacao_recurso if rateio.aplicacao_recurso else ''
+
+                    if primeira_linha_da_despesa and idx == 0:
+                        despesa_primeira_linha.add(despesa_id)
+                    else:
+                        linha_nova[28] = ''
+
+                    linha_nova[17] = rateio.aplicacao_recurso or ''
                     linha_nova[18] = rateio.tipo_custeio.nome.replace(";", ",") if rateio.tipo_custeio else ''
                     linha_nova[19] = rateio.especificacao_material_servico.descricao.replace(";", ",") if rateio.especificacao_material_servico else ''
                     linha_nova[20] = rateio.conta_associacao.tipo_conta.nome.replace(";", ",") if rateio.conta_associacao else ''
@@ -203,11 +212,11 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                     linha_nova[22] = str(rateio.valor_rateio).replace(".", ",") if rateio.valor_rateio else ''
                     linha_nova[23] = str(rateio.valor_original).replace(".", ",") if rateio.valor_original else ''
 
-                    logger.info(f"Escrevendo linha {linha_nova} de status de prestação de conta de custeio {instance.id}.")
                     linhas_vertical.append(linha_nova)
             else:
                 logger.info(f"Escrevendo linha {linha_horizontal} de status de prestação de conta de custeio {instance.id}.")
-                linhas_vertical.append(linha_horizontal)
+                despesa_primeira_linha.add(despesa_id)
+                linhas_vertical.append(linha_horizontal)  
 
         return linhas_vertical
 

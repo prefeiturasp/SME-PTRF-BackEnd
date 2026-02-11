@@ -19,7 +19,8 @@ from sme_ptrf_apps.users.permissoes import (
 
 from ....despesas.api.serializers.rateio_despesa_serializer import RateioDespesaListaSerializer
 from ....receitas.api.serializers.receita_serializer import ReceitaListaSerializer
-from ...models import AcaoAssociacao, ContaAssociacao, ObservacaoConciliacao, Periodo, Associacao
+from ...models import (AcaoAssociacao, ContaAssociacao, ObservacaoConciliacao, Periodo, Associacao, 
+                       PrestacaoConta, DemonstrativoFinanceiro)
 from ...services import (
     despesas_conciliadas_por_conta_e_acao_na_conciliacao,
     despesas_nao_conciliadas_por_conta_e_acao_no_periodo,
@@ -727,7 +728,20 @@ class ConciliacoesViewSet(GenericViewSet):
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
+        
+        prestacao = PrestacaoConta.by_periodo(
+            associacao=conta_associacao.associacao, 
+            periodo=periodo
+        )
+ 
+        if prestacao:
+            erro = {
+                'erro': 'periodo_bloqueado.',
+                'mensagem': "Não é possível realizar conciliação de depesa. A prestação de contas já foi iniciada"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+ 
         transacao_conciliada = conciliar_transacao(
             periodo=periodo,
             conta_associacao=conta_associacao,
@@ -740,6 +754,26 @@ class ConciliacoesViewSet(GenericViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
     def desconciliar_despesa(self, request):
 
+        # Define o período de conciliação
+        periodo_uuid = self.request.query_params.get('periodo')
+
+        if not periodo_uuid:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o uuid do período de desconciliação.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            periodo = Periodo.objects.get(uuid=periodo_uuid)
+        except Periodo.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto período para o uuid {periodo_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        
         # Define a conta de conciliação
         conta_associacao_uuid = self.request.query_params.get('conta_associacao')
 
@@ -779,7 +813,20 @@ class ConciliacoesViewSet(GenericViewSet):
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        
+        prestacao = PrestacaoConta.by_periodo(
+            associacao=conta_associacao.associacao, 
+            periodo=periodo
+        )
 
+        if prestacao:
+            erro = {
+                'erro': 'periodo_bloqueado.',
+                'mensagem': "Não é possível realizar desconciliação de depesa. A prestação de contas já foi iniciada"
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        
         transacao_desconciliada = desconciliar_transacao(
             conta_associacao=conta_associacao,
             transacao=transacao,
