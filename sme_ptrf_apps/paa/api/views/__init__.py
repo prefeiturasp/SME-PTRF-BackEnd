@@ -16,3 +16,4 @@ from .presentes_ata_paa_viewset import PresentesAtaPaaViewSet
 from .outros_recursos_viewset import OutrosRecursosPaaViewSet
 from .outros_recursos_periodo_paa_viewset import OutrosRecursosPeriodoPaaViewSet
 from .receitas_previstas_outro_recurso_periodo_viewset import ReceitaPrevistaOutroRecursoPeriodoViewSet
+from .modelo_carga_paa_viewset import ModelosCargasPaaViewSet
