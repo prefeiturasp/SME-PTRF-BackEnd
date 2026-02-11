@@ -9,43 +9,39 @@ from sme_ptrf_apps.paa.services.dados_documento_paa_service import (
     criar_grupos_prioridades,
     criar_recursos_proprios,
     criar_atividades_estatutarias,
-    criar_receitas_previstas,
-    criar_receitas_previstas_pdde,
     cria_presidente_diretoria_executiva,
+    _secao_plano_para_documento_receitas,
 )
 
 
 @patch("sme_ptrf_apps.paa.services.dados_documento_paa_service.cria_presidente_diretoria_executiva", autospec=True)
-@patch("sme_ptrf_apps.paa.services.dados_documento_paa_service.criar_receitas_previstas_pdde", autospec=True)
-@patch("sme_ptrf_apps.paa.services.dados_documento_paa_service.criar_receitas_previstas", autospec=True)
 @patch("sme_ptrf_apps.paa.services.dados_documento_paa_service.criar_recursos_proprios", autospec=True)
 @patch("sme_ptrf_apps.paa.services.dados_documento_paa_service.criar_atividades_estatutarias", autospec=True)
 @patch("sme_ptrf_apps.paa.services.dados_documento_paa_service.criar_grupos_prioridades", autospec=True)
 @patch("sme_ptrf_apps.paa.services.dados_documento_paa_service.cria_data_geracao_documento", autospec=True)
 @patch("sme_ptrf_apps.paa.services.dados_documento_paa_service.criar_identificacao_associacao", autospec=True)
 @patch("sme_ptrf_apps.paa.services.dados_documento_paa_service.cria_cabecalho", autospec=True)
+@patch("sme_ptrf_apps.paa.services.dados_documento_paa_service.PlanoOrcamentarioService", autospec=True)
 def test_gerar_dados_documento_paa(
+    mock_plano_service,
     mock_cabecalho,
     mock_identificacao,
     mock_data,
     mock_grupos,
     mock_atividades,
     mock_recursos,
-    mock_receitas,
-    mock_receitas_pdde,
     mock_presidente
 ):
     paa = MagicMock()
     usuario = MagicMock()
 
+    mock_plano_service.return_value.construir_plano_orcamentario.return_value = {"secoes": []}
     mock_cabecalho.return_value = "CAB"
     mock_identificacao.return_value = "ASSOC"
     mock_data.return_value = "DATA"
     mock_grupos.return_value = "GRUPOS"
     mock_atividades.return_value = "ATIV"
     mock_recursos.return_value = "REC"
-    mock_receitas.return_value = "REC_PREV"
-    mock_receitas_pdde.return_value = "REC_PDDE"
     mock_presidente.return_value = "PRES"
 
     paa.objetivos.all.return_value = ["OBJ1", "OBJ2"]
@@ -54,31 +50,38 @@ def test_gerar_dados_documento_paa(
 
     result = gerar_dados_documento_paa(paa, usuario, previa=True)
 
+    mock_plano_service.return_value.construir_plano_orcamentario.assert_called_once()
     mock_cabecalho.assert_called_once_with(paa.periodo_paa)
     mock_identificacao.assert_called_once_with(paa)
     mock_data.assert_called_once_with(usuario, True)
     mock_grupos.assert_called_once_with(paa)
     mock_atividades.assert_called_once_with(paa)
-    mock_recursos.assert_called_once_with(paa)
-    mock_receitas.assert_called_once_with(paa)
-    mock_receitas_pdde.assert_called_once_with(paa)
+    mock_recursos.assert_called_once_with(paa, None)
     mock_presidente.assert_called_once_with(paa.associacao)
 
-    assert result == {
-        "cabecalho": "CAB",
-        "identificacao_associacao": "ASSOC",
-        "data_geracao_documento": "DATA",
-        "texto_introducao": "INTRO",
-        "objetivos": ["OBJ1", "OBJ2"],
-        "grupos_prioridades": "GRUPOS",
-        "receitas_previstas": "REC_PREV",
-        "receitas_previstas_pdde": "REC_PDDE",
-        "atividades_estatutarias": "ATIV",
-        "recursos_proprios": "REC",
-        "texto_conclusao": "CONC",
-        "presidente_diretoria_executiva": "PRES",
-        "previa": True,
+    assert result["cabecalho"] == "CAB"
+    assert result["identificacao_associacao"] == "ASSOC"
+    assert result["data_geracao_documento"] == "DATA"
+    assert result["texto_introducao"] == "INTRO"
+    assert list(result["objetivos"]) == ["OBJ1", "OBJ2"]
+    assert result["grupos_prioridades"] == "GRUPOS"
+    assert result["receitas_previstas"] == {
+        "items": [],
+        "total_receitas": 0,
+        "total_despesas": 0,
+        "total_saldo": 0,
     }
+    assert result["receitas_previstas_pdde"] == {
+        "items": [],
+        "total_receitas": 0,
+        "total_despesas": 0,
+        "total_saldo": 0,
+    }
+    assert result["atividades_estatutarias"] == "ATIV"
+    assert result["recursos_proprios"] == "REC"
+    assert result["texto_conclusao"] == "CONC"
+    assert result["presidente_diretoria_executiva"] == "PRES"
+    assert result["previa"] is True
 
 
 @pytest.mark.django_db
@@ -150,12 +153,14 @@ def test_criar_recursos_proprios_calcula_totais_corretamente(
 ):
     recurso_proprio_paa_factory(
         paa=paa,
+        associacao=paa.associacao,
         valor=Decimal("200"),
         descricao="Recurso 1"
     )
 
     recurso_proprio_paa_factory(
         paa=paa,
+        associacao=paa.associacao,
         valor=Decimal("300"),
         descricao="Recurso 2"
     )
@@ -211,7 +216,11 @@ def test_criar_recursos_proprios_calcula_totais_corretamente(
     # Mock do método do PAA
     paa.get_total_recursos_proprios = lambda: Decimal("500")
 
-    resultado = criar_recursos_proprios(paa)
+    from sme_ptrf_apps.paa.services.plano_orcamentario_service import PlanoOrcamentarioService
+    plano = PlanoOrcamentarioService(paa).construir_plano_orcamentario()
+    secao_outros = next((s for s in plano["secoes"] if s["key"] == "outros_recursos"), None)
+
+    resultado = criar_recursos_proprios(paa, secao_outros)
 
     # Itens de recurso próprio
     assert len(resultado["items"]) == 2
@@ -225,11 +234,11 @@ def test_criar_recursos_proprios_calcula_totais_corretamente(
     assert len(resultado["items_outros_recursos"]) == 1
     item_outro = resultado["items_outros_recursos"][0]
 
-    assert item_outro["total_despesa_custeio"] == Decimal("80")
-    assert item_outro["total_despesa_capital"] == Decimal("20")
+    assert item_outro["total_despesa_custeio"] == 80
+    assert item_outro["total_despesa_capital"] == 20
 
-    assert item_outro["total_receita_custeio"] == Decimal("160")
-    assert item_outro["total_receita_capital"] == Decimal("60")
+    assert item_outro["total_receita_custeio"] == 160
+    assert item_outro["total_receita_capital"] == 60
 
     # Totais finais
     assert resultado["total_receitas"] == Decimal("720")
@@ -242,175 +251,23 @@ def test_criar_recursos_proprios_calcula_totais_corretamente(
 def acao_associacao_ativa(associacao, acao):
     """Fixture para AcaoAssociacao ativa"""
     return baker.make(
-        'AcaoAssociacao',
+        "AcaoAssociacao",
         associacao=associacao,
         acao=acao,
-        status='ATIVA'
+        status="ATIVA",
     )
 
 
 @pytest.fixture
 def acao_associacao_inativa(associacao):
     """Fixture para AcaoAssociacao inativa"""
-    acao = baker.make('Acao', nome='Ação Inativa')
+    acao = baker.make("Acao", nome="Ação Inativa")
     return baker.make(
-        'AcaoAssociacao',
+        "AcaoAssociacao",
         associacao=associacao,
         acao=acao,
-        status='INATIVA'
+        status="INATIVA",
     )
-
-
-@pytest.fixture
-def receita_prevista_paa(paa, acao_associacao_ativa):
-    """Fixture para ReceitaPrevistaPaa"""
-    return baker.make(
-        'ReceitaPrevistaPaa',
-        paa=paa,
-        acao_associacao=acao_associacao_ativa,
-        previsao_valor_custeio=Decimal('1000.00'),
-        previsao_valor_capital=Decimal('500.00'),
-        previsao_valor_livre=Decimal('200.00')
-    )
-
-
-@pytest.mark.django_db
-class TestCriarReceitasPrevistas:
-    """Testes para a função criar_receitas_previstas"""
-
-    def test_criar_receitas_previstas_estrutura_retorno(self, paa):
-        """Testa se retorna a estrutura esperada"""
-        resultado = criar_receitas_previstas(paa)
-
-        assert isinstance(resultado, dict)
-        assert 'items' in resultado
-        assert 'total_receitas' in resultado
-        assert 'total_despesas' in resultado
-        assert 'total_saldo' in resultado
-        assert isinstance(resultado['items'], list)
-
-    def test_criar_receitas_previstas_sem_acoes_ativas(self, paa):
-        """Testa com PAA sem ações ativas"""
-        resultado = criar_receitas_previstas(paa)
-
-        assert resultado['items'] == []
-        assert resultado['total_receitas'] == 0
-        assert resultado['total_despesas'] == 0
-        assert resultado['total_saldo'] == 0
-
-    def test_criar_receitas_previstas_ignora_acoes_inativas(
-        self,
-        paa,
-        acao_associacao_inativa
-    ):
-        """Testa se ignora ações inativas"""
-        resultado = criar_receitas_previstas(paa)
-
-        assert len(resultado['items']) == 0
-
-    def test_criar_receitas_previstas_com_uma_acao(
-        self,
-        paa,
-        acao_associacao_ativa,
-        receita_prevista_paa
-    ):
-        """Testa com uma ação ativa"""
-        with patch.object(
-            type(acao_associacao_ativa),
-            'saldo_atual',
-            return_value={
-                'saldo_atual_custeio': Decimal('300.00'),
-                'saldo_atual_capital': Decimal('150.00'),
-                'saldo_atual_livre': Decimal('50.00')
-            }
-        ):
-            resultado = criar_receitas_previstas(paa)
-
-            assert len(resultado['items']) == 1
-
-            item = resultado['items'][0]
-            assert item['nome'] == acao_associacao_ativa.acao.nome
-            assert item['total_receita_custeio'] == Decimal('1300.00')  # 1000 + 300
-            assert item['total_receita_capital'] == Decimal('650.00')   # 500 + 150
-            assert item['total_receita_livre'] == Decimal('250.00')     # 200 + 50
-
-
-@pytest.fixture
-def acao_pdde_ativa_1():
-    """Fixture para AcaoPdde ativa"""
-    return baker.make(
-        'AcaoPdde',
-        nome='PDDE Básico',
-        status='ATIVA'
-    )
-
-
-@pytest.fixture
-def acao_pdde_inativa():
-    """Fixture para AcaoPdde inativa"""
-    return baker.make(
-        'AcaoPdde',
-        nome='PDDE Inativa',
-        status='INATIVA'
-    )
-
-
-@pytest.mark.django_db
-class TestCriarReceitaPrevistasPdde:
-    """Testes para a função criar_receitas_previstas_pdde"""
-
-    def test_criar_receitas_previstas_pdde_estrutura_retorno(self, paa):
-        """Testa se retorna a estrutura esperada"""
-        resultado = criar_receitas_previstas_pdde(paa)
-
-        assert isinstance(resultado, dict)
-        assert 'items' in resultado
-        assert 'total_receitas' in resultado
-        assert 'total_despesas' in resultado
-        assert 'total_saldo' in resultado
-        assert isinstance(resultado['items'], list)
-
-    def test_criar_receitas_previstas_pdde_sem_acoes(self, paa):
-        """Testa com PAA sem ações PDDE"""
-        resultado = criar_receitas_previstas_pdde(paa)
-
-        assert resultado['items'] == []
-        assert resultado['total_receitas'] == 0
-        assert resultado['total_despesas'] == 0
-        assert resultado['total_saldo'] == 0
-
-    def test_criar_receitas_previstas_pdde_ignora_inativas(
-        self,
-        paa,
-        acao_pdde_inativa
-    ):
-        """Testa se ignora ações PDDE inativas"""
-        resultado = criar_receitas_previstas_pdde(paa)
-
-        assert len(resultado['items']) == 0
-
-    def test_criar_receitas_previstas_pdde_com_acao(
-        self,
-        paa,
-        receita_prevista_pdde
-    ):
-        """Testa com uma ação PDDE ativa"""
-        resultado = criar_receitas_previstas_pdde(paa)
-
-        assert len(resultado['items']) == 1, resultado['items']
-
-    def test_criar_receitas_previstas_pdde_sem_receita_prevista(
-        self,
-        paa,
-        acao_pdde_ativa_1
-    ):
-        """Testa quando não há receita prevista cadastrada"""
-        resultado = criar_receitas_previstas_pdde(paa)
-
-        item = resultado['items'][0]
-        assert item['total_receita_custeio'] == 0
-        assert item['total_receita_capital'] == 0
-        assert item['total_receita_livre'] == 0
 
 
 @pytest.mark.django_db
@@ -421,15 +278,17 @@ class TestCriaPresidenteDiretoriaExecutiva:
         """Testa quando flag historico-de-membros está ativa"""
         # Cria a flag ativa
         baker.make(
-            'waffle.Flag',
-            name='historico-de-membros',
-            everyone=True
+            "waffle.Flag",
+            name="historico-de-membros",
+            everyone=True,
         )
 
         mock_presidente = Mock()
-        mock_presidente.nome = 'João Presidente'
+        mock_presidente.nome = "João Presidente"
 
-        with patch('sme_ptrf_apps.paa.services.dados_documento_paa_service.ServicoCargosDaComposicao') as mock_servico:
+        with patch(
+            "sme_ptrf_apps.paa.services.dados_documento_paa_service.ServicoCargosDaComposicao"
+        ) as mock_servico:
             mock_instance = mock_servico.return_value
             mock_instance.get_presidente_diretoria_executiva_composicao_vigente.return_value = mock_presidente
 
@@ -437,29 +296,35 @@ class TestCriaPresidenteDiretoriaExecutiva:
 
             assert resultado == mock_presidente
             mock_servico.assert_called_once()
-            mock_instance.get_presidente_diretoria_executiva_composicao_vigente.assert_called_once_with(associacao)
+            mock_instance.get_presidente_diretoria_executiva_composicao_vigente.assert_called_once_with(
+                associacao
+            )
 
     def test_cria_presidente_com_flag_inativa(self, associacao):
         """Testa quando flag historico-de-membros está inativa"""
         mock_presidente = Mock()
-        mock_presidente.nome = 'Maria Presidente'
+        mock_presidente.nome = "Maria Presidente"
 
-        with patch('sme_ptrf_apps.paa.services.dados_documento_paa_service.MembroAssociacao') as mock_membro:
+        with patch(
+            "sme_ptrf_apps.paa.services.dados_documento_paa_service.MembroAssociacao"
+        ) as mock_membro:
             mock_membro.get_presidente_diretoria_executiva.return_value = mock_presidente
 
             resultado = cria_presidente_diretoria_executiva(associacao)
 
             assert resultado == mock_presidente
-            mock_membro.get_presidente_diretoria_executiva.assert_called_once_with(associacao)
+            mock_membro.get_presidente_diretoria_executiva.assert_called_once_with(
+                associacao
+            )
 
 
 @pytest.fixture
 def atividade_estatutaria_tipo_a():
     """Fixture para atividade estatutária tipo A"""
     return baker.make(
-        'AtividadeEstatutaria',
-        nome='Assembleia Geral Ordinária',
-        tipo='TIPO_A',
+        "AtividadeEstatutaria",
+        nome="Assembleia Geral Ordinária",
+        tipo="TIPO_A",
         mes=3,
     )
 
@@ -468,11 +333,11 @@ def atividade_estatutaria_tipo_a():
 def atividade_estatutaria_tipo_b():
     """Fixture para atividade estatutária tipo B"""
     return baker.make(
-        'AtividadeEstatutaria',
-        nome='Reunião de Diretoria',
-        tipo='TIPO_B',
+        "AtividadeEstatutaria",
+        nome="Reunião de Diretoria",
+        tipo="TIPO_B",
         mes=6,
-        ativo=True
+        ativo=True,
     )
 
 
@@ -480,11 +345,11 @@ def atividade_estatutaria_tipo_b():
 def atividade_estatutaria_inativa():
     """Fixture para atividade estatutária inativa"""
     return baker.make(
-        'AtividadeEstatutaria',
-        nome='Atividade Desativada',
-        tipo='TIPO_A',
+        "AtividadeEstatutaria",
+        nome="Atividade Desativada",
+        tipo="TIPO_A",
         mes=9,
-        ativo=False
+        ativo=False,
     )
 
 
@@ -492,10 +357,10 @@ def atividade_estatutaria_inativa():
 def atividade_estatutaria_paa(paa, atividade_estatutaria_tipo_a):
     """Fixture para AtividadeEstatutariaPaa"""
     return baker.make(
-        'AtividadeEstatutariaPaa',
+        "AtividadeEstatutariaPaa",
         paa=paa,
         atividade_estatutaria=atividade_estatutaria_tipo_a,
-        data=date(2024, 3, 15)
+        data=date(2024, 3, 15),
     )
 
 
@@ -519,7 +384,7 @@ class TestCriarAtividadesEstatutarias:
         self,
         paa,
         atividade_estatutaria_tipo_a,
-        atividade_estatutaria_paa
+        atividade_estatutaria_paa,
     ):
         """Testa a estrutura de cada item retornado"""
         resultado = criar_atividades_estatutarias(paa)
@@ -527,7 +392,118 @@ class TestCriarAtividadesEstatutarias:
         assert len(resultado) == 1
 
         item = resultado[0]
-        assert 'tipo_atividade' in item
-        assert 'data' in item
-        assert 'atividades_previstas' in item
-        assert 'mes_ano' in item
+        assert "tipo_atividade" in item
+        assert "data" in item
+        assert "atividades_previstas" in item
+        assert "mes_ano" in item
+
+
+def test_secao_plano_para_documento_receitas_mapeia_linhas_e_totais():
+    """
+    Garante que _secao_plano_para_documento_receitas:
+    - respeita exibirCusteio/exibirCapital/exibirLivre
+    - monta a lista 'linhas' corretamente
+    - propaga totais da linha isTotal.
+    """
+    secao = {
+        "linhas": [
+            {
+                "nome": "Ação 1",
+                "exibirCusteio": True,
+                "exibirCapital": False,
+                "exibirLivre": True,
+                "receitas": {"custeio": 10, "capital": 0, "livre": 5, "total": 15},
+                "despesas": {"custeio": 3, "capital": 0, "livre": 0, "total": 3},
+                "saldos": {"custeio": 7, "capital": 0, "livre": 5, "total": 12},
+            },
+            {
+                "nome": "Ação 2",
+                "exibirCusteio": False,
+                "exibirCapital": True,
+                "exibirLivre": False,
+                "receitas": {"custeio": 0, "capital": 20, "livre": 0, "total": 20},
+                "despesas": {"custeio": 0, "capital": 4, "livre": 0, "total": 4},
+                "saldos": {"custeio": 0, "capital": 16, "livre": 0, "total": 16},
+            },
+            {
+                # linha que não deve aparecer (todas as flags falsas)
+                "nome": "Ação ignorada",
+                "exibirCusteio": False,
+                "exibirCapital": False,
+                "exibirLivre": False,
+                "receitas": {"custeio": 0, "capital": 0, "livre": 0, "total": 0},
+                "despesas": {"custeio": 0, "capital": 0, "livre": 0, "total": 0},
+                "saldos": {"custeio": 0, "capital": 0, "livre": 0, "total": 0},
+            },
+            {
+                "isTotal": True,
+                "receitas": {"total": 35},
+                "despesas": {"total": 7},
+                "saldos": {"total": 28},
+            },
+        ]
+    }
+
+    resultado = _secao_plano_para_documento_receitas(secao)
+
+    assert resultado["total_receitas"] == 35
+    assert resultado["total_despesas"] == 7
+    assert resultado["total_saldo"] == 28
+
+    assert len(resultado["items"]) == 2
+
+    acao1, acao2 = resultado["items"]
+
+    assert acao1["nome"] == "Ação 1"
+    labels_acao1 = [linha["label"] for linha in acao1["linhas"]]
+    assert labels_acao1 == ["Custeio (R$)", "Livre Aplicação (R$)"]
+
+    assert acao2["nome"] == "Ação 2"
+    labels_acao2 = [linha["label"] for linha in acao2["linhas"]]
+    assert labels_acao2 == ["Capital (R$)"]
+
+
+@pytest.mark.django_db
+def test_criar_recursos_proprios_sem_outros_recursos_usa_fallback(
+    paa,
+    prioridade_paa_factory,
+    recurso_proprio_paa_factory,
+):
+    """
+    Quando não há seção 'outros_recursos' no plano (nenhum Outro Recurso),
+    criar_recursos_proprios deve calcular os totais apenas com Recursos Próprios
+    e retornar items_outros_recursos vazio.
+    """
+    recurso_proprio_paa_factory(
+        paa=paa,
+        associacao=paa.associacao,
+        valor=Decimal("100"),
+        descricao="Recurso 1",
+    )
+    recurso_proprio_paa_factory(
+        paa=paa,
+        associacao=paa.associacao,
+        valor=Decimal("200"),
+        descricao="Recurso 2",
+    )
+
+    prioridade_paa_factory(
+        paa=paa,
+        recurso="RECURSO_PROPRIO",
+        valor_total=Decimal("120"),
+        prioridade=True,
+    )
+
+    paa.get_total_recursos_proprios = lambda: Decimal("300")
+
+    resultado = criar_recursos_proprios(paa, secao_outros_recursos=None)
+
+    assert resultado["items_outros_recursos"] == []
+
+    assert resultado["total_recursos_proprios"] == Decimal("300")
+    assert resultado["total_prioridades_recursos_proprios"] == Decimal("120")
+    assert resultado["saldo_recursos_proprios"] == Decimal("180")
+
+    assert resultado["total_receitas"] == Decimal("300")
+    assert resultado["total_despesas"] == Decimal("120")
+    assert resultado["total_saldo"] == Decimal("180")
