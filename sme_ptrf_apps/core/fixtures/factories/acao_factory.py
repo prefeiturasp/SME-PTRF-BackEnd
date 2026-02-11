@@ -1,9 +1,8 @@
-from factory import Sequence, Iterator
+from factory import Sequence, LazyFunction
 from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.core.models.acao import Acao
 from sme_ptrf_apps.core.models.recurso import Recurso
-
 fake = Faker("pt_BR")
 
 
@@ -17,4 +16,4 @@ class AcaoFactory(DjangoModelFactory):
     aceita_capital = False
     aceita_custeio = False
     aceita_livre = False
-    recurso = Iterator(Recurso.objects.all())
+    recurso = LazyFunction(lambda: Recurso.objects.get(legado=True))

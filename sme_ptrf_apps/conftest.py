@@ -13,7 +13,8 @@ from .core.models import (
     ContaAssociacao,
     SolicitacaoEncerramentoContaAssociacao,
     STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO,
-    TipoAcertoDocumento
+    TipoAcertoDocumento,
+    Recurso
 )
 from .core.models.prestacao_conta import PrestacaoConta
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
@@ -183,13 +184,13 @@ def tipo_conta_cartao_incompleta(tipo_conta_factory):
 
 
 @pytest.fixture
-def tipo_conta_teste(tipo_conta_factory):
-    return tipo_conta_factory(nome='Teste')
+def tipo_conta_teste(tipo_conta_factory, recurso_legado):
+    return tipo_conta_factory(nome='Teste', recurso=recurso_legado)
 
 
 @pytest.fixture
-def acao(acao_factory):
-    return acao_factory(nome="PTRF")
+def acao(acao_factory, recurso_legado):
+    return acao_factory(nome="PTRF", recurso=recurso_legado)
 
 
 @pytest.fixture
@@ -801,8 +802,8 @@ def acao_associacao_role_cultural(associacao, acao_role_cultural):
 
 
 @pytest.fixture
-def recurso_legado(recurso_factory):
-    return recurso_factory.objects.filter(legado=True)
+def recurso_legado():
+    return Recurso.objects.get(legado=True)
 
 
 @pytest.fixture
