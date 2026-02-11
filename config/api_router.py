@@ -113,7 +113,8 @@ from sme_ptrf_apps.paa.api.views import (
     AtaPaaViewSet,
     PresentesAtaPaaViewSet,
     OutrosRecursosPaaViewSet,
-    OutrosRecursosPeriodoPaaViewSet
+    OutrosRecursosPeriodoPaaViewSet,
+    ModelosCargasPaaViewSet
 )
 from sme_ptrf_apps.users.api.views import (
     EsqueciMinhaSenhaViewSet,
@@ -287,6 +288,7 @@ router.register("atividades-estatutarias", AtividadeEstatutariaViewSet, basename
 router.register("atas-paa", AtaPaaViewSet, basename='atas-paa')
 router.register("presentes-ata-paa", PresentesAtaPaaViewSet, basename='presentes-ata-paa')
 router.register("outros-recursos-paa", OutrosRecursosPaaViewSet, basename='outros-recursos-paa')
+router.register("modelos-cargas-paa", ModelosCargasPaaViewSet, basename="modelos-cargas-paa")
 router.register("bens-produzidos", BemProduzidoViewSet, basename='bens-produzidos')
 router.register("bens-produzidos-e-adquiridos", BemAdquiridoProduzidoViewSet, basename='bens-produzidos-e-adquiridos')
 router.register("bens-produzidos-rascunho", BemProduzidoRascunhoViewSet, basename='bens-produzidos-rascunho')
