@@ -4,9 +4,16 @@ import datetime
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.core.models.devolucao_ao_tesouro import DevolucaoAoTesouro
 
-from sme_ptrf_apps.sme.services.exporta_devolucao_tesouro_prestacoes_conta import ExportacoesDevolucaoTesouroPrestacoesContaService
+from sme_ptrf_apps.sme.services.exporta_devolucao_tesouro_prestacoes_conta import (
+    ExportacoesDevolucaoTesouroPrestacoesContaService,
+)
+from sme_ptrf_apps.utils.anonimizar_cpf_cnpj import (
+    anonimizar_cpf_cnpj_fornecedor,
+)
+
 
 pytestmark = pytest.mark.django_db
+
 
 def test_dados_esperados_csv(queryset_ordered):
     dados = ExportacoesDevolucaoTesouroPrestacoesContaService(
@@ -35,7 +42,7 @@ def test_dados_esperados_csv(queryset_ordered):
         despesa.numero_documento,
         despesa.tipo_documento.nome,
         despesa.data_documento.strftime("%d/%m/%Y"),
-        despesa.cpf_cnpj_fornecedor,
+        anonimizar_cpf_cnpj_fornecedor(despesa.cpf_cnpj_fornecedor) if despesa.cpf_cnpj_fornecedor else "",
         despesa.nome_fornecedor,
         despesa.tipo_transacao.nome,
         despesa.documento_transacao,
@@ -55,10 +62,16 @@ def test_dados_esperados_csv(queryset_ordered):
         'Sim' if devolucao_ao_tesouro.devolucao_total else 'Não',
         str(devolucao_ao_tesouro.valor).replace(".", ","),
         devolucao_ao_tesouro.data.strftime("%d/%m/%Y"),
-        primeira_solicitacao.solicitacao_acerto_lancamento.justificativa if primeira_solicitacao.solicitacao_acerto_lancamento.justificativa is not None else ''
+        (
+            primeira_solicitacao.solicitacao_acerto_lancamento.justificativa
+            if primeira_solicitacao.solicitacao_acerto_lancamento.justificativa
+            is not None
+            else ''
+        ),
     ]
 
     assert linha_individual == resultado_esperado
+
 
 def test_cabecalho():
     dados = ExportacoesDevolucaoTesouroPrestacoesContaService()
@@ -101,14 +114,19 @@ def test_cabecalho():
 
     assert cabecalho == resultado_esperado
 
+
 def test_rodape(ambiente):
     dados = ExportacoesDevolucaoTesouroPrestacoesContaService().texto_rodape()
 
     data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
 
-    resultado_esperado = f"Arquivo solicitado via {ambiente.prefixo} pelo usuário None em {data_atual}"
+    resultado_esperado = (
+        f"Arquivo solicitado via {ambiente.prefixo} pelo usuário None em "
+        f"{data_atual}"
+    )
 
     assert dados == resultado_esperado
+
 
 def test_filtra_range_data_fora_do_range(queryset_ordered):
     data_inicio = datetime.date(2020, 2, 10)
@@ -122,6 +140,7 @@ def test_filtra_range_data_fora_do_range(queryset_ordered):
 
     assert queryset_filtrado.count() == 0
 
+
 def test_filtra_range_data_dentro_do_range(queryset_ordered):
     data_inicio = datetime.date.today()
     data_final = datetime.date.today()
@@ -134,6 +153,7 @@ def test_filtra_range_data_dentro_do_range(queryset_ordered):
 
     assert queryset_filtrado.count() == len(queryset_ordered)
 
+
 def test_filtra_range_data_com_data_inicio_e_sem_data_final(queryset_ordered):
     data_inicio = datetime.date.today()
 
@@ -143,6 +163,7 @@ def test_filtra_range_data_com_data_inicio_e_sem_data_final(queryset_ordered):
     ).filtra_range_data('criado_em')
 
     assert queryset_filtrado.count() == len(queryset_ordered)
+
 
 def test_filtra_range_data_sem_data_inicio_e_com_data_final(queryset_ordered):
     data_final = datetime.date.today()
@@ -154,12 +175,14 @@ def test_filtra_range_data_sem_data_inicio_e_com_data_final(queryset_ordered):
 
     assert queryset_filtrado.count() == len(queryset_ordered)
 
+
 def test_filtra_range_data_sem_data_inicio_e_sem_data_final(queryset_ordered):
     queryset_filtrado = ExportacoesDevolucaoTesouroPrestacoesContaService(
         queryset=queryset_ordered
     ).filtra_range_data('criado_em')
 
     assert queryset_filtrado.count() == len(queryset_ordered)
+
 
 def test_cria_registro_central_download(usuario_para_teste):
     exportacao_saldo_final = ExportacoesDevolucaoTesouroPrestacoesContaService(
@@ -173,6 +196,7 @@ def test_cria_registro_central_download(usuario_para_teste):
     assert objeto_arquivo_download.status == ArquivoDownload.STATUS_EM_PROCESSAMENTO
     assert objeto_arquivo_download.identificador == 'pcs_devolucoes_tesouro.csv'
     assert ArquivoDownload.objects.count() == 1
+
 
 def test_envia_arquivo_central_download(usuario_para_teste):
     with NamedTemporaryFile(

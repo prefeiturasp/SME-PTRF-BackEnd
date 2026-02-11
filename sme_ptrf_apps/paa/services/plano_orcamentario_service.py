@@ -506,7 +506,11 @@ class PlanoOrcamentarioService:
         Calcula receita base de um item PTRF.
         Considera saldo (já verificado se congelado ou atual) mais valores de previsão.
         """
-        receita_prevista = item.get('receitas_previstas_paa', [{}])[0]
+        receitas_previstas = item.get('receitas_previstas_paa') or []
+        if receitas_previstas:
+            receita_prevista = receitas_previstas[0]
+        else:
+            receita_prevista = {}
         saldos = item.get('saldos', {})
 
         saldo_custeio_base = max(0, saldos.get('saldo_atual_custeio', 0))
