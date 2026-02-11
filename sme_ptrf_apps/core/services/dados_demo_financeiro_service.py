@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from datetime import date
+from django.utils import timezone
 from django.db.models import Sum
 
 from sme_ptrf_apps.core.choices import MembroEnum
@@ -107,6 +108,7 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
     # except Exception as e:
     #    LOGGER.error("ERRO no DADOS DEMONSTRATIVO: %s", str(e))
     finally:
+        marcar_processamento_demonstrativo(prestacao, rodando=False)
         LOGGER.info("DADOS DEMONSTRATIVO GERADO")
 
     return dados_demonstrativo
