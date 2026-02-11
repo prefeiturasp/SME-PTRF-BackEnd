@@ -19,7 +19,7 @@
                 <th>Tipo de aplicação</th>
                 <th>Tipo de despesa</th>
                 <th>Especificação do bem, material ou serviço</th>
-                <th>Valor total</th>
+                <th class="text-right">Valor total</th>
               </tr>
             </thead>
 
@@ -30,7 +30,7 @@
                   <td>{{ prioridade.tipo_aplicacao }}</td>
                   <td>{{ prioridade.tipo_despesa_custeio }}</td>
                   <td>{{ prioridade.especificacao_material }}</td>
-                  <td>{{ prioridade.valor_total|formata_valor }}</td>
+                  <td class="text-right">{{ prioridade.valor_total|formata_valor }}</td>
                 </tr>
               {% endfor %}
 
@@ -39,7 +39,7 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                <td>{{ grupo.total|formata_valor }}</td>
+                <td class="text-right">{{ grupo.total|formata_valor }}</td>
               </tr>
             </tbody>
 

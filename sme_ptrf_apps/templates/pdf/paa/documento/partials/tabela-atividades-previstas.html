@@ -41,7 +41,7 @@
             <th>Tipo de Atividade</th>
             <th>Data</th>
             <th>Descrição das receitas e atividades previstas</th>
-            <th>Valor Estimado</th>
+            <th class="text-right">Valor Estimado</th>
           </tr>
         </thead>
 
@@ -51,7 +51,7 @@
               <td>{{ recurso.fonte_recurso }}</td>
               <td>{{ recurso.data_prevista }}</td>
               <td>{{ recurso.descricao }}</td>
-              <td>{{ recurso.valor|formata_valor }}</td>
+              <td class="text-right">{{ recurso.valor|formata_valor }}</td>
             </tr>
           {% endfor %}
 
@@ -59,7 +59,7 @@
             <td>TOTAL</td>
             <td></td>
             <td></td>
-            <td>{{ dados.recursos_proprios.total_recursos_proprios|formata_valor }}</td>
+            <td class="text-right">{{ dados.recursos_proprios.total_recursos_proprios|formata_valor }}</td>
           </tr>
         </tbody>
         </table>

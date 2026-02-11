@@ -12,6 +12,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.exceptions import ValidationError
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import (
@@ -254,6 +255,23 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
                 many=True).data
 
         return Response(serializer_acao_associacao.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='plano-orcamentario',
+            permission_classes=[IsAuthenticated])
+    def plano_orcamentario(self, request, uuid=None):
+        """Retorna o plano orçamentário completo com dados formatados"""
+        from sme_ptrf_apps.paa.services.plano_orcamentario_service import PlanoOrcamentarioService
+
+        paa = self.get_object()
+
+        try:
+            service = PlanoOrcamentarioService(paa)
+            dados = service.construir_plano_orcamentario()
+
+            return Response(dados, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Erro ao construir plano orçamentário para PAA {paa.uuid}: {str(e)}", exc_info=True)
+            raise ValidationError(f"Erro ao processar plano orçamentário: {str(e)}")
 
     @action(detail=True, methods=['get'], url_path='objetivos',
             permission_classes=[IsAuthenticated])
