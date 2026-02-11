@@ -212,10 +212,28 @@ html body header .subtitulo {
   white-space: normal !important;
 }
 
-.tabela-zebra tbody tr:nth-child(odd) {
-  background-color: #ffffff;
+.text-right {
+  text-align: right !important;
 }
 
-.tabela-zebra tbody tr:nth-child(even) {
-  background-color: #f7f8f9;
+/* Zebrado por ação: todas as linhas da mesma ação/recurso com a mesma cor */
+.tabela-zebra tbody tr.tr-zebra-even {
+  background-color: #ffffff !important;
+}
+
+.tabela-zebra tbody tr.tr-zebra-even td {
+  background-color: #ffffff !important;
+}
+
+.tabela-zebra tbody tr.tr-zebra-odd {
+  background-color: #f0f1f3 !important;
+}
+
+.tabela-zebra tbody tr.tr-zebra-odd td {
+  background-color: #f0f1f3 !important;
+}
+
+.tabela-zebra tbody tr.tr-total,
+.tabela-zebra tbody tr.tr-total td {
+  background-color: #f8f9fa !important;
 }

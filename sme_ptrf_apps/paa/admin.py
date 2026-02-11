@@ -69,7 +69,8 @@ class PaaAdmin(admin.ModelAdmin):
 
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     list_display_links = ['periodo_paa']
-    list_filter = ('periodo_paa', 'associacao')
+    search_fields = ('periodo_paa__referencia', 'associacao__nome', 'associacao__unidade__codigo_eol')
+    list_filter = ('periodo_paa', 'associacao', 'status')
     raw_id_fields = ['periodo_paa', 'associacao']
     inlines = [AtividadeEstatutariaPaaInline]
     actions = ["gerar_documento"]
@@ -309,4 +310,10 @@ class OutroRecursoPeriodoPaaAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 
-admin.site.register(DocumentoPaa)
+@admin.register(DocumentoPaa)
+class DocumentoPaaAdmin(admin.ModelAdmin):
+    list_display = ('paa', 'status_geracao', 'versao', 'criado_em', 'alterado_em')
+    search_fields = ('paa__associacao__nome', 'paa__associacao__unidade__codigo_eol')
+    raw_id_fields = ('paa',)
+    list_filter = ('status_geracao', 'versao', 'paa__periodo_paa')
+    readonly_fields = ('uuid', 'id', 'criado_em',)

@@ -12,6 +12,7 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.exceptions import ValidationError
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import (
@@ -102,7 +103,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def ativar_atualizacao_saldo(self, request, uuid):
         instance = self.get_object()
-        
+
         # Bloqueia descongelar saldos quando o documento final foi gerado
         documento_final = instance.documento_final
         if documento_final and documento_final.concluido:
@@ -110,7 +111,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
                 {'mensagem': 'Não é possível descongelar saldos após a geração do documento final do PAA.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         associacao = instance.associacao
 
         saldos_por_acao_paa_service = SaldosPorAcaoPaaService(paa=instance, associacao=associacao)
@@ -255,6 +256,23 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
 
         return Response(serializer_acao_associacao.data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['get'], url_path='plano-orcamentario',
+            permission_classes=[IsAuthenticated])
+    def plano_orcamentario(self, request, uuid=None):
+        """Retorna o plano orçamentário completo com dados formatados"""
+        from sme_ptrf_apps.paa.services.plano_orcamentario_service import PlanoOrcamentarioService
+
+        paa = self.get_object()
+
+        try:
+            service = PlanoOrcamentarioService(paa)
+            dados = service.construir_plano_orcamentario()
+
+            return Response(dados, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error(f"Erro ao construir plano orçamentário para PAA {paa.uuid}: {str(e)}", exc_info=True)
+            raise ValidationError(f"Erro ao processar plano orçamentário: {str(e)}")
+
     @action(detail=True, methods=['get'], url_path='objetivos',
             permission_classes=[IsAuthenticated])
     def objetivos_disponiveis(self, request, uuid=None):
@@ -323,26 +341,14 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
     def gerar_documento(self, request, uuid=None):
         paa = self.get_object()
         usuario = request.user
+        service = PaaService()
 
-        if paa.documento_final and paa.documento_final.concluido:
-            return Response({"mensagem": "O documento final já foi gerado."}, status=400)
-
-        errors = []
-        # definido no frontend quando o editor estiver vazio
-        CAMPO_EDITOR_VAZIO = "<p></p>"
-        if not paa.texto_introducao or paa.texto_introducao.strip() == CAMPO_EDITOR_VAZIO:
-            errors.append("É necessário inserir o texto de introdução")
-
-        if not paa.objetivos.exists():
-            errors.append("É necessário indicar pelo menos um objetivo no PAA")
-
-        if not paa.texto_conclusao or paa.texto_conclusao.strip() == CAMPO_EDITOR_VAZIO:
-            errors.append("É necessário inserir o texto de conclusão")
+        errors = service.pode_gerar_documento_final(paa)
 
         if errors:
             return Response(
                 {"mensagem": "\n".join(errors)},
-                status=400
+                status=status.HTTP_400_BAD_REQUEST
             )
 
         confirmar = bool(int(self.request.data.get('confirmar', 0)))
@@ -355,7 +361,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
 
         return Response(
             {"mensagem": "Geração de documento final iniciada"},
-            status=200
+            status=status.HTTP_200_OK
         )
 
     @action(detail=True, methods=["post"], url_path="gerar-previa-documento")
