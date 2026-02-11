@@ -338,3 +338,38 @@ def test_construir_plano_orcamentario_monta_secoes_quando_calculos_retornam_dado
 
     secoes = resultado["secoes"]
     assert [s["key"] for s in secoes] == ["ptrf", "pdde"]
+
+
+def test_calcular_secao_ptrf_sem_receitas_previstas_nao_estoura_erro():
+    """
+    Quando a ação PTRF não possui receitas_previstas_paa (lista vazia),
+    a seção PTRF deve ser calculada normalmente usando apenas os saldos,
+    sem lançar IndexError.
+    """
+    service = _make_service()
+
+    uuid1 = "acao-sem-receita-prevista"
+    receitas_ptrf = [
+        {
+            "uuid": uuid1,
+            "acao": {"nome": "Ação sem receita prevista"},
+            "receitas_previstas_paa": [],
+            "saldos": {
+                "saldo_atual_custeio": 10,
+                "saldo_atual_capital": 20,
+                "saldo_atual_livre": 30,
+            },
+        }
+    ]
+
+    prioridades_ptrf = {}
+
+    secao = service._calcular_secao_ptrf(receitas_ptrf, prioridades_ptrf)
+
+    assert secao["key"] == "ptrf"
+    # 1 linha de ação + 1 linha TOTAL
+    assert len(secao["linhas"]) == 2
+
+    linha_acao = next(linha for linha in secao["linhas"] if linha["key"] == uuid1)
+    # Como não há previsão, a receita deve ser exatamente a soma dos saldos
+    assert linha_acao["receitas"]["total"] == pytest.approx(10 + 20 + 30)
