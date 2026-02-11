@@ -23,3 +23,14 @@ class TestAnonimizarCpfCnpjFornecedor:
     def test_digitos_diferente_11_ou_14_retorna_original(self):
         assert anonimizar_cpf_cnpj_fornecedor("123") == "123"
         assert anonimizar_cpf_cnpj_fornecedor("12345678") == "12345678"
+
+    def test_formato_alfanumerico_11_caracteres_anonimizado(self):
+        """Aceita formato alfanumérico (novo formato) com 11 caracteres."""
+        assert anonimizar_cpf_cnpj_fornecedor("ABC12345678") == "ABCXXXXXX78"
+        assert anonimizar_cpf_cnpj_fornecedor("1A2B3C4D5E6") == "1A2XXXXXXE6"
+
+    def test_formato_alfanumerico_14_caracteres_anonimizado(self):
+        """Aceita formato alfanumérico com 14 caracteres."""
+        # 14 caracteres: AB123456780099
+        assert anonimizar_cpf_cnpj_fornecedor("AB123456780099") == "AB1XXXXXXXXX99"
+        assert anonimizar_cpf_cnpj_fornecedor("11.478.276/0001-04") == "114XXXXXXXXX04"
