@@ -9,6 +9,7 @@ from sme_ptrf_apps.core.services.arquivo_download_service import (
     gerar_arquivo_download
 )
 from sme_ptrf_apps.utils.built_in_custom import get_recursive_attr
+from sme_ptrf_apps.utils.anonimizar_cpf_cnpj import anonimizar_cpf_cnpj_fornecedor
 
 from tempfile import NamedTemporaryFile
 
@@ -72,13 +73,22 @@ class ExportacoesDocumentosDespesasService:
         data_final = datetime.strptime(self.data_final, "%Y-%m-%d").strftime("%d/%m/%Y") if self.data_final else None
 
         if data_inicio and data_final:
-            return f"Filtro aplicado: {data_inicio} a {data_final} (data de criação do registro)"
+            return (
+                "Filtro aplicado: "
+                f"{data_inicio} a {data_final} (data de criação do registro)"
+            )
 
         if data_inicio and not data_final:
-            return f"Filtro aplicado: A partir de {data_inicio} (data de criação do registro)"
+            return (
+                "Filtro aplicado: "
+                f"A partir de {data_inicio} (data de criação do registro)"
+            )
 
         if data_final and not data_inicio:
-            return f"Filtro aplicado: Até {data_final} (data de criação do registro)"
+            return (
+                "Filtro aplicado: "
+                f"Até {data_final} (data de criação do registro)"
+            )
 
         return ""
 
@@ -111,7 +121,10 @@ class ExportacoesDocumentosDespesasService:
 
         for instance in self.queryset:
 
-            logger.info(f"Iniciando extração de dados de despesas, despesa id: {instance.id}.")
+            logger.info(
+                "Iniciando extração de dados de despesas, despesa id: %s.",
+                instance.id,
+            )
             linha_horizontal = []
 
             motivos = list(instance.motivos_pagamento_antecipado.all())
@@ -130,6 +143,12 @@ class ExportacoesDocumentosDespesasService:
                 if campo == "associacao__unidade__dre__nome":
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "cpf_cnpj_fornecedor":
+                    campo = get_recursive_attr(instance, campo)
+                    valor_anonimizado = anonimizar_cpf_cnpj_fornecedor(campo) if campo else ""
+                    linha_horizontal.append(valor_anonimizado)
                     continue
 
                 if campo == "nome_fornecedor":
@@ -215,15 +234,30 @@ class ExportacoesDocumentosDespesasService:
                     continue
 
                 if campo == "motivos":
-                    motivos_limpos = [str(motivo).replace("\n", " ").replace("\r", " ") for motivo in motivos]
+                    motivos_limpos = [
+                        str(motivo).replace("\n", " ").replace("\r", " ")
+                        for motivo in motivos
+                    ]
                     motivo_string = '; '.join(motivos_limpos)
-                    
-                    if (len(motivo_string)):
-                        outros_limpo = instance.outros_motivos_pagamento_antecipado.replace("\n", " ").replace("\r", " ")
+
+                    if len(motivo_string):
+                        outros_limpo = (
+                            instance.outros_motivos_pagamento_antecipado.replace(
+                                "\n", " "
+                            ).replace("\r", " ")
+                        )
                         motivo_string = motivo_string + '; ' + outros_limpo
-                    elif (len(instance.outros_motivos_pagamento_antecipado)):
-                        motivo_string = instance.outros_motivos_pagamento_antecipado.replace("\n", " ").replace("\r", " ")
-                    motivo_string = motivo_string.replace("\n", " ").replace("\r", " ").replace(";", ",")
+                    elif len(instance.outros_motivos_pagamento_antecipado):
+                        motivo_string = (
+                            instance.outros_motivos_pagamento_antecipado.replace(
+                                "\n", " "
+                            ).replace("\r", " ")
+                        )
+                    motivo_string = (
+                        motivo_string.replace("\n", " ")
+                        .replace("\r", " ")
+                        .replace(";", ",")
+                    )
                     linha_horizontal.append(motivo_string)
                     continue
 
@@ -235,10 +269,17 @@ class ExportacoesDocumentosDespesasService:
                 campo = get_recursive_attr(instance, campo)
                 linha_horizontal.append(campo)
 
-            logger.info(f"Escrevendo linha {linha_horizontal} de despesas, despesa id: {instance.id}.")
+            logger.info(
+                "Escrevendo linha %s de despesas, despesa id: %s.",
+                linha_horizontal,
+                instance.id,
+            )
             linhas_vertical.append(linha_horizontal)
 
-            logger.info(f"Finalizando extração de dados de despesas, despesa id: {instance.id}.")
+            logger.info(
+                "Finalizando extração de dados de despesas, despesa id: %s.",
+                instance.id,
+            )
 
         return linhas_vertical
 
@@ -266,7 +307,7 @@ class ExportacoesDocumentosDespesasService:
         return self.queryset
 
     def cria_registro_central_download(self):
-        logger.info(f"Criando registro na central de download")
+        logger.info("Criando registro na central de download")
         obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo,
