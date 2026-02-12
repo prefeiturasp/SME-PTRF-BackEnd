@@ -24,7 +24,7 @@ from sme_ptrf_apps.users.permissoes import (
 from ..serializers import ReceitaCreateSerializer, ReceitaListaSerializer, TipoReceitaEDetalhesSerializer
 from ...services import atualiza_repasse_para_pendente, get_total_receita_sem_filtro, get_total_receita_com_filtro
 from ...tipos_aplicacao_recurso_receitas import aplicacoes_recurso_to_json
-from ....core.models import Associacao, Periodo
+from ....core.models import Associacao, Periodo, Recurso
 from ....despesas.models import Despesa
 
 logger = logging.getLogger(__name__)
@@ -63,6 +63,10 @@ class ReceitaViewSet(mixins.CreateModelMixin,
 
         qs = Receita.completas.filter(associacao__uuid=associacao_uuid).all().order_by('-data')
 
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+
+        qs = Receita.filter_by_recurso(qs, recurso_uuid)
+
         data_inicio = self.request.query_params.get('data_inicio')
         data_fim = self.request.query_params.get('data_fim')
         if data_inicio is not None and data_fim is not None:
@@ -98,7 +102,13 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         associacao_uuid = request.query_params.get('associacao_uuid')
         associacao = Associacao.by_uuid(associacao_uuid)
 
-        qs = ValidaPeriodosReceitaAssociacaoEncerrada(associacao=associacao).response
+        try:
+            recurso_uuid = request.query_params.get('recurso_uuid')
+            recurso = Recurso.by_uuid(recurso_uuid)
+        except Exception:
+            recurso = None
+
+        qs = ValidaPeriodosReceitaAssociacaoEncerrada(associacao=associacao, recurso=recurso).response
 
         return Response(PeriodoLookUpSerializer(qs, many=True).data, status=status.HTTP_200_OK)
 
@@ -177,7 +187,12 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         associacao = Associacao.by_uuid(associacao_uuid)
-        queryset = Receita.completas.filter(associacao=associacao).all()
+
+        queryset = Receita.completas.filter(associacao=associacao)
+
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+
+        queryset = Receita.filter_by_recurso(queryset, recurso_uuid)
 
         result = {
             "associacao_uuid": f'{associacao_uuid}',
@@ -212,6 +227,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     def tabelas(self, request):
 
         associacao_uuid = request.query_params.get('associacao_uuid')
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
 
         if associacao_uuid is None:
             erro = {
@@ -224,12 +240,25 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             valores = serializer.Meta.model.get_valores(user=request.user, associacao_uuid=associacao_uuid)
             return serializer(valores, many=True).data if valores else []
 
+        def get_valores_from_do_recurso(serializer, associacao_uuid, recurso_uuid=None):
+            model = serializer.Meta.model
+
+            valores = model.get_valores(
+                user=request.user,
+                associacao_uuid=associacao_uuid
+            )
+
+            if recurso_uuid and hasattr(model, "filter_by_recurso"):
+                valores = model.filter_by_recurso(valores, recurso_uuid)
+
+            return serializer(valores, many=True).data if valores else []
+
         result = {
             'tipos_receita': get_valores_from(TipoReceitaEDetalhesSerializer, associacao_uuid=associacao_uuid),
             'categorias_receita': aplicacoes_recurso_to_json(),
-            'acoes_associacao': get_valores_from(AcaoAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid),
-            'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid),
-            'periodos': get_valores_from(PeriodoLookUpSerializer, associacao_uuid=associacao_uuid),
+            'acoes_associacao': get_valores_from_do_recurso(AcaoAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid, recurso_uuid=recurso_uuid),
+            'contas_associacao': get_valores_from_do_recurso(ContaAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid, recurso_uuid=recurso_uuid),
+            'periodos': get_valores_from_do_recurso(PeriodoLookUpSerializer, associacao_uuid=associacao_uuid, recurso_uuid=recurso_uuid)
         }
 
         return Response(result)

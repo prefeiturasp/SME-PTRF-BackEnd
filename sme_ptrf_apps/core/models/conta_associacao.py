@@ -489,6 +489,10 @@ class ContaAssociacao(ModeloBase):
             query = query.filter(associacao__uuid=associacao_uuid)
         return query.all()
 
+    @classmethod
+    def filter_by_recurso(cls, queryset, recurso_uuid):
+        return queryset.filter(tipo_conta__recurso__uuid=recurso_uuid)
+
     class Meta:
         verbose_name = "Conta de Associação"
         verbose_name_plural = "07.1) Contas de Associações"

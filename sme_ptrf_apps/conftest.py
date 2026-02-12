@@ -13,7 +13,8 @@ from .core.models import (
     ContaAssociacao,
     SolicitacaoEncerramentoContaAssociacao,
     STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO,
-    TipoAcertoDocumento
+    TipoAcertoDocumento,
+    Recurso
 )
 from .core.models.prestacao_conta import PrestacaoConta
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
@@ -802,8 +803,8 @@ def acao_associacao_role_cultural(associacao, acao_role_cultural):
 
 
 @pytest.fixture
-def recurso_legado(recurso_factory):
-    return recurso_factory.objects.filter(legado=True)
+def recurso_legado():
+    return Recurso.objects.get(legado=True)
 
 
 @pytest.fixture
