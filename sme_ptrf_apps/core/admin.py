@@ -218,7 +218,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
     def get_periodo_inicial_referencia(self, obj):
         return obj.periodo_inicial.referencia if obj and obj.periodo_inicial else ''
 
-    get_periodo_inicial_referencia.short_description = 'Período Inicial do PTRF'
+    get_periodo_inicial_referencia.short_description = 'Período Inicial do recurso legado'
 
     list_display = ('nome', 'cnpj', 'get_nome_escola', 'get_periodo_inicial_referencia',
                     'data_de_encerramento', 'migrada_para_historico_de_membros')
