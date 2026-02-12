@@ -10,7 +10,7 @@ Funcionalidade: Cadastro fornecedor
     E clico na opcao "Fornecedores" com a visao SME
     E clico no botao "Adicionar fornecedor" da tela Fornecedores
     E informo dado nos campos "<nome_do_fornecedor>" e "<cpf_cnpj>"
-    E clico no botao "Salvar" da tela tipo de conta
+    E clico no botao "Salvar" da tela Fornecedores
     Quando sistema apresenta a '<mensagem>' na tela
     Entao excluo o fornecedor com o nome "teste automatizado" do banco de dados
 

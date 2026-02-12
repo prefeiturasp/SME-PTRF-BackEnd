@@ -14,8 +14,14 @@ Cypress.Commands.add('clicar_btn_fornecedores', (btn_fornecedores, nome_tabela_e
 			cy.get(fornecedores_Localizadores.btn_apagar_fornecedores()).click()
 			break
 		case 'Editar':
-			cy.get(fornecedores_Localizadores.btn_editar_fornecedores()).click()
-			break
+				if (nome_tabela_edicao) {
+					cy.contains(nome_tabela_edicao).closest('tr').within(() => {
+						cy.get(fornecedores_Localizadores.btn_editar_fornecedores()).click()
+					})
+				} else {
+					cy.get(fornecedores_Localizadores.btn_editar_fornecedores()).click()
+				}
+				break
 		case 'Excluir':
 			cy.get(fornecedores_Localizadores.btn_excluir_fornecedores()).click()
 			break

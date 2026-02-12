@@ -12,7 +12,7 @@ Funcionalidade: Editar fornecedor
     E clico na opcao "Fornecedores" com a visao SME
     E informo dado nos campos "<nome_do_fornecedor>" e "<cpf_cnpj>" para pesquisa na tela de Fornecedores
     E clico no botao "Filtrar" da tela Fornecedores
-    E clico no botao "Editar" da tela fornecedor na tabela com a opcao 'teste automatizado'
+    E clico no botao "Editar" da tela fornecedor na tabela com a opcao 'testes automatizado'
     E informo dado nos campos "<nome_do_fornecedor_editado>" e "<cpf_cnpj_editado>"
     E clico no botao "Salvar" da tela Fornecedores
     Quando sistema apresenta a '<mensagem>' na tela
