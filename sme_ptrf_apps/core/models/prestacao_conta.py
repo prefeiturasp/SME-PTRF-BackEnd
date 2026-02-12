@@ -121,9 +121,6 @@ class PrestacaoConta(ModeloBase):
         default=None
     )
 
-    processando_demonstrativo = models.BooleanField('Processando Relatório Demonstrativo', default=False)
-    processando_demonstrativo_desde = models.DateTimeField(null=True, blank=True)
-
     @property
     def devolvida_para_acertos(self):
         return self.status == PrestacaoConta.STATUS_DEVOLVIDA
