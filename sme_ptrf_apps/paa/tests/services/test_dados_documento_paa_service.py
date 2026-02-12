@@ -14,6 +14,7 @@ from sme_ptrf_apps.paa.services.dados_documento_paa_service import (
 )
 
 
+@patch("sme_ptrf_apps.paa.services.dados_documento_paa_service.ParametroPaa", autospec=True)
 @patch("sme_ptrf_apps.paa.services.dados_documento_paa_service.cria_presidente_diretoria_executiva", autospec=True)
 @patch("sme_ptrf_apps.paa.services.dados_documento_paa_service.criar_recursos_proprios", autospec=True)
 @patch("sme_ptrf_apps.paa.services.dados_documento_paa_service.criar_atividades_estatutarias", autospec=True)
@@ -30,12 +31,18 @@ def test_gerar_dados_documento_paa(
     mock_grupos,
     mock_atividades,
     mock_recursos,
-    mock_presidente
+    mock_presidente,
+    mock_parametro_paa,
 ):
     paa = MagicMock()
     usuario = MagicMock()
 
-    mock_plano_service.return_value.construir_plano_orcamentario.return_value = {"secoes": []}
+    # mock plano
+    mock_plano_service.return_value.construir_plano_orcamentario.return_value = {
+        "secoes": []
+    }
+
+    # mock funções auxiliares
     mock_cabecalho.return_value = "CAB"
     mock_identificacao.return_value = "ASSOC"
     mock_data.return_value = "DATA"
@@ -43,6 +50,12 @@ def test_gerar_dados_documento_paa(
     mock_atividades.return_value = "ATIV"
     mock_recursos.return_value = "REC"
     mock_presidente.return_value = "PRES"
+
+    # mock ParametroPaa.objects.all().first()
+    mock_param = MagicMock()
+    mock_param.introducao_do_paa_ue_2 = "PRE_INTRO"
+    mock_param.conclusao_do_paa_ue_2 = "POS_CONC"
+    mock_parametro_paa.objects.all.return_value.first.return_value = mock_param
 
     paa.objetivos.all.return_value = ["OBJ1", "OBJ2"]
     paa.texto_introducao = "INTRO"
@@ -62,24 +75,14 @@ def test_gerar_dados_documento_paa(
     assert result["cabecalho"] == "CAB"
     assert result["identificacao_associacao"] == "ASSOC"
     assert result["data_geracao_documento"] == "DATA"
+    assert result["texto_pre_introducao"] == "PRE_INTRO"
     assert result["texto_introducao"] == "INTRO"
     assert list(result["objetivos"]) == ["OBJ1", "OBJ2"]
     assert result["grupos_prioridades"] == "GRUPOS"
-    assert result["receitas_previstas"] == {
-        "items": [],
-        "total_receitas": 0,
-        "total_despesas": 0,
-        "total_saldo": 0,
-    }
-    assert result["receitas_previstas_pdde"] == {
-        "items": [],
-        "total_receitas": 0,
-        "total_despesas": 0,
-        "total_saldo": 0,
-    }
     assert result["atividades_estatutarias"] == "ATIV"
     assert result["recursos_proprios"] == "REC"
     assert result["texto_conclusao"] == "CONC"
+    assert result["texto_pos_conclusao"] == "POS_CONC"
     assert result["presidente_diretoria_executiva"] == "PRES"
     assert result["previa"] is True
 
