@@ -184,13 +184,13 @@ def tipo_conta_cartao_incompleta(tipo_conta_factory):
 
 
 @pytest.fixture
-def tipo_conta_teste(tipo_conta_factory, recurso_legado):
-    return tipo_conta_factory(nome='Teste', recurso=recurso_legado)
+def tipo_conta_teste(tipo_conta_factory):
+    return tipo_conta_factory(nome='Teste')
 
 
 @pytest.fixture
-def acao(acao_factory, recurso_legado):
-    return acao_factory(nome="PTRF", recurso=recurso_legado)
+def acao(acao_factory):
+    return acao_factory(nome="PTRF")
 
 
 @pytest.fixture
