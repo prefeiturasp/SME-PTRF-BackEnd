@@ -737,7 +737,7 @@ class ConciliacoesViewSet(GenericViewSet):
         if prestacao:
             erro = {
                 'erro': 'periodo_bloqueado.',
-                'mensagem': "Não é possível realizar conciliação de depesa. A prestação de contas já foi iniciada"
+                'mensagem': "Não é possível realizar conciliação de despesa. A prestação de contas já foi iniciada"
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -822,7 +822,7 @@ class ConciliacoesViewSet(GenericViewSet):
         if prestacao:
             erro = {
                 'erro': 'periodo_bloqueado.',
-                'mensagem': "Não é possível realizar desconciliação de depesa. A prestação de contas já foi iniciada"
+                'mensagem': "Não é possível realizar desconciliação de despesa. A prestação de contas já foi iniciada"
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)

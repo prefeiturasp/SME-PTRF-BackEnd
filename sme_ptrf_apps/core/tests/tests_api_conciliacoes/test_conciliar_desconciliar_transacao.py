@@ -131,7 +131,7 @@ def test_api_nao_deve_conciliar_transacao_quando_prestacao_existente(
 
     esperado = {
         'erro': 'periodo_bloqueado.',
-        'mensagem': "Não é possível realizar conciliação de depesa. A prestação de contas já foi iniciada"
+        'mensagem': "Não é possível realizar conciliação de despesa. A prestação de contas já foi iniciada"
     }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -154,7 +154,7 @@ def test_api_nao_deve_desconciliar_transacao_quando_prestacao_existente(
 
     esperado = {
         'erro': 'periodo_bloqueado.',
-        'mensagem': "Não é possível realizar desconciliação de depesa. A prestação de contas já foi iniciada"
+        'mensagem': "Não é possível realizar desconciliação de despesa. A prestação de contas já foi iniciada"
     }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
