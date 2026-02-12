@@ -66,9 +66,10 @@ class PrestacaoContaService:
         identificacao_periodo = f'P:{self._periodo.referencia}' if self._periodo else ''
         identificacao_prestacao = f'ID:{self._prestacao.id}' if self._prestacao else ''
         identificacao_analise_pc = f'AN:{self.analise_atual_id}'
+        idf = f'{identificacao_unidade}-{identificacao_periodo}-{identificacao_prestacao}-{identificacao_analise_pc}'
         self.logger.update_context(
             operacao='Prestação de Contas',
-            operacao_id=f'{identificacao_unidade}-{identificacao_periodo}-{identificacao_prestacao}-{identificacao_analise_pc}',
+            operacao_id=idf,
             username=self._username,
         )
 
@@ -100,7 +101,8 @@ class PrestacaoContaService:
     def pc_e_devolucao_com_solicitacoes_mudanca(self):
         if self._e_retorno_devolucao:
             ultima_analise = self._prestacao.analises_da_prestacao.last()
-            return ultima_analise is not None and ultima_analise.verifica_se_requer_alteracao_em_lancamentos(considera_realizacao=False)
+            return ultima_analise is not None and ultima_analise.verifica_se_requer_alteracao_em_lancamentos(
+                considera_realizacao=False)
         else:
             return False
 
@@ -108,7 +110,8 @@ class PrestacaoContaService:
     def pc_e_devolucao_com_solicitacoes_mudanca_realizadas(self):
         if self._e_retorno_devolucao:
             ultima_analise = self._prestacao.analises_da_prestacao.last()
-            return ultima_analise is not None and ultima_analise.verifica_se_requer_alteracao_em_lancamentos(considera_realizacao=True)
+            return ultima_analise is not None and ultima_analise.verifica_se_requer_alteracao_em_lancamentos(
+                considera_realizacao=True)
         else:
             return False
 
@@ -142,7 +145,9 @@ class PrestacaoContaService:
         Nesses casos, os originais precisam ser apagados para que os novos sejam gerados.
         """
         return self.e_retorno_devolucao and (
-            self.pc_e_devolucao_com_solicitacoes_mudanca_realizadas or self.pc_e_devolucao_com_solicitacao_acerto_em_extrato)
+            self.pc_e_devolucao_com_solicitacoes_mudanca_realizadas or
+            self.pc_e_devolucao_com_solicitacao_acerto_em_extrato
+        )
 
     @property
     def requer_criar_fechamentos(self):
@@ -163,7 +168,9 @@ class PrestacaoContaService:
         Além disso, qualquer prévia de documento deve ser apagada, nas mesmas situações.
         """
         return (not self.e_retorno_devolucao) or (
-            self.pc_e_devolucao_com_solicitacoes_mudanca_realizadas or self.pc_e_devolucao_com_solicitacao_acerto_em_extrato)
+            self.pc_e_devolucao_com_solicitacoes_mudanca_realizadas or
+            self.pc_e_devolucao_com_solicitacao_acerto_em_extrato
+        )
 
     @property
     def analise_atual_id(self):
@@ -315,9 +322,9 @@ class PrestacaoContaService:
 
                 if reaberta:
                     self.logger.info(
-                        f"PC reaberta com sucesso. Todos os seus registros foram apagados.")
+                        "PC reaberta com sucesso. Todos os seus registros foram apagados.")
                 else:
-                    self.logger.warning(f"Houve algum erro ao tentar reabrir a PC.")
+                    self.logger.warning("Houve algum erro ao tentar reabrir a PC.")
 
         except Exception as e:
             self.logger.error(f"Houve algum erro ao no registro de falha da PC. {e}", exc_info=True, stack_info=True)
@@ -347,7 +354,7 @@ class PrestacaoContaService:
         if not self._prestacao:
             raise Exception(f"Não existe PC para o período {self._periodo} e associação {self._associacao}.")
 
-        self.logger.info(f'Terminando processo da PC...')
+        self.logger.info('Terminando processo da PC...')
 
         calculo_concluido = self._prestacao.status in [
             PrestacaoConta.STATUS_CALCULADA, PrestacaoConta.STATUS_DEVOLVIDA_CALCULADA]
@@ -364,10 +371,12 @@ class PrestacaoContaService:
                 break
 
         self.logger.info(
-            f'Todos os demonstrativos financeiros da PC {self._prestacao} estão concluídos? {demonstrativos_concluidos}')
-
+            f'Todos os demonstrativos financeiros da PC {self._prestacao} '
+            f'estão concluídos? {demonstrativos_concluidos}'
+        )
         # Verificar se todos os relatórios de bens da prestacao de contas foram concluídos
-        relatorios_concluidos = True  # Não é obrigatório ter relatórios de bens, mas se tiver, todos devem estar concluídos
+        relatorios_concluidos = True  # Não é obrigatório ter relatórios de bens,
+        # mas se tiver, todos devem estar concluídos
         for relatorio in self._prestacao.relacoes_de_bens_da_prestacao.all():
             if relatorio.status != RelacaoBens.STATUS_CONCLUIDO:
                 self.logger.info(f'Relatório de bens {relatorio} não está concluído.')
@@ -379,7 +388,11 @@ class PrestacaoContaService:
 
         if calculo_concluido and demonstrativos_concluidos and relatorios_concluidos:
             self.logger.info(f'Terminando o processo da PC {self._prestacao}...')
-            self._prestacao.status = PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA if self.e_retorno_devolucao else PrestacaoConta.STATUS_NAO_RECEBIDA
+            self._prestacao.status = (
+                PrestacaoConta.STATUS_DEVOLVIDA_RETORNADA
+                if self.e_retorno_devolucao
+                else PrestacaoConta.STATUS_NAO_RECEBIDA
+            )
             self._prestacao.save()
 
             self.set_despesa_anterior_ao_uso_do_sistema_pc_concluida()
@@ -390,7 +403,7 @@ class PrestacaoContaService:
         else:
             self.logger.warning(f'Houve um problema no processo da PC {self._prestacao}.')
             self.trata_falha_processo_pc()
-            self.logger.warning(f'Feito o roll back do cálculo para a situação antes do início do processo de PC.')
+            self.logger.warning('Feito o roll back do cálculo para a situação antes do início do processo de PC.')
 
     def iniciar_tasks_de_conclusao_de_pc(self, usuario, justificativa_acertos_pendentes):
         from sme_ptrf_apps.core.tasks import (
@@ -437,7 +450,7 @@ class PrestacaoContaService:
             prestacao_conta=self._prestacao,
         )
 
-        self.logger.info(f'Criando Celery Chain.', extra={
+        self.logger.info('Criando Celery Chain.', extra={
                          'observacao': f'Parâmetro retorno de devolução = {self.e_retorno_devolucao}'})
         chain_tasks = chain(
             calcular_prestacao_de_contas_async.s(
@@ -524,7 +537,7 @@ class PrestacaoContaService:
                 observacao.save()
 
     def criar_fechamentos(self):
-        self.logger.info(f'Criando fechamentos.')
+        self.logger.info('Criando fechamentos.')
         for conta in self.contas:
             self.logger.info(f'Criando fechamentos da conta {conta}.')
             for acao in self.acoes:
@@ -569,14 +582,14 @@ class PrestacaoContaService:
 
     def apagar_previas_documentos(self):
         from ..services.relacao_bens import apagar_previas_relacao_de_bens
-        self.logger.info(f'Apagando prévias de documentos...')
+        self.logger.info('Apagando prévias de documentos...')
         for conta in self.contas:
             self.logger.info(f'Apagando prévias de relações de bens da conta {conta}.')
             apagar_previas_relacao_de_bens(periodo=self.periodo, conta_associacao=conta)
 
             self.logger.info(f'Apagando prévias demonstrativo financeiro da conta {conta}.')
             DemonstrativoFinanceiro.objects.filter(periodo_previa=self.periodo, conta_associacao=conta).delete()
-        self.logger.info(f'Prévias de documentos apagadas.')
+        self.logger.info('Prévias de documentos apagadas.')
 
     def contas_com_saldo_alterado_sem_solicitacao(self):
         from sme_ptrf_apps.core.services.resumo_rescursos_service import ResumoRecursosService
@@ -620,9 +633,15 @@ class PrestacaoContaService:
 
     def validar_geracao_pc_periodo_anterior(self):
         if self.periodo and self.periodo.periodo_anterior:
-            pc_periodo_anterior_gerada = self.associacao.prestacoes_de_conta_da_associacao.filter(
+            pc_anteriores_associacao = self.associacao.prestacoes_de_conta_da_associacao.all()
+
+            if pc_anteriores_associacao.count() == 0:
+                return True
+
+            pc_periodo_anterior_gerada = pc_anteriores_associacao.filter(
                 periodo=self.periodo.periodo_anterior
             )
+
             if not pc_periodo_anterior_gerada.exists():
                 return False
 
