@@ -10,11 +10,11 @@ def _make_service():
     return PlanoOrcamentarioService(paa=None)
 
 
-def test_calcular_secao_ptrf_mantem_acoes_mesmo_sem_valores():
+def test_calcular_secao_ptrf_exclui_acoes_com_receita_zerada():
     """
     Garante que _calcular_secao_ptrf:
-    - mantém ações mesmo quando todos os valores estão zerados;
-    - adiciona linha de TOTAL somando as ações consideradas.
+    - não exibe linha da ação quando capital, custeio e livre aplicação estão zerados;
+    - adiciona linha de TOTAL somando apenas as ações com receita.
     """
     service = _make_service()
 
@@ -39,7 +39,7 @@ def test_calcular_secao_ptrf_mantem_acoes_mesmo_sem_valores():
                 "saldo_atual_livre": 0,
             },
         },
-        # Ação 2 totalmente zerada deve continuar aparecendo zerada
+        # Ação 2 totalmente zerada não deve aparecer
         {
             "uuid": uuid2,
             "acao": {"nome": "Ação 2"},
@@ -70,25 +70,53 @@ def test_calcular_secao_ptrf_mantem_acoes_mesmo_sem_valores():
     secao = service._calcular_secao_ptrf(receitas_ptrf, prioridades_ptrf)
 
     assert secao["key"] == "ptrf"
-    # 2 linhas de ação + 1 linha TOTAL
-    assert len(secao["linhas"]) == 3
+    # 1 linha de ação (apenas Ação 1) + 1 linha TOTAL
+    assert len(secao["linhas"]) == 2
 
     linha_acao1 = next(linha for linha in secao["linhas"] if linha["key"] == uuid1)
-    linha_acao2 = next(linha for linha in secao["linhas"] if linha["key"] == uuid2)
     linha_total = next(linha for linha in secao["linhas"] if linha.get("isTotal"))
 
     assert linha_acao1["nome"] == "Ação 1"
     # Receita total da ação 1 = 100 (custeio) + 50 (capital)
     assert linha_acao1["receitas"]["total"] == pytest.approx(150.0)
 
-    # Ação 2 deve aparecer totalmente zerada
-    assert linha_acao2["receitas"]["total"] == pytest.approx(0.0)
+    # Ação 2 não deve aparecer (receita zerada)
+    assert not any(linha["key"] == uuid2 for linha in secao["linhas"])
 
     assert linha_total["isTotal"] is True
-    # Total da seção deve ser a soma das duas ações (150 + 0)
-    assert linha_total["receitas"]["total"] == pytest.approx(
-        linha_acao1["receitas"]["total"]
-    )
+    # Total da seção deve ser apenas da ação 1 (150)
+    assert linha_total["receitas"]["total"] == pytest.approx(150.0)
+
+
+def test_calcular_secao_ptrf_retorna_none_quando_todas_acoes_sem_receita():
+    """
+    Quando todas as ações PTRF têm receita zerada (capital, custeio e livre),
+    a seção PTRF não deve ser criada (retorna None).
+    """
+    service = _make_service()
+
+    receitas_ptrf = [
+        {
+            "uuid": "acao-1",
+            "acao": {"nome": "Ação 1"},
+            "receitas_previstas_paa": [
+                {
+                    "previsao_valor_custeio": 0,
+                    "previsao_valor_capital": 0,
+                    "previsao_valor_livre": 0,
+                }
+            ],
+            "saldos": {
+                "saldo_atual_custeio": 0,
+                "saldo_atual_capital": 0,
+                "saldo_atual_livre": 0,
+            },
+        },
+    ]
+
+    secao = service._calcular_secao_ptrf(receitas_ptrf, {})
+
+    assert secao is None
 
 
 def test_calcular_secao_pdde_respeita_flags_aceita():

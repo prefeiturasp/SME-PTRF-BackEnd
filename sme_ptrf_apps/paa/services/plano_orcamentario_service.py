@@ -549,6 +549,11 @@ class PlanoOrcamentarioService:
 
         for receita in receitas_ptrf:
             receita_valores = self._calcular_receita_base(receita)
+            if (receita_valores['custeio'] == Decimal('0') and
+                    receita_valores['capital'] == Decimal('0') and
+                    receita_valores['livre'] == Decimal('0')):
+                continue
+
             despesas_raw = prioridades_ptrf.get(receita['uuid'], {})
             despesa_custeio = Decimal(str(despesas_raw.get('custeio', 0) or 0))
             despesa_capital = Decimal(str(despesas_raw.get('capital', 0) or 0))
