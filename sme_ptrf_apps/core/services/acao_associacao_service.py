@@ -1,6 +1,12 @@
-def checa_se_pode_alterar_recurso(acao):
+from django.core.exceptions import ValidationError
+
+
+def validar_troca_recurso(acao, recurso_novo):
     if not acao.pk:
-        return True
+        return
+
+    if acao.recurso_id == recurso_novo.id:
+        return
 
     verificacoes = [
         acao.associacoes_da_acao.exists(),
@@ -13,5 +19,7 @@ def checa_se_pode_alterar_recurso(acao):
         acao.associacoes_da_acao.filter(repasses_da_associacao__isnull=False).exists()
     ]
 
-    # se pelo menos algum item de verificacoes existir, retorna True
-    return not any(verificacoes)
+    if not any(verificacoes):
+        raise ValidationError(
+            "Não é possível alterar o recurso de uma ação já utilizada."
+        )

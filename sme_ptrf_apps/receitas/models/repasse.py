@@ -1,6 +1,7 @@
 from enum import Enum
 
 from django.db import models
+from django.db.models import Q
 
 from sme_ptrf_apps.core.models import Associacao, Periodo
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
@@ -12,6 +13,7 @@ from auditlog.registry import auditlog
 class StatusRepasse(Enum):
     PENDENTE = 'Previsto'
     REALIZADO = 'Realizado'
+
 
 STATUS_CHOICES = (
     (StatusRepasse.PENDENTE.name, StatusRepasse.PENDENTE.value),
@@ -108,7 +110,6 @@ class Repasse(ModeloBase):
 
         return campos_editaveis
 
-
     @classmethod
     def repasses_pendentes_da_acao_associacao_no_periodo(cls, acao_associacao, periodo, conta_associacao=None):
 
@@ -127,6 +128,17 @@ class Repasse(ModeloBase):
         } for choice in STATUS_CHOICES]
 
         return result
+
+    @classmethod
+    def filter_by_recurso(cls, queryset, recurso_uuid):
+        if not recurso_uuid:
+            return queryset
+
+        return queryset.filter(
+            Q(acao_associacao__acao__recurso__uuid=recurso_uuid) |
+            Q(conta_associacao__tipo_conta__recurso__uuid=recurso_uuid) |
+            Q(periodo__recurso__uuid=recurso_uuid)
+        ).distinct()
 
 
 auditlog.register(Repasse)

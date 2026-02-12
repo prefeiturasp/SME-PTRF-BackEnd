@@ -3,21 +3,18 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-from waffle.mixins import WaffleFlagMixin
 
 from sme_ptrf_apps.core.models import Recurso
 from ..serializers.recurso_serializer import RecursoSerializer
 from sme_ptrf_apps.core.services.recursos_service import RecursoService
 
 
-class RecursoViewSet(WaffleFlagMixin,
-                     ModelViewSet):
+class RecursoViewSet(ModelViewSet):
 
     lookup_field = 'uuid'
     queryset = Recurso.objects.filter(ativo=True).order_by('nome')
     permission_classes = [IsAuthenticated]
     serializer_class = RecursoSerializer
-    waffle_flag = "premio-excelencia"
 
     @action(detail=False, methods=['get'], url_path='por-unidade')
     def por_unidade(self, request):

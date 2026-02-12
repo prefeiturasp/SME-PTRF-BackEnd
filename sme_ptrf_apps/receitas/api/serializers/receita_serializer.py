@@ -73,6 +73,9 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
         if conta_associacao.inativa and not self.initial_data['origem_analise_lancamento']:
             raise serializers.ValidationError({"mensagem": "Não é permitido criar/editar receita com conta inativada."})
 
+        if data['conta_associacao'].tipo_conta.recurso != data['acao_associacao'].acao.recurso:
+            raise serializers.ValidationError({"mensagem": "Conta e Ação devem ser do mesmo recurso."})        
+
         return data
 
     def create(self, validated_data):
