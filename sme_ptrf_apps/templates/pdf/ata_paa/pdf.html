@@ -61,8 +61,19 @@
 {# ************************* Fim Rodape ************************* #}
 
 <section class="conteudo">
-  {# Bloco 1 - Identificação da Associação #}
-  {% include "./partials/bloco-identificacao-associacao.html" %}
+
+  {# Titulo #}
+  <section class="row">
+    <article class="col border p-0">
+        <div class="col-12">     
+        <p class="font-12 texto-justificado pb-2 mb-0">
+            <strong class="p-0">
+                Ata de Reunião Conjunta {{ dados.dados_texto_da_ata.tipo_reuniao }} do Conselho de Escola e da Associação de Pais e Mestres da(o) {{ dados.dados_texto_da_ata.unidade_tipo }} {{ dados.dados_texto_da_ata.unidade_nome }}
+            </strong>
+        </p>
+        </div>
+    </article>
+  </section>  
 
   {# Bloco 2 - Introdução #}
   {% include "./partials/bloco-introducao.html" %}
