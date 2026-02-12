@@ -4,6 +4,7 @@ from django.db.models import Sum
 from sme_ptrf_apps.paa.utils import numero_decimal
 from sme_ptrf_apps.paa.models.atividade_estatutaria import AtividadeEstatutaria
 from sme_ptrf_apps.paa.models.prioridade_paa import PrioridadePaa
+from sme_ptrf_apps.paa.models.parametro_paa import ParametroPaa
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum
 from sme_ptrf_apps.paa.services.plano_orcamentario_service import PlanoOrcamentarioService
@@ -101,6 +102,7 @@ def _secao_plano_para_documento_receitas(secao):
 
 def gerar_dados_documento_paa(paa, usuario, previa=False):
     plano = PlanoOrcamentarioService(paa).construir_plano_orcamentario()
+    parametros_paa = ParametroPaa.objects.all().first()
     secoes_por_key = {s["key"]: s for s in plano["secoes"]}
 
     cabecalho = cria_cabecalho(paa.periodo_paa)
@@ -117,6 +119,7 @@ def gerar_dados_documento_paa(paa, usuario, previa=False):
         "cabecalho": cabecalho,
         "identificacao_associacao": identificacao_associacao,
         "data_geracao_documento": data_geracao_documento,
+        "texto_pre_introducao": parametros_paa.introducao_do_paa_ue_2 if parametros_paa else "",
         "texto_introducao": paa.texto_introducao if paa.texto_introducao else "",
         "objetivos": paa.objetivos.all(),
         "grupos_prioridades": grupos_prioridades,
@@ -125,6 +128,7 @@ def gerar_dados_documento_paa(paa, usuario, previa=False):
         "atividades_estatutarias": atividades_estatutarias,
         "recursos_proprios": recursos_proprios,
         "texto_conclusao": paa.texto_conclusao if paa.texto_conclusao else "",
+        "texto_pos_conclusao": parametros_paa.conclusao_do_paa_ue_2 if parametros_paa else "",
         "presidente_diretoria_executiva": presidente_diretoria_executiva,
         "previa": previa
     }

@@ -88,6 +88,7 @@
     <article id="bloco-2" class="col mb-3 border p-0">
       <p class="font-14 pt-1 pb-1 pl-2 border-bottom"><strong>Bloco 2 - Introdução</strong></p>
       <div class="col-12">
+        <p class="pb-2 mb-0">{{ dados.texto_pre_introducao|safe  }}</p>
         <p class="pb-2 mb-0">{{ dados.texto_introducao|safe  }}</p>
       </div>
     </article>
@@ -118,6 +119,7 @@
       <p class="font-14 pt-1 pb-1 pl-2 border-bottom"><strong>Bloco 7 - Conclusão</strong></p>
       <div class="col-12">
         <p class="pb-2 mb-0">{{ dados.texto_conclusao|safe  }}</p>
+        <p class="pb-2 mb-0">{{ dados.texto_pos_conclusao|safe  }}</p>
       </div>
     </article>
   </section>
