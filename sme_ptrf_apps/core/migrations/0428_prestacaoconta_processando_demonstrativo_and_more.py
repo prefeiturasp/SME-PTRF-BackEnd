@@ -10,16 +10,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AddField(
-            model_name="prestacaoconta",
-            name="processando_demonstrativo",
-            field=models.BooleanField(
-                default=False, verbose_name="Processando Relatório Demonstrativo"
-            ),
-        ),
-        migrations.AddField(
-            model_name="prestacaoconta",
-            name="processando_demonstrativo_desde",
-            field=models.DateTimeField(blank=True, null=True),
-        ),
+        
     ]
