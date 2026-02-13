@@ -44,13 +44,6 @@ def _secao_plano_para_documento_receitas(secao):
             total_saldo = linha["saldos"].get("total", 0)
             continue
         r = linha["receitas"]
-        receita_total = (
-            float(r.get("custeio", 0) or 0) +
-            float(r.get("capital", 0) or 0) +
-            float(r.get("livre", 0) or 0)
-        )
-        if receita_total == 0:
-            continue
         exibir_custeio = linha.get("exibirCusteio", True)
         exibir_capital = linha.get("exibirCapital", True)
         exibir_livre = linha.get("exibirLivre", True)

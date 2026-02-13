@@ -321,6 +321,9 @@ class PlanoOrcamentarioService:
             'uuid': RecursoOpcoesEnum.RECURSO_PROPRIO.name,
             'nome': 'Recursos Próprios',
             'tipo': 'RECURSO_PROPRIO',
+            'aceita_custeio': False,
+            'aceita_capital': False,
+            'aceita_livre': True,
             'receitas': {
                 'custeio': Decimal('0'),
                 'capital': Decimal('0'),
@@ -361,10 +364,14 @@ class PlanoOrcamentarioService:
             pl = agrega_livre['previsao_total'] or Decimal('0')
             valores_livre = sl + pl
 
+            outro_recurso = outro_recurso_periodo.outro_recurso
             receitas.append({
-                'uuid': str(outro_recurso_periodo.outro_recurso.uuid),
-                'nome': outro_recurso_periodo.outro_recurso.nome,
+                'uuid': str(outro_recurso.uuid),
+                'nome': outro_recurso.nome,
                 'tipo': 'OUTRO_RECURSO',
+                'aceita_custeio': bool(outro_recurso.aceita_custeio),
+                'aceita_capital': bool(outro_recurso.aceita_capital),
+                'aceita_livre': bool(outro_recurso.aceita_livre_aplicacao),
                 'receitas': {
                     'custeio': valores_custeio,
                     'capital': valores_capital,
@@ -444,28 +451,41 @@ class PlanoOrcamentarioService:
 
             saldo_valores = self._calcular_saldo(receita_valores, despesa_valores)
 
-            # Verifica se há algum valor em custeio, capital ou livre
-            tem_valor_custeio = any([
-                receita_valores['custeio'] != Decimal('0')
-            ])
-            tem_valor_capital = any([
-                receita_valores['capital'] != Decimal('0')
-            ])
-            tem_valor_livre = any([
-                receita_valores['livre'] != Decimal('0')
-            ])
+            # Exibir coluna apenas quando o recurso aceita aquele tipo
+            aceita_custeio = receita_item.get('aceita_custeio', False)
+            aceita_capital = receita_item.get('aceita_capital', False)
+            aceita_livre = receita_item.get('aceita_livre', False)
 
-            # Se não houver nenhum valor na ação, não adiciona a linha
-            if not (tem_valor_custeio or tem_valor_capital or tem_valor_livre):
+            # Incluir linha só se houver pelo menos um tipo aceito com valor (receita, despesa ou saldo)
+            tem_valor_custeio = (
+                receita_valores['custeio'] != Decimal('0') or
+                despesa_valores['custeio'] != Decimal('0') or
+                saldo_valores['custeio'] != Decimal('0')
+            )
+            tem_valor_capital = (
+                receita_valores['capital'] != Decimal('0') or
+                despesa_valores['capital'] != Decimal('0') or
+                saldo_valores['capital'] != Decimal('0')
+            )
+            tem_valor_livre = (
+                receita_valores['livre'] != Decimal('0') or
+                despesa_valores['livre'] != Decimal('0') or
+                saldo_valores['livre'] != Decimal('0')
+            )
+            if not (
+                (aceita_custeio and tem_valor_custeio) or
+                (aceita_capital and tem_valor_capital) or
+                (aceita_livre and tem_valor_livre)
+            ):
                 continue
             ocultar_custeio_capital = receita_item['tipo'] == 'RECURSO_PROPRIO'
 
             linhas.append({
                 'key': recurso_uuid,
                 'nome': receita_item['nome'],
-                'exibirCusteio': tem_valor_custeio,
-                'exibirCapital': tem_valor_capital,
-                'exibirLivre': tem_valor_livre,
+                'exibirCusteio': aceita_custeio,
+                'exibirCapital': aceita_capital,
+                'exibirLivre': aceita_livre,
                 'receitas': _converter_valores_para_float(receita_valores),
                 'despesas': _converter_valores_para_float(despesa_valores),
                 'saldos': _converter_valores_para_float(saldo_valores),
@@ -661,36 +681,35 @@ class PlanoOrcamentarioService:
 
             saldo_valores = self._calcular_saldo(receita_valores, despesa_valores)
 
-            # Exibir linha de categoria só se a ação aceita E tem valor (receita, despesa ou saldo)
+            # Incluir linha só se houver pelo menos um tipo aceito com valor (receita, despesa ou saldo)
             tem_valor_custeio = (
-                aceita_custeio and
-                (receita_valores['custeio'] != Decimal('0') or
-                 despesa_valores['custeio'] != Decimal('0') or
-                 saldo_valores['custeio'] != Decimal('0'))
+                receita_valores['custeio'] != Decimal('0') or
+                despesa_valores['custeio'] != Decimal('0') or
+                saldo_valores['custeio'] != Decimal('0')
             )
             tem_valor_capital = (
-                aceita_capital and
-                (receita_valores['capital'] != Decimal('0') or
-                 despesa_valores['capital'] != Decimal('0') or
-                 saldo_valores['capital'] != Decimal('0'))
+                receita_valores['capital'] != Decimal('0') or
+                despesa_valores['capital'] != Decimal('0') or
+                saldo_valores['capital'] != Decimal('0')
             )
             tem_valor_livre = (
-                aceita_livre and
-                (receita_valores['livre'] != Decimal('0') or
-                 despesa_valores['livre'] != Decimal('0') or
-                 saldo_valores['livre'] != Decimal('0'))
+                receita_valores['livre'] != Decimal('0') or
+                despesa_valores['livre'] != Decimal('0') or
+                saldo_valores['livre'] != Decimal('0')
             )
-
-            # Se não houver nenhuma categoria aceita com valor, não adiciona a linha da ação
-            if not (tem_valor_custeio or tem_valor_capital or tem_valor_livre):
+            if not (
+                (aceita_custeio and tem_valor_custeio) or
+                (aceita_capital and tem_valor_capital) or
+                (aceita_livre and tem_valor_livre)
+            ):
                 continue
 
             linhas.append({
                 'key': acao_uuid or acao.get('nome', ''),
                 'nome': acao.get('nome', '-'),
-                'exibirCusteio': tem_valor_custeio,
-                'exibirCapital': tem_valor_capital,
-                'exibirLivre': tem_valor_livre,
+                'exibirCusteio': aceita_custeio,
+                'exibirCapital': aceita_capital,
+                'exibirLivre': aceita_livre,
                 'receitas': _converter_valores_para_float(receita_valores),
                 'despesas': _converter_valores_para_float(despesa_valores),
                 'saldos': _converter_valores_para_float(saldo_valores)

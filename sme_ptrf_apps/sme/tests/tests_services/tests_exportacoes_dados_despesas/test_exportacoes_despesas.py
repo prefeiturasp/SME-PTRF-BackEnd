@@ -4,7 +4,7 @@ import datetime
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 
 from sme_ptrf_apps.sme.services.exporta_documentos_despesas import ExportacoesDocumentosDespesasService
-from sme_ptrf_apps.utils.anonimizar_cpf_cnpj import anonimizar_cpf_cnpj_fornecedor
+from sme_ptrf_apps.utils.anonimizar_cpf_cnpj import anonimizar_cpf
 
 pytestmark = pytest.mark.django_db
 
@@ -26,7 +26,7 @@ def test_dados_esperados_csv(queryset_ordered):
         primeira_despesa.numero_documento,
         primeira_despesa.tipo_documento.nome,
         primeira_despesa.data_documento.strftime("%d/%m/%Y"),
-        anonimizar_cpf_cnpj_fornecedor(
+        anonimizar_cpf(
             primeira_despesa.cpf_cnpj_fornecedor
         ) if primeira_despesa.cpf_cnpj_fornecedor else "",
         primeira_despesa.nome_fornecedor,
