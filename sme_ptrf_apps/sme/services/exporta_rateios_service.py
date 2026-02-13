@@ -14,7 +14,7 @@ from sme_ptrf_apps.core.services.arquivo_download_service import (
     gerar_arquivo_download
 )
 from sme_ptrf_apps.utils.built_in_custom import get_recursive_attr
-from sme_ptrf_apps.utils.anonimizar_cpf_cnpj import anonimizar_cpf_cnpj_fornecedor
+from sme_ptrf_apps.utils.anonimizar_cpf_cnpj import anonimizar_cpf
 
 from tempfile import NamedTemporaryFile
 
@@ -179,7 +179,7 @@ class ExportacoesRateiosService:
 
                 if campo == "despesa__cpf_cnpj_fornecedor":
                     campo = get_recursive_attr(instance, campo)
-                    valor_anonimizado = anonimizar_cpf_cnpj_fornecedor(campo) if campo else ""
+                    valor_anonimizado = anonimizar_cpf(campo) if campo else ""
                     linha_horizontal.append(valor_anonimizado)
                     continue
 

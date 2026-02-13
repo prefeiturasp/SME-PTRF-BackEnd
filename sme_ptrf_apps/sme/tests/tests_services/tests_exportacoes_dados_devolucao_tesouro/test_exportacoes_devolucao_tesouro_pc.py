@@ -8,7 +8,7 @@ from sme_ptrf_apps.sme.services.exporta_devolucao_tesouro_prestacoes_conta impor
     ExportacoesDevolucaoTesouroPrestacoesContaService,
 )
 from sme_ptrf_apps.utils.anonimizar_cpf_cnpj import (
-    anonimizar_cpf_cnpj_fornecedor,
+    anonimizar_cpf,
 )
 
 
@@ -42,7 +42,7 @@ def test_dados_esperados_csv(queryset_ordered):
         despesa.numero_documento,
         despesa.tipo_documento.nome,
         despesa.data_documento.strftime("%d/%m/%Y"),
-        anonimizar_cpf_cnpj_fornecedor(despesa.cpf_cnpj_fornecedor) if despesa.cpf_cnpj_fornecedor else "",
+        anonimizar_cpf(despesa.cpf_cnpj_fornecedor) if despesa.cpf_cnpj_fornecedor else "",
         despesa.nome_fornecedor,
         despesa.tipo_transacao.nome,
         despesa.documento_transacao,
