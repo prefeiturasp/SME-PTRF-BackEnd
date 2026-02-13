@@ -5,6 +5,7 @@
     <article id="bloco-5" class="col mb-3 p-0">
         <p class="font-14 pt-1 pl-2 pb-2 mb-0 border-left border-right border-top"><strong>Bloco 5 - Plano
                 Orçamentário</strong></p>
+        {% if dados.receitas_previstas.items %}
         <table class="tabela tabela-plano-orcamentario border tabela-zebra mb-2 mt-0">
             <colgroup>
                 <col style="width: 30%">
@@ -71,6 +72,7 @@
                 </tr>
             </tbody>
         </table>
+        {% endif %}
 
         {% if dados.receitas_previstas_pdde.items %}
         <table class="tabela tabela-plano-orcamentario border tabela-zebra mb-2 mt-0">

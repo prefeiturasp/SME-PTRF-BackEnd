@@ -19,12 +19,12 @@ class Tipo_de_conta_Localizadores {
 
 	// edicao tipo conta
 	tbl_tabela_nome_edicao_fornecedores = (nome_tabela_edicao) => { return `tr:contains(${nome_tabela_edicao})` }
-	btn_editar_fornecedores = () => { return '.btn-editar-membro' }
+	btn_editar_fornecedores = () => { return '.btn > span > .svg-inline--fa' }
 
 	// edicao fornecedor
 	btn_apagar_fornecedores = () => { return '.flex-grow-1 > .btn' }
 	btn_excluir_fornecedores = () => { return '.modal-footer > .btn-danger' }
-	btn_salvar_fornecedores = () => { return ':nth-child(3) > .btn'}
+	btn_salvar_fornecedores = () => { return '.d-flex > :nth-child(3) > .btn'}
 
 
 }

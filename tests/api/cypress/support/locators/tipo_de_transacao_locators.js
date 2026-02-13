@@ -7,7 +7,7 @@ class Tipo_De_Transacao_Localizadores {
     return "#filtrar_por_nome";
   };
   btn_filtrar_tipo_de_transacao = () => {
-    return "form > .d-flex > .btn-success";
+    return "div.d-flex.justify-content-end.mt-n2 > button.btn.btn-success";
   };
   tbl_resultados_da_consulta = () => {
     return '[class="p-datatable-table"]';
@@ -24,7 +24,7 @@ class Tipo_De_Transacao_Localizadores {
     return '[data-qa="campo-tem-documento-false"]';
   };
   btn_salvar = () => {
-    return ":nth-child(3) > .btn";
+    return ".d-flex > :nth-child(3) > .btn";
   };
 
   // tela Editar tipo transação
