@@ -116,7 +116,7 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
         self.nome_arquivo = kwargs.get('nome_arquivo', None)
         self.user = kwargs.get('user', None)
         self.dre_codigo_eol = kwargs.get('dre_codigo_eol', None)
-        self.cabecalho = CABECALHO[0]
+        self.cabecalho = CABECALHO
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
         self.texto_filtro_aplicado = self.get_texto_filtro_aplicado()
