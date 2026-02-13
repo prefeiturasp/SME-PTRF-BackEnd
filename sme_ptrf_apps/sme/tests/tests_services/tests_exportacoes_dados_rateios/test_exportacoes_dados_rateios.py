@@ -3,7 +3,7 @@ import pytest
 
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.sme.services.exporta_rateios_service import ExportacoesRateiosService
-from sme_ptrf_apps.utils.anonimizar_cpf_cnpj import anonimizar_cpf_cnpj_fornecedor
+from sme_ptrf_apps.utils.anonimizar_cpf_cnpj import anonimizar_cpf
 from tempfile import NamedTemporaryFile
 
 pytestmark = pytest.mark.django_db
@@ -200,7 +200,7 @@ def test_resultado_esperado_dados_extracao(rateios_despesa_queryset):
         f'="{primeiro_rateio.despesa.numero_documento}"',
         primeiro_rateio.despesa.tipo_documento.nome,
         primeiro_rateio.despesa.data_documento.strftime("%d/%m/%Y"),
-        anonimizar_cpf_cnpj_fornecedor(
+        anonimizar_cpf(
             primeiro_rateio.despesa.cpf_cnpj_fornecedor
         ) if primeiro_rateio.despesa.cpf_cnpj_fornecedor else "",
         primeiro_rateio.despesa.nome_fornecedor,

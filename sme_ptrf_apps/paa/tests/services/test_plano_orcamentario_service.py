@@ -215,6 +215,9 @@ def test_calcular_secao_outros_recursos_recurso_proprio_oculta_custeio_capital()
             "uuid": recurso_proprio_key,
             "nome": "Recursos Próprios",
             "tipo": "RECURSO_PROPRIO",
+            "aceita_custeio": False,
+            "aceita_capital": False,
+            "aceita_livre": True,
             "receitas": {
                 "custeio": Decimal("0"),
                 "capital": Decimal("0"),
@@ -226,6 +229,9 @@ def test_calcular_secao_outros_recursos_recurso_proprio_oculta_custeio_capital()
             "uuid": outro_recurso_key,
             "nome": "Outro Recurso",
             "tipo": "OUTRO_RECURSO",
+            "aceita_custeio": True,
+            "aceita_capital": False,
+            "aceita_livre": False,
             "receitas": {
                 "custeio": Decimal("100"),
                 "capital": Decimal("0"),
