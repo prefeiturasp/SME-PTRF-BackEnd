@@ -20,6 +20,7 @@ from sme_ptrf_apps.paa.models import (
     DocumentoPaa,
     OutroRecursoPeriodoPaa,
     ReceitaPrevistaOutroRecursoPeriodo,
+    ModeloCargaPaa,
 )
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 
@@ -69,7 +70,8 @@ class PaaAdmin(admin.ModelAdmin):
 
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     list_display_links = ['periodo_paa']
-    list_filter = ('periodo_paa', 'associacao')
+    search_fields = ('periodo_paa__referencia', 'associacao__nome', 'associacao__unidade__codigo_eol')
+    list_filter = ('periodo_paa', 'associacao', 'status')
     raw_id_fields = ['periodo_paa', 'associacao']
     inlines = [AtividadeEstatutariaPaaInline]
     actions = ["gerar_documento"]
@@ -127,8 +129,8 @@ class FonteRecursoPaaAdmin(admin.ModelAdmin):
 @admin.register(RecursoProprioPaa)
 class RecursoProprioPaaAdmin(admin.ModelAdmin):
     list_display = ('fonte_recurso', 'associacao', 'data_prevista', 'descricao', 'valor',)
-    search_fields = ('fonte_recurso__nome', 'associacao__nome',)
-    list_filter = ('associacao',)
+    search_fields = ('fonte_recurso__nome', 'associacao__nome', 'associacao__unidade__codigo_eol')
+    list_filter = ('associacao', 'fonte_recurso', 'paa')
     raw_id_fields = ('paa', 'associacao', 'fonte_recurso')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
@@ -146,6 +148,7 @@ class ReceitaPrevistaPddeAdmin(admin.ModelAdmin):
                     )
     list_filter = ('acao_pdde', 'acao_pdde__programa')
     raw_id_fields = ('paa', 'acao_pdde')
+    search_fields = ('paa__associacao__nome', 'paa__associacao__unidade__codigo_eol')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 
@@ -309,4 +312,17 @@ class OutroRecursoPeriodoPaaAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 
-admin.site.register(DocumentoPaa)
+@admin.register(DocumentoPaa)
+class DocumentoPaaAdmin(admin.ModelAdmin):
+    list_display = ('paa', 'status_geracao', 'versao', 'criado_em', 'alterado_em')
+    search_fields = ('paa__associacao__nome', 'paa__associacao__unidade__codigo_eol')
+    raw_id_fields = ('paa',)
+    list_filter = ('status_geracao', 'versao', 'paa__periodo_paa')
+    readonly_fields = ('uuid', 'id', 'criado_em',)
+
+
+@admin.register(ModeloCargaPaa)
+class ModeloCargaPaaAdmin(admin.ModelAdmin):
+    list_display = ('tipo_carga', 'arquivo')
+    search_fields = ('tipo_carga', )
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')

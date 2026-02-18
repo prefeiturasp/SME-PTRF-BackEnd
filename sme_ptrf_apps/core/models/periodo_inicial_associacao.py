@@ -36,7 +36,7 @@ class PeriodoInicialAssociacao(ModeloBase):
 
     class Meta:
         verbose_name = "Período Inicial de Associação"
-        verbose_name_plural = "07.7) Períodos Iniciais de Associação"
+        verbose_name_plural = "08.1) Períodos Iniciais de Associações"
         constraints = [
             models.UniqueConstraint(
                 fields=["associacao", "recurso"],

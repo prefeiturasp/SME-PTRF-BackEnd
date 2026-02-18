@@ -14,6 +14,7 @@ from sme_ptrf_apps.core.services.arquivo_download_service import (
     gerar_arquivo_download
 )
 from sme_ptrf_apps.utils.built_in_custom import get_recursive_attr
+from sme_ptrf_apps.utils.anonimizar_cpf_cnpj import anonimizar_cpf
 
 from tempfile import NamedTemporaryFile
 
@@ -78,21 +79,21 @@ class ExportacoesRateiosService:
 
     def get_texto_filtro_aplicado(self):
         if self.data_inicio and self.data_final:
-            data_inicio_formatada = datetime.strptime(f"{self.data_inicio}", '%Y-%m-%d')
+            data_inicio_formatada = datetime.strptime(self.data_inicio, '%Y-%m-%d')
             data_inicio_formatada = data_inicio_formatada.strftime("%d/%m/%Y")
 
-            data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
+            data_final_formatada = datetime.strptime(self.data_final, '%Y-%m-%d')
             data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
 
             return f"Filtro aplicado: {data_inicio_formatada} a {data_final_formatada} (data de criação do registro)"
 
         if self.data_inicio:
-            data_inicio_formatada = datetime.strptime(f"{self.data_inicio}", '%Y-%m-%d')
+            data_inicio_formatada = datetime.strptime(self.data_inicio, '%Y-%m-%d')
             data_inicio_formatada = data_inicio_formatada.strftime("%d/%m/%Y")
             return f"Filtro aplicado: A partir de {data_inicio_formatada} (data de criação do registro)"
 
         if self.data_final:
-            data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
+            data_final_formatada = datetime.strptime(self.data_final, '%Y-%m-%d')
             data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
             return f"Filtro aplicado: Até {data_final_formatada} (data de criação do registro)"
 
@@ -134,10 +135,16 @@ class ExportacoesRateiosService:
         linhas_vertical = []
 
         for instance in self.queryset:
-            logger.info(f"Iniciando extração de dados de rateios, rateio id: {instance.id}.")
+            logger.info(
+                "Iniciando extração de dados de rateios, rateio id: %s.",
+                instance.id,
+            )
 
             if not RateioDespesa.objects.filter(id=instance.id).exists():
-                logger.info(f"Este registro não existe mais na base de dados, portanto será pulado")
+                logger.info(
+                    "Este registro não existe mais na base de dados, "
+                    "portanto será pulado",
+                )
                 continue
 
             linha_horizontal = []
@@ -168,6 +175,12 @@ class ExportacoesRateiosService:
                 if campo == "despesa__tipo_documento__nome":
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "despesa__cpf_cnpj_fornecedor":
+                    campo = get_recursive_attr(instance, campo)
+                    valor_anonimizado = anonimizar_cpf(campo) if campo else ""
+                    linha_horizontal.append(valor_anonimizado)
                     continue
 
                 if campo == "despesa__nome_fornecedor":
@@ -274,7 +287,13 @@ class ExportacoesRateiosService:
                     continue
 
                 if campo == "PAGAMENTO_ANTECIPADO":
-                    pagamento_antecipado = "Sim" if instance.despesa and instance.despesa.teve_pagamento_antecipado() else "Não"
+                    teve_pagamento_antecipado = (
+                        instance.despesa and
+                        instance.despesa.teve_pagamento_antecipado()
+                    )
+                    pagamento_antecipado = (
+                        "Sim" if teve_pagamento_antecipado else "Não"
+                    )
                     linha_horizontal.append(pagamento_antecipado)
                     continue
 
@@ -298,9 +317,16 @@ class ExportacoesRateiosService:
                 campo = get_recursive_attr(instance, campo)
                 linha_horizontal.append(campo)
 
-            logger.info(f"Escrevendo linha {linha_horizontal} de rateios, rateio id: {instance.id}.")
+            logger.info(
+                "Escrevendo linha %s de rateios, rateio id: %s.",
+                linha_horizontal,
+                instance.id,
+            )
             linhas_vertical.append(linha_horizontal)
-            logger.info(f"Finalizando extração de dados de rateios, rateio id: {instance.id}.")
+            logger.info(
+                "Finalizando extração de dados de rateios, rateio id: %s.",
+                instance.id,
+            )
 
         return linhas_vertical
 
@@ -308,12 +334,24 @@ class ExportacoesRateiosService:
         import datetime
 
         # Converte as datas inicial e final de texto para date
-        inicio = datetime.datetime.strptime(self.data_inicio, "%Y-%m-%d").date() if self.data_inicio else None
-        final = datetime.datetime.strptime(self.data_final, "%Y-%m-%d").date() if self.data_final else None
+        inicio = (
+            datetime.datetime.strptime(self.data_inicio, "%Y-%m-%d").date()
+            if self.data_inicio
+            else None
+        )
+        final_date = (
+            datetime.datetime.strptime(self.data_final, "%Y-%m-%d").date()
+            if self.data_final
+            else None
+        )
 
         # Define o horário da data_final para o último momento do dia
         # Sem isso o filtro pode não incluir todos os registros do dia
-        final = make_aware(datetime.datetime.combine(final, datetime.time.max)) if final else None
+        final = (
+            make_aware(datetime.datetime.combine(final_date, datetime.time.max))
+            if final_date
+            else None
+        )
 
         if inicio and final:
             self.queryset = self.queryset.filter(
@@ -330,7 +368,7 @@ class ExportacoesRateiosService:
         return self.queryset
 
     def cria_registro_central_download(self):
-        logger.info(f"Criando registro na central de download")
+        logger.info("Criando registro na central de download")
         obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo,

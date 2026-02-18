@@ -46,12 +46,16 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
     saldo_atual_conta = serializers.SerializerMethodField()
     habilitar_solicitar_encerramento = serializers.SerializerMethodField()
     nome = serializers.SerializerMethodField('get_nome_conta')
+    nome_recurso = serializers.SerializerMethodField('get_nome_recurso')
     periodo_encerramento_conta = serializers.SerializerMethodField('get_periodo_encerramento_conta')
     mostrar_alerta_valores_reprogramados_ao_solicitar = serializers.SerializerMethodField(
         'get_mostrar_alerta_valores_reprogramados_ao_solicitar')
 
     def get_nome_conta(self, obj):
         return obj.tipo_conta.nome
+
+    def get_nome_recurso(self, obj):
+        return obj.tipo_conta.recurso.nome
 
     def get_periodo_encerramento_conta(self, obj):
         from sme_ptrf_apps.core.models import Periodo
@@ -74,6 +78,7 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
             'saldo_atual_conta',
             'habilitar_solicitar_encerramento',
             'nome',
+            'nome_recurso',
             'status',
             'periodo_encerramento_conta',
             'mostrar_alerta_valores_reprogramados_ao_solicitar'

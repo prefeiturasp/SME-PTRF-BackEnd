@@ -18,6 +18,7 @@ from .comentarios_analises_prestacoes_viewset import ComentariosAnalisesPrestaco
 from .acao_associacao_viewset import AcaoAssociacaoViewSet
 from .acoes_viewset import AcoesViewSet
 from .arquivo_viewset import ArquivoViewSet
+from .recursos_viewset import RecursoViewSet
 from .tags_viewset import TagsViewSet
 from .modelos_cargas_viewset import ModelosCargasViewSet
 from .ambientes_viewset import AmbientesViewSet

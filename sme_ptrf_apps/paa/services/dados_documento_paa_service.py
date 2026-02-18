@@ -4,17 +4,13 @@ from django.db.models import Sum
 from sme_ptrf_apps.paa.utils import numero_decimal
 from sme_ptrf_apps.paa.models.atividade_estatutaria import AtividadeEstatutaria
 from sme_ptrf_apps.paa.models.prioridade_paa import PrioridadePaa
-from sme_ptrf_apps.paa.models.acao_pdde import AcaoPdde
-from sme_ptrf_apps.paa.models.outros_recursos_periodo_paa import OutroRecursoPeriodoPaa
-from sme_ptrf_apps.paa.models.receita_prevista_outro_recurso_periodo import ReceitaPrevistaOutroRecursoPeriodo
+from sme_ptrf_apps.paa.models.parametro_paa import ParametroPaa
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
-from sme_ptrf_apps.paa.enums import TipoAplicacaoOpcoesEnum, RecursoOpcoesEnum
+from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum
+from sme_ptrf_apps.paa.services.plano_orcamentario_service import PlanoOrcamentarioService
 
 from sme_ptrf_apps.mandatos.services import ServicoCargosDaComposicao
 from sme_ptrf_apps.core.models import MembroAssociacao
-from sme_ptrf_apps.core.models import (
-    AcaoAssociacao,
-)
 
 from waffle import get_waffle_flag_model
 
@@ -26,22 +22,104 @@ MESES_PT = [
 LOGGER = logging.getLogger(__name__)
 
 
+def _secao_plano_para_documento_receitas(secao):
+    """
+    Converte uma seção do plano orçamentário (PTRF ou PDDE) para o formato
+    esperado pelo documento PAA: items + total_receitas, total_despesas, total_saldo.
+    Usa as mesmas regras do PlanoOrcamentarioService (saldo congelado, déficit em livre, etc.).
+    """
+    if not secao or not secao.get("linhas"):
+        return {"items": [], "total_receitas": 0, "total_despesas": 0, "total_saldo": 0}
+
+    linhas = secao["linhas"]
+    items = []
+    total_receitas = 0
+    total_despesas = 0
+    total_saldo = 0
+
+    for linha in linhas:
+        if linha.get("isTotal"):
+            total_receitas = linha["receitas"].get("total", 0)
+            total_despesas = linha["despesas"].get("total", 0)
+            total_saldo = linha["saldos"].get("total", 0)
+            continue
+        r = linha["receitas"]
+        exibir_custeio = linha.get("exibirCusteio", True)
+        exibir_capital = linha.get("exibirCapital", True)
+        exibir_livre = linha.get("exibirLivre", True)
+        if not (exibir_custeio or exibir_capital or exibir_livre):
+            continue
+        d = linha["despesas"]
+        s = linha["saldos"]
+        linhas_visiveis = []
+        if exibir_custeio:
+            linhas_visiveis.append({
+                "label": "Custeio (R$)",
+                "receita": r.get("custeio", 0),
+                "despesa": d.get("custeio", 0),
+                "saldo": s.get("custeio", 0),
+            })
+        if exibir_capital:
+            linhas_visiveis.append({
+                "label": "Capital (R$)",
+                "receita": r.get("capital", 0),
+                "despesa": d.get("capital", 0),
+                "saldo": s.get("capital", 0),
+            })
+        if exibir_livre:
+            linhas_visiveis.append({
+                "label": "Livre Aplicação (R$)",
+                "receita": r.get("livre", 0),
+                "despesa": d.get("livre", 0),
+                "saldo": s.get("livre", 0),
+            })
+        zebra_classe = "even" if (len(items) % 2 == 0) else "odd"
+        items.append({
+            "nome": linha.get("nome", "-"),
+            "zebra_classe": zebra_classe,
+            "exibirCusteio": exibir_custeio,
+            "exibirCapital": exibir_capital,
+            "exibirLivre": exibir_livre,
+            "linhas": linhas_visiveis,
+            "total_receita_custeio": r.get("custeio", 0),
+            "total_receita_capital": r.get("capital", 0),
+            "total_receita_livre": r.get("livre", 0),
+            "total_despesa_custeio": d.get("custeio", 0),
+            "total_despesa_capital": d.get("capital", 0),
+            "total_despesa_livre": d.get("livre", 0),
+            "saldo_custeio": s.get("custeio", 0),
+            "saldo_capital": s.get("capital", 0),
+            "saldo_livre": s.get("livre", 0),
+        })
+
+    return {
+        "items": items,
+        "total_receitas": total_receitas,
+        "total_despesas": total_despesas,
+        "total_saldo": total_saldo,
+    }
+
+
 def gerar_dados_documento_paa(paa, usuario, previa=False):
+    plano = PlanoOrcamentarioService(paa).construir_plano_orcamentario()
+    parametros_paa = ParametroPaa.objects.all().first()
+    secoes_por_key = {s["key"]: s for s in plano["secoes"]}
 
     cabecalho = cria_cabecalho(paa.periodo_paa)
     identificacao_associacao = criar_identificacao_associacao(paa)
     data_geracao_documento = cria_data_geracao_documento(usuario, previa)
     grupos_prioridades = criar_grupos_prioridades(paa)
     atividades_estatutarias = criar_atividades_estatutarias(paa)
-    recursos_proprios = criar_recursos_proprios(paa)
-    receitas_previstas = criar_receitas_previstas(paa)
-    receitas_previstas_pdde = criar_receitas_previstas_pdde(paa)
+    recursos_proprios = criar_recursos_proprios(paa, secoes_por_key.get("outros_recursos"))
+    receitas_previstas = _secao_plano_para_documento_receitas(secoes_por_key.get("ptrf"))
+    receitas_previstas_pdde = _secao_plano_para_documento_receitas(secoes_por_key.get("pdde"))
     presidente_diretoria_executiva = cria_presidente_diretoria_executiva(paa.associacao)
 
     return {
         "cabecalho": cabecalho,
         "identificacao_associacao": identificacao_associacao,
         "data_geracao_documento": data_geracao_documento,
+        "texto_pre_introducao": parametros_paa.introducao_do_paa_ue_2 if parametros_paa else "",
         "texto_introducao": paa.texto_introducao if paa.texto_introducao else "",
         "objetivos": paa.objetivos.all(),
         "grupos_prioridades": grupos_prioridades,
@@ -50,168 +128,9 @@ def gerar_dados_documento_paa(paa, usuario, previa=False):
         "atividades_estatutarias": atividades_estatutarias,
         "recursos_proprios": recursos_proprios,
         "texto_conclusao": paa.texto_conclusao if paa.texto_conclusao else "",
+        "texto_pos_conclusao": parametros_paa.conclusao_do_paa_ue_2 if parametros_paa else "",
         "presidente_diretoria_executiva": presidente_diretoria_executiva,
         "previa": previa
-    }
-
-
-def criar_receitas_previstas(paa):
-    acoes = paa.associacao.acoes.filter(status=AcaoAssociacao.STATUS_ATIVA)
-
-    receitas = []
-
-    for acao_associacao in acoes:
-
-        receita_prevista = paa.receitaprevistapaa_set.filter(acao_associacao=acao_associacao).first()
-        prioridades = paa.prioridadepaa_set.filter(acao_associacao=acao_associacao)
-
-        total_despesa_capital = prioridades.filter(
-            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name
-        ).aggregate(
-            total=Sum("valor_total")
-        )["total"] or 0
-
-        total_despesa_custeio = prioridades.filter(
-            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name
-        ).aggregate(
-            total=Sum("valor_total")
-        )["total"] or 0
-
-        saldos = acao_associacao.saldo_atual()
-
-        total_receita_custeio = (
-            saldos.get("saldo_atual_custeio", 0) +
-            (getattr(receita_prevista, "previsao_valor_custeio", 0) or 0)
-        )
-
-        total_receita_capital = (
-            saldos.get("saldo_atual_capital", 0) +
-            (getattr(receita_prevista, "previsao_valor_capital", 0) or 0)
-        )
-
-        total_receita_livre = (
-            saldos.get("saldo_atual_livre", 0) +
-            (getattr(receita_prevista, "previsao_valor_livre", 0) or 0)
-        )
-
-        receitas.append({
-            "nome": acao_associacao.acao.nome,
-            "total_receita_custeio": total_receita_custeio,
-            "total_receita_capital": total_receita_capital,
-            "total_receita_livre": total_receita_livre,
-            "total_despesa_custeio": total_despesa_custeio,
-            "total_despesa_capital": total_despesa_capital,
-            "total_despesa_livre": 0,
-            "saldo_custeio": total_receita_custeio - total_despesa_custeio,
-            "saldo_capital": total_receita_capital - total_despesa_capital,
-            "saldo_livre": total_receita_livre,
-        })
-
-    total_receitas = sum(
-        item["total_receita_custeio"] +
-        item["total_receita_capital"] +
-        item["total_receita_livre"]
-        for item in receitas
-    )
-
-    total_despesas = sum(
-        item["total_despesa_custeio"] +
-        item["total_despesa_capital"] +
-        item["total_despesa_livre"]
-        for item in receitas
-    )
-
-    total_saldo = sum(
-        item["saldo_custeio"] +
-        item["saldo_capital"] +
-        item["saldo_livre"]
-        for item in receitas
-    )
-
-    return {
-        "items": receitas,
-        "total_receitas": total_receitas,
-        "total_despesas": total_despesas,
-        "total_saldo": total_saldo,
-    }
-
-
-def criar_receitas_previstas_pdde(paa):
-    acoes = AcaoPdde.objects.filter(status=AcaoAssociacao.STATUS_ATIVA)
-
-    receitas = []
-
-    for acao_pdde in acoes:
-
-        receita_prevista = paa.receitaprevistapdde_set.filter(acao_pdde=acao_pdde).first()
-        prioridades = paa.prioridadepaa_set.filter(acao_pdde=acao_pdde)
-
-        total_despesa_capital = prioridades.filter(
-            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name
-        ).aggregate(
-            total=Sum("valor_total")
-        )["total"] or 0
-
-        total_despesa_custeio = prioridades.filter(
-            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name
-        ).aggregate(
-            total=Sum("valor_total")
-        )["total"] or 0
-
-        total_receita_custeio = (
-            (getattr(receita_prevista, "previsao_valor_custeio", 0) or 0) +
-            (getattr(receita_prevista, "saldo_custeio", 0) or 0)
-        )
-
-        total_receita_capital = (
-            (getattr(receita_prevista, "previsao_valor_capital", 0) or 0) +
-            (getattr(receita_prevista, "saldo_capital", 0) or 0)
-        )
-
-        total_receita_livre = (
-            (getattr(receita_prevista, "previsao_valor_livre", 0) or 0) +
-            (getattr(receita_prevista, "saldo_livre", 0) or 0)
-        )
-
-        receitas.append({
-            "nome": acao_pdde.nome,
-            "total_receita_custeio": total_receita_custeio,
-            "total_receita_capital": total_receita_capital,
-            "total_receita_livre": total_receita_livre,
-            "total_despesa_custeio": total_despesa_custeio,
-            "total_despesa_capital": total_despesa_capital,
-            "total_despesa_livre": 0,
-            "saldo_custeio": total_receita_custeio - total_despesa_custeio,
-            "saldo_capital": total_receita_capital - total_despesa_capital,
-            "saldo_livre": total_receita_livre,
-        })
-
-    total_receitas = sum(
-        item["total_receita_custeio"] +
-        item["total_receita_capital"] +
-        item["total_receita_livre"]
-        for item in receitas
-    )
-
-    total_despesas = sum(
-        item["total_despesa_custeio"] +
-        item["total_despesa_capital"] +
-        item["total_despesa_livre"]
-        for item in receitas
-    )
-
-    total_saldo = sum(
-        item["saldo_custeio"] +
-        item["saldo_capital"] +
-        item["saldo_livre"]
-        for item in receitas
-    )
-
-    return {
-        "items": receitas,
-        "total_receitas": total_receitas,
-        "total_despesas": total_despesas,
-        "total_saldo": total_saldo,
     }
 
 
@@ -231,9 +150,13 @@ def cria_presidente_diretoria_executiva(associacao):
     return presidente_diretoria_executiva
 
 
-def criar_recursos_proprios(paa):
+def criar_recursos_proprios(paa, secao_outros_recursos=None):
+    """
+    Monta dados de recursos próprios e outros recursos para o documento PAA.
+    Quando secao_outros_recursos é informada (vinda do PlanoOrcamentarioService),
+    usa as mesmas regras do plano (saldo, déficit em livre, filtros, etc.).
+    """
     recursos = []
-
     for recurso in paa.recursopropriopaa_set.all():
         recursos.append({
             "data_prevista": recurso.data_prevista.strftime("%d/%m/%Y"),
@@ -242,105 +165,107 @@ def criar_recursos_proprios(paa):
             "valor": recurso.valor,
         })
 
-    outros_recursos_periodo = OutroRecursoPeriodoPaa.objects.disponiveis_para_paa(paa)
+    if secao_outros_recursos and secao_outros_recursos.get("linhas"):
+        linhas = secao_outros_recursos["linhas"]
+        key_recursos_proprios = RecursoOpcoesEnum.RECURSO_PROPRIO.name
+        key_total = "outros-recursos-total"
 
+        total_recursos_proprios = 0
+        total_prioridades_recursos_proprios = 0
+        saldo_recursos_proprios = 0
+        items_outros_recursos = []
+        total_receitas = 0
+        total_despesas = 0
+        total_saldo = 0
+
+        for linha in linhas:
+            key_linha = linha.get("key")
+            if key_linha == key_recursos_proprios:
+                total_recursos_proprios = numero_decimal(linha["receitas"].get("total", 0))
+                total_prioridades_recursos_proprios = numero_decimal(linha["despesas"].get("total", 0))
+                saldo_recursos_proprios = numero_decimal(linha["saldos"].get("total", 0))
+            elif key_linha == key_total:
+                total_receitas = numero_decimal(linha["receitas"].get("total", 0))
+                total_despesas = numero_decimal(linha["despesas"].get("total", 0))
+                total_saldo = numero_decimal(linha["saldos"].get("total", 0))
+            else:
+                exibir_custeio = linha.get("exibirCusteio", True)
+                exibir_capital = linha.get("exibirCapital", True)
+                exibir_livre = linha.get("exibirLivre", True)
+                if not (exibir_custeio or exibir_capital or exibir_livre):
+                    continue
+                r, d, s = linha["receitas"], linha["despesas"], linha["saldos"]
+                linhas_visiveis = []
+                if exibir_custeio:
+                    linhas_visiveis.append({
+                        "label": "Custeio (R$)",
+                        "receita": r.get("custeio", 0),
+                        "despesa": d.get("custeio", 0),
+                        "saldo": s.get("custeio", 0),
+                    })
+                if exibir_capital:
+                    linhas_visiveis.append({
+                        "label": "Capital (R$)",
+                        "receita": r.get("capital", 0),
+                        "despesa": d.get("capital", 0),
+                        "saldo": s.get("capital", 0),
+                    })
+                if exibir_livre:
+                    linhas_visiveis.append({
+                        "label": "Livre Aplicação (R$)",
+                        "receita": r.get("livre", 0),
+                        "despesa": d.get("livre", 0),
+                        "saldo": s.get("livre", 0),
+                    })
+                zebra_classe = "odd" if (len(items_outros_recursos) % 2 == 0) else "even"
+                items_outros_recursos.append({
+                    "nome": linha.get("nome", "-"),
+                    "zebra_classe": zebra_classe,
+                    "exibirCusteio": exibir_custeio,
+                    "exibirCapital": exibir_capital,
+                    "exibirLivre": exibir_livre,
+                    "linhas": linhas_visiveis,
+                    "total_receita_custeio": r.get("custeio", 0),
+                    "total_receita_capital": r.get("capital", 0),
+                    "total_receita_livre": r.get("livre", 0),
+                    "total_despesa_custeio": d.get("custeio", 0),
+                    "total_despesa_capital": d.get("capital", 0),
+                    "total_despesa_livre": d.get("livre", 0),
+                    "saldo_custeio": s.get("custeio", 0),
+                    "saldo_capital": s.get("capital", 0),
+                    "saldo_livre": s.get("livre", 0),
+                })
+
+        return {
+            "items": recursos,
+            "total_recursos_proprios": total_recursos_proprios,
+            "total_prioridades_recursos_proprios": total_prioridades_recursos_proprios,
+            "saldo_recursos_proprios": saldo_recursos_proprios,
+            "items_outros_recursos": items_outros_recursos,
+            "total_receitas": total_receitas,
+            "total_despesas": total_despesas,
+            "total_saldo": total_saldo,
+        }
+
+    # Quando não possuir nenhum outro recurso, monta a seção de recursos próprios
     prioridades_recursos_proprios = PrioridadePaa.objects.filter(
-        paa=paa, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name)
-
-    total_prioridades_recursos_proprios = numero_decimal(prioridades_recursos_proprios.aggregate(
-        total=Sum("valor_total")
-    )["total"] or 0)
-
-    total_recursos_proprios = paa.get_total_recursos_proprios()
-    saldo_recursos_proprios = numero_decimal(
-        paa.get_total_recursos_proprios() - total_prioridades_recursos_proprios)
-
-    items_outros_recursos = []
-
-    # Outros Recursos Itens
-    for orp in outros_recursos_periodo:
-        recurso_prioridades = PrioridadePaa.objects.filter(
-            paa=paa,
-            outro_recurso=orp.outro_recurso)
-
-        receitas_previstas = ReceitaPrevistaOutroRecursoPeriodo.objects.filter(
-            paa=paa,
-            outro_recurso_periodo__outro_recurso=orp.outro_recurso,
-        )
-
-        total_despesa_capital = recurso_prioridades.filter(
-            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name
-        ).aggregate(
-            total=Sum("valor_total")
-        )["total"] or 0
-
-        total_despesa_custeio = recurso_prioridades.filter(
-            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name
-        ).aggregate(
-            total=Sum("valor_total")
-        )["total"] or 0
-
-        total_receita_custeio = 0
-        total_receita_capital = 0
-        total_receita_livre = 0
-
-        for receita in receitas_previstas:
-
-            total_receita_custeio += (
-                numero_decimal(receita.previsao_valor_custeio) +
-                numero_decimal(receita.saldo_custeio)
-            )
-
-            total_receita_capital += (
-                numero_decimal(receita.previsao_valor_capital) +
-                numero_decimal(receita.saldo_capital)
-            )
-
-            total_receita_livre += (
-                numero_decimal(receita.previsao_valor_livre) +
-                numero_decimal(receita.saldo_livre)
-            )
-
-        items_outros_recursos.append({
-            "nome": orp.outro_recurso.nome,
-            "total_receita_custeio": total_receita_custeio,
-            "total_receita_capital": total_receita_capital,
-            "total_receita_livre": total_receita_livre,
-            "total_despesa_custeio": total_despesa_custeio,
-            "total_despesa_capital": total_despesa_capital,
-            "total_despesa_livre": 0,
-            "saldo_custeio": total_receita_custeio - total_despesa_custeio,
-            "saldo_capital": total_receita_capital - total_despesa_capital,
-            "saldo_livre": total_receita_livre,
-        })
-
-    total_receitas_outros = sum(
-        item["total_receita_custeio"] +
-        item["total_receita_capital"] +
-        item["total_receita_livre"]
-        for item in items_outros_recursos
+        paa=paa, recurso=RecursoOpcoesEnum.RECURSO_PROPRIO.name
     )
-
-    total_despesas_outros = sum(
-        item["total_despesa_custeio"] +
-        item["total_despesa_capital"] +
-        item["total_despesa_livre"]
-        for item in items_outros_recursos
+    total_prioridades_recursos_proprios = numero_decimal(
+        prioridades_recursos_proprios.aggregate(total=Sum("valor_total"))["total"] or 0
     )
-
-    total_receitas = total_receitas_outros + total_recursos_proprios
-    total_despesas = total_despesas_outros + total_prioridades_recursos_proprios
-    total_saldo = total_receitas - total_despesas
+    total_recursos_proprios = numero_decimal(paa.get_total_recursos_proprios())
+    saldo_recursos_proprios = total_recursos_proprios - total_prioridades_recursos_proprios
 
     return {
         "items": recursos,
         "total_recursos_proprios": total_recursos_proprios,
         "total_prioridades_recursos_proprios": total_prioridades_recursos_proprios,
         "saldo_recursos_proprios": saldo_recursos_proprios,
-        "items_outros_recursos": items_outros_recursos,
-        "total_receitas": total_receitas,
-        "total_despesas": total_despesas,
-        "total_saldo": total_saldo,
+        "items_outros_recursos": [],
+        "total_receitas": total_recursos_proprios,
+        "total_despesas": total_prioridades_recursos_proprios,
+        "total_saldo": saldo_recursos_proprios,
     }
 
 
@@ -403,17 +328,6 @@ def criar_grupos_prioridades(paa):
     items = []
 
     for prioridade in prioridades:
-        # TODO: Remover condicionais após validações
-        # if prioridade.recurso == "PTRF":
-        #     recurso = prioridade.acao_associacao.acao.nome
-        # elif prioridade.recurso == "PDDE":
-        #     recurso = prioridade.acao_pdde.nome
-        # elif prioridade.recurso == 'RECURSO_PROPRIO':
-        #     recurso = "Recursos Próprios"
-        # elif prioridade.recurso == 'OUTRO_RECURSO':
-        #     recurso = prioridade.outro_recurso.nome
-        # else:
-        #     recurso = '--'
 
         items.append({
             "recurso_tipo": prioridade.recurso,

@@ -523,6 +523,15 @@ class GastosEscolaPagina {
         Gastos.cadastroValorRecursoProprio().type('100000');
     }
 
+        validarCadastroDespesaComprovanteTributosTarifasMaterialComplementarIncompleto() {
+        Gastos.cadastroFornecedor().type('007.461.987-01');
+        Gastos.cadastroRazaoSocialFornecedor().type('Teste');
+        Gastos.cadastroTipoDocumento().select('Comprovante');
+        Gastos.botaoSalvar().click();
+        Gastos.botaoModalDespesaIncompleta().should('be.visible');
+
+    }
+
     validarCadastroDespesaComprovanteTransferenciaContasBbCusteioIncompletoSim() {
         Gastos.cadastroFornecedor().type('007.461.987-01');
         Gastos.cadastroRazaoSocialFornecedor().type('Teste');

@@ -47,6 +47,7 @@ from sme_ptrf_apps.core.api.views import (
     FalhaGeracaoPcViewSet,
     SolicitacaoEncerramentoContaAssociacaoViewset,
     MotivoRejeicaoEncerramentoContaAssociacaoViewset,
+    RecursoViewSet,
     feature_flags
 )
 from sme_ptrf_apps.core.api.views.prestacoes_contas_reprovadas_nao_apresentacao_viewset import \
@@ -112,7 +113,8 @@ from sme_ptrf_apps.paa.api.views import (
     AtaPaaViewSet,
     PresentesAtaPaaViewSet,
     OutrosRecursosPaaViewSet,
-    OutrosRecursosPeriodoPaaViewSet
+    OutrosRecursosPeriodoPaaViewSet,
+    ModelosCargasPaaViewSet
 )
 from sme_ptrf_apps.users.api.views import (
     EsqueciMinhaSenhaViewSet,
@@ -216,6 +218,7 @@ router.register("parametrizacoes-acoes-associacoes", ParametrizacoesAcoesAssocia
                 basename="parametrizacoes-acoes-associacoes")
 router.register("acoes", AcoesViewSet, basename="acoes")
 router.register("arquivos", ArquivoViewSet, basename="arquivos")
+router.register("recursos", RecursoViewSet, basename="recursos")
 router.register("tags", TagsViewSet, basename="tags")
 router.register("modelos-cargas", ModelosCargasViewSet, basename="modelos-cargas")
 router.register("tipos-custeio", TiposCusteioViewSet, basename="tipos-custeio")
@@ -285,6 +288,7 @@ router.register("atividades-estatutarias", AtividadeEstatutariaViewSet, basename
 router.register("atas-paa", AtaPaaViewSet, basename='atas-paa')
 router.register("presentes-ata-paa", PresentesAtaPaaViewSet, basename='presentes-ata-paa')
 router.register("outros-recursos-paa", OutrosRecursosPaaViewSet, basename='outros-recursos-paa')
+router.register("modelos-cargas-paa", ModelosCargasPaaViewSet, basename="modelos-cargas-paa")
 router.register("bens-produzidos", BemProduzidoViewSet, basename='bens-produzidos')
 router.register("bens-produzidos-e-adquiridos", BemAdquiridoProduzidoViewSet, basename='bens-produzidos-e-adquiridos')
 router.register("bens-produzidos-rascunho", BemProduzidoRascunhoViewSet, basename='bens-produzidos-rascunho')

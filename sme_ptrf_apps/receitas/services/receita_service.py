@@ -38,10 +38,10 @@ class ValidaDataDaReceitaAssociacaoEncerrada():
 
 
 class ValidaPeriodosReceitaAssociacaoEncerrada():
-    def __init__(self, associacao):
+    def __init__(self, associacao, recurso=None):
         self.__associacao = associacao
         self.__data_de_encerramento_da_associacao = associacao.data_de_encerramento
-        self.__periodo_inicial_da_associacao = associacao.periodo_inicial
+        self.__periodo_inicial_da_associacao = self.get_periodo_inicial_by_recurso(recurso)
         self.__set_response()
 
     @property
@@ -55,6 +55,12 @@ class ValidaPeriodosReceitaAssociacaoEncerrada():
     @property
     def periodo_inicial_da_associacao(self):
         return self.__periodo_inicial_da_associacao
+
+    def get_periodo_inicial_by_recurso(self, recurso):
+        if recurso:
+            return self.associacao.periodos_iniciais.get(recurso=recurso).periodo_inicial
+        else:
+            return self.associacao.periodo_inicial
 
     def __set_response(self):
         self.response = Periodo.objects.all()

@@ -3,6 +3,7 @@ import pytest
 
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.sme.services.exporta_rateios_service import ExportacoesRateiosService
+from sme_ptrf_apps.utils.anonimizar_cpf_cnpj import anonimizar_cpf
 from tempfile import NamedTemporaryFile
 
 pytestmark = pytest.mark.django_db
@@ -20,8 +21,8 @@ def test_dados_extracao(rateios_despesa_queryset):
 def test_dados_extracao_dre(rateios_despesa_queryset, dre_ipiranga):
 
     rateios_despesa_queryset_dre = rateios_despesa_queryset.filter(
-            associacao__unidade__dre__uuid=f"{dre_ipiranga.uuid}",
-        ).order_by('id')
+        associacao__unidade__dre__uuid=f"{dre_ipiranga.uuid}",
+    ).order_by('id')
 
     dados = ExportacoesRateiosService(
         queryset=rateios_despesa_queryset_dre,
@@ -199,7 +200,9 @@ def test_resultado_esperado_dados_extracao(rateios_despesa_queryset):
         f'="{primeiro_rateio.despesa.numero_documento}"',
         primeiro_rateio.despesa.tipo_documento.nome,
         primeiro_rateio.despesa.data_documento.strftime("%d/%m/%Y"),
-        primeiro_rateio.despesa.cpf_cnpj_fornecedor,
+        anonimizar_cpf(
+            primeiro_rateio.despesa.cpf_cnpj_fornecedor
+        ) if primeiro_rateio.despesa.cpf_cnpj_fornecedor else "",
         primeiro_rateio.despesa.nome_fornecedor,
         primeiro_rateio.despesa.tipo_transacao.nome,
         primeiro_rateio.despesa.documento_transacao,
@@ -284,7 +287,10 @@ def test_rodape(rateios_despesa_queryset, ambiente):
     ).texto_rodape()
 
     data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-    resultado_esperado = f"Arquivo solicitado via {ambiente.prefixo} pelo usuário 12345 em {data_atual}"
+    resultado_esperado = (
+        f"Arquivo solicitado via {ambiente.prefixo} pelo usuário 12345 em "
+        f"{data_atual}"
+    )
 
     assert dados == resultado_esperado
 
@@ -299,7 +305,9 @@ def test_filtros_aplicados_sem_data_inicio_e_sem_data_final(rateios_despesa_quer
     assert dados == resultado_esperado
 
 
-def test_filtros_aplicados_com_data_inicio_e_com_data_final(rateios_despesa_queryset):
+def test_filtros_aplicados_com_data_inicio_e_com_data_final(
+    rateios_despesa_queryset,
+):
     data_inicio = datetime.date.today()
     data_final = datetime.date.today()
 
@@ -309,12 +317,18 @@ def test_filtros_aplicados_com_data_inicio_e_com_data_final(rateios_despesa_quer
         data_final=str(data_final)
     ).get_texto_filtro_aplicado()
 
-    resultado_esperado = f"Filtro aplicado: {data_inicio.strftime('%d/%m/%Y')} a {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
+    resultado_esperado = (
+        "Filtro aplicado: "
+        f"{data_inicio.strftime('%d/%m/%Y')} a "
+        f"{data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
+    )
 
     assert dados == resultado_esperado
 
 
-def test_filtros_aplicados_com_data_inicio_e_sem_data_final(rateios_despesa_queryset):
+def test_filtros_aplicados_com_data_inicio_e_sem_data_final(
+    rateios_despesa_queryset,
+):
     data_inicio = datetime.date.today()
 
     dados = ExportacoesRateiosService(
@@ -322,12 +336,18 @@ def test_filtros_aplicados_com_data_inicio_e_sem_data_final(rateios_despesa_quer
         data_inicio=str(data_inicio)
     ).get_texto_filtro_aplicado()
 
-    resultado_esperado = f"Filtro aplicado: A partir de {data_inicio.strftime('%d/%m/%Y')} (data de criação do registro)"
+    resultado_esperado = (
+        "Filtro aplicado: "
+        f"A partir de {data_inicio.strftime('%d/%m/%Y')} "
+        "(data de criação do registro)"
+    )
 
     assert dados == resultado_esperado
 
 
-def test_filtros_aplicados_sem_data_inicio_e_com_data_final(rateios_despesa_queryset):
+def test_filtros_aplicados_sem_data_inicio_e_com_data_final(
+    rateios_despesa_queryset,
+):
     data_final = datetime.date.today()
 
     dados = ExportacoesRateiosService(
@@ -335,6 +355,9 @@ def test_filtros_aplicados_sem_data_inicio_e_com_data_final(rateios_despesa_quer
         data_final=str(data_final)
     ).get_texto_filtro_aplicado()
 
-    resultado_esperado = f"Filtro aplicado: Até {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
+    resultado_esperado = (
+        "Filtro aplicado: "
+        f"Até {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
+    )
 
     assert dados == resultado_esperado

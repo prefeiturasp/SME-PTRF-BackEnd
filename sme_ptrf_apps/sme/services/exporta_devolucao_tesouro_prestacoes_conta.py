@@ -5,49 +5,106 @@ from django.core.files import File
 from sme_ptrf_apps.core.models.ambiente import Ambiente
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.core.models.devolucao_ao_tesouro import DevolucaoAoTesouro
-from sme_ptrf_apps.core.models.solicitacao_acerto_lancamento import SolicitacaoAcertoLancamento
 from sme_ptrf_apps.core.services.arquivo_download_service import (
     gerar_arquivo_download
 )
 from sme_ptrf_apps.utils.built_in_custom import get_recursive_attr
+from sme_ptrf_apps.utils.anonimizar_cpf_cnpj import anonimizar_cpf
 
 from tempfile import NamedTemporaryFile
 
 logger = logging.getLogger(__name__)
 
 CABECALHO = [
-        ('Código EOL', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol'),
-        ('Nome Unidade', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome'),
-        ('Nome Associação', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome'),
-        ('DRE', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre__nome'),
-        ('Referência do Período da PC', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo__referencia'),
-        ('Status da PC', 'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__status'),
-        ('ID da despesa','solicitacao_acerto_lancamento__analise_lancamento__despesa__id'),
-        ('Número do documento','solicitacao_acerto_lancamento__analise_lancamento__despesa__numero_documento'),
-        ('Tipo do documento', 'solicitacao_acerto_lancamento__analise_lancamento__despesa__tipo_documento__nome'),
-        ('Data do documento', 'solicitacao_acerto_lancamento__analise_lancamento__despesa__data_documento'),
-        ('CPF_CNPJ do fornecedor', 'solicitacao_acerto_lancamento__analise_lancamento__despesa__cpf_cnpj_fornecedor'),
-        ('Nome do fornecedor', 'solicitacao_acerto_lancamento__analise_lancamento__despesa__nome_fornecedor'),
-        ('Tipo de transação', 'solicitacao_acerto_lancamento__analise_lancamento__despesa__tipo_transacao__nome'),
-        ('Número do documento da transação', 'solicitacao_acerto_lancamento__analise_lancamento__despesa__documento_transacao'),
-        ('Data da transação', 'solicitacao_acerto_lancamento__analise_lancamento__despesa__data_transacao'),
-        ('Valor (Despeza)', 'solicitacao_acerto_lancamento__analise_lancamento__despesa__valor_original'),
-        ('Valor realizado (Despesa)', 'solicitacao_acerto_lancamento__analise_lancamento__despesa__valor_total'),
-        ('Tipo de aplicação do recurso', 'aplicacao_recurso'),
-        ('Nome do Tipo de Custeio','tipo_custeio'),
-        ('Descrição da especificação de Material ou Serviço','desc_material_serv'),
-        ('Nome do tipo de Conta','nome_tipo_conta'),
-        ('Nome da Ação','nome_acao'),
-        ('Valor (Rateios)','valor_rateio'),
-        ('Valor realizado (Rateio)','valor_realizado'),
-        ('Tipo de devolução','tipo_id'),
-        ('Descrição do Tipo de devolução','tipo_nome'),
-        ('Motivo','motivo'),
-        ('É devolução total?','devolucao_total'),
-        ('Valor (Devolução)','valor'),
-        ('Data de devolução ao tesouro','data'),
-        ('Justificativa (não realização)','justificativa'),
-    ],
+    (
+        'Código EOL',
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__'
+        'prestacao_conta__associacao__unidade__codigo_eol',
+    ),
+    (
+        'Nome Unidade',
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__'
+        'prestacao_conta__associacao__unidade__nome',
+    ),
+    (
+        'Nome Associação',
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__'
+        'prestacao_conta__associacao__nome',
+    ),
+    (
+        'DRE',
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__'
+        'prestacao_conta__associacao__unidade__dre__nome',
+    ),
+    (
+        'Referência do Período da PC',
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__'
+        'prestacao_conta__periodo__referencia',
+    ),
+    (
+        'Status da PC',
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__'
+        'prestacao_conta__status',
+    ),
+    (
+        'ID da despesa',
+        'solicitacao_acerto_lancamento__analise_lancamento__despesa__id',
+    ),
+    (
+        'Número do documento',
+        'solicitacao_acerto_lancamento__analise_lancamento__despesa__numero_documento',
+    ),
+    (
+        'Tipo do documento',
+        'solicitacao_acerto_lancamento__analise_lancamento__despesa__tipo_documento__nome',
+    ),
+    (
+        'Data do documento',
+        'solicitacao_acerto_lancamento__analise_lancamento__despesa__data_documento',
+    ),
+    (
+        'CPF_CNPJ do fornecedor',
+        'solicitacao_acerto_lancamento__analise_lancamento__despesa__cpf_cnpj_fornecedor',
+    ),
+    (
+        'Nome do fornecedor',
+        'solicitacao_acerto_lancamento__analise_lancamento__despesa__nome_fornecedor',
+    ),
+    (
+        'Tipo de transação',
+        'solicitacao_acerto_lancamento__analise_lancamento__despesa__tipo_transacao__nome',
+    ),
+    (
+        'Número do documento da transação',
+        'solicitacao_acerto_lancamento__analise_lancamento__despesa__documento_transacao',
+    ),
+    (
+        'Data da transação',
+        'solicitacao_acerto_lancamento__analise_lancamento__despesa__data_transacao',
+    ),
+    (
+        'Valor (Despeza)',
+        'solicitacao_acerto_lancamento__analise_lancamento__despesa__valor_original',
+    ),
+    (
+        'Valor realizado (Despesa)',
+        'solicitacao_acerto_lancamento__analise_lancamento__despesa__valor_total',
+    ),
+    ('Tipo de aplicação do recurso', 'aplicacao_recurso'),
+    ('Nome do Tipo de Custeio', 'tipo_custeio'),
+    ('Descrição da especificação de Material ou Serviço', 'desc_material_serv'),
+    ('Nome do tipo de Conta', 'nome_tipo_conta'),
+    ('Nome da Ação', 'nome_acao'),
+    ('Valor (Rateios)', 'valor_rateio'),
+    ('Valor realizado (Rateio)', 'valor_realizado'),
+    ('Tipo de devolução', 'tipo_id'),
+    ('Descrição do Tipo de devolução', 'tipo_nome'),
+    ('Motivo', 'motivo'),
+    ('É devolução total?', 'devolucao_total'),
+    ('Valor (Devolução)', 'valor'),
+    ('Data de devolução ao tesouro', 'data'),
+    ('Justificativa (não realização)', 'justificativa'),
+]
 
 
 class ExportacoesDevolucaoTesouroPrestacoesContaService:
@@ -59,7 +116,7 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
         self.nome_arquivo = kwargs.get('nome_arquivo', None)
         self.user = kwargs.get('user', None)
         self.dre_codigo_eol = kwargs.get('dre_codigo_eol', None)
-        self.cabecalho = CABECALHO[0]
+        self.cabecalho = CABECALHO
         self.ambiente = self.get_ambiente
         self.objeto_arquivo_download = None
         self.texto_filtro_aplicado = self.get_texto_filtro_aplicado()
@@ -71,21 +128,29 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
 
     def get_texto_filtro_aplicado(self):
         if self.data_inicio and self.data_final:
-            data_inicio_formatada = datetime.strptime(f"{self.data_inicio}", '%Y-%m-%d')
+            data_inicio_formatada = datetime.strptime(
+                str(self.data_inicio), '%Y-%m-%d'
+            )
             data_inicio_formatada = data_inicio_formatada.strftime("%d/%m/%Y")
 
-            data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
+            data_final_formatada = datetime.strptime(
+                str(self.data_final), '%Y-%m-%d'
+            )
             data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
 
             return f"Filtro aplicado: {data_inicio_formatada} a {data_final_formatada} (data de criação do registro)"
 
         if self.data_inicio:
-            data_inicio_formatada = datetime.strptime(f"{self.data_inicio}", '%Y-%m-%d')
+            data_inicio_formatada = datetime.strptime(
+                str(self.data_inicio), '%Y-%m-%d'
+            )
             data_inicio_formatada = data_inicio_formatada.strftime("%d/%m/%Y")
             return f"Filtro aplicado: A partir de {data_inicio_formatada} (data de criação do registro)"
 
         if self.data_final:
-            data_final_formatada = datetime.strptime(f"{self.data_final}", '%Y-%m-%d')
+            data_final_formatada = datetime.strptime(
+                str(self.data_final), '%Y-%m-%d'
+            )
             data_final_formatada = data_final_formatada.strftime("%d/%m/%Y")
             return f"Filtro aplicado: Até {data_final_formatada} (data de criação do registro)"
 
@@ -130,19 +195,36 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
 
             for _, campo in self.cabecalho:
 
-                if campo == "solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome":
+                if campo == (
+                    "solicitacao_acerto_lancamento__analise_lancamento__"
+                    "analise_prestacao_conta__prestacao_conta__associacao__"
+                    "unidade__nome"
+                ):
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo.replace(";", ",") if campo else "")
                     continue
 
-                if campo == "solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__nome":
+                if campo == (
+                    "solicitacao_acerto_lancamento__analise_lancamento__"
+                    "analise_prestacao_conta__prestacao_conta__associacao__nome"
+                ):
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo.replace(";", ",") if campo else "")
                     continue
 
-                if campo == "solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre__nome":
+                if campo == (
+                    "solicitacao_acerto_lancamento__analise_lancamento__"
+                    "analise_prestacao_conta__prestacao_conta__associacao__"
+                    "unidade__dre__nome"
+                ):
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
+                if campo == "solicitacao_acerto_lancamento__analise_lancamento__despesa__cpf_cnpj_fornecedor":
+                    campo = get_recursive_attr(instance, campo)
+                    valor_anonimizado = anonimizar_cpf(campo) if campo else ""
+                    linha_horizontal.append(valor_anonimizado)
                     continue
 
                 if campo == "solicitacao_acerto_lancamento__analise_lancamento__despesa__nome_fornecedor":
@@ -155,7 +237,15 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                     linha_horizontal.append(campo.replace(";", ",") if campo else "")
                     continue
 
-                if campo == 'aplicacao_recurso' or campo == 'tipo_custeio' or campo == 'desc_material_serv' or campo == 'nome_tipo_conta' or campo == 'nome_acao' or campo == 'valor_rateio' or campo == 'valor_realizado':
+                if campo in {
+                    'aplicacao_recurso',
+                    'tipo_custeio',
+                    'desc_material_serv',
+                    'nome_tipo_conta',
+                    'nome_acao',
+                    'valor_rateio',
+                    'valor_realizado',
+                }:
                     linha_horizontal.append('')
                 elif campo == 'solicitacao_acerto_lancamento__analise_lancamento__despesa__data_documento':
                     campo = get_recursive_attr(instance, campo)
@@ -176,21 +266,40 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                 elif campo == 'tipo_id':
                     linha_horizontal.append(devolucao_ao_tesouro.tipo.id if devolucao_ao_tesouro is not None else '')
                 elif campo == 'tipo_nome':
-                    linha_horizontal.append(devolucao_ao_tesouro.tipo.nome.replace(";", ",") if devolucao_ao_tesouro is not None else '')
+                    tipo_nome = ''
+                    if devolucao_ao_tesouro is not None:
+                        tipo_nome = devolucao_ao_tesouro.tipo.nome.replace(";", ",")
+                    linha_horizontal.append(tipo_nome)
                 elif campo == 'motivo':
-                    linha_horizontal.append(devolucao_ao_tesouro.motivo.replace(";", ",") if devolucao_ao_tesouro is not None else '')
+                    motivo = ''
+                    if devolucao_ao_tesouro is not None:
+                        motivo = devolucao_ao_tesouro.motivo.replace(";", ",")
+                    linha_horizontal.append(motivo)
                 elif campo == 'devolucao_total':
                     if devolucao_ao_tesouro is not None:
                         linha_horizontal.append('Sim' if devolucao_ao_tesouro.devolucao_total else 'Não')
                     else:
                         linha_horizontal.append('')
-                elif campo == 'valor':                                         
-                    linha_horizontal.append(str(devolucao_ao_tesouro.valor).replace(".", ",") if devolucao_ao_tesouro is not None else '')
+                elif campo == 'valor':
+                    valor = ''
+                    if devolucao_ao_tesouro is not None:
+                        valor = str(devolucao_ao_tesouro.valor).replace(".", ",")
+                    linha_horizontal.append(valor)
                 elif campo == 'data':
-                    data_formatada = devolucao_ao_tesouro.data.strftime("%d/%m/%Y") if devolucao_ao_tesouro is not None and devolucao_ao_tesouro.data is not None else ''
+                    data_formatada = ''
+                    if devolucao_ao_tesouro is not None and devolucao_ao_tesouro.data:
+                        data_formatada = devolucao_ao_tesouro.data.strftime(
+                            "%d/%m/%Y"
+                        )
                     linha_horizontal.append(data_formatada)
                 elif campo == 'justificativa':
-                    linha_horizontal.append(instance.solicitacao_acerto_lancamento.justificativa.replace(";", ",") if instance.solicitacao_acerto_lancamento.justificativa is not None else '')
+                    justificativa = ''
+                    if instance.solicitacao_acerto_lancamento.justificativa:
+                        justificativa = (
+                            instance.solicitacao_acerto_lancamento.justificativa
+                            .replace(";", ",")
+                        )
+                    linha_horizontal.append(justificativa)
                 else:
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo)
@@ -205,38 +314,77 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                         linha_nova[28] = ''
 
                     linha_nova[17] = rateio.aplicacao_recurso or ''
-                    linha_nova[18] = rateio.tipo_custeio.nome.replace(";", ",") if rateio.tipo_custeio else ''
-                    linha_nova[19] = rateio.especificacao_material_servico.descricao.replace(";", ",") if rateio.especificacao_material_servico else ''
-                    linha_nova[20] = rateio.conta_associacao.tipo_conta.nome.replace(";", ",") if rateio.conta_associacao else ''
-                    linha_nova[21] = rateio.acao_associacao.acao.nome.replace(";", ",") if rateio.acao_associacao else ''
-                    linha_nova[22] = str(rateio.valor_rateio).replace(".", ",") if rateio.valor_rateio else ''
-                    linha_nova[23] = str(rateio.valor_original).replace(".", ",") if rateio.valor_original else ''
+                    linha_nova[18] = (
+                        rateio.tipo_custeio.nome.replace(";", ",")
+                        if rateio.tipo_custeio
+                        else ''
+                    )
+                    linha_nova[19] = (
+                        rateio.especificacao_material_servico.descricao.replace(
+                            ";", ","
+                        )
+                        if rateio.especificacao_material_servico
+                        else ''
+                    )
+                    linha_nova[20] = (
+                        rateio.conta_associacao.tipo_conta.nome.replace(";", ",")
+                        if rateio.conta_associacao
+                        else ''
+                    )
+                    linha_nova[21] = (
+                        rateio.acao_associacao.acao.nome.replace(";", ",")
+                        if rateio.acao_associacao
+                        else ''
+                    )
+                    linha_nova[22] = (
+                        str(rateio.valor_rateio).replace(".", ",")
+                        if rateio.valor_rateio
+                        else ''
+                    )
+                    linha_nova[23] = (
+                        str(rateio.valor_original).replace(".", ",")
+                        if rateio.valor_original
+                        else ''
+                    )
 
                     linhas_vertical.append(linha_nova)
             else:
-                logger.info(f"Escrevendo linha {linha_horizontal} de status de prestação de conta de custeio {instance.id}.")
+                logger.info(
+                    "Escrevendo linha %s de status de prestação de conta de "
+                    "custeio %s.",
+                    linha_horizontal,
+                    instance.id,
+                )
                 despesa_primeira_linha.add(despesa_id)
-                linhas_vertical.append(linha_horizontal)  
+                linhas_vertical.append(linha_horizontal)
 
         return linhas_vertical
 
     def filtra_range_data(self, field):
         if self.data_inicio and self.data_final:
-            self.data_inicio = datetime.strptime(f"{self.data_inicio} 00:00:00", '%Y-%m-%d %H:%M:%S')
-            self.data_final = datetime.strptime(f"{self.data_final} 23:59:59", '%Y-%m-%d %H:%M:%S')
+            self.data_inicio = datetime.strptime(
+                f"{self.data_inicio} 00:00:00", '%Y-%m-%d %H:%M:%S'
+            )
+            self.data_final = datetime.strptime(
+                f"{self.data_final} 23:59:59", '%Y-%m-%d %H:%M:%S'
+            )
 
             self.queryset = self.queryset.filter(
                 **{f'{field}__range': [self.data_inicio, self.data_final]}
             )
         elif self.data_inicio and not self.data_final:
-            self.data_inicio = datetime.strptime(f"{self.data_inicio} 00:00:00", '%Y-%m-%d %H:%M:%S')
+            self.data_inicio = datetime.strptime(
+                f"{self.data_inicio} 00:00:00", '%Y-%m-%d %H:%M:%S'
+            )
 
             self.queryset = self.queryset.filter(
                 **{f'{field}__gt': self.data_inicio}
             )
 
         elif self.data_final and not self.data_inicio:
-            self.data_final = datetime.strptime(f"{self.data_final} 23:59:59", '%Y-%m-%d %H:%M:%S')
+            self.data_final = datetime.strptime(
+                f"{self.data_final} 23:59:59", '%Y-%m-%d %H:%M:%S'
+            )
 
             self.queryset = self.queryset.filter(
                 **{f'{field}__lt': self.data_final}
@@ -244,7 +392,7 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
         return self.queryset
 
     def cria_registro_central_download(self):
-        logger.info(f"Criando registro na central de download")
+        logger.info("Criando registro na central de download")
         obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo,
