@@ -338,7 +338,7 @@ def saldo_anterior_total_conta_associacao_no_periodo(conta_associacao, periodo):
     def saldo_periodo_aberto_sumarizado(periodo, conta_associacao):
 
         if not periodo or not periodo.periodo_anterior:
-            return 0.00
+            return 0
 
         fechamentos_periodo_anterior = FechamentoPeriodo.fechamentos_da_conta_no_periodo(
             conta_associacao=conta_associacao,

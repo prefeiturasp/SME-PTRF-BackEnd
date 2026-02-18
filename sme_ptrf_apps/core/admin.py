@@ -8,7 +8,6 @@ from auditlog.models import LogEntry
 from auditlog.admin import LogEntryAdmin
 from rangefilter.filters import DateRangeFilter
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
-from sme_ptrf_apps.core.services.acao_associacao_service import checa_se_pode_alterar_recurso
 from sme_ptrf_apps.core.services import associacao_pode_implantar_saldo
 from sme_ptrf_apps.core.tasks.regerar_demonstrativos_financeiros import regerar_demonstrativo_financeiro_async
 from sme_ptrf_apps.core.choices.tipos_unidade import TIPOS_CHOICE
@@ -108,15 +107,13 @@ class AcaoAdminForm(ModelForm):
         model = Acao
         fields = "__all__"
 
-    def clean(self):
-        obj = self.instance
+    def clean_recurso(self):
+        from sme_ptrf_apps.core.services.acao_associacao_service import validar_troca_recurso
+        recurso = self.cleaned_data["recurso"]
 
-        if not checa_se_pode_alterar_recurso(obj):
-            self.add_error(
-                "recurso",
-                "Um vínculo entre uma Ação e um Recurso só pode ser desfeito "
-                "se não houver cadastro realizado na ação vinculada ao recurso."
-            )
+        validar_troca_recurso(self.instance, recurso)
+
+        return recurso
 
 
 @admin.register(Acao)
@@ -199,6 +196,18 @@ class PeriodoInicialAssociacaoInline(admin.TabularInline):
     model = PeriodoInicialAssociacao
 
 
+@admin.register(PeriodoInicialAssociacao)
+class PeriodoInicialAssociacaoAdmin(admin.ModelAdmin):
+    raw_id_fields = ('associacao', 'periodo_inicial', )
+    list_display = ('associacao', 'recurso', 'periodo_inicial')
+    search_fields = ('uuid', 'associacao__unidade__nome', 'associacao__unidade__codigo_eol', )
+    list_filter = (
+        ('recurso__nome', custom_titled_filter('Recurso')),
+        'periodo_inicial'
+    )
+    search_help_text = 'Pesquise por: código eol da associação, nome da associação ou UUID do registro'
+
+
 @admin.register(Associacao)
 class AssociacaoAdmin(admin.ModelAdmin):
     def get_nome_escola(self, obj):
@@ -209,7 +218,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
     def get_periodo_inicial_referencia(self, obj):
         return obj.periodo_inicial.referencia if obj and obj.periodo_inicial else ''
 
-    get_periodo_inicial_referencia.short_description = 'Período Inicial'
+    get_periodo_inicial_referencia.short_description = 'Período Inicial do recurso legado'
 
     list_display = ('nome', 'cnpj', 'get_nome_escola', 'get_periodo_inicial_referencia',
                     'data_de_encerramento', 'migrada_para_historico_de_membros')
@@ -918,7 +927,7 @@ class TipoContaAdmin(admin.ModelAdmin):
     list_filter = (
         'nome',
         ('recurso__nome', custom_titled_filter('Recurso')),
-    )    
+    )
     readonly_fields = ('id', 'uuid',)
 
 

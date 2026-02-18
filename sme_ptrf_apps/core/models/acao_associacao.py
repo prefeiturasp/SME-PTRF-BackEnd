@@ -53,6 +53,10 @@ class AcaoAssociacao(ModeloBase):
         return query.all()
 
     @classmethod
+    def filter_by_recurso(cls, queryset, recurso_uuid):
+        return queryset.filter(acao__recurso__uuid=recurso_uuid)
+
+    @classmethod
     def excluir_em_lote(cls, lista_uuids):
         erros = []
         for uuid_str in lista_uuids:

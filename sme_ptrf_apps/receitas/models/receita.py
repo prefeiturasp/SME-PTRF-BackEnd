@@ -368,6 +368,16 @@ class Receita(ModeloBase):
 
         return totais
 
+    @classmethod
+    def filter_by_recurso(cls, queryset, recurso_uuid):
+        if not recurso_uuid:
+            return queryset
+
+        return queryset.filter(
+            Q(acao_associacao__acao__recurso__uuid=recurso_uuid) |
+            Q(conta_associacao__tipo_conta__recurso__uuid=recurso_uuid)
+        ).distinct()
+
     def marcar_conferido(self, periodo_conciliacao=None):
         # A logica de conciliação está sendo feito no pre_save
 

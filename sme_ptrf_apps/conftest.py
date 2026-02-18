@@ -13,7 +13,8 @@ from .core.models import (
     ContaAssociacao,
     SolicitacaoEncerramentoContaAssociacao,
     STATUS_FECHADO, STATUS_ABERTO, STATUS_IMPLANTACAO,
-    TipoAcertoDocumento
+    TipoAcertoDocumento,
+    Recurso
 )
 from .core.models.prestacao_conta import PrestacaoConta
 from .despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
@@ -37,7 +38,7 @@ from sme_ptrf_apps.core.fixtures.factories import (
     PrestacaoContaReprovadaNaoApresentacaoFactory, DemonstrativoFinanceiroFactory,
     ItemResumoPorAcaoFactory, ItemDespesaFactory, ItemCreditoFactory, ArquivoDownloadFactory,
     TipoDevolucaoAoTesouroFactory, FlagFactory, AtaFactory, ParticipanteFactory,
-    AnaliseContaPrestacaoContaFactory, PDFFactory, RecursoFactory
+    AnaliseContaPrestacaoContaFactory, PDFFactory, RecursoFactory, PeriodoInicialAssociacaoFactory
 )
 from sme_ptrf_apps.users.fixtures.factories import (
     UsuarioFactory, UnidadeEmSuporteFactory, GrupoAcessoFactory, VisaoFactory,
@@ -59,7 +60,7 @@ from sme_ptrf_apps.paa.fixtures.factories import (
     ReceitaPrevistaPddeFactory, PrioridadePaaFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory,
     AtaPaaFactory, ParticipanteAtaPaaFactory, AtividadeEstatutariaPaaFactory,
     OutroRecursoFactory, DocumentoPaaFactory, OutroRecursoPeriodoFactory,
-    ReceitaPrevistaOutroRecursoPeriodoFactory,
+    ReceitaPrevistaOutroRecursoPeriodoFactory, ModeloCargaPaaFactory
 )
 from sme_ptrf_apps.situacao_patrimonial.fixtures.factories import (
     BemProduzidoFactory,
@@ -92,7 +93,8 @@ factories_to_register = [
     PrioridadePaaFactory, AtaFactory, ParticipanteFactory, AnaliseContaPrestacaoContaFactory,
     PDFFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory, AtaPaaFactory, ParticipanteAtaPaaFactory,
     AtividadeEstatutariaPaaFactory, OutroRecursoFactory, DocumentoPaaFactory, OutroRecursoPeriodoFactory,
-    ReceitaPrevistaOutroRecursoPeriodoFactory, RecursoFactory
+    ReceitaPrevistaOutroRecursoPeriodoFactory, RecursoFactory, PeriodoInicialAssociacaoFactory,
+    ModeloCargaPaaFactory,
 ]
 
 for factory in factories_to_register:
@@ -801,8 +803,8 @@ def acao_associacao_role_cultural(associacao, acao_role_cultural):
 
 
 @pytest.fixture
-def recurso_legado(recurso_factory):
-    return recurso_factory.objects.filter(legado=True)
+def recurso_legado():
+    return Recurso.objects.get(legado=True)
 
 
 @pytest.fixture

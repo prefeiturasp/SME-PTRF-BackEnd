@@ -5,7 +5,15 @@
     <article id="bloco-5" class="col mb-3 p-0">
         <p class="font-14 pt-1 pl-2 pb-2 mb-0 border-left border-right border-top"><strong>Bloco 5 - Plano
                 Orçamentário</strong></p>
-        <table class="tabela border tabela-zebra mb-2 mt-0">
+        {% if dados.receitas_previstas.items %}
+        <table class="tabela tabela-plano-orcamentario border tabela-zebra mb-2 mt-0">
+            <colgroup>
+                <col style="width: 30%">
+                <col style="width: 20%">
+                <col style="width: 16.66%">
+                <col style="width: 16.66%">
+                <col style="width: 16.66%">
+            </colgroup>
             <thead>
                 <tr style="background: #f8f9fa;">
                     <th colspan="5" style="padding: 6px;">PTRF</th>
@@ -14,58 +22,67 @@
                 <tr style="background: #f8f9fa;">
                     <th>Recursos</th>
                     <th></th>
-                    <th>Receita</th>
-                    <th>Despesa</th>
-                    <th>Saldo</th>
+                    <th class="text-right">Receita</th>
+                    <th class="text-right">Despesa</th>
+                    <th class="text-right">Saldo</th>
                 </tr>
             </thead>
 
             <tbody class="nao-quebra-linha">
                 {% for receita in dados.receitas_previstas.items %}
-                <tr>
+                <tr class="tr-zebra-{{ receita.zebra_classe }}">
                     <td>{{ receita.nome }}</td>
                     <td>
                         <ul style="list-style: none; padding-left: 0">
-                            <li>Custeio (R$)</li>
-                            <li>Capital (R$)</li>
-                            <li>Livre Aplicação (R$)</li>
+                            {% if receita.exibirCusteio != False %}<li>Custeio (R$)</li>{% endif %}
+                            {% if receita.exibirCapital != False %}<li>Capital (R$)</li>{% endif %}
+                            {% if receita.exibirLivre != False %}<li>Livre Aplicação (R$)</li>{% endif %}
                         </ul>
                     </td>
-                    <td>
+                    <td class="text-right">
                         <ul style="list-style: none; padding-left: 0">
-                            <li>{{receita.total_receita_custeio|formata_valor}}</li>
-                            <li>{{receita.total_receita_capital|formata_valor}}</li>
-                            <li>{{receita.total_receita_livre|formata_valor}}</li>
+                            {% if receita.exibirCusteio != False %}<li>{{receita.total_receita_custeio|formata_valor}}</li>{% endif %}
+                            {% if receita.exibirCapital != False %}<li>{{receita.total_receita_capital|formata_valor}}</li>{% endif %}
+                            {% if receita.exibirLivre != False %}<li>{{receita.total_receita_livre|formata_valor}}</li>{% endif %}
                         </ul>
                     </td>
-                    <td>
+                    <td class="text-right">
                         <ul style="list-style: none;padding-left: 0">
-                            <li>{{receita.total_despesa_custeio|formata_valor}}</li>
-                            <li>{{receita.total_despesa_capital|formata_valor}}</li>
-                            <li>{{receita.total_despesa_livre|formata_valor}}</li>
+                            {% if receita.exibirCusteio != False %}<li>{{receita.total_despesa_custeio|formata_valor}}</li>{% endif %}
+                            {% if receita.exibirCapital != False %}<li>{{receita.total_despesa_capital|formata_valor}}</li>{% endif %}
+                            {% if receita.exibirLivre != False %}<li>{{receita.total_despesa_livre|formata_valor_vazio}}</li>{% endif %}
                         </ul>
                     </td>
-                    <td>
+                    <td class="text-right">
                         <ul style="list-style: none;padding-left: 0">
-                            <li>{{receita.saldo_custeio|formata_valor}}</li>
-                            <li>{{receita.saldo_capital|formata_valor}}</li>
-                            <li>{{receita.saldo_livre|formata_valor}}</li>
+                            {% if receita.exibirCusteio != False %}<li>{{receita.saldo_custeio|formata_valor}}</li>{% endif %}
+                            {% if receita.exibirCapital != False %}<li>{{receita.saldo_capital|formata_valor}}</li>{% endif %}
+                            {% if receita.exibirLivre != False %}<li>{{receita.saldo_livre|formata_valor}}</li>{% endif %}
                         </ul>
                     </td>
                 </tr>
                 {% endfor %}
 
-                <tr style="background: #f8f9fa; font-weight: bold;">
+                <tr class="tr-total" style="font-weight: bold;">
                     <td>TOTAL</td>
                     <td></td>
-                    <td>{{dados.receitas_previstas.total_receitas|formata_valor}}</td>
-                    <td>{{dados.receitas_previstas.total_despesas|formata_valor}}</td>
-                    <td>{{dados.receitas_previstas.total_saldo|formata_valor }}</td>
+                    <td class="text-right">{{dados.receitas_previstas.total_receitas|formata_valor}}</td>
+                    <td class="text-right">{{dados.receitas_previstas.total_despesas|formata_valor}}</td>
+                    <td class="text-right">{{dados.receitas_previstas.total_saldo|formata_valor }}</td>
                 </tr>
             </tbody>
         </table>
+        {% endif %}
 
-        <table class="tabela border tabela-zebra mb-2 mt-0">
+        {% if dados.receitas_previstas_pdde.items %}
+        <table class="tabela tabela-plano-orcamentario border tabela-zebra mb-2 mt-0">
+            <colgroup>
+                <col style="width: 30%">
+                <col style="width: 20%">
+                <col style="width: 16.66%">
+                <col style="width: 16.66%">
+                <col style="width: 16.66%">
+            </colgroup>
             <thead>
                 <tr style="background: #f8f9fa;">
                     <th colspan="5" style="padding: 6px;">PDDE</th>
@@ -74,58 +91,45 @@
                 <tr style="background: #f8f9fa;">
                     <th>Recursos</th>
                     <th></th>
-                    <th>Receita</th>
-                    <th>Despesa</th>
-                    <th>Saldo</th>
+                    <th class="text-right">Receita</th>
+                    <th class="text-right">Despesa</th>
+                    <th class="text-right">Saldo</th>
                 </tr>
             </thead>
 
             <tbody class="nao-quebra-linha">
                 {% for receita in dados.receitas_previstas_pdde.items %}
-                <tr>
-                    <td>{{ receita.nome }}</td>
-                    <td>
-                        <ul style="list-style: none; padding-left: 0">
-                            <li>Custeio (R$)</li>
-                            <li>Capital (R$)</li>
-                            <li>Livre Aplicação (R$)</li>
-                        </ul>
-                    </td>
-                    <td>
-                        <ul style="list-style: none; padding-left: 0">
-                            <li>{{receita.total_receita_custeio|formata_valor}}</li>
-                            <li>{{receita.total_receita_capital|formata_valor}}</li>
-                            <li>{{receita.total_receita_livre|formata_valor}}</li>
-                        </ul>
-                    </td>
-                    <td>
-                        <ul style="list-style: none;padding-left: 0">
-                            <li>{{receita.total_despesa_custeio|formata_valor}}</li>
-                            <li>{{receita.total_despesa_capital|formata_valor}}</li>
-                            <li>{{receita.total_despesa_livre|formata_valor}}</li>
-                        </ul>
-                    </td>
-                    <td>
-                        <ul style="list-style: none;padding-left: 0">
-                            <li>{{receita.saldo_custeio|formata_valor}}</li>
-                            <li>{{receita.saldo_capital|formata_valor}}</li>
-                            <li>{{receita.saldo_livre|formata_valor}}</li>
-                        </ul>
-                    </td>
+                {% for linha in receita.linhas %}
+                <tr class="tr-zebra-{{ receita.zebra_classe }}">
+                    {% if forloop.first %}<td rowspan="{{ receita.linhas|length }}" style="vertical-align: top;">{{ receita.nome }}</td>{% endif %}
+                    <td>{{ linha.label }}</td>
+                    <td class="text-right">{{ linha.receita|formata_valor }}</td>
+                    <td class="text-right">{% if linha.label == "Livre Aplicação (R$)" %}{{ linha.despesa|formata_valor_vazio }}{% else %}{{ linha.despesa|formata_valor }}{% endif %}</td>
+                    <td class="text-right">{{ linha.saldo|formata_valor }}</td>
                 </tr>
                 {% endfor %}
+                {% endfor %}
 
-                <tr style="background: #f8f9fa; font-weight: bold;">
+                <tr class="tr-total" style="font-weight: bold;">
                     <td>TOTAL</td>
                     <td></td>
-                    <td>{{dados.receitas_previstas_pdde.total_receitas|formata_valor}}</td>
-                    <td>{{dados.receitas_previstas_pdde.total_despesas|formata_valor}}</td>
-                    <td>{{dados.receitas_previstas_pdde.total_saldo|formata_valor }}</td>
+                    <td class="text-right">{{dados.receitas_previstas_pdde.total_receitas|formata_valor}}</td>
+                    <td class="text-right">{{dados.receitas_previstas_pdde.total_despesas|formata_valor}}</td>
+                    <td class="text-right">{{dados.receitas_previstas_pdde.total_saldo|formata_valor }}</td>
                 </tr>
             </tbody>
         </table>
+        {% endif %}
 
-        <table class="tabela border tabela-zebra mb-2 mt-0">
+        {% if dados.recursos_proprios.total_recursos_proprios or dados.recursos_proprios.items_outros_recursos %}
+        <table class="tabela tabela-plano-orcamentario border tabela-zebra mb-2 mt-0">
+            <colgroup>
+                <col style="width: 30%">
+                <col style="width: 20%">
+                <col style="width: 16.66%">
+                <col style="width: 16.66%">
+                <col style="width: 16.66%">
+            </colgroup>
             <thead>
                 <tr style="background: #f8f9fa;">
                     <th colspan="5" style="padding: 6px;">Outros Recursos</th>
@@ -134,88 +138,61 @@
                 <tr style="background: #f8f9fa;">
                     <th>Recursos</th>
                     <th></th>
-                    <th>Receita</th>
-                    <th>Despesa</th>
-                    <th>Saldo</th>
+                    <th class="text-right">Receita</th>
+                    <th class="text-right">Despesa</th>
+                    <th class="text-right">Saldo</th>
                 </tr>
             </thead>
 
             <tbody class="nao-quebra-linha">
-                <tr>
+                {% if dados.recursos_proprios.total_recursos_proprios %}
+                <tr class="tr-zebra-even">
                     <td>Recursos Próprios</td>
                     <td>
                         <ul style="list-style: none; padding-left: 0">
-                            <li>Custeio (R$)</li>
-                            <li>Capital (R$)</li>
                             <li>Livre Aplicação (R$)</li>
                         </ul>
                     </td>
-                    <td>
+                    <td class="text-right">
                         <ul style="list-style: none; padding-left: 0">
-                            <li>-</li>
-                            <li>-</li>
                             <li>{{dados.recursos_proprios.total_recursos_proprios|formata_valor}}</li>
                         </ul>
                     </td>
-                    <td>
+                    <td class="text-right">
                         <ul style="list-style: none;padding-left: 0">
                             <li>-</li>
-                            <li>-</li>
-                            <li>{{dados.recursos_proprios.total_prioridades_recursos_proprios|formata_valor}}</li>
                         </ul>
                     </td>
-                    <td>
+                    <td class="text-right">
                         <ul style="list-style: none;padding-left: 0">
-                            <li>-</li>
-                            <li>-</li>
                             <li>{{dados.recursos_proprios.saldo_recursos_proprios|formata_valor}}</li>
                         </ul>
                     </td>
                 </tr>
+                {% endif %}
 
                 {% for outro_recurso in dados.recursos_proprios.items_outros_recursos %}
-                <tr>
-                    <td>{{ outro_recurso.nome }}</td>
-                    <td>
-                        <ul style="list-style: none; padding-left: 0">
-                            <li>Custeio (R$)</li>
-                            <li>Capital (R$)</li>
-                            <li>Livre Aplicação (R$)</li>
-                        </ul>
-                    </td>
-                    <td>
-                        <ul style="list-style: none; padding-left: 0">
-                            <li>{{outro_recurso.total_receita_custeio|formata_valor}}</li>
-                            <li>{{outro_recurso.total_receita_capital|formata_valor}}</li>
-                            <li>{{outro_recurso.total_receita_livre|formata_valor}}</li>
-                        </ul>
-                    </td>
-                    <td>
-                        <ul style="list-style: none;padding-left: 0">
-                            <li>{{outro_recurso.total_despesa_custeio|formata_valor}}</li>
-                            <li>{{outro_recurso.total_despesa_capital|formata_valor}}</li>
-                            <li>{{outro_recurso.total_despesa_livre|formata_valor}}</li>
-                        </ul>
-                    </td>
-                    <td>
-                        <ul style="list-style: none;padding-left: 0">
-                            <li>{{outro_recurso.saldo_custeio|formata_valor}}</li>
-                            <li>{{outro_recurso.saldo_capital|formata_valor}}</li>
-                            <li>{{outro_recurso.saldo_livre|formata_valor}}</li>
-                        </ul>
-                    </td>
+                {% for linha in outro_recurso.linhas %}
+                <tr class="tr-zebra-{{ outro_recurso.zebra_classe }}">
+                    {% if forloop.first %}<td rowspan="{{ outro_recurso.linhas|length }}" style="vertical-align: top;">{{ outro_recurso.nome }}</td>{% endif %}
+                    <td>{{ linha.label }}</td>
+                    <td class="text-right">{{ linha.receita|formata_valor }}</td>
+                    <td class="text-right">{% if linha.label == "Livre Aplicação (R$)" %}{{ linha.despesa|formata_valor_vazio }}{% else %}{{ linha.despesa|formata_valor }}{% endif %}</td>
+                    <td class="text-right">{{ linha.saldo|formata_valor }}</td>
                 </tr>
                 {% endfor %}
+                {% endfor %}
 
-                <tr style="background: #f8f9fa; font-weight: bold;">
+                <tr class="tr-total" style="font-weight: bold;">
                     <td>TOTAL</td>
                     <td></td>
-                    <td>{{dados.recursos_proprios.total_receitas|formata_valor}}</td>
-                    <td>{{dados.recursos_proprios.total_despesas|formata_valor}}</td>
-                    <td>{{dados.recursos_proprios.total_saldo|formata_valor }}</td>
+                    <td class="text-right">{{dados.recursos_proprios.total_receitas|formata_valor}}</td>
+                    <td class="text-right">{{dados.recursos_proprios.total_despesas|formata_valor}}</td>
+                    <td class="text-right">{{dados.recursos_proprios.total_saldo|formata_valor }}</td>
                 </tr>
             </tbody>
         </table>
+        {% endif %}
 
     </article>
 </section>
