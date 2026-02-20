@@ -71,6 +71,8 @@ class DespesasViewSet(mixins.CreateModelMixin,
         from ...services.despesa_service import ordena_despesas_por_imposto
         qs = Despesa.objects.exclude(status='INATIVO').all()
 
+        qs = Despesa.filter_by_recurso(qs, self.request.recurso)
+
         search = self.request.query_params.get('search')
         if search is not None and search != '':
             qs = qs.filter(
@@ -330,7 +332,16 @@ class DespesasViewSet(mixins.CreateModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         def get_valores_from(serializer, associacao_uuid):
-            valores = serializer.Meta.model.get_valores(user=request.user, associacao_uuid=associacao_uuid)
+            model = serializer.Meta.model
+
+            valores = model.get_valores(
+                user=request.user,
+                associacao_uuid=associacao_uuid
+            )
+
+            if self.request.recurso and hasattr(model, "filter_by_recurso"):
+                valores = model.filter_by_recurso(valores, self.request.recurso)
+
             return serializer(valores, many=True).data if valores else []
 
         result = {

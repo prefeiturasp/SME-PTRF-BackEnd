@@ -87,8 +87,14 @@ class Periodo(ModeloBase):
         return periodos_da_data.first() if periodos_da_data else None
 
     @classmethod
-    def filter_by_recurso(cls, queryset, recurso_uuid):
-        return queryset.filter(recurso__uuid=recurso_uuid)
+    def da_data_por_recurso(cls, data, recurso):
+        periodos_da_data = cls.objects.filter(data_inicio_realizacao_despesas__lte=data, recurso=recurso).filter(
+            Q(data_fim_realizacao_despesas__gte=data) | Q(data_fim_realizacao_despesas__isnull=True))
+        return periodos_da_data.first() if periodos_da_data else None
+
+    @classmethod
+    def filter_by_recurso(cls, queryset, recurso):
+        return queryset.filter(recurso=recurso)
 
     def notificacao_inicio_prestacao_de_contas_realizada(self):
         self.notificacao_inicio_periodo_pc_realizada = True

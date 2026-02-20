@@ -33,6 +33,8 @@ def retorna_despesas_com_pagamento_antecipado_por_periodo(associacao, periodo):
             Q(data_transacao__gte=data_inicio_realizacao_despesas)
         )
 
+    despesas = Despesa.filter_by_recurso(despesas, periodo.recurso)
+
     despesas_com_pagamento_antecipado = []
     for despesa in despesas:
 
