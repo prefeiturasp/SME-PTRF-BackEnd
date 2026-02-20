@@ -273,6 +273,11 @@ class DespesaService:
         for imposto in despesas_impostos:
             rateios = imposto.pop("rateios", [])
 
+            if not rateios:
+                raise serializers.ValidationError({
+                    "mensagem": "A despesa de imposto precisa ter rateio associado"
+                })
+
             imposto.pop("despesas_impostos", None)
             imposto.pop("motivos_pagamento_antecipado", None)
 
@@ -300,6 +305,12 @@ class DespesaService:
 
             for imposto in despesas_impostos:
                 rateios = imposto.pop("rateios", [])
+
+                if not rateios:
+                    raise serializers.ValidationError({
+                        "mensagem": "A despesa de imposto precisa ter rateio associado"
+                    })
+            
                 imposto.pop("despesas_impostos", None)
                 imposto.pop("motivos_pagamento_antecipado", None)
 
