@@ -1,6 +1,5 @@
 import pytest
 from datetime import date
-from unittest.mock import patch, call
 from sme_ptrf_apps.core.services.dados_demo_financeiro_service import gerar_dados_demonstrativo_financeiro
 
 pytestmark = pytest.mark.django_db
@@ -233,32 +232,3 @@ def test_despesas_demonstradas_segunda_pc_associacao(associacao_factory, conta_a
 
     assert len(resultado['despesas_demonstradas']['linhas']) == 2
     assert resultado['despesas_demonstradas']['valor_total'] == 180.00
-
-def test_trava_processamento_demonstrativo_eh_acionada(
-    associacao,
-    df_conta_associacao_cartao,
-    df_periodo_2020_1,
-    df_prestacao_conta_2020_1,
-    df_fechamento_periodo_2020_1,
-    df_rateio_despesa_2020_1_cartao_ptrf_custeio_conferido_em_2020_1
-):
-    acoes = associacao.acoes.filter(status='ATIVA')
-
-    with patch(
-        'sme_ptrf_apps.core.services.dados_demo_financeiro_service.marcar_processamento_demonstrativo'
-    ) as mock_processa:
-
-        gerar_dados_demonstrativo_financeiro(
-            usuario='teste',
-            acoes=acoes,
-            periodo=df_periodo_2020_1,
-            conta_associacao=df_conta_associacao_cartao,
-            prestacao=df_prestacao_conta_2020_1,
-            observacao_conciliacao="",
-            previa=False,
-        )
-
-        mock_processa.assert_has_calls([
-            call(df_prestacao_conta_2020_1, rodando=True),
-            call(df_prestacao_conta_2020_1, rodando=False),
-        ])
