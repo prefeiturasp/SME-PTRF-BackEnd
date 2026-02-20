@@ -1,5 +1,6 @@
 import logging
 
+from django.db import transaction
 from rest_framework import serializers
 
 from .rateio_despesa_serializer import RateioDespesaSerializer, RateioDespesaTabelaGastosEscolaSerializer
@@ -85,10 +86,11 @@ class DespesaSerializer(serializers.ModelSerializer):
 class DespesaCreateSerializer(serializers.ModelSerializer):
     associacao = serializers.SlugRelatedField(
         slug_field='uuid',
-        required=False,
+        required=True,
+        allow_null=False,
         queryset=Associacao.objects.all()
     )
-    rateios = RateioDespesaCreateSerializer(many=True, required=False)
+    rateios = RateioDespesaCreateSerializer(many=True, required=True, allow_null=False)
     despesas_impostos = DespesaImpostoSerializer(many=True, required=False, allow_null=True)
     confirmar_limpeza_prioridades_paa = serializers.BooleanField(
         required=False,
@@ -97,12 +99,56 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         help_text='Se True, confirma a limpeza do valor das prioridades do PAA impactadas.'
     )
 
+    valor_total = serializers.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        required=True,
+        allow_null=False
+    )
+
+    # data_transacao = serializers.DateField(required=True, allow_null=False)
+
+    def validate_rateios(self, value):
+
+        if not value:
+            raise serializers.ValidationError(
+                "A despesa deve conter ao menos um rateio."
+            )
+        
+        raw_rateios = self.initial_data.get("rateios", [])
+
+        serializer = RateioDespesaCreateSerializer(
+            data=raw_rateios,
+            many=True
+        )
+        serializer.is_valid(raise_exception=True)
+
+        total_rateios = sum(
+            rateio.get("valor_rateio", 0) for rateio in raw_rateios
+        )
+
+        valor_total = self.initial_data.get("valor_total")
+        valor_recursos_proprios = self.initial_data.get("valor_recursos_proprios", 0)
+
+        if valor_total is not None:
+            valor_despesa_real = valor_total - valor_recursos_proprios
+
+            if total_rateios != valor_despesa_real:
+                raise serializers.ValidationError(
+                    "A soma dos rateios deve ser igual ao valor da despesa."
+                )
+
+        return value
+
     def validate(self, data):
         from sme_ptrf_apps.core.models import Periodo
-        rateios = data['rateios'] if 'rateios' in data else []
-        despesas_impostos = data['despesas_impostos'] if 'despesas_impostos' in data else []
-        if data['data_transacao']:
-            periodo = Periodo.da_data(data['data_transacao'])
+
+        rateios = data.get('rateios', [])
+        despesas_impostos = data.get('despesas_impostos', []) if 'despesas_impostos' in data else []
+        data_transacao = data.get('data_transacao')
+
+        if data_transacao:
+            periodo = Periodo.da_data(data_transacao)
 
             if (self.instance and self.instance.prestacao_conta and
                     self.instance.prestacao_conta.devolvida_para_acertos and
@@ -111,20 +157,19 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError({
                         "mensagem": "Permitido apenas datas dentro do período referente à devolução."})
 
-        if data['data_transacao']:
-            for rateio in rateios:
-                data_transacao = data['data_transacao']
-                conta_associacao = rateio['conta_associacao']
+        for rateio in rateios:
+            data_transacao = data['data_transacao']
+            conta_associacao = rateio['conta_associacao']
 
-                if conta_associacao and (conta_associacao.data_inicio > data_transacao):
-                    raise serializers.ValidationError({
-                        "mensagem": (
-                            "Um ou mais rateios possuem conta com data de início posterior a data de transação.")})
-                if (conta_associacao and
-                        (conta_associacao.data_encerramento and conta_associacao.data_encerramento < data_transacao)):
-                    raise serializers.ValidationError({
-                        "mensagem": ("Um ou mais rateios possuem conta com data de encerramento anterior a "
-                                     "data de transação.")})
+            if conta_associacao and (conta_associacao.data_inicio > data_transacao):
+                raise serializers.ValidationError({
+                    "mensagem": (
+                        "Um ou mais rateios possuem conta com data de início posterior a data de transação.")})
+            if (conta_associacao and
+                    (conta_associacao.data_encerramento and conta_associacao.data_encerramento < data_transacao)):
+                raise serializers.ValidationError({
+                    "mensagem": ("Um ou mais rateios possuem conta com data de encerramento anterior a "
+                                    "data de transação.")})
 
         for imposto in despesas_impostos:
             data_transacao = imposto['data_transacao']
@@ -178,6 +223,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                     "Será necessário revisar as prioridades para atualizar o valor total.")
             })
 
+    @transaction.atomic
     def create(self, validated_data):
         # Remover a flag de confirmação do validated_data
         confirmar_limpeza_prioridades = validated_data.pop('confirmar_limpeza_prioridades_paa', False)  # noqa
@@ -239,6 +285,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         rateios_lista = []
         for rateio in rateios:
             rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
+            rateio["associacao_id"] = despesa.associacao.id
             rateio_object = RateioDespesaCreateSerializer().create(rateio)
             rateios_lista.append(rateio_object)
 
@@ -320,6 +367,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             service = PrioridadesPaaImpactadasDespesaRateioService(rateio, instance_despesa)
             service.limpar_valor_prioridades_impactadas()
 
+    @transaction.atomic
     def update(self, instance, validated_data):
         # Remove flag de confirmação do validated_data (não é campo do model)
         confirmar_limpeza_prioridades = validated_data.pop('confirmar_limpeza_prioridades_paa', False)  # noqa
