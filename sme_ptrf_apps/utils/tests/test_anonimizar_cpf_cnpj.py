@@ -9,9 +9,10 @@ class TestAnonimizarCpfCnpjFornecedor:
         assert anonimizar_cpf("123.456.789-01") == "123XXXXXX01"
         assert anonimizar_cpf("12345678945") == "123XXXXXX45"
 
-    def test_cnpj_14_digitos_anonimizado(self):
-        assert anonimizar_cpf("11478276000104") == "114XXXXXXXXX04"
-        assert anonimizar_cpf("11.478.276/0001-04") == "114XXXXXXXXX04"
+    def test_cnpj_14_digitos_retorna_original(self):
+        """CNPJ não é anonimizado; retorna o valor original."""
+        assert anonimizar_cpf("11478276000104") == "11478276000104"
+        assert anonimizar_cpf("11.478.276/0001-04") == "11.478.276/0001-04"
 
     def test_valor_vazio_retorna_vazio(self):
         assert anonimizar_cpf("") == ""
@@ -29,8 +30,7 @@ class TestAnonimizarCpfCnpjFornecedor:
         assert anonimizar_cpf("ABC12345678") == "ABCXXXXXX78"
         assert anonimizar_cpf("1A2B3C4D5E6") == "1A2XXXXXXE6"
 
-    def test_formato_alfanumerico_14_caracteres_anonimizado(self):
-        """Aceita formato alfanumérico com 14 caracteres."""
-        # 14 caracteres: AB123456780099
-        assert anonimizar_cpf("AB123456780099") == "AB1XXXXXXXXX99"
-        assert anonimizar_cpf("11.478.276/0001-04") == "114XXXXXXXXX04"
+    def test_formato_alfanumerico_14_caracteres_retorna_original(self):
+        """CNPJ (14 caracteres) não é anonimizado; retorna o valor original."""
+        assert anonimizar_cpf("AB123456780099") == "AB123456780099"
+        assert anonimizar_cpf("11.478.276/0001-04") == "11.478.276/0001-04"

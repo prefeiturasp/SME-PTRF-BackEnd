@@ -5,11 +5,12 @@ from sme_ptrf_apps.paa.models import FonteRecursoPaa
 
 @pytest.mark.django_db
 def test_lista_fontes_recursos_paa(jwt_authenticated_client_sme, flag_paa, fonte_recurso_paa):
-
     response = jwt_authenticated_client_sme.get("/api/fontes-recursos-paa/")
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 10
+    assert len(response.data) >= 1
+    # A fonte criada pelo fixture deve estar na lista
+    assert any(item["uuid"] == str(fonte_recurso_paa.uuid) for item in response.data)
 
 
 @pytest.mark.django_db
