@@ -1,19 +1,22 @@
 from decimal import Decimal
 from rest_framework import serializers
+from sme_ptrf_apps.core.models import Periodo
+from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL
 
 from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import (
     RateioDespesaCreateSerializer
 )
-from sme_ptrf_apps.core.models import Periodo
 
 
 class ValidacaoDespesaService:
 
     @staticmethod
-    def validar_rateios(
-        raw_rateios,
+    def validar_rateios_serializer(
         valor_total,
-        valor_recursos_proprios=0
+        raw_rateios = [],
+        raw_despesas_impostos = [],
+        retem_imposto = False,
+        valor_recursos_proprios = 0,
     ):
         if not raw_rateios:
             raise serializers.ValidationError(
@@ -24,7 +27,7 @@ class ValidacaoDespesaService:
             data=raw_rateios,
             many=True
         )
-        serializer.is_valid(raise_exception=True)
+        serializer.is_valid(raise_exception=True)       
 
         total_rateios = sum(
             Decimal(str(r.get("valor_rateio", 0)))
@@ -35,10 +38,40 @@ class ValidacaoDespesaService:
             str(valor_recursos_proprios or 0)
         )
 
-        if total_rateios != valor_real:
+        total_rateios_impostos = total_rateios
+
+        if retem_imposto:
+            total_impostos = sum(
+                Decimal(str(r.get("valor_total", 0)))
+                for r in raw_despesas_impostos
+            )
+
+            total_rateios_impostos += total_impostos
+
+        if total_rateios_impostos != valor_real:
             raise serializers.ValidationError(
                 "A soma dos rateios deve ser igual ao valor real da despesa."
             )
+        
+        # Valida rateios do tipo capital
+        for rateio in raw_rateios:
+            if rateio.get('aplicacao_recurso') == APLICACAO_CAPITAL:
+                quantidade_itens_capital = rateio.get('quantidade_itens_capital')
+                valor_item_capital = rateio.get('valor_item_capital')
+
+                if quantidade_itens_capital <= 0:
+                    raise serializers.ValidationError({
+                        'mensagem': 'Rateio de capital não pode ter quantidade menor ou igual a zero'
+                    })
+                
+                if valor_item_capital:
+                    valor_total_item_capital = valor_item_capital * quantidade_itens_capital
+                    valor_rateio = rateio.get('valor_rateio')
+
+                    if valor_total_item_capital != valor_rateio:
+                        raise serializers.ValidationError({
+                            'mensagem': 'Valor do rateio capital diverge do valor calculado pela quantidade de itens'
+                        })
 
     @staticmethod
     def validar_periodo_e_contas(
@@ -69,6 +102,14 @@ class ValidacaoDespesaService:
         ValidacaoDespesaService._validar_contas_impostos(
             despesas_impostos
         )
+
+        for rateio in rateios:
+            conta_associacao = rateio['conta_associacao']
+            acao_associacao = rateio['acao_associacao']
+
+            if conta_associacao and acao_associacao:
+                if conta_associacao.tipo_conta.recurso != acao_associacao.acao.recurso:
+                    raise serializers.ValidationError({"mensagem": "Conta e Ação devem ser do mesmo recurso."})
 
     @staticmethod
     def _validar_contas_rateios(rateios, data_transacao):
@@ -128,3 +169,4 @@ class ValidacaoDespesaService:
                             "data de encerramento anterior à data de transação."
                         )
                     })
+

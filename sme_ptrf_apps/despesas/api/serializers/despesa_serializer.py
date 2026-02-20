@@ -1,6 +1,4 @@
 import logging
-
-from django.db import transaction
 from rest_framework import serializers
 
 from .rateio_despesa_serializer import RateioDespesaSerializer, RateioDespesaTabelaGastosEscolaSerializer
@@ -8,12 +6,11 @@ from .tipo_documento_serializer import TipoDocumentoSerializer, TipoDocumentoLis
 from .tipo_transacao_serializer import TipoTransacaoSerializer
 from .motivo_pagamento_antecipado_serializer import MotivoPagamentoAntecipadoSerializer
 from ..serializers.rateio_despesa_serializer import RateioDespesaCreateSerializer
-from ...models import Despesa, RateioDespesa, TipoDocumento, TipoTransacao
+from ...models import Despesa, TipoDocumento, TipoTransacao
 from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
 from ....core.models import Associacao, Periodo
-from django.core.exceptions import ValidationError
-from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
 from sme_ptrf_apps.despesas.services.validacao_despesa_service import ValidacaoDespesaService
+
 
 log = logging.getLogger(__name__)
 
@@ -108,16 +105,19 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     )
 
     def validate_rateios(self, value):
-        ValidacaoDespesaService.validar_rateios(
+        ValidacaoDespesaService.validar_rateios_serializer(
             raw_rateios=self.initial_data.get("rateios", []),
             valor_total=self.initial_data.get("valor_total"),
+            retem_imposto=self.initial_data.get("retem_imposto", False),
+            raw_despesas_impostos=self.initial_data.get("despesas_impostos", []),
             valor_recursos_proprios=self.initial_data.get(
                 "valor_recursos_proprios", 0
             )
         )
         return value
 
-    def validate(self, data):
+    def validate(self, data):  
+
         ValidacaoDespesaService.validar_periodo_e_contas(
             instance=self.instance,
             data_transacao=data.get("data_transacao"),
@@ -126,15 +126,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         )
 
         # Verifica prioridades do PAA impactadas
-        # self._verificar_prioridades_paa_impactadas(data, self.instance)
-
-        for rateio in rateios:
-            conta_associacao = rateio['conta_associacao']
-            acao_associacao = rateio['acao_associacao']
-
-            if conta_associacao and acao_associacao:
-                if conta_associacao.tipo_conta.recurso != acao_associacao.acao.recurso:
-                    raise serializers.ValidationError({"mensagem": "Conta e Ação devem ser do mesmo recurso."})
+        # self._verificar_prioridades_paa_impactadas(data, self.instance)        
 
         return data
 
@@ -162,140 +154,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                     "Será necessário revisar as prioridades para atualizar o valor total.")
             })
 
-    @transaction.atomic
-    def create(self, validated_data):
-        # Remover a flag de confirmação do validated_data
-        confirmar_limpeza_prioridades = validated_data.pop('confirmar_limpeza_prioridades_paa', False)  # noqa
-
-        data_de_encerramento = validated_data['associacao'].data_de_encerramento \
-            if validated_data['associacao'] and validated_data['associacao'].data_de_encerramento else None
-
-        # Validando data de encerramento data_documento
-        data_documento = validated_data['data_documento'] if validated_data['data_documento'] else None
-
-        if data_documento and data_de_encerramento and data_documento > data_de_encerramento:
-            data_de_encerramento = data_de_encerramento.strftime("%d/%m/%Y")
-            erro = {
-                "erro_data_de_encerramento": True,
-                "data_de_encerramento": f"{data_de_encerramento}",
-                "mensagem": f"A data de documento e/ou data do pagamento não pode ser posterior à "
-                f"{data_de_encerramento}, data de encerramento da associação."
-            }
-            raise ValidationError(erro)
-
-        # Validando data de encerramento data_pagamento
-        data_transacao = validated_data['data_transacao'] if validated_data['data_transacao'] else None
-
-        if data_transacao and data_de_encerramento and data_transacao > data_de_encerramento:
-            data_de_encerramento = data_de_encerramento.strftime("%d/%m/%Y")
-            erro = {
-                "erro_data_de_encerramento": True,
-                "data_de_encerramento": f"{data_de_encerramento}",
-                "mensagem": f"A data de documento e/ou data do pagamento não pode ser posterior à "
-                f"{data_de_encerramento}, data de encerramento da associação."
-            }
-            raise ValidationError(erro)
-
-        rateios = validated_data.pop('rateios')
-
-        despesas_impostos = validated_data.pop('despesas_impostos') if validated_data.get('despesas_impostos') else None
-
-        motivos_pagamento_antecipado = validated_data.pop('motivos_pagamento_antecipado', None)
-        outros_motivos_pagamento_antecipado = validated_data.get('outros_motivos_pagamento_antecipado', None)
-
-        data_transacao = validated_data['data_transacao']
-        data_documento = validated_data['data_documento']
-
-        if data_transacao and data_documento:
-            if (data_transacao < data_documento and not motivos_pagamento_antecipado and
-                    not outros_motivos_pagamento_antecipado):
-                raise serializers.ValidationError({
-                    "detail": (
-                        "Quando a Data da transação for menor que a Data do Documento é necessário enviar "
-                        "os motivos do pagamento antecipado")})
-            elif data_transacao >= data_documento:
-                motivos_pagamento_antecipado = []
-                outros_motivos_pagamento_antecipado = ""
-
-        despesa = Despesa.objects.create(**validated_data)
-        despesa.verifica_data_documento_vazio()
-        log.info("Criando despesa com uuid: {}".format(despesa.uuid))
-
-        rateios_lista = []
-        for rateio in rateios:
-            rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
-            rateio["associacao_id"] = despesa.associacao.id
-            rateio_object = RateioDespesaCreateSerializer().create(rateio)
-            rateios_lista.append(rateio_object)
-
-        motivos_list = []
-        for motivo in motivos_pagamento_antecipado:
-            motivos_list.append(motivo.id)
-
-        despesa.rateios.set(rateios_lista)
-        despesa.motivos_pagamento_antecipado.set(motivos_list)
-        despesa.outros_motivos_pagamento_antecipado = outros_motivos_pagamento_antecipado
-        despesa.atualiza_status()
-
-        if despesa.status == STATUS_COMPLETO:
-            # Limpa prioridades do PAA se confirmado
-            # if confirmar_limpeza_prioridades:
-            self._limpar_prioridades_paa(rateios=rateios, instance_despesa=None)
-
-        log.info("Despesa {}, Rateios: {}".format(despesa.uuid, rateios_lista))
-
-        log.info("Criação de despesa finalizada!")
-
-        # Despesa de Impostos
-        if despesa.retem_imposto and despesas_impostos:
-            log.info("Criando despesas de impostos gerados pela despesa")
-            despesas_impostos_lista = []
-            for despesa_imposto in despesas_impostos:
-                rateios_imposto = despesa_imposto.pop('rateios') if despesa_imposto else None
-                # Remove despesas imposto e motivos pagamento antecipado não utilizados no caso de despesas do imposto
-                if "despesas_impostos" in despesa_imposto.keys():
-                    despesa_imposto.pop('despesas_impostos') if despesa_imposto else None
-
-                if "motivos_pagamento_antecipado" in despesa_imposto.keys():
-                    despesa_imposto.pop('motivos_pagamento_antecipado') if despesa_imposto else None
-
-                despesa_do_imposto = Despesa.objects.create(**despesa_imposto)
-                log.info(f"Criando despesa de imposto com uuid: {despesa_do_imposto.uuid}")
-
-                rateios_do_imposto_lista = []
-                for rateio in rateios_imposto:
-                    rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa_do_imposto.eh_despesa_sem_comprovacao_fiscal
-                    rateio_object = RateioDespesaCreateSerializer().create(rateio)
-                    rateios_do_imposto_lista.append(rateio_object)
-
-                despesa_do_imposto.rateios.set(rateios_do_imposto_lista)
-
-                despesa_do_imposto.verifica_data_documento_vazio()
-                despesa_do_imposto.atualiza_status()
-
-                despesas_impostos_lista.append(despesa_do_imposto)
-
-                log.info(
-                    f"Despesa do imposto {despesa_do_imposto.uuid}, Rateios do imposto: {rateios_do_imposto_lista}"
-                )
-
-            despesa.despesas_impostos.set(despesas_impostos_lista)
-
-            # necessário repassar pelas despesas impostos para atualizar o status
-            # pois só a partir desse ponto existe o vinculo entre despesa geradora e despesa imposto
-            for despesa_imposto in despesa.despesas_impostos.all():
-                despesa_imposto.verifica_data_documento_vazio()
-                despesa_imposto.atualiza_status()
-
-            log.info("Criação de despesa de imposto finalizada!")
-
-        # Setando despesa_anterior_ao_uso_do_sistema
-        data_transacao = validated_data['data_transacao'] if validated_data['data_transacao'] else None
-        if data_transacao:
-            despesa.set_despesa_anterior_ao_uso_do_sistema()
-
-        return despesa
-
+    
     def _limpar_prioridades_paa(self, rateios, instance_despesa):
         """
         Limpa o valor_total das prioridades do PAA impactadas pelos rateios da despesa.
@@ -306,207 +165,25 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             service = PrioridadesPaaImpactadasDespesaRateioService(rateio, instance_despesa)
             service.limpar_valor_prioridades_impactadas()
 
-    @transaction.atomic
+    
+    def create(self, validated_data):
+        from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
+
+        return DespesaService.create(
+            validated_data,
+            limpar_prioridades_callback=self._limpar_prioridades_paa
+        )
+    
     def update(self, instance, validated_data):
-        # Remove flag de confirmação do validated_data (não é campo do model)
-        confirmar_limpeza_prioridades = validated_data.pop('confirmar_limpeza_prioridades_paa', False)  # noqa
+        from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
 
-        data_de_encerramento = validated_data['associacao'].data_de_encerramento \
-            if validated_data['associacao'] and validated_data['associacao'].data_de_encerramento else None
-
-        # Validando data de encerramento data_documento
-        data_documento = instance.data_documento if instance and instance.data_documento else None
-
-        if data_documento and data_de_encerramento and data_documento > data_de_encerramento:
-            data_de_encerramento = validated_data['associacao'].data_de_encerramento.strftime("%d/%m/%Y")
-            erro = {
-                "erro_data_de_encerramento": True,
-                "data_de_encerramento": f"{data_de_encerramento}",
-                "mensagem": f"A data de documento e/ou data do pagamento não pode ser posterior à "
-                f"{data_de_encerramento}, data de encerramento da associação."
-            }
-            raise ValidationError(erro)
-
-        # Validando data de encerramento data_pagamento
-        data_transacao = instance.data_transacao if instance and instance.data_transacao else None
-
-        if data_transacao and data_de_encerramento and data_transacao > data_de_encerramento:
-            data_de_encerramento = validated_data['associacao'].data_de_encerramento.strftime("%d/%m/%Y")
-            erro = {
-                "erro_data_de_encerramento": True,
-                "data_de_encerramento": f"{data_de_encerramento}",
-                "mensagem": f"A data de documento e/ou data do pagamento não pode ser posterior à "
-                f"{data_de_encerramento}, data de encerramento da associação."
-            }
-            raise ValidationError(erro)
-
-        rateios = validated_data.pop('rateios')
-
-        despesas_impostos = validated_data.pop('despesas_impostos') if 'despesas_impostos' in validated_data else []
-
-        motivos_pagamento_antecipado = validated_data.pop('motivos_pagamento_antecipado', None)
-        outros_motivos_pagamento_antecipado = validated_data.get('outros_motivos_pagamento_antecipado', None)
-
-        data_transacao = validated_data['data_transacao']
-        data_documento = validated_data['data_documento']
-
-        if data_transacao and data_documento:
-            if (data_transacao < data_documento and not motivos_pagamento_antecipado and
-                    not outros_motivos_pagamento_antecipado):
-                raise serializers.ValidationError({
-                    "detail": (
-                        "Quando a Data da transação for menor que a Data do Documento é necessário enviar "
-                        "os motivos do pagamento antecipado")})
-            elif data_transacao >= data_documento:
-                motivos_pagamento_antecipado = []
-                outros_motivos_pagamento_antecipado = ""
-
-        despesa = super(DespesaCreateSerializer, self).update(instance, validated_data)
-
-        # Atualiza os rateios
-        log.info(f"Atualizando rateios da despesa {instance.uuid}")
-        keep_rateios = []  # rateios que serão mantidos. Qualquer um que não estiver na lista será apagado.
-        for rateio in rateios:
-            if "uuid" in rateio.keys():
-                log.info(
-                    f"Encontrada chave uuid no rateio {rateio['uuid']} R${rateio['valor_rateio']}. Será atualizado.")
-                if RateioDespesa.objects.filter(uuid=rateio["uuid"]).exists():
-                    log.info(f"Rateio encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
-                    rateio["associacao_id"] = despesa.associacao.id
-                    rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
-                    RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)
-                    rateio_updated = RateioDespesa.objects.get(uuid=rateio["uuid"])
-
-                    # Necessário para forçar a verificação se o rateio está completo
-                    rateio_updated.save()
-
-                    keep_rateios.append(rateio_updated.uuid)
-                else:
-                    log.info(f"Rateio NÃO encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
-                    continue
-            else:
-                log.info(f"Não encontrada chave uuid de rateio R${rateio['valor_rateio']}. Será criado.")
-                rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
-                rateio_updated = RateioDespesa.objects.create(**rateio, despesa=instance)
-                keep_rateios.append(rateio_updated.uuid)
-
-        # Apaga rateios da despesa que não estão na lista de rateios a serem mantidos
-        for rateio in instance.rateios.all():
-            if rateio.uuid not in keep_rateios:
-                log.info(f"Rateio apagado {rateio.uuid} R${rateio.valor_rateio}")
-                rateio.delete()
-
-        motivos_list = []
-        for motivo in motivos_pagamento_antecipado:
-            motivos_list.append(motivo.id)
-
-        # Atualiza as Despesas de Impostos
-        if validated_data.get('retem_imposto') and despesas_impostos:
-            # Atualiza despesas de impostos
-            log.info(f"Atualizando despesas de impostos da despesa geradora {instance.uuid}")
-            keep_impostos = []  # impostos que serão mantidos. Qualquer um que não estiver na lista será apagado.
-            despesas_impostos_lista = []
-            for despesa_imposto in despesas_impostos:
-                rateios_imposto = despesa_imposto.pop('rateios') if despesa_imposto else None
-                # Remove despesas imposto e motivos pagamento antecipado não utilizados no caso de despesas do imposto
-                despesa_imposto.pop('despesas_impostos') if despesa_imposto else None
-                despesa_imposto.pop('motivos_pagamento_antecipado') if despesa_imposto else None
-                if "uuid" in despesa_imposto.keys():
-                    log.info(
-                        f"Encontrada chave uuid na despesa imposto {despesa_imposto['uuid']}. Será atualizada.")
-                    if Despesa.objects.filter(uuid=despesa_imposto["uuid"]).exists():
-                        log.info(f"Despesa Imposto encontrada {despesa_imposto['uuid']}")
-                        Despesa.objects.filter(uuid=despesa_imposto["uuid"]).update(**despesa_imposto)
-                        despesa_imposto_updated = Despesa.by_uuid(despesa_imposto["uuid"])
-                        despesa_imposto_updated.verifica_data_documento_vazio()
-                        keep_impostos.append(despesa_imposto["uuid"])
-                        despesas_impostos_lista.append(despesa_imposto_updated)
-
-                        # Atualiza os rateios da despesa imposto
-                        rateios_do_imposto_lista = []
-                        uuid_rateios_do_imposto_lista = []
-                        for rateio in rateios_imposto:
-                            if "uuid" in rateio.keys():
-                                if RateioDespesa.objects.filter(uuid=rateio["uuid"]).exists():
-                                    rateio[
-                                        "eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
-                                    RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)
-                                    rateio_updated = RateioDespesa.objects.get(uuid=rateio["uuid"])
-                                    rateio_updated.save()
-                                    rateios_do_imposto_lista.append(rateio_updated)
-                                    uuid_rateios_do_imposto_lista.append(rateio_updated.uuid)
-                                else:
-                                    log.info(f"Rateio NÃO encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
-                                    continue
-                            else:
-                                log.info(
-                                    f"Não encontrada chave uuid de rateio R${rateio['valor_rateio']}. Será criado.")
-                                rateio_object = RateioDespesaCreateSerializer().create(rateio)
-                                rateios_do_imposto_lista.append(rateio_object)
-                                uuid_rateios_do_imposto_lista.append(rateio_object.uuid)
-
-                        # Apaga rateios da despesa de imposto que não estão na lista de rateios a serem mantidos
-                        if despesa_imposto_updated and despesa_imposto_updated.rateios.exists():
-                            for rateio in despesa_imposto_updated.rateios.all():
-                                if rateio.uuid not in uuid_rateios_do_imposto_lista:
-                                    log.info(f"Rateio de imposto será apagado {rateio.uuid}")
-                                    rateio.delete()
-                                    log.info("Apagado o rateio de imposto")
-                    else:
-                        log.info(f"Despesa Imposto NÃO encontrada {despesa_imposto['uuid']}")
-                        continue
-                else:
-                    log.info("Não encontrada chave uuid de despesa imposto. Será criado.")
-                    despesa_imposto_updated = Despesa.objects.create(**despesa_imposto)
-                    despesa_imposto_updated.verifica_data_documento_vazio()
-                    rateios_do_imposto_lista = []
-                    for rateio in rateios_imposto:
-                        rateio[
-                            "eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
-                        rateio_object = RateioDespesaCreateSerializer().create(rateio)
-                        rateios_do_imposto_lista.append(rateio_object)
-
-                    despesa_imposto_updated.rateios.set(rateios_do_imposto_lista)
-
-                    keep_impostos.append(despesa_imposto_updated.uuid)
-                    despesas_impostos_lista.append(despesa_imposto_updated)
-
-            # Apaga os impostos da despesa que não estão na lista de impostos a manter
-            for despesa_imposto in instance.despesas_impostos.all():
-                if despesa_imposto.uuid not in keep_impostos:
-                    log.info(f"Despesa imposto apagada {despesa_imposto.uuid}")
-                    despesa_imposto.delete()
-
-            instance.despesas_impostos.set(despesas_impostos_lista)
-
-        elif not validated_data.get('retem_imposto'):
-            if instance and instance.despesas_impostos.exists():
-                for despesa_imposto in instance.despesas_impostos.all():
-                    despesa_imposto.delete()
-
-        despesa.motivos_pagamento_antecipado.set(motivos_list)
-        despesa.outros_motivos_pagamento_antecipado = outros_motivos_pagamento_antecipado
-        despesa.atualiza_status()
-        despesa.save()
-
-        # necessário repassar pelas despesas impostos para atualizar o status
-        # pois só a partir desse ponto existe o vinculo entre despesa geradora e despesa imposto
-        for despesa_imposto in despesa.despesas_impostos.all():
-            despesa_imposto.verifica_data_documento_vazio()
-            despesa_imposto.atualiza_status()
-
-        # Setando despesa_anterior_ao_uso_do_sistema
-        data_transacao = validated_data['data_transacao'] if validated_data['data_transacao'] else None
-        if data_transacao:
-            despesa.set_despesa_anterior_ao_uso_do_sistema()
-
-        if despesa.status == STATUS_COMPLETO:
-            # Limpa prioridades do PAA se confirmado
-            # if confirmar_limpeza_prioridades:
-            self._limpar_prioridades_paa(rateios, instance)
-
-        return despesa
-
+        return DespesaService.update(
+            instance,
+            validated_data,
+            limpar_prioridades_callback=self._limpar_prioridades_paa
+        )
+    
+    
     class Meta:
         model = Despesa
         exclude = ('id',)
