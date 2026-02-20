@@ -13,6 +13,7 @@ from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
 from ....core.models import Associacao, Periodo
 from django.core.exceptions import ValidationError
 from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
+from sme_ptrf_apps.despesas.services.validacao_despesa_service import ValidacaoDespesaService
 
 log = logging.getLogger(__name__)
 
@@ -106,85 +107,23 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         allow_null=False
     )
 
-    # data_transacao = serializers.DateField(required=True, allow_null=False)
-
     def validate_rateios(self, value):
-
-        if not value:
-            raise serializers.ValidationError(
-                "A despesa deve conter ao menos um rateio."
+        ValidacaoDespesaService.validar_rateios(
+            raw_rateios=self.initial_data.get("rateios", []),
+            valor_total=self.initial_data.get("valor_total"),
+            valor_recursos_proprios=self.initial_data.get(
+                "valor_recursos_proprios", 0
             )
-        
-        raw_rateios = self.initial_data.get("rateios", [])
-
-        serializer = RateioDespesaCreateSerializer(
-            data=raw_rateios,
-            many=True
         )
-        serializer.is_valid(raise_exception=True)
-
-        total_rateios = sum(
-            rateio.get("valor_rateio", 0) for rateio in raw_rateios
-        )
-
-        valor_total = self.initial_data.get("valor_total")
-        valor_recursos_proprios = self.initial_data.get("valor_recursos_proprios", 0)
-
-        if valor_total is not None:
-            valor_despesa_real = valor_total - valor_recursos_proprios
-
-            if total_rateios != valor_despesa_real:
-                raise serializers.ValidationError(
-                    "A soma dos rateios deve ser igual ao valor da despesa."
-                )
-
         return value
 
     def validate(self, data):
-        from sme_ptrf_apps.core.models import Periodo
-
-        rateios = data.get('rateios', [])
-        despesas_impostos = data.get('despesas_impostos', []) if 'despesas_impostos' in data else []
-        data_transacao = data.get('data_transacao')
-
-        if data_transacao:
-            periodo = Periodo.da_data(data_transacao)
-
-            if (self.instance and self.instance.prestacao_conta and
-                    self.instance.prestacao_conta.devolvida_para_acertos and
-                    periodo):
-                if periodo.referencia != self.instance.prestacao_conta.periodo.referencia:
-                    raise serializers.ValidationError({
-                        "mensagem": "Permitido apenas datas dentro do período referente à devolução."})
-
-        for rateio in rateios:
-            data_transacao = data['data_transacao']
-            conta_associacao = rateio['conta_associacao']
-
-            if conta_associacao and (conta_associacao.data_inicio > data_transacao):
-                raise serializers.ValidationError({
-                    "mensagem": (
-                        "Um ou mais rateios possuem conta com data de início posterior a data de transação.")})
-            if (conta_associacao and
-                    (conta_associacao.data_encerramento and conta_associacao.data_encerramento < data_transacao)):
-                raise serializers.ValidationError({
-                    "mensagem": ("Um ou mais rateios possuem conta com data de encerramento anterior a "
-                                    "data de transação.")})
-
-        for imposto in despesas_impostos:
-            data_transacao = imposto['data_transacao']
-
-            if data_transacao:
-                for rateio in imposto['rateios']:
-                    conta_associacao = rateio['conta_associacao']
-                    if conta_associacao and (conta_associacao.data_inicio > data_transacao):
-                        raise serializers.ValidationError({
-                            "mensagem": ("Um ou mais rateios de imposto possuem conta com data de início posterior a "
-                                         "data de transação.")})
-                    if conta_associacao and (conta_associacao.data_encerramento and conta_associacao.data_encerramento < data_transacao):  # noqa
-                        raise serializers.ValidationError({
-                            "mensagem": ("Um ou mais rateios de imposto possuem conta com data de encerramento "
-                                         "anterior a data de transação.")})
+        ValidacaoDespesaService.validar_periodo_e_contas(
+            instance=self.instance,
+            data_transacao=data.get("data_transacao"),
+            rateios=data.get("rateios", []),
+            despesas_impostos=data.get("despesas_impostos", [])
+        )
 
         # Verifica prioridades do PAA impactadas
         # self._verificar_prioridades_paa_impactadas(data, self.instance)
@@ -433,6 +372,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                     f"Encontrada chave uuid no rateio {rateio['uuid']} R${rateio['valor_rateio']}. Será atualizado.")
                 if RateioDespesa.objects.filter(uuid=rateio["uuid"]).exists():
                     log.info(f"Rateio encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
+                    rateio["associacao_id"] = despesa.associacao.id
                     rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
                     RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)
                     rateio_updated = RateioDespesa.objects.get(uuid=rateio["uuid"])
