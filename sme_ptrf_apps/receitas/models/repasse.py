@@ -130,14 +130,14 @@ class Repasse(ModeloBase):
         return result
 
     @classmethod
-    def filter_by_recurso(cls, queryset, recurso_uuid):
-        if not recurso_uuid:
+    def filter_by_recurso(cls, queryset, recurso):
+        if not recurso:
             return queryset
 
         return queryset.filter(
-            Q(acao_associacao__acao__recurso__uuid=recurso_uuid) |
-            Q(conta_associacao__tipo_conta__recurso__uuid=recurso_uuid) |
-            Q(periodo__recurso__uuid=recurso_uuid)
+            Q(acao_associacao__acao__recurso=recurso) |
+            Q(conta_associacao__tipo_conta__recurso=recurso) |
+            Q(periodo__recurso=recurso)
         ).distinct()
 
 
