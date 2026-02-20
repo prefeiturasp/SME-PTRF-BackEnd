@@ -23,15 +23,15 @@ def test_api_post_despesa_anterior_ao_uso_do_sistema(
     conta_associacao,
     payload_despesa_anterior_ao_uso_do_sistema
 ):
-    response = jwt_authenticated_client_d.post('/api/despesas/', data=json.dumps(payload_despesa_anterior_ao_uso_do_sistema), content_type='application/json')
-
-    assert response.status_code == status.HTTP_201_CREATED
+    response = jwt_authenticated_client_d.post(
+        '/api/despesas/', data=json.dumps(payload_despesa_anterior_ao_uso_do_sistema), content_type='application/json')
 
     result = json.loads(response.content)
 
-    assert Despesa.objects.filter(uuid=result["uuid"]).exists()
+    assert response.status_code == status.HTTP_201_CREATED
 
     despesa = Despesa.objects.get(uuid=result["uuid"])
 
-    assert despesa.despesa_anterior_ao_uso_do_sistema
+    assert Despesa.objects.filter(uuid=result["uuid"]).exists()
 
+    assert despesa.despesa_anterior_ao_uso_do_sistema

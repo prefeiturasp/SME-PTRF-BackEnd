@@ -120,16 +120,31 @@ def despesa_update_data_transacao_maior_ou_igual_data_documento_e_deve_apagar_mo
     )
 
 
+@pytest.fixture
+def rateio_despesa(
+    despesa_update_data_transacao_maior_ou_igual_data_documento_e_deve_apagar_motivos_pagamento_antecipado,
+    rateio_despesa_factory,
+    conta_associacao,
+    acao_associacao
+):
+    return rateio_despesa_factory(
+        despesa=despesa_update_data_transacao_maior_ou_igual_data_documento_e_deve_apagar_motivos_pagamento_antecipado,
+        acao_associacao=acao_associacao,
+        conta_associacao=conta_associacao
+    )
+
+
 def test_put_despesa_update_data_transacao_maior_ou_igual_data_documento_e_deve_apagar_motivos_pagamento_antecipado(
     jwt_authenticated_client_d,
     motivo_pagamento_adiantado_01,
     motivo_pagamento_adiantado_02,
     despesa_update_data_transacao_maior_ou_igual_data_documento_e_deve_apagar_motivos_pagamento_antecipado,
+    rateio_despesa,
     payload_despesa_com_motivos_pagamento_antecipado,
 
 ):
     response = jwt_authenticated_client_d.put(f'/api/despesas/{despesa_update_data_transacao_maior_ou_igual_data_documento_e_deve_apagar_motivos_pagamento_antecipado.uuid}/', data=json.dumps(payload_despesa_com_motivos_pagamento_antecipado),
-                          content_type='application/json')
+                                              content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -152,7 +167,7 @@ def test_post_despesa_sem_motivos_pagamento_antecipado_e_data_transacao_menor_qu
 ):
     response = jwt_authenticated_client_d.post('/api/despesas/', data=json.dumps(
         payload_despesa_sem_motivos_pagamento_antecipado_e_data_transacao_menor_que_data_documento_devo_retornar_excecao),
-                                               content_type='application/json')
+        content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
