@@ -5,7 +5,10 @@ from sme_ptrf_apps.paa.models import Paa, PeriodoPaa, ObjetivoPaa, AtividadeEsta
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.services import PaaService
 from sme_ptrf_apps.paa.api.serializers.objetivo_paa_serializer import ObjetivoPaaSerializer, ObjetivoPaaUpdateSerializer
-from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_paa_serializer import AtividadeEstatutariaPaaSerializer, AtividadeEstaturariaPaaUpdateSerializer
+from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_paa_serializer import (
+    AtividadeEstatutariaPaaSerializer,
+    AtividadeEstaturariaPaaUpdateSerializer
+)
 from sme_ptrf_apps.paa.api.serializers import PeriodoPaaSerializer
 
 
@@ -14,12 +17,26 @@ class PaaSerializer(serializers.ModelSerializer):
     periodo_paa_objeto = PeriodoPaaSerializer(read_only=True, many=False)
     objetivos = ObjetivoPaaSerializer(many=True, read_only=True)
     total_recursos_proprios = serializers.SerializerMethodField()
+    tem_documento_final_concluido = serializers.SerializerMethodField()
+    tem_ata_concluida = serializers.SerializerMethodField()
+    status_andamento = serializers.SerializerMethodField()
+
+    def get_status_andamento(self, obj):
+        return obj.get_status_andamento()
+
+    def get_tem_documento_final_concluido(self, obj):
+        return obj.get_tem_documento_final_concluido()
+
+    def get_tem_ata_concluida(self, obj):
+        return obj.get_tem_ata_concluida()
 
     class Meta:
         model = Paa
         fields = ('uuid', 'periodo_paa', 'associacao', 'periodo_paa_objeto', 'saldo_congelado_em',
-                  'texto_introducao', 'texto_conclusao', 'status', 'objetivos', 'total_recursos_proprios')
-        read_only_fields = ('periodo_paa_objeto', 'periodo_paa', 'status', 'objetivos', 'total_recursos_proprios')
+                  'texto_introducao', 'texto_conclusao', 'status', 'objetivos', 'total_recursos_proprios',
+                  'status_andamento', 'tem_documento_final_concluido', 'tem_ata_concluida')
+        read_only_fields = ('periodo_paa_objeto', 'periodo_paa', 'status', 'objetivos', 'total_recursos_proprios',
+                            'status_andamento', 'tem_documento_final_concluido', 'tem_ata_concluida')
 
     def get_total_recursos_proprios(self, obj):
         return obj.get_total_recursos_proprios()

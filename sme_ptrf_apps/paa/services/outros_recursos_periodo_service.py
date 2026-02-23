@@ -1,7 +1,7 @@
 import logging
 from django.db import models
 from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa, Paa, ReceitaPrevistaOutroRecursoPeriodo
-from sme_ptrf_apps.paa.enums import PaaStatusEnum
+from sme_ptrf_apps.paa.enums import PaaStatusEnum, PaaStatusAndamentoEnum
 
 logger = logging.getLogger(__name__)
 
@@ -34,11 +34,19 @@ class OutroRecursoPeriodoBaseService:
         return paas
 
     def _paas_afetados_em_elaboracao(self) -> models.QuerySet:
-        return self._obtem_paas_afetados().filter(status=PaaStatusEnum.EM_ELABORACAO.name)
+        return self._obtem_paas_afetados().paas_em_elaboracao()
 
     def _paas_afetados_gerado_retificado(self) -> models.QuerySet:
+        paas_andamento_gerados = self._obtem_paas_afetados().filter(
+            pk=models.OuterRef('id')).paas_gerados()
+
+        paas_andamento_gerados_parcialmente = self._obtem_paas_afetados().filter(
+            pk=models.OuterRef('id')).paas_gerados_parcialmente()
+
         return self._obtem_paas_afetados().filter(
-            status__in=[PaaStatusEnum.GERADO.name, PaaStatusEnum.EM_RETIFICACAO.name])
+            # É gerado quando o status andamento é Gerado ou Gerado parcialmente(inclui Retificado)
+            models.Exists(paas_andamento_gerados) | models.Exists(paas_andamento_gerados_parcialmente),
+        )
 
     def _paa_em_elaboracao(self, paa: Paa) -> bool:
         """
@@ -50,7 +58,7 @@ class OutroRecursoPeriodoBaseService:
         Returns:
             True se estiver em elaboração, False caso contrário
         """
-        return paa.status == PaaStatusEnum.EM_ELABORACAO.name
+        return paa.get_status_andamento() == PaaStatusAndamentoEnum.EM_ELABORACAO.name
 
     def _paa_gerado_retificado(self, paa: Paa) -> bool:
         """
@@ -62,9 +70,9 @@ class OutroRecursoPeriodoBaseService:
         Returns:
             True se estiver gerado ou em retificação
         """
-        return paa.status in [
-            PaaStatusEnum.GERADO.name,
-            PaaStatusEnum.EM_RETIFICACAO.name
+        return paa.get_status_andamento() in [
+            PaaStatusAndamentoEnum.GERADO.name,
+            PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name  # contempla status paa Em Retificação
         ]
 
     def _paa_retificado(self, paa: Paa) -> bool:
@@ -77,9 +85,8 @@ class OutroRecursoPeriodoBaseService:
         Returns:
             True se estiver em retificação
         """
-        return paa.status in [
-            PaaStatusEnum.EM_RETIFICACAO.name
-        ]
+        em_retificacao = paa.status == PaaStatusEnum.EM_RETIFICACAO.name
+        return em_retificacao
 
     def _paa_gerado(self, paa: Paa) -> bool:
         """
@@ -91,9 +98,7 @@ class OutroRecursoPeriodoBaseService:
         Returns:
             True se estiver gerado
         """
-        return paa.status in [
-            PaaStatusEnum.GERADO.name,
-        ]
+        return paa.get_status_andamento() == PaaStatusAndamentoEnum.GERADO.name
 
     def _receitas_previstas_outro_recurso_periodo_afetadas(self, paa: Paa) -> models.QuerySet:
         logger.info(

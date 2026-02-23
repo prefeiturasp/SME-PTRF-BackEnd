@@ -62,4 +62,3 @@ def gerar_ata_paa_async(self, ata_paa_uuid, username=""):
             raise MaxRetriesExceededError(mensagem_tentativas_excedidas)
         else:
             raise exc
-
