@@ -101,6 +101,20 @@ for factory in factories_to_register:
     register(factory)
 
 
+@pytest.fixture(autouse=True)
+def _garantir_recurso_legado(db):
+    """Garante que exista um Recurso com legado=True para as factories (Acao, Periodo, TipoConta)."""
+    from sme_ptrf_apps.core.models import Recurso
+    Recurso.objects.get_or_create(
+        legado=True,
+        defaults={
+            "nome": "Programa de Transferência de Recursos Financeiros - PTRF",
+            "nome_exibicao": "PTRF",
+            "cor": "#01585E",
+        },
+    )
+
+
 @pytest.fixture
 def fake_user(client, django_user_model, unidade):
     password = 'teste'
