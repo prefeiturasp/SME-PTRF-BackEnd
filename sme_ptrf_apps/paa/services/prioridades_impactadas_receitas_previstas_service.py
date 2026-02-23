@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from decimal import Decimal
 from django.db import transaction, models
 from sme_ptrf_apps.paa.models import PrioridadePaa
-from sme_ptrf_apps.paa.enums import PaaStatusEnum, RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
+from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
 from sme_ptrf_apps.paa.services import ResumoPrioridadesService, ValidacaoSaldoIndisponivel
 from sme_ptrf_apps.paa.models import (
     ReceitaPrevistaPaa,
@@ -274,8 +274,12 @@ class PrioridadesPaaImpactadasBaseService(ABC):
 
         Esta função pode ser sobrescrita para customização para diversos tipos de Receita (PTRF, PDDE, Outros Recursos)
         """
+        from sme_ptrf_apps.paa.models import Paa
+        paas_em_elaboracao = Paa.objects.filter(
+            pk=models.OuterRef('paa_id')).paas_em_elaboracao()
+
         qs = PrioridadePaa.objects.filter(
-            paa__status=PaaStatusEnum.EM_ELABORACAO.name,
+            models.Exists(paas_em_elaboracao),
             valor_total__isnull=False,
         )
 

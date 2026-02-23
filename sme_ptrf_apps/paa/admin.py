@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.admin import SimpleListFilter
 from rangefilter.filters import DateRangeFilter
 from sme_ptrf_apps.paa.models import (
     ProgramaPdde,
@@ -23,6 +24,20 @@ from sme_ptrf_apps.paa.models import (
     ModeloCargaPaa,
 )
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
+from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
+
+
+class StatusAndamentoFilter(SimpleListFilter):
+    title = 'Status Andamento'
+    parameter_name = 'status_andamento'
+
+    def lookups(self, request, model_admin):
+        return PaaStatusAndamentoEnum.choices()
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(status_andamento=self.value())
+        return queryset
 
 
 @admin.register(PeriodoPaa)
@@ -66,15 +81,19 @@ class AtividadeEstatutariaPaaInline(admin.TabularInline):
 
 @admin.register(Paa)
 class PaaAdmin(admin.ModelAdmin):
-    list_display = ('periodo_paa', 'associacao', 'status')
-
-    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    list_display = ('periodo_paa', 'associacao', 'status', 'status_andamento')
+    readonly_fields = ('uuid', 'id', 'status_andamento', 'criado_em', 'alterado_em')
     list_display_links = ['periodo_paa']
     search_fields = ('periodo_paa__referencia', 'associacao__nome', 'associacao__unidade__codigo_eol')
-    list_filter = ('periodo_paa', 'associacao', 'status')
+    list_filter = ('periodo_paa', 'associacao', 'status', StatusAndamentoFilter)
     raw_id_fields = ['periodo_paa', 'associacao']
     inlines = [AtividadeEstatutariaPaaInline]
     actions = ["gerar_documento"]
+
+    def status_andamento(self, obj):
+        from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
+        return PaaStatusAndamentoEnum[obj.get_status_andamento()].value
+    status_andamento.short_description = 'Status Andamento'
 
     def gerar_documento(self, request, queryset):
         from sme_ptrf_apps.paa.services.documento_paa_pdf_service import gerar_arquivo_documento_paa_pdf
@@ -104,7 +123,7 @@ class ReceitaPrevistaOutroRecursoPeriodoAdmin(admin.ModelAdmin):
         'outro_recurso_periodo', 'previsao_valor_custeio', 'previsao_valor_capital', 'previsao_valor_livre',
         'unidade_nome'
     )
-    search_fields = ('outro_recurso_periodo___recurso__nome', 'outro_recurso_periodo__periodo_paa__referencia')
+    search_fields = ('outro_recurso_periodo__outro_recurso__nome', 'outro_recurso_periodo__periodo_paa__referencia')
     list_filter = ('outro_recurso_periodo__outro_recurso', 'paa', 'paa__associacao')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     raw_id_fields = ('outro_recurso_periodo', 'paa')

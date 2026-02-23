@@ -1,7 +1,7 @@
 import logging
-from django.db import transaction
-from sme_ptrf_apps.paa.models import PrioridadePaa
-from sme_ptrf_apps.paa.enums import PaaStatusEnum, RecursoOpcoesEnum
+from django.db import transaction, models
+from sme_ptrf_apps.paa.models import PrioridadePaa, Paa
+from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum
 from sme_ptrf_apps.paa.services import ResumoPrioridadesService, ValidacaoSaldoIndisponivel
 
 logger = logging.getLogger(__name__)
@@ -78,10 +78,11 @@ class PrioridadesPaaImpactadasDespesaRateioService:
         - Mesma acao_associacao do rateio
         - Recurso = PTRF
         """
+        paas_em_elaboracao = Paa.objects.filter(pk=models.OuterRef('paa_id')).paas_em_elaboracao()
 
         qs = PrioridadePaa.objects.filter(
+            models.Exists(paas_em_elaboracao),
             paa__associacao=self.associacao,
-            paa__status=PaaStatusEnum.EM_ELABORACAO.name,
             paa__saldo_congelado_em__isnull=True,
             acao_associacao=self.acao_associacao,
             recurso=RecursoOpcoesEnum.PTRF.name,
