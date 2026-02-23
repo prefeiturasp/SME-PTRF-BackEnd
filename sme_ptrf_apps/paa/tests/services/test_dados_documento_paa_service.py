@@ -182,8 +182,13 @@ def test_criar_recursos_proprios_calcula_totais_corretamente(
         prioridade=True
     )
 
-    # Outro recurso
-    outro_recurso = outro_recurso_factory(nome="Prêmio Qualidade")
+    # Outro recurso (aceita custeio e capital para aparecer na seção do plano)
+    outro_recurso = outro_recurso_factory(
+        nome="Prêmio Qualidade",
+        aceita_custeio=True,
+        aceita_capital=True,
+        aceita_livre_aplicacao=False,
+    )
 
     outro_recurso_periodo = outro_recurso_periodo_factory(outro_recurso=outro_recurso, periodo_paa=paa.periodo_paa)
 
