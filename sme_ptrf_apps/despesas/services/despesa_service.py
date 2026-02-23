@@ -143,7 +143,7 @@ class DespesaService:
                     "data_de_encerramento": dt_encerramento_formatada,
                     "mensagem": (
                         "A data de documento e/ou data do pagamento não pode ser posterior "
-                        f"à {dt_encerramento_formatada} de encerramento da associação."
+                        f"à {dt_encerramento_formatada}, data de encerramento da associação."
                     )
                 })
 
