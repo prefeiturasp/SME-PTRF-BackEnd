@@ -4,7 +4,8 @@ from unittest.mock import Mock, patch
 from django.db import models
 
 from sme_ptrf_apps.paa.services.prioridades_impactadas_receitas_previstas_service import (
-    PrioridadesPaaImpactadasBaseService
+    PrioridadesPaaImpactadasBaseService,
+    ConfirmarExlusaoPrioridadesPaaRecursoProprioService,
 )
 from sme_ptrf_apps.paa.services import (
     PrioridadesPaaImpactadasReceitasPrevistasPTRFService,
@@ -382,10 +383,12 @@ class TestPrioridadesPaaImpactadasReceitasPrevistasPTRFService:
         valor = service._get_valor_livre_edicao()
         assert valor == Decimal('500.00')
 
+    @patch('sme_ptrf_apps.paa.models.Paa')
     @patch('sme_ptrf_apps.paa.services.prioridades_impactadas_receitas_previstas_service.PrioridadePaa.objects')
     def test_query_base(
         self,
         mock_queryset,
+        mock_paa_class,
         receita_prevista_ptrf_data,
         mock_acao_associacao,
         mock_paa
@@ -398,6 +401,10 @@ class TestPrioridadesPaaImpactadasReceitasPrevistasPTRFService:
         mock_qs = Mock(spec=models.QuerySet)
         mock_queryset.filter.return_value = mock_qs
         mock_qs.filter.return_value = mock_qs
+
+        mock_paa_qs = Mock()
+        mock_paa_class.objects.filter.return_value = mock_paa_qs
+        mock_paa_qs.paas_em_elaboracao.return_value = Mock()
 
         service = PrioridadesPaaImpactadasReceitasPrevistasPTRFService(
             receita_prevista_ptrf_data,

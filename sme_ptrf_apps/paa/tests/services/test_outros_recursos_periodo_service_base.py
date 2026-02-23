@@ -1,14 +1,18 @@
+import logging
 import pytest
 from datetime import date
 from unittest.mock import patch, MagicMock
 from sme_ptrf_apps.paa.services import OutroRecursoPeriodoBaseService
+from sme_ptrf_apps.paa.models import AtaPaa, DocumentoPaa
 from sme_ptrf_apps.paa.fixtures.factories import (
     PaaFactory,
     ReceitaPrevistaOutroRecursoPeriodoFactory,
     PrioridadePaaFactory
 )
-from sme_ptrf_apps.paa.enums import PaaStatusEnum
+from sme_ptrf_apps.paa.enums import PaaStatusEnum, PaaStatusAndamentoEnum
 from sme_ptrf_apps.core.fixtures.factories import UnidadeFactory
+
+logger = logging.getLogger(__name__)
 
 
 @pytest.fixture
@@ -139,27 +143,40 @@ def test_obtem_paas_afetados_select_related(base_service, periodo_paa):
 
 
 @pytest.mark.django_db
-def test_paas_afetados_em_elaboracao(base_service, periodo_paa_1):
-    """Testa filtro de PAAs em elaboração"""
+def test_paas_afetados_em_elaboracao(base_service, periodo_paa_1, ata_paa_factory, documento_paa_factory):
+    """Testa filtro de PAAs em elaboração isolando dos gerados/retificados"""
+    paa_gerado = PaaFactory.create(
+        periodo_paa=periodo_paa_1,
+        status=PaaStatusEnum.GERADO.name
+    )
+    ata_paa_factory.create(
+        paa=paa_gerado,
+        status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+    )
+    documento_paa_factory.create(
+        paa=paa_gerado,
+        versao=DocumentoPaa.VersaoChoices.FINAL,
+        status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+    )
     paa_elaboracao = PaaFactory.create(
         periodo_paa=periodo_paa_1,
         status=PaaStatusEnum.EM_ELABORACAO.name
     )
-    PaaFactory.create(
-        periodo_paa=periodo_paa_1,
-        status=PaaStatusEnum.GERADO.name
-    )
 
-    paas = base_service._paas_afetados_em_elaboracao()
+    paas_em_elaboracao = base_service._paas_afetados_em_elaboracao()
+    paas_gerados = base_service._paas_afetados_gerado_retificado()
 
-    assert paas.count() == 1
-    assert paa_elaboracao in paas
+    assert paas_em_elaboracao.count() == 1
+    assert paa_elaboracao in paas_em_elaboracao
+
+    assert paas_gerados.count() == 1
+    assert paa_gerado in paas_gerados
 
 
 @pytest.mark.django_db
-def test_paas_afetados_gerado_retificado(base_service, periodo_paa_1):
+def test_paas_afetados_gerado_retificado(base_service, periodo_paa_1, ata_paa_factory, documento_paa_factory):
     """Testa filtro de PAAs gerados ou em retificação"""
-    paa_gerado = PaaFactory.create(
+    paa_gerado_sem_documento_e_ata = PaaFactory.create(
         periodo_paa=periodo_paa_1,
         status=PaaStatusEnum.GERADO.name
     )
@@ -167,16 +184,21 @@ def test_paas_afetados_gerado_retificado(base_service, periodo_paa_1):
         periodo_paa=periodo_paa_1,
         status=PaaStatusEnum.EM_RETIFICACAO.name
     )
-    PaaFactory.create(
-        periodo_paa=periodo_paa_1,
-        status=PaaStatusEnum.EM_ELABORACAO.name
+    ata_paa_factory.create(
+        paa=paa_retificacao,
+        status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+    )
+    documento_paa_factory.create(
+        paa=paa_retificacao,
+        versao=DocumentoPaa.VersaoChoices.FINAL,
+        status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
     )
 
-    paas = base_service._paas_afetados_gerado_retificado()
+    paas_gerados_retificados = base_service._paas_afetados_gerado_retificado()
 
-    assert paas.count() == 2
-    assert paa_gerado in paas
-    assert paa_retificacao in paas
+    assert paas_gerados_retificados.count() == 1
+    assert paa_retificacao in paas_gerados_retificados
+    assert paa_gerado_sem_documento_e_ata not in paas_gerados_retificados
 
 
 @pytest.mark.django_db
@@ -191,32 +213,83 @@ def test_paa_em_elaboracao_true(base_service, periodo_paa):
 
 
 @pytest.mark.django_db
-def test_paa_em_elaboracao_false(base_service, periodo_paa):
+def test_paa_em_elaboracao_false(base_service, periodo_paa, ata_paa_factory, documento_paa_factory):
     """Testa verificação quando PAA não está em elaboração"""
     paa = PaaFactory.create(
+        periodo_paa=periodo_paa,
+        status=PaaStatusEnum.EM_RETIFICACAO.name
+    )
+
+    ata_paa_factory.create(
+        paa=paa,
+        status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+    )
+    documento_paa_factory.create(
+        paa=paa,
+        versao=DocumentoPaa.VersaoChoices.FINAL,
+        status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+    )
+
+    assert base_service._paa_gerado_retificado(paa) is True
+
+
+@pytest.mark.django_db
+def test_paa_status_andamento_fora_de_fluxo_quando_gerado_e_sem_ata(base_service, periodo_paa, documento_paa_factory):
+    """Testa verificação quando PAA não está em elaboração"""
+    paa_sem_documentos = PaaFactory.create(
+        periodo_paa=periodo_paa,
+        status=PaaStatusEnum.GERADO.name
+    )
+    paa_sem_ata = PaaFactory.create(
         periodo_paa=periodo_paa,
         status=PaaStatusEnum.GERADO.name
     )
 
-    assert base_service._paa_em_elaboracao(paa) is False
+    documento_paa_factory.create(
+        paa=paa_sem_ata,
+        versao=DocumentoPaa.VersaoChoices.FINAL,
+        status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+    )
+
+    assert paa_sem_documentos.get_status_andamento() == PaaStatusAndamentoEnum.FORA_FLUXO.name
+    assert paa_sem_ata.get_status_andamento() == PaaStatusAndamentoEnum.FORA_FLUXO.name
 
 
 @pytest.mark.django_db
-def test_paa_gerado_retificado_gerado(base_service, periodo_paa):
+def test_paa_gerado_retificado_gerado(base_service, periodo_paa, ata_paa_factory, documento_paa_factory):
     """Testa verificação para PAA gerado"""
     paa = PaaFactory.create(
         periodo_paa=periodo_paa,
         status=PaaStatusEnum.GERADO.name
     )
+    ata_paa_factory.create(
+        paa=paa,
+        status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+    )
+    documento_paa_factory.create(
+        paa=paa,
+        versao=DocumentoPaa.VersaoChoices.FINAL,
+        status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+    )
+
     assert base_service._paa_gerado_retificado(paa) is True
 
 
 @pytest.mark.django_db
-def test_paa_gerado_retificado_retificacao(base_service, periodo_paa):
+def test_paa_gerado_retificacao_true(base_service, periodo_paa, ata_paa_factory, documento_paa_factory):
     """Testa verificação para PAA em retificação"""
     paa = PaaFactory.create(
         periodo_paa=periodo_paa,
         status=PaaStatusEnum.EM_RETIFICACAO.name
+    )
+    documento_paa_factory.create(
+        paa=paa,
+        versao=DocumentoPaa.VersaoChoices.FINAL,
+        status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+    )
+    ata_paa_factory.create(
+        paa=paa,
+        status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
     )
     assert base_service._paa_gerado_retificado(paa) is True
 
@@ -255,11 +328,20 @@ def test_paa_retificado_false(base_service, periodo_paa):
 
 
 @pytest.mark.django_db
-def test_paa_gerado_true(base_service, periodo_paa):
+def test_paa_gerado_true(base_service, periodo_paa, ata_paa_factory, documento_paa_factory):
     """Testa verificação quando PAA está gerado"""
     paa = PaaFactory.create(
         periodo_paa=periodo_paa,
         status=PaaStatusEnum.GERADO.name
+    )
+    ata_paa_factory.create(
+        paa=paa,
+        status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+    )
+    documento_paa_factory.create(
+        paa=paa,
+        versao=DocumentoPaa.VersaoChoices.FINAL,
+        status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
     )
 
     assert base_service._paa_gerado(paa) is True
