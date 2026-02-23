@@ -7,10 +7,13 @@ from ckeditor.fields import RichTextField
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.models.periodo_paa import PeriodoPaa
-from sme_ptrf_apps.paa.enums import PaaStatusEnum
+from sme_ptrf_apps.paa.enums import PaaStatusEnum, PaaStatusAndamentoEnum
+from sme_ptrf_apps.paa.paa_querysets.paa_queryset import PaaManager
 
 
 class Paa(ModeloBase):
+    objects = PaaManager()
+
     history = AuditlogHistoryField()
     periodo_paa = models.ForeignKey(PeriodoPaa, on_delete=models.PROTECT, verbose_name='Período PAA',
                                     blank=False, null=True)
@@ -26,11 +29,11 @@ class Paa(ModeloBase):
     objetivos = models.ManyToManyField('ObjetivoPaa', related_name='paas', blank=True)
     atividades_estatutarias = models.ManyToManyField(
         'AtividadeEstatutaria', through='AtividadeEstatutariaPaa', related_name='paas', blank=True)
-    
+
     # Campos para registrar ações disponíveis na conclusão do PAA
     acoes_conclusao = models.ManyToManyField(
-        'core.Acao', 
-        related_name='paas_acoes_conclusao', 
+        'core.Acao',
+        related_name='paas_acoes_conclusao',
         blank=True,
         verbose_name='Ações disponíveis na conclusão',
         help_text='Ações do tipo PTRF (core_acao) com exibir_paa=True disponíveis na conclusão do PAA'
@@ -72,6 +75,72 @@ class Paa(ModeloBase):
     @property
     def documento_previa(self):
         return self.documentopaa_set.filter(versao="PREVIA").first()
+
+    def get_status_andamento(self) -> str:
+        """
+        Retorna o status de andamento do PAA.
+
+        Se o objeto já possui o campo anotado 'status_andamento'(PaaManager -> Queryset),
+        retorna-o diretamente. Caso contrário, recarrega o objeto do banco com as anotações.
+
+        Returns:
+            str: Nome do status de andamento (GERADO, GERADO_PARCIALMENTE, EM_ELABORACAO, NAO_INICIADOs)
+        """
+        # Se já tem o campo anotado, retorne-o
+        if hasattr(self, 'status_andamento'):
+            return self.status_andamento
+
+        # Caso contrário, busque a versão anotada do banco
+        if self.pk:
+            paa_anotado = Paa.objects.get(pk=self.pk)
+            return paa_anotado.status_andamento
+
+        # Se é um objeto novo (ainda não salvo), retorna NAO_INICIADO
+        return PaaStatusAndamentoEnum.NAO_INICIADO.name
+
+    def get_tem_documento_final_concluido(self) -> bool:
+        """
+        Verifica se o PAA tem documento final concluído.
+
+        Se o objeto já possui o campo anotado(PaaManager -> PaaQueryset), retorna-o diretamente.
+        Caso contrário, recarrega o objeto do banco com as anotações.
+
+        Returns:
+            bool: True se tem documento final concluído
+        """
+        # Se já tem o campo anotado, retorne-o
+        if hasattr(self, 'tem_documento_final_concluido'):
+            return self.tem_documento_final_concluido
+
+        # Caso contrário, busque a versão anotada do banco
+        if self.pk:
+            paa_anotado = Paa.objects.get(pk=self.pk)
+            return paa_anotado.tem_documento_final_concluido
+
+        # Se é um objeto novo, retorna False
+        return False
+
+    def get_tem_ata_concluida(self) -> bool:
+        """
+        Verifica se o PAA tem ata concluída.
+
+        Se o objeto já possui o campo anotado(PaaManager -> PaaQueryset), retorna-o diretamente.
+        Caso contrário, recarrega o objeto do banco com as anotações.
+
+        Returns:
+            bool: True se tem ata concluída
+        """
+        # Se já tem o campo anotado, retorne-o
+        if hasattr(self, 'tem_ata_concluida'):
+            return self.tem_ata_concluida
+
+        # Caso contrário, busque a versão anotada do banco
+        if self.pk:
+            paa_anotado = Paa.objects.get(pk=self.pk)
+            return paa_anotado.tem_ata_concluida
+
+        # Se é um objeto novo, retorna False
+        return False
 
     class Meta:
         verbose_name = 'PAA'
