@@ -104,16 +104,3 @@ class PaaManager(models.Manager):
         Sobrescreve o queryset padrão para sempre incluir os campos anotados
         """
         return PaaQuerySet(self.model, using=self._db).annotate_status_geracao()
-
-    # # Opcional: métodos de conveniência que delegam para o QuerySet
-    # def paas_gerados(self):
-    #     return self.get_queryset().paas_gerados()
-
-    # def paas_gerados_parcialmente(self):
-    #     return self.get_queryset().paas_gerados_parcialmente()
-
-    # def paas_em_elaboracao(self):
-    #     return self.get_queryset().paas_em_elaboracao()
-
-    # def filter_por_status_geracao(self, status_geracao):
-    #     return self.get_queryset().filter_por_status_geracao(status_geracao)
