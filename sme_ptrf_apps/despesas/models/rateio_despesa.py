@@ -438,6 +438,16 @@ class RateioDespesa(ModeloBase):
 
         return totais
 
+    @classmethod
+    def filter_by_recurso(cls, queryset, recurso):
+        if not recurso:
+            return queryset
+
+        return queryset.filter(
+            Q(acao_associacao__acao__recurso=recurso) |
+            Q(conta_associacao__tipo_conta__recurso=recurso)
+        ).distinct()
+
     class Meta:
         verbose_name = "Rateio de despesa"
         verbose_name_plural = "Rateios de despesas"

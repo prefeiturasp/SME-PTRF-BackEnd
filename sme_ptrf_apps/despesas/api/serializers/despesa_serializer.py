@@ -144,6 +144,14 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         # Verifica prioridades do PAA impactadas
         # self._verificar_prioridades_paa_impactadas(data, self.instance)
 
+        for rateio in rateios:
+            conta_associacao = rateio['conta_associacao']
+            acao_associacao = rateio['acao_associacao']
+
+            if conta_associacao and acao_associacao:
+                if conta_associacao.tipo_conta.recurso != acao_associacao.acao.recurso:
+                    raise serializers.ValidationError({"mensagem": "Conta e Ação devem ser do mesmo recurso."})
+
         return data
 
     def _verificar_prioridades_paa_impactadas(self, data, instance_despesa) -> list:
@@ -186,7 +194,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                 "erro_data_de_encerramento": True,
                 "data_de_encerramento": f"{data_de_encerramento}",
                 "mensagem": f"A data de documento e/ou data do pagamento não pode ser posterior à "
-                            f"{data_de_encerramento}, data de encerramento da associação."
+                f"{data_de_encerramento}, data de encerramento da associação."
             }
             raise ValidationError(erro)
 
@@ -199,7 +207,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                 "erro_data_de_encerramento": True,
                 "data_de_encerramento": f"{data_de_encerramento}",
                 "mensagem": f"A data de documento e/ou data do pagamento não pode ser posterior à "
-                            f"{data_de_encerramento}, data de encerramento da associação."
+                f"{data_de_encerramento}, data de encerramento da associação."
             }
             raise ValidationError(erro)
 
@@ -328,7 +336,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                 "erro_data_de_encerramento": True,
                 "data_de_encerramento": f"{data_de_encerramento}",
                 "mensagem": f"A data de documento e/ou data do pagamento não pode ser posterior à "
-                            f"{data_de_encerramento}, data de encerramento da associação."
+                f"{data_de_encerramento}, data de encerramento da associação."
             }
             raise ValidationError(erro)
 
@@ -341,7 +349,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                 "erro_data_de_encerramento": True,
                 "data_de_encerramento": f"{data_de_encerramento}",
                 "mensagem": f"A data de documento e/ou data do pagamento não pode ser posterior à "
-                            f"{data_de_encerramento}, data de encerramento da associação."
+                f"{data_de_encerramento}, data de encerramento da associação."
             }
             raise ValidationError(erro)
 

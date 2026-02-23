@@ -1,6 +1,6 @@
 from datetime import datetime
-
 from auditlog.models import AuditlogHistoryField
+from django.db.models import Q
 from auditlog.registry import auditlog
 from django.db import models
 from django.db.models.signals import pre_save, post_save
@@ -27,16 +27,20 @@ class Despesa(ModeloBase):
     # Tags de informações
     TAG_ANTECIPADO = {"id": "1", "nome": "Antecipado", "descricao": "Data do pagamento anterior à data do documento."}
     TAG_ESTORNADO = {"id": "2", "nome": "Estornado", "descricao": "Despesa estornada."}
-    TAG_PARCIAL = {"id": "3", "nome": "Parcial", "descricao": "Parte da despesa paga com recursos próprios ou de mais de uma conta."}
+    TAG_PARCIAL = {"id": "3", "nome": "Parcial",
+                   "descricao": "Parte da despesa paga com recursos próprios ou de mais de uma conta."}
     TAG_IMPOSTO = {"id": "4", "nome": "Serviço com imposto", "descricao": "Despesa com recolhimento de imposto."}
-    TAG_IMPOSTO_PAGO = {"id": "5", "nome": "Imposto Pago", "descricao": "Imposto recolhido relativo a uma despesa de serviço."}
+    TAG_IMPOSTO_PAGO = {"id": "5", "nome": "Imposto Pago",
+                        "descricao": "Imposto recolhido relativo a uma despesa de serviço."}
     TAG_INATIVA = {"id": "6", "nome": "Excluído", "descricao": "Lançamento excluído."}
-    TAG_NAO_RECONHECIDA = {"id": "7", "nome": "Não Reconhecida", "descricao": "Despesa não reconhecida pela associação."}
-    TAG_SEM_COMPROVACAO_FISCAL = {"id": "8", "nome": "Sem comprovação fiscal", "descricao": "Despesa sem comprovação fiscal."}
+    TAG_NAO_RECONHECIDA = {"id": "7", "nome": "Não Reconhecida",
+                           "descricao": "Despesa não reconhecida pela associação."}
+    TAG_SEM_COMPROVACAO_FISCAL = {"id": "8", "nome": "Sem comprovação fiscal",
+                                  "descricao": "Despesa sem comprovação fiscal."}
     TAG_CONCILIADA = {"id": "9", "nome": "Conciliada", "descricao": "Despesa com conciliação bancária realizada."}
-    TAG_NAO_CONCILIADA = {"id": "10", "nome": "Não conciliada", "descricao": "Despesa sem conciliação bancária realizada."}
+    TAG_NAO_CONCILIADA = {"id": "10", "nome": "Não conciliada",
+                          "descricao": "Despesa sem conciliação bancária realizada."}
     TAG_IMPOSTO_A_SER_PAGO = {"id": "11", "nome": "Imposto a ser pago", "descricao": "Imposto sem data de pagamento."}
-
 
     history = AuditlogHistoryField()
 
@@ -50,8 +54,7 @@ class Despesa(ModeloBase):
     data_documento = models.DateField('Data do documento', blank=True, null=True)
 
     cpf_cnpj_fornecedor = models.CharField(
-        "CPF / CNPJ", max_length=20, validators=[cpf_cnpj_validation]
-        , blank=True, null=True, default=""
+        "CPF / CNPJ", max_length=20, validators=[cpf_cnpj_validation], blank=True, null=True, default=""
     )
 
     nome_fornecedor = models.CharField("Nome do fornecedor", max_length=100, default='', blank=True)
@@ -95,14 +98,16 @@ class Despesa(ModeloBase):
 
     despesa_anterior_ao_uso_do_sistema = models.BooleanField('É despesa anterior ao uso do sistema?', default=False)
 
-    despesa_anterior_ao_uso_do_sistema_pc_concluida = models.BooleanField('Essa Despesa anterior ao uso do sistema já teve alguma PC concluída?', default=False)
+    despesa_anterior_ao_uso_do_sistema_pc_concluida = models.BooleanField(
+        'Essa Despesa anterior ao uso do sistema já teve alguma PC concluída?', default=False)
 
     objects = models.Manager()  # Manager Padrão
     completas = DespesasCompletasManager()
 
     def set_despesa_anterior_ao_uso_do_sistema_pc_concluida(self):
 
-        logger.info("Método set_despesa_anterior_ao_uso_do_sistema_pc_concluida. Verificando se a flag <ajustes-despesas-anteriores> está ativa...")
+        logger.info(
+            "Método set_despesa_anterior_ao_uso_do_sistema_pc_concluida. Verificando se a flag <ajustes-despesas-anteriores> está ativa...")
 
         flags = get_waffle_flag_model()
         flag_ajustes_despesas_anteriores_ativa = flags.objects.filter(
@@ -119,7 +124,8 @@ class Despesa(ModeloBase):
         return
 
     def set_despesa_anterior_ao_uso_do_sistema(self):
-        logger.info("Método set_despesa_anterior_ao_uso_do_sistema. Verificando se a flag <ajustes-despesas-anteriores> está ativa...")
+        logger.info(
+            "Método set_despesa_anterior_ao_uso_do_sistema. Verificando se a flag <ajustes-despesas-anteriores> está ativa...")
 
         flags = get_waffle_flag_model()
         flag_ajustes_despesas_anteriores_ativa = flags.objects.filter(
@@ -177,7 +183,6 @@ class Despesa(ModeloBase):
         tags.sort()
 
         return ",".join(tags)
-
 
     @property
     def tags_de_informacao(self):
@@ -313,7 +318,7 @@ class Despesa(ModeloBase):
 
         for imposto in self.despesas_impostos.all():
             pagamento = f'pago em {imposto.data_transacao:%d/%m/%Y}' if imposto.data_transacao else 'pagamento ainda não realizado'
-            linhas_hint.append(f'R$ {str(imposto.valor_total).replace(".",",")}, {pagamento}.')
+            linhas_hint.append(f'R$ {str(imposto.valor_total).replace(".", ",")}, {pagamento}.')
 
         return linhas_hint
 
@@ -345,10 +350,12 @@ class Despesa(ModeloBase):
         linhas_hint = []
 
         if not self.motivos_pagamento_antecipado and not self.outros_motivos_pagamento_antecipado:
-            linhas_hint.append(f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à data do documento ({self.data_documento:%d/%m/%Y})')
+            linhas_hint.append(
+                f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à data do documento ({self.data_documento:%d/%m/%Y})')
             return linhas_hint
 
-        linhas_hint.append(f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à data do documento ({self.data_documento:%d/%m/%Y}), motivos:')
+        linhas_hint.append(
+            f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à data do documento ({self.data_documento:%d/%m/%Y}), motivos:')
 
         if self.motivos_pagamento_antecipado:
             for motivo in self.motivos_pagamento_antecipado.all():
@@ -362,7 +369,7 @@ class Despesa(ModeloBase):
     def cadastro_completo(self):
 
         completo = self.data_transacao and \
-                   self.valor_total > 0
+            self.valor_total > 0
 
         if completo and not self.eh_despesa_sem_comprovacao_fiscal and not self.despesa_geradora_do_imposto.first():
             completo = completo and self.cpf_cnpj_fornecedor
@@ -470,6 +477,16 @@ class Despesa(ModeloBase):
     @classmethod
     def get_tags_informacoes_list(cls):
         return [cls.TAG_ANTECIPADO, cls.TAG_ESTORNADO, cls.TAG_PARCIAL, cls.TAG_IMPOSTO, cls.TAG_IMPOSTO_PAGO, cls.TAG_IMPOSTO_A_SER_PAGO, cls.TAG_INATIVA, cls.TAG_NAO_RECONHECIDA, cls.TAG_SEM_COMPROVACAO_FISCAL, cls.TAG_CONCILIADA, cls.TAG_NAO_CONCILIADA]
+
+    @classmethod
+    def filter_by_recurso(cls, queryset, recurso):
+        if not recurso:
+            return queryset
+
+        return queryset.filter(
+            Q(rateios__acao_associacao__acao__recurso=recurso) |
+            Q(rateios__conta_associacao__tipo_conta__recurso=recurso)
+        ).distinct()
 
     class Meta:
         verbose_name = "Documento comprobatório da despesa"

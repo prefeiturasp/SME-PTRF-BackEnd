@@ -110,9 +110,24 @@ def despesa_data_transacao_menor_que_data_documento(
     )
 
 
+@pytest.fixture
+def rateio_despesa_data_transacao_menor_que_data_documento(
+    despesa_data_transacao_menor_que_data_documento,
+    rateio_despesa_factory,
+    conta_associacao,
+    acao_associacao
+):
+    return rateio_despesa_factory(
+        despesa=despesa_data_transacao_menor_que_data_documento,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao
+    )
+
+
 def test_retorna_despesa_com_pagamento_antecipado(
     associacao_teste_ata,
     despesa_data_transacao_menor_que_data_documento,
+    rateio_despesa_data_transacao_menor_que_data_documento,
     ata_2022_1_teste_ata,
     prestacao_conta_2022_1_conciliada_teste_ata,
     periodo_2022_1_teste_ata,

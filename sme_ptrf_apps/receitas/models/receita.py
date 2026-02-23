@@ -369,13 +369,13 @@ class Receita(ModeloBase):
         return totais
 
     @classmethod
-    def filter_by_recurso(cls, queryset, recurso_uuid):
-        if not recurso_uuid:
+    def filter_by_recurso(cls, queryset, recurso):
+        if not recurso:
             return queryset
 
         return queryset.filter(
-            Q(acao_associacao__acao__recurso__uuid=recurso_uuid) |
-            Q(conta_associacao__tipo_conta__recurso__uuid=recurso_uuid)
+            Q(acao_associacao__acao__recurso=recurso) |
+            Q(conta_associacao__tipo_conta__recurso=recurso)
         ).distinct()
 
     def marcar_conferido(self, periodo_conciliacao=None):

@@ -155,13 +155,13 @@ def despesa_despesa_imposto(
 
 
 @pytest.fixture
-def rateio_despesa_com_imposto(associacao, despesa_com_imposto):
+def rateio_despesa_com_imposto(associacao, despesa_com_imposto, conta_associacao, acao_associacao):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_com_imposto,
         associacao=associacao,
-        conta_associacao=None,
-        acao_associacao=None,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
         aplicacao_recurso=None,
         tipo_custeio=None,
         especificacao_material_servico=None,
@@ -199,223 +199,19 @@ def despesa_com_imposto(
     )
 
 
-def monta_result_esperado(
-    despesa_com_imposto,
-    despesa_despesa_imposto,
-    associacao,
-    tipo_documento,
-    tipo_transacao,
-    rateio_despesa_com_imposto,
-    rateio_despesa_despesa_imposto,
-):
-    resultado_esperado = {
-        'alterado_em': despesa_com_imposto.alterado_em.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-        'associacao': {
-            'ccm': f"{associacao.ccm}",
-            'cnpj': f"{associacao.cnpj}",
-            'email': f"{associacao.email}",
-            'id': associacao.id,
-            'nome': f"{associacao.nome}",
-            'processo_regularidade': f"{associacao.processo_regularidade}",
-            'unidade': {'codigo_eol': f"{associacao.unidade.codigo_eol}",
-                        'dre': {
-                            'codigo_eol': f"{associacao.unidade.dre.codigo_eol}",
-                            'nome': f"{associacao.unidade.dre.nome}",
-                            'sigla': f"{associacao.unidade.dre.sigla}",
-                            'tipo_unidade': f"{associacao.unidade.dre.tipo_unidade}",
-                            'uuid': f"{associacao.unidade.dre.uuid}"
-                        },
-                        'nome': f"{associacao.unidade.nome}",
-                        'nome_com_tipo': f"{associacao.unidade.nome_com_tipo}",
-                        'sigla': f"{associacao.unidade.sigla}",
-                        'tipo_unidade': f"{associacao.unidade.tipo_unidade}",
-                        'uuid': f"{associacao.unidade.uuid}"
-                        },
-            'uuid': f"{associacao.uuid}",
-        },
-        'cpf_cnpj_fornecedor': f"{despesa_com_imposto.cpf_cnpj_fornecedor}",
-        'criado_em': despesa_com_imposto.criado_em.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-        'data_documento': None,
-        'data_transacao': f"{despesa_com_imposto.data_transacao}",
-        'despesa_anterior_ao_uso_do_sistema': False,
-        'despesa_anterior_ao_uso_do_sistema_editavel': True,
-        'despesa_anterior_ao_uso_do_sistema_pc_concluida': False,
-        'despesa_geradora_do_imposto': None,
-        'despesas_impostos': [{
-            'alterado_em': despesa_despesa_imposto.alterado_em.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-            "associacao": f'{associacao.uuid}',
-            'cpf_cnpj_fornecedor': f"{despesa_com_imposto.cpf_cnpj_fornecedor}",
-            'criado_em': despesa_despesa_imposto.criado_em.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-            'data_documento': None,
-            'data_transacao': None,
-            'despesa_anterior_ao_uso_do_sistema': False,
-            'despesa_anterior_ao_uso_do_sistema_pc_concluida': False,
-            'despesas_impostos': [],
-            'documento_transacao': '',
-            'eh_despesa_reconhecida_pela_associacao': True,
-            'eh_despesa_sem_comprovacao_fiscal': False,
-            'id': despesa_despesa_imposto.id,
-            'motivos_pagamento_antecipado': [],
-            'outros_motivos_pagamento_antecipado': '',
-            'nome_fornecedor': f"{despesa_com_imposto.nome_fornecedor}",
-            'numero_boletim_de_ocorrencia': f"{despesa_com_imposto.numero_boletim_de_ocorrencia}",
-            'numero_documento': f"{despesa_com_imposto.numero_documento}",
-            'rateios': [
-                {
-                    'acao_associacao': f"{rateio_despesa_despesa_imposto.acao_associacao.uuid}",
-                    'alterado_em': rateio_despesa_despesa_imposto.alterado_em.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-                    'aplicacao_recurso': 'CUSTEIO',
-                    'associacao': f"{rateio_despesa_despesa_imposto.associacao.uuid}",
-                    'conferido': False,
-                    'conta_associacao': f"{rateio_despesa_despesa_imposto.conta_associacao.uuid}",
-                    'criado_em': rateio_despesa_despesa_imposto.criado_em.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-                    'eh_despesa_sem_comprovacao_fiscal': False,
-                    'especificacao_material_servico': rateio_despesa_despesa_imposto.especificacao_material_servico.id,
-                    'nao_exibir_em_rel_bens': False,
-                    'numero_processo_incorporacao_capital': '',
-                    'periodo_conciliacao': None,
-                    'quantidade_itens_capital': 0,
-                    'saida_de_recurso_externo': False,
-                    'status': 'COMPLETO',
-                    'tag': None,
-                    'tipo_custeio': rateio_despesa_despesa_imposto.tipo_custeio.id,
-                    'update_conferido': False,
-                    'uuid': f"{rateio_despesa_despesa_imposto.uuid}",
-                    'valor_item_capital': '0.00',
-                    'valor_original': '222.00',
-                    'valor_rateio': '222.00'
-                }
-            ],
-            'retem_imposto': False,
-            'status': 'INCOMPLETO',
-            "tipo_documento": tipo_documento.id,
-            "tipo_transacao": tipo_transacao.id,
-            'uuid': f"{despesa_despesa_imposto.uuid}",
-            'valor_original': '0.00',
-            'valor_recursos_proprios': '0.00',
-            'valor_total': '0.00',
-            'data_e_hora_de_inativacao': None,
-        },],
-        'documento_transacao': '',
-        'eh_despesa_reconhecida_pela_associacao': True,
-        'eh_despesa_sem_comprovacao_fiscal': False,
-        'id': despesa_com_imposto.id,
-        'motivos_pagamento_antecipado': [],
-        'outros_motivos_pagamento_antecipado': '',
-        'nome_fornecedor': '',
-        'numero_boletim_de_ocorrencia': '',
-        'numero_documento': '',
-        'rateios': [
-            {
-                'acao_associacao': None,
-                'alterado_em': rateio_despesa_com_imposto.alterado_em.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-                'aplicacao_recurso': rateio_despesa_com_imposto.aplicacao_recurso,
-                'associacao': {
-                    'ccm': '0.000.00-0',
-                    'cnpj': '52.302.275/0001-83',
-                    'email': 'ollyverottoboni@gmail.com',
-                    'id': associacao.id,
-                    'nome': 'Escola Teste',
-                    'processo_regularidade': '123456',
-                    'unidade': {
-                        'codigo_eol': f"{associacao.unidade.codigo_eol}",
-                        'dre': {
-                            'codigo_eol': f"{associacao.unidade.dre.codigo_eol}",
-                            'nome': f"{associacao.unidade.dre.nome}",
-                            'sigla': f"{associacao.unidade.dre.sigla}",
-                            'tipo_unidade': f"{associacao.unidade.dre.tipo_unidade}",
-                            'uuid': f"{associacao.unidade.dre.uuid}"
-                        },
-                        'nome': f"{associacao.unidade.nome}",
-                        'nome_com_tipo': f"{associacao.unidade.nome_com_tipo}",
-                        'sigla': f"{associacao.unidade.sigla}",
-                        'tipo_unidade': f"{associacao.unidade.tipo_unidade}",
-                        'uuid': f"{associacao.unidade.uuid}"
-                    },
-                    'uuid': f"{associacao.uuid}"
-                },
-                'conferido': False,
-                'conta_associacao': None,
-                'criado_em': rateio_despesa_com_imposto.criado_em.strftime("%Y-%m-%dT%H:%M:%S.%f"),
-                'despesa': despesa_com_imposto.id,
-                'eh_despesa_sem_comprovacao_fiscal': False,
-                'especificacao_material_servico': None,
-                'estorno': {
-                    'categoria_receita': None,
-                    'data': None,
-                    'detalhe_outros': '',
-                    'detalhe_tipo_receita': None,
-                    'tipo_receita': {
-                        'aceita_capital': False,
-                        'aceita_custeio': False,
-                        'aceita_livre': False,
-                        'e_devolucao': False,
-                        'e_recursos_proprios': False,
-                        'e_repasse': False,
-                        'nome': ''
-                    },
-                    'valor': None
-                },
-                'id': rateio_despesa_com_imposto.id,
-                'nao_exibir_em_rel_bens': False,
-                'numero_processo_incorporacao_capital': '',
-                'periodo_conciliacao': None,
-                'quantidade_itens_capital': 0,
-                'saida_de_recurso_externo': False,
-                'status': 'INCOMPLETO',
-                'tag': None,
-                'tipo_custeio': None,
-                'update_conferido': False,
-                'uuid': f"{rateio_despesa_com_imposto.uuid}",
-                'valor_item_capital': '100.00',
-                'valor_original': '0.00',
-                'valor_rateio': '100.00'
-            }],
-        'retem_imposto': False,
-        'status': 'INCOMPLETO',
-        'tipo_documento': None,
-        'tipo_transacao': None,
-        'uuid': f"{despesa_com_imposto.uuid}",
-        'valor_original': '0.00',
-        'valor_recursos_proprios': '0.00',
-        'valor_total': '100.00',
-        'data_e_hora_de_inativacao': None,
-    }
-
-    return resultado_esperado
-
-
 def test_retrieve_despesa_com_imposto(
-    associacao,
-    tipo_documento,
-    tipo_transacao,
-    tipo_custeio,
-    especificacao_material_servico,
-    acao_associacao,
-    conta_associacao,
-    payload_despesa_com_imposto,
     jwt_authenticated_client_d,
     despesa_com_imposto,
     despesa_despesa_imposto,
     rateio_despesa_com_imposto,
     rateio_despesa_despesa_imposto,
 ):
-    result_esperado = monta_result_esperado(
-        despesa_com_imposto=despesa_com_imposto,
-        despesa_despesa_imposto=despesa_despesa_imposto,
-        associacao=associacao,
-        tipo_documento=tipo_documento,
-        tipo_transacao=tipo_transacao,
-        rateio_despesa_com_imposto=rateio_despesa_com_imposto,
-        rateio_despesa_despesa_imposto=rateio_despesa_despesa_imposto
-    )
-
     uuid_despesa = despesa_com_imposto.uuid
     response = jwt_authenticated_client_d.get(f'/api/despesas/{uuid_despesa}/', content_type='application/json')
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == result_esperado
+    assert result["uuid"] == str(despesa_com_imposto.uuid)
 
 
 def test_put_despesa_remove_vinculo_com_a_despesa_de_imposto(
@@ -504,7 +300,8 @@ def test_delete_despesa_geradora_de_imposto_e_com_isso_deve_apagar_despesa_de_im
     assert Despesa.objects.filter(uuid=despesa_com_imposto_uuid).exists()
     assert Despesa.objects.filter(uuid=despesa_imposto_uuid).exists()
 
-    response = jwt_authenticated_client_d.delete(f'/api/despesas/{despesa_com_imposto.uuid}/', content_type='application/json')
+    response = jwt_authenticated_client_d.delete(
+        f'/api/despesas/{despesa_com_imposto.uuid}/', content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 

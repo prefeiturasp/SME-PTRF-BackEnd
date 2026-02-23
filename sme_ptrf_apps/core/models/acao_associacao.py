@@ -53,8 +53,8 @@ class AcaoAssociacao(ModeloBase):
         return query.all()
 
     @classmethod
-    def filter_by_recurso(cls, queryset, recurso_uuid):
-        return queryset.filter(acao__recurso__uuid=recurso_uuid)
+    def filter_by_recurso(cls, queryset, recurso):
+        return queryset.filter(acao__recurso=recurso)
 
     @classmethod
     def excluir_em_lote(cls, lista_uuids):
