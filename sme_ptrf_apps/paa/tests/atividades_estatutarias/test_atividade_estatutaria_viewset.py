@@ -329,6 +329,7 @@ def test_ordena_atividade_estatutaria_movendo_para_cima(
 @pytest.mark.django_db
 def test_ordena_atividade_estatutaria_movendo_para_baixo(
     jwt_authenticated_client_sme,
+    flag_paa,
     atividade_estatutaria_factory
 ):
     a1 = atividade_estatutaria_factory.create(nome="A", mes=1, tipo="ORDINARIA", ordem=1)
