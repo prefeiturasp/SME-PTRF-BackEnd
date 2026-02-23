@@ -66,6 +66,8 @@ def retorna_repasses_pendentes_periodos_ate_agora(associacao, periodo):
         status=StatusRepasse.PENDENTE.name
     )
 
+    repasses = Repasse.filter_by_recurso(repasses, periodo.recurso)
+
     resultado = []
     for repasse in repasses:
         resultado.append(

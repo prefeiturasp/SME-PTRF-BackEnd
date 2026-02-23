@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.db import transaction
 from django.db.models.aggregates import Sum
 
-from sme_ptrf_apps.core.models import Ata
+from sme_ptrf_apps.core.models import Ata, ContaAssociacao
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.dre.models import Atribuicao
 
@@ -703,7 +703,10 @@ class PrestacaoConta(ModeloBase):
     def contas_ativas_no_periodo(self):
         contas_a_exibir = []
 
-        for conta in self.associacao.contas.all():
+        contas = self.associacao.contas.all()
+        contas_por_recurso = ContaAssociacao.filter_by_recurso(contas, self.periodo.recurso)
+
+        for conta in contas_por_recurso:
             if conta.ativa_no_periodo(periodo=self.periodo):
                 contas_a_exibir.append(conta)
 
