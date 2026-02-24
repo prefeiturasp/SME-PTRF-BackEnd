@@ -381,7 +381,7 @@ def info_acao_associacao_no_periodo(
         acao_associacao,
         info,
         exclude_despesa=exclude_despesa,
-        conta=None,
+        conta=None
     ):
         rateios = RateioDespesa.rateios_da_acao_entre_periodos(
             acao_associacao=acao_associacao,
@@ -418,7 +418,7 @@ def info_acao_associacao_no_periodo(
         periodo,
         acao_associacao,
         conta=None,
-        apenas_transacoes_do_periodo=False,
+        apenas_transacoes_do_periodo=False
     ):
         info = resultado_vazio()
 
@@ -467,7 +467,7 @@ def info_acao_associacao_no_periodo(
             periodo_final=periodo,
             acao_associacao=acao_associacao,
             info=info,
-            conta=conta,
+            conta=conta
         )
 
         if info['saldo_atual_custeio'] < 0:
@@ -530,6 +530,10 @@ def info_repasses_pendentes_acao_associacao_no_periodo(acao_associacao, periodo,
 
 def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None, apenas_transacoes_do_periodo=False):
     acoes_associacao = Associacao.acoes_da_associacao(associacao_uuid=associacao_uuid)
+   
+    # filtrar ações da associação por recurso
+    acoes_associacao = AcaoAssociacao.filter_by_recurso(acoes_associacao, periodo.recurso)
+   
     result = []
     for acao_associacao in acoes_associacao:
         logger.debug(f'Get info ação no período. Ação:{acao_associacao} Período:{periodo} Conta:{conta}')
@@ -537,7 +541,7 @@ def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None, apena
             acao_associacao=acao_associacao,
             periodo=periodo,
             conta=conta,
-            apenas_transacoes_do_periodo=apenas_transacoes_do_periodo,
+            apenas_transacoes_do_periodo=apenas_transacoes_do_periodo
         )
         especificacoes_despesas = especificacoes_despesas_acao_associacao_no_periodo(acao_associacao=acao_associacao,
                                                                                      periodo=periodo, conta=conta)
