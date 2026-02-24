@@ -155,7 +155,7 @@ class AssociacoesViewSet(ModelViewSet):
                 'mensagem': 'É necessário enviar o uuid do período.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
+        
         try:
             periodo = Periodo.objects.get(uuid=periodo_uuid)
         except Periodo.DoesNotExist:

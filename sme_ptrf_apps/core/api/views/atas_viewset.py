@@ -93,7 +93,7 @@ class AtasViewSet(mixins.RetrieveModelMixin,
                 'mensagem': 'É necessário enviar o uuid ata.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
+        
         try:
             ata = Ata.by_uuid(ata_uuid)
         except ValidationError:
@@ -103,7 +103,7 @@ class AtasViewSet(mixins.RetrieveModelMixin,
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-
+        
         despesas_com_pagamento_antecipado = get_despesas_com_pagamento_antecipado(ata)
 
         return Response(despesas_com_pagamento_antecipado, status=status.HTTP_200_OK)
