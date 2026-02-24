@@ -28,8 +28,8 @@ def payload_despesa_anterior_ao_uso_do_sistema(
         "cpf_cnpj_fornecedor": "36.352.197/0001-75",
         "nome_fornecedor": "FORNECEDOR TESTE SA",
         "data_transacao": "2019-08-31",
-        "valor_total": 11000.50,
-        "valor_recursos_proprios": 1000.50,
+        "valor_total": 1000.00,
+        "valor_recursos_proprios": 0,
         "motivos_pagamento_antecipado": [],
         "outros_motivos_pagamento_antecipado": "",
         "rateios": [
@@ -71,8 +71,8 @@ def payload_despesa_valida(
         "cpf_cnpj_fornecedor": "36.352.197/0001-75",
         "nome_fornecedor": "FORNECEDOR TESTE SA",
         "data_transacao": "2020-03-10",
-        "valor_total": 11000.50,
-        "valor_recursos_proprios": 1000.50,
+        "valor_total": 1000.00,
+        "valor_recursos_proprios": 0,
         "motivos_pagamento_antecipado": [],
         "outros_motivos_pagamento_antecipado": "",
         "rateios": [
@@ -172,8 +172,8 @@ def payload_despesa_valida_rateio_com_tag(
         "cpf_cnpj_fornecedor": "36.352.197/0001-75",
         "nome_fornecedor": "FORNECEDOR TESTE SA",
         "data_transacao": "2020-03-10",
-        "valor_total": 11000.50,
-        "valor_recursos_proprios": 1000.50,
+        "valor_total": 1000.00,
+        "valor_recursos_proprios": 0,
         "motivos_pagamento_antecipado": [],
         "outros_motivos_pagamento_antecipado": "",
         "rateios": [
@@ -290,8 +290,8 @@ def payload_despesa_com_conta_associacao_inativa(
         "cpf_cnpj_fornecedor": "36.352.197/0001-75",
         "nome_fornecedor": "FORNECEDOR TESTE SA",
         "data_transacao": "2020-03-10",
-        "valor_total": 11000.50,
-        "valor_recursos_proprios": 1000.50,
+        "valor_total": 1000.00,
+        "valor_recursos_proprios": 0,
         "motivos_pagamento_antecipado": [],
         "outros_motivos_pagamento_antecipado": "",
         "rateios": [

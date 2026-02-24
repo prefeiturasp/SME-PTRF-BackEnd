@@ -174,7 +174,7 @@ def test_post_despesa_sem_motivos_pagamento_antecipado_e_data_transacao_menor_qu
     result = json.loads(response.content)
 
     resultado_esperado = {
-        "detail": "Quando a Data da transação for menor que a Data do Documento é necessário enviar os motivos do pagamento antecipado"
+        "detail": 'Quando a Data da transação for menor que a Data do Documento é necessário informar os motivos do pagamento antecipado.'
     }
 
     assert result == resultado_esperado
