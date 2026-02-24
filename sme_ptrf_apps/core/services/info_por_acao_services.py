@@ -233,8 +233,7 @@ def info_acao_associacao_no_periodo(
     periodo,
     exclude_despesa=None,
     conta=None,
-    apenas_transacoes_do_periodo=False,
-    recurso=None
+    apenas_transacoes_do_periodo=False
 ):
     def resultado_vazio():
         return {
@@ -382,15 +381,13 @@ def info_acao_associacao_no_periodo(
         acao_associacao,
         info,
         exclude_despesa=exclude_despesa,
-        conta=None,
-        recurso=None,
+        conta=None
     ):
         rateios = RateioDespesa.rateios_da_acao_entre_periodos(
             acao_associacao=acao_associacao,
             periodo_inicial=periodo_inicial,
             periodo_final=periodo_final,
-            exclude_despesa=exclude_despesa,
-            recurso=recurso,
+            exclude_despesa=exclude_despesa
         )
 
         for rateio in rateios:
@@ -421,8 +418,7 @@ def info_acao_associacao_no_periodo(
         periodo,
         acao_associacao,
         conta=None,
-        apenas_transacoes_do_periodo=False,
-        recurso=None,
+        apenas_transacoes_do_periodo=False
     ):
         info = resultado_vazio()
 
@@ -471,8 +467,7 @@ def info_acao_associacao_no_periodo(
             periodo_final=periodo,
             acao_associacao=acao_associacao,
             info=info,
-            conta=conta,
-            recurso=recurso,
+            conta=conta
         )
 
         if info['saldo_atual_custeio'] < 0:
@@ -511,8 +506,7 @@ def info_acao_associacao_no_periodo(
         return periodo_aberto_sumarizado_por_acao(periodo,
                                                   acao_associacao,
                                                   conta=conta,
-                                                  apenas_transacoes_do_periodo=apenas_transacoes_do_periodo,
-                                                  recurso=recurso,
+                                                  apenas_transacoes_do_periodo=apenas_transacoes_do_periodo
                                                   )
 
 

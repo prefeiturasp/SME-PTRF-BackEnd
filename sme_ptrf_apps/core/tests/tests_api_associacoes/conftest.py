@@ -427,3 +427,27 @@ def receita_conta_encerrada(associacao_encerramento_conta, conta_associacao_ence
         acao_associacao=acao_associacao_encerramento_conta,
         tipo_receita=tipo_receita,
     )
+
+
+@pytest.fixture(autouse=True)
+def _garantir_recurso_legado():
+    """
+    Fixture automática que garante a existência de um recurso com legado=True
+    necessário para criar períodos nos testes.
+    Executado automaticamente em todo teste para evitar DoesNotExist.
+    """
+    from sme_ptrf_apps.core.models import Recurso
+    Recurso.objects.get_or_create(
+        legado=True,
+        defaults={'nome': 'Recurso Legado'}
+    )
+
+
+@pytest.fixture
+def recurso_legado():
+    """
+    Fixture que retorna o recurso com legado=True
+    """
+    from sme_ptrf_apps.core.models import Recurso
+    return Recurso.objects.get(legado=True)
+

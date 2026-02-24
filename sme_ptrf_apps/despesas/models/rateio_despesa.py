@@ -174,8 +174,7 @@ class RateioDespesa(ModeloBase):
         conferido=None,
         conta_associacao=None,
         exclude_despesa=None,
-        aplicacao_recurso=None,
-        recurso=None
+        aplicacao_recurso=None
     ):
         if periodo_final.data_fim_realizacao_despesas:
             dataset = cls.completos.filter(acao_associacao=acao_associacao).filter(
@@ -196,14 +195,6 @@ class RateioDespesa(ModeloBase):
 
         if aplicacao_recurso:
             dataset = dataset.filter(aplicacao_recurso=aplicacao_recurso)
-
-        # Aplicar filtro por recurso se fornecido
-        if recurso:
-            from django.db.models import Q
-            dataset = dataset.filter(
-                Q(acao_associacao__acao__recurso__uuid=recurso) |
-                Q(conta_associacao__tipo_conta__recurso__uuid=recurso)
-            )
 
         return dataset.all()
 
