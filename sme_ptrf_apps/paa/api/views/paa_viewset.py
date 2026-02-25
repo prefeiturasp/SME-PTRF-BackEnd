@@ -189,7 +189,8 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
     
         paa_vigente = self.queryset.filter(
             Q(models.Exists(paas_andamento_gerados) | models.Exists(paas_andamento_gerados_parcialmente)),
-            periodo_paa=periodo_paa_vigente,  
+            periodo_paa=periodo_paa_vigente,
+            associacao=associacao
         ).first()
 
         paas_anteriores = self.queryset.filter(
