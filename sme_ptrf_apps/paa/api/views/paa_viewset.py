@@ -3,6 +3,7 @@ from datetime import datetime
 from django.http import HttpResponse
 from django.http import Http404
 from django.db.models import Q
+from django.db import models
 from django.db.models.functions import Lower
 
 from waffle.mixins import WaffleFlagMixin
@@ -180,21 +181,25 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         if not periodo_paa_vigente:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
+        paas_andamento_gerados = Paa.objects.filter(
+            pk=models.OuterRef('id')).paas_gerados()
+
+        paas_andamento_gerados_parcialmente = Paa.objects.filter(
+            pk=models.OuterRef('id')).paas_gerados_parcialmente()
+    
         paa_vigente = self.queryset.filter(
+            Q(models.Exists(paas_andamento_gerados) | models.Exists(paas_andamento_gerados_parcialmente)),
             periodo_paa=periodo_paa_vigente,
             associacao=associacao
         ).first()
 
-        if not paa_vigente:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-
         paas_anteriores = self.queryset.filter(
             periodo_paa__data_inicial__lt=periodo_paa_vigente.data_inicial,
             associacao=associacao
-        ).order_by('-periodo_paa__data_inicial')
+        ).paas_gerados().order_by('-periodo_paa__data_inicial')
 
         result = {
-            'vigente': PaaSerializer(paa_vigente).data,
+            'vigente': PaaSerializer(paa_vigente).data if paa_vigente else None,
             'anteriores': PaaSerializer(paas_anteriores, many=True).data
         }
 

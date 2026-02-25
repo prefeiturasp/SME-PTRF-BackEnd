@@ -3,6 +3,8 @@ from datetime import date
 from freezegun import freeze_time
 from rest_framework import status
 from sme_ptrf_apps.paa.choices import StatusChoices
+from sme_ptrf_apps.paa.enums import PaaStatusEnum
+from sme_ptrf_apps.paa.models import AtaPaa, DocumentoPaa
 
 pytestmark = pytest.mark.django_db
 
@@ -101,15 +103,36 @@ def test_get_recursos_proprios_previstos(jwt_authenticated_client_sme, flag_paa,
 
 
 @freeze_time('2025-06-15')
-def test_get_paa_vigente_e_anteriores(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory):
+def test_get_paa_vigente_e_anteriores(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory, ata_paa_factory, documento_paa_factory):
     periodo_2024 = periodo_paa_factory.create(
         referencia="Periodo 2024", data_inicial=date(2024, 1, 1), data_final=date(2024, 12, 31))
     periodo_2025 = periodo_paa_factory.create(
         referencia="Periodo 2025", data_inicial=date(2025, 1, 1), data_final=date(2025, 12, 31))
 
-    paa_2024 = paa_factory.create(periodo_paa=periodo_2024)
-    paa_2025 = paa_factory.create(periodo_paa=periodo_2025, associacao=paa_2024.associacao)
+    paa_2024 = paa_factory.create(periodo_paa=periodo_2024, status=PaaStatusEnum.GERADO.name)
 
+    ata_paa_factory.create(
+        paa=paa_2024,
+        status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+    )
+    documento_paa_factory.create(
+        paa=paa_2024,
+        versao=DocumentoPaa.VersaoChoices.FINAL,
+        status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+    )
+
+    paa_2025 = paa_factory.create(periodo_paa=periodo_2025, associacao=paa_2024.associacao, status=PaaStatusEnum.GERADO.name)
+
+    ata_paa_factory.create(
+        paa=paa_2025,
+        status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+    )
+
+    documento_paa_factory.create(
+        paa=paa_2025,
+        versao=DocumentoPaa.VersaoChoices.FINAL,
+        status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+    )
     response = jwt_authenticated_client_sme.get(
         f"/api/paa/paa-vigente-e-anteriores/?associacao_uuid={paa_2025.associacao.uuid}"
     )
