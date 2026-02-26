@@ -77,10 +77,10 @@ class PainelResumoRecursosCardAcao:
 
 
 class PainelResumoRecursos:
-    def __init__(self, associacao, periodo, conta_associacao=None, recurso=None):
-        self.recurso = recurso
+    def __init__(self, associacao, periodo, conta_associacao=None):
         self.associacao = associacao
         self.periodo_referencia = periodo
+        self.recurso = periodo.recurso
         self.data_inicio_realizacao_despesas = periodo.data_inicio_realizacao_despesas
         self.data_fim_realizacao_despesas = periodo.data_fim_realizacao_despesas
         self.data_prevista_repasse = periodo.data_prevista_repasse
@@ -163,5 +163,5 @@ class PainelResumoRecursos:
 
 class PainelResumoRecursosService:
     @classmethod
-    def painel_resumo_recursos(cls, associacao, periodo=None, conta_associacao=None, recurso=None):
-        return PainelResumoRecursos(associacao=associacao, periodo=periodo, conta_associacao=conta_associacao, recurso=recurso)
+    def painel_resumo_recursos(cls, associacao, periodo=None, conta_associacao=None):
+        return PainelResumoRecursos(associacao=associacao, periodo=periodo, conta_associacao=conta_associacao)

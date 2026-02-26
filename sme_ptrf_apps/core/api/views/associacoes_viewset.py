@@ -175,6 +175,7 @@ class AssociacoesViewSet(ModelViewSet):
         from sme_ptrf_apps.core.services.painel_resumo_recursos_service import PainelResumoRecursosService
 
         periodo_uuid = request.query_params.get('periodo_uuid')
+        recurso = self.request.recurso
 
         if periodo_uuid:
             try:
@@ -183,7 +184,7 @@ class AssociacoesViewSet(ModelViewSet):
                 erro = {'erro': 'UUID do período inválido.'}
                 return Response(erro, status=status.HTTP_404_NOT_FOUND)
         else:
-            periodo = Periodo.periodo_atual()
+            periodo = Periodo.periodo_atual_por_recurso(recurso)
 
         conta_associacao_uuid = request.query_params.get('conta')
 
@@ -197,7 +198,6 @@ class AssociacoesViewSet(ModelViewSet):
             self.get_object(),
             periodo,
             conta_associacao,
-            recurso=self.request.recurso
         )
 
         result = painel.to_json()
@@ -637,7 +637,7 @@ class AssociacoesViewSet(ModelViewSet):
                 }
                 return Response(erro, status=status.HTTP_404_NOT_FOUND)
         else:
-            periodos = associacao.periodos_ate_agora_fora_implantacao()
+            periodos = associacao.periodos_ate_agora_fora_implantacao(self.request.recurso)
 
         lista_de_periodos = retorna_status_prestacoes(periodos=periodos, status_pc=status_pc, uuid=uuid)
 

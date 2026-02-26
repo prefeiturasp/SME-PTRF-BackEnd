@@ -48,8 +48,8 @@ class Despesa(ModeloBase):
         "core.Recurso",
         verbose_name="Recurso",
         on_delete=models.PROTECT,
-        null=True,
-        blank=True,
+        null=False,
+        blank=False,
     )
 
     associacao = models.ForeignKey(Associacao, on_delete=models.PROTECT, related_name='despesas', blank=True,
@@ -396,10 +396,10 @@ class Despesa(ModeloBase):
 
         if completo and not self.eh_despesa_sem_comprovacao_fiscal:
             if self.tipo_documento.numero_documento_digitado:
-                completo = completo and self.numero_documento
+                completo = completo and self.numero_documento != ""
 
         if completo and not self.eh_despesa_sem_comprovacao_fiscal and self.tipo_transacao.tem_documento:
-            completo = completo and self.documento_transacao
+            completo = completo and self.documento_transacao != ""
 
         if completo and self.id is not None:
             for rateio in self.rateios.all():

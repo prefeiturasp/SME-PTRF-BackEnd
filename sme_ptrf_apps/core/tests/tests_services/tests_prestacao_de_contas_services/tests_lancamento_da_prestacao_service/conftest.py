@@ -228,9 +228,8 @@ def receita_2019_2_role_repasse_nao_conferida(associacao, conta_associacao_carta
 
 
 @pytest.fixture
-def despesa_2020_1(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2020_1(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -365,9 +364,8 @@ def tipo_transacao_pix():
 
 
 @pytest.fixture
-def despesa_2020_1_fornecedor_antonio_jose(associacao, tipo_documento, tipo_transacao_pix):
-    return baker.make(
-        'Despesa',
+def despesa_2020_1_fornecedor_antonio_jose(despesa_factory, associacao, tipo_documento, tipo_transacao_pix):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -427,9 +425,8 @@ def receita_estorno_do_rateio_despesa_2020_antonio_jose(tipo_receita_e_estorno, 
 
 
 @pytest.fixture
-def despesa_2019_2(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2019_2(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2019, 6, 10),
@@ -693,9 +690,8 @@ def rateio_despesa_2020_inativa_teste_tag(
 
 
 @pytest.fixture
-def despesa_2020_1_inativa_teste_tag(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2020_1_inativa_teste_tag(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -796,6 +792,7 @@ def solicitacao_acerto_lancamento_devolucao(
 # Despesas com retenção de impostos
 @pytest.fixture
 def despesa_imposto_retido(
+    despesa_factory,
     associacao,
     tipo_documento,
     tipo_transacao,
@@ -804,8 +801,7 @@ def despesa_imposto_retido(
     acao_associacao_role_cultural,
     conta_associacao_cartao,
 ):
-    return baker.make(
-        'Despesa',
+    return despesa_factory(
         associacao=associacao,
         numero_documento='12331501',
         data_documento=datetime.date(2020, 3, 10),
@@ -838,6 +834,7 @@ def rateio_despesa_imposto_retido(associacao, tipo_custeio, especificacao_instal
 
 @pytest.fixture
 def despesa_com_retencao_imposto(
+    despesa_factory,
     associacao,
     tipo_documento,
     tipo_transacao,
@@ -847,8 +844,7 @@ def despesa_com_retencao_imposto(
     conta_associacao_cartao,
     despesa_imposto_retido
 ):
-    return baker.make(
-        'Despesa',
+    despesa = despesa_factory(
         associacao=associacao,
         numero_documento='123315',
         data_documento=datetime.date(2020, 3, 10),
@@ -858,8 +854,9 @@ def despesa_com_retencao_imposto(
         tipo_transacao=tipo_transacao,
         data_transacao=datetime.date(2020, 3, 10),
         valor_total=110.00,
-        despesas_impostos=[despesa_imposto_retido, ],
     )
+    despesa.despesas_impostos.add(despesa_imposto_retido)
+    return despesa
 
 
 @pytest.fixture
@@ -881,6 +878,7 @@ def rateio_despesa_com_retencao_imposto(associacao, despesa_com_retencao_imposto
 
 @pytest.fixture
 def despesa_imposto_retido_2(
+    despesa_factory,
     associacao,
     tipo_documento,
     tipo_transacao,
@@ -889,8 +887,7 @@ def despesa_imposto_retido_2(
     acao_associacao_role_cultural,
     conta_associacao_cartao,
 ):
-    return baker.make(
-        'Despesa',
+    return despesa_factory(
         associacao=associacao,
         numero_documento='12331502',
         data_documento=datetime.date(2020, 3, 10),
@@ -923,6 +920,7 @@ def rateio_despesa_imposto_retido_2(associacao, tipo_custeio, especificacao_inst
 
 @pytest.fixture
 def despesa_com_retencao_imposto_2(
+    despesa_factory,
     associacao,
     tipo_documento,
     tipo_transacao,
@@ -933,8 +931,7 @@ def despesa_com_retencao_imposto_2(
     despesa_imposto_retido,
     despesa_imposto_retido_2
 ):
-    return baker.make(
-        'Despesa',
+    despesa = despesa_factory(
         associacao=associacao,
         numero_documento='123315',
         data_documento=datetime.date(2020, 3, 10),
@@ -944,8 +941,10 @@ def despesa_com_retencao_imposto_2(
         tipo_transacao=tipo_transacao,
         data_transacao=datetime.date(2020, 3, 10),
         valor_total=120.00,
-        despesas_impostos=[despesa_imposto_retido, despesa_imposto_retido_2],
     )
+    despesa.despesas_impostos.add(despesa_imposto_retido)
+    despesa.despesas_impostos.add(despesa_imposto_retido_2)
+    return despesa
 
 
 @pytest.fixture
@@ -966,9 +965,8 @@ def rateio_despesa_com_retencao_imposto_2(associacao, despesa_com_retencao_impos
 
 
 @pytest.fixture
-def despesa_2020_1_recurso_proprio(associacao, tipo_documento, tipo_transacao_pix):
-    return baker.make(
-        'Despesa',
+def despesa_2020_1_recurso_proprio(despesa_factory, associacao, tipo_documento, tipo_transacao_pix):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -1006,9 +1004,8 @@ def rateio_despesa_2020_recurso_proprio(associacao, despesa_2020_1_recurso_propr
 
 
 @pytest.fixture
-def despesa_2020_1_multiplas_contas(associacao, tipo_documento, tipo_transacao_pix):
-    return baker.make(
-        'Despesa',
+def despesa_2020_1_multiplas_contas(despesa_factory, associacao, tipo_documento, tipo_transacao_pix):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -1108,9 +1105,8 @@ def analise_lancamento_despesa_prestacao_conta_2020_1_conferencia_correto(
 
 
 @pytest.fixture
-def despesa_2020_1_inativa_conferencia_correto(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2020_1_inativa_conferencia_correto(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -1180,9 +1176,8 @@ def analise_lancamento_despesa_prestacao_conta_2020_1_conferencia_ajuste(
 
 
 @pytest.fixture
-def despesa_2020_1_inativa_conferencia_ajuste(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2020_1_inativa_conferencia_ajuste(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -1276,9 +1271,8 @@ def receita_conferencia_automatica(
 
 
 @pytest.fixture
-def despesa_2020_1_inativa_conferencia_automatica(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2020_1_inativa_conferencia_automatica(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -1355,9 +1349,8 @@ def receita_nao_conferido(
 
 
 @pytest.fixture
-def despesa_2020_1_inativa_nao_conferido(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2020_1_inativa_nao_conferido(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),

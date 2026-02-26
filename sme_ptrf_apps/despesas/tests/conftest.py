@@ -39,7 +39,6 @@ def permissoes_api_sme():
     return permissoes
 
 
-
 @pytest.fixture
 def tipo_documento():
     return baker.make('TipoDocumento', nome='NFe', apenas_digitos=False, numero_documento_digitado=False)
@@ -151,9 +150,8 @@ def especificacao_ar_condicionado(especificacao_capital):
 
 
 @pytest.fixture
-def despesa(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -166,13 +164,14 @@ def despesa(associacao, tipo_documento, tipo_transacao):
         valor_total=100.00,
         valor_recursos_proprios=10.00,
         valor_original=90.00,
+        eh_despesa_sem_comprovacao_fiscal=False,
+        eh_despesa_reconhecida_pela_associacao=True
     )
 
 
 @pytest.fixture
-def despesa_cheque_com_documento_transacao(associacao, tipo_documento, tipo_transacao_cheque_com_documento):
-    return baker.make(
-        'Despesa',
+def despesa_cheque_com_documento_transacao(despesa_factory, associacao, tipo_documento, tipo_transacao_cheque_com_documento):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -188,9 +187,8 @@ def despesa_cheque_com_documento_transacao(associacao, tipo_documento, tipo_tran
 
 
 @pytest.fixture
-def despesa_cheque_sem_documento_transacao(associacao, tipo_documento, tipo_transacao_cheque_com_documento):
-    return baker.make(
-        'Despesa',
+def despesa_cheque_sem_documento_transacao(despesa_factory, associacao, tipo_documento, tipo_transacao_cheque_com_documento):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -202,13 +200,14 @@ def despesa_cheque_sem_documento_transacao(associacao, tipo_documento, tipo_tran
         data_transacao=datetime.date(2020, 3, 10),
         valor_total=100.00,
         valor_recursos_proprios=10.00,
+        eh_despesa_sem_comprovacao_fiscal=False,
+        eh_despesa_reconhecida_pela_associacao=True        
     )
 
 
 @pytest.fixture
-def despesa_boleto_sem_documento_transacao(associacao, tipo_documento, tipo_transacao_boleto_sem_documento):
-    return baker.make(
-        'Despesa',
+def despesa_boleto_sem_documento_transacao(despesa_factory, associacao, tipo_documento, tipo_transacao_boleto_sem_documento):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -347,6 +346,7 @@ def permissoes_despesa():
 
     return permissoes
 
+
 @pytest.fixture
 def permissoes_rateios():
     permissoes = [
@@ -403,7 +403,6 @@ def jwt_authenticated_client_d(client, usuario_permissao_despesa):
     return api_client
 
 
-
 @pytest.fixture
 def grupo_sem_permissao_criar_receita():
     content_type = ContentType.objects.filter(model='despesa').first()
@@ -452,12 +451,14 @@ def jwt_authenticated_client_sem_permissao(client, usuario_sem_permissao):
 
 # Motivos pagamento antecipado
 
+
 @pytest.fixture
 def motivo_pagamento_adiantado_01():
     return baker.make(
         'MotivoPagamentoAntecipado',
         motivo="Motivo de pagamento adiantado 01"
     )
+
 
 @pytest.fixture
 def motivo_pagamento_adiantado_02():
@@ -466,10 +467,10 @@ def motivo_pagamento_adiantado_02():
         motivo="Motivo de pagamento adiantado 02"
     )
 
+
 @pytest.fixture
-def despesa_inativa(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_inativa(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2019, 9, 10),

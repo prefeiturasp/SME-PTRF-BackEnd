@@ -632,11 +632,12 @@ class PrestacaoContaService:
         return []
 
     def validar_geracao_pc_periodo_anterior(self):
-        if self.periodo and self.periodo.periodo_anterior:
-            pc_anteriores_associacao = self.associacao.prestacoes_de_conta_da_associacao.all()
+        primeiro_periodo = self.associacao.primeiro_periodo_ativo_por_recurso(self.periodo.recurso)
 
-            if pc_anteriores_associacao.count() == 0:
-                return True
+        if self.periodo and self.periodo.periodo_anterior and not primeiro_periodo:
+            pc_anteriores_associacao = self.associacao.prestacoes_de_conta_da_associacao.filter(
+                periodo__recurso=self.periodo.recurso
+            )
 
             pc_periodo_anterior_gerada = pc_anteriores_associacao.filter(
                 periodo=self.periodo.periodo_anterior

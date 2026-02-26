@@ -33,4 +33,15 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.RunPython(atualiza_recurso_despesas, reverse_code=migrations.RunPython.noop),
+        migrations.AlterField(
+            model_name="despesa",
+            name="recurso",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.PROTECT,
+                to="core.recurso",
+                verbose_name="Recurso",
+                blank=False,
+                null=False,
+            ),
+        ),
     ]

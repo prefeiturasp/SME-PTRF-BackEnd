@@ -6,10 +6,10 @@ from model_bakery import baker
 
 from sme_ptrf_apps.despesas.models.despesa import Despesa
 
+
 @pytest.fixture
-def despesa_no_periodo(associacao, tipo_documento, tipo_transacao, periodo):
-    return baker.make(
-        'Despesa',
+def despesa_no_periodo(despesa_factory, associacao, tipo_documento, tipo_transacao, periodo):
+    return despesa_factory(
         id=10,
         associacao=associacao,
         numero_documento='123456',
@@ -24,10 +24,10 @@ def despesa_no_periodo(associacao, tipo_documento, tipo_transacao, periodo):
         documento_transacao=312321
     )
 
+
 @pytest.fixture
-def outra_despesa_no_periodo(associacao, tipo_documento, tipo_transacao, periodo):
-    return baker.make(
-        'Despesa',
+def outra_despesa_no_periodo(despesa_factory, associacao, tipo_documento, tipo_transacao, periodo):
+    return despesa_factory(
         id=11,
         associacao=associacao,
         numero_documento='312323',
@@ -41,6 +41,7 @@ def outra_despesa_no_periodo(associacao, tipo_documento, tipo_transacao, periodo
         valor_original=100,
         documento_transacao=231321
     )
+
 
 @pytest.fixture
 def queryset_ordered(despesa_no_periodo, outra_despesa_no_periodo):

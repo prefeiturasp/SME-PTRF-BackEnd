@@ -68,6 +68,7 @@ def usuario_para_teste():
 
     return user
 
+
 @pytest.fixture
 def periodo_2020_1(periodo_factory):
     return periodo_factory(
@@ -79,6 +80,7 @@ def periodo_2020_1(periodo_factory):
         data_fim_prestacao_contas=datetime.date(2020, 7, 10),
     )
 
+
 @pytest.fixture
 def prestacao_conta_2020_1(periodo_2020_1, associacao):
     return baker.make(
@@ -87,6 +89,7 @@ def prestacao_conta_2020_1(periodo_2020_1, associacao):
         associacao=associacao,
         status=PrestacaoConta.STATUS_NAO_RECEBIDA
     )
+
 
 @pytest.fixture
 def fechamento_periodo_queryset(prestacao_conta_2020_1, periodo_2020_1, associacao, conta_associacao, acao_associacao):
@@ -110,6 +113,7 @@ def fechamento_periodo_queryset(prestacao_conta_2020_1, periodo_2020_1, associac
 
     return FechamentoPeriodo.objects.all()
 
+
 @pytest.fixture
 def ambiente():
     return baker.make(
@@ -117,6 +121,7 @@ def ambiente():
         prefixo='dev-sig-escola',
         nome='Ambiente de desenvolvimento',
     )
+
 
 @pytest.fixture
 def arquivo_pdf_relacao_bens():
@@ -134,6 +139,7 @@ def arquivo_pdf_relacao_bens():
 
     return SimpleUploadedFile(filename, pdf_file, content_type='application/pdf')
 
+
 @pytest.fixture
 def arquivo_pdf_demonstrativo_financeiro():
     html_template = get_template('pdf/demonstrativo_financeiro/pdf-horizontal.html')
@@ -149,6 +155,7 @@ def arquivo_pdf_demonstrativo_financeiro():
     filename = 'demonstrativo_financeiro_pdf_%s.pdf'
 
     return SimpleUploadedFile(filename, pdf_file, content_type='application/pdf')
+
 
 @pytest.fixture
 def relacao_bens_queryset(prestacao_conta_2020_1, conta_associacao, arquivo_pdf_relacao_bens):
@@ -170,6 +177,7 @@ def relacao_bens_queryset(prestacao_conta_2020_1, conta_associacao, arquivo_pdf_
 
     return RelacaoBens.objects.all()
 
+
 @pytest.fixture
 def demonstrativo_financeiro_queryset(prestacao_conta_2020_1, conta_associacao, arquivo_pdf_demonstrativo_financeiro):
     baker.make(
@@ -190,6 +198,7 @@ def demonstrativo_financeiro_queryset(prestacao_conta_2020_1, conta_associacao, 
 
     return DemonstrativoFinanceiro.objects.all()
 
+
 @pytest.fixture
 def observacao_conciliacao_teste_exportacao(periodo_2020_1, conta_associacao):
     return baker.make(
@@ -198,25 +207,30 @@ def observacao_conciliacao_teste_exportacao(periodo_2020_1, conta_associacao):
         associacao=conta_associacao.associacao,
         conta_associacao=conta_associacao,
         texto="Uma bela observação.",
-        data_extrato = datetime.date(2020, 7, 1),
-        saldo_extrato = 1000
+        data_extrato=datetime.date(2020, 7, 1),
+        saldo_extrato=1000
     )
+
 
 @pytest.fixture
 def tipo_documento():
     return baker.make('TipoDocumento', nome='NFe')
 
+
 @pytest.fixture
 def tipo_transacao():
     return baker.make('TipoTransacao', nome='Boleto')
+
 
 @pytest.fixture
 def tipo_aplicacao_recurso():
     return APLICACAO_CUSTEIO
 
+
 @pytest.fixture
 def tipo_custeio():
     return baker.make('TipoCusteio', nome='Material')
+
 
 @pytest.fixture
 def especificacao_material_servico(tipo_aplicacao_recurso, tipo_custeio):
@@ -227,6 +241,7 @@ def especificacao_material_servico(tipo_aplicacao_recurso, tipo_custeio):
         tipo_custeio=tipo_custeio,
     )
 
+
 @pytest.fixture
 def tag_rateio():
     return baker.make(
@@ -235,10 +250,10 @@ def tag_rateio():
         status=StatusTag.ATIVO.name
     )
 
+
 @pytest.fixture
-def despesa_01(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_01(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -253,10 +268,10 @@ def despesa_01(associacao, tipo_documento, tipo_transacao):
         valor_original=90.00,
     )
 
+
 @pytest.fixture
-def despesa_02(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_02(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 11),
@@ -270,6 +285,7 @@ def despesa_02(associacao, tipo_documento, tipo_transacao):
         valor_recursos_proprios=10.00,
         valor_original=90.00,
     )
+
 
 @pytest.fixture
 def rateios_despesa_queryset(associacao, despesa_01, despesa_02, conta_associacao, acao_associacao, tipo_aplicacao_recurso, tipo_custeio,

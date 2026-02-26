@@ -172,6 +172,13 @@ class Associacao(ModeloIdNome):
     def apaga_implantacoes_de_saldo(self):
         self.fechamentos_associacao.filter(status='IMPLANTACAO').delete()
 
+    def primeiro_periodo_ativo_por_recurso(self, recurso):
+        periodo_inicial = self.periodos_iniciais.filter(recurso=recurso).first()
+
+        if periodo_inicial:
+            return periodo_inicial.proximo_periodo
+        return None
+
     @property
     def primeiro_periodo_ativo(self):
         if self.periodo_inicial:
@@ -273,14 +280,15 @@ class Associacao(ModeloIdNome):
         periodos_ordenados = sorted(periodos, key=Periodo.get_referencia, reverse=True)
         return periodos_ordenados
 
-    def periodos_ate_agora_fora_implantacao(self, recurso):
+    def periodos_ate_agora_fora_implantacao(self, recurso=None):
         from datetime import datetime
         from .periodo import Periodo
 
         qry_periodos = Periodo.objects.filter(
             data_inicio_realizacao_despesas__lte=datetime.today()).order_by('-referencia')
 
-        qry_periodos = Periodo.filter_by_recurso(qry_periodos, recurso)
+        if recurso:
+            qry_periodos = Periodo.filter_by_recurso(qry_periodos, recurso)
 
         if self.periodo_inicial:
             qry_periodos = qry_periodos.filter(

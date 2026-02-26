@@ -25,9 +25,8 @@ def receita_100_no_periodo_02(associacao_02_02, conta_associacao, acao_associaca
 
 
 @pytest.fixture
-def despesa_100_no_periodo02(associacao_02_02, tipo_documento, tipo_transacao, periodo):
-    return baker.make(
-        'Despesa',
+def despesa_100_no_periodo02(despesa_factory, associacao_02_02, tipo_documento, tipo_transacao, periodo):
+    return despesa_factory(
         associacao=associacao_02_02,
         numero_documento='123456',
         data_documento=periodo.data_inicio_realizacao_despesas + datetime.timedelta(days=3),

@@ -42,7 +42,7 @@ class DespesaImpostoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Despesa
-        fields = '__all__'
+        exclude = ("recurso",)
 
 
 class DespesaSerializer(serializers.ModelSerializer):
@@ -125,12 +125,13 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             despesas_impostos=data.get("despesas_impostos", [])
         )
 
-        recurso = self.context.get("recurso")
+        if not self.instance:
+            recurso = self.context.get("recurso")
 
-        if not recurso:
-            raise serializers.ValidationError(
-                "Recurso da despesa é obrigatório"
-            )
+            if not recurso:
+                raise serializers.ValidationError(
+                    "Recurso da despesa é obrigatório"
+                )
 
         # Verifica prioridades do PAA impactadas
         # self._verificar_prioridades_paa_impactadas(data, self.instance)
@@ -192,7 +193,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Despesa
-        exclude = ('id',)
+        exclude = ('id', 'recurso', )
 
 
 class DespesaListSerializer(serializers.ModelSerializer):

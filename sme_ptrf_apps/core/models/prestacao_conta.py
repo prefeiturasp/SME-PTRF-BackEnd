@@ -423,7 +423,6 @@ class PrestacaoConta(ModeloBase):
         comentarios_de_analise_relacionados_sem_pc = ComentarioAnalisePrestacao.objects.filter(Q(associacao=self.associacao) &
                                                                                                Q(periodo=self.periodo) &
                                                                                                Q(prestacao_conta__isnull=True))
-        print('comentarios_de_analise_relacionados_sem_pc', comentarios_de_analise_relacionados_sem_pc)
         comentarios_de_analise_relacionados_sem_pc.update(prestacao_conta=self, associacao=None, periodo=None)
 
     def get_contas_com_movimento(self, add_sem_movimento_com_saldo=False):

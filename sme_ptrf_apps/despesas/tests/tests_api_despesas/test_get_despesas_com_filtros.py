@@ -39,7 +39,7 @@ def tag_teste_filtro_por_tag():
 
 
 @pytest.fixture
-def despesa_factory(associacao, tipo_documento, tipo_transacao):
+def _despesa_factory(despesa_factory, associacao, tipo_documento, tipo_transacao):
     def _factory(**kwargs):
         defaults = dict(
             associacao=associacao,
@@ -51,7 +51,7 @@ def despesa_factory(associacao, tipo_documento, tipo_transacao):
             valor_recursos_proprios=10,
         )
         defaults.update(kwargs)
-        return baker.make("Despesa", **defaults)
+        return despesa_factory(**defaults)
     return _factory
 
 
@@ -73,7 +73,6 @@ def rateio_factory(associacao, conta_associacao, acao_associacao_ptrf):
 
 def get_despesas(client, **params):
     query = "&".join(f"{k}={v}" for k, v in params.items())
-    print(query)
     response = client.get(f"/api/despesas/?{query}", content_type="application/json")
     assert response.status_code == status.HTTP_200_OK
     return response.json()["results"]
@@ -89,14 +88,14 @@ def get_despesas(client, **params):
 )
 def test_filtro_por_cpf_cnpj_fornecedor(
     jwt_authenticated_client_d,
-    despesa_factory,
+    _despesa_factory,
     rateio_factory,
     associacao,
     cpf_cnpj,
     esperado,
 ):
-    d1 = despesa_factory(cpf_cnpj_fornecedor="11.478.276/0001-04")
-    d2 = despesa_factory(cpf_cnpj_fornecedor="517.870.110-03")
+    d1 = _despesa_factory(cpf_cnpj_fornecedor="11.478.276/0001-04")
+    d2 = _despesa_factory(cpf_cnpj_fornecedor="517.870.110-03")
     rateio_factory(d1)
     rateio_factory(d2)
 
@@ -112,13 +111,13 @@ def test_filtro_por_cpf_cnpj_fornecedor(
 @pytest.mark.parametrize("campo", ["uuid", "id"])
 def test_filtro_por_tipo_documento(
     jwt_authenticated_client_d,
-    despesa_factory,
+    _despesa_factory,
     rateio_factory,
     tipo_documento,
     campo,
 ):
-    d1 = despesa_factory()
-    d2 = despesa_factory()
+    d1 = _despesa_factory()
+    d2 = _despesa_factory()
     rateio_factory(d1)
     rateio_factory(d2)
 
@@ -133,12 +132,12 @@ def test_filtro_por_tipo_documento(
 
 def test_filtro_por_tag(
     jwt_authenticated_client_d,
-    despesa_factory,
+    _despesa_factory,
     rateio_factory,
     tag_teste_filtro_por_tag,
 ):
-    d1 = despesa_factory()
-    d2 = despesa_factory()
+    d1 = _despesa_factory()
+    d2 = _despesa_factory()
 
     rateio_factory(d1, tag=tag_teste_filtro_por_tag)
     rateio_factory(d2)
@@ -160,16 +159,16 @@ def test_filtro_por_tag(
 )
 def test_filtro_vinculo_atividades(
     jwt_authenticated_client_d,
-    despesa_factory,
+    _despesa_factory,
     rateio_factory,
     tag_1,
     tag_2,
     filtro,
     esperado,
 ):
-    d1 = despesa_factory()
-    d2 = despesa_factory()
-    d3 = despesa_factory()
+    d1 = _despesa_factory()
+    d2 = _despesa_factory()
+    d3 = _despesa_factory()
 
     rateio_factory(d1, tag=tag_1)
     rateio_factory(d2, tag=tag_2)

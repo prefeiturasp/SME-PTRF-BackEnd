@@ -211,6 +211,7 @@ class RateioDespesa(ModeloBase):
         nao_exibir_em_rel_bens=None,
     ):
         todos_rateios = cls.objects.exclude(status=STATUS_INCOMPLETO) if incluir_inativas else cls.completos
+
         if periodo.data_fim_realizacao_despesas:
             dataset = todos_rateios.filter(conta_associacao=conta_associacao).filter(
                 despesa__data_transacao__range=(
