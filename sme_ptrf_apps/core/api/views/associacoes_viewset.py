@@ -155,7 +155,7 @@ class AssociacoesViewSet(ModelViewSet):
                 'mensagem': 'É necessário enviar o uuid do período.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             periodo = Periodo.objects.get(uuid=periodo_uuid)
         except Periodo.DoesNotExist:
@@ -196,7 +196,8 @@ class AssociacoesViewSet(ModelViewSet):
         painel = PainelResumoRecursosService.painel_resumo_recursos(
             self.get_object(),
             periodo,
-            conta_associacao
+            conta_associacao,
+            recurso=self.request.recurso
         )
 
         result = painel.to_json()
@@ -357,7 +358,8 @@ class AssociacoesViewSet(ModelViewSet):
                 (Q(status=ContaAssociacao.STATUS_INATIVA) &
                  Q(solicitacao_encerramento__isnull=False) &
                  Q(solicitacao_encerramento__data_de_encerramento_na_agencia__gte=periodo.data_inicio_realizacao_despesas)),
-                associacao=associacao
+                associacao=associacao,
+                tipo_conta__recurso=self.request.recurso
             )
 
             contas_criadas_nesse_periodo_ou_anteriores = []
@@ -611,7 +613,7 @@ class AssociacoesViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def periodos_ate_agora_fora_implantacao(self, request, uuid=None):
         associacao = self.get_object()
-        periodos = associacao.periodos_ate_agora_fora_implantacao()
+        periodos = associacao.periodos_ate_agora_fora_implantacao(self.request.recurso)
         return Response(PeriodoLookUpSerializer(periodos, many=True).data)
 
     @action(detail=True, url_path='status-prestacoes', methods=['get'],

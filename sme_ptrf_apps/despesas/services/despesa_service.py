@@ -280,6 +280,7 @@ class DespesaService:
 
             imposto.pop("despesas_impostos", None)
             imposto.pop("motivos_pagamento_antecipado", None)
+            imposto["recurso"] = despesa.recurso
 
             desp = Despesa.objects.create(**imposto)
             cls._criar_rateios(desp, rateios)

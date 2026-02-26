@@ -116,7 +116,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         )
         return value
 
-    def validate(self, data):  
+    def validate(self, data):
 
         ValidacaoDespesaService.validar_periodo_e_contas(
             instance=self.instance,
@@ -125,8 +125,15 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             despesas_impostos=data.get("despesas_impostos", [])
         )
 
+        recurso = self.context.get("recurso")
+
+        if not recurso:
+            raise serializers.ValidationError(
+                "Recurso da despesa é obrigatório"
+            )
+
         # Verifica prioridades do PAA impactadas
-        # self._verificar_prioridades_paa_impactadas(data, self.instance)        
+        # self._verificar_prioridades_paa_impactadas(data, self.instance)
 
         return data
 
@@ -154,7 +161,6 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                     "Será necessário revisar as prioridades para atualizar o valor total.")
             })
 
-    
     def _limpar_prioridades_paa(self, rateios, instance_despesa):
         """
         Limpa o valor_total das prioridades do PAA impactadas pelos rateios da despesa.
@@ -165,15 +171,16 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             service = PrioridadesPaaImpactadasDespesaRateioService(rateio, instance_despesa)
             service.limpar_valor_prioridades_impactadas()
 
-    
     def create(self, validated_data):
         from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
+
+        validated_data["recurso"] = self.context["recurso"]
 
         return DespesaService.create(
             validated_data,
             limpar_prioridades_callback=self._limpar_prioridades_paa
         )
-    
+
     def update(self, instance, validated_data):
         from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
 
@@ -182,8 +189,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             validated_data,
             limpar_prioridades_callback=self._limpar_prioridades_paa
         )
-    
-    
+
     class Meta:
         model = Despesa
         exclude = ('id',)

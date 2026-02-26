@@ -443,10 +443,7 @@ class RateioDespesa(ModeloBase):
         if not recurso:
             return queryset
 
-        return queryset.filter(
-            Q(acao_associacao__acao__recurso=recurso) |
-            Q(conta_associacao__tipo_conta__recurso=recurso)
-        ).distinct()
+        return queryset.filter(despesa__recurso=recurso)
 
     class Meta:
         verbose_name = "Rateio de despesa"

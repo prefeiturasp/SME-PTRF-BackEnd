@@ -273,12 +273,14 @@ class Associacao(ModeloIdNome):
         periodos_ordenados = sorted(periodos, key=Periodo.get_referencia, reverse=True)
         return periodos_ordenados
 
-    def periodos_ate_agora_fora_implantacao(self):
+    def periodos_ate_agora_fora_implantacao(self, recurso):
         from datetime import datetime
         from .periodo import Periodo
 
         qry_periodos = Periodo.objects.filter(
             data_inicio_realizacao_despesas__lte=datetime.today()).order_by('-referencia')
+
+        qry_periodos = Periodo.filter_by_recurso(qry_periodos, recurso)
 
         if self.periodo_inicial:
             qry_periodos = qry_periodos.filter(

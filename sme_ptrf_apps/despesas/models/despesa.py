@@ -44,6 +44,14 @@ class Despesa(ModeloBase):
 
     history = AuditlogHistoryField()
 
+    recurso = models.ForeignKey(
+        "core.Recurso",
+        verbose_name="Recurso",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+    )
+
     associacao = models.ForeignKey(Associacao, on_delete=models.PROTECT, related_name='despesas', blank=True,
                                    null=True)
 
@@ -483,10 +491,7 @@ class Despesa(ModeloBase):
         if not recurso:
             return queryset
 
-        return queryset.filter(
-            Q(rateios__acao_associacao__acao__recurso=recurso) |
-            Q(rateios__conta_associacao__tipo_conta__recurso=recurso)
-        ).distinct()
+        return queryset.filter(recurso=recurso)
 
     class Meta:
         verbose_name = "Documento comprobatório da despesa"

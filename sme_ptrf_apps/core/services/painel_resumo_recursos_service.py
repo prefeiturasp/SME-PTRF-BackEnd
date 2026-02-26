@@ -77,7 +77,8 @@ class PainelResumoRecursosCardAcao:
 
 
 class PainelResumoRecursos:
-    def __init__(self, associacao, periodo, conta_associacao=None):
+    def __init__(self, associacao, periodo, conta_associacao=None, recurso=None):
+        self.recurso = recurso
         self.associacao = associacao
         self.periodo_referencia = periodo
         self.data_inicio_realizacao_despesas = periodo.data_inicio_realizacao_despesas
@@ -94,8 +95,10 @@ class PainelResumoRecursos:
         self.__set_info_contas()
 
     def __set_info_acoes(self):
+        from sme_ptrf_apps.core.models import AcaoAssociacao
         self.info_acoes = []
         acoes_associacao = Associacao.acoes_da_associacao(associacao_uuid=self.associacao.uuid)
+        acoes_associacao = AcaoAssociacao.filter_by_recurso(acoes_associacao, self.recurso)
         for acao in acoes_associacao:
             self.info_acoes.append(
                 PainelResumoRecursosCardAcao(
@@ -160,6 +163,5 @@ class PainelResumoRecursos:
 
 class PainelResumoRecursosService:
     @classmethod
-    def painel_resumo_recursos(cls, associacao, periodo=None, conta_associacao=None):
-        return PainelResumoRecursos(associacao=associacao, periodo=periodo, conta_associacao=conta_associacao)
-
+    def painel_resumo_recursos(cls, associacao, periodo=None, conta_associacao=None, recurso=None):
+        return PainelResumoRecursos(associacao=associacao, periodo=periodo, conta_associacao=conta_associacao, recurso=recurso)

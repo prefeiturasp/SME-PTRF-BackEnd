@@ -1,9 +1,11 @@
-from factory import SubFactory, Sequence
+from factory import SubFactory, Sequence, LazyFunction
 from factory.django import DjangoModelFactory
 from faker import Faker
 
 from sme_ptrf_apps.core.fixtures.factories.associacao_factory import AssociacaoFactory
 from sme_ptrf_apps.despesas.models.despesa import Despesa
+from sme_ptrf_apps.core.models import Recurso
+
 
 from .tipo_transacao_factory import TipoTransacaoFactory
 from .tipo_documento_factory import TipoDocumentoFactory
@@ -29,5 +31,7 @@ class DespesaFactory(DjangoModelFactory):
     eh_despesa_sem_comprovacao_fiscal = fake.pybool()
     eh_despesa_reconhecida_pela_associacao = fake.pybool()
     numero_boletim_de_ocorrencia = Sequence(lambda n: f"BO-{n}")
+
+    recurso = LazyFunction(lambda: Recurso.objects.get(legado=True))
 
     # TODO adicionar outros campos
