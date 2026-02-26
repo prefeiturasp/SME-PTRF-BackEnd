@@ -19,7 +19,8 @@ def test_lista_usuarios_filtro_por_visao(
     unidade_em_suporte_usuario_3,
 ):
 
-    response = jwt_authenticated_client_u.get(f"/api/usuarios/?visao=DRE&unidade_uuid={dre.uuid}", content_type='application/json')
+    response = jwt_authenticated_client_u.get(
+        f"/api/usuarios/?visao=DRE&unidade_uuid={dre.uuid}", content_type='application/json')
     result = response.json()
     esperado = [
         {
@@ -136,7 +137,8 @@ def test_lista_usuarios_filtro_por_nome(
     dre
 ):
 
-    response = jwt_authenticated_client_u2.get(f"/api/usuarios/?visao=DRE&unidade_uuid={dre.uuid}&search=Arth", content_type='application/json')
+    response = jwt_authenticated_client_u2.get(
+        f"/api/usuarios/?visao=DRE&unidade_uuid={dre.uuid}&search=Arth", content_type='application/json')
     result = response.json()
     esperado = [
         {'id': usuario_3.id,
@@ -181,7 +183,8 @@ def test_lista_usuarios_filtro_por_nome_ou_username(
     dre
 ):
 
-    response = jwt_authenticated_client_u2.get(f"/api/usuarios/?visao=DRE&unidade_uuid={dre.uuid}&search=7218198", content_type='application/json')
+    response = jwt_authenticated_client_u2.get(
+        f"/api/usuarios/?visao=DRE&unidade_uuid={dre.uuid}&search=7218198", content_type='application/json')
     result = response.json()
     esperado = [
         {'id': usuario_3.id,
@@ -211,7 +214,6 @@ def test_lista_usuarios_filtro_por_nome_ou_username(
     assert result == esperado
 
 
-
 def test_lista_usuarios_filtro_por_associacao(
         jwt_authenticated_client_u,
         usuario_para_teste,
@@ -223,7 +225,8 @@ def test_lista_usuarios_filtro_por_associacao(
         unidade
 ):
 
-    response = jwt_authenticated_client_u.get(f"/api/usuarios/?associacao_uuid={associacao.uuid}", content_type='application/json')
+    response = jwt_authenticated_client_u.get(
+        f"/api/usuarios/?associacao_uuid={associacao.uuid}", content_type='application/json')
     result = response.json()
     esperado = [
         {
@@ -276,7 +279,6 @@ def test_lista_usuarios_filtro_por_associacao(
         }
 
     ]
-    print(result)
     assert result == esperado
 
 
@@ -363,7 +365,8 @@ def test_lista_usuarios_filtro_por_unidade_uuid(
         grupo_2
 ):
 
-    response = jwt_authenticated_client_u.get(f"/api/usuarios/?visao=UE&unidade_uuid={unidade.uuid}", content_type='application/json')
+    response = jwt_authenticated_client_u.get(
+        f"/api/usuarios/?visao=UE&unidade_uuid={unidade.uuid}", content_type='application/json')
     result = response.json()
     esperado = [
         {
@@ -416,7 +419,6 @@ def test_lista_usuarios_filtro_por_unidade_uuid(
         }
 
     ]
-    print(result)
     assert result == esperado
 
 
@@ -483,7 +485,6 @@ def test_lista_usuarios_filtro_por_unidade_nome(
         }
 
     ]
-    print(result)
     assert result == esperado
 
 

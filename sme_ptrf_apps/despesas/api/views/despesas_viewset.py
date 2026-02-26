@@ -70,9 +70,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
     def get_queryset(self):
         from ...services.despesa_service import ordena_despesas_por_imposto
         qs = Despesa.objects.exclude(status='INATIVO').all()
-        for item in qs:
-            print(item.recurso)
-        print(self.request.recurso)
+
         qs = Despesa.filter_by_recurso(qs, self.request.recurso)
 
         search = self.request.query_params.get('search')

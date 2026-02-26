@@ -23,7 +23,6 @@ def get_lancamentos(client, analise_uuid, conta_uuid, extra=""):
         f"/api/analises-prestacoes-contas/{analise_uuid}/"
         f"lancamentos-com-ajustes/?conta_associacao={conta_uuid}{extra}"
     )
-    print(url)
     response = client.get(url, content_type="application/json")
     assert response.status_code == status.HTTP_200_OK
     return response.json()

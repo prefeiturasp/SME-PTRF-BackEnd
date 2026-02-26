@@ -49,7 +49,6 @@ def test_get_lista_adquiridos_e_produzidos_com_filtro_fornecedor(jwt_authenticat
     _ = rateio_despesa_factory(
         associacao=associacao_1, despesa=despesa_2025_1, aplicacao_recurso="CAPITAL")
 
-    print(despesa_2025_1.nome_fornecedor)
     response = jwt_authenticated_client_sme.get(
         f'/api/bens-produzidos-e-adquiridos/?'
         f'associacao_uuid={associacao_1.uuid}&'

@@ -176,7 +176,7 @@ class Associacao(ModeloIdNome):
         periodo_inicial = self.periodos_iniciais.filter(recurso=recurso).first()
 
         if periodo_inicial:
-            return periodo_inicial.proximo_periodo
+            return periodo_inicial.periodo_inicial.proximo_periodo
         return None
 
     @property
@@ -290,9 +290,11 @@ class Associacao(ModeloIdNome):
         if recurso:
             qry_periodos = Periodo.filter_by_recurso(qry_periodos, recurso)
 
-        if self.periodo_inicial:
+        primeiro_periodo_ativo = self.primeiro_periodo_ativo_por_recurso(recurso)
+
+        if primeiro_periodo_ativo:
             qry_periodos = qry_periodos.filter(
-                data_inicio_realizacao_despesas__gte=self.periodo_inicial.data_fim_realizacao_despesas
+                data_inicio_realizacao_despesas__gte=primeiro_periodo_ativo.periodo_anterior.data_fim_realizacao_despesas
             )
 
         if self.data_de_encerramento:

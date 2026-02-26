@@ -249,7 +249,6 @@ def test_destroy_acao_pdde_inexistente(jwt_authenticated_client_sme, flag_paa):
     # Tentar excluir uma ação PDDE com UUID inexistente
     uuid_inexistente = uuid4()
     response = jwt_authenticated_client_sme.delete(f"/api/acoes-pdde/{uuid_inexistente}/")
-    print(response.data)
     # Deve retornar erro 404 (Not Found)
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert "Ação PDDE não encontrada." in response.data["detail"]
