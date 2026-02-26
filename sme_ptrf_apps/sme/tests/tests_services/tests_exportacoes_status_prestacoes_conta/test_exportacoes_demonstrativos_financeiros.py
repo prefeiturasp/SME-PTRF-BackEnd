@@ -118,7 +118,8 @@ def test_quantidade_linha_individual_dados_extracao(demonstrativo_financeiro_que
     linha_individual = dados[0]
 
     """
-        É esperado que tenha 13 registros sendo eles:
+        É esperado que tenha 15 registros sendo eles:
+        Recurso
         Código EOL
         Nome Unidade
         Nome Associação
@@ -126,7 +127,7 @@ def test_quantidade_linha_individual_dados_extracao(demonstrativo_financeiro_que
         Referência do Período da PC
         Nome do tipo de Conta
         Data (Saldo bancário)
-        Saldo bancário'
+        Saldo bancário
         Justificativa e informações adicionais (Informações de conciliação)
         URL do arquivo PDF
         Status
@@ -135,7 +136,7 @@ def test_quantidade_linha_individual_dados_extracao(demonstrativo_financeiro_que
         Data e hora da última atualização
     """
 
-    assert len(linha_individual) == 14
+    assert len(linha_individual) == 15
 
 
 def test_resultado_esperado_dados_extracao(
@@ -151,6 +152,7 @@ def test_resultado_esperado_dados_extracao(
     primeiro_demonstrativo_financeiro = demonstrativo_financeiro_queryset.first()
 
     resultado_esperado = [
+        primeiro_demonstrativo_financeiro.prestacao_conta.periodo.recurso.nome,
         primeiro_demonstrativo_financeiro.conta_associacao.associacao.unidade.codigo_eol,
         primeiro_demonstrativo_financeiro.conta_associacao.associacao.unidade.nome,
         primeiro_demonstrativo_financeiro.conta_associacao.associacao.nome,
@@ -178,6 +180,7 @@ def test_cabecalho(demonstrativo_financeiro_queryset):
     cabecalho = [cabecalho[0] for cabecalho in dados.cabecalho]
 
     resultado_esperado = [
+        'Recurso',
         'Código EOL',
         'Nome Unidade',
         'Nome Associação',

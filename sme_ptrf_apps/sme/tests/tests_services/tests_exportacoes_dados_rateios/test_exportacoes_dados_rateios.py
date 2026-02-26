@@ -143,7 +143,8 @@ def test_quantidade_linha_individual_dados_extracao(rateios_despesa_queryset):
     linha_individual = dados[0]
 
     """
-        É esperado que tenha 9 registros sendo eles:
+        É esperado que tenha 35 registros sendo eles:
+            Recurso
             Codigo eol
             Nome unidade
             Nome associacao
@@ -180,7 +181,7 @@ def test_quantidade_linha_individual_dados_extracao(rateios_despesa_queryset):
             UUID do rateio
     """
 
-    assert len(linha_individual) == 34
+    assert len(linha_individual) == 35
 
 
 def test_resultado_esperado_dados_extracao(rateios_despesa_queryset):
@@ -192,6 +193,7 @@ def test_resultado_esperado_dados_extracao(rateios_despesa_queryset):
     primeiro_rateio = rateios_despesa_queryset.first()
 
     resultado_esperado = [
+        primeiro_rateio.despesa.recurso.nome,
         primeiro_rateio.associacao.unidade.codigo_eol,
         primeiro_rateio.associacao.unidade.nome,
         primeiro_rateio.associacao.nome,
@@ -241,6 +243,7 @@ def test_cabecalho(rateios_despesa_queryset):
     cabecalho = [cabecalho[0] for cabecalho in dados.cabecalho]
 
     resultado_esperado = [
+        'Recurso',
         'Código EOL',
         'Nome Unidade',
         'Nome Associação',

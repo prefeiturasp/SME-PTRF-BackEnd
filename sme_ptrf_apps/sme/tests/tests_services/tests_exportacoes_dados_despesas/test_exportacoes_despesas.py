@@ -16,6 +16,7 @@ def test_dados_esperados_csv(queryset_ordered):
     primeira_despesa = queryset_ordered.first()
 
     resultado_esperado = [
+        primeira_despesa.recurso.nome,
         primeira_despesa.associacao.unidade.codigo_eol,
         primeira_despesa.associacao.unidade.nome,
         primeira_despesa.associacao.nome,
@@ -55,6 +56,7 @@ def test_cabecalho():
     cabecalho = [cabecalho[0] for cabecalho in dados.cabecalho]
 
     resultado_esperado = [
+        'Recurso',
         'Código EOL',
         'Nome unidade',
         'Nome associação',
