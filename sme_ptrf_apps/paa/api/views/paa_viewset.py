@@ -181,14 +181,11 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         if not periodo_paa_vigente:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
-        paas_andamento_gerados = Paa.objects.filter(
-            pk=models.OuterRef('id')).paas_gerados()
+        paas_andamento_gerados_e_parciais = Paa.objects.filter(
+            pk=models.OuterRef('id')).paas_gerados_e_parciais()
 
-        paas_andamento_gerados_parcialmente = Paa.objects.filter(
-            pk=models.OuterRef('id')).paas_gerados_parcialmente()
-    
         paa_vigente = self.queryset.filter(
-            Q(models.Exists(paas_andamento_gerados) | models.Exists(paas_andamento_gerados_parcialmente)),
+            models.Exists(paas_andamento_gerados_e_parciais),
             periodo_paa=periodo_paa_vigente,
             associacao=associacao
         ).first()

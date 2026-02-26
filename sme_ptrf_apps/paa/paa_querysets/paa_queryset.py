@@ -92,6 +92,14 @@ class PaaQuerySet(models.QuerySet):
             status_andamento=PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name
         )
 
+    def paas_gerados_e_parciais(self):
+        return self.annotate_status_geracao().filter(
+            status_andamento__in=[
+                PaaStatusAndamentoEnum.GERADO.name,
+                PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name,
+            ]
+        )
+
     def paas_em_elaboracao(self):
         return self.annotate_status_geracao().filter(
             status_andamento=PaaStatusAndamentoEnum.EM_ELABORACAO.name

@@ -1,6 +1,6 @@
 
 def test_list_display(acao_pdde_admin):
-    assert acao_pdde_admin.list_display == ('nome', 'programa')
+    assert acao_pdde_admin.list_display == ('nome', 'programa', 'status')
 
 
 def test_search_fields(acao_pdde_admin):
