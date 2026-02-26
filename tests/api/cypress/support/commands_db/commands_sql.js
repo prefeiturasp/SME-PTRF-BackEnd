@@ -40,3 +40,16 @@ Cypress.Commands.add('criar_tipo_de_transacao_db', (nome) => {
 	cy.postgreSQL(scriptSQL.insert_tipo_de_transacao(nome))
 })
 
+Cypress.Commands.add('select_dados_das_contas', (associacaoId) => {
+	cy.postgreSQL(scriptSQL.select_dados_das_contas(associacaoId))
+})
+
+Cypress.Commands.add('select_saldo_recursos_dados_das_contas', (saldos) => {
+	cy.postgreSQL(scriptSQL.select_saldo_recursos_dados_das_contas(saldos))
+})
+
+Cypress.Commands.add('select_dados_das_contas_associacao', (dados) => {
+  return cy.postgreSQL(
+    scriptSQL.select_dados_das_contas(dados.associacao_id)
+  )
+})
