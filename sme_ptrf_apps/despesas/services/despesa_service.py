@@ -322,6 +322,7 @@ class DespesaService:
                     desp.save()
                     logger.info(f"Despesa imposto atualizada uuid={desp.uuid}")
                 else:
+                    imposto["recurso"] = despesa.recurso
                     desp = Despesa.objects.create(**imposto)
                     logger.info(f"Despesa imposto criada uuid={desp.uuid}")
 
