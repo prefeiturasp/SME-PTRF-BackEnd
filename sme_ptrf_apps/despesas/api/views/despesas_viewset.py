@@ -225,6 +225,14 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
         return qs
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+
+        if self.action == "create":
+            context["recurso"] = self.request.recurso
+
+        return context
+
     def get_serializer_class(self):
         if self.action == 'retrieve':
             return DespesaSerializer

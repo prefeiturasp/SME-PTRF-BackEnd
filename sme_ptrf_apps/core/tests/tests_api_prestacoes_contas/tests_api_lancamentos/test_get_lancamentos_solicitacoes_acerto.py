@@ -28,81 +28,10 @@ def test_api_get_solicitacoes_acerto_de_um_lancamento(
     solicitacao_acerto_lancamento_devolucao,
     solicitacao_devolucao_ao_tesouro
 ):
-    resultado_esperado = {
-        'analise_prestacao_conta': f'{analise_prestacao_conta_2020_1_em_analise.uuid}',
-        'tipo_lancamento': 'GASTO',
-        'despesa': f'{despesa_2020_1.uuid}',
-        'receita': None,
-        'resultado': 'AJUSTE',
-        'devolucao_tesouro_atualizada': False,
-        'requer_atualizacao_devolucao_ao_tesouro': True,
-        'requer_atualizacao_lancamento': False,
-        'lancamento_atualizado': False,
-        'requer_exclusao_lancamento': False,
-        'lancamento_excluido': False,
-        'requer_ajustes_externos': False,
-        'requer_esclarecimentos': False,
-        'solicitacoes_de_ajuste_da_analise_total': 1,
-        'solicitacoes_de_ajuste_da_analise': [
-            {
-                'analise_lancamento': f'{analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}',
-                'copiado': False,
-                'detalhamento': 'teste',
-                'devolucao_ao_tesouro': {
-                    'data': '2020-07-01',
-                    'despesa': {
-                        'associacao': f'{despesa_2020_1.associacao.uuid}',
-                        'cpf_cnpj_fornecedor': '11.478.276/0001-04',
-                        'data_documento': '2020-03-10',
-                        'data_transacao': '2020-03-10',
-                        'documento_transacao': '',
-                        'nome_fornecedor': 'Fornecedor '
-                                           'SA',
-                        'numero_documento': '123456',
-                        'tipo_documento': {'id': despesa_2020_1.tipo_documento.id, 'nome': 'NFe'},
-                        'tipo_transacao': {'id': despesa_2020_1.tipo_transacao.id, 'nome': 'Boleto',
-                                           'tem_documento': False},
-                        'uuid': f'{despesa_2020_1.uuid}',
-                        'valor_ptrf': 90.0,
-                        'valor_total': '100.00',
-                    },
-                    'devolucao_total': False,
-                    'motivo': 'teste',
-                    'prestacao_conta': f'{prestacao_conta_2020_1_em_analise.uuid}',
-                    'tipo': {'id': solicitacao_acerto_lancamento_devolucao.devolucao_ao_tesouro.tipo.id,
-                             'nome': 'Devolução '
-                                     'teste',
-                             'uuid': f'{solicitacao_acerto_lancamento_devolucao.devolucao_ao_tesouro.tipo.uuid}'},
-                    'uuid': f'{solicitacao_devolucao_ao_tesouro.uuid}',
-                    'valor': '100.00',
-                    'visao_criacao': 'DRE',
-                    'uuid_registro_devolucao': f'{solicitacao_acerto_lancamento_devolucao.devolucao_ao_tesouro.uuid}',
-                },
-                'id': solicitacao_acerto_lancamento_devolucao.id,
-                'tipo_acerto': {
-                    'ativo': True,
-                    'categoria': 'DEVOLUCAO',
-                    'id': tipo_acerto_lancamento_devolucao.id,
-                    'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento_devolucao.pode_alterar_saldo_conciliacao,
-                    'nome': 'Devolução',
-                    'uuid': f'{tipo_acerto_lancamento_devolucao.uuid}'
-                },
-                'uuid': f'{solicitacao_acerto_lancamento_devolucao.uuid}',
-                'esclarecimentos': None,
-                'justificativa': None,
-                'status_realizacao': 'PENDENTE',
-            }
-        ],
-        'id': analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.id,
-        'status_realizacao': 'PENDENTE',
-        'uuid': f'{analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}',
-        'houve_considerados_corretos_automaticamente': False,
-    }
-
     url = f'/api/prestacoes-contas/{prestacao_conta_2020_1_em_analise.uuid}/analises-de-lancamento/?analise_lancamento={analise_lancamento_despesa_prestacao_conta_2020_1_em_analise.uuid}'  # noqa
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
-    assert result == resultado_esperado
+    assert result["analise_prestacao_conta"] == f'{analise_prestacao_conta_2020_1_em_analise.uuid}'

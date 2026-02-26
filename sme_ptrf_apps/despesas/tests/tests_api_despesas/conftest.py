@@ -322,9 +322,8 @@ def tapi_periodo_2019_2(periodo_factory):
 
 
 @pytest.fixture
-def tapi_despesa(associacao, tipo_documento, tipo_transacao, tapi_periodo_2019_2):
-    return baker.make(
-        'Despesa',
+def tapi_despesa(despesa_factory, associacao, tipo_documento, tipo_transacao, tapi_periodo_2019_2):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=date(2019, 9, 10),
@@ -408,13 +407,13 @@ def tapi_prestacao_conta_da_despesa(tapi_periodo_2019_2, associacao):
 
 @pytest.fixture
 def tapi_despesa_imposto(
+    despesa_factory,
     associacao,
     tipo_documento,
     tipo_transacao,
     tapi_periodo_2019_2
 ):
-    return baker.make(
-        'Despesa',
+    return despesa_factory(
         associacao=associacao,
         tipo_documento=tipo_documento,
         tipo_transacao=tipo_transacao,
@@ -441,9 +440,8 @@ def tapi_rateio_despesa_imposto(associacao, tipo_custeio, especificacao_material
 
 
 @pytest.fixture
-def tapi_despesa_com_imposto(associacao, tipo_documento, tipo_transacao, tapi_periodo_2019_2, tapi_despesa_imposto):
-    return baker.make(
-        'Despesa',
+def tapi_despesa_com_imposto(despesa_factory, associacao, tipo_documento, tipo_transacao, tapi_periodo_2019_2, tapi_despesa_imposto):
+    despesa = despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=date(2019, 9, 10),
@@ -453,8 +451,10 @@ def tapi_despesa_com_imposto(associacao, tipo_documento, tipo_transacao, tapi_pe
         tipo_transacao=tipo_transacao,
         data_transacao=date(2019, 9, 10),
         valor_total=100.00,
-        despesas_impostos=[tapi_despesa_imposto, ]
     )
+    despesa.despesas_impostos.add(tapi_despesa_imposto)
+
+    return despesa
 
 
 @pytest.fixture

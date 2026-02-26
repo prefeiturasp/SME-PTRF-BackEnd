@@ -228,9 +228,8 @@ def receita_2019_2_role_repasse_nao_conferida(associacao, conta_associacao_carta
 
 
 @pytest.fixture
-def despesa_2020_1(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2020_1(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -245,9 +244,8 @@ def despesa_2020_1(associacao, tipo_documento, tipo_transacao):
 
 
 @pytest.fixture
-def despesa_2020_1_inativa(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2020_1_inativa(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -424,9 +422,8 @@ def rateio_despesa_2020_ptrf_nao_conferido(associacao, despesa_2020_1, conta_ass
 
 
 @pytest.fixture
-def despesa_2019_2(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2019_2(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2019, 6, 10),
@@ -648,10 +645,10 @@ def devolucao_prestacao_conta_2020_1_teste_analises(prestacao_conta_2020_1_teste
 
 
 @pytest.fixture
-def devolucao_prestacao_conta_2020_1_teste_inativa_analises(prestacao_conta_2020_1_teste_inativa_analises):
+def devolucao_prestacao_conta_2020_1_teste_inativa_analises(prestacao_conta_2020_1_teste_analises):
     return baker.make(
         'DevolucaoPrestacaoConta',
-        prestacao_conta=prestacao_conta_2020_1_teste_inativa_analises,
+        prestacao_conta=prestacao_conta_2020_1_teste_analises,
         data=datetime.date(2020, 10, 5),
         data_limite_ue=datetime.date(2020, 8, 1),
     )
@@ -684,12 +681,12 @@ def analise_prestacao_conta_2020_1_teste_analises_com_falha_geracao_doc_apos_ace
 
 @pytest.fixture
 def analise_prestacao_conta_2020_1_teste_inativa_analises(
-    prestacao_conta_2020_1_teste_inativa_analises,
+    prestacao_conta_2020_1_teste_analises,
     devolucao_prestacao_conta_2020_1_teste_inativa_analises
 ):
     return baker.make(
         'AnalisePrestacaoConta',
-        prestacao_conta=prestacao_conta_2020_1_teste_inativa_analises,
+        prestacao_conta=prestacao_conta_2020_1_teste_analises,
         devolucao_prestacao_conta=devolucao_prestacao_conta_2020_1_teste_inativa_analises
     )
 
@@ -751,6 +748,20 @@ def analise_lancamento_despesa_prestacao_conta_2020_1_teste_analises(
 
 
 @pytest.fixture
+def analise_lancamento_despesa_inativa_prestacao_conta_2020_1_teste_analises(
+    analise_prestacao_conta_2020_1_teste_inativa_analises,
+    despesa_2020_1_inativa,
+):
+    return baker.make(
+        'AnaliseLancamentoPrestacaoConta',
+        analise_prestacao_conta=analise_prestacao_conta_2020_1_teste_inativa_analises,
+        tipo_lancamento='GASTO',
+        despesa=despesa_2020_1_inativa,
+        resultado='AJUSTE'
+    )
+
+
+@pytest.fixture
 def analise_lancamento_despesa_prestacao_conta_2020_1_teste_inativa_analises(
     analise_prestacao_conta_2020_1_teste_inativa_analises,
     despesa_2020_1_inativa
@@ -787,21 +798,6 @@ def devolucao_ao_tesouro_parcial_ajuste(prestacao_conta_2020_1_teste_analises, t
         tipo=tipo_devolucao_ao_tesouro_teste,
         data=datetime.date(2020, 7, 1),
         despesa=despesa_2020_1,
-        devolucao_total=False,
-        valor=100.00,
-        motivo='teste',
-        visao_criacao='DRE'
-    )
-
-
-@pytest.fixture
-def devolucao_ao_tesouro_parcial_ajuste_inativa(prestacao_conta_2020_1_teste_inativa_analises, tipo_devolucao_ao_tesouro_teste, despesa_2020_1_inativa):
-    return baker.make(
-        'DevolucaoAoTesouro',
-        prestacao_conta=prestacao_conta_2020_1_teste_inativa_analises,
-        tipo=tipo_devolucao_ao_tesouro_teste,
-        data=datetime.date(2020, 7, 1),
-        despesa=despesa_2020_1_inativa,
         devolucao_total=False,
         valor=100.00,
         motivo='teste',

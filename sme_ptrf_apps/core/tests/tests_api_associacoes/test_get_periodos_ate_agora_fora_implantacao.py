@@ -92,6 +92,7 @@ def associacao_encerrada_teste(unidade, periodo_2019_1, periodo_2019_2):
 def test_get_periodos_ate_agora_fora_implantacao_da_associacao(
     jwt_authenticated_client_a,
     associacao_teste,
+    periodo_inicial_associacao_teste,
     periodo_2018_1,
     periodo_2019_1,
     periodo_2019_2,
@@ -130,6 +131,7 @@ def test_get_periodos_ate_agora_fora_implantacao_da_associacao(
 def test_get_periodos_ate_encerramento_da_associacao_e_fora_implantacao_da_associacao(
     jwt_authenticated_client_a,
     associacao_encerrada_teste,
+    periodo_inicial_associacao_encerrada_teste,
     periodo_2018_1,
     periodo_2019_1,
     periodo_2019_2,

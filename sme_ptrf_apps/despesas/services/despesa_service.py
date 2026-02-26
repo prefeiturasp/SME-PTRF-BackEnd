@@ -280,6 +280,7 @@ class DespesaService:
 
             imposto.pop("despesas_impostos", None)
             imposto.pop("motivos_pagamento_antecipado", None)
+            imposto["recurso"] = despesa.recurso
 
             desp = Despesa.objects.create(**imposto)
             cls._criar_rateios(desp, rateios)
@@ -321,6 +322,7 @@ class DespesaService:
                     desp.save()
                     logger.info(f"Despesa imposto atualizada uuid={desp.uuid}")
                 else:
+                    imposto["recurso"] = despesa.recurso
                     desp = Despesa.objects.create(**imposto)
                     logger.info(f"Despesa imposto criada uuid={desp.uuid}")
 

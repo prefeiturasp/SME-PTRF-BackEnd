@@ -44,6 +44,14 @@ class Despesa(ModeloBase):
 
     history = AuditlogHistoryField()
 
+    recurso = models.ForeignKey(
+        "core.Recurso",
+        verbose_name="Recurso",
+        on_delete=models.PROTECT,
+        null=False,
+        blank=False,
+    )
+
     associacao = models.ForeignKey(Associacao, on_delete=models.PROTECT, related_name='despesas', blank=True,
                                    null=True)
 
@@ -388,10 +396,10 @@ class Despesa(ModeloBase):
 
         if completo and not self.eh_despesa_sem_comprovacao_fiscal:
             if self.tipo_documento.numero_documento_digitado:
-                completo = completo and self.numero_documento
+                completo = completo and self.numero_documento != ""
 
         if completo and not self.eh_despesa_sem_comprovacao_fiscal and self.tipo_transacao.tem_documento:
-            completo = completo and self.documento_transacao
+            completo = completo and self.documento_transacao != ""
 
         if completo and self.id is not None:
             for rateio in self.rateios.all():
@@ -483,10 +491,7 @@ class Despesa(ModeloBase):
         if not recurso:
             return queryset
 
-        return queryset.filter(
-            Q(rateios__acao_associacao__acao__recurso=recurso) |
-            Q(rateios__conta_associacao__tipo_conta__recurso=recurso)
-        ).distinct()
+        return queryset.filter(recurso=recurso)
 
     class Meta:
         verbose_name = "Documento comprobatório da despesa"

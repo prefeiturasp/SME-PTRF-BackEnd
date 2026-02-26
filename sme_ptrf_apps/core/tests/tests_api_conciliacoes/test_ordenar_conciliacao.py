@@ -9,9 +9,8 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def despesa_conciliacao_teste_ordenar_01(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_conciliacao_teste_ordenar_01(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2019, 6, 2),
@@ -50,9 +49,8 @@ def rateio_despesa_conciliacao_teste_ordenar_01(associacao, despesa_conciliacao_
 
 
 @pytest.fixture
-def despesa_conciliacao_teste_ordenar_02(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_conciliacao_teste_ordenar_02(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='654321',
         data_documento=datetime.date(2019, 6, 3),
@@ -91,9 +89,8 @@ def rateio_despesa_conciliacao_teste_ordenar_02(associacao, despesa_conciliacao_
 
 
 @pytest.fixture
-def despesa_conciliacao_teste_ordenar_03(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_conciliacao_teste_ordenar_03(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='777777',
         data_documento=datetime.date(2019, 6, 15),
@@ -132,9 +129,8 @@ def rateio_despesa_conciliacao_teste_ordenar_03(associacao, despesa_conciliacao_
 
 
 @pytest.fixture
-def despesa_conciliacao_teste_ordenar_04(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_conciliacao_teste_ordenar_04(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='888888',
         data_documento=datetime.date(2019, 6, 16),
@@ -173,9 +169,8 @@ def rateio_despesa_conciliacao_teste_ordenar_04(associacao, despesa_conciliacao_
 
 
 @pytest.fixture
-def despesa_conciliacao_teste_ordenar_05(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_conciliacao_teste_ordenar_05(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='888888',
         data_documento=datetime.date(2019, 6, 13),
@@ -215,11 +210,11 @@ def rateio_despesa_conciliacao_teste_ordenar_05(associacao, despesa_conciliacao_
 
 @pytest.fixture
 def despesa_conciliacao_teste_ordenar_06(
+    despesa_factory,
     associacao, tipo_documento, tipo_transacao,
     despesa_conciliacao_teste_ordenar_07, despesa_conciliacao_teste_ordenar_08
 ):
-    return baker.make(
-        'Despesa',
+    despesa = despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2019, 6, 10),
@@ -230,9 +225,11 @@ def despesa_conciliacao_teste_ordenar_06(
         data_transacao=datetime.date(2019, 6, 2),
         valor_total=100.00,
         valor_recursos_proprios=10.00,
-        despesas_impostos=[despesa_conciliacao_teste_ordenar_07, despesa_conciliacao_teste_ordenar_08],
         retem_imposto=True
     )
+    despesa.despesas_impostos.add(despesa_conciliacao_teste_ordenar_07)
+    despesa.despesas_impostos.add(despesa_conciliacao_teste_ordenar_08)
+    return despesa
 
 
 @pytest.fixture
@@ -260,9 +257,8 @@ def rateio_despesa_conciliacao_teste_ordenar_06(associacao, despesa_conciliacao_
 
 
 @pytest.fixture
-def despesa_conciliacao_teste_ordenar_07(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_conciliacao_teste_ordenar_07(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='654321',
         data_documento=datetime.date(2019, 6, 11),
@@ -301,9 +297,8 @@ def rateio_despesa_conciliacao_teste_ordenar_07(associacao, despesa_conciliacao_
 
 
 @pytest.fixture
-def despesa_conciliacao_teste_ordenar_08(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_conciliacao_teste_ordenar_08(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='',
         data_documento=datetime.date(2019, 6, 15),
@@ -343,10 +338,10 @@ def rateio_despesa_conciliacao_teste_ordenar_08(associacao, despesa_conciliacao_
 
 @pytest.fixture
 def despesa_conciliacao_teste_ordenar_09(
+    despesa_factory,
     associacao, tipo_documento, tipo_transacao, despesa_conciliacao_teste_ordenar_10
 ):
-    return baker.make(
-        'Despesa',
+    despesa = despesa_factory(
         associacao=associacao,
         numero_documento='888888',
         data_documento=datetime.date(2019, 6, 16),
@@ -357,9 +352,10 @@ def despesa_conciliacao_teste_ordenar_09(
         data_transacao=datetime.date(2019, 6, 2),
         valor_total=50.00,
         valor_recursos_proprios=10.00,
-        despesas_impostos=[despesa_conciliacao_teste_ordenar_10],
         retem_imposto=True
     )
+    despesa.despesas_impostos.add(despesa_conciliacao_teste_ordenar_10)
+    return despesa
 
 
 @pytest.fixture
@@ -387,9 +383,8 @@ def rateio_despesa_conciliacao_teste_ordenar_09(associacao, despesa_conciliacao_
 
 
 @pytest.fixture
-def despesa_conciliacao_teste_ordenar_10(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_conciliacao_teste_ordenar_10(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='888888',
         data_documento=datetime.date(2019, 6, 13),
@@ -439,7 +434,7 @@ def test_api_ordenar_conciliacao_por_numero_do_documento_crescente(
 ):
 
     url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2019_2.uuid}' \
-          f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True&ordenar_por_numero_do_documento=crescente'
+        f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True&ordenar_por_numero_do_documento=crescente'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
@@ -462,7 +457,7 @@ def test_api_ordenar_conciliacao_por_numero_do_documento_decrescente(
 ):
 
     url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2019_2.uuid}' \
-          f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True&ordenar_por_numero_do_documento=decrescente'
+        f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True&ordenar_por_numero_do_documento=decrescente'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
@@ -484,7 +479,7 @@ def test_api_ordenar_conciliacao_por_data_documento_crescente(
     conta_associacao_cartao,
 ):
     url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2019_2.uuid}' \
-          f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True&ordenar_por_data_especificacao=crescente'
+        f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True&ordenar_por_data_especificacao=crescente'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
@@ -506,7 +501,7 @@ def test_api_ordenar_conciliacao_por_data_documento_decrescente(
     conta_associacao_cartao,
 ):
     url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2019_2.uuid}' \
-          f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True&ordenar_por_data_especificacao=decrescente'
+        f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True&ordenar_por_data_especificacao=decrescente'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
@@ -528,7 +523,7 @@ def test_api_ordenar_conciliacao_por_valor_crescente(
     conta_associacao_cartao,
 ):
     url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2019_2.uuid}' \
-          f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True&ordenar_por_valor=crescente'
+        f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True&ordenar_por_valor=crescente'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
@@ -550,7 +545,7 @@ def test_api_ordenar_conciliacao_por_valor_decrescente(
     conta_associacao_cartao,
 ):
     url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2019_2.uuid}' \
-          f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True&ordenar_por_valor=decrescente'
+        f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True&ordenar_por_valor=decrescente'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
@@ -574,8 +569,8 @@ def test_api_ordenar_conciliacao_por_numero_documento_crescente_e_data_crescente
     conta_associacao_cartao,
 ):
     url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2019_2.uuid}' \
-          f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True' \
-          f'&ordenar_por_numero_do_documento=crescente&ordenar_por_data_especificacao=crescente'
+        f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True' \
+        f'&ordenar_por_numero_do_documento=crescente&ordenar_por_data_especificacao=crescente'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
@@ -608,8 +603,8 @@ def test_api_ordenar_conciliacao_por_numero_documento_decrescente_e_data_crescen
     conta_associacao_cartao,
 ):
     url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2019_2.uuid}' \
-          f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True' \
-          f'&ordenar_por_numero_do_documento=decrescente&ordenar_por_data_especificacao=crescente'
+        f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True' \
+        f'&ordenar_por_numero_do_documento=decrescente&ordenar_por_data_especificacao=crescente'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
@@ -642,8 +637,8 @@ def test_api_ordenar_conciliacao_por_numero_documento_decrescente_e_data_decresc
     conta_associacao_cartao,
 ):
     url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2019_2.uuid}' \
-          f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True' \
-          f'&ordenar_por_numero_do_documento=decrescente&ordenar_por_data_especificacao=decrescente'
+        f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True' \
+        f'&ordenar_por_numero_do_documento=decrescente&ordenar_por_data_especificacao=decrescente'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
@@ -680,8 +675,8 @@ def test_api_ordenar_conciliacao_por_imposto(
     conta_associacao_cartao,
 ):
     url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2019_2.uuid}' \
-          f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True' \
-          f'&ordenar_por_imposto=true'
+        f'&conta_associacao={conta_associacao_cartao.uuid}&conferido=True' \
+        f'&ordenar_por_imposto=true'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)

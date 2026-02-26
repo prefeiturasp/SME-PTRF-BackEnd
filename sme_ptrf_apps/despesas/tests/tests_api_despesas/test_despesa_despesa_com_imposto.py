@@ -138,6 +138,7 @@ def rateio_despesa_despesa_imposto(associacao, tipo_custeio, especificacao_mater
 
 @pytest.fixture
 def despesa_despesa_imposto(
+    despesa_factory,
     associacao,
     tipo_documento,
     tipo_transacao,
@@ -146,8 +147,7 @@ def despesa_despesa_imposto(
     acao_associacao,
     conta_associacao,
 ):
-    return baker.make(
-        'Despesa',
+    return despesa_factory(
         associacao=associacao,
         tipo_documento=tipo_documento,
         tipo_transacao=tipo_transacao,
@@ -174,6 +174,7 @@ def rateio_despesa_com_imposto(associacao, despesa_com_imposto, conta_associacao
 
 @pytest.fixture
 def despesa_com_imposto(
+    despesa_factory,
     associacao,
     tipo_documento,
     tipo_transacao,
@@ -183,8 +184,7 @@ def despesa_com_imposto(
     conta_associacao,
     despesa_despesa_imposto
 ):
-    return baker.make(
-        'Despesa',
+    despesa = despesa_factory(
         associacao=associacao,
         tipo_documento=None,
         tipo_transacao=None,
@@ -195,8 +195,9 @@ def despesa_com_imposto(
         data_transacao="2022-03-10",
         valor_total=100,
         valor_recursos_proprios=0,
-        despesas_impostos=[despesa_despesa_imposto,]
     )
+    despesa.despesas_impostos.add(despesa_despesa_imposto)
+    return despesa
 
 
 def test_retrieve_despesa_com_imposto(
@@ -234,10 +235,8 @@ def test_put_despesa_remove_vinculo_com_a_despesa_de_imposto(
         data=json.dumps(payload_despesa_remove_vinculo_com_imposto),
         content_type='application/json'
     )
-
-    assert response.status_code == status.HTTP_200_OK
-
     result = json.loads(response.content)
+    assert response.status_code == status.HTTP_200_OK
 
     despesa = Despesa.objects.get(uuid=result["uuid"])
 

@@ -43,9 +43,8 @@ def test_contas_com_movimento_de_entrada(
 
 
 @pytest.fixture
-def tpcccm_despesa(associacao, tipo_documento, tipo_transacao, periodo):
-    return baker.make(
-        'Despesa',
+def tpcccm_despesa(despesa_factory, associacao, tipo_documento, tipo_transacao, periodo):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=periodo.data_inicio_realizacao_despesas,

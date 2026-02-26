@@ -107,9 +107,8 @@ def fechamento_conta_cheque(periodo, associacao, conta_associacao_cheque, acao_a
 
 
 @pytest.fixture
-def despesa(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=date(2019, 9, 10),
@@ -288,6 +287,7 @@ def totais_esperados_associacao():
         'devolucoes_ao_tesouro_no_periodo_total': 100.0,
     }
 
+
 @pytest.fixture
 def totais_esperados_associacao_que_nao_apresentou_pc():
     return {
@@ -338,6 +338,7 @@ def totais_esperados_associacao_que_nao_apresentou_pc():
         'devolucoes_ao_tesouro_no_periodo_total': 0,
     }
 
+
 @pytest.fixture
 def conta_associacao_cheque_associacao_que_nao_apresentou_prestacao(associacao_que_nao_apresentou_prestacao, tipo_conta_cheque):
     return baker.make(
@@ -345,6 +346,7 @@ def conta_associacao_cheque_associacao_que_nao_apresentou_prestacao(associacao_q
         associacao=associacao_que_nao_apresentou_prestacao,
         tipo_conta=tipo_conta_cheque
     )
+
 
 def test_api_get_info_execucao_financeira_por_unidade(
     jwt_authenticated_client_relatorio_consolidado,
@@ -437,7 +439,6 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_nome_escola(
         content_type='application/json')
     result = json.loads(response.content)
 
-
     resultado_associacao_sem_pc = {
         'unidade': {
             'uuid': f'{associacao_que_nao_apresentou_prestacao.unidade.uuid}',
@@ -456,6 +457,7 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_nome_escola(
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado
+
 
 def test_api_get_info_execucao_financeira_por_unidade_filtro_por_nome_associacao(
     jwt_authenticated_client_relatorio_consolidado,
@@ -484,7 +486,6 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_nome_associacao
         f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}&nome=associacaosempc',
         content_type='application/json')
     result = json.loads(response.content)
-
 
     resultado_associacao_sem_pc = {
         'unidade': {
@@ -534,7 +535,6 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_tipo_unidade(
         content_type='application/json')
     result = json.loads(response.content)
 
-
     resultado_associacao_sem_pc = {
         'unidade': {
             'uuid': f'{associacao_que_nao_apresentou_prestacao.unidade.uuid}',
@@ -553,7 +553,6 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_tipo_unidade(
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado
-
 
 
 def test_api_get_info_execucao_financeira_por_unidade_filtro_por_status(
@@ -583,7 +582,6 @@ def test_api_get_info_execucao_financeira_por_unidade_filtro_por_status(
         f'/api/relatorios-consolidados-dre/info-execucao-financeira-unidades/?dre={dre.uuid}&periodo={periodo.uuid}&tipo_conta={tipo_conta_cheque.uuid}&status=NAO_APRESENTADA',
         content_type='application/json')
     result = json.loads(response.content)
-
 
     resultado_associacao_sem_pc = {
         'unidade': {
