@@ -3,6 +3,7 @@ from model_bakery import baker
 from sme_ptrf_apps.core.models.membro_associacao import MembroEnum, RepresentacaoCargo
 from sme_ptrf_apps.core.models import ContaAssociacao, SolicitacaoEncerramentoContaAssociacao
 
+
 @pytest.fixture
 def membro_associacao_001(associacao):
     return baker.make(
@@ -16,6 +17,7 @@ def membro_associacao_001(associacao):
         codigo_identificacao='001'
     )
 
+
 @pytest.fixture
 def membro_associacao_002(associacao):
     return baker.make(
@@ -27,6 +29,7 @@ def membro_associacao_002(associacao):
         representacao=RepresentacaoCargo.SERVIDOR.name,
         codigo_identificacao='002'
     )
+
 
 @pytest.fixture
 def membro_associacao_003(associacao):
@@ -40,6 +43,7 @@ def membro_associacao_003(associacao):
         codigo_identificacao='003'
     )
 
+
 @pytest.fixture
 def membro_associacao_004(associacao):
     return baker.make(
@@ -51,6 +55,7 @@ def membro_associacao_004(associacao):
         representacao=RepresentacaoCargo.SERVIDOR.name,
         codigo_identificacao='004'
     )
+
 
 @pytest.fixture
 def membro_associacao_005(associacao):
@@ -64,6 +69,7 @@ def membro_associacao_005(associacao):
         codigo_identificacao='005'
     )
 
+
 @pytest.fixture
 def membro_associacao_006(associacao):
     return baker.make(
@@ -75,6 +81,7 @@ def membro_associacao_006(associacao):
         representacao=RepresentacaoCargo.SERVIDOR.name,
         codigo_identificacao='006'
     )
+
 
 @pytest.fixture
 def membro_associacao_007(associacao):
@@ -88,6 +95,7 @@ def membro_associacao_007(associacao):
         codigo_identificacao='007'
     )
 
+
 @pytest.fixture
 def membro_associacao_008(associacao):
     return baker.make(
@@ -99,6 +107,7 @@ def membro_associacao_008(associacao):
         representacao=RepresentacaoCargo.SERVIDOR.name,
         codigo_identificacao='008'
     )
+
 
 @pytest.fixture
 def membro_associacao_009(associacao):
@@ -112,6 +121,7 @@ def membro_associacao_009(associacao):
         codigo_identificacao='009'
     )
 
+
 @pytest.fixture
 def membro_associacao_010(associacao):
     return baker.make(
@@ -123,6 +133,7 @@ def membro_associacao_010(associacao):
         representacao=RepresentacaoCargo.SERVIDOR.name,
         codigo_identificacao='0010'
     )
+
 
 @pytest.fixture
 def membro_associacao_011(associacao):
@@ -136,6 +147,7 @@ def membro_associacao_011(associacao):
         codigo_identificacao='0011'
     )
 
+
 @pytest.fixture
 def membro_associacao_012(associacao):
     return baker.make(
@@ -148,6 +160,7 @@ def membro_associacao_012(associacao):
         codigo_identificacao='0012'
     )
 
+
 @pytest.fixture
 def membro_associacao_013(associacao):
     return baker.make(
@@ -159,6 +172,7 @@ def membro_associacao_013(associacao):
         representacao=RepresentacaoCargo.SERVIDOR.name,
         codigo_identificacao='0013'
     )
+
 
 @pytest.fixture
 def membro_associacao_014(associacao):
@@ -186,6 +200,7 @@ def membro_associacao_cadastro_incompleto_001(associacao_cadastro_incompleto):
         codigo_identificacao='001'
     )
 
+
 @pytest.fixture
 def membro_associacao_cadastro_incompleto_002(associacao_cadastro_incompleto):
     return baker.make(
@@ -197,6 +212,7 @@ def membro_associacao_cadastro_incompleto_002(associacao_cadastro_incompleto):
         representacao=RepresentacaoCargo.SERVIDOR.name,
         codigo_identificacao='002'
     )
+
 
 @pytest.fixture
 def membro_associacao_cadastro_incompleto_003(associacao_cadastro_incompleto):
@@ -210,6 +226,7 @@ def membro_associacao_cadastro_incompleto_003(associacao_cadastro_incompleto):
         codigo_identificacao='003'
     )
 
+
 @pytest.fixture
 def membro_associacao_cadastro_incompleto_004(associacao_cadastro_incompleto):
     return baker.make(
@@ -221,6 +238,7 @@ def membro_associacao_cadastro_incompleto_004(associacao_cadastro_incompleto):
         representacao=RepresentacaoCargo.SERVIDOR.name,
         codigo_identificacao='004'
     )
+
 
 @pytest.fixture
 def membro_associacao_cadastro_incompleto_005(associacao_cadastro_incompleto):
@@ -234,6 +252,7 @@ def membro_associacao_cadastro_incompleto_005(associacao_cadastro_incompleto):
         codigo_identificacao='005'
     )
 
+
 @pytest.fixture
 def membro_associacao_cadastro_incompleto_006(associacao_cadastro_incompleto):
     return baker.make(
@@ -245,6 +264,7 @@ def membro_associacao_cadastro_incompleto_006(associacao_cadastro_incompleto):
         representacao=RepresentacaoCargo.SERVIDOR.name,
         codigo_identificacao='006'
     )
+
 
 @pytest.fixture
 def membro_associacao_cadastro_incompleto_007(associacao_cadastro_incompleto):
@@ -258,6 +278,7 @@ def membro_associacao_cadastro_incompleto_007(associacao_cadastro_incompleto):
         codigo_identificacao='007'
     )
 
+
 @pytest.fixture
 def membro_associacao_cadastro_incompleto_008(associacao_cadastro_incompleto):
     return baker.make(
@@ -269,6 +290,7 @@ def membro_associacao_cadastro_incompleto_008(associacao_cadastro_incompleto):
         representacao=RepresentacaoCargo.SERVIDOR.name,
         codigo_identificacao='008'
     )
+
 
 @pytest.fixture
 def membro_associacao_cadastro_incompleto_009(associacao_cadastro_incompleto):
@@ -282,6 +304,7 @@ def membro_associacao_cadastro_incompleto_009(associacao_cadastro_incompleto):
         codigo_identificacao='009'
     )
 
+
 @pytest.fixture
 def membro_associacao_cadastro_incompleto_010(associacao_cadastro_incompleto):
     return baker.make(
@@ -293,6 +316,7 @@ def membro_associacao_cadastro_incompleto_010(associacao_cadastro_incompleto):
         representacao=RepresentacaoCargo.SERVIDOR.name,
         codigo_identificacao='0010'
     )
+
 
 @pytest.fixture
 def membro_associacao_cadastro_incompleto_011(associacao_cadastro_incompleto):
@@ -306,6 +330,7 @@ def membro_associacao_cadastro_incompleto_011(associacao_cadastro_incompleto):
         codigo_identificacao='0011'
     )
 
+
 @pytest.fixture
 def membro_associacao_cadastro_incompleto_012(associacao_cadastro_incompleto):
     return baker.make(
@@ -317,6 +342,7 @@ def membro_associacao_cadastro_incompleto_012(associacao_cadastro_incompleto):
         representacao=RepresentacaoCargo.SERVIDOR.name,
         codigo_identificacao='0012'
     )
+
 
 @pytest.fixture
 def membro_associacao_cadastro_incompleto_013(associacao_cadastro_incompleto):
@@ -330,6 +356,7 @@ def membro_associacao_cadastro_incompleto_013(associacao_cadastro_incompleto):
         codigo_identificacao='0013'
     )
 
+
 @pytest.fixture
 def membro_associacao_cadastro_incompleto_014(associacao_cadastro_incompleto):
     return baker.make(
@@ -342,6 +369,7 @@ def membro_associacao_cadastro_incompleto_014(associacao_cadastro_incompleto):
         codigo_identificacao='0014'
     )
 
+
 @pytest.fixture
 def tipo_conta_encerramento_conta(tipo_conta_factory):
     return tipo_conta_factory(
@@ -352,6 +380,7 @@ def tipo_conta_encerramento_conta(tipo_conta_factory):
         numero_cartao='987644164221',
         permite_inativacao=True,
     )
+
 
 @pytest.fixture
 def unidade_encerramento_conta(dre):
@@ -375,6 +404,7 @@ def associacao_encerramento_conta(unidade_encerramento_conta, periodo_2020_1):
         periodo_inicial=periodo_2020_1
     )
 
+
 @pytest.fixture
 def conta_associacao_encerramento_conta(associacao_encerramento_conta, tipo_conta_encerramento_conta):
     return baker.make(
@@ -388,6 +418,7 @@ def conta_associacao_encerramento_conta(associacao_encerramento_conta, tipo_cont
         status=ContaAssociacao.STATUS_INATIVA
     )
 
+
 @pytest.fixture
 def acao_associacao_encerramento_conta(associacao_encerramento_conta, acao):
     return baker.make(
@@ -395,6 +426,8 @@ def acao_associacao_encerramento_conta(associacao_encerramento_conta, acao):
         associacao=associacao_encerramento_conta,
         acao=acao
     )
+
+
 @pytest.fixture
 def solicitacao_encerramento_conta_aprovada(conta_associacao_encerramento_conta, periodo_2020_1):
     return baker.make(
@@ -451,3 +484,24 @@ def recurso_legado():
     from sme_ptrf_apps.core.models import Recurso
     return Recurso.objects.get(legado=True)
 
+
+@pytest.fixture
+def periodo_inicial_associacao_teste(periodo_inicial_associacao_factory, periodo_2019_1, associacao_teste):
+    """
+    Fixture que retorna o recurso com legado=True
+    """
+    return periodo_inicial_associacao_factory(
+        periodo_inicial=periodo_2019_1,
+        associacao=associacao_teste
+    )
+
+
+@pytest.fixture
+def periodo_inicial_associacao_encerrada_teste(periodo_inicial_associacao_factory, periodo_2019_1, associacao_encerrada_teste):
+    """
+    Fixture que retorna o recurso com legado=True
+    """
+    return periodo_inicial_associacao_factory(
+        periodo_inicial=periodo_2019_1,
+        associacao=associacao_encerrada_teste
+    )

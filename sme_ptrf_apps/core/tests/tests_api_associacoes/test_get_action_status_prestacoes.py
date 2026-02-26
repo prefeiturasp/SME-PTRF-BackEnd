@@ -77,6 +77,7 @@ def associacao_teste(unidade, periodo_2019_1):
 def test_get_action_status_prestacoes(
     jwt_authenticated_client_a,
     associacao_teste,
+    periodo_inicial_associacao_teste,
     periodo_2018_1,
     periodo_2019_1,
     periodo_2019_2,
@@ -121,6 +122,7 @@ def test_get_action_status_prestacoes(
 def test_get_action_status_prestacoes_filtro_por_periodo(
     jwt_authenticated_client_a,
     associacao_teste,
+    periodo_inicial_associacao_teste,
     periodo_2018_1,
     periodo_2019_1,
     periodo_2019_2,
@@ -155,12 +157,14 @@ def test_get_action_status_prestacoes_filtro_por_periodo(
 def test_get_action_status_prestacoes_filtro_por_status(
     jwt_authenticated_client_a,
     associacao_teste,
+    periodo_inicial_associacao_teste,
     periodo_2018_1,
     periodo_2019_1,
     periodo_2019_2,
     periodo_2020_1,
     periodo_2020_2,
 ):
+
     response = jwt_authenticated_client_a.get(
         f'/api/associacoes/{associacao_teste.uuid}/status-prestacoes/?status_pc=NAO_APRESENTADA',
         content_type='application/json')
@@ -190,5 +194,4 @@ def test_get_action_status_prestacoes_filtro_por_status(
         },
     ]
     assert response.status_code == status.HTTP_200_OK
-
     assert result == esperados
