@@ -111,7 +111,7 @@ class ProgramaPddeAdmin(admin.ModelAdmin):
 
 @admin.register(AcaoPdde)
 class AcaoPddeAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'programa')
+    list_display = ('nome', 'programa', 'status')
     search_fields = ('nome', 'programa__nome')
     list_filter = ('programa',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')

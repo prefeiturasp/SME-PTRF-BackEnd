@@ -29,3 +29,4 @@ from .prioridades_impactadas_receitas_previstas_service import (
     PrioridadesPaaImpactadasReceitasPrevistasRecursoProprioService,
     ConfirmarExlusaoPrioridadesPaaRecursoProprioService
 )
+from .acoes_pdde_service import AcoesPddeService
