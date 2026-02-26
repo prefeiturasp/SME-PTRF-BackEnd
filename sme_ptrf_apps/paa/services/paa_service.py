@@ -193,12 +193,35 @@ class PaaService:
             return importados
 
     @classmethod
+    def registra_historico_acoes(cls, paa):
+        """
+        Registra as ações disponíveis no momento da conclusão do PAA.
+        Congela o saldo do PAA.
+
+        Args:
+            paa: Instância do modelo Paa
+        """
+        logger.info(f'Registrando Ações do PAA {paa.uuid}')
+
+        with transaction.atomic():
+            # Registra as ações disponíveis na conclusão do PAA
+            RegistrarAcoesPtrfConclusaoPaaService.registrar(paa)
+            RegistrarAcoesPddeConclusaoPaaService.registrar(paa)
+            RegistrarAcoesOutrosRecursosConclusaoPaaService.registrar(paa)
+
+            # Congela o saldo do PAA
+            saldos_por_acao_paa_service = SaldosPorAcaoPaaService(paa=paa, associacao=paa.associacao)
+            saldos_por_acao_paa_service.congelar_saldos()
+
+        logger.info(f'Histórico das ações do PAA {paa.uuid} registrado e saldos congelado')
+
+        return paa
+
+    @classmethod
     def concluir_paa(cls, paa):
         """
         Esse service é chamado quando a ata PAA é gerada.
         Marca o PAA como gerado, atualizando seu status para GERADO.
-        Registra as ações disponíveis no momento da conclusão do PAA.
-        Congela o saldo do PAA.
 
         Args:
             paa: Instância do modelo Paa a ser concluído
@@ -212,16 +235,7 @@ class PaaService:
             paa.status = PaaStatusEnum.GERADO.name
             paa.save()
 
-            # Registra as ações disponíveis na conclusão do PAA
-            RegistrarAcoesPtrfConclusaoPaaService.registrar(paa)
-            RegistrarAcoesPddeConclusaoPaaService.registrar(paa)
-            RegistrarAcoesOutrosRecursosConclusaoPaaService.registrar(paa)
-
-            # Congela o saldo do PAA
-            saldos_por_acao_paa_service = SaldosPorAcaoPaaService(paa=paa, associacao=paa.associacao)
-            saldos_por_acao_paa_service.congelar_saldos()
-
-        logger.info(f'Status do PAA {paa.uuid} atualizado para GERADO, ações registradas e saldo congelado')
+        logger.info(f'Status do PAA {paa.uuid} atualizado para GERADO')
 
         return paa
 

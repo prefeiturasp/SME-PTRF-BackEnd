@@ -170,6 +170,7 @@ class TestMarcarConcluido:
         mock_doc = MagicMock()
         service = make_service()
         service.documento_paa = mock_doc
+        service.registrar_historico_acoes = MagicMock()
 
         service.marcar_concluido()
 
@@ -179,11 +180,12 @@ class TestMarcarConcluido:
         mock_logger = MagicMock()
         service = make_service(mock_logger=mock_logger)
         service.documento_paa = MagicMock()
+        service.registrar_historico_acoes = MagicMock()
         mock_logger.reset_mock()
 
         service.marcar_concluido()
 
-        mock_logger.info.assert_called_once_with('Documento PAA concluido')
+        mock_logger.info.assert_called_once_with('Documento PAA concluído')
 
 
 class TestMarcarErro:
