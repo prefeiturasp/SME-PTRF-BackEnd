@@ -424,7 +424,7 @@ class DemonstrativoFinanceiroViewSet(GenericViewSet):
             periodo_previa__uuid=periodo_uuid,
             prestacao_conta=None).first()
 
-        if not demonstrativo_financeiro:
+        if not demonstrativo_financeiro and prestacao_conta:
             demonstrativo_financeiro = DemonstrativoFinanceiro.objects.filter(
                 conta_associacao__uuid=conta_associacao_uuid, prestacao_conta=prestacao_conta).first()
 
