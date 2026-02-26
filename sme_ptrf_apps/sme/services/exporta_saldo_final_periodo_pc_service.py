@@ -17,6 +17,7 @@ from tempfile import NamedTemporaryFile
 logger = logging.getLogger(__name__)
 
 CABECALHO_SALDO_FINAL_PERIODO = [
+    ('Recurso', 'periodo__recurso__nome'),
     ('Código EOL', 'associacao__unidade__codigo_eol'),
     ('Nome Unidade', 'associacao__unidade__nome'),
     ('Nome Associação', 'associacao__nome'),
@@ -115,6 +116,11 @@ class ExportacoesDadosSaldosFinaisPeriodoService:
                 for _, campo in self.cabecalho:
 
                     # Removendo ponto e vírgula e substituindo por vírgula
+                    if campo == "periodo__recurso__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                        continue
+
                     if campo == "associacao__unidade__nome":
                         campo = get_recursive_attr(instance, campo)
                         linha_horizontal.append(campo.replace(";", ",") if campo else "")

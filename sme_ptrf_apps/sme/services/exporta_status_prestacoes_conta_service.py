@@ -18,6 +18,7 @@ from tempfile import NamedTemporaryFile
 logger = logging.getLogger(__name__)
 
 CABECALHO = [
+    ('Recurso', 'periodo__recurso__nome'),
     ('Código EOL', 'associacao__unidade__codigo_eol'),
     ('Nome Unidade', 'associacao__unidade__nome'),
     ('Nome Associação', 'associacao__nome'),

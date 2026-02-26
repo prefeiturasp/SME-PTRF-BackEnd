@@ -19,6 +19,7 @@ from tempfile import NamedTemporaryFile
 logger = logging.getLogger(__name__)
 
 CABECALHO_RELACAO_BENS = [
+        ('Recurso', 'conta_associacao__tipo_conta__recurso__nome'),
         ('Código EOL', 'conta_associacao__associacao__unidade__codigo_eol'),
         ('Nome Unidade', 'conta_associacao__associacao__unidade__nome'),
         ('Nome Associação', 'conta_associacao__associacao__nome'),
@@ -112,6 +113,10 @@ class ExportacoesDadosRelacaoBensService:
             linha_horizontal = []
 
             for _, campo in self.cabecalho:
+                if campo == "conta_associacao__tipo_conta__recurso__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
 
                 if campo == "conta_associacao__associacao__unidade__nome":
                     campo = get_recursive_attr(instance, campo)

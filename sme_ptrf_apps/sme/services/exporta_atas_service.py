@@ -37,6 +37,7 @@ def get_informacoes_download(data_inicio, data_final):
 
 
 CABECALHO_ATAS = [
+    ('Recurso', 'periodo__recurso__nome'),
     ('Código EOL', 'associacao__unidade__codigo_eol'),
     ('Nome unidade', 'associacao__unidade__nome'),
     ('Nome associação', 'associacao__nome'),

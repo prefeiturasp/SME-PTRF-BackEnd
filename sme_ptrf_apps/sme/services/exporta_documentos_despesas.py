@@ -16,6 +16,7 @@ from tempfile import NamedTemporaryFile
 logger = logging.getLogger(__name__)
 
 CABECALHO_DOCS = [
+    ('Recurso', 'recurso__nome'),
     ('Código EOL', 'associacao__unidade__codigo_eol'),
     ('Nome unidade', 'associacao__unidade__nome'),
     ('Nome associação', 'associacao__nome'),
@@ -130,6 +131,11 @@ class ExportacoesDocumentosDespesasService:
             motivos = list(instance.motivos_pagamento_antecipado.all())
 
             for _, campo in self.cabecalho:
+                if campo == "recurso__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
                 if campo == "associacao__unidade__nome":
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo.replace(";", ",") if campo else "")
