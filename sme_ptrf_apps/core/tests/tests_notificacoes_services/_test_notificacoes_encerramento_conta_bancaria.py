@@ -1,6 +1,6 @@
 import pytest
 
-from ....core.models import Notificacao
+from ...models import Notificacao
 from sme_ptrf_apps.core.services.notificacao_services import notificar_encerramento_conta_bancaria
 
 pytestmark = pytest.mark.django_db
@@ -72,4 +72,3 @@ def test_nao_deve_notificar_associacoes_que_periodos_consecutivos_nao_estao_zera
     assert not Notificacao.objects.exists()
     notificar_encerramento_conta_bancaria(enviar_email=False)
     assert Notificacao.objects.count() == 0
-

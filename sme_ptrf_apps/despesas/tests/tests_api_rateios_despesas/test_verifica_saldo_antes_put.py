@@ -85,7 +85,6 @@ def test_api_verifica_saldo_antes_put_sem_saldo(
     }
 
     result = json.loads(response.content)
-    print(result)
     assert result == result_esperado
 
 

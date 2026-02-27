@@ -24,9 +24,8 @@ def prestacao_conta_em_analise(periodo, associacao):
 
 
 @pytest.fixture
-def despesa(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=date(2020, 3, 10),
@@ -99,4 +98,3 @@ def test_api_salvar_devolucoes_ao_tesouro_sem_devolucao_tesouro(jwt_authenticate
     response = jwt_authenticated_client_a.patch(url, content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
-

@@ -238,9 +238,8 @@ def receita_2019_2_role_repasse_nao_conferida(associacao, conta_associacao_carta
 
 
 @pytest.fixture
-def despesa_2020_1(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2020_1(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -361,9 +360,8 @@ def rateio_despesa_2020_ptrf_nao_conferido(associacao, despesa_2020_1, conta_ass
 
 
 @pytest.fixture
-def despesa_2019_2(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2019_2(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2019, 6, 10),

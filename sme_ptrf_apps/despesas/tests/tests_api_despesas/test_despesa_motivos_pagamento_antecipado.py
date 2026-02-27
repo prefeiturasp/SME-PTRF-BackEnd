@@ -3,8 +3,6 @@ import json
 import pytest
 from rest_framework import status
 
-from model_bakery import baker
-
 
 pytestmark = pytest.mark.django_db
 
@@ -99,12 +97,12 @@ def payload_despesa_sem_motivos_pagamento_antecipado_e_data_transacao_menor_que_
 
 @pytest.fixture
 def despesa_update_data_transacao_maior_ou_igual_data_documento_e_deve_apagar_motivos_pagamento_antecipado(
+    despesa_factory,
     associacao,
     motivo_pagamento_adiantado_01,
     motivo_pagamento_adiantado_02,
 ):
-    return baker.make(
-        'Despesa',
+    despesa = despesa_factory(
         associacao=associacao,
         tipo_documento=None,
         tipo_transacao=None,
@@ -115,9 +113,11 @@ def despesa_update_data_transacao_maior_ou_igual_data_documento_e_deve_apagar_mo
         data_transacao="2022-03-10",
         valor_total=100,
         valor_recursos_proprios=0,
-        motivos_pagamento_antecipado=[motivo_pagamento_adiantado_01, motivo_pagamento_adiantado_02],
         outros_motivos_pagamento_antecipado="Este é o motivo de pagamento antecipado",
     )
+    despesa.motivos_pagamento_antecipado.add(motivo_pagamento_adiantado_01)
+    despesa.motivos_pagamento_antecipado.add(motivo_pagamento_adiantado_02)
+    return despesa
 
 
 @pytest.fixture

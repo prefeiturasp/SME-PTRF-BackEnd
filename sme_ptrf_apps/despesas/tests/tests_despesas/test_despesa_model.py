@@ -29,7 +29,7 @@ def test_instance_model(despesa):
     assert model.valor_original
     assert model.eh_despesa_sem_comprovacao_fiscal is False
     assert model.eh_despesa_reconhecida_pela_associacao
-    assert model.numero_boletim_de_ocorrencia is ""
+    assert model.numero_boletim_de_ocorrencia
     assert model.retem_imposto is False
     assert not model.despesas_impostos.exists()
     assert model.motivos_pagamento_antecipado is not None
@@ -51,7 +51,7 @@ def test_admin():
     assert admin.site._registry[Despesa]
 
 
-def test_nome_fornecedor_pode_ser_nulo(associacao, tipo_documento, tipo_transacao):
+def test_nome_fornecedor_pode_ser_nulo(associacao, tipo_documento, tipo_transacao, recurso_legado):
     # Criando sem definir o nome do fornecedor
     despesa = Despesa(associacao=associacao,
                       numero_documento='123456',
@@ -59,6 +59,7 @@ def test_nome_fornecedor_pode_ser_nulo(associacao, tipo_documento, tipo_transaca
                       cpf_cnpj_fornecedor='11.478.276/0001-04',
                       tipo_transacao=tipo_transacao,
                       valor_total=100.00,
-                      valor_recursos_proprios=10.00, )
+                      valor_recursos_proprios=10.00,
+                      recurso=recurso_legado)
     despesa.save()
     assert despesa.numero_documento == '123456'

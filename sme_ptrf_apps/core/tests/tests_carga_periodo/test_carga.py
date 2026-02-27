@@ -131,7 +131,6 @@ def test_carga_com_erro(arquivo_carga_virgula):
     msg = """\nErro na linha 1: Associação (000256) não encontrado. Linha ID:1
 Erro na linha 2: Associação (00094) não encontrado. Linha ID:2
 Importados 0 períodos iniciais. Erro na importação de 2 períodos iniciais."""
-    print(arquivo_carga_virgula.log)
     assert arquivo_carga_virgula.log == msg
     assert arquivo_carga_virgula.status == ERRO
 
