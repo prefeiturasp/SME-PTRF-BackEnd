@@ -25,7 +25,7 @@ it("CT133-Cadastro_de_Credito_Campos_Obrigatorios", () => {
 
   Creditos.selecionarCreditosDaEscola();
 
-  cy.wait(2000);
+  cy.wait(10000);
 
   Creditos.selecionarCadastrarCredito();
 

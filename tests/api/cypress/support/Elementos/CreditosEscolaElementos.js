@@ -2,23 +2,23 @@ class CreditosEscolaElementos {
   //----------------------- Selecionar Tipos de Receita -------------------------\\
   arredondamento = () => {
     return cy
-      .get(".d-flex > #tipo_receita")
+      .get(".d-flex > #tipo_receita", { timeout: 10000 }).should('be.visible')
       .select("Arredondamento na transferência de saldo entre cartões BB");
   };
   devolucaoConta = () => {
-    return cy.get("#tipo_receita").select("Devolução à conta");
+    return cy.get("#tipo_receita", { timeout: 10000 }).should('be.visible').select("Devolução à conta");
   };
   estorno = () => {
-    return cy.get("#tipo_receita").select("Estorno");
+    return cy.get("#tipo_receita", { timeout: 10000 }).should('be.visible').select("Estorno");
   };
   recursoExterno = () => {
-    return cy.get("#tipo_receita").select("Recurso Externo");
+    return cy.get("#tipo_receita", { timeout: 10000 }).should('be.visible').select("Recurso Externo");
   };
   rendimento = () => {
-    return cy.get("#tipo_receita").select("Rendimento");
+    return cy.get("#tipo_receita", { timeout: 10000 }).should('be.visible').select("Rendimento");
   };
   repasse = () => {
-    return cy.get("#tipo_receita").select("Repasse");
+    return cy.get("#tipo_receita", { timeout: 10000 }).should('be.visible').select("Repasse");
   };
 
   //----------------------- Botões -------------------------\\
@@ -104,19 +104,19 @@ class CreditosEscolaElementos {
 
   //----------------------- Colunas dos Créditos Cadastrados -------------------------\\
   validarTipo = () => {
-    return cy.get(".p-datatable-thead tr").contains("Tipo");
+    return cy.get(".p-datatable-thead tr", { timeout: 10000 }).should('be.visible').contains("Tipo");
   };
   validarConta = () => {
-    return cy.get(".p-datatable-thead tr").contains("Conta");
+    return cy.get(".p-datatable-thead tr", { timeout: 10000 }).should('be.visible').contains("Conta");
   };
   validarAcao = () => {
-    return cy.get(".p-datatable-thead tr").contains("Ação");
+    return cy.get(".p-datatable-thead tr", { timeout: 10000 }).should('be.visible').contains("Ação");
   };
   validarData = () => {
-    return cy.get(".p-datatable-thead tr").contains("Data");
+    return cy.get(".p-datatable-thead tr", { timeout: 10000 }).should('be.visible').contains("Data");
   };
   validarValor = () => {
-    return cy.get(".p-datatable-thead tr").contains("Valor");
+    return cy.get(".p-datatable-thead tr", { timeout: 10000 }).should('be.visible').contains("Valor");
   };
 
   //----------------------- Cadastro de Crédito -------------------------\\

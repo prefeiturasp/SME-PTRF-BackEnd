@@ -11,7 +11,7 @@ class Associacao_Localizadores {
 	btn_exportar_ficha_cadastral_associacao = () => { return 'div.d-flex.justify-content-end.pb-3 > button:nth-child(3) > svg' }
 	msg_exportar_dados_da_associacao = () => { return 'p.ml-n3.text-dark' }
 
-	// tela associacao consulta
+	// tela associacao editar
 	btn_salvar_dados_da_associacao = () => { return '.btn-success'}
 	msg_editar_dados_da_associacao = () => { return ':nth-child(2) > :nth-child(2)'}
 	msg_nome_editar_dados_da_associacao = () => { return '.span_erro' }
