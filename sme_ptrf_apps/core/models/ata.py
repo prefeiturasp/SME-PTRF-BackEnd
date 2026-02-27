@@ -1,7 +1,5 @@
 import logging
 
-from datetime import datetime
-
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -105,7 +103,7 @@ class Ata(ModeloBase):
     periodo = models.ForeignKey('Periodo', on_delete=models.PROTECT, related_name='+')
 
     associacao = models.ForeignKey('Associacao', on_delete=models.PROTECT, related_name='atas_da_associacao')
-    
+
     composicao = models.ForeignKey(
         'mandatos.Composicao',
         on_delete=models.PROTECT,
@@ -114,10 +112,22 @@ class Ata(ModeloBase):
         blank=True,
         null=True
     )
-    
-    presidente_da_reuniao = models.ForeignKey('Participante', on_delete=models.SET_NULL, related_name='presidente_participante_ata', blank=True, null=True)
-    
-    secretario_da_reuniao = models.ForeignKey('Participante', on_delete=models.SET_NULL, related_name='secretario_participante_ata', blank=True, null=True)
+
+    presidente_da_reuniao = models.ForeignKey(
+        'Participante',
+        on_delete=models.SET_NULL,
+        related_name='presidente_participante_ata',
+        blank=True,
+        null=True,
+    )
+
+    secretario_da_reuniao = models.ForeignKey(
+        'Participante',
+        on_delete=models.SET_NULL,
+        related_name='secretario_participante_ata',
+        blank=True,
+        null=True,
+    )
 
     tipo_ata = models.CharField(
         'tipo de ata',
@@ -178,9 +188,20 @@ class Ata(ModeloBase):
 
     previa = models.BooleanField("É prévia?", default=False)
 
-    justificativa_repasses_pendentes = models.TextField('Justificativa repasses pendentes', blank=True, default='')
-    
-    pdf_gerado_previamente = models.BooleanField("PDF gerado previamente", blank=True, default=False, help_text="O PDF já foi gerado e precisa ser regerado quando a ata é editada/apagada")
+    justificativa_repasses_pendentes = models.TextField(
+        'Justificativa repasses pendentes',
+        blank=True,
+        default='',
+    )
+
+    pdf_gerado_previamente = models.BooleanField(
+        "PDF gerado previamente",
+        blank=True,
+        default=False,
+        help_text=(
+            "O PDF já foi gerado e precisa ser regerado quando a ata é editada/apagada"
+        ),
+    )
 
     @property
     def nome(self):
@@ -194,45 +215,51 @@ class Ata(ModeloBase):
     def precisa_professor_gremio(self):
         """
         Verifica se a unidade da associação precisa do campo professor do grêmio.
-        
+
         Returns:
             bool: True se precisa de professor do grêmio, False caso contrário
         """
         from sme_ptrf_apps.core.services.ata_service import verifica_precisa_professor_gremio_ata
+
         return verifica_precisa_professor_gremio_ata(self)
 
     @property
     def completa(self):
-        from sme_ptrf_apps.core.services.associacoes_service import tem_repasses_pendentes_periodos_ate_agora
-        
+        from sme_ptrf_apps.core.services.associacoes_service import (
+            tem_repasses_pendentes_periodos_ate_agora,
+        )
+
         flags = get_waffle_flag_model()
         if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
             # Verifica campos básicos comuns
             esta_completa = bool(
-                self.tipo_ata and
-                self.tipo_reuniao and
-                self.convocacao and
-                self.data_reuniao and
-                self.local_reuniao and
-                self.hora_reuniao
+                self.tipo_ata
+                and self.tipo_reuniao
+                and self.convocacao
+                and self.data_reuniao
+                and self.local_reuniao
+                and self.hora_reuniao
             )
 
             # Verifica se tem os novos campos OU os campos legados
             tem_novos_campos = bool(self.presidente_da_reuniao and self.secretario_da_reuniao)
-            
+
             if not tem_novos_campos:
                 # Caso legado: verifica apenas se os campos antigos estão preenchidos
                 tem_campos_legados = bool(
-                    self.presidente_reuniao and
-                    self.cargo_presidente_reuniao and
-                    self.secretario_reuniao and
-                    self.cargo_secretaria_reuniao
+                    self.presidente_reuniao
+                    and self.cargo_presidente_reuniao
+                    and self.secretario_reuniao
+                    and self.cargo_secretaria_reuniao
                 )
-                
+
                 if not tem_campos_legados:
                     esta_completa = False
 
-            if tem_repasses_pendentes_periodos_ate_agora(associacao=self.associacao, periodo=self.periodo):
+            if tem_repasses_pendentes_periodos_ate_agora(
+                associacao=self.associacao,
+                periodo=self.periodo,
+            ):
                 esta_completa = esta_completa and self.justificativa_repasses_pendentes
 
             return esta_completa
@@ -332,9 +359,8 @@ class Ata(ModeloBase):
 
 @receiver(pre_save, sender=Ata)
 def ata_pre_save(instance, **kwargs):
-    criando_ata = instance._state.adding
-    if not criando_ata:
-        instance.preenchida_em = datetime.now()
+    from sme_ptrf_apps.core.services.ata_preenchida_em_service import atualizar_preenchida_em_se_mudou_conteudo
+    atualizar_preenchida_em_se_mudou_conteudo(instance)
 
 
 auditlog.register(Ata)
