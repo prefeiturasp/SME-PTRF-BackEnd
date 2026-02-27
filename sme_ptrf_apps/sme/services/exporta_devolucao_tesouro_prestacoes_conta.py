@@ -17,6 +17,11 @@ logger = logging.getLogger(__name__)
 
 CABECALHO = [
     (
+        'Recurso',
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__'
+        'prestacao_conta__periodo__recurso__nome'
+    ),
+    (
         'Código EOL',
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__'
         'prestacao_conta__associacao__unidade__codigo_eol',
@@ -194,6 +199,14 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
             rateios = list(instance.solicitacao_acerto_lancamento.analise_lancamento.despesa.rateios.all())
 
             for _, campo in self.cabecalho:
+                if campo == (
+                    "solicitacao_acerto_lancamento__"
+                    "analise_lancamento__analise_prestacao_conta__"
+                    "prestacao_conta__periodo__recurso__nome"
+                ):
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
 
                 if campo == (
                     "solicitacao_acerto_lancamento__analise_lancamento__"
@@ -311,37 +324,37 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
                     if primeira_linha_da_despesa and idx == 0:
                         despesa_primeira_linha.add(despesa_id)
                     else:
-                        linha_nova[28] = ''
+                        linha_nova[29] = ''
 
-                    linha_nova[17] = rateio.aplicacao_recurso or ''
-                    linha_nova[18] = (
+                    linha_nova[18] = rateio.aplicacao_recurso or ''
+                    linha_nova[19] = (
                         rateio.tipo_custeio.nome.replace(";", ",")
                         if rateio.tipo_custeio
                         else ''
                     )
-                    linha_nova[19] = (
+                    linha_nova[20] = (
                         rateio.especificacao_material_servico.descricao.replace(
                             ";", ","
                         )
                         if rateio.especificacao_material_servico
                         else ''
                     )
-                    linha_nova[20] = (
+                    linha_nova[21] = (
                         rateio.conta_associacao.tipo_conta.nome.replace(";", ",")
                         if rateio.conta_associacao
                         else ''
                     )
-                    linha_nova[21] = (
+                    linha_nova[22] = (
                         rateio.acao_associacao.acao.nome.replace(";", ",")
                         if rateio.acao_associacao
                         else ''
                     )
-                    linha_nova[22] = (
+                    linha_nova[23] = (
                         str(rateio.valor_rateio).replace(".", ",")
                         if rateio.valor_rateio
                         else ''
                     )
-                    linha_nova[23] = (
+                    linha_nova[24] = (
                         str(rateio.valor_original).replace(".", ",")
                         if rateio.valor_original
                         else ''
