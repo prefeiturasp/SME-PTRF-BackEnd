@@ -25,7 +25,7 @@ def test_calcular_secao_ptrf_exclui_acoes_com_receita_zerada():
     receitas_ptrf = [
         {
             "uuid": uuid1,
-            "acao": {"nome": "Ação 1"},
+            "acao": {"nome": "Ação 1", "aceita_custeio": True, "aceita_capital": True, "aceita_livre": False},
             "receitas_previstas_paa": [
                 {
                     "previsao_valor_custeio": 100,
@@ -42,7 +42,7 @@ def test_calcular_secao_ptrf_exclui_acoes_com_receita_zerada():
         # Ação 2 totalmente zerada não deve aparecer
         {
             "uuid": uuid2,
-            "acao": {"nome": "Ação 2"},
+            "acao": {"nome": "Ação 2", "aceita_custeio": True, "aceita_capital": True, "aceita_livre": False},
             "receitas_previstas_paa": [
                 {
                     "previsao_valor_custeio": 0,
@@ -386,7 +386,12 @@ def test_calcular_secao_ptrf_sem_receitas_previstas_nao_estoura_erro():
     receitas_ptrf = [
         {
             "uuid": uuid1,
-            "acao": {"nome": "Ação sem receita prevista"},
+            "acao": {
+                "nome": "Ação sem receita prevista",
+                "aceita_custeio": True,
+                "aceita_capital": True,
+                "aceita_livre": True,
+            },
             "receitas_previstas_paa": [],
             "saldos": {
                 "saldo_atual_custeio": 10,

@@ -550,8 +550,11 @@ class PlanoOrcamentarioService:
 
         return {
             'custeio': custeio,
+            'aceita_custeio': bool(item.get('acao', {}).get('aceita_custeio', False)),
             'capital': capital,
+            'aceita_capital': bool(item.get('acao', {}).get('aceita_capital', False)),
             'livre': livre,
+            'aceita_livre': bool(item.get('acao', {}).get('aceita_livre', False)),
             'total': custeio + capital + livre
         }
 
@@ -586,14 +589,40 @@ class PlanoOrcamentarioService:
 
             saldo_valores = self._calcular_saldo(receita_valores, despesa_valores)
 
+            # Incluir linha só se houver pelo menos um tipo aceito com valor (receita, despesa ou saldo)
+            tem_valor_custeio = (
+                receita_valores['custeio'] != Decimal('0') or
+                despesa_valores['custeio'] != Decimal('0') or
+                saldo_valores['custeio'] != Decimal('0')
+            )
+            tem_valor_capital = (
+                receita_valores['capital'] != Decimal('0') or
+                despesa_valores['capital'] != Decimal('0') or
+                saldo_valores['capital'] != Decimal('0')
+            )
+            tem_valor_livre = (
+                receita_valores['livre'] != Decimal('0') or
+                despesa_valores['livre'] != Decimal('0') or
+                saldo_valores['livre'] != Decimal('0')
+            )
+
+            aceita_custeio = receita_valores.get('aceita_custeio')
+            aceita_capital = receita_valores.get('aceita_capital')
+            aceita_livre = receita_valores.get('aceita_livre')
+
+            if not (
+                (aceita_custeio and tem_valor_custeio) or
+                (aceita_capital and tem_valor_capital) or
+                (aceita_livre and tem_valor_livre)
+            ):
+                continue
+
             linhas.append({
                 'key': receita['uuid'],
                 'nome': receita['acao'].get('nome', '-'),
-                # Para PTRF, sempre exibimos as três categorias,
-                # mesmo quando todas estiverem zeradas.
-                'exibirCusteio': True,
-                'exibirCapital': True,
-                'exibirLivre': True,
+                'exibirCusteio': aceita_custeio,
+                'exibirCapital': aceita_capital,
+                'exibirLivre': aceita_livre,
                 'receitas': _converter_valores_para_float(receita_valores),
                 'despesas': _converter_valores_para_float(despesa_valores),
                 'saldos': _converter_valores_para_float(saldo_valores)
