@@ -1,6 +1,7 @@
 import pytest
 from datetime import date, time
 from django.contrib import admin
+from waffle.testutils import override_flag
 
 from ...models import PrestacaoConta, Associacao, Periodo, Ata
 
@@ -31,7 +32,7 @@ def test_instance_model(ata_2020_1_cheque_aprovada):
     assert model.uuid
     assert model.id
     assert model.preenchida_em is None
-    assert model.justificativa_repasses_pendentes is ''
+    assert model.justificativa_repasses_pendentes == ''
 
 
 def test_instance_mode_ata_retificacao(ata_2020_1_retificacao):
@@ -56,25 +57,61 @@ def test_iniciar_ata(prestacao_conta_2020_1_conciliada):
     assert ata.associacao == prestacao_conta_2020_1_conciliada.associacao
 
 
+@override_flag('historico-de-membros', active=True)
 def test_preenchida_em(ata_prestacao_conta_iniciada):
+    """preenchida_em é atualizado quando o usuário edita um campo de conteúdo."""
     ata_prestacao_conta_iniciada.local_reuniao = 'teste'
     ata_prestacao_conta_iniciada.save()
     ata = Ata.by_id(ata_prestacao_conta_iniciada.id)
     assert ata.preenchida_em is not None
 
 
+@override_flag('historico-de-membros', active=True)
+def test_preenchida_em_nao_atualiza_quando_apenas_status_geracao_pdf_muda(ata_prestacao_conta_iniciada):
+    """preenchida_em NÃO é atualizado quando só status_geracao_pdf muda (ex.: gerar PDF)."""
+    assert ata_prestacao_conta_iniciada.preenchida_em is None
+    ata_prestacao_conta_iniciada.status_geracao_pdf = Ata.STATUS_EM_PROCESSAMENTO
+    ata_prestacao_conta_iniciada.save()
+    ata = Ata.by_id(ata_prestacao_conta_iniciada.id)
+    assert ata.preenchida_em is None
+
+
+@override_flag('historico-de-membros', active=True)
+def test_preenchida_em_nao_atualiza_quando_apenas_previa_muda(ata_prestacao_conta_iniciada):
+    """preenchida_em NÃO é atualizado quando só previa muda (ex.: iniciar-ata-retificacao)."""
+    assert ata_prestacao_conta_iniciada.preenchida_em is None
+    ata_prestacao_conta_iniciada.previa = False
+    ata_prestacao_conta_iniciada.save()
+    ata = Ata.by_id(ata_prestacao_conta_iniciada.id)
+    assert ata.preenchida_em is None
+
+
+@override_flag('historico-de-membros', active=True)
+def test_preenchida_em_permanece_quando_apenas_campo_tecnico_muda(ata_prestacao_conta_iniciada):
+    """se preenchida_em já estava setado, não muda quando só campos técnicos mudam."""
+    ata_prestacao_conta_iniciada.local_reuniao = 'editado'
+    ata_prestacao_conta_iniciada.save()
+    ata = Ata.by_id(ata_prestacao_conta_iniciada.id)
+    preenchida_antes = ata.preenchida_em
+    assert preenchida_antes is not None
+    ata.status_geracao_pdf = Ata.STATUS_CONCLUIDO
+    ata.save()
+    ata2 = Ata.by_id(ata.id)
+    assert ata2.preenchida_em == preenchida_antes
+
+
 @pytest.mark.django_db
 def test_completa_com_novos_campos_com_flag_ativa(ata_prestacao_conta_iniciada, associacao, periodo):
     from model_bakery import baker
     from waffle.models import Flag
-    
+
     # Cria flag ativa
     Flag.objects.create(name='historico-de-membros', everyone=True)
-    
+
     # Cria participantes
     presidente = baker.make('Participante', nome='Presidente Teste')
     secretario = baker.make('Participante', nome='Secretario Teste')
-    
+
     # Preenche ata com novos campos
     ata_prestacao_conta_iniciada.presidente_da_reuniao = presidente
     ata_prestacao_conta_iniciada.secretario_da_reuniao = secretario
@@ -85,17 +122,17 @@ def test_completa_com_novos_campos_com_flag_ativa(ata_prestacao_conta_iniciada, 
     ata_prestacao_conta_iniciada.local_reuniao = 'Local Teste'
     ata_prestacao_conta_iniciada.hora_reuniao = time(10, 0)
     ata_prestacao_conta_iniciada.save()
-    
+
     assert ata_prestacao_conta_iniciada.completa is True
 
 
 @pytest.mark.django_db
 def test_completa_com_campos_legados_com_flag_ativa(ata_prestacao_conta_iniciada, associacao, periodo):
     from waffle.models import Flag
-    
+
     # Cria flag ativa
     Flag.objects.create(name='historico-de-membros', everyone=True)
-    
+
     # Preenche ata com campos legados (não precisa verificar se estão na lista de presentes)
     ata_prestacao_conta_iniciada.presidente_reuniao = 'Presidente Legado'
     ata_prestacao_conta_iniciada.cargo_presidente_reuniao = 'Cargo Presidente'
@@ -170,12 +207,10 @@ def test_precisa_professor_gremio_com_tipo_configurado_sem_despesas(ata_prestaca
 
 
 def test_precisa_professor_gremio_com_despesas_completas_gremio_no_periodo(
-    ata_prestacao_conta_iniciada, parametros, acao_factory, acao_associacao_factory, 
+    ata_prestacao_conta_iniciada, parametros, acao_factory, acao_associacao_factory,
     despesa_factory, rateio_despesa_factory
 ):
     """Testa se precisa_professor_gremio retorna True quando há despesas completas com ação grêmio no período"""
-    from sme_ptrf_apps.despesas.models import RateioDespesa
-    
     tipo_unidade = ata_prestacao_conta_iniciada.associacao.unidade.tipo_unidade
     parametros.tipos_unidades_professor_gremio = [tipo_unidade]
     parametros.save()
