@@ -126,10 +126,12 @@ def test_quantidade_linha_individual_dados_extracao(fechamento_periodo_queryset)
     linha_individual = dados[0]
 
     """
-        É esperado que tenha 9 registros sendo eles:
+        É esperado que tenha 11 registros sendo eles:
+            Recurso
             Codigo eol
             Nome unidade
             Nome associacao
+            DRE
             Referencia do periodo
             Status da PC
             Nome do tipo de Conta
@@ -137,7 +139,7 @@ def test_quantidade_linha_individual_dados_extracao(fechamento_periodo_queryset)
             Valor
     """
 
-    assert len(linha_individual) == 10
+    assert len(linha_individual) == 11
 
 
 def test_resultado_esperado_dados_extracao(fechamento_periodo_queryset):
@@ -149,6 +151,7 @@ def test_resultado_esperado_dados_extracao(fechamento_periodo_queryset):
     primeiro_fechamento = fechamento_periodo_queryset.first()
 
     resultado_esperado = [
+        primeiro_fechamento.periodo.recurso.nome,
         primeiro_fechamento.associacao.unidade.codigo_eol,
         primeiro_fechamento.associacao.unidade.nome,
         primeiro_fechamento.associacao.nome,
@@ -172,6 +175,7 @@ def test_cabecalho(fechamento_periodo_queryset):
     cabecalho = [cabecalho[0] for cabecalho in dados.cabecalho]
 
     resultado_esperado = [
+        'Recurso',
         'Código EOL',
         'Nome Unidade',
         'Nome Associação',

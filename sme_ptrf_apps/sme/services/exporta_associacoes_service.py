@@ -19,6 +19,7 @@ from sme_ptrf_apps.utils.built_in_custom import get_recursive_attr
 logger = logging.getLogger(__name__)
 
 CABECALHO_ASSOCIACOES = [
+    ('Recurso', 'periodo_inicial__recurso__nome', lambda x: x.replace(";", ",") if x else ""),
     ('Código EOL', 'unidade__codigo_eol', lambda x: str(x).replace(";", ",") if x else ""),
     ('Nome Unidade', 'unidade__nome', lambda x: x.replace(";", ",") if x else ""),
     ('Nome Associação', 'nome', lambda x: x.replace(";", ",") if x else ""),

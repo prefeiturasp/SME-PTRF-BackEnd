@@ -19,6 +19,7 @@ from tempfile import NamedTemporaryFile
 logger = logging.getLogger(__name__)
 
 CABECALHO_DEMONSTATIVOS_FINANCEIROS = [
+    ('Recurso', 'conta_associacao__tipo_conta__recurso__nome'),
     ('Código EOL', 'conta_associacao__associacao__unidade__codigo_eol'),
     ('Nome Unidade', 'conta_associacao__associacao__unidade__nome'),
     ('Nome Associação', 'conta_associacao__associacao__nome'),
@@ -148,9 +149,9 @@ class ExportaDemonstrativosFinanceirosService:
 
     def get_periodo_referencia_demonstrativo_financeiro(self, instance):
         if instance and instance.prestacao_conta:
-            periodo =  instance.prestacao_conta.periodo.referencia if instance.prestacao_conta.periodo else ''
+            periodo = instance.prestacao_conta.periodo.referencia if instance.prestacao_conta.periodo else ''
         else:
-            periodo =  instance.periodo_previa.referencia if instance.periodo_previa else ''
+            periodo = instance.periodo_previa.referencia if instance.periodo_previa else ''
 
         return periodo
 
@@ -168,6 +169,11 @@ class ExportaDemonstrativosFinanceirosService:
 
             for _, campo in self.cabecalho:
                 # Removendo ponto e vírgula e substituindo por vírgula
+                if campo == "conta_associacao__tipo_conta__recurso__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
                 if campo == "conta_associacao__associacao__unidade__nome":
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo.replace(";", ",") if campo else "")

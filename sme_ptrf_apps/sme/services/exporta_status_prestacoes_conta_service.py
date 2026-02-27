@@ -18,6 +18,7 @@ from tempfile import NamedTemporaryFile
 logger = logging.getLogger(__name__)
 
 CABECALHO = [
+    ('Recurso', 'periodo__recurso__nome'),
     ('Código EOL', 'associacao__unidade__codigo_eol'),
     ('Nome Unidade', 'associacao__unidade__nome'),
     ('Nome Associação', 'associacao__nome'),
@@ -128,7 +129,7 @@ class ExportacoesStatusPrestacoesContaService:
                     if outros_motivos.strip():
                         motivos_concatenados += "; " + outros_motivos
 
-                    linha_horizontal[6] = motivos_concatenados
+                    linha_horizontal[7] = motivos_concatenados
 
                 if campo == 'motivos_reprovacao' and getattr(instance, 'status') == 'REPROVADA':
                     motivosReprovacao = instance.motivos_reprovacao.values_list('motivo', flat=True)
@@ -140,7 +141,7 @@ class ExportacoesStatusPrestacoesContaService:
                     if outros_motivos.strip():
                         motivos_concatenados += "; " + outros_motivos
 
-                    linha_horizontal[8] = motivos_concatenados
+                    linha_horizontal[9] = motivos_concatenados
 
             logger.info(
                 f"Escrevendo linha {linha_horizontal} de status de prestação de conta de custeio {instance.id}.")

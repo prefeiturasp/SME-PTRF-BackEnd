@@ -15,6 +15,7 @@ def test_cabecalho():
     cabecalho = [cabecalho[0] for cabecalho in dados.cabecalho]
 
     resultado_esperado = [
+        'Recurso',
         'Código EOL',
         'Nome Unidade',
         'Nome Associação',
@@ -44,6 +45,7 @@ def test_dados_repasses_esperados_csv(repasse_exportacao_csv, ambiente):
     linha_individual = dados[0]
 
     resultado_esperado = [
+        repasse_exportacao_csv.periodo.recurso.nome,
         repasse_exportacao_csv.associacao.unidade.codigo_eol,
         repasse_exportacao_csv.associacao.unidade.nome,
         repasse_exportacao_csv.associacao.nome,

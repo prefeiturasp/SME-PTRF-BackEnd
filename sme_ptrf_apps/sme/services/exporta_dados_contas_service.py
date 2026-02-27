@@ -17,6 +17,7 @@ from typing import BinaryIO
 
 CABECALHO_CONTA = (
     [
+        ("Recurso", "tipo_conta__recurso__nome"),
         ("Código EOL", "associacao__unidade__codigo_eol"),
         ("Nome Unidade", "associacao__unidade__nome"),
         ("Nome Associação", "associacao__nome"),
@@ -104,6 +105,11 @@ class ExportacaoDadosContasService:
                 for _, campo in self.cabecalho:
 
                     # Removendo ponto e vírgula e substituindo por vírgula
+                    if campo == "tipo_conta__recurso__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
                     if campo == "associacao__unidade__nome":
                         campo = get_recursive_attr(instance, campo)
                         linha.append(campo.replace(";", ",") if campo else "")

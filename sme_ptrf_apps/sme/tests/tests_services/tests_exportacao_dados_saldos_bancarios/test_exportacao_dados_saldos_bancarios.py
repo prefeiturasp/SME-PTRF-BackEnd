@@ -15,6 +15,7 @@ def test_cabecalho():
     cabecalho = [cabecalho[0] for cabecalho in dados.cabecalho]
 
     resultado_esperado = [
+        'Recurso',
         'Código EOL da Unidade',
         'Nome Unidade',
         'Tipo da unidade',
@@ -39,6 +40,7 @@ def test_dados_saldos_bancarios_esperados_csv(observacao_conciliacao_exportacao_
     linha_individual = dados[0]
 
     resultado_esperado = [
+        observacao_conciliacao_exportacao_csv.periodo.recurso.nome,
         observacao_conciliacao_exportacao_csv.associacao.unidade.codigo_eol,
         observacao_conciliacao_exportacao_csv.associacao.unidade.nome,
         observacao_conciliacao_exportacao_csv.associacao.unidade.tipo_unidade,
