@@ -13,11 +13,11 @@ def test_cabecalho():
     cabecalho = [cabecalho[0] for cabecalho in dados.cabecalho]
 
     resultado_esperado = [
-        'Recurso',
         'Código EOL',
         'Nome Unidade',
         'Nome Associação',
         'DRE',
+        'Recurso',
         'Nome do tipo de conta',
         'Data de criação da conta',
         'Data de início da conta',

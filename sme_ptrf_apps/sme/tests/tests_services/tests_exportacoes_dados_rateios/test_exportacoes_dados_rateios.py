@@ -193,11 +193,11 @@ def test_resultado_esperado_dados_extracao(rateios_despesa_queryset):
     primeiro_rateio = rateios_despesa_queryset.first()
 
     resultado_esperado = [
-        primeiro_rateio.despesa.recurso.nome,
         primeiro_rateio.associacao.unidade.codigo_eol,
         primeiro_rateio.associacao.unidade.nome,
         primeiro_rateio.associacao.nome,
         primeiro_rateio.associacao.unidade.nome_dre,
+        primeiro_rateio.despesa.recurso.nome,
         primeiro_rateio.despesa.id,
         f'="{primeiro_rateio.despesa.numero_documento}"',
         primeiro_rateio.despesa.tipo_documento.nome,
@@ -243,11 +243,11 @@ def test_cabecalho(rateios_despesa_queryset):
     cabecalho = [cabecalho[0] for cabecalho in dados.cabecalho]
 
     resultado_esperado = [
-        'Recurso',
         'Código EOL',
         'Nome Unidade',
         'Nome Associação',
         'DRE',
+        'Recurso',
         'ID do Gasto',
         'Número do documento',
         'Tipo de documento',

@@ -146,11 +146,11 @@ def test_resultado_esperado_dados_extracao(relacao_bens_queryset, ambiente):
     primeira_relacao_bens = relacao_bens_queryset.first()
 
     resultado_esperado = [
-        primeira_relacao_bens.prestacao_conta.periodo.recurso.nome,
         primeira_relacao_bens.prestacao_conta.associacao.unidade.codigo_eol,
         primeira_relacao_bens.prestacao_conta.associacao.unidade.nome,
         primeira_relacao_bens.prestacao_conta.associacao.nome,
         primeira_relacao_bens.prestacao_conta.associacao.unidade.nome_dre,
+        primeira_relacao_bens.prestacao_conta.periodo.recurso.nome,
         primeira_relacao_bens.prestacao_conta.periodo.referencia,
         primeira_relacao_bens.prestacao_conta.status,
         primeira_relacao_bens.conta_associacao.tipo_conta.nome,
@@ -172,11 +172,11 @@ def test_cabecalho(relacao_bens_queryset):
     cabecalho = [cabecalho[0] for cabecalho in dados.cabecalho]
 
     resultado_esperado = [
-        'Recurso',
         'Código EOL',
         'Nome Unidade',
         'Nome Associação',
         'DRE',
+        'Recurso',
         'Referência do Período da PC',
         'Status da PC',
         'Nome do tipo de Conta',
