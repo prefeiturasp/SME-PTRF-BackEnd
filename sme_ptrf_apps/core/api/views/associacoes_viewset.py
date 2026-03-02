@@ -371,6 +371,8 @@ class AssociacoesViewSet(ModelViewSet):
             contas = ContaAssociacao.ativas_com_solicitacao_em_aberto.filter(
                 associacao=associacao, data_inicio__isnull=False).all()
 
+            contas = ContaAssociacao.filter_by_recurso(contas, self.request.recurso)
+
         contas_data = ContaAssociacaoDadosSerializer(contas, many=True).data
 
         return Response(contas_data)
