@@ -16,11 +16,11 @@ from tempfile import NamedTemporaryFile
 logger = logging.getLogger(__name__)
 
 CABECALHO_DOCS = [
-    ('Recurso', 'recurso__nome'),
     ('Código EOL', 'associacao__unidade__codigo_eol'),
     ('Nome unidade', 'associacao__unidade__nome'),
     ('Nome associação', 'associacao__nome'),
     ('DRE', 'associacao__unidade__dre__nome'),
+    ('Recurso', 'recurso__nome'),
     ('ID do gasto', 'id'),
     ('É despesa sem comprovação fiscal?', 'eh_despesa_sem_comprovacao_fiscal'),
     ('É despesa reconhecida pela Associação?', 'eh_despesa_reconhecida_pela_associacao'),

@@ -152,11 +152,11 @@ def test_resultado_esperado_dados_extracao(
     primeiro_demonstrativo_financeiro = demonstrativo_financeiro_queryset.first()
 
     resultado_esperado = [
-        primeiro_demonstrativo_financeiro.prestacao_conta.periodo.recurso.nome,
         primeiro_demonstrativo_financeiro.conta_associacao.associacao.unidade.codigo_eol,
         primeiro_demonstrativo_financeiro.conta_associacao.associacao.unidade.nome,
         primeiro_demonstrativo_financeiro.conta_associacao.associacao.nome,
         primeiro_demonstrativo_financeiro.conta_associacao.associacao.unidade.nome_dre,
+        primeiro_demonstrativo_financeiro.prestacao_conta.periodo.recurso.nome,
         primeiro_demonstrativo_financeiro.prestacao_conta.periodo.referencia,
         primeiro_demonstrativo_financeiro.conta_associacao.tipo_conta.nome,
         datetime.date(2020, 7, 1),
@@ -180,11 +180,11 @@ def test_cabecalho(demonstrativo_financeiro_queryset):
     cabecalho = [cabecalho[0] for cabecalho in dados.cabecalho]
 
     resultado_esperado = [
-        'Recurso',
         'Código EOL',
         'Nome Unidade',
         'Nome Associação',
         'DRE',
+        'Recurso',
         'Referência do Período da PC',
         'Nome do tipo de Conta',
         'Data (Saldo bancário)',

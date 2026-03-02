@@ -16,11 +16,11 @@ from tempfile import NamedTemporaryFile
 
 CABECALHO_REPASSES = (
     [
-        ("Recurso", "periodo__recurso__nome"),
         ("Código EOL", "associacao__unidade__codigo_eol"),
         ("Nome Unidade", "associacao__unidade__nome"),
         ("Nome Associação", "associacao__nome"),
         ("DRE", "associacao__unidade__dre__nome"),
+        ("Recurso", "periodo__recurso__nome"),
         ("Período", "periodo__referencia"),
         ("Nome do tipo de conta", "conta_associacao__tipo_conta__nome"),
         ("Nome da Ação", "acao_associacao__acao__nome"),

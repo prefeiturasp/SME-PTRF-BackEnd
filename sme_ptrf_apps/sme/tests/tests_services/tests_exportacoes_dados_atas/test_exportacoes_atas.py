@@ -15,11 +15,11 @@ def test_cabecalho():
     cabecalho = [cabecalho[0] for cabecalho in dados.cabecalho]
 
     resultado_esperado = [
-        'Recurso',
         'Código EOL',
         'Nome unidade',
         'Nome associação',
         'DRE',
+        'Recurso',
         'Referência do período da PC',
         'Tipo de ata',
         'Tipo de reunião',
@@ -52,11 +52,11 @@ def test_dados_esperados_csv(queryset_ordered, ambiente):
     ata = queryset_ordered.first()
 
     resultado_esperado = [
-        ata.periodo.recurso.nome,
         ata.associacao.unidade.codigo_eol,
         ata.associacao.unidade.nome,
         ata.associacao.nome,
         ata.associacao.unidade.dre.nome,
+        ata.periodo.recurso.nome,
         ata.periodo.referencia,
         ata.tipo_ata,
         ata.tipo_reuniao,

@@ -21,11 +21,11 @@ from tempfile import NamedTemporaryFile
 logger = logging.getLogger(__name__)
 
 CABECALHO_RATEIOS = [
-    ('Recurso', 'despesa__recurso__nome'),
     ('Código EOL', 'associacao__unidade__codigo_eol'),
     ('Nome Unidade', 'associacao__unidade__nome'),
     ('Nome Associação', 'associacao__nome'),
     ('DRE', 'associacao__unidade__dre__nome'),
+    ('Recurso', 'despesa__recurso__nome'),
     ('ID do Gasto', 'despesa__id'),
     ('Número do documento', 'despesa__numero_documento'),
     ('Tipo de documento', 'despesa__tipo_documento__nome'),
