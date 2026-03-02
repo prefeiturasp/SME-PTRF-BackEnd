@@ -78,7 +78,7 @@ class Periodo(ModeloBase):
 
     @classmethod
     def periodo_atual(cls):
-        return cls.objects.latest('data_inicio_realizacao_despesas') if cls.objects.exists() else None
+        return cls.objects.filter(recurso__legado=True).latest('data_inicio_realizacao_despesas') if cls.objects.exists() else None
 
     @classmethod
     def periodo_atual_por_recurso(cls, recurso):
