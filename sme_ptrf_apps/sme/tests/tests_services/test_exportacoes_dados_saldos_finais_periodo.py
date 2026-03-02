@@ -151,11 +151,11 @@ def test_resultado_esperado_dados_extracao(fechamento_periodo_queryset):
     primeiro_fechamento = fechamento_periodo_queryset.first()
 
     resultado_esperado = [
-        primeiro_fechamento.periodo.recurso.nome,
         primeiro_fechamento.associacao.unidade.codigo_eol,
         primeiro_fechamento.associacao.unidade.nome,
         primeiro_fechamento.associacao.nome,
         primeiro_fechamento.associacao.unidade.dre.nome,
+        primeiro_fechamento.periodo.recurso.nome,
         primeiro_fechamento.periodo.referencia,
         primeiro_fechamento.prestacao_conta.status,
         primeiro_fechamento.conta_associacao.tipo_conta.nome,
@@ -175,11 +175,11 @@ def test_cabecalho(fechamento_periodo_queryset):
     cabecalho = [cabecalho[0] for cabecalho in dados.cabecalho]
 
     resultado_esperado = [
-        'Recurso',
         'Código EOL',
         'Nome Unidade',
         'Nome Associação',
         'DRE',
+        'Recurso',
         'Referência do Período da PC',
         'Status da PC',
         'Nome do tipo de Conta',

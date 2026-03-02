@@ -17,11 +17,11 @@ from typing import BinaryIO
 
 CABECALHO_CONTA = (
     [
-        ("Recurso", "tipo_conta__recurso__nome"),
         ("Código EOL", "associacao__unidade__codigo_eol"),
         ("Nome Unidade", "associacao__unidade__nome"),
         ("Nome Associação", "associacao__nome"),
         ("DRE", "associacao__unidade__dre__nome"),
+        ("Recurso", "tipo_conta__recurso__nome"),
         ("Nome do tipo de conta", "tipo_conta__nome"),
         ("Data de criação da conta", "criado_em"),
         ("Data de início da conta", "data_inicio"),

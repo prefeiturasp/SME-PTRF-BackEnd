@@ -32,11 +32,11 @@ def test_dados_esperados_csv(queryset_ordered):
     devolucao_ao_tesouro = DevolucaoAoTesouro.objects.filter(despesa_id=despesa.id).first()
 
     resultado_esperado = [
-        pc.periodo.recurso.nome,
         pc.associacao.unidade.codigo_eol,
         pc.associacao.unidade.nome,
         pc.associacao.nome,
         pc.associacao.unidade.dre.nome,
+        pc.periodo.recurso.nome,
         pc.periodo.referencia,
         pc.status,
         despesa.id,
@@ -80,11 +80,11 @@ def test_cabecalho():
     cabecalho = [cabecalho[0] for cabecalho in dados.cabecalho]
 
     resultado_esperado = [
-        'Recurso',
         'Código EOL',
         'Nome Unidade',
         'Nome Associação',
         'DRE',
+        'Recurso',
         'Referência do Período da PC',
         'Status da PC',
         'ID da despesa',
