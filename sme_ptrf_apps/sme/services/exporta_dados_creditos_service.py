@@ -21,11 +21,11 @@ from sme_ptrf_apps.core.models.ambiente import Ambiente
 
 
 CABECALHO_RECEITA = [
-        ('Recurso', 'conta_associacao__tipo_conta__recurso__nome'),
         ('Código EOL', 'associacao__unidade__codigo_eol'),
         ('Nome Unidade', 'associacao__unidade__nome'),
         ('Nome Associação', 'associacao__nome'),
         ('DRE', 'associacao__unidade__dre__nome'),
+        ('Recurso', 'conta_associacao__tipo_conta__recurso__nome'),
         ('ID do crédito', 'id'),
         ('Data do crédito', 'data'),
         ('Valor do crédito', 'valor'),

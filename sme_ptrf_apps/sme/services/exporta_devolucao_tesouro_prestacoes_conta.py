@@ -17,11 +17,6 @@ logger = logging.getLogger(__name__)
 
 CABECALHO = [
     (
-        'Recurso',
-        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__'
-        'prestacao_conta__periodo__recurso__nome'
-    ),
-    (
         'Código EOL',
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__'
         'prestacao_conta__associacao__unidade__codigo_eol',
@@ -40,6 +35,11 @@ CABECALHO = [
         'DRE',
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__'
         'prestacao_conta__associacao__unidade__dre__nome',
+    ),
+    (
+        'Recurso',
+        'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__'
+        'prestacao_conta__periodo__recurso__nome'
     ),
     (
         'Referência do Período da PC',
