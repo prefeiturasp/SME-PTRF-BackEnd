@@ -63,7 +63,6 @@ def rateio_despesa_capital_completo(associacao, despesa, conta_associacao, acao,
     )
 
 
-
 @pytest.fixture
 def rateio_despesa_capital_incompleto(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso_capital,
                                       especificacao_material_servico, acao_associacao):
@@ -84,9 +83,8 @@ def rateio_despesa_capital_incompleto(associacao, despesa, conta_associacao, aca
 
 
 @pytest.fixture
-def despesa_incompleta(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_incompleta(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=None,
@@ -101,9 +99,8 @@ def despesa_incompleta(associacao, tipo_documento, tipo_transacao):
 
 
 @pytest.fixture
-def despesa_incompleta_numero_digitado(associacao, tipo_documento_numero_documento_digitado, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_incompleta_numero_digitado(despesa_factory, associacao, tipo_documento_numero_documento_digitado, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='',
         data_documento=date(2020, 3, 10),
@@ -115,13 +112,13 @@ def despesa_incompleta_numero_digitado(associacao, tipo_documento_numero_documen
         data_transacao=date(2020, 3, 10),
         valor_total=100.00,
         valor_recursos_proprios=10.00,
+        eh_despesa_sem_comprovacao_fiscal=False
     )
 
 
 @pytest.fixture
-def despesa_credito_externo(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_credito_externo(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=date(2020, 3, 10),
@@ -240,7 +237,6 @@ def test_rateio_despesa_inativos(rateio_despesa_capital_completo):
     despesa.data_e_hora_de_inativacao = datetime(2022, 9, 6, 10, 30, 0)
     despesa.save()
     assert despesa.status == STATUS_INATIVO
-
 
 
 @pytest.fixture

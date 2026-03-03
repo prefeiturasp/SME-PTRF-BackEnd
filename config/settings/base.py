@@ -2,6 +2,7 @@
 Base settings to build other settings files upon.
 """
 
+from sme_ptrf_apps import __version__ as api_version
 import datetime
 import environ
 
@@ -60,7 +61,7 @@ DJANGO_APPS = [
     "django.contrib.sites",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    'admin_interface', # Para o django-admin-interface. Tem que estar antes do django.contrib.admin
+    'admin_interface',  # Para o django-admin-interface. Tem que estar antes do django.contrib.admin
     'colorfield',      # Para o django-admin-interface. Tem que estar antes do django.contrib.admin
     "django.contrib.admin",
     "django.forms",
@@ -143,6 +144,8 @@ MIDDLEWARE = [
     "auditlog.middleware.AuditlogMiddleware",
     "waffle.middleware.WaffleMiddleware",
     "allauth.account.middleware.AccountMiddleware",  # Requerido na versão 0.56.1 do django-allauth, necessária para o Django 4
+    # Middleware usado para captar e validar o recurso selecionado
+    "sme_ptrf_apps.tenant_middleware.TenantFromHeaderMiddleware"
 ]
 
 # STATIC (DJANGO)
@@ -305,8 +308,7 @@ REST_FRAMEWORK = {
 }
 
 # DRF-SPECTACULAR SETTINGS
-#--------------------------------------------------------------------------------
-from sme_ptrf_apps import __version__ as api_version
+# --------------------------------------------------------------------------------
 SPECTACULAR_SETTINGS = {
     'TITLE': 'SigEscola API',
     'DESCRIPTION': 'API da aplicação Sig.Escola',
@@ -340,10 +342,10 @@ SME_INTEGRACAO_TOKEN = env('SME_INTEGRACAO_TOKEN')
 
 # CORESSO
 # ------------------------------------------------------------------------------
-SYS_GRUPO_ID_UE=env('SYS_GRUPO_ID_UE')
-SYS_GRUPO_ID_DRE=env('SYS_GRUPO_ID_DRE')
-SYS_GRUPO_ID_SME=env('SYS_GRUPO_ID_SME')
-SYS_GRUPO_ID_PTRF=env('SYS_GRUPO_ID_PTRF')
+SYS_GRUPO_ID_UE = env('SYS_GRUPO_ID_UE')
+SYS_GRUPO_ID_DRE = env('SYS_GRUPO_ID_DRE')
+SYS_GRUPO_ID_SME = env('SYS_GRUPO_ID_SME')
+SYS_GRUPO_ID_PTRF = env('SYS_GRUPO_ID_PTRF')
 
 # CKEDITOR CONFIGS
 # ------------------------------------------------------------------------------
@@ -387,7 +389,7 @@ CKEDITOR_CONFIGS = {
         'toolbar': 'YourCustomToolbarConfig',  # put selected toolbar config here
         'tabSpaces': 4,
         'extraPlugins': ','.join([
-            'uploadimage', # the upload image feature
+            'uploadimage',  # the upload image feature
             # your extra plugins here
             'div',
             'autolink',

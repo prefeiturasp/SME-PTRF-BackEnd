@@ -20,6 +20,7 @@ CABECALHO_DOCS = [
     ('Nome unidade', 'associacao__unidade__nome'),
     ('Nome associação', 'associacao__nome'),
     ('DRE', 'associacao__unidade__dre__nome'),
+    ('Recurso', 'recurso__nome'),
     ('ID do gasto', 'id'),
     ('É despesa sem comprovação fiscal?', 'eh_despesa_sem_comprovacao_fiscal'),
     ('É despesa reconhecida pela Associação?', 'eh_despesa_reconhecida_pela_associacao'),
@@ -130,6 +131,11 @@ class ExportacoesDocumentosDespesasService:
             motivos = list(instance.motivos_pagamento_antecipado.all())
 
             for _, campo in self.cabecalho:
+                if campo == "recurso__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
                 if campo == "associacao__unidade__nome":
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo.replace(";", ",") if campo else "")

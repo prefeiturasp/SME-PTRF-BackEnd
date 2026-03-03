@@ -71,4 +71,3 @@ def test_painel_resumo_recursos_retorna_info_conta(
     assert info_conta.saldo_atual_capital == Decimal(480.00)
     assert info_conta.saldo_atual_custeio == Decimal(730.00)
     assert info_conta.saldo_atual_livre == Decimal(1750.00)
-

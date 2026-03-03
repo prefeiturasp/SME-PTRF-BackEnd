@@ -141,14 +141,13 @@ class RepasseViewSet(
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def pendentes(self, request, *args, **kwargs):
         associacao_uuid = self.request.query_params.get('associacao')
-        recurso_uuid = self.request.query_params.get('recurso_uuid')
 
         if not associacao_uuid:
             return Response("uuid da associação é obrigatório.", status=HTTP_400_BAD_REQUEST)
 
         repasses = Repasse.objects.filter(associacao__uuid=associacao_uuid, status='PENDENTE')
 
-        repasses = Repasse.filter_by_recurso(repasses, recurso_uuid).order_by('-criado_em').all()
+        repasses = Repasse.filter_by_recurso(repasses, self.request.recurso).order_by('-criado_em').all()
 
         serializer = RepasseSerializer(repasses, many=True)
 

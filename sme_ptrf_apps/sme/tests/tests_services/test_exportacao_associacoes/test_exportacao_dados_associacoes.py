@@ -31,6 +31,7 @@ def test_cabecalho():
         ('Nome Unidade'),
         ('Nome Associação'),
         ('DRE'),
+        ('Recurso'),
         ('CNPJ'),
         ('ID do Período Inicial'),
         ('Referência do Período inicial'),
@@ -92,9 +93,10 @@ def test_monta_dados(associacao_factory_com_periodo_inicial):
     assert len(result) == 2
     assert result[0][0] == queryset[0].unidade.codigo_eol
     assert result[0][1] == queryset[0].unidade.nome
-    assert result[0][5] == str(queryset[0].periodo_inicial.id)
-    assert result[1][8] == queryset[1].ccm
-    assert result[1][9] == queryset[1].email
+    assert result[0][4] == queryset[0].periodo_inicial.recurso.nome
+    assert result[0][6] == str(queryset[0].periodo_inicial.id)
+    assert result[1][9] == queryset[1].ccm
+    assert result[1][10] == queryset[1].email
 
 
 def test_rodape(ambiente, usuario_para_teste):

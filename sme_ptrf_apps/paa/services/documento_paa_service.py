@@ -35,8 +35,13 @@ class DocumentoPaaService:
 
     def marcar_concluido(self):
         self.documento_paa.arquivo_concluido()
-        self.logger.info('Documento PAA concluido')
+        self.registrar_historico_acoes()
+        self.logger.info('Documento PAA concluído')
 
     def marcar_erro(self):
         self.documento_paa.arquivo_em_erro_processamento()
         self.logger.info('Documento PAA marcado com erro no processamento')
+
+    def registrar_historico_acoes(self):
+        from sme_ptrf_apps.paa.services import PaaService
+        PaaService.registra_historico_acoes(self.paa)

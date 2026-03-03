@@ -171,13 +171,13 @@ def ata_especificacao_instalacao_eletrica(
 
 @pytest.fixture
 def ata_despesa_2020_1(
+    despesa_factory,
     associacao,
     tipo_documento,
     tipo_transacao,
     ata_periodo_2020_1
 ):
-    return baker.make(
-        'Despesa',
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -247,13 +247,13 @@ def ata_rateio_despesa_2020_1_cartao_ptrf_custeio_conferido_em_2020_2(
 
 @pytest.fixture
 def ata_despesa_2019_2(
+    despesa_factory,
     associacao,
     tipo_documento,
     tipo_transacao,
     ata_periodo_2019_2
 ):
-    return baker.make(
-        'Despesa',
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2019, 12, 1),

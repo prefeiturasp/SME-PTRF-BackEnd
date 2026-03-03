@@ -64,6 +64,8 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
 
         qs = RateioDespesa.objects.filter(associacao__uuid=associacao_uuid).all().order_by('-despesa__data_documento')
 
+        qs = RateioDespesa.filter_by_recurso(qs, self.request.recurso)
+
         data_inicio = self.request.query_params.get('data_inicio')
         data_fim = self.request.query_params.get('data_fim')
         if data_inicio is not None and data_fim is not None and data_inicio != '' and data_fim != '':
@@ -165,7 +167,8 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
             rateios=despesa['rateios'],
             associacao=associacao,
             data_documento=data_documento,
-            exclude_despesa=despesa_uuid
+            exclude_despesa=despesa_uuid,
+            recurso=self.request.recurso
         )
 
         return Response(result)
@@ -214,6 +217,8 @@ class RateiosDespesasViewSet(mixins.CreateModelMixin,
             filter_value = request.query_params.get(field)
             if filter_value:
                 filtered_queryset = filtered_queryset.exclude(despesa__status='INATIVO').filter(**{field: filter_value})
+
+        queryset = RateioDespesa.filter_by_recurso(queryset, self.request.recurso)
 
         # Aplicar filtro de data se fornecido
         data_inicio = request.query_params.get('data_inicio')

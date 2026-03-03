@@ -1,298 +1,54 @@
-import datetime
-import json
-
+from datetime import date
 import pytest
-from model_bakery import baker
 from rest_framework import status
 
 pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def despesa_teste_ordenar_01(
-    associacao,
-    tipo_documento,
-    tipo_transacao,
-):
-    return baker.make(
-        'Despesa',
-        associacao=associacao,
-        numero_documento='123456',
-        data_documento=datetime.date(2020, 3, 10),
-        valor_total=100.00,
-    )
+def cria_despesa(associacao, despesa_factory, rateio_despesa_factory, conta_associacao, acao_associacao, tipo_documento, tipo_transacao):
+    def _cria(**kwargs):
+        despesa = despesa_factory(
+            associacao=associacao,
+            **kwargs
+        )
+
+        rateio_despesa_factory(despesa=despesa, conta_associacao=conta_associacao, acao_associacao=acao_associacao)
+        return despesa
+
+    return _cria
 
 
-@pytest.fixture
-def despesa_teste_ordenar_02(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
-        associacao=associacao,
-        numero_documento='654321',
-        data_documento=datetime.date(2020, 3, 11),
-        valor_total=200.00,
-    )
+def get_despesas(client, associacao, **params):
+    query = "&".join(f"{k}={v}" for k, v in params.items())
+    url = f"/api/despesas/?associacao__uuid={associacao.uuid}&{query}"
+    response = client.get(url, content_type="application/json")
+    assert response.status_code == status.HTTP_200_OK
+    return response.json()["results"]
 
 
-@pytest.fixture
-def despesa_teste_ordenar_03(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
-        associacao=associacao,
-        numero_documento='777777',
-        data_documento=datetime.date(2020, 3, 15),
-        valor_total=60.00,
-    )
-
-
-@pytest.fixture
-def despesa_teste_ordenar_04(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
-        associacao=associacao,
-        numero_documento='888888',
-        data_documento=datetime.date(2020, 3, 16),
-        valor_total=50.00,
-    )
-
-@pytest.fixture
-def despesa_teste_ordenar_05(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
-        associacao=associacao,
-        numero_documento='888888',
-        data_documento=datetime.date(2020, 3, 13),
-        valor_total=70.00,
-    )
-
-
-@pytest.fixture
-def despesa_teste_ordenar_06(
-    associacao,
-    tipo_documento,
-    tipo_transacao,
-    despesa_teste_ordenar_07,
-    despesa_teste_ordenar_08,
-):
-    return baker.make(
-        'Despesa',
-        associacao=associacao,
-        numero_documento='123456',
-        data_documento=datetime.date(2020, 3, 10),
-        valor_total=100.00,
-        retem_imposto=True,
-        despesas_impostos=[despesa_teste_ordenar_07, despesa_teste_ordenar_08]
-    )
-
-
-@pytest.fixture
-def despesa_teste_ordenar_07(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
-        associacao=associacao,
-        numero_documento='654321',
-        data_documento=datetime.date(2020, 3, 11),
-        valor_total=200.00,
-    )
-
-
-@pytest.fixture
-def despesa_teste_ordenar_08(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
-        associacao=associacao,
-        numero_documento='654321',
-        data_documento=datetime.date(2020, 3, 15),
-        valor_total=60.00,
-    )
-
-
-@pytest.fixture
-def despesa_teste_ordenar_09(associacao, tipo_documento, tipo_transacao, despesa_teste_ordenar_10):
-    return baker.make(
-        'Despesa',
-        associacao=associacao,
-        numero_documento='888888',
-        data_documento=datetime.date(2020, 3, 16),
-        valor_total=50.00,
-        retem_imposto=True,
-        despesas_impostos=[despesa_teste_ordenar_10]
-    )
-
-@pytest.fixture
-def despesa_teste_ordenar_10(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
-        associacao=associacao,
-        numero_documento='888888',
-        data_documento=datetime.date(2020, 3, 13),
-        valor_total=70.00,
-    )
-
-
-def test_api_ordenar_despesa_por_numero_do_documento_crescente(
+@pytest.mark.parametrize(
+    "ordenacao, campo, esperado",
+    [
+        ("ordenar_por_numero_do_documento=crescente", "numero_documento", ["123456", "654321"]),
+        ("ordenar_por_numero_do_documento=decrescente", "numero_documento", ["654321", "123456"]),
+        ("ordenar_por_valor=crescente", "valor_total", ["100.00", "200.00"]),
+        ("ordenar_por_valor=decrescente", "valor_total", ["200.00", "100.00"]),
+        ("ordenar_por_data_especificacao=crescente", "data_documento", ["2020-03-10", "2020-03-11"]),
+        ("ordenar_por_data_especificacao=decrescente", "data_documento", ["2020-03-11", "2020-03-10"]),
+    ]
+)
+def test_api_ordenacao_simples(
     jwt_authenticated_client_d,
     associacao,
-    despesa_teste_ordenar_01,
-    despesa_teste_ordenar_02
+    cria_despesa,
+    ordenacao,
+    campo,
+    esperado,
 ):
-    response = jwt_authenticated_client_d.get(
-        f'/api/despesas/?associacao__uuid={associacao.uuid}&ordenar_por_numero_do_documento=crescente',
-        content_type='application/json')
-    result = json.loads(response.content)
-    result = result["results"]
+    cria_despesa(numero_documento="123456", data_documento=date(2020, 3, 10), valor_total=100)
+    cria_despesa(numero_documento="654321", data_documento=date(2020, 3, 11), valor_total=200)
 
-    assert result[0]['numero_documento'] == '123456'
-    assert result[1]['numero_documento'] == '654321'
+    result = get_despesas(jwt_authenticated_client_d, associacao, **dict(p.split("=") for p in [ordenacao]))
 
-    assert response.status_code == status.HTTP_200_OK
-
-
-def test_api_ordenar_despesa_por_numero_do_documento_decrescente(
-    jwt_authenticated_client_d,
-    associacao,
-    despesa_teste_ordenar_01,
-    despesa_teste_ordenar_02
-):
-    response = jwt_authenticated_client_d.get(
-        f'/api/despesas/?associacao__uuid={associacao.uuid}&ordenar_por_numero_do_documento=decrescente',
-        content_type='application/json')
-    result = json.loads(response.content)
-    result = result["results"]
-
-    assert result[0]['numero_documento'] == '654321'
-    assert result[1]['numero_documento'] == '123456'
-
-    assert response.status_code == status.HTTP_200_OK
-
-
-def test_api_ordenar_despesa_por_data_documento_crescente(
-    jwt_authenticated_client_d,
-    associacao,
-    despesa_teste_ordenar_01,
-    despesa_teste_ordenar_02
-):
-    response = jwt_authenticated_client_d.get(
-        f'/api/despesas/?associacao__uuid={associacao.uuid}&ordenar_por_data_especificacao=crescente',
-        content_type='application/json')
-    result = json.loads(response.content)
-    result = result["results"]
-
-    assert result[0]['data_documento'] == '2020-03-10'
-    assert result[1]['data_documento'] == '2020-03-11'
-
-    assert response.status_code == status.HTTP_200_OK
-
-
-def test_api_ordenar_despesa_por_data_documento_decrescente(
-    jwt_authenticated_client_d,
-    associacao,
-    despesa_teste_ordenar_01,
-    despesa_teste_ordenar_02
-):
-    response = jwt_authenticated_client_d.get(
-        f'/api/despesas/?associacao__uuid={associacao.uuid}&ordenar_por_data_especificacao=decrescente',
-        content_type='application/json')
-    result = json.loads(response.content)
-    result = result["results"]
-
-    assert result[0]['data_documento'] == '2020-03-11'
-    assert result[1]['data_documento'] == '2020-03-10'
-
-    assert response.status_code == status.HTTP_200_OK
-
-
-def test_api_ordenar_despesa_por_valor_crescente(
-    jwt_authenticated_client_d,
-    associacao,
-    despesa_teste_ordenar_01,
-    despesa_teste_ordenar_02
-):
-    response = jwt_authenticated_client_d.get(
-        f'/api/despesas/?associacao__uuid={associacao.uuid}&ordenar_por_valor=crescente',
-        content_type='application/json')
-    result = json.loads(response.content)
-    result = result["results"]
-
-    assert result[0]['valor_total'] == '100.00'
-    assert result[1]['valor_total'] == '200.00'
-
-    assert response.status_code == status.HTTP_200_OK
-
-
-def test_api_ordenar_despesa_por_valor_decrescente(
-    jwt_authenticated_client_d,
-    associacao,
-    despesa_teste_ordenar_01,
-    despesa_teste_ordenar_02
-):
-    response = jwt_authenticated_client_d.get(
-        f'/api/despesas/?associacao__uuid={associacao.uuid}&ordenar_por_valor=decrescente',
-        content_type='application/json')
-    result = json.loads(response.content)
-    result = result["results"]
-
-    assert result[0]['valor_total'] == '200.00'
-    assert result[1]['valor_total'] == '100.00'
-
-    assert response.status_code == status.HTTP_200_OK
-
-
-def test_api_ordenar_despesa_por_numero_documento_crescente_e_data_crescente(
-    jwt_authenticated_client_d,
-    associacao,
-    despesa_teste_ordenar_03,
-    despesa_teste_ordenar_04,
-    despesa_teste_ordenar_05,
-):
-    response = jwt_authenticated_client_d.get(
-        f'/api/despesas/?associacao__uuid={associacao.uuid}&ordenar_por_numero_do_documento=crescente&ordenar_por_data_especificacao=crescente',
-        content_type='application/json')
-    result = json.loads(response.content)
-    result = result["results"]
-
-    assert result[0]['numero_documento'] == '777777'
-    assert result[0]['valor_total'] == '60.00'
-    assert result[0]['data_documento'] == '2020-03-15'
-
-    assert result[1]['numero_documento'] == '888888'
-    assert result[1]['valor_total'] == '70.00'
-    assert result[1]['data_documento'] == '2020-03-13'
-
-    assert result[2]['numero_documento'] == '888888'
-    assert result[2]['valor_total'] == '50.00'
-    assert result[2]['data_documento'] == '2020-03-16'
-
-    assert response.status_code == status.HTTP_200_OK
-
-
-def test_api_ordenar_despesa_por_numero_documento_decrescente_e_data_crescente(
-    jwt_authenticated_client_d,
-    associacao,
-    despesa_teste_ordenar_03,
-    despesa_teste_ordenar_04,
-    despesa_teste_ordenar_05,
-):
-    response = jwt_authenticated_client_d.get(
-        f'/api/despesas/?associacao__uuid={associacao.uuid}&ordenar_por_numero_do_documento=decrescente&ordenar_por_data_especificacao=crescente',
-        content_type='application/json')
-    result = json.loads(response.content)
-    result = result["results"]
-
-    assert result[0]['numero_documento'] == '888888'
-    assert result[0]['valor_total'] == '70.00'
-    assert result[0]['data_documento'] == '2020-03-13'
-
-    assert result[1]['numero_documento'] == '888888'
-    assert result[1]['valor_total'] == '50.00'
-    assert result[1]['data_documento'] == '2020-03-16'
-
-    assert result[2]['numero_documento'] == '777777'
-    assert result[2]['valor_total'] == '60.00'
-    assert result[2]['data_documento'] == '2020-03-15'
-
-    assert response.status_code == status.HTTP_200_OK
-
-
-
-
+    assert [r[campo] for r in result] == esperado

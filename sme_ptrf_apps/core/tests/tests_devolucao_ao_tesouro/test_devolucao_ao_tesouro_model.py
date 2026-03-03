@@ -8,10 +8,10 @@ from ....despesas.models import Despesa
 
 pytestmark = pytest.mark.django_db
 
+
 @pytest.fixture
-def despesa(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=date(2020, 3, 10),
@@ -22,6 +22,7 @@ def despesa(associacao, tipo_documento, tipo_transacao):
         data_transacao=date(2020, 3, 10),
         valor_total=100.00,
     )
+
 
 @pytest.fixture
 def tipo_devolucao_ao_tesouro():

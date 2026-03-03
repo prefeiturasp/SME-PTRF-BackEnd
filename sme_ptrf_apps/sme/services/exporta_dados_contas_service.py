@@ -21,6 +21,7 @@ CABECALHO_CONTA = (
         ("Nome Unidade", "associacao__unidade__nome"),
         ("Nome Associação", "associacao__nome"),
         ("DRE", "associacao__unidade__dre__nome"),
+        ("Recurso", "tipo_conta__recurso__nome"),
         ("Nome do tipo de conta", "tipo_conta__nome"),
         ("Data de criação da conta", "criado_em"),
         ("Data de início da conta", "data_inicio"),
@@ -104,6 +105,11 @@ class ExportacaoDadosContasService:
                 for _, campo in self.cabecalho:
 
                     # Removendo ponto e vírgula e substituindo por vírgula
+                    if campo == "tipo_conta__recurso__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
                     if campo == "associacao__unidade__nome":
                         campo = get_recursive_attr(instance, campo)
                         linha.append(campo.replace(";", ",") if campo else "")

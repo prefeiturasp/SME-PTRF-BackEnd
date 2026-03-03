@@ -1,3 +1,4 @@
+import logging
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
@@ -11,13 +12,15 @@ from django.db.models.deletion import ProtectedError
 import django_filters
 from waffle.mixins import WaffleFlagMixin
 
-from sme_ptrf_apps.paa.models import AcaoPdde, ReceitaPrevistaPdde, PeriodoPaa
+from sme_ptrf_apps.paa.models import AcaoPdde, ReceitaPrevistaPdde
 from ..serializers.acao_pdde_serializer import AcaoPddeSerializer
 from ..serializers.receita_prevista_pdde_serializer import ReceitasPrevistasPDDEValoresSerializer
-
+from sme_ptrf_apps.paa.services.acoes_pdde_service import ExcluirAcaoPDDEException
 from ....core.api.utils.pagination import CustomPagination
 
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
+
+logger = logging.getLogger(__name__)
 
 
 class AcaoPddeFiltro(django_filters.FilterSet):
@@ -139,23 +142,25 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
+        from sme_ptrf_apps.paa.services import AcoesPddeService
         """ Método para inativar uma Ação PDDE com validações específicas """
         try:
             obj = self.get_object()
-            periodo_vigente = PeriodoPaa.periodo_vigente()
-            receitas_previstas_periodo_vigente = obj.receitaprevistapdde_set.filter(
-                paa__periodo_paa=periodo_vigente).exists()
+            service = AcoesPddeService(obj)
+            service.excluir_acao_pdde()
 
-            if receitas_previstas_periodo_vigente:
-                return Response(
-                    {"detail": (
-                        "Esta ação PDDE não pode ser excluída porque está sendo utilizada em "
-                        "um Plano Anual de Atividades (PAA).")},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            else:
-                return super().destroy(request, *args, **kwargs)
+            # ao Remover a Ação PDDE, caso não haja nenhum vínculo no período vigente,
+            # também pode cair no Protected erro, quando houver PAA anteriores ao periodo vigente
+            # Em caso de Protected erro, inativa a Ação PDDE
+            return super().destroy(request, *args, **kwargs)
+
+        except ExcluirAcaoPDDEException as e:
+            return Response(
+                {"detail": f"{str(e)}"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         except ProtectedError:
+            logger.info(f"ProtectedError ao excluir Ação PDDE {str(obj)}. Inativando Ação.")
             obj.status = AcaoPdde.STATUS_INATIVA
             obj.save()
 

@@ -68,6 +68,13 @@ class RateioDespesaCreateSerializer(serializers.ModelSerializer):
         allow_null=True
     )
 
+    valor_rateio = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        required=True,
+        allow_null=False
+    )
+
     class Meta:
         model = RateioDespesa
         exclude = ('id', 'despesa')

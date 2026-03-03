@@ -1724,9 +1724,8 @@ def especificacao_ar_condicionado(tipo_aplicacao_recurso_capital):
 
 # despesa_no_periodo
 @pytest.fixture
-def despesa_no_periodo(associacao, tipo_documento, tipo_transacao, periodo):
-    return baker.make(
-        'Despesa',
+def despesa_no_periodo(despesa_factory, associacao, tipo_documento, tipo_transacao, periodo):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=periodo.data_inicio_realizacao_despesas + timedelta(days=3),
@@ -1903,9 +1902,8 @@ def rateio_no_periodo_1500_capital_outra_conta(associacao, despesa_no_periodo, c
 
 # despesa_fora_do_periodo
 @pytest.fixture
-def despesa_fora_periodo(associacao, tipo_documento, tipo_transacao, periodo):
-    return baker.make(
-        'Despesa',
+def despesa_fora_periodo(despesa_factory, associacao, tipo_documento, tipo_transacao, periodo):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=periodo.data_inicio_realizacao_despesas - timedelta(days=1),
@@ -2463,9 +2461,8 @@ def analise_lancamento_receita_prestacao_conta_2020_1_com_justificativa(
 
 
 @pytest.fixture
-def despesa_no_periodo_2020_1(prestacao_conta_2020_1_conciliada, tipo_documento, tipo_transacao, periodo_2020_1):
-    return baker.make(
-        'Despesa',
+def despesa_no_periodo_2020_1(despesa_factory, prestacao_conta_2020_1_conciliada, tipo_documento, tipo_transacao, periodo_2020_1):
+    return despesa_factory(
         associacao=prestacao_conta_2020_1_conciliada.associacao,
         numero_documento='123456',
         data_documento=periodo_2020_1.data_inicio_realizacao_despesas + timedelta(days=3),

@@ -36,19 +36,25 @@ class Acao(ModeloIdNome):
         return self.prioridades_paa_em_elaboracao_acao_ptrf().exists()
 
     def prioridades_paa_em_elaboracao_acao_ptrf(self):
-        from sme_ptrf_apps.paa.models import PrioridadePaa
-        from sme_ptrf_apps.paa.enums import PaaStatusEnum, RecursoOpcoesEnum
-        return PrioridadePaa.objects.filter(
-            paa__status=PaaStatusEnum.EM_ELABORACAO.name,
+        from sme_ptrf_apps.paa.models import PrioridadePaa, Paa
+        from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum
+        # Utilizando aqui o Queryset de PAA(por ser FK), para obter os PAA em elaboração em
+        # um subquery de Prioridades
+        paas_em_elaboracao = Paa.objects.filter(pk=models.OuterRef('paa_id')).paas_em_elaboracao()
+        prioridades = PrioridadePaa.objects.filter(
+            models.Exists(paas_em_elaboracao),
             recurso=RecursoOpcoesEnum.PTRF.name,
             acao_associacao__acao=self
         )
+        return prioridades
 
     def receitas_previstas_paa_em_elaboracao_acao_ptrf(self):
-        from sme_ptrf_apps.paa.models import ReceitaPrevistaPaa
-        from sme_ptrf_apps.paa.enums import PaaStatusEnum
+        from sme_ptrf_apps.paa.models import ReceitaPrevistaPaa, Paa
+        # Utilizando aqui o Queryset de PAA(por ser FK), para obter os PAA em elaboração em
+        # um subquery de Receita prevista
+        paas_em_elaboracao = Paa.objects.filter(pk=models.OuterRef('paa_id')).paas_em_elaboracao()
         return ReceitaPrevistaPaa.objects.filter(
-            paa__status=PaaStatusEnum.EM_ELABORACAO.name,
+            models.Exists(paas_em_elaboracao),
             acao_associacao__acao__uuid=str(self.uuid)
         )
 

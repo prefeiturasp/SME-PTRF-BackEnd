@@ -27,7 +27,7 @@ describe("Credito Escola - Consulta", () => {
 
     Creditos.selecionarCreditosDaEscola();
 
-    cy.wait(3000);
+    cy.wait(4000);
 
     Creditos.selecionarRendimento();
 

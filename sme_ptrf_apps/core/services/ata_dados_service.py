@@ -43,7 +43,10 @@ def get_despesas_com_pagamento_antecipado(ata):
 
     from sme_ptrf_apps.core.services.associacoes_service import retorna_despesas_com_pagamento_antecipado_por_periodo
 
-    despesas_com_pagamento_antecipado = retorna_despesas_com_pagamento_antecipado_por_periodo(associacao=associacao, periodo=periodo)
+    despesas_com_pagamento_antecipado = retorna_despesas_com_pagamento_antecipado_por_periodo(
+        associacao=associacao,
+        periodo=periodo
+    )
 
     return despesas_com_pagamento_antecipado
 

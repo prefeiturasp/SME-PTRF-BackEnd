@@ -33,6 +33,7 @@ def periodo_2020_1(periodo_factory, periodo_2019_2):
         periodo_anterior=periodo_2019_2
     )
 
+
 @pytest.fixture
 def periodo_2022_1(periodo_factory, periodo_2019_2):
     return periodo_factory(
@@ -227,9 +228,8 @@ def especificacao_instalacao_eletrica(tipo_aplicacao_recurso_custeio, tipo_custe
 
 
 @pytest.fixture
-def despesa_2020_1(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2020_1(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -288,9 +288,9 @@ def rateio_despesa_2020_role_custeio_conferido_outra_conta(associacao, despesa_2
 
 @pytest.fixture
 def rateio_despesa_2020_role_capital_conferido_nao_exibir_em_relacao_de_bens(associacao, despesa_2020_1, conta_associacao_cartao, acao,
-                                               tipo_aplicacao_recurso_capital,
-                                               tipo_custeio_servico,
-                                               especificacao_ar_condicionado, acao_associacao_role_cultural):
+                                                                             tipo_aplicacao_recurso_capital,
+                                                                             tipo_custeio_servico,
+                                                                             especificacao_ar_condicionado, acao_associacao_role_cultural):
     return baker.make(
         'RateioDespesa',
         despesa=despesa_2020_1,
@@ -309,6 +309,7 @@ def rateio_despesa_2020_role_capital_conferido_nao_exibir_em_relacao_de_bens(ass
         numero_processo_incorporacao_capital="123456"
 
     )
+
 
 @pytest.fixture
 def rateio_despesa_2020_role_capital_conferido(associacao, despesa_2020_1, conta_associacao_cartao, acao,
@@ -376,9 +377,8 @@ def rateio_despesa_2020_ptrf_conferido(associacao, despesa_2020_1, conta_associa
 
 
 @pytest.fixture
-def despesa_2019_2(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2019_2(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2019, 6, 10),

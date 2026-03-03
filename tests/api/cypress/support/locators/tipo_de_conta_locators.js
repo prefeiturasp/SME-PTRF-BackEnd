@@ -50,7 +50,7 @@ class Tipo_de_conta_Localizadores {
 
   // edicao tipo conta
   btn_editar = () => {
-    return '[class="btn-editar-membro"]';
+    return "tbody > tr:nth-child(1) > td:nth-child(2) > button > span";
   };
 
   // edicao tipo conta

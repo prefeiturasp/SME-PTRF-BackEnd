@@ -36,7 +36,6 @@ def test_dados_esperados_csv(membros_apm_fixture_mock, ambiente):
 
     dados = ExportacaoDadosMembrosApmLegadoService(queryset=queryset).monta_dados()
     linha_individual = dados[0]
-    print(linha_individual)
     resultado_esperado = [
         queryset[0].associacao.unidade.codigo_eol,
         queryset[0].associacao.unidade.tipo_unidade,

@@ -25,6 +25,7 @@ CABECALHO_RATEIOS = [
     ('Nome Unidade', 'associacao__unidade__nome'),
     ('Nome Associação', 'associacao__nome'),
     ('DRE', 'associacao__unidade__dre__nome'),
+    ('Recurso', 'despesa__recurso__nome'),
     ('ID do Gasto', 'despesa__id'),
     ('Número do documento', 'despesa__numero_documento'),
     ('Tipo de documento', 'despesa__tipo_documento__nome'),
@@ -152,6 +153,11 @@ class ExportacoesRateiosService:
             for _, campo in self.cabecalho:
 
                 # Removendo ponto e vírgula e substituindo por vírgula
+                if campo == "despesa__recurso__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
+
                 if campo == "associacao__unidade__nome":
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo.replace(";", ",") if campo else "")

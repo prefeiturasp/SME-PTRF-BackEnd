@@ -26,8 +26,8 @@ def payload_despesa_rateio_com_conta_nao_iniciada(
         "cpf_cnpj_fornecedor": "36.352.197/0001-75",
         "nome_fornecedor": "FORNECEDOR TESTE SA",
         "data_transacao": "2018-12-31",
-        "valor_total": 11000.50,
-        "valor_recursos_proprios": 1000.50,
+        "valor_total": 1000.00,
+        "valor_recursos_proprios": 0,
         "motivos_pagamento_antecipado": [],
         "outros_motivos_pagamento_antecipado": "",
         "rateios": [
@@ -69,8 +69,8 @@ def payload_despesa_rateio_com_conta_encerrada(
         "cpf_cnpj_fornecedor": "36.352.197/0001-75",
         "nome_fornecedor": "FORNECEDOR TESTE SA",
         "data_transacao": "2019-10-02",
-        "valor_total": 11000.50,
-        "valor_recursos_proprios": 1000.50,
+        "valor_total": 1000.00,
+        "valor_recursos_proprios": 0,
         "motivos_pagamento_antecipado": [],
         "outros_motivos_pagamento_antecipado": "",
         "rateios": [
@@ -111,8 +111,8 @@ def payload_despesa_rateio_imposto_com_conta_nao_iniciada(
         "cpf_cnpj_fornecedor": "36.352.197/0001-75",
         "nome_fornecedor": "FORNECEDOR TESTE SA",
         "data_transacao": "2019-05-01",
-        "valor_total": 11000.50,
-        "valor_recursos_proprios": 1000.50,
+        "valor_total": 1000.00,
+        "valor_recursos_proprios": 0,
         "motivos_pagamento_antecipado": [],
         "outros_motivos_pagamento_antecipado": "",
         "rateios": [
@@ -176,8 +176,8 @@ def payload_despesa_rateio_imposto_com_conta_encerrada(
         "cpf_cnpj_fornecedor": "36.352.197/0001-75",
         "nome_fornecedor": "FORNECEDOR TESTE SA",
         "data_transacao": "2019-05-01",
-        "valor_total": 11000.50,
-        "valor_recursos_proprios": 1000.50,
+        "valor_total": 1000.00,
+        "valor_recursos_proprios": 0,
         "motivos_pagamento_antecipado": [],
         "outros_motivos_pagamento_antecipado": "",
         "rateios": [
@@ -238,7 +238,7 @@ def test_api_post_despesa_rateio_com_conta_nao_iniciada(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     assert 'mensagem' in response.json()
-    assert "Um ou mais rateios possuem conta com data de início posterior a data de transação." in response.json()['mensagem']
+    assert "Um ou mais rateios possuem conta com data de início posterior à data de transação." in response.json()['mensagem']
 
 def test_api_post_despesa_rateio_imposto_com_conta_nao_iniciada(
     jwt_authenticated_client_d,
@@ -258,7 +258,7 @@ def test_api_post_despesa_rateio_imposto_com_conta_nao_iniciada(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     assert 'mensagem' in response.json()
-    assert "Um ou mais rateios de imposto possuem conta com data de início posterior a data de transação." in response.json()['mensagem']
+    assert "Um ou mais rateios de imposto possuem conta com data de início posterior à data de transação." in response.json()['mensagem']
 
 def test_api_post_despesa_rateio_com_conta_encerrada_antes_da_data_transacao(
     jwt_authenticated_client_d,
@@ -279,7 +279,7 @@ def test_api_post_despesa_rateio_com_conta_encerrada_antes_da_data_transacao(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     assert 'mensagem' in response.json()
-    assert "Um ou mais rateios possuem conta com data de encerramento anterior a data de transação." in response.json()['mensagem']
+    assert "Um ou mais rateios possuem conta com data de encerramento anterior à data de transação." in response.json()['mensagem']
 
 def test_api_post_despesa_rateio_imposto_com_conta_encerrada_antes_da_data_transacao(
     jwt_authenticated_client_d,
@@ -300,4 +300,4 @@ def test_api_post_despesa_rateio_imposto_com_conta_encerrada_antes_da_data_trans
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     assert 'mensagem' in response.json()
-    assert "Um ou mais rateios de imposto possuem conta com data de encerramento anterior a data de transação." in response.json()['mensagem']
+    assert "Um ou mais rateios de imposto possuem conta com data de encerramento anterior à data de transação." in response.json()['mensagem']

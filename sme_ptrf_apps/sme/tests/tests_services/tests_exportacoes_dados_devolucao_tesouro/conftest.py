@@ -38,9 +38,8 @@ def rateio_despesa_02(associacao, despesa_no_periodo, conta_associacao, acao,tip
     )
 
 @pytest.fixture
-def despesa_no_periodo(associacao, tipo_documento, tipo_transacao, periodo):
-    return baker.make(
-        'Despesa',
+def despesa_no_periodo(despesa_factory, associacao, tipo_documento, tipo_transacao, periodo):
+    return despesa_factory(
         id=10,
         associacao=associacao,
         numero_documento='123456',

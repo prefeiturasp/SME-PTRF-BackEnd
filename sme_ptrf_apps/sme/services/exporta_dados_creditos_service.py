@@ -25,6 +25,7 @@ CABECALHO_RECEITA = [
         ('Nome Unidade', 'associacao__unidade__nome'),
         ('Nome Associação', 'associacao__nome'),
         ('DRE', 'associacao__unidade__dre__nome'),
+        ('Recurso', 'conta_associacao__tipo_conta__recurso__nome'),
         ('ID do crédito', 'id'),
         ('Data do crédito', 'data'),
         ('Valor do crédito', 'valor'),
@@ -164,6 +165,11 @@ class ExportacoesDadosCreditosService:
 
                 for _, campo in self.cabecalho:
                     # Removendo ponto e vírgula e substituindo por vírgula
+                    if campo == "conta_associacao__tipo_conta__recurso__nome":
+                        campo = get_recursive_attr(instance, campo)
+                        linha.append(campo.replace(";", ",") if campo else "")
+                        continue
+
                     if campo == "associacao__unidade__nome":
                         campo = get_recursive_attr(instance, campo)
                         linha.append(campo.replace(";", ",") if campo else "")

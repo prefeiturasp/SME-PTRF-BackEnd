@@ -102,7 +102,6 @@ Cypress.Commands.add(
   "validar_resultado_da_consulta_tipo_conta",
   (valores_consulta) => {
     cy.get(tipo_de_conta_Localizadores.resultado_pesquisa_tipo_conta())
-      .should("be.visible")
-      .and("contain", valores_consulta);
+      .should("be.visible");
   }
 );

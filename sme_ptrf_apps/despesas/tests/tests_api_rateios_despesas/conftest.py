@@ -3,6 +3,7 @@ import datetime
 
 from model_bakery import baker
 
+
 @pytest.fixture
 def payload_despesa_valida(
     associacao,
@@ -112,7 +113,7 @@ def payload_despesa_valida_anterior_periodo_inicial(
         "tipo_documento": tipo_documento.id,
         "tipo_transacao": tipo_transacao.id,
         "numero_documento": "634767",
-        "data_documento": "2000-03-10", # Data anterior ao período inicial da associação
+        "data_documento": "2000-03-10",  # Data anterior ao período inicial da associação
         "cpf_cnpj_fornecedor": "36.352.197/0001-75",
         "nome_fornecedor": "FORNECEDOR TESTE SA",
         "data_transacao": "2000-03-10",
@@ -177,9 +178,8 @@ def payload_despesa_justa(
 
 
 @pytest.fixture
-def despesa_justa(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_justa(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -193,6 +193,7 @@ def despesa_justa(associacao, tipo_documento, tipo_transacao):
         valor_recursos_proprios=10.00,
         valor_original=90.00,
     )
+
 
 @pytest.fixture
 def rateio_despesa_justa(associacao, despesa_justa, conta_associacao, acao, tipo_aplicacao_recurso, tipo_custeio,
@@ -216,6 +217,7 @@ def rateio_despesa_justa(associacao, despesa_justa, conta_associacao, acao, tipo
         valor_original=90.00,
     )
 
+
 @pytest.fixture
 def fechamento_periodo_com_saldo_justo(periodo_2020_1, associacao, conta_associacao, acao_associacao, ):
     from sme_ptrf_apps.core.models import STATUS_FECHADO
@@ -235,6 +237,7 @@ def fechamento_periodo_com_saldo_justo(periodo_2020_1, associacao, conta_associa
         status=STATUS_FECHADO
     )
 
+
 @pytest.fixture
 def fechamento_periodo_com_saldo_justo_outra_acao(periodo_2020_1, associacao, conta_associacao, acao_associacao_role_cultural, ):
     from sme_ptrf_apps.core.models import STATUS_FECHADO
@@ -253,6 +256,7 @@ def fechamento_periodo_com_saldo_justo_outra_acao(periodo_2020_1, associacao, co
         total_despesas_custeio=0,
         status=STATUS_FECHADO
     )
+
 
 @pytest.fixture
 def payload_despesa_maior(

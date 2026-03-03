@@ -118,7 +118,8 @@ def test_quantidade_linha_individual_dados_extracao(relacao_bens_queryset):
     linha_individual = dados[0]
 
     """
-        É esperado que tenha 9 registros sendo eles:
+        É esperado que tenha 13 registros sendo eles:
+            Recurso
             Codigo eol
             Nome unidade
             Nome associacao
@@ -133,7 +134,7 @@ def test_quantidade_linha_individual_dados_extracao(relacao_bens_queryset):
             Data e hora da última atualização
     """
 
-    assert len(linha_individual) == 12
+    assert len(linha_individual) == 13
 
 
 def test_resultado_esperado_dados_extracao(relacao_bens_queryset, ambiente):
@@ -149,6 +150,7 @@ def test_resultado_esperado_dados_extracao(relacao_bens_queryset, ambiente):
         primeira_relacao_bens.prestacao_conta.associacao.unidade.nome,
         primeira_relacao_bens.prestacao_conta.associacao.nome,
         primeira_relacao_bens.prestacao_conta.associacao.unidade.nome_dre,
+        primeira_relacao_bens.prestacao_conta.periodo.recurso.nome,
         primeira_relacao_bens.prestacao_conta.periodo.referencia,
         primeira_relacao_bens.prestacao_conta.status,
         primeira_relacao_bens.conta_associacao.tipo_conta.nome,
@@ -174,6 +176,7 @@ def test_cabecalho(relacao_bens_queryset):
         'Nome Unidade',
         'Nome Associação',
         'DRE',
+        'Recurso',
         'Referência do Período da PC',
         'Status da PC',
         'Nome do tipo de Conta',

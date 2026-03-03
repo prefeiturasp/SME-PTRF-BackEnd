@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.db import transaction
 from django.db.models.aggregates import Sum
 
-from sme_ptrf_apps.core.models import Ata
+from sme_ptrf_apps.core.models import Ata, ContaAssociacao
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.dre.models import Atribuicao
 
@@ -423,7 +423,6 @@ class PrestacaoConta(ModeloBase):
         comentarios_de_analise_relacionados_sem_pc = ComentarioAnalisePrestacao.objects.filter(Q(associacao=self.associacao) &
                                                                                                Q(periodo=self.periodo) &
                                                                                                Q(prestacao_conta__isnull=True))
-        print('comentarios_de_analise_relacionados_sem_pc', comentarios_de_analise_relacionados_sem_pc)
         comentarios_de_analise_relacionados_sem_pc.update(prestacao_conta=self, associacao=None, periodo=None)
 
     def get_contas_com_movimento(self, add_sem_movimento_com_saldo=False):
@@ -703,7 +702,10 @@ class PrestacaoConta(ModeloBase):
     def contas_ativas_no_periodo(self):
         contas_a_exibir = []
 
-        for conta in self.associacao.contas.all():
+        contas = self.associacao.contas.all()
+        contas_por_recurso = ContaAssociacao.filter_by_recurso(contas, self.periodo.recurso)
+
+        for conta in contas_por_recurso:
             if conta.ativa_no_periodo(periodo=self.periodo):
                 contas_a_exibir.append(conta)
 

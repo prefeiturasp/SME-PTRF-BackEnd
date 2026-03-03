@@ -1,5 +1,6 @@
 from .base import *  # noqa
 from .base import env
+from corsheaders.defaults import default_headers
 
 # GENERAL
 # ------------------------------------------------------------------------------
@@ -69,3 +70,8 @@ CELERY_TASK_EAGER_PROPAGATES = True
 
 # Alterado para rodar a geração de PDF localmente
 STATIC_URL = "/staticfiles/"
+
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "x-recurso-selecionado",
+]
