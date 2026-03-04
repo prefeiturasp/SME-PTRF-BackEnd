@@ -46,7 +46,7 @@ class TipoReceitaVinculoUnidadeService:
         """
         Vincula todas as unidades.
 
-        Não valida se o recurso precisa de confirmação para vinculo
+        Não valida se o tipo receita precisa de confirmação para vinculo
         Apenas habilita para todas as unidades
 
         Returns:
