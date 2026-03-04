@@ -31,7 +31,7 @@ def test_cabecalho():
         ('Nome Unidade'),
         ('Nome Associação'),
         ('DRE'),
-        ('Recurso'),
+        # ('Recurso'),
         ('CNPJ'),
         ('ID do Período Inicial'),
         ('Referência do Período inicial'),
@@ -84,8 +84,8 @@ def test_filtra_range_data_inicial_e_final(associacao_factory):
 
 
 def test_monta_dados(associacao_factory, periodo_inicial_associacao_factory, periodo_2019_1, recurso_legado):
-    associacao_a = associacao_factory.create()
-    associacao_b = associacao_factory.create(data_de_encerramento=date(2024, 10, 31))
+    associacao_a = associacao_factory.create(periodo_inicial=periodo_2019_1)
+    associacao_b = associacao_factory.create(periodo_inicial=periodo_2019_1, data_de_encerramento=date(2024, 10, 31))
 
     periodo_inicial_associacao_factory(
         associacao=associacao_a,
@@ -106,10 +106,11 @@ def test_monta_dados(associacao_factory, periodo_inicial_associacao_factory, per
     assert len(result) == 2
     assert result[0][0] == queryset[0].unidade.codigo_eol
     assert result[0][1] == queryset[0].unidade.nome
-    assert result[0][4] == periodo_2019_1.recurso.nome
-    assert result[0][6] == str(periodo_2019_1.id)
-    assert result[1][9] == queryset[1].ccm
-    assert result[1][10] == queryset[1].email
+    assert result[0][5] == str(queryset[0].periodo_inicial.id)
+    # assert result[0][4] == periodo_2019_1.recurso.nome
+    # assert result[0][4] == str(periodo_2019_1.id)
+    assert result[1][8] == queryset[1].ccm
+    assert result[1][9] == queryset[1].email
 
 
 def test_rodape(ambiente, usuario_para_teste):
