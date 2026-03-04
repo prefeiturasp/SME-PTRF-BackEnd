@@ -4,7 +4,7 @@ class Dados_das_contas_Localizadores {
 	tbl_conta_1 = () => { return '#dados-conta-id-0' }
 	tbl_conta_2 = () => { return '#dados-conta-id-1' }
 	tbl_banco = () => { return '#dados-conta-id-0 > div.row > div:nth-child(2) > div > input' }
-	tbl_tipo_de_conta = () => { return ':nth-child(3) > .form-group > .form-control' }
+	tbl_tipo_de_conta = () => { return '#dados-conta-id-1 > :nth-child(1) > :nth-child(3) > .form-group > .form-control' }
 	tbl_agencia = () => { return 'div:nth-child(4) > div > input' }
 	tbl_numero_conta = () => { return 'div:nth-child(5) > div > input' }
 	tbl_saldo = () => { return '.saldo-recursos-conta' }	
