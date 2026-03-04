@@ -1,3 +1,5 @@
+from django.apps import apps
+from django.core.exceptions import ValidationError
 from ..models import ProcessoAssociacao
 
 
@@ -73,3 +75,19 @@ def trata_processo_sei_ao_receber_pc_v2(prestacao_conta, processo_sei, acao_proc
         processo_associacao.numero_processo = processo_sei
         processo_associacao.save()
 
+
+def validar_troca_recurso_em_processo_associacao(processo_associacao):
+    PrestacaoConta = apps.get_model('core', 'PrestacaoConta')
+
+    if not processo_associacao.pk:
+        return
+
+    existe_pc = PrestacaoConta.objects.filter(
+        associacao=processo_associacao.associacao, 
+        periodo__in=processo_associacao.periodos.all()
+    ).exists()
+
+    if existe_pc:
+        raise ValidationError(
+            "Não é possível alterar o recurso de um processo de associação já utilizado."
+        )

@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 def gerar_dados_relatorio_acertos(analise_prestacao_conta, previa, usuario=""):
     info_cabecalho = {
+        'recurso': analise_prestacao_conta.prestacao_conta.periodo.recurso.nome,
         'periodo_referencia': analise_prestacao_conta.prestacao_conta.periodo.referencia,
         'data_inicio_periodo': analise_prestacao_conta.prestacao_conta.periodo.data_inicio_realizacao_despesas,
         'data_fim_periodo': analise_prestacao_conta.prestacao_conta.periodo.data_fim_realizacao_despesas

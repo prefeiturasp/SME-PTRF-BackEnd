@@ -648,8 +648,16 @@ class AssociacoesViewSet(ModelViewSet):
     @action(detail=True, url_path='processos', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def processos_da_associacao(self, request, uuid=None):
+        recurso_uuid = request.query_params.get('recurso_uuid')
         associacao = self.get_object()
         processos = associacao.processos.all()
+
+        # Filtragem por recurso se flag estiver ativa
+        if recurso_uuid and flag_is_active(self.request, "premio-excelencia-processo-sei"):
+            processos = processos.filter(recurso__uuid=recurso_uuid)
+        else:
+            processos = processos.filter(recurso__uuid=self.request.recurso.uuid)
+     
         return Response(ProcessoAssociacaoRetrieveSerializer(processos, many=True).data)
 
     @action(detail=False, methods=['get'], url_path='eol',
