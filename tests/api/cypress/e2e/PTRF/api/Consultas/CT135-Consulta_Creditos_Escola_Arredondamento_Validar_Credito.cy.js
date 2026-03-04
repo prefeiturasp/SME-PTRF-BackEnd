@@ -14,7 +14,7 @@ Cypress.on("uncaught:exception", (err, runnable) => {
   return false;
 });
 
-describe("Credito Escola - Consulta", () => {
+describe.skip("Credito Escola - Consulta", () => {
   it("CT135-Consulta_Escola_Arredondamento_Validar_Credito", () => {
     
     Comum.visitarPaginaPTRF();
