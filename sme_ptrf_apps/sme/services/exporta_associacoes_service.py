@@ -3,7 +3,6 @@ from datetime import datetime
 import logging
 from tempfile import NamedTemporaryFile
 
-from django.db.models import F
 from django.core.files import File
 from django.utils.timezone import make_aware
 from django.db.models import QuerySet
@@ -24,10 +23,12 @@ CABECALHO_ASSOCIACOES = [
     ('Nome Unidade', 'unidade__nome', lambda x: x.replace(";", ",") if x else ""),
     ('Nome Associação', 'nome', lambda x: x.replace(";", ",") if x else ""),
     ('DRE', 'unidade__dre__nome', lambda x: x.replace(";", ",") if x else ""),
-    ('Recurso', 'recurso_nome', lambda x: x.replace(";", ",") if x else ""),
+    # ('Recurso', 'recurso_nome', lambda x: x.replace(";", ",") if x else ""),
     ('CNPJ', 'cnpj', lambda x: x.replace(";", ",") if x else ""),
-    ('ID do Período Inicial', 'id_periodo_inicial', lambda x: str(x).replace(";", ",") if x else ""),
-    ('Referência do Período inicial', 'referencia_periodo_inicial', lambda x: x.replace(";", ",") if x else ""),
+    # ('ID do Período Inicial', 'id_periodo_inicial', lambda x: str(x).replace(";", ",") if x else ""),
+    # ('Referência do Período inicial', 'referencia_periodo_inicial', lambda x: x.replace(";", ",") if x else ""),
+    ('ID do Período Inicial', 'periodo_inicial__id', lambda x: str(x).replace(";", ",") if x else ""),
+    ('Referência do Período inicial', 'periodo_inicial__referencia', lambda x: x.replace(";", ",") if x else ""),    
     ('Data de encerramento', 'data_de_encerramento', lambda x: x.strftime("%d/%m/%Y") if x else ""),
     ('CCM', 'ccm', lambda x: x.replace(";", ",") if x else ""),
     ('E-mail', 'email', lambda x: x.replace(";", ",") if x else ""),
@@ -44,16 +45,16 @@ class ExportaAssociacoesService:
     def __init__(self, **kwargs):
         self.queryset = kwargs.get('queryset', None)
 
-        if self.queryset:
-            self.queryset = (
-                self.queryset
-                .annotate(
-                    recurso_nome=F("periodos_iniciais__recurso__nome"),
-                    id_periodo_inicial=F("periodos_iniciais__periodo_inicial__id"),
-                    referencia_periodo_inicial=F("periodos_iniciais__periodo_inicial__referencia"),
-                )
-                .order_by("id")
-            )
+        # if self.queryset:
+        #     self.queryset = (
+        #         self.queryset
+        #         .annotate(
+        #             recurso_nome=F("periodos_iniciais__recurso__nome"),
+        #             id_periodo_inicial=F("periodos_iniciais__periodo_inicial__id"),
+        #             referencia_periodo_inicial=F("periodos_iniciais__periodo_inicial__referencia"),
+        #         )
+        #         .order_by("id")
+        #     )
 
         self.data_inicio = kwargs.get('data_inicio', None)
         self.data_final = kwargs.get('data_final', None)

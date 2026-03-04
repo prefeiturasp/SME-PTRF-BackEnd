@@ -19,13 +19,12 @@ from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (
 from sme_ptrf_apps.utils.built_in_custom import get_recursive_attr
 from sme_ptrf_apps.core.models.ambiente import Ambiente
 
-
 CABECALHO_RECEITA = [
         ('Código EOL', 'associacao__unidade__codigo_eol'),
         ('Nome Unidade', 'associacao__unidade__nome'),
         ('Nome Associação', 'associacao__nome'),
         ('DRE', 'associacao__unidade__dre__nome'),
-        ('Recurso', 'conta_associacao__tipo_conta__recurso__nome'),
+        # ('Recurso', 'conta_associacao__tipo_conta__recurso__nome'),
         ('ID do crédito', 'id'),
         ('Data do crédito', 'data'),
         ('Valor do crédito', 'valor'),
