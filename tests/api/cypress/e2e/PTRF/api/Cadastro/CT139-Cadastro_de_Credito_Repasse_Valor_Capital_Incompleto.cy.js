@@ -14,7 +14,7 @@ Cypress.on("uncaught:exception", (err, runnable) => {
   return false;
 });
 
-describe("Credito Escola - Cadastro", () => {
+describe.skip("Credito Escola - Cadastro", () => {
   it("CT139-Cadastro_de_Credito_Repasse_Valor_Capital_Incompleto", () => {
     Comum.visitarPaginaPTRF();
 

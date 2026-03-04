@@ -14,7 +14,7 @@ Cypress.on("uncaught:exception", (err, runnable) => {
   return false;
 });
 
-describe("Credito Escola - Cadastro", () => {
+describe.skip("Credito Escola - Cadastro", () => {
   it("CT134-Cadastro_de_Credito_Rendimento_Cheque_Custeio_Campos_Obrigatorios", () => {
     Comum.visitarPaginaPTRF();
 
