@@ -25,7 +25,7 @@ CABECALHO_RATEIOS = [
     ('Nome Unidade', 'associacao__unidade__nome'),
     ('Nome Associação', 'associacao__nome'),
     ('DRE', 'associacao__unidade__dre__nome'),
-    ('Recurso', 'despesa__recurso__nome'),
+    # ('Recurso', 'despesa__recurso__nome'),
     ('ID do Gasto', 'despesa__id'),
     ('Número do documento', 'despesa__numero_documento'),
     ('Tipo de documento', 'despesa__tipo_documento__nome'),

@@ -136,7 +136,7 @@ def test_quantidade_linha_individual_dados_extracao(demonstrativo_financeiro_que
         Data e hora da última atualização
     """
 
-    assert len(linha_individual) == 15
+    assert len(linha_individual) == 14
 
 
 def test_resultado_esperado_dados_extracao(
@@ -156,7 +156,7 @@ def test_resultado_esperado_dados_extracao(
         primeiro_demonstrativo_financeiro.conta_associacao.associacao.unidade.nome,
         primeiro_demonstrativo_financeiro.conta_associacao.associacao.nome,
         primeiro_demonstrativo_financeiro.conta_associacao.associacao.unidade.nome_dre,
-        primeiro_demonstrativo_financeiro.prestacao_conta.periodo.recurso.nome,
+        # primeiro_demonstrativo_financeiro.prestacao_conta.periodo.recurso.nome,
         primeiro_demonstrativo_financeiro.prestacao_conta.periodo.referencia,
         primeiro_demonstrativo_financeiro.conta_associacao.tipo_conta.nome,
         datetime.date(2020, 7, 1),
@@ -184,7 +184,7 @@ def test_cabecalho(demonstrativo_financeiro_queryset):
         'Nome Unidade',
         'Nome Associação',
         'DRE',
-        'Recurso',
+        # 'Recurso',
         'Referência do Período da PC',
         'Nome do tipo de Conta',
         'Data (Saldo bancário)',
