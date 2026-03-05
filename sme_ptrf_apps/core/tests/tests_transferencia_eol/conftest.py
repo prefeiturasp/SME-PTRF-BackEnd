@@ -169,12 +169,12 @@ def transf_eol_fechamento_periodo(
 
 @pytest.fixture
 def transf_eol_despesa(
+    despesa_factory,
     transf_eol_associacao_eol_transferido,
     tipo_documento,
     tipo_transacao
 ):
-    return baker.make(
-        'Despesa',
+    return despesa_factory(
         associacao=transf_eol_associacao_eol_transferido,
         numero_documento='123456',
         data_documento=datetime.date(2022, 7, 1),
@@ -319,12 +319,12 @@ def transf_eol_conta_associacao_cartao_nova(
 
 @pytest.fixture
 def transf_eol_despesa_2_conta_cheque(
+    despesa_factory,
     transf_eol_associacao_eol_transferido,
     tipo_documento,
     tipo_transacao
 ):
-    return baker.make(
-        'Despesa',
+    return despesa_factory(
         associacao=transf_eol_associacao_eol_transferido,
         numero_documento='78916',
         data_documento=datetime.date(2022, 7, 1),

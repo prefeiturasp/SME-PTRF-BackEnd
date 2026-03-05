@@ -59,8 +59,8 @@ def test_excluir_tipo_documento_sem_despesa(jwt_authenticated_client, tipo_docum
 
 
 @pytest.mark.django_db
-def test_excluir_tipo_documento_com_despesa(jwt_authenticated_client, tipo_documento):
-    Despesa.objects.create(tipo_documento=tipo_documento)
+def test_excluir_tipo_documento_com_despesa(jwt_authenticated_client, tipo_documento, recurso_legado):
+    Despesa.objects.create(recurso=recurso_legado, tipo_documento=tipo_documento)
     url = f"/api/tipos-documento/{tipo_documento.uuid}/"
     response = jwt_authenticated_client.delete(url)
 

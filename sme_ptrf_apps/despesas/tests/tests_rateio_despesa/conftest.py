@@ -20,9 +20,8 @@ def especificacao_instalacao_eletrica(tipo_aplicacao_recurso_custeio, tipo_custe
 
 
 @pytest.fixture
-def despesa_2020_1(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2020_1(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),

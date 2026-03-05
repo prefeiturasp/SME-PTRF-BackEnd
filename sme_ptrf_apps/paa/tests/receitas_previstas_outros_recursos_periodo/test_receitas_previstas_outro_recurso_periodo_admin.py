@@ -8,7 +8,7 @@ def test_list_display(receitas_previstas_outros_recursos_periodo_admin):
 
 def test_search_fields(receitas_previstas_outros_recursos_periodo_admin):
     assert receitas_previstas_outros_recursos_periodo_admin.search_fields == (
-        'outro_recurso_periodo___recurso__nome', 'outro_recurso_periodo__periodo_paa__referencia')
+        'outro_recurso_periodo__outro_recurso__nome', 'outro_recurso_periodo__periodo_paa__referencia')
 
 
 def test_raw_id_fields(receitas_previstas_outros_recursos_periodo_admin):

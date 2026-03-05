@@ -31,10 +31,6 @@ class AcaoSerializer(serializers.ModelSerializer):
             if 'exibir_paa' in validated_data:
                 desabilitando_acao = not (validated_data['exibir_paa'])
                 if desabilitando_acao:
-                    print('desabilitando_acao', desabilitando_acao)
                     desabilitar_acao_ptrf_paa(instance)
-
-            # Chama o service após salvar
-            # (pode ser condicional, dependendo do campo alterado)
 
             return instance

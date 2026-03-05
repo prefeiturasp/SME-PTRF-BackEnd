@@ -1569,7 +1569,9 @@ def previa_informacoes_financeiras_para_atas(associacao, periodo):
         f'Get prévia de info financeiras para ata. Associacao:{associacao.uuid} Período:{periodo}')
 
     info_contas = []
-    for conta_associacao in associacao.contas.all():
+    contas = associacao.contas.all()
+    contas_por_recurso = ContaAssociacao.filter_by_recurso(contas, periodo.recurso)
+    for conta_associacao in contas_por_recurso:
 
         # Faz a verificação se a conta deve ser exibida em função da sua data de inicio
         if conta_associacao.conta_criada_no_periodo_ou_periodo_anteriores(periodo=periodo):

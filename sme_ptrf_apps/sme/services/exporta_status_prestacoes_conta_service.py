@@ -22,6 +22,7 @@ CABECALHO = [
     ('Nome Unidade', 'associacao__unidade__nome'),
     ('Nome Associação', 'associacao__nome'),
     ('DRE', 'associacao__unidade__dre__nome'),
+    # ('Recurso', 'periodo__recurso__nome'),
     ('Referência do Período da PC', 'periodo__referencia'),
     ('Status da PC', 'status'),
     ('Descrição do motivo aprovação com ressalvas', 'motivos_aprovacao_ressalva'),

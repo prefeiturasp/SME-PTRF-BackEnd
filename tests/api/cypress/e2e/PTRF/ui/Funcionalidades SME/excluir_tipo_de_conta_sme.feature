@@ -4,7 +4,6 @@ Funcionalidade: Excluir Tipo de Conta
   Contexto:
     Dado eu acesso o sistema com a visualização "<visualizacao>"
     E realizo login no sistema PTRF com perfil "SME"
-
 @ignore
   Esquema do Cenário: Validar exclusâo de tipo conta:<caso>
     E excluo o tipo conta com o nome 'teste automatizado' do banco de dados

@@ -67,9 +67,8 @@ def test_api_get_despesas_filtro_por_acao_associacao(jwt_authenticated_client_d,
 
 
 @pytest.fixture
-def despesa_incompleta(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_incompleta(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=None,
@@ -163,7 +162,7 @@ def test_api_get_despesas_filtro_por_status(jwt_authenticated_client_d, associac
 
 @pytest.fixture
 def _rateio_despesa_conferido(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso, tipo_custeio,
-                             especificacao_material_servico, acao_associacao, periodo_2020_1):
+                              especificacao_material_servico, acao_associacao, periodo_2020_1):
     return baker.make(
         'RateioDespesa',
         despesa=despesa,
@@ -186,7 +185,7 @@ def _rateio_despesa_conferido(associacao, despesa, conta_associacao, acao, tipo_
 
 @pytest.fixture
 def _rateio_despesa_nao_conferido(associacao, despesa, conta_associacao, acao, tipo_aplicacao_recurso, tipo_custeio,
-                                 especificacao_material_servico, acao_associacao, periodo_2020_1):
+                                  especificacao_material_servico, acao_associacao, periodo_2020_1):
     return baker.make(
         'RateioDespesa',
         despesa=despesa,
@@ -233,9 +232,8 @@ def test_api_get_despesas_filtro_por_nao_conferido(jwt_authenticated_client_d, a
 
 
 @pytest.fixture
-def despesa_2020_3_10(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2020_3_10(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -270,9 +268,8 @@ def rateio_despesa_2020_3_10(associacao, despesa_2020_3_10, conta_associacao, ac
 
 
 @pytest.fixture
-def despesa_2020_3_11(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2020_3_11(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 11),
@@ -334,9 +331,8 @@ def test_api_get_despesas_filtro_por_periodo(jwt_authenticated_client_d, associa
 
 
 @pytest.fixture
-def despesa_fornecedor_a(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_fornecedor_a(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -372,9 +368,8 @@ def rateio_despesa_fornecedor_a(associacao, despesa_fornecedor_a, conta_associac
 
 
 @pytest.fixture
-def despesa_fornecedor_b(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_fornecedor_b(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 11),

@@ -3,8 +3,6 @@ import json
 import pytest
 from rest_framework import status
 
-from model_bakery import baker
-
 
 pytestmark = pytest.mark.django_db
 
@@ -99,12 +97,12 @@ def payload_despesa_sem_motivos_pagamento_antecipado_e_data_transacao_menor_que_
 
 @pytest.fixture
 def despesa_update_data_transacao_maior_ou_igual_data_documento_e_deve_apagar_motivos_pagamento_antecipado(
+    despesa_factory,
     associacao,
     motivo_pagamento_adiantado_01,
     motivo_pagamento_adiantado_02,
 ):
-    return baker.make(
-        'Despesa',
+    despesa = despesa_factory(
         associacao=associacao,
         tipo_documento=None,
         tipo_transacao=None,
@@ -115,8 +113,24 @@ def despesa_update_data_transacao_maior_ou_igual_data_documento_e_deve_apagar_mo
         data_transacao="2022-03-10",
         valor_total=100,
         valor_recursos_proprios=0,
-        motivos_pagamento_antecipado=[motivo_pagamento_adiantado_01, motivo_pagamento_adiantado_02],
         outros_motivos_pagamento_antecipado="Este é o motivo de pagamento antecipado",
+    )
+    despesa.motivos_pagamento_antecipado.add(motivo_pagamento_adiantado_01)
+    despesa.motivos_pagamento_antecipado.add(motivo_pagamento_adiantado_02)
+    return despesa
+
+
+@pytest.fixture
+def rateio_despesa(
+    despesa_update_data_transacao_maior_ou_igual_data_documento_e_deve_apagar_motivos_pagamento_antecipado,
+    rateio_despesa_factory,
+    conta_associacao,
+    acao_associacao
+):
+    return rateio_despesa_factory(
+        despesa=despesa_update_data_transacao_maior_ou_igual_data_documento_e_deve_apagar_motivos_pagamento_antecipado,
+        acao_associacao=acao_associacao,
+        conta_associacao=conta_associacao
     )
 
 
@@ -125,11 +139,12 @@ def test_put_despesa_update_data_transacao_maior_ou_igual_data_documento_e_deve_
     motivo_pagamento_adiantado_01,
     motivo_pagamento_adiantado_02,
     despesa_update_data_transacao_maior_ou_igual_data_documento_e_deve_apagar_motivos_pagamento_antecipado,
+    rateio_despesa,
     payload_despesa_com_motivos_pagamento_antecipado,
 
 ):
     response = jwt_authenticated_client_d.put(f'/api/despesas/{despesa_update_data_transacao_maior_ou_igual_data_documento_e_deve_apagar_motivos_pagamento_antecipado.uuid}/', data=json.dumps(payload_despesa_com_motivos_pagamento_antecipado),
-                          content_type='application/json')
+                                              content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
 
@@ -152,14 +167,14 @@ def test_post_despesa_sem_motivos_pagamento_antecipado_e_data_transacao_menor_qu
 ):
     response = jwt_authenticated_client_d.post('/api/despesas/', data=json.dumps(
         payload_despesa_sem_motivos_pagamento_antecipado_e_data_transacao_menor_que_data_documento_devo_retornar_excecao),
-                                               content_type='application/json')
+        content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     result = json.loads(response.content)
 
     resultado_esperado = {
-        "detail": "Quando a Data da transação for menor que a Data do Documento é necessário enviar os motivos do pagamento antecipado"
+        "detail": 'Quando a Data da transação for menor que a Data do Documento é necessário informar os motivos do pagamento antecipado.'
     }
 
     assert result == resultado_esperado

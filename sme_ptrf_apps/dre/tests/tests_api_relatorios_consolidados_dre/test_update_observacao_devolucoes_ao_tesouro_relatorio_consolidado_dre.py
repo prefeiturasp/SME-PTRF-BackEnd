@@ -25,9 +25,8 @@ def prestacao_conta(periodo, associacao):
 
 
 @pytest.fixture
-def despesa(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=date(2019, 9, 10),
@@ -135,7 +134,6 @@ def test_api_update_observacao_devolucoes_ao_tesouro_update(
         'observacao': 'Teste devolução ao tesouro alterada.'
     }
 
-
     assert ObsDevolucaoRelatorioConsolidadoDRE.objects.count() == 1
     assert ObsDevolucaoRelatorioConsolidadoDRE.objects.first().observacao == 'Teste devolução ao tesouro'
 
@@ -173,7 +171,6 @@ def test_api_update_observacao_devolucoes_ao_tesouro_delete(
     payload = {
         'observacao': ''
     }
-
 
     assert ObsDevolucaoRelatorioConsolidadoDRE.objects.count() == 1
     assert ObsDevolucaoRelatorioConsolidadoDRE.objects.first().observacao == 'Teste devolução ao tesouro'

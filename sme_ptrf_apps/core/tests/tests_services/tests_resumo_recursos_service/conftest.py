@@ -243,9 +243,8 @@ def rr_receita_110_2020_1_ptrf_cheque_custeio_inativa(rr_associacao, rr_conta_as
 
 
 @pytest.fixture
-def rr_despesa_2020_1(rr_associacao, tipo_documento, tipo_transacao, rr_periodo_2020_1):
-    return baker.make(
-        'Despesa',
+def rr_despesa_2020_1(despesa_factory, rr_associacao, tipo_documento, tipo_transacao, rr_periodo_2020_1):
+    return despesa_factory(
         associacao=rr_associacao,
         numero_documento='123456',
         data_documento=date(2020, 1, 1),
@@ -349,9 +348,8 @@ def rr_rateio_400_2020_1_role_cheque_custeio(
 
 
 @pytest.fixture
-def rr_despesa_2020_2(rr_associacao, tipo_documento, tipo_transacao, rr_periodo_2020_2):
-    return baker.make(
-        'Despesa',
+def rr_despesa_2020_2(despesa_factory, rr_associacao, tipo_documento, tipo_transacao, rr_periodo_2020_2):
+    return despesa_factory(
         associacao=rr_associacao,
         numero_documento='123456',
         data_documento=date(2020, 7, 1),
@@ -387,9 +385,8 @@ def rr_rateio_550_2020_2_ptrf_cheque_custeio(
 
 
 @pytest.fixture
-def rr_despesa_2020_1_inativa(rr_associacao, tipo_documento, tipo_transacao, rr_periodo_2020_1):
-    return baker.make(
-        'Despesa',
+def rr_despesa_2020_1_inativa(despesa_factory, rr_associacao, tipo_documento, tipo_transacao, rr_periodo_2020_1):
+    return despesa_factory(
         associacao=rr_associacao,
         numero_documento='123456',
         data_documento=date(2020, 1, 1),

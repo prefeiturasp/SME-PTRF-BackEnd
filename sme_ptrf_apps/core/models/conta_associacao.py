@@ -239,7 +239,7 @@ class ContaAssociacao(ModeloBase):
         from sme_ptrf_apps.core.models import Periodo
 
         saldo_atual = 0
-        periodo_saldo = Periodo.da_data(data) if data else Periodo.periodo_atual()
+        periodo_saldo = Periodo.da_data_por_recurso(data, self.tipo_conta.recurso) if data else Periodo.periodo_atual()
         if periodo_saldo:
             painel = PainelResumoRecursosService.painel_resumo_recursos(
                 self.associacao, periodo_saldo, self
@@ -490,8 +490,8 @@ class ContaAssociacao(ModeloBase):
         return query.all()
 
     @classmethod
-    def filter_by_recurso(cls, queryset, recurso_uuid):
-        return queryset.filter(tipo_conta__recurso__uuid=recurso_uuid)
+    def filter_by_recurso(cls, queryset, recurso):
+        return queryset.filter(tipo_conta__recurso=recurso)
 
     class Meta:
         verbose_name = "Conta de Associação"

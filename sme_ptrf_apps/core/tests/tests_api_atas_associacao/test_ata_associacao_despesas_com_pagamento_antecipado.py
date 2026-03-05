@@ -89,12 +89,12 @@ def ata_2022_1_teste_ata(prestacao_conta_2022_1_conciliada_teste_ata):
 
 @pytest.fixture
 def despesa_data_transacao_menor_que_data_documento(
+    despesa_factory,
     associacao_teste_ata,
     motivo_pagamento_adiantado_01_teste_ata,
     motivo_pagamento_adiantado_02_teste_ata,
 ):
-    return baker.make(
-        'Despesa',
+    despesa = despesa_factory(
         associacao=associacao_teste_ata,
         tipo_documento=None,
         tipo_transacao=None,
@@ -105,14 +105,31 @@ def despesa_data_transacao_menor_que_data_documento(
         data_transacao="2022-03-09",
         valor_total=100,
         valor_recursos_proprios=0,
-        motivos_pagamento_antecipado=[motivo_pagamento_adiantado_01_teste_ata, motivo_pagamento_adiantado_02_teste_ata],
         outros_motivos_pagamento_antecipado="Este é o motivo de pagamento antecipado",
+    )
+    despesa.motivos_pagamento_antecipado.add(motivo_pagamento_adiantado_01_teste_ata)
+    despesa.motivos_pagamento_antecipado.add(motivo_pagamento_adiantado_02_teste_ata)
+    return despesa
+
+
+@pytest.fixture
+def rateio_despesa_data_transacao_menor_que_data_documento(
+    despesa_data_transacao_menor_que_data_documento,
+    rateio_despesa_factory,
+    conta_associacao,
+    acao_associacao
+):
+    return rateio_despesa_factory(
+        despesa=despesa_data_transacao_menor_que_data_documento,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao
     )
 
 
 def test_retorna_despesa_com_pagamento_antecipado(
     associacao_teste_ata,
     despesa_data_transacao_menor_que_data_documento,
+    rateio_despesa_data_transacao_menor_que_data_documento,
     ata_2022_1_teste_ata,
     prestacao_conta_2022_1_conciliada_teste_ata,
     periodo_2022_1_teste_ata,

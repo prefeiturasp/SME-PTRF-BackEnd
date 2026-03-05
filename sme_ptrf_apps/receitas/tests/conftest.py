@@ -512,9 +512,8 @@ def associacao_saida_recurso(unidade, periodo_anterior):
 
 
 @pytest.fixture
-def despesa_saida_recurso(associacao_saida_recurso, tipo_documento_saida_recurso, tipo_transacao_saida_recurso):
-    return baker.make(
-        'Despesa',
+def despesa_saida_recurso(despesa_factory, associacao_saida_recurso, tipo_documento_saida_recurso, tipo_transacao_saida_recurso):
+    return despesa_factory(
         associacao=associacao_saida_recurso,
         numero_documento='123456',
         data_documento=date(2019, 9, 10),

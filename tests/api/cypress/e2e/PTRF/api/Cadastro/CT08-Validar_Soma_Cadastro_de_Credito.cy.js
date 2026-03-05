@@ -24,7 +24,7 @@ describe("Credito Escola - Cadastro", () => {
 
     Creditos.selecionarCreditosDaEscola();
 
-    cy.wait(2000);
+    cy.wait(4000);
 
     Creditos.selecionarRendimento();
 

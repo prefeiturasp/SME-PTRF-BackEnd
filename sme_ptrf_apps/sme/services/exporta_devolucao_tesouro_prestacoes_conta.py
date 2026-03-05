@@ -36,6 +36,11 @@ CABECALHO = [
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__'
         'prestacao_conta__associacao__unidade__dre__nome',
     ),
+    # (
+    #     'Recurso',
+    #     'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__'
+    #     'prestacao_conta__periodo__recurso__nome'
+    # ),
     (
         'Referência do Período da PC',
         'solicitacao_acerto_lancamento__analise_lancamento__analise_prestacao_conta__'
@@ -194,6 +199,14 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
             rateios = list(instance.solicitacao_acerto_lancamento.analise_lancamento.despesa.rateios.all())
 
             for _, campo in self.cabecalho:
+                if campo == (
+                    "solicitacao_acerto_lancamento__"
+                    "analise_lancamento__analise_prestacao_conta__"
+                    "prestacao_conta__periodo__recurso__nome"
+                ):
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
 
                 if campo == (
                     "solicitacao_acerto_lancamento__analise_lancamento__"

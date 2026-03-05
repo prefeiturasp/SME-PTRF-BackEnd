@@ -63,9 +63,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
 
         qs = Receita.completas.filter(associacao__uuid=associacao_uuid).all().order_by('-data')
 
-        recurso_uuid = self.request.query_params.get('recurso_uuid')
-
-        qs = Receita.filter_by_recurso(qs, recurso_uuid)
+        qs = Receita.filter_by_recurso(qs, self.request.recurso)
 
         data_inicio = self.request.query_params.get('data_inicio')
         data_fim = self.request.query_params.get('data_fim')
@@ -102,13 +100,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
         associacao_uuid = request.query_params.get('associacao_uuid')
         associacao = Associacao.by_uuid(associacao_uuid)
 
-        try:
-            recurso_uuid = request.query_params.get('recurso_uuid')
-            recurso = Recurso.by_uuid(recurso_uuid)
-        except Exception:
-            recurso = None
-
-        qs = ValidaPeriodosReceitaAssociacaoEncerrada(associacao=associacao, recurso=recurso).response
+        qs = ValidaPeriodosReceitaAssociacaoEncerrada(associacao=associacao, recurso=self.request.recurso).response
 
         return Response(PeriodoLookUpSerializer(qs, many=True).data, status=status.HTTP_200_OK)
 
@@ -190,9 +182,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
 
         queryset = Receita.completas.filter(associacao=associacao)
 
-        recurso_uuid = self.request.query_params.get('recurso_uuid')
-
-        queryset = Receita.filter_by_recurso(queryset, recurso_uuid)
+        queryset = Receita.filter_by_recurso(queryset, self.request.recurso)
 
         result = {
             "associacao_uuid": f'{associacao_uuid}',
@@ -225,9 +215,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     @action(detail=False, url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, request):
-
         associacao_uuid = request.query_params.get('associacao_uuid')
-        recurso_uuid = self.request.query_params.get('recurso_uuid')
 
         if associacao_uuid is None:
             erro = {
@@ -237,10 +225,6 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         def get_valores_from(serializer, associacao_uuid):
-            valores = serializer.Meta.model.get_valores(user=request.user, associacao_uuid=associacao_uuid)
-            return serializer(valores, many=True).data if valores else []
-
-        def get_valores_from_do_recurso(serializer, associacao_uuid, recurso_uuid=None):
             model = serializer.Meta.model
 
             valores = model.get_valores(
@@ -248,17 +232,17 @@ class ReceitaViewSet(mixins.CreateModelMixin,
                 associacao_uuid=associacao_uuid
             )
 
-            if recurso_uuid and hasattr(model, "filter_by_recurso"):
-                valores = model.filter_by_recurso(valores, recurso_uuid)
+            if self.request.recurso and hasattr(model, "filter_by_recurso"):
+                valores = model.filter_by_recurso(valores, self.request.recurso)
 
             return serializer(valores, many=True).data if valores else []
 
         result = {
             'tipos_receita': get_valores_from(TipoReceitaEDetalhesSerializer, associacao_uuid=associacao_uuid),
             'categorias_receita': aplicacoes_recurso_to_json(),
-            'acoes_associacao': get_valores_from_do_recurso(AcaoAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid, recurso_uuid=recurso_uuid),
-            'contas_associacao': get_valores_from_do_recurso(ContaAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid, recurso_uuid=recurso_uuid),
-            'periodos': get_valores_from_do_recurso(PeriodoLookUpSerializer, associacao_uuid=associacao_uuid, recurso_uuid=recurso_uuid)
+            'acoes_associacao': get_valores_from(AcaoAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid),
+            'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid),
+            'periodos': get_valores_from(PeriodoLookUpSerializer, associacao_uuid=associacao_uuid)
         }
 
         return Response(result)

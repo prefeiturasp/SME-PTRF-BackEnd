@@ -67,3 +67,19 @@ class PaaStatusEnum(Enum):
     @classmethod
     def to_dict(cls):
         return [dict(key=key.name, value=key.value) for key in cls]
+
+
+class PaaStatusAndamentoEnum(Enum):
+    GERADO = "Gerado"
+    GERADO_PARCIALMENTE = "Gerado parcialmente"
+    EM_ELABORACAO = "Em elaboração"
+    NAO_INICIADO = "Não iniciado"
+    FORA_FLUXO = "Status fora do fluxo"
+
+    @classmethod
+    def choices(cls):
+        return [(key.name, key.value) for key in cls]
+
+    @classmethod
+    def to_dict(cls):
+        return [dict(key=key.name, value=key.value) for key in cls]

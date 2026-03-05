@@ -94,8 +94,8 @@ def receita_2019_2_role_repasse_conferida(associacao, conta_associacao_cartao, a
 
 @pytest.fixture
 def receita_2019_2_role_repasse_conferida_no_periodo(associacao, conta_associacao_cartao,
-                                                       acao_associacao_role_cultural,
-                                                       tipo_receita_repasse, periodo_2020_1):
+                                                     acao_associacao_role_cultural,
+                                                     tipo_receita_repasse, periodo_2020_1):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -150,9 +150,8 @@ def especificacao_cadeira(tipo_aplicacao_recurso_custeio, tipo_custeio_servico):
 
 
 @pytest.fixture
-def despesa_2020_1(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2020_1(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2020, 3, 10),
@@ -250,9 +249,8 @@ def rateio_despesa_2020_ptrf_conferido(associacao, despesa_2020_1, conta_associa
 
 
 @pytest.fixture
-def despesa_2019_2(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def despesa_2019_2(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=datetime.date(2019, 6, 10),
@@ -329,6 +327,7 @@ def rateio_despesa_2019_role_nao_conferido(associacao, despesa_2019_2, conta_ass
 
     )
 
+
 @pytest.fixture
 def repasse_2020_1_capital_pendente(associacao, conta_associacao, acao_associacao, periodo_2020_1):
     return baker.make(
@@ -343,6 +342,7 @@ def repasse_2020_1_capital_pendente(associacao, conta_associacao, acao_associaca
         realizado_capital=False,
         realizado_custeio=True
     )
+
 
 @pytest.fixture
 def repasse_2020_1_custeio_pendente(associacao, conta_associacao, acao_associacao, periodo_2020_1):
@@ -359,6 +359,7 @@ def repasse_2020_1_custeio_pendente(associacao, conta_associacao, acao_associaca
         realizado_custeio=False
     )
 
+
 @pytest.fixture
 def repasse_2019_2_pendente(associacao, conta_associacao, acao_associacao, periodo_2019_2):
     return baker.make(
@@ -373,6 +374,7 @@ def repasse_2019_2_pendente(associacao, conta_associacao, acao_associacao, perio
         realizado_capital=False,
         realizado_custeio=False
     )
+
 
 @pytest.fixture
 def repasse_2020_1_pendente(associacao, conta_associacao, acao_associacao, periodo_2020_1):
@@ -443,8 +445,6 @@ def analise_prestacao_conta_outra_pc(prestacao_conta, devolucao_prestacao_conta_
         prestacao_conta=prestacao_conta,
         devolucao_prestacao_conta=devolucao_prestacao_conta_anterior
     )
-
-
 
 
 @pytest.fixture

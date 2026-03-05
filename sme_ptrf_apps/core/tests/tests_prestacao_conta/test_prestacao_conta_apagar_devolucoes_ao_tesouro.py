@@ -9,9 +9,8 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def tpcadat_despesa(associacao, tipo_documento, tipo_transacao):
-    return baker.make(
-        'Despesa',
+def tpcadat_despesa(despesa_factory, associacao, tipo_documento, tipo_transacao):
+    return despesa_factory(
         associacao=associacao,
         numero_documento='123456',
         data_documento=date(2020, 3, 10),
@@ -28,6 +27,7 @@ def tpcadat_despesa(associacao, tipo_documento, tipo_transacao):
 def tpcadat_tipo_devolucao_ao_tesouro():
     return baker.make('TipoDevolucaoAoTesouro', nome='Teste')
 
+
 @pytest.fixture
 def tpcadat_devolucao_ao_tesouro_1(prestacao_conta_2020_1_conciliada, tpcadat_tipo_devolucao_ao_tesouro, tpcadat_despesa):
     return baker.make(
@@ -41,6 +41,7 @@ def tpcadat_devolucao_ao_tesouro_1(prestacao_conta_2020_1_conciliada, tpcadat_ti
         motivo='teste',
         visao_criacao='DRE'
     )
+
 
 @pytest.fixture
 def tpcadat_devolucao_ao_tesouro_2(prestacao_conta_2020_1_conciliada, tpcadat_tipo_devolucao_ao_tesouro, tpcadat_despesa):
@@ -78,4 +79,3 @@ def test_apagar_devolucoes_ao_tesouro_pode_apagar_varias(
         {"uuid": tpcadat_devolucao_ao_tesouro_2.uuid},
     ])
     assert DevolucaoAoTesouro.objects.count() == 0
-

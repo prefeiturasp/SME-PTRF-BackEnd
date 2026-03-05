@@ -23,6 +23,7 @@ CABECALHO_RELACAO_BENS = [
         ('Nome Unidade', 'conta_associacao__associacao__unidade__nome'),
         ('Nome Associação', 'conta_associacao__associacao__nome'),
         ('DRE', 'conta_associacao__associacao__unidade__dre__nome'),
+        # ('Recurso', 'conta_associacao__tipo_conta__recurso__nome'),
         ('Referência do Período da PC', 'prestacao_conta__periodo__referencia'),
         ('Status da PC', 'prestacao_conta__status'),
         ('Nome do tipo de Conta', 'conta_associacao__tipo_conta__nome'),
@@ -112,6 +113,10 @@ class ExportacoesDadosRelacaoBensService:
             linha_horizontal = []
 
             for _, campo in self.cabecalho:
+                if campo == "conta_associacao__tipo_conta__recurso__nome":
+                    campo = get_recursive_attr(instance, campo)
+                    linha_horizontal.append(campo.replace(";", ",") if campo else "")
+                    continue
 
                 if campo == "conta_associacao__associacao__unidade__nome":
                     campo = get_recursive_attr(instance, campo)

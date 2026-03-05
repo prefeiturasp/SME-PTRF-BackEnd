@@ -36,6 +36,7 @@ def test_dados_esperados_csv(queryset_ordered):
         pc.associacao.unidade.nome,
         pc.associacao.nome,
         pc.associacao.unidade.dre.nome,
+        # pc.periodo.recurso.nome,
         pc.periodo.referencia,
         pc.status,
         despesa.id,
@@ -69,7 +70,6 @@ def test_dados_esperados_csv(queryset_ordered):
             else ''
         ),
     ]
-
     assert linha_individual == resultado_esperado
 
 
@@ -83,6 +83,7 @@ def test_cabecalho():
         'Nome Unidade',
         'Nome Associação',
         'DRE',
+        # 'Recurso',
         'Referência do Período da PC',
         'Status da PC',
         'ID da despesa',

@@ -29,6 +29,7 @@ def arquivo():
 000094;EMEI VICENTE PAULO DA SILVA;6139086000
 000108;EMEF SEN JOSÉ ERMINIO DE MORAIS;1095757000179""", encoding="utf-8"))
 
+
 @pytest.fixture
 def arquivo_com_associacao_encerrada():
     return SimpleUploadedFile(
@@ -58,6 +59,7 @@ def arquivo_carga_ponto_virgula(arquivo):
         tipo_delimitador=DELIMITADOR_PONTO_VIRGULA
     )
 
+
 @pytest.fixture
 def arquivo_carga_associacao_encerrada(arquivo_com_associacao_encerrada):
     return baker.make(
@@ -75,14 +77,15 @@ def test_carga_com_erro_formatacao(arquivo_carga):
     assert arquivo_carga.log == msg
     assert arquivo_carga.status == ERRO
 
+
 def test_carga_com_erro_associacao_encerrada(arquivo_carga_associacao_encerrada, associacao_encerrada_2020_2):
-    
+
     dados = 'sme_ptrf_apps.users.api.views.user.SmeIntegracaoService.get_dados_unidade_eol'
     with patch(dados) as mock_get_dados_unidade:
-        
+
         unidade = associacao_encerrada_2020_2.unidade
         dre = associacao_encerrada_2020_2.unidade.dre
-        
+
         mock_response = mock_get_dados_unidade.return_value
         mock_response.json.return_value = {
             "nomeDRE": dre.nome,
@@ -100,13 +103,12 @@ def test_carga_com_erro_associacao_encerrada(arquivo_carga_associacao_encerrada,
             "bairro": unidade.bairro,
             "cep": unidade.cep,
         }
-        
+
         CargaAssociacoesService().carrega_associacoes(arquivo_carga_associacao_encerrada)
 
         msg = """\nLinha:1 A associação foi encerrada em 31/12/2020.
 0 linha(s) importada(s) com sucesso. 1 erro(s) reportado(s)."""
-        print(arquivo_carga_associacao_encerrada.log)
-        
+
         assert arquivo_carga_associacao_encerrada.log == msg
         assert arquivo_carga_associacao_encerrada.status == ERRO
 

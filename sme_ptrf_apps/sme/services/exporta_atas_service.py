@@ -41,6 +41,7 @@ CABECALHO_ATAS = [
     ('Nome unidade', 'associacao__unidade__nome'),
     ('Nome associação', 'associacao__nome'),
     ('DRE', 'associacao__unidade__dre__nome'),
+    # ('Recurso', 'periodo__recurso__nome'),
     ('Referência do período da PC', 'periodo__referencia'),
     ('Tipo de ata', 'tipo_ata'),
     ('Tipo de reunião', 'tipo_reuniao'),

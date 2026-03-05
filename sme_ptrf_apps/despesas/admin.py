@@ -6,20 +6,19 @@ from .models import TipoTransacao, TipoDocumento, TipoCusteio, EspecificacaoMate
     Fornecedor, MotivoPagamentoAntecipado
 
 
-@admin.register(MotivoPagamentoAntecipado)
-class MotivoPagamentoAntecipadoAdmin(admin.ModelAdmin):
-    list_display = ('motivo', 'uuid')
-    readonly_fields = ('id', 'uuid')
-
-
-def customTitledFilter(title):
+def custom_titled_filter(title):
     class Wrapper(admin.FieldListFilter):
         def __new__(cls, *args, **kwargs):
             instance = admin.FieldListFilter.create(*args, **kwargs)
             instance.title = title
             return instance
-
     return Wrapper
+
+
+@admin.register(MotivoPagamentoAntecipado)
+class MotivoPagamentoAntecipadoAdmin(admin.ModelAdmin):
+    list_display = ('motivo', 'uuid')
+    readonly_fields = ('id', 'uuid')
 
 
 @admin.register(TipoDocumento)
@@ -44,15 +43,15 @@ class RateioDespesaAdmin(admin.ModelAdmin):
         'despesa__numero_documento', 'despesa__nome_fornecedor', 'especificacao_material_servico__descricao',
         'associacao__unidade__codigo_eol', 'associacao__unidade__nome',)
     list_filter = (
-        ('conferido', customTitledFilter('Conferido')),
-        ('tag', customTitledFilter('Tag')),
-        ('associacao__unidade__dre', customTitledFilter('DRE')),
-        ('acao_associacao__acao__nome', customTitledFilter('Ação')),
-        ('conta_associacao__tipo_conta__nome', customTitledFilter('Tipo Conta')),
-        ('aplicacao_recurso', customTitledFilter('Tipo Despesa')),
-        ('tipo_custeio', customTitledFilter('Tipo Custeio')),
-        ('despesa__tipo_documento', customTitledFilter('Tipo Documento')),
-        ('despesa__tipo_transacao', customTitledFilter('Tipo Transacao')),
+        ('conferido', custom_titled_filter('Conferido')),
+        ('tag', custom_titled_filter('Tag')),
+        ('associacao__unidade__dre', custom_titled_filter('DRE')),
+        ('acao_associacao__acao__nome', custom_titled_filter('Ação')),
+        ('conta_associacao__tipo_conta__nome', custom_titled_filter('Tipo Conta')),
+        ('aplicacao_recurso', custom_titled_filter('Tipo Despesa')),
+        ('tipo_custeio', custom_titled_filter('Tipo Custeio')),
+        ('despesa__tipo_documento', custom_titled_filter('Tipo Documento')),
+        ('despesa__tipo_transacao', custom_titled_filter('Tipo Transacao')),
     )
     raw_id_fields = ('despesa', 'associacao', 'acao_associacao', 'conta_associacao', 'especificacao_material_servico')
 
@@ -100,16 +99,18 @@ class PeriodoDaDespesaFilter(admin.SimpleListFilter):
 class DespesaAdmin(admin.ModelAdmin):
     list_display = (
         'tipo_documento', 'numero_documento', 'data_documento', 'nome_fornecedor', 'valor_total', 'status',
-        'associacao', 'retem_imposto', 'despesa_anterior_ao_uso_do_sistema', 'despesa_anterior_ao_uso_do_sistema_pc_concluida')
+        'associacao', 'retem_imposto', 'despesa_anterior_ao_uso_do_sistema', 'despesa_anterior_ao_uso_do_sistema_pc_concluida', 'recurso')
     ordering = ('-data_documento',)
     search_fields = (
         'numero_documento',
         'nome_fornecedor',
         'documento_transacao',
         'associacao__nome',
-        'associacao__unidade__codigo_eol'
+        'associacao__unidade__codigo_eol',
+        'recurso__nome'
     )
     list_filter = (
+        ('recurso__nome_exibicao', custom_titled_filter('Recurso')),
         PeriodoDaDespesaFilter,
         'associacao',
         'associacao__unidade__dre',
@@ -127,7 +128,7 @@ class DespesaAdmin(admin.ModelAdmin):
         'despesa_anterior_ao_uso_do_sistema_pc_concluida',
     )
     inlines = [RateioDespesaInLine, ]
-    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em', 'recurso')
     filter_horizontal = ('despesas_impostos', 'motivos_pagamento_antecipado')
 
     def associacao(self, obj):

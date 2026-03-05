@@ -211,6 +211,7 @@ class RateioDespesa(ModeloBase):
         nao_exibir_em_rel_bens=None,
     ):
         todos_rateios = cls.objects.exclude(status=STATUS_INCOMPLETO) if incluir_inativas else cls.completos
+
         if periodo.data_fim_realizacao_despesas:
             dataset = todos_rateios.filter(conta_associacao=conta_associacao).filter(
                 despesa__data_transacao__range=(
@@ -437,6 +438,13 @@ class RateioDespesa(ModeloBase):
                     totais['total_despesas_nao_conciliadas_custeio'] += despesa.valor_rateio
 
         return totais
+
+    @classmethod
+    def filter_by_recurso(cls, queryset, recurso):
+        if not recurso:
+            return queryset
+
+        return queryset.filter(despesa__recurso=recurso)
 
     class Meta:
         verbose_name = "Rateio de despesa"
