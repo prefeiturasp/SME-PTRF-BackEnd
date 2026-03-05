@@ -7,26 +7,31 @@ from waffle.testutils import override_flag
 
 from sme_ptrf_apps.core.models import ProcessoAssociacao
 from sme_ptrf_apps.core.models.periodo import Periodo
+from sme_ptrf_apps.core.models.recurso import Recurso
 
 pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def payload_processo_associacao_sem_periodos(associacao):
+    recurso_legado = Recurso.objects.get(legado=True)
     payload = {
         'associacao': str(associacao.uuid),
         'numero_processo': "271170",
-        'ano': '2020'
+        'ano': '2020',
+        'recurso': str(recurso_legado.uuid)
     }
     return payload
 
 
 @pytest.fixture
 def payload_processo_associacao_com_periodos(associacao, periodo):
+    recurso_legado = Recurso.objects.get(legado=True)
     payload = {
         'associacao': str(associacao.uuid),
         'numero_processo': "271170",
         'ano': '2019',
-        'periodos': [str(periodo.uuid)]
+        'periodos': [str(periodo.uuid)],
+        'recurso': str(recurso_legado.uuid)
     }
     return payload
 
@@ -37,7 +42,8 @@ def payload_processo_associacao_com_periodos_de_outro_ano(associacao, periodo, p
         'associacao': str(associacao.uuid),
         'numero_processo': "271170",
         'ano': '2019',
-        'periodos': [str(periodo.uuid), str(periodo_2020_1.uuid)]
+        'periodos': [str(periodo.uuid), str(periodo_2020_1.uuid)],
+        'recurso': str(Recurso.objects.get(legado=True).uuid)
     }
     return payload
 
@@ -49,6 +55,7 @@ def processo_associacao_usando_o_mesmo_periodo(associacao, periodo):
         numero_processo='123456',
         ano='2019',
         periodos=[periodo,],
+        recurso=Recurso.objects.get(legado=True)
     )
 
 

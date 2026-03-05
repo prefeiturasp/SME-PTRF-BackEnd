@@ -3,17 +3,20 @@ import json
 import pytest
 from model_bakery import baker
 from rest_framework import status
+from sme_ptrf_apps.core.models import Recurso
 
 pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
 def processo_de_outra_associacao(associacao_sem_periodo_inicial):
+    recurso_legado = Recurso.objects.get(legado=True)
     return baker.make(
         'ProcessoAssociacao',
         associacao=associacao_sem_periodo_inicial,
         numero_processo='777777',
-        ano='2019'
+        ano='2019',
+        recurso=recurso_legado,
     )
 
 

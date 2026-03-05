@@ -32,7 +32,12 @@ def trata_processo_sei_ao_receber_pc(prestacao_conta, processo_sei, acao_process
         processo_associacao.numero_processo = processo_sei
         processo_associacao.save()
     elif acao_processo_sei == 'incluir':
-        ProcessoAssociacao.objects.create(associacao=prestacao_conta.associacao, ano=ano, numero_processo=processo_sei)
+        ProcessoAssociacao.objects.create(
+            associacao=prestacao_conta.associacao,
+            ano=ano,
+            numero_processo=processo_sei,
+            recurso=prestacao_conta.periodo.recurso
+        )
 
 
 def trata_processo_sei_ao_receber_pc_v2(prestacao_conta, processo_sei, acao_processo_sei):
@@ -62,7 +67,8 @@ def trata_processo_sei_ao_receber_pc_v2(prestacao_conta, processo_sei, acao_proc
             processo_associacao = ProcessoAssociacao.objects.create(
                 associacao=prestacao_conta.associacao,
                 numero_processo=processo_sei,
-                ano=prestacao_conta.periodo.referencia[0:4]
+                ano=prestacao_conta.periodo.referencia[0:4],
+                recurso=prestacao_conta.periodo.recurso
             )
             processo_associacao.periodos.add(prestacao_conta.periodo)
 
