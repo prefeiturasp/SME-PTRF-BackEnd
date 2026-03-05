@@ -141,16 +141,15 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         instance = self.get_object()
         unidades_qs = instance.unidades.all()
 
-        if uuid_dre is not None and uuid_dre != "":
+        if uuid_dre:
             unidades_qs = unidades_qs.filter(dre__uuid=uuid_dre)
 
         if tipo_unidade:
             unidades_qs = unidades_qs.filter(tipo_unidade=tipo_unidade)
 
-        if nome_ou_codigo is not None:
+        if nome_ou_codigo:
             unidades_qs = unidades_qs.filter(
-                Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo) | Q(
-                    nome__unaccent__icontains=nome_ou_codigo))
+                Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo))
 
         serializer = UnidadeLookUpSerializer(unidades_qs, many=True)
 
@@ -180,23 +179,18 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         instance = self.get_object()
 
-        if (uuid_dre is None or uuid_dre == "") and (nome_ou_codigo is None or nome_ou_codigo == ""):
-            unidades_nao_vinculadas = Unidade.objects.none()
-        else:
-            todas_unidades = Unidade.objects.all()
+        todas_unidades = Unidade.objects.select_related('dre', 'dre__dre').all()
+        unidades_nao_vinculadas = todas_unidades.exclude(uuid__in=instance.unidades.values_list('uuid', flat=True))
 
-            unidades_nao_vinculadas = todas_unidades.exclude(uuid__in=instance.unidades.values_list('uuid', flat=True))
+        if uuid_dre:
+            unidades_nao_vinculadas = unidades_nao_vinculadas.filter(dre__uuid=uuid_dre)
 
-            if uuid_dre is not None and uuid_dre != "":
-                unidades_nao_vinculadas = unidades_nao_vinculadas.filter(dre__uuid=uuid_dre)
+        if tipo_unidade:
+            unidades_nao_vinculadas = unidades_nao_vinculadas.filter(tipo_unidade=tipo_unidade)
 
-            if tipo_unidade:
-                unidades_nao_vinculadas = unidades_nao_vinculadas.filter(tipo_unidade=tipo_unidade)
-
-            if nome_ou_codigo is not None:
-                unidades_nao_vinculadas = unidades_nao_vinculadas.filter(
-                    Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo) | Q(
-                        nome__unaccent__icontains=nome_ou_codigo))
+        if nome_ou_codigo:
+            unidades_nao_vinculadas = unidades_nao_vinculadas.filter(
+                Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo))
 
         serializer = UnidadeLookUpSerializer(unidades_nao_vinculadas, many=True)
 
