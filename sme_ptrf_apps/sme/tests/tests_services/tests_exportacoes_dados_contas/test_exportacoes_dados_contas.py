@@ -17,7 +17,7 @@ def test_cabecalho():
         'Nome Unidade',
         'Nome Associação',
         'DRE',
-        'Recurso',
+        # 'Recurso',
         'Nome do tipo de conta',
         'Data de criação da conta',
         'Data de início da conta',

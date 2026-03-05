@@ -6,10 +6,10 @@ from sme_ptrf_apps.sme.services.exporta_status_prestacoes_conta_service import E
 pytestmark = pytest.mark.django_db
 
 resultado_esperado = [
-    ['123456', 'Escola Teste', 'Escola Teste', 'DRE teste', 'Programa de Transferência de Recursos Financeiros - PTRF',
+    ['123456', 'Escola Teste', 'Escola Teste', 'DRE teste',
      '2019.2', 'APROVADA_RESSALVA', 'Motivo aprovação 1; Motivo aprovação 2; Teste outro motivo aprovação ressalva',
      'Recomendação teste', ''],
-    ['123456', 'Escola Teste', 'Outra', 'DRE teste', 'Programa de Transferência de Recursos Financeiros - PTRF',
+    ['123456', 'Escola Teste', 'Outra', 'DRE teste',
      '2019.2', 'REPROVADA', '', '', 'Motivo reprovação 1; Motivo reprovação 2; Teste outro motivo reprovação']
 ]
 
@@ -133,7 +133,7 @@ def test_cabecalho(queryset_ordered):
         'Nome Unidade',
         'Nome Associação',
         'DRE',
-        'Recurso',
+        # 'Recurso',
         'Referência do Período da PC',
         'Status da PC',
         'Descrição do motivo aprovação com ressalvas',

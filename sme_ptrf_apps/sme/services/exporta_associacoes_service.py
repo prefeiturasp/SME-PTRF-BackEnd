@@ -23,10 +23,12 @@ CABECALHO_ASSOCIACOES = [
     ('Nome Unidade', 'unidade__nome', lambda x: x.replace(";", ",") if x else ""),
     ('Nome Associação', 'nome', lambda x: x.replace(";", ",") if x else ""),
     ('DRE', 'unidade__dre__nome', lambda x: x.replace(";", ",") if x else ""),
-    ('Recurso', 'periodo_inicial__recurso__nome', lambda x: x.replace(";", ",") if x else ""),
+    # ('Recurso', 'recurso_nome', lambda x: x.replace(";", ",") if x else ""),
     ('CNPJ', 'cnpj', lambda x: x.replace(";", ",") if x else ""),
+    # ('ID do Período Inicial', 'id_periodo_inicial', lambda x: str(x).replace(";", ",") if x else ""),
+    # ('Referência do Período inicial', 'referencia_periodo_inicial', lambda x: x.replace(";", ",") if x else ""),
     ('ID do Período Inicial', 'periodo_inicial__id', lambda x: str(x).replace(";", ",") if x else ""),
-    ('Referência do Período inicial', 'periodo_inicial__referencia', lambda x: x.replace(";", ",") if x else ""),
+    ('Referência do Período inicial', 'periodo_inicial__referencia', lambda x: x.replace(";", ",") if x else ""),    
     ('Data de encerramento', 'data_de_encerramento', lambda x: x.strftime("%d/%m/%Y") if x else ""),
     ('CCM', 'ccm', lambda x: x.replace(";", ",") if x else ""),
     ('E-mail', 'email', lambda x: x.replace(";", ",") if x else ""),
@@ -42,6 +44,18 @@ class ExportaAssociacoesService:
 
     def __init__(self, **kwargs):
         self.queryset = kwargs.get('queryset', None)
+
+        # if self.queryset:
+        #     self.queryset = (
+        #         self.queryset
+        #         .annotate(
+        #             recurso_nome=F("periodos_iniciais__recurso__nome"),
+        #             id_periodo_inicial=F("periodos_iniciais__periodo_inicial__id"),
+        #             referencia_periodo_inicial=F("periodos_iniciais__periodo_inicial__referencia"),
+        #         )
+        #         .order_by("id")
+        #     )
+
         self.data_inicio = kwargs.get('data_inicio', None)
         self.data_final = kwargs.get('data_final', None)
         self.nome_arquivo = kwargs.get('nome_arquivo', None)
@@ -134,7 +148,6 @@ class ExportaAssociacoesService:
             self.cria_rodape(write)
             self.envia_arquivo_central_download(tmp)
 
-
     def monta_dados(self):
         linhas_vertical = []
         for instance in self.queryset:
@@ -146,7 +159,7 @@ class ExportaAssociacoesService:
 
             linha_horizontal = []
 
-            for _, campo, tratamento  in self.cabecalho:
+            for _, campo, tratamento in self.cabecalho:
                 valor = get_recursive_attr(instance, campo)
                 valor_tratado = tratamento(valor)
                 linha_horizontal.append(valor_tratado)

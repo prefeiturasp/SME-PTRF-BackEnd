@@ -251,7 +251,7 @@ Cypress.Commands.add('solicitar_encerramento_dados_das_contas_associacao', (bota
       cy.get(
         dados_das_contas_localizadores.tbl_data_solicitacao_dados_das_contas_associacao())
         .first()
-        .should('be.visible')
+        .should('not.exist')
         .clear()
         .type(dataAtual)
 
@@ -260,7 +260,7 @@ Cypress.Commands.add('solicitar_encerramento_dados_das_contas_associacao', (bota
         .should('be.visible')
         .click()
 
-      cy.get(dados_das_contas_localizadores.mdl_confirmar_encerramento_dados_das_contas_associacao(), { timeout: 15000 })
+      cy.get(dados_das_contas_localizadores.mdl_confirmar_encerramento_dados_das_contas_associacao(), { timeout: 5000 })
         .should('be.visible')
       .within(() => {
       cy.get(dados_das_contas_localizadores.tbl_confirmar_encerramento_dados_das_contas_associacao())

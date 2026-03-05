@@ -26,6 +26,19 @@ def test_congelar_saldos(paa_factory, acao_associacao_factory, periodo_paa_2025_
 
 
 @pytest.mark.django_db
+def test_congelar_saldos_ja_congelado(paa_factory, periodo_paa_2025_1):
+    paa = paa_factory.create(
+        periodo_paa=periodo_paa_2025_1,
+        saldo_congelado_em="2025-01-01"
+    )
+
+    service = SaldosPorAcaoPaaService(paa=paa, associacao=paa.associacao)
+    receitas_previstas = service.congelar_saldos()
+
+    assert receitas_previstas == []
+
+
+@pytest.mark.django_db
 def test_descongelar_saldos(paa_factory, acao_associacao_factory, receita_prevista_paa_factory, periodo_paa_2025_1):
     paa = paa_factory.create(
         periodo_paa=periodo_paa_2025_1,

@@ -34,6 +34,10 @@ class SaldosPorAcaoPaaService:
 
     @transaction.atomic
     def congelar_saldos(self):
+        # Congela o saldo somente se ele ainda não foi congelado. Evita o "recongelamento"(atualiza para o valor atual)
+        if self.paa.saldo_congelado_em:
+            return []
+
         self.paa.set_congelar_saldo()
         self.periodo = Periodo.da_data(self.paa.saldo_congelado_em)
 
