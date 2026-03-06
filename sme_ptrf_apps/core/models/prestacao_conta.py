@@ -992,6 +992,10 @@ class PrestacaoConta(ModeloBase):
 
         return result
 
+    @classmethod
+    def filter_by_recurso(cls, queryset, recurso):
+        return queryset.filter(periodo__recurso=recurso)
+
     class Meta:
         verbose_name = "Prestação de conta"
         verbose_name_plural = "09.0) Prestações de contas"

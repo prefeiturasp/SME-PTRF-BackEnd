@@ -229,10 +229,13 @@ class Associacao(ModeloIdNome):
     def encerrada(self):
         return self.data_de_encerramento is not None
 
-    def periodos_com_prestacao_de_contas(self, ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=False):
+    def periodos_com_prestacao_de_contas(self, ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=False, recurso=None):
+        from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
         periodos = set()
 
         prestacoes_da_associacao = self.prestacoes_de_conta_da_associacao
+        if recurso is not None:
+            prestacoes_da_associacao = PrestacaoConta.filter_by_recurso(prestacoes_da_associacao, recurso)
 
         if self.encerrada:
             prestacoes_da_associacao = prestacoes_da_associacao.filter(
@@ -247,8 +250,12 @@ class Associacao(ModeloIdNome):
 
         return periodos
 
-    def proximo_periodo_de_prestacao_de_contas(self, ignorar_devolvidas=False):
+    def proximo_periodo_de_prestacao_de_contas(self, ignorar_devolvidas=False, recurso=None):
+        from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
         prestacoes_da_associacao = self.prestacoes_de_conta_da_associacao
+
+        if recurso is not None:
+            prestacoes_da_associacao = PrestacaoConta.filter_by_recurso(prestacoes_da_associacao, recurso)
 
         if ignorar_devolvidas:
             prestacoes_da_associacao = prestacoes_da_associacao.exclude(status='DEVOLVIDA')
@@ -267,13 +274,20 @@ class Associacao(ModeloIdNome):
             else:
                 return None
         else:
-            return self.periodo_inicial.periodo_seguinte.first() if self.periodo_inicial else None
+            if not self.periodo_inicial:
+                return None
 
-    def periodos_para_prestacoes_de_conta(self, ignorar_devolvidas=False):
+            qs = self.periodo_inicial.periodo_seguinte.all()
+            if recurso is not None:
+                qs = Periodo.filter_by_recurso(qs, recurso)
+
+            return qs.first()
+
+    def periodos_para_prestacoes_de_conta(self, ignorar_devolvidas=False, recurso=None):
         periodos = set(
-            self.periodos_com_prestacao_de_contas(ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=True))
+            self.periodos_com_prestacao_de_contas(ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=True, recurso=recurso))
 
-        proximo_periodo = self.proximo_periodo_de_prestacao_de_contas(ignorar_devolvidas)
+        proximo_periodo = self.proximo_periodo_de_prestacao_de_contas(ignorar_devolvidas, recurso=recurso)
         if proximo_periodo:
             periodos.add(proximo_periodo)
 

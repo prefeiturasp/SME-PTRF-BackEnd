@@ -608,7 +608,7 @@ class AssociacoesViewSet(ModelViewSet):
     def periodos_para_prestacao_de_contas(self, request, uuid=None):
         associacao = self.get_object()
         ignorar_devolvidas = request.query_params.get('ignorar_devolvidas') == 'true'
-        periodos = associacao.periodos_para_prestacoes_de_conta(ignorar_devolvidas)
+        periodos = associacao.periodos_para_prestacoes_de_conta(ignorar_devolvidas, self.request.recurso)
         return Response(PeriodoLookUpSerializer(periodos, many=True).data)
 
     @action(detail=True, url_path='periodos-ate-agora-fora-implantacao', methods=['get'],
