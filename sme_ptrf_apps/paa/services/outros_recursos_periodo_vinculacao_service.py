@@ -423,7 +423,7 @@ class OutroRecursoPeriodoPaaVinculoUnidadeService(OutroRecursoPeriodoBaseService
         uuids_uniades_paas_gerados_retificados = [
             str(u.uuid) for u in unidades_paa_gerado_retificado_com_receitas_prioridades]
         if len(unidades_uuid) == 1 and unidades_uuid[0] in uuids_uniades_paas_gerados_retificados:
-            mensagem_retorno = 'Não é possível desvincular uma unidade com Paa Gerado/Em Retificação!'
+            mensagem_retorno = 'Não é possível desvincular uma unidade com PAA Gerado/Em Retificação!'
             raise ValidacaoVinculoException(mensagem_retorno)
 
         return {

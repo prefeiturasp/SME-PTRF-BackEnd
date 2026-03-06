@@ -24,6 +24,12 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasSmeComLeituraOuGravacao
 )
 
+from sme_ptrf_apps.receitas.services.tipo_receita_vinculo_unidade_service import (
+    TipoReceitaVinculoUnidadeService,
+    UnidadeNaoEncontradaException,
+    ValidacaoVinculoException
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -104,9 +110,21 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         return Response(result, status=status.HTTP_200_OK)
 
+    def _get_service_tipo_receita_vinculo_unidade(self) -> TipoReceitaVinculoUnidadeService:
+        """
+        Retorna uma instância do service para o objeto atual.
+
+        Returns:
+            Instância configurada do service
+        """
+        instance = self.get_object()
+        return TipoReceitaVinculoUnidadeService(instance)
+
     @extend_schema(
         parameters=[
             OpenApiParameter(name='dre', description='UUID da DRE', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='tipo_unidade', description='Tipo da Unidade', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
             OpenApiParameter(name='nome_ou_codigo', description='Nome da Unidade ou Código EOL', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
@@ -118,17 +136,20 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
     def unidades_vinculadas(self, request, *args, **kwargs):
         uuid_dre = self.request.query_params.get('dre')
         nome_ou_codigo = self.request.query_params.get('nome_ou_codigo')
+        tipo_unidade = self.request.query_params.get('tipo_unidade')
 
         instance = self.get_object()
         unidades_qs = instance.unidades.all()
 
-        if uuid_dre is not None and uuid_dre != "":
+        if uuid_dre:
             unidades_qs = unidades_qs.filter(dre__uuid=uuid_dre)
 
-        if nome_ou_codigo is not None:
+        if tipo_unidade:
+            unidades_qs = unidades_qs.filter(tipo_unidade=tipo_unidade)
+
+        if nome_ou_codigo:
             unidades_qs = unidades_qs.filter(
-                Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo) | Q(
-                    nome__unaccent__icontains=nome_ou_codigo))
+                Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo))
 
         serializer = UnidadeLookUpSerializer(unidades_qs, many=True)
 
@@ -141,6 +162,8 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         parameters=[
             OpenApiParameter(name='dre', description='UUID da DRE', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='tipo_unidade', description='Tipo da Unidade', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
             OpenApiParameter(name='nome_ou_codigo', description='Nome da Unidade ou Código EOL', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
         ],
@@ -152,23 +175,22 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         from sme_ptrf_apps.core.models.unidade import Unidade
         uuid_dre = self.request.query_params.get('dre')
         nome_ou_codigo = self.request.query_params.get('nome_ou_codigo')
+        tipo_unidade = self.request.query_params.get('tipo_unidade')
 
         instance = self.get_object()
 
-        if (uuid_dre is None or uuid_dre == "") and (nome_ou_codigo is None or nome_ou_codigo == ""):
-            unidades_nao_vinculadas = Unidade.objects.none()
-        else:
-            todas_unidades = Unidade.objects.all()
+        todas_unidades = Unidade.objects.select_related('dre', 'dre__dre').all()
+        unidades_nao_vinculadas = todas_unidades.exclude(uuid__in=instance.unidades.values_list('uuid', flat=True))
 
-            unidades_nao_vinculadas = todas_unidades.exclude(uuid__in=instance.unidades.values_list('uuid', flat=True))
+        if uuid_dre:
+            unidades_nao_vinculadas = unidades_nao_vinculadas.filter(dre__uuid=uuid_dre)
 
-            if uuid_dre is not None and uuid_dre != "":
-                unidades_nao_vinculadas = unidades_nao_vinculadas.filter(dre__uuid=uuid_dre)
+        if tipo_unidade:
+            unidades_nao_vinculadas = unidades_nao_vinculadas.filter(tipo_unidade=tipo_unidade)
 
-            if nome_ou_codigo is not None:
-                unidades_nao_vinculadas = unidades_nao_vinculadas.filter(
-                    Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo) | Q(
-                        nome__unaccent__icontains=nome_ou_codigo))
+        if nome_ou_codigo:
+            unidades_nao_vinculadas = unidades_nao_vinculadas.filter(
+                Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo))
 
         serializer = UnidadeLookUpSerializer(unidades_nao_vinculadas, many=True)
 
@@ -177,48 +199,91 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         return paginator.get_paginated_response(paginated_unidades)
 
+    @extend_schema(
+        responses={
+            200: {
+                'mensagem': {'type': 'string'},
+            },
+            400: {'description': 'Validação falhou'},
+            404: {'description': 'Unidade não encontrada ou não vinculada'}
+        }
+    )
     @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/desvincular',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def desvincular_unidade(self, request, unidade_uuid, *args, **kwargs):
+        """Desvincula uma unidade do tipo de receita."""
         instance = self.get_object()
 
-        unidade = instance.unidades.filter(uuid=unidade_uuid).first()
+        if not instance.pode_restringir_unidades([unidade_uuid]):
+            return Response(
+                {
+                    "mensagem": (
+                        "Não é possível restringir o tipo de crédito, pois "
+                        "existem unidades que já possuem crédito criado com esse "
+                        "tipo e não estão selecionadas."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-        if not unidade:
-            return Response({"detail": "Unidade não encontrada ou já desvinculada."}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            service = self._get_service_tipo_receita_vinculo_unidade()
+            resultado = service.desvincular_unidades([unidade_uuid])
+            return Response(resultado, status=status.HTTP_200_OK)
 
-        if instance.pode_restringir_unidades([unidade_uuid]):
-            instance.unidades.remove(unidade)
-        else:
-            return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST) # noqa
+        except UnidadeNaoEncontradaException as e:
+            logger.error(str(e), exc_info=True)
+            return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
-        return Response({"mensagem": "Unidade desvinculada com sucesso!"}, status=200)
+        except Exception as e:
+            msg_erro = f"Erro inesperado ao desvincular unidade: {unidade_uuid}. {str(e)}"
+            logger.error(msg_erro, exc_info=True)
+            return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
+    @extend_schema(
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'unidade_uuids': {
+                        'type': 'array',
+                        'items': {'type': 'string', 'format': 'uuid'}
+                    }
+                },
+                'required': ['unidade_uuids']
+            }
+        },
+        responses={
+            200: {
+                'mensagem': {'type': 'string'},
+            },
+            400: {'description': 'Validação falhou'},
+            404: {'description': 'Nenhuma unidade encontrada'}
+        }
+    )
     @action(detail=True, methods=['POST'], url_path='desvincular-em-lote',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def desvincular_em_lote(self, request, *args, **kwargs):
-        from sme_ptrf_apps.core.models.unidade import Unidade
-
-        instance = self.get_object()
-
+        """Desvincula múltiplas unidades do tipo receita em lote."""
+        service = self._get_service_tipo_receita_vinculo_unidade()
         unidade_uuids = request.data.get('unidade_uuids', [])
 
-        if not unidade_uuids:
-            return Response({"erro": "Nenhuma unidade informada."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            resultado = service.desvincular_unidades(unidade_uuids)
+            return Response(resultado, status=status.HTTP_200_OK)
 
-        unidades = Unidade.objects.filter(uuid__in=unidade_uuids)
+        except UnidadeNaoEncontradaException as e:
+            logger.error(str(e), exc_info=True)
+            return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
-        if not unidades.exists():
-            return Response(
-                {"erro": "Nenhuma unidade encontrada ou já desvinculada."},
-                status=status.HTTP_404_NOT_FOUND)
+        except ValidacaoVinculoException as e:
+            logger.error(str(e), exc_info=True)
+            return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        if instance.pode_restringir_unidades(unidade_uuids):
-            instance.unidades.remove(*unidades)
-        else:
-            return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)  # noqa
-
-        return Response({"mensagem": "Unidades desvinculadas com sucesso!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            msg_erro = "Erro ao desvincular em lote"
+            logger.error(f'{msg_erro} - {str(e)}', exc_info=True)
+            return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/vincular',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
@@ -259,3 +324,43 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)  # noqa
 
         return Response({"mensagem": "Unidades vinculadas com sucesso!"}, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'unidade_uuids': {
+                        'type': 'array',
+                        'items': {'type': 'string', 'format': 'uuid'}
+                    }
+                },
+                'required': ['unidade_uuids']
+            }
+        },
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'mensagem': {'type': 'string'},
+                    'total_desvinculado': {'type': 'integer'},
+                    'unidades_desvinculadas': {'type': 'array', 'items': {'type': 'string'}}
+                }
+            },
+            400: {'description': 'Validação falhou'},
+            404: {'description': 'Nenhuma unidade encontrada'}
+        }
+    )
+    @action(detail=True, methods=['POST'], url_path='vincular-todas-unidades',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def vincular_todas_unidades(self, request, *args, **kwargs):
+        """Habilita o Tipo Receita para todas as unidades."""
+        service = self._get_service_tipo_receita_vinculo_unidade()
+
+        try:
+            resultado = service.vincular_todas_unidades()
+            return Response(resultado, status=status.HTTP_200_OK)
+        except Exception as e:
+            msg_erro = "Erro ao vincular todas as unidades."
+            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
