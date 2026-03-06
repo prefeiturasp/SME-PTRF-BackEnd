@@ -40,6 +40,7 @@ class DadosRelatorioAposAcertos:
 
     def __info_cabecalho(self):
         info_cabecalho = {
+            'recurso': self.analise_prestacao_conta.prestacao_conta.periodo.recurso.nome,
             'periodo_referencia': self.analise_prestacao_conta.prestacao_conta.periodo.referencia,
             'data_inicio_periodo': self.analise_prestacao_conta.prestacao_conta.periodo.data_inicio_realizacao_despesas,
             'data_fim_periodo': self.analise_prestacao_conta.prestacao_conta.periodo.data_fim_realizacao_despesas

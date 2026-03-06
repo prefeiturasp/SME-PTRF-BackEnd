@@ -2263,13 +2263,14 @@ def tag_ativa():
 
 
 @pytest.fixture
-def processo_associacao_123456_2019(associacao, periodo_2019_1, periodo_2019_2):
+def processo_associacao_123456_2019(associacao, periodo_2019_1, periodo_2019_2, recurso_legado):
     return baker.make(
         'ProcessoAssociacao',
         associacao=associacao,
         numero_processo='123456',
         ano='2019',
         periodos=[periodo_2019_1, periodo_2019_2],
+        recurso=recurso_legado,
     )
 
 

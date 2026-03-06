@@ -9,7 +9,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link href="{{ base_static_url }}/css/bootstrap/bootstrap-4.6.0.min.css" rel="stylesheet">
   <link href="{{ base_static_url }}/css/pdf-relatorio-dos-acertos.css" rel="stylesheet">
-  <title>Relatório de acertos PTRF</title>
+  <title>Relatório de acertos - {{ dados.info_cabecalho.recurso }}</title>
 </head>
 <body>
 
@@ -54,7 +54,7 @@
       <img src="{{ base_static_url }}/images/logo_PrefSP_sem_fundo_horizontal_colorida.svg" alt="logo">
     </div>
     <div class="col-8 d-flex align-items-center justify-content-end">
-      <p class="titulo font-16">Programa de Transferências de Recursos Financeiros - PTRF</p>
+      <p class="titulo font-16">{{ dados.info_cabecalho.recurso }}</p>
     </div>
   </div>
   <hr class="divisao"/>

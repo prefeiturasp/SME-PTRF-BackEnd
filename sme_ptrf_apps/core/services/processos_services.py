@@ -1,3 +1,5 @@
+from django.apps import apps
+from django.core.exceptions import ValidationError
 from ..models import ProcessoAssociacao
 
 
@@ -30,7 +32,12 @@ def trata_processo_sei_ao_receber_pc(prestacao_conta, processo_sei, acao_process
         processo_associacao.numero_processo = processo_sei
         processo_associacao.save()
     elif acao_processo_sei == 'incluir':
-        ProcessoAssociacao.objects.create(associacao=prestacao_conta.associacao, ano=ano, numero_processo=processo_sei)
+        ProcessoAssociacao.objects.create(
+            associacao=prestacao_conta.associacao,
+            ano=ano,
+            numero_processo=processo_sei,
+            recurso=prestacao_conta.periodo.recurso
+        )
 
 
 def trata_processo_sei_ao_receber_pc_v2(prestacao_conta, processo_sei, acao_processo_sei):
@@ -60,7 +67,8 @@ def trata_processo_sei_ao_receber_pc_v2(prestacao_conta, processo_sei, acao_proc
             processo_associacao = ProcessoAssociacao.objects.create(
                 associacao=prestacao_conta.associacao,
                 numero_processo=processo_sei,
-                ano=prestacao_conta.periodo.referencia[0:4]
+                ano=prestacao_conta.periodo.referencia[0:4],
+                recurso=prestacao_conta.periodo.recurso
             )
             processo_associacao.periodos.add(prestacao_conta.periodo)
 
@@ -73,3 +81,19 @@ def trata_processo_sei_ao_receber_pc_v2(prestacao_conta, processo_sei, acao_proc
         processo_associacao.numero_processo = processo_sei
         processo_associacao.save()
 
+
+def validar_troca_recurso_em_processo_associacao(processo_associacao):
+    PrestacaoConta = apps.get_model('core', 'PrestacaoConta')
+
+    if not processo_associacao.pk:
+        return
+
+    existe_pc = PrestacaoConta.objects.filter(
+        associacao=processo_associacao.associacao, 
+        periodo__in=processo_associacao.periodos.all()
+    ).exists()
+
+    if existe_pc:
+        raise ValidationError(
+            "Não é possível alterar o recurso de um processo de associação já utilizado."
+        )

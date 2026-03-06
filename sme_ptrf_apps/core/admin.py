@@ -656,11 +656,24 @@ class TagAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', id)
 
 
+class ProcessoAssociacaoAdminForm(ModelForm):
+    class Meta:
+        model = ProcessoAssociacao
+        fields = "__all__"
+
+    def clean_recurso(self):
+        from sme_ptrf_apps.core.services.processos_services import validar_troca_recurso_em_processo_associacao
+        recurso = self.cleaned_data["recurso"]
+        validar_troca_recurso_em_processo_associacao(self.instance)
+        return recurso
+
+
 @admin.register(ProcessoAssociacao)
 class ProcessoAssociacaoAdmin(admin.ModelAdmin):
-    list_display = ('associacao', 'numero_processo', 'ano', 'periodos_str')
+    form = ProcessoAssociacaoAdminForm
+    list_display = ('associacao', 'numero_processo', 'ano', 'periodos_str', 'recurso')
     search_fields = ('uuid', 'numero_processo', 'associacao__nome', 'associacao__unidade__codigo_eol')
-    list_filter = ('ano', 'associacao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre')
+    list_filter = ('ano', 'associacao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre', 'recurso')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     filter_horizontal = ('periodos',)
     raw_id_fields = ('associacao',)
