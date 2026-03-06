@@ -167,6 +167,7 @@ def test_get_periodos_prestacao_de_contas_ate_encerramento_da_associacao_com_pre
 def test_get_periodos_prestacao_de_contas_ate_encerramento_da_associacao_sem_prestacao_anterior(
     jwt_authenticated_client_a,
     associacao_encerrada_2021_2,
+    periodo_inicial_associacao_encerrada_2021_2,
     periodo_2020_1
 ):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao_encerrada_2021_2.uuid}/periodos-para-prestacao-de-contas/',

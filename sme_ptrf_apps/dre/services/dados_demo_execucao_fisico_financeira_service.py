@@ -128,6 +128,7 @@ def cria_cabecalho(periodo, parcial, previa, consolidado_dre):
         titulo_sequencia_publicacao = f'Relatório Consolidado'
 
     cabecalho = {
+        "recurso": periodo.recurso.nome,
         "periodo": str(periodo),
         "periodo_referencia": periodo.referencia,
         "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas),

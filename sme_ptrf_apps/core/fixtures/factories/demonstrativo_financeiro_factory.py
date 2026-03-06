@@ -11,6 +11,7 @@ from sme_ptrf_apps.core.models import (
     InformacaoDespesaChoices
 )
 from .conta_associacao_factory import ContaAssociacaoFactory
+from .prestacao_conta_factory import PrestacaoContaFactory
 from .periodo_factory import PeriodoFactory
 
 fake = Faker("pt_BR")
@@ -23,7 +24,7 @@ class DemonstrativoFinanceiroFactory(DjangoModelFactory):
     arquivo = None
     arquivo_pdf = None
     conta_associacao = SubFactory(ContaAssociacaoFactory)
-    prestacao_conta = None
+    prestacao_conta = SubFactory(PrestacaoContaFactory)
     periodo_previa = SubFactory(PeriodoFactory)
     status = DemonstrativoFinanceiro.STATUS_CONCLUIDO
     versao = DemonstrativoFinanceiro.VERSAO_FINAL

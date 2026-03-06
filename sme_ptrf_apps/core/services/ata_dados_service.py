@@ -152,7 +152,8 @@ def cria_cabecalho(ata):
     """ GERA CABECALHO DOCUMENTO EM PDF ATA """
 
     cabecalho = {
-        "titulo": "Programa de Transferência de Recursos Financeiros - PTRF",
+        "titulo": ata.periodo.recurso.nome,
+        "recurso": ata.periodo.recurso.nome,
         "subtitulo": "Prestação de Contas",
         "tipo_ata": 'Apresentação' if ata.tipo_ata == 'APRESENTACAO' else 'Retificação',
         "periodo_referencia": ata.periodo.referencia,

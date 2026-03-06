@@ -673,7 +673,7 @@ def permite_editar_campos_extrato(associacao, periodo, conta_associacao):
 
     criada_no_periodo = False
     if periodo and conta_associacao and conta_associacao.data_inicio:
-        criada_no_periodo = periodo == Periodo.da_data(conta_associacao.data_inicio)
+        criada_no_periodo = periodo == Periodo.da_data_por_recurso(conta_associacao.data_inicio, periodo.recurso)
         if criada_no_periodo and (not periodo.encerrado or prestacao_conta.status in [PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_NAO_APRESENTADA]):
             return True
 
@@ -697,7 +697,7 @@ def deve_aplicar_nova_regra_data_extrato(associacao, periodo, conta_associacao):
 
     criada_no_periodo = False
     if periodo and conta_associacao and conta_associacao.data_inicio:
-        criada_no_periodo = periodo == Periodo.da_data(conta_associacao.data_inicio)
+        criada_no_periodo = periodo == Periodo.da_data_por_recurso(conta_associacao.data_inicio, periodo.recurso)
         if criada_no_periodo and (not periodo.encerrado or prestacao_conta.status in [PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_NAO_APRESENTADA]):
             return True
 

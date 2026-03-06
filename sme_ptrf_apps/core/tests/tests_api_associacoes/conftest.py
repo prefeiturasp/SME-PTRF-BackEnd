@@ -505,3 +505,14 @@ def periodo_inicial_associacao_encerrada_teste(periodo_inicial_associacao_factor
         periodo_inicial=periodo_2019_1,
         associacao=associacao_encerrada_teste
     )
+
+
+@pytest.fixture
+def periodo_inicial_associacao_encerrada_2021_2(periodo_inicial_associacao_factory, periodo_2019_2, associacao_encerrada_2021_2):
+    """
+    Fixture que retorna o recurso com legado=True
+    """
+    return periodo_inicial_associacao_factory(
+        periodo_inicial=periodo_2019_2,
+        associacao=associacao_encerrada_2021_2
+    )
