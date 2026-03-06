@@ -86,6 +86,14 @@ class Periodo(ModeloBase):
         return periodos.latest('data_inicio_realizacao_despesas') if periodos.exists() else None
 
     @classmethod
+    def primeiro_periodo_do_recurso(cls, recurso):
+        return cls.objects.filter(recurso=recurso).order_by('data_inicio_realizacao_despesas').first()
+
+    @classmethod
+    def ultimo_periodo_do_recurso(cls, recurso):
+        return cls.objects.filter(recurso=recurso).order_by('-data_inicio_realizacao_despesas').first()
+
+    @classmethod
     def da_data(cls, data):
         periodos_da_data = cls.objects.filter(data_inicio_realizacao_despesas__lte=data).filter(
             Q(data_fim_realizacao_despesas__gte=data) | Q(data_fim_realizacao_despesas__isnull=True))

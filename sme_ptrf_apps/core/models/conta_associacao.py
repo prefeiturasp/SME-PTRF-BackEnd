@@ -239,7 +239,8 @@ class ContaAssociacao(ModeloBase):
         from sme_ptrf_apps.core.models import Periodo
 
         saldo_atual = 0
-        periodo_saldo = Periodo.da_data_por_recurso(data, self.tipo_conta.recurso) if data else Periodo.periodo_atual()
+        periodo_saldo = Periodo.da_data_por_recurso(
+            data, self.tipo_conta.recurso) if data else Periodo.periodo_atual_por_recurso(self.tipo_conta.recurso)
         if periodo_saldo:
             painel = PainelResumoRecursosService.painel_resumo_recursos(
                 self.associacao, periodo_saldo, self
@@ -458,14 +459,14 @@ class ContaAssociacao(ModeloBase):
         if not self.data_inicio:
             return False
 
-        periodo_da_data = Periodo.da_data(self.data_inicio)
+        periodo_da_data = Periodo.da_data_por_recurso(self.data_inicio, periodo.recurso)
 
         if not periodo_da_data:
-            primeiro_periodo = Periodo.objects.order_by('data_inicio_realizacao_despesas').first()
+            primeiro_periodo = Periodo.primeiro_periodo_do_recurso(periodo.recurso)
             if primeiro_periodo and self.data_inicio < primeiro_periodo.data_inicio_realizacao_despesas:
                 return True
 
-            ultimo_periodo = Periodo.objects.order_by('-data_inicio_realizacao_despesas').first()
+            ultimo_periodo = Periodo.ultimo_periodo_do_recurso(periodo.recurso)
             if ultimo_periodo and self.data_inicio > ultimo_periodo.data_fim_realizacao_despesas:
                 return False
 

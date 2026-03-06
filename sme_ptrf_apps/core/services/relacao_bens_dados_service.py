@@ -44,6 +44,7 @@ def cria_cabecalho(periodo, conta_associacao):
     """ GERA CABECALHO DOCUMENTO EM PDF RELACAO DE BENS """
 
     cabecalho = {
+        "recurso": periodo.recurso.nome,
         "periodo_referencia": periodo.referencia,
         "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas),
         "periodo_data_fim": formata_data(periodo.data_fim_realizacao_despesas),

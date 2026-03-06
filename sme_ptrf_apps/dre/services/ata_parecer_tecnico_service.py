@@ -64,7 +64,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
             titulo_sequencia_publicacao = f"Retificação da publicação de {data_publicacao.strftime('%d/%m/%Y')}"
 
     cabecalho = {
-        "titulo": "Programa de Transferência de Recursos Financeiros -  PTRF",
+        "titulo": periodo.recurso.nome,
         "sub_titulo": f"Diretoria Regional de Educação - {formata_nome_dre(dre.nome)}",
         "nome_ata": f"Ata de Parecer Técnico Conclusivo",
         "nome_dre": f"{formata_nome_dre(dre.nome)}",

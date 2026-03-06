@@ -702,10 +702,9 @@ class PrestacaoConta(ModeloBase):
     def contas_ativas_no_periodo(self):
         contas_a_exibir = []
 
-        contas = self.associacao.contas.all()
-        contas_por_recurso = ContaAssociacao.filter_by_recurso(contas, self.periodo.recurso)
+        contas = self.associacao.contas_por_recurso(self.periodo.recurso)
 
-        for conta in contas_por_recurso:
+        for conta in contas:
             if conta.ativa_no_periodo(periodo=self.periodo):
                 contas_a_exibir.append(conta)
 

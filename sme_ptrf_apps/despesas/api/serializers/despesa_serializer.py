@@ -58,18 +58,7 @@ class DespesaSerializer(serializers.ModelSerializer):
         method_name="get_despesa_anterior_ao_uso_do_sistema_editavel", required=False, allow_null=True)
 
     def get_despesa_anterior_ao_uso_do_sistema_editavel(self, despesa):
-        associacao = despesa.associacao
-        pcs_da_associacao = associacao.prestacoes_de_conta_da_associacao.all().exists()
-        editavel = True
-
-        if not pcs_da_associacao:
-            editavel = True
-        elif (despesa.despesa_anterior_ao_uso_do_sistema and
-              despesa.despesa_anterior_ao_uso_do_sistema_pc_concluida and
-              pcs_da_associacao):
-            editavel = False
-
-        return editavel
+        return despesa.checa_despesa_anterior_ao_uso_do_sistema_editavel()
 
     def get_despesa_de_imposto(self, despesa):
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
