@@ -268,7 +268,7 @@ class Despesa(ModeloBase):
         from sme_ptrf_apps.core.models import Periodo
 
         if self.data_transacao:
-            return Periodo.da_data(self.data_transacao)
+            return Periodo.da_data_por_recurso(self.data_transacao, self.recurso)
 
         return None
 

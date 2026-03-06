@@ -364,11 +364,11 @@ class AssociacoesViewSet(ModelViewSet):
                 tipo_conta__recurso=self.request.recurso
             )
 
-            contas_criadas_nesse_periodo_ou_anteriores = []
-            for conta in contas:
-                if conta.conta_criada_no_periodo_ou_periodo_anteriores(periodo):
-                    contas_criadas_nesse_periodo_ou_anteriores.append(conta)
-            contas = contas_criadas_nesse_periodo_ou_anteriores
+            # contas_criadas_nesse_periodo_ou_anteriores = []
+            # for conta in contas:
+            #     if conta.conta_criada_no_periodo_ou_periodo_anteriores(periodo):
+            #         contas_criadas_nesse_periodo_ou_anteriores.append(conta)
+            # contas = contas_criadas_nesse_periodo_ou_anteriores
         else:
             contas = ContaAssociacao.ativas_com_solicitacao_em_aberto.filter(
                 associacao=associacao, data_inicio__isnull=False).all()

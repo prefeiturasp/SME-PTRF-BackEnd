@@ -106,14 +106,6 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
-
-        ValidacaoDespesaService.validar_periodo_e_contas(
-            instance=self.instance,
-            data_transacao=data.get("data_transacao"),
-            rateios=data.get("rateios", []),
-            despesas_impostos=data.get("despesas_impostos", [])
-        )
-
         if not self.instance:
             recurso = self.context.get("recurso")
 
@@ -121,6 +113,14 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "Recurso da despesa é obrigatório"
                 )
+
+        ValidacaoDespesaService.validar_periodo_e_contas(
+            instance=self.instance,
+            data_transacao=data.get("data_transacao"),
+            rateios=data.get("rateios", []),
+            despesas_impostos=data.get("despesas_impostos", []),
+            recurso=self.instance.recurso if self.instance else recurso
+        )
 
         # Verifica prioridades do PAA impactadas
         # self._verificar_prioridades_paa_impactadas(data, self.instance)
@@ -235,11 +235,7 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
         return despesa.tags_de_informacao
 
     def get_periodo_referencia(self, despesa):
-        if not despesa.data_documento:
-            return None
-
-        periodo = Periodo.da_data(despesa.data_documento)
-        return periodo.referencia if periodo else None
+        return despesa.periodo_da_despesa.referencia if despesa.periodo_da_despesa else None
 
     class Meta:
         model = Despesa
