@@ -3,13 +3,22 @@ from rest_framework import serializers
 from sme_ptrf_apps.core.api.serializers import TipoContaSerializer, UnidadeSerializer
 from .detalhe_tipo_receita_serializer import DetalheTipoReceitaSerializer
 from sme_ptrf_apps.receitas.models import TipoReceita, DetalheTipoReceita
-from sme_ptrf_apps.core.models import TipoConta, Unidade
+from sme_ptrf_apps.core.models import TipoConta
 
 
 class TipoReceitaSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoReceita
-        fields = ('id', 'nome', 'e_repasse', 'aceita_capital', 'aceita_custeio', 'aceita_livre', 'e_devolucao', 'e_recursos_proprios')
+        fields = (
+            'id',
+            'nome',
+            'e_repasse',
+            'aceita_capital',
+            'aceita_custeio',
+            'aceita_livre',
+            'e_devolucao',
+            'e_recursos_proprios'
+        )
 
 
 class TipoReceitaEDetalhesSerializer(serializers.ModelSerializer):
@@ -18,21 +27,22 @@ class TipoReceitaEDetalhesSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipoReceita
-        fields = ('id',
-                  'nome',
-                  'aceita_capital',
-                  'aceita_custeio',
-                  'aceita_livre',
-                  'detalhes_tipo_receita',
-                  'e_repasse',
-                  'e_devolucao',
-                  'e_recursos_proprios',
-                  'e_estorno',
-                  'e_rendimento',
-                  'mensagem_usuario',
-                  'possui_detalhamento',
-                  'tipos_conta',
-                )
+        fields = (
+            'id',
+            'nome',
+            'aceita_capital',
+            'aceita_custeio',
+            'aceita_livre',
+            'detalhes_tipo_receita',
+            'e_repasse',
+            'e_devolucao',
+            'e_recursos_proprios',
+            'e_estorno',
+            'e_rendimento',
+            'mensagem_usuario',
+            'possui_detalhamento',
+            'tipos_conta',
+        )
 
 
 class TipoReceitaLookUpSerializer(serializers.ModelSerializer):
@@ -42,6 +52,7 @@ class TipoReceitaLookUpSerializer(serializers.ModelSerializer):
 
 
 class TipoReceitaListaSerializer(serializers.ModelSerializer):
+    uso_associacao = serializers.CharField(read_only=True)
     detalhes = DetalheTipoReceitaSerializer(many=True)
     tipos_conta = TipoContaSerializer(many=True)
     unidades = UnidadeSerializer(many=True)
@@ -49,27 +60,30 @@ class TipoReceitaListaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipoReceita
-        fields = ('id',
-                  'uuid',
-                  'nome',
-                  'aceita_capital',
-                  'aceita_custeio',
-                  'aceita_livre',
-                  'e_rendimento',
-                  'e_repasse',
-                  'e_devolucao',
-                  'e_recursos_proprios',
-                  'e_estorno',
-                  'mensagem_usuario',
-                  'possui_detalhamento',
-                  'detalhes',
-                  'tipos_conta',
-                  'unidades',
-                  'todas_unidades_selecionadas'
-                )
+        fields = (
+            'id',
+            'uuid',
+            'nome',
+            'aceita_capital',
+            'aceita_custeio',
+            'aceita_livre',
+            'e_rendimento',
+            'e_repasse',
+            'e_devolucao',
+            'e_recursos_proprios',
+            'e_estorno',
+            'mensagem_usuario',
+            'possui_detalhamento',
+            'detalhes',
+            'tipos_conta',
+            'unidades',
+            'todas_unidades_selecionadas',
+            'uso_associacao',
+        )
 
     def get_todas_unidades_selecionadas(self, obj):
         return obj.unidades.count() == 0
+
 
 class TipoReceitaCreateSerializer(serializers.ModelSerializer):
     detalhes = serializers.ListField(
@@ -79,34 +93,33 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipoReceita
-        fields = ('id',
-                  'uuid',
-                  'nome',
-                  'aceita_capital',
-                  'aceita_custeio',
-                  'aceita_livre',
-                  'e_repasse',
-                  'e_devolucao',
-                  'e_recursos_proprios',
-                  'e_estorno',
-                  'e_rendimento',
-                  'mensagem_usuario',
-                  'detalhes',
-                  'possui_detalhamento',
-                  'tipos_conta',
-                )
+        fields = (
+            'id',
+            'uuid',
+            'nome',
+            'aceita_capital',
+            'aceita_custeio',
+            'aceita_livre',
+            'e_repasse',
+            'e_devolucao',
+            'e_recursos_proprios',
+            'e_estorno',
+            'e_rendimento',
+            'mensagem_usuario',
+            'detalhes',
+            'possui_detalhamento',
+            'tipos_conta',
+        )
 
     def create(self, validated_data):
         nome = validated_data.get('nome')
         detalhes_data = validated_data.pop("detalhes", [])
 
         if TipoReceita.objects.filter(nome=nome).exists():
-            raise serializers.ValidationError({
-                'non_field_errors': 'Este Tipo de Receita já existe.'
-                })
+            raise serializers.ValidationError({'non_field_errors': 'Este Tipo de Receita já existe.'})
 
         instance = super().create(validated_data)
-        
+
         if self.context["request"].data.get("selecionar_todas"):
             instance.unidades.clear()
 
@@ -117,7 +130,7 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
                 detalhe = DetalheTipoReceita.objects.get(id=item)
             except Exception:
                 detalhe = DetalheTipoReceita.objects.create(nome=item, tipo_receita=instance)
-            
+
             detalhes_list.append(detalhe)
 
         instance.detalhes.set(detalhes_list)
@@ -129,12 +142,10 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
         detalhes_data = validated_data.pop("detalhes", [])
 
         if TipoReceita.objects.filter(nome=nome).exclude(pk=self.instance.pk).exists():
-            raise serializers.ValidationError({
-                'non_field_errors': 'Este Tipo de Receita já existe.'
-                })
+            raise serializers.ValidationError({'non_field_errors': 'Este Tipo de Receita já existe.'})
 
         instance = super().update(instance, validated_data)
-        
+
         if self.context["request"].data.get("selecionar_todas"):
             instance.unidades.clear()
 
@@ -145,7 +156,7 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
                 detalhe = DetalheTipoReceita.objects.get(id=item)
             except Exception:
                 detalhe = DetalheTipoReceita.objects.create(nome=item, tipo_receita=instance)
-            
+
             detalhes_list.append(detalhe)
 
         instance.detalhes.set(detalhes_list)
