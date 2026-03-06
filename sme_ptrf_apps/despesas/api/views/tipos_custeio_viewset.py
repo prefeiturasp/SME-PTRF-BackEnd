@@ -14,6 +14,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasSmeComLeituraOuGravacao
 )
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
+from sme_ptrf_apps.despesas.services.tipo_custeio_vinculo_unidade_service import TipoCusteioVinculoUnidadeService
 
 
 class TiposCusteioViewSet(mixins.ListModelMixin,
@@ -42,6 +43,16 @@ class TiposCusteioViewSet(mixins.ListModelMixin,
 
         return qs.order_by('nome')
 
+    def _get_service_tipo_custeio_vinculo_unidade(self) -> TipoCusteioVinculoUnidadeService:
+        """
+        Retorna uma instância do service para o objeto atual.
+
+        Returns:
+            Instância configurada do service
+        """
+        instance = self.get_object()
+        return TipoCusteioVinculoUnidadeService(instance)
+    
     @extend_schema(
         parameters=[
             OpenApiParameter(name='nome', description='Filtrar por nome', required=False,
@@ -56,6 +67,8 @@ class TiposCusteioViewSet(mixins.ListModelMixin,
         parameters=[
             OpenApiParameter(name='dre', description='UUID da DRE', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='tipo_unidade', description='Tipo da Unidade', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
             OpenApiParameter(name='nome_ou_codigo', description='Nome da Unidade ou Código EOL', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
         ],
@@ -66,17 +79,20 @@ class TiposCusteioViewSet(mixins.ListModelMixin,
     def unidades_vinculadas(self, request, *args, **kwargs):
         uuid_dre = self.request.query_params.get('dre')
         nome_ou_codigo = self.request.query_params.get('nome_ou_codigo')
+        tipo_unidade = self.request.query_params.get('tipo_unidade')
 
         instance = self.get_object()
         unidades_qs = instance.unidades.all()
 
-        if uuid_dre is not None and uuid_dre != "":
+        if uuid_dre:
             unidades_qs = unidades_qs.filter(dre__uuid=uuid_dre)
 
-        if nome_ou_codigo is not None:
+        if tipo_unidade:
+            unidades_qs = unidades_qs.filter(tipo_unidade=tipo_unidade)
+
+        if nome_ou_codigo:
             unidades_qs = unidades_qs.filter(
-                Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo) | Q(
-                    nome__unaccent__icontains=nome_ou_codigo))
+                Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo))
 
         serializer = UnidadeLookUpSerializer(unidades_qs, many=True)
 
@@ -89,6 +105,8 @@ class TiposCusteioViewSet(mixins.ListModelMixin,
         parameters=[
             OpenApiParameter(name='dre', description='UUID da DRE', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='tipo_unidade', description='Tipo da Unidade', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
             OpenApiParameter(name='nome_ou_codigo', description='Nome da Unidade ou Código EOL', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
         ],
@@ -100,23 +118,22 @@ class TiposCusteioViewSet(mixins.ListModelMixin,
         from sme_ptrf_apps.core.models.unidade import Unidade
         uuid_dre = self.request.query_params.get('dre')
         nome_ou_codigo = self.request.query_params.get('nome_ou_codigo')
+        tipo_unidade = self.request.query_params.get('tipo_unidade')
 
         instance = self.get_object()
 
-        if (uuid_dre is None or uuid_dre == "") and (nome_ou_codigo is None or nome_ou_codigo == ""):
-            unidades_nao_vinculadas = Unidade.objects.none()
-        else:
-            todas_unidades = Unidade.objects.all()
+        todas_unidades = Unidade.objects.select_related('dre', 'dre__dre').all()
+        unidades_nao_vinculadas = todas_unidades.exclude(uuid__in=instance.unidades.values_list('uuid', flat=True))
 
-            unidades_nao_vinculadas = todas_unidades.exclude(uuid__in=instance.unidades.values_list('uuid', flat=True))
+        if uuid_dre:
+            unidades_nao_vinculadas = unidades_nao_vinculadas.filter(dre__uuid=uuid_dre)
 
-            if uuid_dre is not None and uuid_dre != "":
-                unidades_nao_vinculadas = unidades_nao_vinculadas.filter(dre__uuid=uuid_dre)
+        if tipo_unidade:
+            unidades_nao_vinculadas = unidades_nao_vinculadas.filter(tipo_unidade=tipo_unidade)
 
-            if nome_ou_codigo is not None:
-                unidades_nao_vinculadas = unidades_nao_vinculadas.filter(
-                    Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo) | Q(
-                        nome__unaccent__icontains=nome_ou_codigo))
+        if nome_ou_codigo:
+            unidades_nao_vinculadas = unidades_nao_vinculadas.filter(
+                Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo))
 
         serializer = UnidadeLookUpSerializer(unidades_nao_vinculadas, many=True)
 

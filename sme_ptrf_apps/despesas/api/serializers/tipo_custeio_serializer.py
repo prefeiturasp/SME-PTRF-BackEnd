@@ -9,11 +9,12 @@ class TipoCusteioSimplesSerializer(serializers.ModelSerializer):
 
 
 class TipoCusteioSerializer(serializers.ModelSerializer):
+    uso_associacao = serializers.CharField(read_only=True)
     todas_unidades_selecionadas = serializers.SerializerMethodField()
 
     class Meta:
         model = TipoCusteio
-        fields = ('nome', 'id', 'uuid', 'eh_tributos_e_tarifas', 'todas_unidades_selecionadas')
+        fields = ('nome', 'id', 'uuid', 'eh_tributos_e_tarifas', 'todas_unidades_selecionadas', 'uso_associacao')
 
     def get_todas_unidades_selecionadas(self, obj):
         return obj.unidades.count() == 0
