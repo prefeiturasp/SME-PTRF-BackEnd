@@ -280,8 +280,6 @@ class Associacao(ModeloIdNome):
         periodos = set(
             self.periodos_com_prestacao_de_contas(ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=True, recurso=recurso))
 
-        print(periodos)
-
         proximo_periodo = self.proximo_periodo_de_prestacao_de_contas(ignorar_devolvidas, recurso=recurso)
         if proximo_periodo:
             periodos.add(proximo_periodo)
