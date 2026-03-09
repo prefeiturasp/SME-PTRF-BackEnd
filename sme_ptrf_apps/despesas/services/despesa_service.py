@@ -16,7 +16,10 @@ def ordena_despesas_por_imposto(qs, lista_argumentos_ordenacao=None):
     if lista_argumentos_ordenacao is None:
         lista_argumentos_ordenacao = []
 
-    qs = qs.annotate(c=Count('despesas_impostos'), c2=Count('despesa_geradora')).order_by('-c', '-c2', *lista_argumentos_ordenacao)
+    qs = qs.annotate(
+        c=Count('despesas_impostos'),
+        c2=Count('despesa_geradora')
+    ).order_by('-c', '-c2', *lista_argumentos_ordenacao)
     despesas_ordenadas = []
     for despesa in qs:
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
@@ -47,14 +50,16 @@ def migra_despesas_periodos_anteriores():
             logger.info(f'Associação {associacao} não possui período inicial.')
             continue
 
-        logger.info(f'Migrando despesas anteriores a {associacao.periodo_inicial.referencia} da associação {associacao}..')
+        logger.info(
+            f'Migrando despesas anteriores a {associacao.periodo_inicial.referencia} da associação {associacao}..')
 
-        despesas_anteriores = associacao.despesas.filter(data_transacao__lte=associacao.periodo_inicial.data_fim_realizacao_despesas)
+        despesas_anteriores = associacao.despesas.filter(
+            data_transacao__lte=associacao.periodo_inicial.data_fim_realizacao_despesas)
 
         for despesa in despesas_anteriores:
             logger.info(f'Migrando despesa {despesa}..')
             despesa.despesa_anterior_ao_uso_do_sistema = True
-            despesa.despesa_anterior_ao_uso_do_sistema_pc_concluida = associacao.prestacoes_de_conta_da_associacao.exists()
+            despesa.despesa_anterior_ao_uso_do_sistema_pc_concluida = associacao.prestacoes_de_conta_da_associacao.exists()  # noqa
             despesa.save()
 
 
@@ -69,7 +74,7 @@ class DespesaService:
     def create(cls, validated_data, limpar_prioridades_callback=None):
         logger.info("Iniciando criação de despesa")
 
-        confirmar_limpeza = validated_data.pop("confirmar_limpeza_prioridades_paa", False)
+        validated_data.pop("confirmar_limpeza_prioridades_paa")
 
         rateios = validated_data.pop("rateios")
         despesas_impostos = validated_data.pop("despesas_impostos", None)
@@ -88,7 +93,7 @@ class DespesaService:
 
         cls._processar_impostos(despesa, despesas_impostos)
 
-        cls._finalizar_despesa(despesa, rateios, confirmar_limpeza, limpar_prioridades_callback)
+        cls._finalizar_despesa(despesa, rateios, limpar_prioridades_callback)
 
         logger.info(f"Criação da despesa {despesa.uuid} finalizada com sucesso")
 
@@ -102,7 +107,7 @@ class DespesaService:
     def update(cls, instance: Despesa, validated_data, limpar_prioridades_callback=None):
         logger.info("Iniciando atualização de despesa")
 
-        confirmar_limpeza = validated_data.pop("confirmar_limpeza_prioridades_paa", False)
+        validated_data.pop("confirmar_limpeza_prioridades_paa")
 
         rateios = validated_data.pop("rateios")
         despesas_impostos = validated_data.pop("despesas_impostos", [])
@@ -120,7 +125,7 @@ class DespesaService:
 
         cls._processar_impostos_update(instance, despesas_impostos)
 
-        cls._finalizar_despesa(instance, rateios, confirmar_limpeza, limpar_prioridades_callback)
+        cls._finalizar_despesa(instance, rateios, limpar_prioridades_callback)
 
         return instance
 
@@ -242,14 +247,14 @@ class DespesaService:
                         rateio.update({
                             "tipo_custeio": None,
                         })
-                    
+
                     RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)
                     obj = RateioDespesa.objects.get(uuid=rateio["uuid"])
                     keep.append(obj.uuid)
                 else:
                     logger.info(f"Rateio NÃO encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
                     continue
-           
+
             else:
                 logger.info(f"Não encontrada chave uuid de rateio R${rateio['valor_rateio']}. Será criado.")
                 obj = RateioDespesa.objects.create(**rateio, despesa=despesa)
@@ -311,7 +316,7 @@ class DespesaService:
                     raise serializers.ValidationError({
                         "mensagem": "A despesa de imposto precisa ter rateio associado"
                     })
-            
+
                 imposto.pop("despesas_impostos", None)
                 imposto.pop("motivos_pagamento_antecipado", None)
 
@@ -332,7 +337,7 @@ class DespesaService:
                 desp.atualiza_status()
 
                 keep.append(desp.uuid)
-                lista.append(desp)                
+                lista.append(desp)
 
             despesa.despesas_impostos.exclude(uuid__in=keep).delete()
             despesa.despesas_impostos.set(lista)
@@ -359,12 +364,12 @@ class DespesaService:
         despesa.outros_motivos_pagamento_antecipado = outros
 
     @staticmethod
-    def _finalizar_despesa(despesa: Despesa, rateios, confirmar_limpeza, limpar_callback):
+    def _finalizar_despesa(despesa: Despesa, rateios, limpar_callback):
         despesa.atualiza_status()
         despesa.save()
 
         if despesa.data_transacao:
             despesa.set_despesa_anterior_ao_uso_do_sistema()
 
-        if despesa.status == STATUS_COMPLETO and confirmar_limpeza and limpar_callback:
+        if despesa.status == STATUS_COMPLETO and limpar_callback:
             limpar_callback(rateios, despesa)
