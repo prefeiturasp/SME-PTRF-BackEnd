@@ -444,7 +444,8 @@ def receita_pre_save(instance, **kwargs):
         instance.detalhe_tipo_receita = None
 
     if instance.data:
-        periodo = Periodo.da_data(instance.data)
+        recurso = instance.conta_associacao.tipo_conta.recurso if instance.conta_associacao else None
+        periodo = Periodo.da_data_por_recurso(instance.data, recurso)
         instance.periodo_conciliacao = periodo
 
 

@@ -135,10 +135,12 @@ def test_deve_retornar_info_registro_falha_geracao_pc_nao_excede_tentativas(
     parametros_teste_falha_geracao_pc_service,
     falha_geracao_pc_teste_falha_geracao_pc_service_nao_excede_tentativas,
     falha_geracao_pc_teste_falha_geracao_pc_service_nao_excede_tentativas_02,
+    recurso_legado
 ):
     registra_falha = InfoRegistroFalhaGeracaoPc(
         associacao=associacao_teste_falha_geracao_pc_service,
         usuario=usuario_dre_teste_falha_geracao_pc_service,
+        recurso=recurso_legado
     )
 
     response = registra_falha.info_registro_falha_geracao_pc()
@@ -175,10 +177,12 @@ def test_deve_retornar_info_registro_falha_geracao_pc_excede_tentativas(
     associacao_teste_falha_geracao_pc_service,
     parametros_teste_falha_geracao_pc_service,
     falha_geracao_pc_teste_falha_geracao_pc_service_excede_tentativas,
+    recurso_legado
 ):
     registra_falha = InfoRegistroFalhaGeracaoPc(
         associacao=associacao_teste_falha_geracao_pc_service,
         usuario=usuario_dre_teste_falha_geracao_pc_service,
+        recurso=recurso_legado
     )
 
     response = registra_falha.info_registro_falha_geracao_pc()
@@ -203,10 +207,12 @@ def test_deve_retornar_info_registro_falha_geracao_pc_nao_exibe_modal(
     associacao_teste_falha_geracao_pc_service,
     parametros_teste_falha_geracao_pc_service,
     falha_geracao_pc_teste_falha_geracao_pc_service_nao_exibe_modal,
+    recurso_legado
 ):
     registra_falha = InfoRegistroFalhaGeracaoPc(
         associacao=associacao_teste_falha_geracao_pc_service,
         usuario=usuario_dre_teste_falha_geracao_pc_service,
+        recurso=recurso_legado
     )
 
     response = registra_falha.info_registro_falha_geracao_pc()

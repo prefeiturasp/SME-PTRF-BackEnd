@@ -13,10 +13,10 @@ class ValidacaoDespesaService:
     @staticmethod
     def validar_rateios_serializer(
         valor_total,
-        raw_rateios = [],
-        raw_despesas_impostos = [],
-        retem_imposto = False,
-        valor_recursos_proprios = 0,
+        raw_rateios=[],
+        raw_despesas_impostos=[],
+        retem_imposto=False,
+        valor_recursos_proprios=0,
     ):
         if not raw_rateios:
             raise serializers.ValidationError(
@@ -27,7 +27,7 @@ class ValidacaoDespesaService:
             data=raw_rateios,
             many=True
         )
-        serializer.is_valid(raise_exception=True)       
+        serializer.is_valid(raise_exception=True)
 
         total_rateios = sum(
             Decimal(str(r.get("valor_rateio", 0)))
@@ -52,7 +52,7 @@ class ValidacaoDespesaService:
             raise serializers.ValidationError(
                 "A soma dos rateios deve ser igual ao valor real da despesa."
             )
-        
+
         # Valida rateios do tipo capital
         for rateio in raw_rateios:
             if rateio.get('aplicacao_recurso') == APLICACAO_CAPITAL:
@@ -63,7 +63,7 @@ class ValidacaoDespesaService:
                     raise serializers.ValidationError({
                         'mensagem': 'Rateio de capital não pode ter quantidade menor ou igual a zero'
                     })
-                
+
                 if valor_item_capital:
                     valor_total_item_capital = valor_item_capital * quantidade_itens_capital
                     valor_rateio = rateio.get('valor_rateio')
@@ -78,10 +78,11 @@ class ValidacaoDespesaService:
         instance,
         data_transacao,
         rateios,
-        despesas_impostos
+        despesas_impostos,
+        recurso
     ):
         if data_transacao:
-            periodo = Periodo.da_data(data_transacao)
+            periodo = Periodo.da_data_por_recurso(data_transacao, recurso)
 
             if (
                 instance and instance.prestacao_conta and
@@ -169,4 +170,3 @@ class ValidacaoDespesaService:
                             "data de encerramento anterior à data de transação."
                         )
                     })
-

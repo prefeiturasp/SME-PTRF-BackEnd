@@ -268,7 +268,7 @@ class Despesa(ModeloBase):
         from sme_ptrf_apps.core.models import Periodo
 
         if self.data_transacao:
-            return Periodo.da_data(self.data_transacao)
+            return Periodo.da_data_por_recurso(self.data_transacao, self.recurso)
 
         return None
 
@@ -475,6 +475,21 @@ class Despesa(ModeloBase):
             despesa_imposto.inativar_despesa()
 
         return self
+
+    def checa_despesa_anterior_ao_uso_do_sistema_editavel(self):
+        pcs_da_associacao = self.associacao.prestacoes_de_conta_da_associacao.filter(
+            periodo__recurso=self.recurso
+        ).exists()
+
+        editavel = True
+        if not pcs_da_associacao:
+            editavel = True
+        elif (self.despesa_anterior_ao_uso_do_sistema and
+              self.despesa_anterior_ao_uso_do_sistema_pc_concluida and
+              pcs_da_associacao):
+            editavel = False
+
+        return editavel
 
     @classmethod
     def by_documento(cls, tipo_documento, numero_documento, cpf_cnpj_fornecedor, associacao__uuid):

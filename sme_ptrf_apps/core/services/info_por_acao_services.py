@@ -168,14 +168,11 @@ def valida_rateios_quanto_aos_saldos(rateios, associacao, data_documento=None, e
             'aceitar_lancamento': True
         }
 
+    periodo_despesa = Periodo.da_data_por_recurso(data_documento, recurso)
+
     """
     Verifica se os rateios informados causarão algum saldo negativo.
     """
-    if recurso:
-        periodo_despesa = Periodo.da_data_por_recurso(data_documento, recurso)
-    else:
-        periodo_despesa = Periodo.da_data(data_documento)
-
     logger.info(f"Período da despesa validada: {periodo_despesa}")
 
     saldos_insuficientes = saldos_insuficientes_para_rateios(
@@ -530,10 +527,10 @@ def info_repasses_pendentes_acao_associacao_no_periodo(acao_associacao, periodo,
 
 def info_acoes_associacao_no_periodo(associacao_uuid, periodo, conta=None, apenas_transacoes_do_periodo=False):
     acoes_associacao = Associacao.acoes_da_associacao(associacao_uuid=associacao_uuid)
-   
+
     # filtrar ações da associação por recurso
     acoes_associacao = AcaoAssociacao.filter_by_recurso(acoes_associacao, periodo.recurso)
-   
+
     result = []
     for acao_associacao in acoes_associacao:
         logger.debug(f'Get info ação no período. Ação:{acao_associacao} Período:{periodo} Conta:{conta}')

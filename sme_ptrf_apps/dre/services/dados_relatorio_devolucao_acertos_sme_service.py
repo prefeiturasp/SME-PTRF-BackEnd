@@ -27,6 +27,7 @@ class DadosRelatorioDevolucaoAcertosSme:
 
     def __info_cabecalho(self):
         info_cabecalho = {
+            "recurso": self.consolidado_dre.periodo.recurso.nome,
             'periodo_referencia': self.consolidado_dre.periodo.referencia,
             'data_inicio_periodo': self.consolidado_dre.periodo.data_inicio_realizacao_despesas,
             'data_fim_periodo': self.consolidado_dre.periodo.data_fim_realizacao_despesas,
