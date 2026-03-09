@@ -1,3 +1,4 @@
+import logging
 from django.db.models import Q
 from rest_framework import mixins, status
 from rest_framework.decorators import action
@@ -14,7 +15,13 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasSmeComLeituraOuGravacao
 )
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
-from sme_ptrf_apps.despesas.services.tipo_custeio_vinculo_unidade_service import TipoCusteioVinculoUnidadeService
+from sme_ptrf_apps.despesas.services.tipo_custeio_vinculo_unidade_service import (
+    TipoCusteioVinculoUnidadeService,
+    UnidadeNaoEncontradaException,
+    ValidacaoVinculoException,
+)
+
+logger = logging.getLogger(__name__)
 
 
 class TiposCusteioViewSet(mixins.ListModelMixin,
@@ -185,25 +192,65 @@ class TiposCusteioViewSet(mixins.ListModelMixin,
     @action(detail=True, methods=['POST'], url_path='desvincular-unidades',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def desvincular_unidades(self, request, *args, **kwargs):
-        from sme_ptrf_apps.core.models.unidade import Unidade
+        """Desvincula uma unidade do tipo de despesa de custeio."""
 
-        instance = self.get_object()
-
+        service = self._get_service_tipo_custeio_vinculo_unidade()
         unidade_uuids = request.data.get('unidade_uuids', [])
 
         if not unidade_uuids:
             return Response({"erro": "Nenhuma unidade informada."}, status=status.HTTP_400_BAD_REQUEST)
 
-        unidades = Unidade.objects.filter(uuid__in=unidade_uuids)
+        try:
+            resultado = service.desvincular_unidades(unidade_uuids)
+            return Response(resultado, status=status.HTTP_200_OK)
 
-        if not unidades.exists():
-            return Response(
-                {"erro": "Nenhuma unidade encontrada ou já desvinculada."},
-                status=status.HTTP_404_NOT_FOUND)
+        except UnidadeNaoEncontradaException as e:   
+            return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
-        if instance.pode_desvincular(unidade_uuids):
-            instance.unidades.remove(*unidades)
-        else:
-            return Response({"mensagem": "A operação de desvinculação não pode ser realizada. Algumas unidades possuem rateios cadastrados que exigem que permaneçam vinculadas a este tipo de custeio."}, status=status.HTTP_400_BAD_REQUEST)  # noqa
+        except ValidacaoVinculoException as e:         
+            return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"mensagem": "Unidades desvinculadas com sucesso!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            msg_erro = "Erro ao desvincular"
+            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)   
+
+    @extend_schema(
+        request={
+            'application/json': {
+                'type': 'object',
+                'properties': {
+                    'unidade_uuids': {
+                        'type': 'array',
+                        'items': {'type': 'string', 'format': 'uuid'}
+                    }
+                },
+                'required': ['unidade_uuids']
+            }
+        },
+        responses={
+            200: {
+                'type': 'object',
+                'properties': {
+                    'mensagem': {'type': 'string'},
+                    'total_desvinculado': {'type': 'integer'},
+                    'unidades_desvinculadas': {'type': 'array', 'items': {'type': 'string'}}
+                }
+            },
+            400: {'description': 'Validação falhou'},
+            404: {'description': 'Nenhuma unidade encontrada'}
+        }
+    )
+    @action(detail=True, methods=['POST'], url_path='vincular-todas-unidades',
+            permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
+    def vincular_todas_unidades(self, request, *args, **kwargs):
+        """Habilita o Tipo Custeio para todas as unidades."""
+        service = self._get_service_tipo_custeio_vinculo_unidade()
+
+        try:
+            resultado = service.vincular_todas_unidades()
+            return Response(resultado, status=status.HTTP_200_OK)
+        except Exception as e:
+            msg_erro = "Erro ao vincular todas as unidades."
+            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)

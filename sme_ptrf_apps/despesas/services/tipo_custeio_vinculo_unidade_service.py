@@ -1,8 +1,10 @@
 import logging
 from django.db import transaction
+from django.db.models.query_utils import Q
 from typing import List, Dict, Any
 from sme_ptrf_apps.core.models.unidade import Unidade
 from sme_ptrf_apps.despesas.models import TipoCusteio
+from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO, STATUS_INCOMPLETO
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +77,7 @@ class TipoCusteioVinculoUnidadeService:
     @transaction.atomic
     def desvincular_unidades(self, unidades_uuid: List[str]) -> Dict[str, Any]:
         """
-        Desvincula as unidades do tipo custeio.
+        Desvincula as unidades do tipo de custeio.
 
         Parameters:
             unidades_uuid (List[str]): lista de UUIDs das unidades a serem desvinculadas
@@ -83,32 +85,46 @@ class TipoCusteioVinculoUnidadeService:
         Returns:
             Dict[str, Any]: status da operação
         """
+
         unidades = self._obter_unidades(unidades_uuid)
 
         if not unidades:
-            raise ValidacaoVinculoException('Nenhuma unidade foi identificada para desvínculo.', )
+            raise ValidacaoVinculoException(
+                "Nenhuma unidade foi identificada para desvínculo."
+            )
 
+        rateios = self.tipo_custeio.rateiodespesa_set
         qt_nao_removidas = 0
 
         for unidade in unidades:
-            possui_receitas = self.tipo_custeio.receita_set.filter(
-                associacao__unidade=unidade
-            ).exists()
 
-            if possui_receitas:
+            possui_rateios_completos = rateios.filter(
+                Q(associacao__unidade=unidade) | 
+                Q(despesa__associacao__unidade=unidade)              
+            ).filter(despesa__status=STATUS_COMPLETO).exists()
+
+            if possui_rateios_completos:
                 qt_nao_removidas += 1
                 continue
+
+            # Remove vínculo dos rateios em rascunho
+            rateios.filter(
+                associacao__unidade=unidade,
+                despesa__status=STATUS_INCOMPLETO
+            ).update(
+                tipo_custeio=None,
+                especificacao_material_servico=None
+            )
 
             self.tipo_custeio.unidades.remove(unidade)
 
         if qt_nao_removidas == len(unidades):
             raise ValidacaoVinculoException(
-                "Não é possível restringir o tipo de crédito, pois "
-                "existem unidades que já possuem crédito criado com esse "
-                "tipo e não estão selecionadas."
+                "Não é possível restringir o tipo de custeio, pois existem unidades que já possuem despesas completas"
+                " criadas com esse tipo e não estão selecionadas."
             )
 
-        mensagem_retorno = (
+        mensagem = (
             "Unidades desvinculadas com sucesso!"
             if len(unidades) > 1
             else "Unidade desvinculada com sucesso!"
@@ -116,5 +132,5 @@ class TipoCusteioVinculoUnidadeService:
 
         return {
             "sucesso": True,
-            "mensagem": mensagem_retorno,
+            "mensagem": mensagem,
         }

@@ -15,14 +15,16 @@ def test_api_tipos_custeio_list(jwt_authenticated_client_d, tipo_custeio_01, tip
             'nome': tipo_custeio_01.nome,
             'id': tipo_custeio_01.id,
             'uuid': f'{tipo_custeio_01.uuid}',
-            'todas_unidades_selecionadas': True
+            'todas_unidades_selecionadas': True,
+            'uso_associacao': 'Todas'
         },
         {
             'eh_tributos_e_tarifas': False,
             'nome': tipo_custeio_02.nome,
             'id': tipo_custeio_02.id,
             'uuid': f'{tipo_custeio_02.uuid}',
-            'todas_unidades_selecionadas': True
+            'todas_unidades_selecionadas': True,
+            'uso_associacao': 'Todas'
         },
     ]
 
