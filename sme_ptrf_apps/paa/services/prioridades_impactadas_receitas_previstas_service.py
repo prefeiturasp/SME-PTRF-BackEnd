@@ -87,8 +87,8 @@ class PrioridadesPaaImpactadasBaseService(ABC):
         """ Considera o valor de custeio acordo com a instancia de Receitas previstas utilizada """
         if isinstance(self.instance_receita_prevista, ReceitaPrevistaOutroRecursoPeriodo):
             return (
-                Decimal(self.receita_prevista.get('previsao_valor_custeio')) +
-                Decimal(self.receita_prevista.get('saldo_custeio'))
+                Decimal(self.receita_prevista.get('previsao_valor_custeio') or 0) +
+                Decimal(self.receita_prevista.get('saldo_custeio') or 0)
             )
 
         if isinstance(self.instance_receita_prevista, ReceitaPrevistaPdde):
@@ -98,7 +98,7 @@ class PrioridadesPaaImpactadasBaseService(ABC):
             )
 
         if isinstance(self.instance_receita_prevista, ReceitaPrevistaPaa):
-            return Decimal(self.receita_prevista.get('previsao_valor_custeio'))
+            return Decimal(self.receita_prevista.get('previsao_valor_custeio', 0))
 
         if isinstance(self.instance_receita_prevista, RecursoProprioPaa):
             return 0
@@ -142,7 +142,7 @@ class PrioridadesPaaImpactadasBaseService(ABC):
             )
 
         if isinstance(self.instance_receita_prevista, ReceitaPrevistaPaa):
-            return Decimal(self.receita_prevista.get('previsao_valor_capital'))
+            return Decimal(self.receita_prevista.get('previsao_valor_capital', 0))
 
         if isinstance(self.instance_receita_prevista, RecursoProprioPaa):
             return 0
@@ -186,7 +186,7 @@ class PrioridadesPaaImpactadasBaseService(ABC):
             )
 
         if isinstance(self.instance_receita_prevista, ReceitaPrevistaPaa):
-            return Decimal(self.receita_prevista.get('previsao_valor_livre'))
+            return Decimal(self.receita_prevista.get('previsao_valor_livre', 0))
 
         if isinstance(self.instance_receita_prevista, RecursoProprioPaa):
             return Decimal(self.receita_prevista.get('valor'))
@@ -228,6 +228,20 @@ class PrioridadesPaaImpactadasBaseService(ABC):
         return list(prioridades.values('uuid', 'valor_total', 'tipo_aplicacao'))
 
     @transaction.atomic
+    def _update_valor_prioridades(self, prioridades_updates: models.QuerySet) -> list:
+        """
+        Define como None o valor_total das prioridades impactadas
+        """
+        if prioridades_updates.exists():
+            logger.info(
+                f"Limpando valor_total de {prioridades_updates.count()} prioridades "
+                f"para açãoo {str(self.acao_receita)}"
+            )
+            logger.info('#### LIMPAR PRIORIDADES ####')
+            prioridades_updates.update(valor_total=None)
+
+        return list(prioridades_updates.values_list('uuid', flat=True))
+
     def limpar_valor_prioridades_impactadas(self):
         """
         Define como NULL o valor_total das prioridades impactadas
@@ -237,15 +251,7 @@ class PrioridadesPaaImpactadasBaseService(ABC):
 
         prioridades_impactadas = self._buscar_prioridades_impactadas()
 
-        if prioridades_impactadas.exists():
-            logger.info(
-                f"Limpando valor_total de {prioridades_impactadas.count()} prioridades "
-                f"para acao {str(self.acao_receita)}"
-            )
-            logger.info('#### LIMPAR PRIORIDADES ####')
-            prioridades_impactadas.update(valor_total=None)
-
-        return list(prioridades_impactadas.values_list('uuid', flat=True))
+        return self._update_valor_prioridades(prioridades_impactadas)
 
     def _validar_pre_condicoes(self) -> bool:
         """Valida se as pré-condições estão satisfeitas."""
@@ -285,6 +291,34 @@ class PrioridadesPaaImpactadasBaseService(ABC):
 
         return qs
 
+    def _verifica_tem_saldo_prioridades_acao_receita(self) -> models.QuerySet:
+        from sme_ptrf_apps.paa.services.resumo_prioridades_service import ValidacaoSaldoIndisponivel
+        """
+            Checar nas prioridades do PAA, independente de edição/criação, se há saldos disponíveis
+            Checagem pode ser realizada for do fluxo de edição/criação de despesas e prioridades
+            Por exemplo:
+                - Utilizar este recurso ao descongelar o Saldo de receitas previstas:
+                    Para evitar que o Resumo de Prioridades seja impactado por despesas criadas durante o congelamento
+                    do saldo, passando a ficar negativo, o saldo das prioridades, ao descongelar)
+        """
+        prioridades = self._query_base()
+        prioridades_saldo_indisponivel = []
+        logger.info(f"Verificando saldo das prioridades da acao receita: {self.recurso} - {self.acao_receita}")
+        for prioridade in prioridades:
+            try:
+                self._verifica_saldo(prioridade, prioridade.valor_total)
+            except ValidacaoSaldoIndisponivel as e:
+                logger.error(str(e))
+                prioridades_saldo_indisponivel.append(prioridade.id)
+
+        # Retornar um tipo Queryset
+        prioridades_saldo_indisponivel = self._query_base().filter(id__in=prioridades_saldo_indisponivel)
+        return prioridades_saldo_indisponivel
+
+    def limpar_valor_prioridades_saldo_indisponivel_da_acao_receita(self):
+        prioridades_impactadas = self._verifica_tem_saldo_prioridades_acao_receita()
+        return self._update_valor_prioridades(prioridades_impactadas)
+
     def _verifica_saldo(self, prioridade, valor_total):
         # Validar no service de Resumo de Prioridades
         resumo = ResumoPrioridadesService(prioridade.paa)
@@ -322,12 +356,15 @@ class PrioridadesPaaImpactadasBaseService(ABC):
 
                 # verifica se custeio foi reduzido
                 valor_custeio_foi_reduzido = valor_custeio_edicao < valor_custeio_atual
+                logger.info(f"valor_custeio_foi_reduzido: {valor_custeio_foi_reduzido}")
 
                 # verifica se capital foi reduzido
                 valor_capital_foi_reduzido = valor_capital_edicao < valor_capital_atual
+                logger.info(f"valor_capital_foi_reduzido: {valor_capital_foi_reduzido}")
 
                 # verifica se livre foi reduzido
                 valor_livre_foi_reduzido = valor_livre_edicao < valor_livre_atual
+                logger.info(f"valor_livre_foi_reduzido: {valor_livre_foi_reduzido}")
 
                 valor_total = 0
                 valor_total += valor_custeio_atual - valor_custeio_edicao
