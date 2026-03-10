@@ -10,6 +10,14 @@ class SaldosPorAcaoPaaService:
         self.paa = paa
         self.associacao = associacao
 
+    def _limpar_prioridades_impactadas_despesas(self, receita_prevista):
+        from sme_ptrf_apps.paa.services import PrioridadesPaaImpactadasReceitasPrevistasPTRFService
+        # Considerando o cenário em que despesas podem ser criadas enquanto um saldo é congelado e
+        # posteriormente, descongelado, o saldo das prioridades podem ser impactados pela negativação
+        # por isso, o campo valor_total das prioridades devem ser limpos
+        PrioridadesPaaImpactadasReceitasPrevistasPTRFService(
+            {}, receita_prevista).limpar_valor_prioridades_saldo_indisponivel_da_acao_receita()
+
     @transaction.atomic
     def descongelar_saldos(self):
         self.paa.set_descongelar_saldo()
@@ -29,6 +37,7 @@ class SaldosPorAcaoPaaService:
             )
 
             receitas_previstas.append(receita_prevista)
+            self._limpar_prioridades_impactadas_despesas(receita_prevista)
 
         return receitas_previstas
 

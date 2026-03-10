@@ -122,34 +122,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             recurso=self.instance.recurso if self.instance else recurso
         )
 
-        # Verifica prioridades do PAA impactadas
-        # self._verificar_prioridades_paa_impactadas(data, self.instance)
-
         return data
-
-    def _verificar_prioridades_paa_impactadas(self, data, instance_despesa) -> list:
-        """
-        Verifica se há prioridades do PAA que serão impactadas pelos
-        rateios da despesa.
-        """
-        from sme_ptrf_apps.paa.services import PrioridadesPaaImpactadasDespesaRateioService
-
-        confirmar_limpeza = data.get('confirmar_limpeza_prioridades_paa', False)
-
-        rateios = data.get('rateios', [])
-        prioridades_impactadas = []
-
-        for rateio in rateios:
-            service = PrioridadesPaaImpactadasDespesaRateioService(rateio, instance_despesa)
-            prioridades = service.verificar_prioridades_impactadas()
-            prioridades_impactadas.extend(prioridades)
-
-        if prioridades_impactadas and not confirmar_limpeza:
-            raise serializers.ValidationError({
-                "confirmar": (
-                    "Existem prioridades cadastradas que utilizam o valor da receita prevista. "
-                    "Será necessário revisar as prioridades para atualizar o valor total.")
-            })
 
     def _limpar_prioridades_paa(self, rateios, instance_despesa):
         """
