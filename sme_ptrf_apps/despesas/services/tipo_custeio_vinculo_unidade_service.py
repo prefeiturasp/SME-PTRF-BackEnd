@@ -75,6 +75,39 @@ class TipoCusteioVinculoUnidadeService:
         }
 
     @transaction.atomic
+    def vincular_unidades(self, unidades_uuid: List[str]) -> Dict[str, Any]:
+        """
+        Vincula as unidades do tipo de custeio.
+
+        Parameters:
+            unidades_uuid (List[str]): lista de UUIDs das unidades a serem vinculadas
+
+        Returns:
+            Dict[str, Any]: status da operação
+        """
+        
+        unidades = self._obter_unidades(unidades_uuid)
+
+        if not unidades_uuid or not unidades:
+            raise ValidacaoVinculoException(
+                "Nenhuma unidade foi identificada para desvínculo."
+            )
+
+               
+        self.tipo_custeio.unidades.add(*unidades)
+
+        mensagem = (
+            "Unidades desvinculadas com sucesso!"
+            if len(unidades) > 1
+            else "Unidade desvinculada com sucesso!"
+        )
+
+        return {
+            "sucesso": True,
+            "mensagem": mensagem,
+        }
+    
+    @transaction.atomic
     def desvincular_unidades(self, unidades_uuid: List[str]) -> Dict[str, Any]:
         """
         Desvincula as unidades do tipo de custeio.
@@ -101,7 +134,7 @@ class TipoCusteioVinculoUnidadeService:
             possui_rateios_completos = rateios.filter(
                 Q(associacao__unidade=unidade) | 
                 Q(despesa__associacao__unidade=unidade)              
-            ).filter(despesa__status=STATUS_COMPLETO).exists()
+            ).filter(despesa__status=STATUS_COMPLETO).exists()            
 
             if possui_rateios_completos:
                 qt_nao_removidas += 1
@@ -120,8 +153,8 @@ class TipoCusteioVinculoUnidadeService:
 
         if qt_nao_removidas == len(unidades):
             raise ValidacaoVinculoException(
-                "Não é possível restringir o tipo de custeio, pois existem unidades que já possuem despesas completas"
-                " criadas com esse tipo e não estão selecionadas."
+                "Não é possível desvincular o tipo de custeio, pois existem unidades que já possuem despesas completas"
+                " criadas com esse tipo."
             )
 
         mensagem = (

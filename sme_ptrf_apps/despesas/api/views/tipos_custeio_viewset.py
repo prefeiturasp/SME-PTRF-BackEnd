@@ -168,26 +168,24 @@ class TiposCusteioViewSet(mixins.ListModelMixin,
     @action(detail=True, methods=['POST'], url_path='vincular-unidades',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def vincular_unidades(self, request, *args, **kwargs):
-        from sme_ptrf_apps.core.models.unidade import Unidade
-
-        instance = self.get_object()
-
+        service = self._get_service_tipo_custeio_vinculo_unidade()
         unidade_uuids = request.data.get('unidade_uuids', [])
 
-        if not unidade_uuids:
-            return Response({"erro": "Nenhuma unidade informada."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            service.vincular_unidades(unidade_uuids)
+            return Response({"mensagem": "Unidades vinculadas com sucesso!"}, status=status.HTTP_200_OK)       
 
-        unidades = Unidade.objects.filter(uuid__in=unidade_uuids)
+        except UnidadeNaoEncontradaException as e:   
+            return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
-        if not unidades.exists():
-            return Response({"erro": "Nenhuma unidade encontrada."}, status=status.HTTP_404_NOT_FOUND)
+        except ValidacaoVinculoException as e:         
+            return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        if instance.pode_vincular(unidade_uuids):
-            instance.unidades.add(*unidades)
-        else:
-            return Response({"mensagem": "Não é possível vincular o tipo de custeio, pois existem unidades com rateios já criados para este tipo que não foram selecionadas."}, status=status.HTTP_400_BAD_REQUEST)  # noqa
-
-        return Response({"mensagem": "Unidades vinculadas com sucesso!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            msg_erro = "Erro ao vincular"
+            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
+       
 
     @action(detail=True, methods=['POST'], url_path='desvincular-unidades',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])

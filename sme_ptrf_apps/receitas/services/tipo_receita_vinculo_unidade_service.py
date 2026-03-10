@@ -42,6 +42,39 @@ class TipoReceitaVinculoUnidadeService:
         return list(Unidade.objects.filter(uuid__in=unidades_uuid))
 
     @transaction.atomic
+    def vincular_unidades(self, unidades_uuid: List[str]) -> Dict[str, Any]:
+        """
+        Vincula as unidades do tipo receita.
+
+        Parameters:
+            unidades_uuid (List[str]): lista de UUIDs das unidades a serem vinculadas
+
+        Returns:
+            Dict[str, Any]: status da operação
+        """
+        
+        unidades = self._obter_unidades(unidades_uuid)
+
+        if not unidades_uuid or not unidades:
+            raise ValidacaoVinculoException(
+                "Nenhuma unidade foi identificada para desvínculo."
+            )
+
+               
+        self.tipo_receita.unidades.add(*unidades)
+
+        mensagem = (
+            "Unidades desvinculadas com sucesso!"
+            if len(unidades) > 1
+            else "Unidade desvinculada com sucesso!"
+        )
+
+        return {
+            "sucesso": True,
+            "mensagem": mensagem,
+        }
+    
+    @transaction.atomic
     def vincular_todas_unidades(self) -> Dict[str, Any]:
         """
         Vincula todas as unidades.

@@ -1,4 +1,5 @@
 import pytest
+import uuid
 from sme_ptrf_apps.receitas.services.tipo_receita_vinculo_unidade_service import (
     TipoReceitaVinculoUnidadeService,
     ValidacaoVinculoException,
@@ -93,3 +94,11 @@ class TestDesvincularUnidades:
         with pytest.raises(ValidacaoVinculoException) as excinfo:
             service_vinculo.desvincular_unidades(uuids)
         assert 'Não é possível restringir o tipo de crédito' in str(excinfo.value)
+    
+    @pytest.mark.django_db
+    def test_vincular_unidades_com_erro(self, service_vinculo):
+        """Testa vincular com sucesso"""        
+        uuids = [str(uuid.uuid4())]
+        with pytest.raises(ValidacaoVinculoException) as excinfo:
+            service_vinculo.vincular_unidades(uuids)
+        assert "Nenhuma unidade foi identificada para desvínculo." in str(excinfo.value)
