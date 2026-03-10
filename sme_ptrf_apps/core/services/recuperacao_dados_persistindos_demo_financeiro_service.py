@@ -21,6 +21,7 @@ class RecuperaDadosDemoFinanceiro:
 
     def retorna_dados_cabecalho(self):
         cabecalho = {
+            "recurso": self.demonstrativo.prestacao_conta.periodo.recurso.nome,
             "periodo_referencia": self.dados.periodo_referencia,
             "periodo_data_inicio": self.formata_data(self.dados.periodo_data_inicio),
             "periodo_data_fim": self.formata_data(self.dados.periodo_data_fim),

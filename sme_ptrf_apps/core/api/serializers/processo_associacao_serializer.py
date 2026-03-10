@@ -3,7 +3,8 @@ from waffle import flag_is_active
 from rest_framework import serializers
 
 from sme_ptrf_apps.core.api.serializers import AssociacaoLookupSerializer, PeriodoLookUpSerializer
-from sme_ptrf_apps.core.models import ProcessoAssociacao, Associacao, Periodo
+from sme_ptrf_apps.core.api.serializers.recurso_serializer import RecursoSerializer
+from sme_ptrf_apps.core.models import ProcessoAssociacao, Associacao, Periodo, Recurso
 
 
 class ProcessoAssociacaoCreateSerializer(serializers.ModelSerializer):
@@ -17,6 +18,11 @@ class ProcessoAssociacaoCreateSerializer(serializers.ModelSerializer):
         slug_field='uuid',
         queryset=Periodo.objects.all(),
         required=False
+    )
+    recurso = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Recurso.objects.all()
     )
 
     def validate(self, data):
@@ -79,7 +85,7 @@ class ProcessoAssociacaoCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProcessoAssociacao
-        fields = ('uuid', 'associacao', 'numero_processo', 'ano', 'periodos')
+        fields = ('uuid', 'associacao', 'numero_processo', 'ano', 'periodos', 'recurso')
 
     def create(self, validated_data):
         periodos_data = validated_data.pop('periodos', [])
@@ -103,11 +109,12 @@ class ProcessoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
     permite_exclusao = serializers.SerializerMethodField('get_permite_exclusao')
     tooltip_exclusao = serializers.SerializerMethodField('get_tooltip_exclusao')
     periodos = PeriodoLookUpSerializer(many=True, read_only=True)
+    recurso = RecursoSerializer(read_only=True)
 
     class Meta:
         model = ProcessoAssociacao
         fields = ('uuid', 'associacao', 'numero_processo', 'ano', 'criado_em', 'alterado_em',
-                  'permite_exclusao', 'tooltip_exclusao', 'periodos',)
+                  'permite_exclusao', 'tooltip_exclusao', 'periodos', 'recurso')
 
     def get_tooltip_exclusao(self, obj):
         request = self.context.get('request', None)

@@ -30,7 +30,8 @@ class FalhaGeracaoPcViewSet(viewsets.ModelViewSet):
 
         registros = InfoRegistroFalhaGeracaoPc(
             associacao=associacao,
-            usuario=usuario
+            usuario=usuario,
+            recurso=self.request.recurso
         ).info_registro_falha_geracao_pc()
 
         return Response(registros, status=status.HTTP_200_OK)
