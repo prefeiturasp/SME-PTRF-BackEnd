@@ -20,6 +20,7 @@ def test_retrieve_tipo_custeio(jwt_authenticated_client_d, tipo_custeio_01):
         'uuid': f'{tipo_custeio_01.uuid}',
         'todas_unidades_selecionadas': True,
         'uso_associacao': 'Todas',
+        'unidades': [],
     }
 
     assert response.status_code == status.HTTP_200_OK
