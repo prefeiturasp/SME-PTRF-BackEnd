@@ -49,6 +49,10 @@ class TipoCusteio(ModeloIdNome):
         unidades_com_rateio = set(self.rateiodespesa_set.values_list('despesa__associacao__unidade__uuid', flat=True))
 
         return unidades_com_rateio.isdisjoint(unidades_uuid_set)
+    
+    def uso_associacao(self):
+        tem_unidades_vinculadas = self.unidades.exists()
+        return "Parcial" if tem_unidades_vinculadas else "Todas"
 
 
 auditlog.register(TipoCusteio)
