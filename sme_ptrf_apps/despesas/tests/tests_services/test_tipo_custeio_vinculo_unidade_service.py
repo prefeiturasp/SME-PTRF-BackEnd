@@ -1,22 +1,23 @@
 import pytest
 import uuid
-from sme_ptrf_apps.receitas.services.tipo_receita_vinculo_unidade_service import (
-    TipoReceitaVinculoUnidadeService,
+from sme_ptrf_apps.despesas.services.tipo_custeio_vinculo_unidade_service import (
+    TipoCusteioVinculoUnidadeService,
     ValidacaoVinculoException,
+    STATUS_COMPLETO
 )
 from sme_ptrf_apps.core.fixtures.factories import UnidadeFactory
 
 
 @pytest.fixture
-def tipo_receita_1(tipo_receita_factory):
-    tipo_receita = tipo_receita_factory.create(nome='Teste Tipo Receita')
+def tipo_depesa_1(tipo_custeio_factory):
+    tipo_receita = tipo_custeio_factory.create(nome='Teste Tipo Despesa de Custeio')
     return tipo_receita
 
 
 @pytest.fixture
-def service_vinculo(tipo_receita_1):
+def service_vinculo(tipo_depesa_1):
     """Fixture que retorna instância do service de vínculo"""
-    return TipoReceitaVinculoUnidadeService(tipo_receita_1)
+    return TipoCusteioVinculoUnidadeService(tipo_depesa_1)
 
 
 @pytest.fixture
@@ -29,12 +30,12 @@ class TestTipoReceitaVinculoUnidadeServiceInit:
     """Testes para inicialização do service"""
 
     @pytest.mark.django_db
-    def test_init_service_com_sucesso(self, tipo_receita_1):
+    def test_init_service_com_sucesso(self, tipo_depesa_1):
         """Testa inicialização do service com sucesso"""
-        service = TipoReceitaVinculoUnidadeService(tipo_receita_1)
+        service = TipoCusteioVinculoUnidadeService(tipo_depesa_1)
 
-        assert service.tipo_receita == tipo_receita_1
-        assert isinstance(service, TipoReceitaVinculoUnidadeService)
+        assert service.tipo_custeio == tipo_depesa_1
+        assert isinstance(service, TipoCusteioVinculoUnidadeService)
 
 
 class TestVincularTodasUnidades:
@@ -50,11 +51,11 @@ class TestVincularTodasUnidades:
     @pytest.mark.django_db
     def test_vincular_todas_com_unidades_atuais(self, service_vinculo, unidades_teste):
         """Testa vincular todas quando há unidades vinculadas"""
-        service_vinculo.tipo_receita.unidades.add(*unidades_teste)
+        service_vinculo.tipo_custeio.unidades.add(*unidades_teste)
         resultado = service_vinculo.vincular_todas_unidades()
         assert resultado['sucesso'] is True
         assert 'habilitadas com sucesso' in resultado['mensagem']
-        assert service_vinculo.tipo_receita.unidades.count() == 0
+        assert service_vinculo.tipo_custeio.unidades.count() == 0
 
 
 class TestDesvincularUnidades:
@@ -71,29 +72,45 @@ class TestDesvincularUnidades:
     @pytest.mark.django_db
     def test_desvincular_unidades_com_sucesso(self, service_vinculo, unidades_teste):
         """Testa desvinculação com sucesso"""
-        service_vinculo.tipo_receita.unidades.add(*unidades_teste)
+        service_vinculo.tipo_custeio.unidades.add(*unidades_teste)
         uuids = [str(unidades_teste[0].uuid)]
         resultado = service_vinculo.desvincular_unidades(uuids)
         assert resultado['sucesso'] is True
         assert 'desvinculada com sucesso' in resultado['mensagem']
-        assert service_vinculo.tipo_receita.unidades.count() == 2
-
+        assert service_vinculo.tipo_custeio.unidades.count() == 2
+            
     @pytest.mark.django_db
-    def test_desvincular_unidades_com_receita_associada(self, service_vinculo, receita_factory, associacao_factory):
-        """Testa desvinculação com tipo receita em uso por uma unidade"""
+    def test_desvincular_unidades_com_despesa_associada(
+        self,
+        service_vinculo,
+        rateio_despesa_factory,
+        despesa_factory,
+        associacao_factory
+    ):
         unidade_teste = UnidadeFactory.create()
-        associacao_teste = associacao_factory.create(unidade=unidade_teste)
+        associacao = associacao_factory(unidade=unidade_teste)
 
-        receita_factory.create(
-            tipo_receita=service_vinculo.tipo_receita,
-            associacao=associacao_teste
+        tipo_custeio = service_vinculo.tipo_custeio
+
+        despesa = despesa_factory(
+            status=STATUS_COMPLETO,
+            associacao=associacao,
         )
 
-        service_vinculo.tipo_receita.unidades.add(unidade_teste)
+        rateio_despesa_factory(
+            despesa=despesa,
+            associacao=associacao,
+            tipo_custeio=tipo_custeio,
+        )
+
+        service_vinculo.tipo_custeio.unidades.add(unidade_teste)
+
         uuids = [str(unidade_teste.uuid)]
+
         with pytest.raises(ValidacaoVinculoException) as excinfo:
             service_vinculo.desvincular_unidades(uuids)
-        assert 'Não é possível restringir o tipo de crédito' in str(excinfo.value)
+
+        assert "Não é possível desvincular o tipo de custeio" in str(excinfo.value)
     
     @pytest.mark.django_db
     def test_vincular_unidades_com_erro(self, service_vinculo):

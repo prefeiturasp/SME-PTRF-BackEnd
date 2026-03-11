@@ -288,42 +288,43 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
     @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/vincular',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def vincular_unidade(self, request, unidade_uuid, *args, **kwargs):
-        from sme_ptrf_apps.core.models.unidade import Unidade
+        service = self._get_service_tipo_receita_vinculo_unidade()     
 
-        instance = self.get_object()
+        try:
+            service.vincular_unidades([unidade_uuid])
+            return Response({"mensagem": "Unidade vinculada com sucesso!"}, status=status.HTTP_200_OK)       
 
-        unidade = Unidade.objects.filter(uuid=unidade_uuid).first()
+        except UnidadeNaoEncontradaException as e:   
+            return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
-        if instance.pode_restringir_unidades([unidade_uuid]):
-            instance.unidades.add(unidade)
-        else:
-            return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)  # noqa
+        except ValidacaoVinculoException as e:         
+            return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response({"mensagem": "Unidade vinculada com sucesso!"}, status=200)
+        except Exception as e:
+            msg_erro = "Erro ao vincular"
+            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['POST'], url_path='vincular-em-lote',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def vincular_em_lote(self, request, *args, **kwargs):
-        from sme_ptrf_apps.core.models.unidade import Unidade
-
-        instance = self.get_object()
-
+        service = self._get_service_tipo_receita_vinculo_unidade()
         unidade_uuids = request.data.get('unidade_uuids', [])
 
-        if not unidade_uuids:
-            return Response({"erro": "Nenhuma unidade informada."}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            service.vincular_unidades(unidade_uuids)
+            return Response({"mensagem": "Unidades vinculadas com sucesso!"}, status=status.HTTP_200_OK)       
 
-        unidades = Unidade.objects.filter(uuid__in=unidade_uuids)
+        except UnidadeNaoEncontradaException as e:   
+            return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
-        if not unidades.exists():
-            return Response({"erro": "Nenhuma unidade encontrada."}, status=status.HTTP_404_NOT_FOUND)
+        except ValidacaoVinculoException as e:         
+            return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        if instance.pode_restringir_unidades(unidade_uuids):
-            instance.unidades.add(*unidades)
-        else:
-            return Response({"mensagem": "Não é possível restringir tipo de crédito, pois existem unidades que já possuem crédito criado com esse tipo e não estão selecionadas."}, status=status.HTTP_400_BAD_REQUEST)  # noqa
-
-        return Response({"mensagem": "Unidades vinculadas com sucesso!"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            msg_erro = "Erro ao vincular"
+            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
         request={
