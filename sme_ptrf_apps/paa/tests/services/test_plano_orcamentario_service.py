@@ -374,6 +374,126 @@ def test_construir_plano_orcamentario_monta_secoes_quando_calculos_retornam_dado
     assert [s["key"] for s in secoes] == ["ptrf", "pdde"]
 
 
+def test_calcular_secao_ptrf_exibe_custeio_quando_nao_aceita_mas_tem_despesa():
+    """
+    Quando aceita_custeio=False mas existe despesa de custeio (prioridade cadastrada),
+    _calcular_secao_ptrf deve:
+    - incluir a linha da ação normalmente;
+    - marcar exibirCusteio=True porque tem_valor_custeio=True;
+    - refletir a despesa de custeio no saldo (déficit debitado do livre aplicação).
+
+    Cobre o comentário do código:
+    "aceita_* OR tem_valor_*: considera a situação em que uma receita está como
+    'não aceita' mas pode existir despesas utilizando do seu saldo"
+    """
+    service = _make_service()
+
+    uuid1 = "acao-nao-aceita-custeio"
+
+    receitas_ptrf = [
+        {
+            "uuid": uuid1,
+            "acao": {
+                "nome": "Ação Só Capital",
+                "aceita_custeio": False,   # não aceita custeio
+                "aceita_capital": True,
+                "aceita_livre": True,
+            },
+            "receitas_previstas_paa": [
+                {
+                    "previsao_valor_custeio": 0,
+                    "previsao_valor_capital": 200,
+                    "previsao_valor_livre": 100,
+                }
+            ],
+            "saldos": {
+                "saldo_atual_custeio": 0,
+                "saldo_atual_capital": 0,
+                "saldo_atual_livre": 0,
+            },
+        }
+    ]
+
+    # Existe despesa de custeio mesmo a ação não aceitando esse tipo
+    prioridades_ptrf = {
+        uuid1: {
+            "custeio": Decimal("50"),   # despesa indevida mas existente
+            "capital": Decimal("0"),
+            "livre": Decimal("0"),
+        }
+    }
+
+    secao = service._calcular_secao_ptrf(receitas_ptrf, prioridades_ptrf)
+
+    assert secao is not None
+    assert secao["key"] == "ptrf"
+    # 1 linha de ação + 1 linha TOTAL
+    assert len(secao["linhas"]) == 2
+
+    linha_acao = next(linha for linha in secao["linhas"] if linha["key"] == uuid1)
+
+    # Coluna custeio deve ser exibida mesmo sem aceitar (tem valor de despesa)
+    assert linha_acao["exibirCusteio"] is True
+    assert linha_acao["despesas"]["custeio"] == pytest.approx(50.0)
+
+    # Receita custeio é zero (ação não tem previsão/saldo de custeio)
+    assert linha_acao["receitas"]["custeio"] == pytest.approx(0.0)
+
+    # Saldo custeio negativo (-50) deve ser zerado e debitado do livre
+    assert linha_acao["saldos"]["custeio"] == pytest.approx(0.0)
+    # livre = 100 - 50 (déficit de custeio) = 50
+    assert linha_acao["saldos"]["livre"] == pytest.approx(50.0)
+
+
+def test_calcular_secao_ptrf_exibe_custeio_quando_nao_aceita_mas_tem_saldo_custeio():
+    """
+    Quando aceita_custeio=False mas a ação possui saldo atual de custeio (herdado
+    de período anterior), _calcular_secao_ptrf deve:
+    - marcar exibirCusteio=True (tem_valor_custeio=True via receita não-zero);
+    - incluir a linha normalmente sem descartar o saldo existente.
+    """
+    service = _make_service()
+
+    uuid1 = "acao-com-saldo-custeio-residual"
+
+    receitas_ptrf = [
+        {
+            "uuid": uuid1,
+            "acao": {
+                "nome": "Ação com Saldo Custeio Residual",
+                "aceita_custeio": False,   # <-- não aceita custeio
+                "aceita_capital": True,
+                "aceita_livre": False,
+            },
+            "receitas_previstas_paa": [
+                {
+                    "previsao_valor_custeio": 0,
+                    "previsao_valor_capital": 300,
+                    "previsao_valor_livre": 0,
+                }
+            ],
+            "saldos": {
+                "saldo_atual_custeio": 80,   # saldo residual de período anterior
+                "saldo_atual_capital": 0,
+                "saldo_atual_livre": 0,
+            },
+        }
+    ]
+
+    prioridades_ptrf = {}   # sem despesas
+
+    secao = service._calcular_secao_ptrf(receitas_ptrf, prioridades_ptrf)
+
+    assert secao is not None
+    linha_acao = next(linha for linha in secao["linhas"] if linha["key"] == uuid1)
+
+    # Custeio deve aparecer porque há saldo (tem_valor_custeio=True)
+    assert linha_acao["exibirCusteio"] is True
+    assert linha_acao["receitas"]["custeio"] == pytest.approx(80.0)
+    # Sem despesa, saldo de custeio = receita
+    assert linha_acao["saldos"]["custeio"] == pytest.approx(80.0)
+
+
 def test_calcular_secao_ptrf_sem_receitas_previstas_nao_estoura_erro():
     """
     Quando a ação PTRF não possui receitas_previstas_paa (lista vazia),
