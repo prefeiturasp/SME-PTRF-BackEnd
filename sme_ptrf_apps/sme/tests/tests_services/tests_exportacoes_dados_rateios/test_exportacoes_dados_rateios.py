@@ -181,7 +181,7 @@ def test_quantidade_linha_individual_dados_extracao(rateios_despesa_queryset):
             UUID do rateio
     """
 
-    assert len(linha_individual) == 34
+    assert len(linha_individual) == 35
 
 
 def test_resultado_esperado_dados_extracao(rateios_despesa_queryset):
@@ -197,7 +197,7 @@ def test_resultado_esperado_dados_extracao(rateios_despesa_queryset):
         primeiro_rateio.associacao.unidade.nome,
         primeiro_rateio.associacao.nome,
         primeiro_rateio.associacao.unidade.nome_dre,
-        # primeiro_rateio.despesa.recurso.nome,
+        primeiro_rateio.despesa.recurso.nome,
         primeiro_rateio.despesa.id,
         f'="{primeiro_rateio.despesa.numero_documento}"',
         primeiro_rateio.despesa.tipo_documento.nome,
@@ -247,7 +247,7 @@ def test_cabecalho(rateios_despesa_queryset):
         'Nome Unidade',
         'Nome Associação',
         'DRE',
-        # 'Recurso',
+        'Recurso',
         'ID do Gasto',
         'Número do documento',
         'Tipo de documento',

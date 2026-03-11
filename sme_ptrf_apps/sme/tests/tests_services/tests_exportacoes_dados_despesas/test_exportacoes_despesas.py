@@ -20,7 +20,7 @@ def test_dados_esperados_csv(queryset_ordered):
         primeira_despesa.associacao.unidade.nome,
         primeira_despesa.associacao.nome,
         primeira_despesa.associacao.unidade.dre.nome,
-        # primeira_despesa.recurso.nome,
+        primeira_despesa.recurso.nome,
         primeira_despesa.id,
         'Sim' if primeira_despesa.eh_despesa_sem_comprovacao_fiscal else 'Não',
         'Sim' if primeira_despesa.eh_despesa_reconhecida_pela_associacao else 'Não',
@@ -47,8 +47,6 @@ def test_dados_esperados_csv(queryset_ordered):
         str(primeira_despesa.uuid),
     ]
 
-    print(primeira_despesa.tipo_transacao.nome, linha_individual)
-
     assert linha_individual == resultado_esperado
 
 
@@ -62,7 +60,7 @@ def test_cabecalho():
         'Nome unidade',
         'Nome associação',
         'DRE',
-        # 'Recurso',
+        'Recurso',
         'ID do gasto',
         'É despesa sem comprovação fiscal?',
         'É despesa reconhecida pela Associação?',
