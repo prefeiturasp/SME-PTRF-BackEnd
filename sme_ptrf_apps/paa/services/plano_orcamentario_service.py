@@ -472,20 +472,21 @@ class PlanoOrcamentarioService:
                 despesa_valores['livre'] != Decimal('0') or
                 saldo_valores['livre'] != Decimal('0')
             )
-            if not (
-                (aceita_custeio and tem_valor_custeio) or
-                (aceita_capital and tem_valor_capital) or
-                (aceita_livre and tem_valor_livre)
-            ):
+            # aceita_* OR tem_valor_*, considera a situação em que uma receita está como "não aceita" mas
+            # pode existir despesas utilizando do seu saldo
+            exibe_custeio = aceita_custeio or tem_valor_custeio
+            exibe_capital = aceita_capital or tem_valor_capital
+            exibe_livre = aceita_livre or tem_valor_livre
+            if not (exibe_custeio or exibe_capital or exibe_livre):
                 continue
             ocultar_custeio_capital = receita_item['tipo'] == 'RECURSO_PROPRIO'
 
             linhas.append({
                 'key': recurso_uuid,
                 'nome': receita_item['nome'],
-                'exibirCusteio': aceita_custeio,
-                'exibirCapital': aceita_capital,
-                'exibirLivre': aceita_livre,
+                'exibirCusteio': exibe_custeio,
+                'exibirCapital': exibe_capital,
+                'exibirLivre': exibe_livre,
                 'receitas': _converter_valores_para_float(receita_valores),
                 'despesas': _converter_valores_para_float(despesa_valores),
                 'saldos': _converter_valores_para_float(saldo_valores),
