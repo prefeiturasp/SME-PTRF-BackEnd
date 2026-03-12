@@ -460,3 +460,468 @@ Then('não busca dados da associação no EOL com status 401', function () {
     expect(response.status).to.eq(401)
   })
 })
+
+// Carregar painel de ações de associações
+When('envio uma requisição GET no painel de ações de associações', function () {
+  cy.get('@token').then((token) => {
+    cy.request({
+      method: 'GET',
+      url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/e4184fb0-3e9a-4539-9d0b-5a47f61996fe/painel-acoes/',
+      headers: {
+        accept: 'application/json',
+        Authorization: `JWT ${token}`
+      },
+      failOnStatusCode: false
+    }).as('response')
+  })
+})
+
+Then('carrega o painel de ações de associações com status 200', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(200)
+    expect(response.body).to.have.property('associacao')
+    expect(response.body).to.have.property('periodo_referencia')
+    expect(response.body).to.have.property('prestacao_contas_status')
+    expect(response.body.prestacao_contas_status).to.have.property('status_prestacao')
+    expect(response.body).to.have.property('data_inicio_realizacao_despesas')
+    expect(response.body).to.have.property('data_fim_realizacao_despesas')
+    expect(response.body).to.have.property('info_acoes')
+    expect(response.body.info_acoes).to.be.an('array')
+    expect(response.body.info_acoes[0]).to.have.property('acao_associacao_uuid')
+    expect(response.body.info_acoes[0]).to.have.property('acao_associacao_nome')
+    expect(response.body.info_acoes[0]).to.have.property('saldo_atual_total')
+  })
+})
+
+// Não carregar painel de ações sem associações
+When('envio uma requisição GET no painel de ações sem associações', function () {
+  cy.get('@token').then((token) => {
+    cy.request({
+      method: 'GET',
+      url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes//painel-acoes/',
+      headers: {
+        accept: 'application/json',
+        Authorization: `JWT ${token}`
+      },
+      failOnStatusCode: false
+    }).as('response')
+  })
+})
+
+Then('não carrega o painel de ações de associações com status 404', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(404)
+  })
+})
+
+// Não carregar painel de ações de associações sem autenticação
+When('tento uma requisição GET no endpoint no painel de ações de associações', function () {
+  cy.request({
+    method: 'GET',
+    url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/e4184fb0-3e9a-4539-9d0b-5a47f61996fe/painel-acoes/',
+    headers: {
+      accept: 'application/json',
+      Authorization: 'JWT token_invalido'
+    },
+    failOnStatusCode: false
+  }).as('response')
+})
+
+Then('não carrega o painel de ações de associações retornando o status 401', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(401)
+  })
+})
+
+// Status de período de associações não encontrado
+When('envio uma requisição GET no período de status de associações', function () {
+  cy.get('@token').then((token) => {
+    cy.request({
+      method: 'GET',
+      url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/e4184fb0-3e9a-4539-9d0b-5a47f61996fe/status-periodo/2020-01-01/',
+      headers: {
+        accept: 'application/json',
+        Authorization: `JWT ${token}`
+      },
+      failOnStatusCode: false
+    }).as('response')
+  })
+})
+
+Then('retorna status de período de associações não encontrado', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(404)
+  })
+})
+
+// Status de período de associações deve conter data
+When('envio uma requisição GET no período de status sem data', function () {
+  cy.get('@token').then((token) => {
+    cy.request({
+      method: 'GET',
+      url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/e4184fb0-3e9a-4539-9d0b-5a47f61996fe/status-periodo/',
+      headers: {
+        accept: 'application/json',
+        Authorization: `JWT ${token}`
+      },
+      failOnStatusCode: false
+    }).as('response')
+  })
+})
+
+Then('retorna que status de período de associações deve conter data', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(400)
+  })
+})
+
+// Não retornar status de período de associações sem autenticação
+When('tento uma requisição GET no período de status de associações', function () {
+  cy.request({
+    method: 'GET',
+    url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/e4184fb0-3e9a-4539-9d0b-5a47f61996fe/status-periodo/2020-01-01/',
+    headers: {
+      accept: 'application/json',
+      Authorization: 'JWT token_invalido'
+    },
+    failOnStatusCode: false
+  }).as('response')
+})
+
+Then('não carrega status de período de associações retornando o status 401', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(404)
+  })
+})
+
+// Buscar dados da tabela de associações
+When('envio uma requisição GET no endpoint na tabela associações', function () {
+  cy.get('@token').then((token) => {
+    cy.request({
+      method: 'GET',
+      url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/tabelas/',
+      headers: {
+        accept: 'application/json',
+        Authorization: `JWT ${token}`
+      },
+      failOnStatusCode: false
+    }).as('response')
+  })
+})
+
+Then('retorna todos dados da tabela de associações com status 200', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(200)
+  })
+})
+
+// Não buscar dados da tabela de associações sem autenticação
+When('tento uma requisição GET no endpoint na tabela associações', function () {
+  cy.request({
+    method: 'GET',
+    url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/tabelas/',
+    headers: {
+      accept: 'application/json',
+      Authorization: 'JWT token_invalido'
+    },
+    failOnStatusCode: false
+  }).as('response')
+})
+
+Then('não busca dados da tabela de associações retornando o status 401', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(401)
+  })
+})
+
+// Consultar status da associação
+When('envio uma requisição GET de consulta da associação', function () {
+  cy.get('@token').then((token) => {
+    cy.request({
+      method: 'GET',
+      url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/e4184fb0-3e9a-4539-9d0b-5a47f61996fe/status-cadastro/',
+      headers: {
+        accept: 'application/json',
+        Authorization: `JWT ${token}`
+      },
+      failOnStatusCode: false
+    }).as('response')
+  })
+})
+
+Then('retorna o status da associação com 200 no response', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(200)
+  })
+})
+
+// Não consulta status sem a associação
+When('envio a requisição GET de consulta sem a associação', function () {
+  cy.get('@token').then((token) => {
+    cy.request({
+      method: 'GET',
+      url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes//status-cadastro/',
+      headers: {
+        accept: 'application/json',
+        Authorization: `JWT ${token}`
+      },
+      failOnStatusCode: false
+    }).as('response')
+  })
+})
+
+Then('não consulta o status sem a associação', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(404)
+  })
+})
+
+// Não consulta status da associação sem autenticação
+When('tento uma requisição GET de consulta da associação', function () {
+  cy.request({
+    method: 'GET',
+    url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/e4184fb0-3e9a-4539-9d0b-5a47f61996fe/status-cadastro/',
+    headers: {
+      accept: 'application/json',
+      Authorization: 'JWT token_invalido'
+    },
+    failOnStatusCode: false
+  }).as('response')
+})
+
+Then('não retorna o status da associação somente 401 no response', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(401)
+  })
+})
+
+// Consultar tags de informações da associação
+When('envio uma requisição GET nas tags de informações', function () {
+  cy.get('@token').then((token) => {
+    cy.request({
+      method: 'GET',
+      url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/tags-informacoes/ ',
+      headers: {
+        accept: 'application/json',
+        Authorization: `JWT ${token}`
+      },
+      failOnStatusCode: false
+    }).as('response')
+  })
+})
+
+Then('retorna tags de informações da associação com status 200', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(200)
+
+    const tags = response.body[0]
+
+    expect(tags).to.have.property('id')
+    expect(tags).to.have.property('nome')
+    expect(tags).to.have.property('descricao')
+    expect(tags).to.have.property('key')
+  })
+})
+
+
+// Não consulta tags de informações da associação sem autenticação
+When('tento uma requisição GET nas tags de informações', function () {
+  cy.request({
+    method: 'GET',
+    url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/tags-informacoes/ ',
+    headers: {
+      accept: 'application/json',
+      Authorization: 'JWT token_invalido'
+    },
+    failOnStatusCode: false
+  }).as('response')
+})
+
+Then('não retorna tags de informações da associação com status 401', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(401)
+  })
+})
+
+// Verificação de regularidade da associação
+When('envio uma requisição GET na verificação de regularidade', function () {
+  cy.get('@token').then((token) => {
+    cy.request({
+      method: 'GET',
+      url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/e4184fb0-3e9a-4539-9d0b-5a47f61996fe/verificacao-regularidade/',
+      headers: {
+        accept: 'application/json',
+        Authorization: `JWT ${token}`
+      },
+      failOnStatusCode: false
+    }).as('response')
+  })
+})
+
+Then('retorna a verificação de regularidade da associação com status 200', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(200)
+  })
+})
+
+// Não consulta verificação de regularidade sem a associação
+When('envio a requisição GET na verificação de regularidade sem associação', function () {
+  cy.get('@token').then((token) => {
+    cy.request({
+      method: 'GET',
+      url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes//verificacao-regularidade/',
+      headers: {
+        accept: 'application/json',
+        Authorization: `JWT ${token}`
+      },
+      failOnStatusCode: false
+    }).as('response')
+  })
+})
+
+Then('não consulta a verificação de regularidade sem a associação', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(404)
+  })
+})
+
+// Não consulta verificação de regularidade da associação sem autenticação
+When('tento uma requisição GET na verificação de regularidade', function () {
+  cy.request({
+    method: 'GET',
+    url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/e4184fb0-3e9a-4539-9d0b-5a47f61996fe/verificacao-regularidade/',
+    headers: {
+      accept: 'application/json',
+      Authorization: 'JWT token_invalido'
+    },
+    failOnStatusCode: false
+  }).as('response')
+})
+
+Then('não retorna a verificação de regularidade da associação', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(401)
+  })
+})
+
+// Retorna períodos para prestação de contas da associação
+When('envio uma requisição GET nas contas da associação', function () {
+  cy.get('@token').then((token) => {
+    cy.request({
+      method: 'GET',
+      url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/e4184fb0-3e9a-4539-9d0b-5a47f61996fe/periodos-para-prestacao-de-contas/',
+      headers: {
+        accept: 'application/json',
+        Authorization: `JWT ${token}`
+      },
+      failOnStatusCode: false
+    }).as('response')
+  })
+})
+
+Then('retorna períodos para prestação de contas da associação com status 200', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(200)
+  })
+})
+
+// Não retorna períodos para prestação de contas sem a associação
+When('envio a requisição GET nas contas sem associação', function () {
+  cy.get('@token').then((token) => {
+    cy.request({
+      method: 'GET',
+      url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes//periodos-para-prestacao-de-contas/',
+      headers: {
+        accept: 'application/json',
+        Authorization: `JWT ${token}`
+      },
+      failOnStatusCode: false
+    }).as('response')
+  })
+})
+
+Then('não consulta períodos para prestação de contas sem a associação', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(404)
+  })
+})
+
+// Não retorna períodos para prestação de contas da associação sem autenticação
+When('tento uma requisição GET nas contas da associação', function () {
+  cy.request({
+    method: 'GET',
+    url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/e4184fb0-3e9a-4539-9d0b-5a47f61996fe/periodos-para-prestacao-de-contas/',
+    headers: {
+      accept: 'application/json',
+      Authorization: 'JWT token_invalido'
+    },
+    failOnStatusCode: false
+  }).as('response')
+})
+
+Then('não retorna períodos para prestação de contas da associação', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(401)
+  })
+})
+
+// Retorna contas encerradas da associação
+When('envio uma requisição GET em contas encerradas da associação', function () {
+  cy.get('@token').then((token) => {
+    cy.request({
+      method: 'GET',
+      url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/e4184fb0-3e9a-4539-9d0b-5a47f61996fe/contas/encerradas//',
+      headers: {
+        accept: 'application/json',
+        Authorization: `JWT ${token}`
+      },
+      failOnStatusCode: false
+    }).as('response')
+  })
+})
+
+Then('retorna contas encerradas da associação com status 200', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(200)
+  })
+})
+
+// Não retorna contas encerradas sem a associação
+When('envio a requisição GET em contas encerradas sem associação', function () {
+  cy.get('@token').then((token) => {
+    cy.request({
+      method: 'GET',
+      url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes//contas/encerradas//',
+      headers: {
+        accept: 'application/json',
+        Authorization: `JWT ${token}`
+      },
+      failOnStatusCode: false
+    }).as('response')
+  })
+})
+
+Then('não consulta contas encerradas sem a associação', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(404)
+  })
+})
+
+// Não retorna contas encerradas da associação sem autenticação
+When('tento uma requisição GET em contas encerradas da associação', function () {
+  cy.request({
+    method: 'GET',
+    url: Cypress.config('baseUrlPTRFHomol') + 'api/associacoes/e4184fb0-3e9a-4539-9d0b-5a47f61996fe/contas/encerradas//',
+    headers: {
+      accept: 'application/json',
+      Authorization: 'JWT token_invalido'
+    },
+    failOnStatusCode: false
+  }).as('response')
+})
+
+Then('não retorna contas encerradas da associação sem autenticação', function () {
+  cy.get('@response').then((response) => {
+    expect(response.status).to.eq(401)
+  })
+})
