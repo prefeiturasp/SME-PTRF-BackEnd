@@ -167,3 +167,41 @@ class TipoCusteioVinculoUnidadeService:
             "sucesso": True,
             "mensagem": mensagem,
         }
+
+    @transaction.atomic
+    def desvincular_todas_unidades(self) -> Dict[str, Any]:
+        """
+        Desvincula todas as unidades.
+        """
+
+        # Remove todos os vínculos
+        self.tipo_custeio.unidades.clear()
+
+        rateios_completos = self.tipo_custeio.rateiodespesa_set.filter(
+            despesa__status=STATUS_COMPLETO
+        )
+
+        # Unidades que possuem rateios e não podem ser desvinculadas       
+        unidades_com_despesas_completas = (
+            rateios_completos
+            .values_list('despesa__associacao__unidade', flat=True)
+            .distinct()
+        )
+        
+        # Recria vínculo com essas unidades
+        self.tipo_custeio.unidades.add(*unidades_com_despesas_completas)
+
+        # Remove vínculo dos rateios em rascunho
+        self.tipo_custeio.rateiodespesa_set.filter(
+            despesa__status=STATUS_INCOMPLETO,
+        ).update(
+            tipo_custeio=None,
+            especificacao_material_servico=None
+        )
+
+        logger.warning("Todas as Unidades permitidas foram desvinculadas no Tipo Custeio.")
+
+        return {
+            "sucesso": True,
+            "mensagem": "Todas as unidades permitidas foram desvinculadas com sucesso!",
+        }

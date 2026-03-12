@@ -151,3 +151,29 @@ class TipoReceitaVinculoUnidadeService:
             "sucesso": True,
             "mensagem": mensagem_retorno,
         }
+
+    @transaction.atomic
+    def desvincular_todas_unidades(self) -> Dict[str, Any]:
+        """
+        Desvincula todas as unidades.
+        """
+
+        # Remove todos os vínculos
+        self.tipo_receita.unidades.clear()
+
+        # Unidades que possuem receitas e não podem ser desvinculadas
+        unidades_com_receita = (
+            self.tipo_receita.receita_set
+            .values_list('associacao__unidade', flat=True)
+            .distinct()
+        )
+
+        # Recria vínculo com essas unidades
+        self.tipo_receita.unidades.add(*unidades_com_receita)
+
+        logger.warning("Todas as Unidades permitidas foram desvinculadas no Tipo Receita.")
+
+        return {
+            "sucesso": True,
+            "mensagem": "Todas as unidades permitidas foram desvinculadas com sucesso!",
+        }

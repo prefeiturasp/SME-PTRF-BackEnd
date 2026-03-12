@@ -365,3 +365,17 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             msg_erro = "Erro ao vincular todas as unidades."
             logger.error(f"{msg_erro} {str(e)}", exc_info=True)
             return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['POST'], url_path='desvincular-todas-unidades',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def desvincular_todas_unidades(self, request, *args, **kwargs):
+        """Desabilita o Tipo Receita para todas as unidades."""
+        service = self._get_service_tipo_receita_vinculo_unidade()
+
+        try:
+            resultado = service.desvincular_todas_unidades()
+            return Response(resultado, status=status.HTTP_200_OK)
+        except Exception as e:
+            msg_erro = "Erro ao desvincular todas as unidades."
+            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
