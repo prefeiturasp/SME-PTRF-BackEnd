@@ -1,15 +1,15 @@
 export function delete_tipo_de_conta(nome) {
-  return `delete from core_tipoconta where nome = '${nome}'`;
+  return `delete from public.core_tipoconta where nome = '${nome}'`;
 }
 
 export function insert_tipo_de_conta(nome) {
-  return `INSERT INTO core_tipoconta(
+  return `INSERT INTO public.core_tipoconta(
 	nome, criado_em, alterado_em, uuid, agencia, banco_nome, numero_cartao, numero_conta, apenas_leitura, permite_inativacao, recurso_id)
 	VALUES ('${nome}', now(), now(), 'd2db175f-9e8a-4f21-9778-c26ec84bf1de', '0001', 'teste automatizado', '1234432112344321', '12345', true, true, 1);`;
 }
 
 export function delete_fornecedores(nome) {
-  return `delete from despesas_fornecedor where nome = '${nome}'`;
+  return `delete from public.despesas_fornecedor where nome = '${nome}'`;
 }
 
 export function insert_fornecedor(nome, cpf_cnpj) {
@@ -19,7 +19,7 @@ export function insert_fornecedor(nome, cpf_cnpj) {
 }
 
 export function delete_motivo_pagamento_antecipado(motivo) {
-  return `delete from despesas_motivopagamentoantecipado where motivo = '${motivo}'`;
+  return `delete from public.despesas_motivopagamentoantecipado where motivo = '${motivo}'`;
 }
 
 export function insert_motivo_pagamento_antecipado(motivo) {
@@ -29,7 +29,7 @@ export function insert_motivo_pagamento_antecipado(motivo) {
 }
 
 export function delete_tipo_do_documento(nome) {
-  return `delete from despesas_tipodocumento where nome = '${nome}'`;
+  return `delete from public.despesas_tipodocumento where nome = '${nome}'`;
 }
 
 export function insert_tipo_do_documento(nome) {
@@ -39,7 +39,7 @@ export function insert_tipo_do_documento(nome) {
 }
 
 export function delete_tipo_de_transacao(nome) {
-  return `delete from despesas_tipotransacao where nome = '${nome}'`;
+  return `delete from public.despesas_tipotransacao where nome = '${nome}'`;
 }
 
 export function insert_tipo_de_transacao(nome) {
@@ -54,7 +54,7 @@ where status = 'ATIVA' and tipo_conta_id ='2' and associacao_id = '${associacaoI
 }
 
 export function select_saldo_recursos_dados_das_contas(saldos) {
-  return `SELECT saldo_extrato FROM core_dadosdemonstrativofinanceiro
+  return `SELECT saldo_extrato FROM public.core_dadosdemonstrativofinanceiro
     WHERE conta = '${saldos.numero_conta}'
     AND agencia = '${saldos.agencia}'`
 }
