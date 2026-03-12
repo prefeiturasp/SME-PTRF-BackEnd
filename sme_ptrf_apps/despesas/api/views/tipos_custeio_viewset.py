@@ -10,6 +10,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from ..serializers.tipo_custeio_serializer import TipoCusteioSerializer, TipoCusteioFormSerializer
 from ...models import TipoCusteio
+from sme_ptrf_apps.core.models.unidade import Unidade
 from sme_ptrf_apps.core.api.serializers import UnidadeLookUpSerializer
 from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasSmeComLeituraOuGravacao
@@ -43,10 +44,18 @@ class TiposCusteioViewSet(mixins.ListModelMixin,
 
     def get_queryset(self):
         qs = TipoCusteio.objects.all()
-
         nome = self.request.query_params.get('nome')
+        unidade_uuid = self.request.query_params.get('unidades__uuid')
+
+        unidade_filtrada = Unidade.objects.filter(uuid=unidade_uuid)
+        
         if nome is not None:
             qs = qs.filter(nome__unaccent__icontains=nome)
+        
+        if unidade_uuid:
+            qs_com_unidade = list(qs.filter(unidades__in=unidade_filtrada).values_list('id', flat=True))
+            qs_sem_unidade = list(qs.filter(unidades__isnull=True).values_list('id', flat=True))
+            qs = qs.filter(id__in=qs_com_unidade + qs_sem_unidade)
 
         return qs.order_by('nome')
 
@@ -122,7 +131,6 @@ class TiposCusteioViewSet(mixins.ListModelMixin,
     @action(detail=True, url_path='unidades-nao-vinculadas',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def unidades_nao_vinculadas(self, request, *args, **kwargs):
-        from sme_ptrf_apps.core.models.unidade import Unidade
         uuid_dre = self.request.query_params.get('dre')
         nome_ou_codigo = self.request.query_params.get('nome_ou_codigo')
         tipo_unidade = self.request.query_params.get('tipo_unidade')
