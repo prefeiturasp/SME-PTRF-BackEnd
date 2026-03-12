@@ -153,8 +153,8 @@ class TipoCusteioVinculoUnidadeService:
 
         if qt_nao_removidas == len(unidades):
             raise ValidacaoVinculoException(
-                "Não é possível desvincular o tipo de custeio, pois existem unidades que já possuem despesas completas"
-                " criadas com esse tipo."
+                "Não é possível desvincular a(s) unidade(s) "
+                "pois as unidades possuem débito vinculado."
             )
 
         mensagem = (

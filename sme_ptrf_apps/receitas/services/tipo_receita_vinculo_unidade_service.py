@@ -136,9 +136,8 @@ class TipoReceitaVinculoUnidadeService:
 
         if qt_nao_removidas == len(unidades):
             raise ValidacaoVinculoException(
-                "Não é possível restringir o tipo de crédito, pois "
-                "existem unidades que já possuem crédito criado com esse "
-                "tipo e não estão selecionadas."
+                "Não é possível desvincular a(s) unidade(s) "
+                "pois as unidades possuem crédito vinculado."
             )
 
         mensagem_retorno = (
