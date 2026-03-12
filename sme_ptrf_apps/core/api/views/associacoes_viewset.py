@@ -419,6 +419,8 @@ class AssociacoesViewSet(ModelViewSet):
 
         contas = ContaAssociacao.objects.filter(associacao=associacao).all()
 
+        contas = ContaAssociacao.filter_by_recurso(contas, self.request.recurso)
+
         obj_contas = []
         for conta in contas:
             lancamentos = lancamentos_da_prestacao(
@@ -467,6 +469,8 @@ class AssociacoesViewSet(ModelViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         contas = ContaAssociacao.objects.filter(associacao=associacao).all()
+
+        contas = ContaAssociacao.filter_by_recurso(contas, self.request.recurso)
 
         obj_contas = []
         for conta in contas:
