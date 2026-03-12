@@ -59,14 +59,18 @@ class SaldosPorAcaoPaaService:
                 acao_associacao=acao,
                 data_fim=self.paa.saldo_congelado_em
             )
+            # Havendo saldo negativo no valor reprogramado, o saldo congelado deve ser zerado
+            saldo_custeio = resumo.saldo_posterior.total_custeio
+            saldo_capital = resumo.saldo_posterior.total_capital
+            saldo_livre = resumo.saldo_posterior.total_livre
 
             receita_prevista, _ = ReceitaPrevistaPaa.objects.update_or_create(
                 paa=self.paa,
                 acao_associacao=acao,
                 defaults={
-                    "saldo_congelado_custeio": resumo.saldo_posterior.total_custeio,
-                    "saldo_congelado_capital": resumo.saldo_posterior.total_capital,
-                    "saldo_congelado_livre": resumo.saldo_posterior.total_livre,
+                    "saldo_congelado_custeio": saldo_custeio if saldo_custeio >= 0 else 0,
+                    "saldo_congelado_capital": saldo_capital if saldo_capital >= 0 else 0,
+                    "saldo_congelado_livre": saldo_livre if saldo_livre >= 0 else 0,
                 }
             )
 

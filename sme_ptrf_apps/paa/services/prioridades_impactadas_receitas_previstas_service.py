@@ -306,9 +306,15 @@ class PrioridadesPaaImpactadasBaseService(ABC):
         logger.info(f"Verificando saldo das prioridades da acao receita: {self.recurso} - {self.acao_receita}")
         for prioridade in prioridades:
             try:
-                self._verifica_saldo(prioridade, prioridade.valor_total)
+                # simula valor_total zerado apenas para checagem de saldo, simulando sem acrescimo de valor atual
+                self._verifica_saldo(prioridade, 0)
             except ValidacaoSaldoIndisponivel as e:
                 logger.error(str(e))
+                prioridades_saldo_indisponivel.append(prioridade.id)
+            except Exception as e:
+                logger.error((
+                    "Erro ao verificar saldo das prioridades criadas"
+                    f"para a acao receita: {self.acao_receita} : {str(e)}"))
                 prioridades_saldo_indisponivel.append(prioridade.id)
 
         # Retornar um tipo Queryset
