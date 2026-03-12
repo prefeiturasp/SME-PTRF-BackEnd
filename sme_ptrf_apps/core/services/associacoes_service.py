@@ -87,6 +87,9 @@ def tem_repasses_pendentes_periodos_ate_agora(associacao, periodo):
         periodo__referencia__lte=periodo.referencia,
         status=StatusRepasse.PENDENTE.name
     )
+
+    repasses_pendentes = Repasse.filter_by_recurso(repasses_pendentes, periodo.recurso)
+
     return repasses_pendentes.exists()
 
 
