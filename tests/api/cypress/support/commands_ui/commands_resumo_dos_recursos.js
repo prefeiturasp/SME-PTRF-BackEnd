@@ -76,7 +76,6 @@ Cypress.Commands.add('verficar_saldo_reprogramado_resumo_dos_recursos', () => {
 
   const totais = []
 
-  // pega todos os valores do card TOTAL
   cy.get(resumo_dos_recursos_localizadores.cards_saldos_resumo_dos_recursos())
     .each(($el) => {
       const texto = $el.text()
@@ -84,12 +83,10 @@ Cypress.Commands.add('verficar_saldo_reprogramado_resumo_dos_recursos', () => {
       totais.push(valor)
     })
 
-  // pega todos os saldos reprogramados
-  cy.get('.pt-1.mb-4 strong').each(($el) => {
+  cy.get(resumo_dos_recursos_localizadores.cards_todos_saldos_reprogramados_resumo_dos_recursos()).each(($el) => {
 
     const saldo = $el.text().trim()
 
-    // valida se existe algum total igual
     expect(totais).to.include(saldo)
 
   })
