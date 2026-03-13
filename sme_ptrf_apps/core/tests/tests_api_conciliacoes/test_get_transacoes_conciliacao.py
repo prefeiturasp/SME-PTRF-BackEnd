@@ -52,7 +52,9 @@ def monta_result_esperado(transacoes_esperadas, periodo, conta):
                     'id': rateio.tipo_custeio.id,
                     'nome': rateio.tipo_custeio.nome,
                     'todas_unidades_selecionadas': True,
-                    'uuid': f"{rateio.tipo_custeio.uuid}"
+                    'uuid': f"{rateio.tipo_custeio.uuid}",
+                    'uso_associacao': 'Todas',
+                    'unidades': [],
                 },
                 "especificacao_material_servico": {
                     "id": rateio.especificacao_material_servico.id,
