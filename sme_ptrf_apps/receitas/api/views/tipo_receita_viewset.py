@@ -218,9 +218,8 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return Response(
                 {
                     "mensagem": (
-                        "Não é possível restringir o tipo de crédito, pois "
-                        "existem unidades que já possuem crédito criado com esse "
-                        "tipo e não estão selecionadas."
+                        "Não é possível desvincular a(s) unidade(s) "
+                        "pois as unidades possuem crédito vinculado."
                     )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
