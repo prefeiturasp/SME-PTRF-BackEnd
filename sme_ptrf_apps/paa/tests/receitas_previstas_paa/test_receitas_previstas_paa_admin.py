@@ -7,7 +7,8 @@ def test_list_display(receitas_previstas_paa_admin):
 
 def test_search_fields(receitas_previstas_paa_admin):
     assert receitas_previstas_paa_admin.search_fields == (
-        'acao_associacao__acao__nome', 'acao_associacao__associacao__nome'
+        'acao_associacao__acao__nome', 'acao_associacao__associacao__nome',
+        'acao_associacao__associacao__unidade__codigo_eol'
     )
 
 

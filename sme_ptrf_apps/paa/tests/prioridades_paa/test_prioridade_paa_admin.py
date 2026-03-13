@@ -15,7 +15,8 @@ def test_list_display(prioridade_paa_admin):
 
 def test_search_fields(prioridade_paa_admin):
     assert prioridade_paa_admin.search_fields == (
-        'acao_associacao__acao__nome', 'acao_associacao__associacao__nome', 'programa_pdde__nome',
+        'acao_associacao__acao__nome', 'acao_associacao__associacao__nome',
+        'acao_associacao__associacao__unidade__codigo_eol', 'programa_pdde__nome',
         'acao_pdde__nome', 'tipo_despesa_custeio__nome', 'especificacao_material__descricao')
 
 

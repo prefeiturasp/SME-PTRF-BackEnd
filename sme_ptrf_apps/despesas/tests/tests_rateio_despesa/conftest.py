@@ -2,11 +2,19 @@ import datetime
 
 import pytest
 from model_bakery import baker
+from sme_ptrf_apps.despesas.models import RateioDespesa
+from sme_ptrf_apps.despesas.admin import RateioDespesaAdmin
+from django.contrib.admin.sites import site
 
 
 @pytest.fixture
 def tipo_custeio_servico():
     return baker.make('TipoCusteio', nome='Servico')
+
+
+@pytest.fixture
+def rateio_despesas_admin():
+    return RateioDespesaAdmin(model=RateioDespesa, admin_site=site)
 
 
 @pytest.fixture

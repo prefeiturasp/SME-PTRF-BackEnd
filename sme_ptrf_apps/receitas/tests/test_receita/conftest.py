@@ -4,6 +4,14 @@ import pytest
 from model_bakery import baker
 
 from ...tipos_aplicacao_recurso_receitas import APLICACAO_CAPITAL, APLICACAO_CUSTEIO, APLICACAO_LIVRE
+from sme_ptrf_apps.receitas.models.receita import Receita
+from sme_ptrf_apps.receitas.admin import ReceitaAdmin
+from django.contrib.admin.sites import site
+
+
+@pytest.fixture
+def receita_admin():
+    return ReceitaAdmin(model=Receita, admin_site=site)
 
 
 @pytest.fixture
@@ -50,7 +58,7 @@ def receita_2020_1_role_repasse_custeio_conferida(associacao, conta_associacao_c
 
 @pytest.fixture
 def receita_2020_1_role_repasse_livre_conferida(associacao, conta_associacao_cartao, acao_associacao_role_cultural,
-                                                  tipo_receita_repasse):
+                                                tipo_receita_repasse):
     return baker.make(
         'Receita',
         associacao=associacao,
@@ -62,6 +70,7 @@ def receita_2020_1_role_repasse_livre_conferida(associacao, conta_associacao_car
         conferido=True,
         categoria_receita=APLICACAO_LIVRE,
     )
+
 
 @pytest.fixture
 def receita_2020_1_role_repasse_capital_nao_conferida(associacao, conta_associacao_cartao,
@@ -127,9 +136,10 @@ def receita_2020_1_role_rendimento_custeio_conferida(associacao, conta_associaca
         categoria_receita=APLICACAO_CUSTEIO,
     )
 
+
 @pytest.fixture
 def receita_2020_1_role_rendimento_livre_conferida(associacao, conta_associacao_cartao, acao_associacao_role_cultural,
-                                                     tipo_receita_rendimento):
+                                                   tipo_receita_rendimento):
     return baker.make(
         'Receita',
         associacao=associacao,
