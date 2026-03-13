@@ -681,14 +681,6 @@ class PlanoOrcamentarioService:
             receita_capital = Decimal(str(acao.get('total_valor_capital', 0) or 0))
             receita_livre = Decimal(str(acao.get('total_valor_livre_aplicacao', 0) or 0))
 
-            # Desconsiderar categorias que a ação não aceita (zerar para cálculo e exibição)
-            if not aceita_custeio:
-                receita_custeio = Decimal('0')
-            if not aceita_capital:
-                receita_capital = Decimal('0')
-            if not aceita_livre:
-                receita_livre = Decimal('0')
-
             receita_valores = {
                 'custeio': receita_custeio,
                 'capital': receita_capital,
@@ -700,10 +692,7 @@ class PlanoOrcamentarioService:
             despesas_raw = prioridades_pdde.get(acao_uuid, {})
             despesa_custeio = Decimal(str(despesas_raw.get('custeio', 0) or 0))
             despesa_capital = Decimal(str(despesas_raw.get('capital', 0) or 0))
-            if not aceita_custeio:
-                despesa_custeio = Decimal('0')
-            if not aceita_capital:
-                despesa_capital = Decimal('0')
+
             despesa_valores = {
                 'custeio': despesa_custeio,
                 'capital': despesa_capital,
@@ -729,19 +718,20 @@ class PlanoOrcamentarioService:
                 despesa_valores['livre'] != Decimal('0') or
                 saldo_valores['livre'] != Decimal('0')
             )
-            if not (
-                (aceita_custeio and tem_valor_custeio) or
-                (aceita_capital and tem_valor_capital) or
-                (aceita_livre and tem_valor_livre)
-            ):
+            # aceita_* OR tem_valor_*, considera a situação em que uma receita está como "não aceita" mas
+            # pode existir despesas utilizando do seu saldo
+            exibe_custeio = aceita_custeio or tem_valor_custeio
+            exibe_capital = aceita_capital or tem_valor_capital
+            exibe_livre = aceita_livre or tem_valor_livre
+            if not (exibe_custeio or exibe_capital or exibe_livre):
                 continue
 
             linhas.append({
                 'key': acao_uuid or acao.get('nome', ''),
                 'nome': acao.get('nome', '-'),
-                'exibirCusteio': aceita_custeio,
-                'exibirCapital': aceita_capital,
-                'exibirLivre': aceita_livre,
+                'exibirCusteio': exibe_custeio,
+                'exibirCapital': exibe_capital,
+                'exibirLivre': exibe_livre,
                 'receitas': _converter_valores_para_float(receita_valores),
                 'despesas': _converter_valores_para_float(despesa_valores),
                 'saldos': _converter_valores_para_float(saldo_valores)
