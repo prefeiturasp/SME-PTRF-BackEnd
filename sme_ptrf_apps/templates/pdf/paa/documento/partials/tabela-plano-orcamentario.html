@@ -121,7 +121,7 @@
         </table>
         {% endif %}
 
-        {% if dados.recursos_proprios.total_recursos_proprios or dados.recursos_proprios.items_outros_recursos %}
+        {% if dados.recursos_proprios.items_outros_recursos %}
         <table class="tabela tabela-plano-orcamentario border tabela-zebra mb-2 mt-0">
             <colgroup>
                 <col style="width: 30%">
@@ -145,38 +145,18 @@
             </thead>
 
             <tbody class="nao-quebra-linha">
-                {% if dados.recursos_proprios.total_recursos_proprios %}
-                <tr class="tr-zebra-even">
-                    <td>Recursos Próprios</td>
-                    <td>
-                        <ul style="list-style: none; padding-left: 0">
-                            <li>Livre Aplicação (R$)</li>
-                        </ul>
-                    </td>
-                    <td class="text-right">
-                        <ul style="list-style: none; padding-left: 0">
-                            <li>{{dados.recursos_proprios.total_recursos_proprios|formata_valor}}</li>
-                        </ul>
-                    </td>
-                    <td class="text-right">
-                        <ul style="list-style: none;padding-left: 0">
-                            <li>-</li>
-                        </ul>
-                    </td>
-                    <td class="text-right">
-                        <ul style="list-style: none;padding-left: 0">
-                            <li>{{dados.recursos_proprios.saldo_recursos_proprios|formata_valor}}</li>
-                        </ul>
-                    </td>
-                </tr>
-                {% endif %}
-
                 {% for outro_recurso in dados.recursos_proprios.items_outros_recursos %}
                 {% for linha in outro_recurso.linhas %}
                 <tr class="tr-zebra-{{ outro_recurso.zebra_classe }}">
                     {% if forloop.first %}<td rowspan="{{ outro_recurso.linhas|length }}" style="vertical-align: top;">{{ outro_recurso.nome }}</td>{% endif %}
                     <td>{{ linha.label }}</td>
-                    <td class="text-right">{{ linha.receita|formata_valor }}</td>
+                    <td class="text-right">
+                        {% if outro_recurso.key and outro_recurso.key == "RECURSO_PROPRIO" and linha.label != "Livre Aplicação (R$)" %}
+                            {# Para RECURSO_PROPRIO, exibe o "-" Custeio e Capital não serão exibidos #}
+                            -
+                        {% else %}
+                            {{ linha.receita|formata_valor }}
+                        {% endif %}</td>
                     <td class="text-right">{% if linha.label == "Livre Aplicação (R$)" %}{{ linha.despesa|formata_valor_vazio }}{% else %}{{ linha.despesa|formata_valor }}{% endif %}</td>
                     <td class="text-right">{{ linha.saldo|formata_valor }}</td>
                 </tr>
