@@ -19,6 +19,7 @@ from sme_ptrf_apps.paa.services.registrar_acoes_conclusao_paa_service import (
     RegistrarAcoesOutrosRecursosConclusaoPaaService
 )
 from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
+from sme_ptrf_apps.paa.services.resumo_prioridades_service import ResumoPrioridadesService
 
 logger = logging.getLogger(__name__)
 
@@ -257,6 +258,11 @@ class PaaService:
             return ["O documento final já foi gerado."]
 
         errors = []
+        # Valida se todas as receitas previstas foram totalmente utilizadas nas prioridades
+        resumo_service = ResumoPrioridadesService(paa)
+        if not resumo_service.recursos_totalmente_utilizados():
+            errors.append("Prioridades - há recurso com saldo.")
+
         # Valida se há prioridades sem ação e/ou valor total
         prioridades_incompletas = paa.prioridadepaa_set.incompletas().exists()
         if prioridades_incompletas:
