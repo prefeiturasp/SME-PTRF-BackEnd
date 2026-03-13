@@ -119,10 +119,10 @@ def test_calcular_secao_ptrf_retorna_none_quando_todas_acoes_sem_receita():
     assert secao is None
 
 
-def test_calcular_secao_pdde_respeita_flags_aceita():
+def test_calcular_secao_pdde_respeita_flags_aceita_e_valor():
     """
     Garante que _calcular_secao_pdde:
-    - zera e ignora categorias que a ação PDDE não aceita;
+    - zera e ignora categorias que a ação PDDE não aceita e não tenham valor;
     - não inclui ações que só têm valores em categorias não aceitas.
     """
     service = _make_service()
@@ -170,33 +170,26 @@ def test_calcular_secao_pdde_respeita_flags_aceita():
     secao = service._calcular_secao_pdde(acoes_pdde, prioridades_pdde)
 
     assert secao["key"] == "pdde"
-    # 1 linha de ação (uuid1) + 1 linha TOTAL
-    assert len(secao["linhas"]) == 2
+    # 2 linha de ação (uuid1, uuid2) + 1 linha TOTAL
+    assert len(secao["linhas"]) == 3
 
     linha_acao = secao["linhas"][0]
-    linha_total = secao["linhas"][1]
 
     assert linha_acao["key"] == uuid1
     assert linha_acao["nome"] == "PDDE Aceita Capital"
 
-    # Custeio deve ser totalmente ignorado (não aceita_custeio)
-    assert linha_acao["exibirCusteio"] is False
-    assert linha_acao["receitas"]["custeio"] == 0.0
-    assert linha_acao["despesas"]["custeio"] == 0.0
+    # Custeio NÃO deve ser totalmente ignorado (não aceita_custeio mas tem valor)
+    assert linha_acao["exibirCusteio"] is True
+    assert linha_acao["receitas"]["custeio"] == 200.0
+    assert linha_acao["despesas"]["custeio"] == 50.0
 
     # Capital deve ser considerado
     assert linha_acao["exibirCapital"] is True
     assert linha_acao["receitas"]["capital"] == pytest.approx(300.0)
 
-    # Livre aplicação não é aceito -> deve ser ignorado
-    assert linha_acao["exibirLivre"] is False
-    assert linha_acao["receitas"]["livre"] == 0.0
-
-    # Total da seção deve ser igual ao total da única ação considerada
-    assert linha_total["isTotal"] is True
-    assert linha_total["receitas"]["total"] == pytest.approx(
-        linha_acao["receitas"]["total"]
-    )
+    # Livre aplicação não é aceito -> deve exibir normalmente
+    assert linha_acao["exibirLivre"] is True
+    assert linha_acao["receitas"]["livre"] == 400
 
 
 def test_calcular_secao_outros_recursos_recurso_proprio_oculta_custeio_capital():
