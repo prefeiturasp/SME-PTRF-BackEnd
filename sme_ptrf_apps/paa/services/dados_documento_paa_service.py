@@ -167,7 +167,7 @@ def criar_recursos_proprios(paa, secao_outros_recursos=None):
 
     if secao_outros_recursos and secao_outros_recursos.get("linhas"):
         linhas = secao_outros_recursos["linhas"]
-        key_recursos_proprios = RecursoOpcoesEnum.RECURSO_PROPRIO.name
+        # key_recursos_proprios = RecursoOpcoesEnum.RECURSO_PROPRIO.name
         key_total = "outros-recursos-total"
 
         total_recursos_proprios = 0
@@ -180,7 +180,9 @@ def criar_recursos_proprios(paa, secao_outros_recursos=None):
 
         for linha in linhas:
             key_linha = linha.get("key")
-            if key_linha == key_recursos_proprios:
+            # TODO: Remover condicional após a validação da regra (mantem a lógica de RECURSO_PROPRIO junto com
+            #  outros recursos no bloco else).
+            if key_linha == 'key_recursos_proprios':
                 total_recursos_proprios = numero_decimal(linha["receitas"].get("total", 0))
                 total_prioridades_recursos_proprios = numero_decimal(linha["despesas"].get("total", 0))
                 saldo_recursos_proprios = numero_decimal(linha["saldos"].get("total", 0))
@@ -219,6 +221,7 @@ def criar_recursos_proprios(paa, secao_outros_recursos=None):
                     })
                 zebra_classe = "odd" if (len(items_outros_recursos) % 2 == 0) else "even"
                 items_outros_recursos.append({
+                    "key": linha.get("key"),
                     "nome": linha.get("nome", "-"),
                     "zebra_classe": zebra_classe,
                     "exibirCusteio": exibir_custeio,

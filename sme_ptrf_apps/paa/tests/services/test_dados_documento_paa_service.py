@@ -171,6 +171,7 @@ def test_criar_recursos_proprios_calcula_totais_corretamente(
     prioridade_paa_factory(
         paa=paa,
         recurso="RECURSO_PROPRIO",
+        tipo_aplicacao="CUSTEIO",
         valor_total=Decimal("150"),
         prioridade=True
     )
@@ -178,6 +179,7 @@ def test_criar_recursos_proprios_calcula_totais_corretamente(
     prioridade_paa_factory(
         paa=paa,
         recurso="RECURSO_PROPRIO",
+        tipo_aplicacao="CAPITAL",
         valor_total=Decimal("50"),
         prioridade=True
     )
@@ -234,19 +236,21 @@ def test_criar_recursos_proprios_calcula_totais_corretamente(
     assert len(resultado["items"]) == 2
 
     # Totais de recurso próprio
-    assert resultado["total_recursos_proprios"] == Decimal("500")
-    assert resultado["total_prioridades_recursos_proprios"] == Decimal("200")
-    assert resultado["saldo_recursos_proprios"] == Decimal("300")
+    # TODO: Bloco utilizado, condicional, sme_ptrf_apps/paa/services/dados_documento_paa_service.py
+    #  comentado para validação.
+    assert resultado["total_recursos_proprios"] == Decimal("0")
+    assert resultado["total_prioridades_recursos_proprios"] == Decimal("0")
+    assert resultado["saldo_recursos_proprios"] == Decimal("0")
 
-    # Outros recursos
-    assert len(resultado["items_outros_recursos"]) == 1
-    item_outro = resultado["items_outros_recursos"][0]
+    # Outros recursos (agora incluem RECURSO_PROPRIO e OUTRO_RECURSO)
+    assert len(resultado["items_outros_recursos"]) == 2
+    item_outro = resultado["items_outros_recursos"][0]  # RECURSO_PROPRIO
 
-    assert item_outro["total_despesa_custeio"] == 80
-    assert item_outro["total_despesa_capital"] == 20
+    assert item_outro["total_despesa_custeio"] == 150
+    assert item_outro["total_despesa_capital"] == 50
 
-    assert item_outro["total_receita_custeio"] == 160
-    assert item_outro["total_receita_capital"] == 60
+    assert item_outro["total_receita_custeio"] == 0
+    assert item_outro["total_receita_capital"] == 0
 
     # Totais finais
     assert resultado["total_receitas"] == Decimal("720")
