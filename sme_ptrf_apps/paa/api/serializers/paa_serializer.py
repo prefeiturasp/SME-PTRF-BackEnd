@@ -3,7 +3,6 @@ from django.db import IntegrityError
 from rest_framework import serializers
 from sme_ptrf_apps.paa.models import Paa, PeriodoPaa, ObjetivoPaa, AtividadeEstatutaria, AtividadeEstatutariaPaa
 from sme_ptrf_apps.core.models import Associacao
-from sme_ptrf_apps.paa.services import PaaService
 from sme_ptrf_apps.paa.api.serializers.objetivo_paa_serializer import ObjetivoPaaSerializer, ObjetivoPaaUpdateSerializer
 from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_paa_serializer import (
     AtividadeEstatutariaPaaSerializer,
@@ -42,6 +41,8 @@ class PaaSerializer(serializers.ModelSerializer):
         return obj.get_total_recursos_proprios()
 
     def validate(self, attrs):
+        from sme_ptrf_apps.paa.services.paa_service import PaaService
+
         try:
             PaaService.pode_elaborar_novo_paa()
         except Exception as exc:

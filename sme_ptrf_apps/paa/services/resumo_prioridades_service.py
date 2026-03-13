@@ -640,6 +640,23 @@ class ResumoPrioridadesService:
 
         return dados
 
+    def recursos_totalmente_utilizados(self) -> bool:
+        """Verifica se todas as receitas previstas foram totalmente utilizadas nas prioridades do PAA.
+
+        Retorna True quando todas as receitas previstas foram totalmente utilizadas e
+        False caso haja qualquer saldo (custeio, capital ou livre aplicação).
+        """
+        resumo = self.resumo_prioridades()
+        for recurso in resumo:
+            custeio = recurso.get("custeio") or 0
+            capital = recurso.get("capital") or 0
+            livre_aplicacao = recurso.get("livre_aplicacao") or 0
+
+            if custeio > 0 or capital > 0 or livre_aplicacao > 0:
+                return False
+
+        return True
+
     def validar_valor_prioridade(self, valor_total, acao_uuid, tipo_aplicacao, recurso, prioridade_uuid=None,
                                  valor_atual_prioridade=None):
         """

@@ -128,6 +128,32 @@ def test_resumo_prioridades(mock_recursos, mock_pdde, mock_ptrf, resumo_recursos
 
 @pytest.mark.django_db
 @patch.object(ResumoPrioridadesService, "resumo_prioridades")
+def test_recursos_totalmente_utilizados_quando_sem_saldo(mock_resumo, resumo_recursos_paa):
+    """Deve retornar True quando não há saldo de recursos."""
+    mock_resumo.return_value = [
+        {"recurso": "PTRF Total", "custeio": 0, "capital": 0, "livre_aplicacao": 0},
+        {"recurso": "PDDE Total", "custeio": 0, "capital": 0, "livre_aplicacao": 0},
+    ]
+
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+    assert service.recursos_totalmente_utilizados() is True
+
+
+@pytest.mark.django_db
+@patch.object(ResumoPrioridadesService, "resumo_prioridades")
+def test_recursos_totalmente_utilizados_quando_ha_saldo(mock_resumo, resumo_recursos_paa):
+    """Deve retornar False quando existe saldo de recursos."""
+    mock_resumo.return_value = [
+        {"recurso": "PTRF Total", "custeio": 100, "capital": 0, "livre_aplicacao": 0},
+        {"recurso": "PDDE Total", "custeio": 0, "capital": 0, "livre_aplicacao": 0},
+    ]
+
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+    assert service.recursos_totalmente_utilizados() is False
+
+
+@pytest.mark.django_db
+@patch.object(ResumoPrioridadesService, "resumo_prioridades")
 def test_validar_valor_prioridade_sucesso_custeio(mock_resumo, resumo_recursos_paa):
     """Validação bem-sucedida para tipo CUSTEIO"""
     mock_resumo.return_value = [
