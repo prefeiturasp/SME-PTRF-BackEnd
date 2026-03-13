@@ -109,7 +109,7 @@ class FechamentoPeriodo(ModeloBase):
 
     @property
     def total_receitas_devolucao(self):
-        return self.total_receitas_devolucao_capital + self.total_receitas_devolucao_custeio + self.total_receitas_devolucao_livre
+        return self.total_receitas_devolucao_capital + self.total_receitas_devolucao_custeio + self.total_receitas_devolucao_livre  # noqa
 
     @property
     def total_receitas(self):
@@ -144,7 +144,15 @@ class FechamentoPeriodo(ModeloBase):
         return self.fechamento_anterior.saldo_reprogramado_livre if self.fechamento_anterior else 0
 
     def __str__(self):
-        return f"{self.periodo} - {self.acao_associacao.acao.nome} - {self.conta_associacao.tipo_conta.nome}  - {self.status}"
+        nome_acao = (self.acao_associacao.acao.nome if self.acao_associacao and self.acao_associacao.acao else '')
+
+        nome_tipo_conta = (
+            self.conta_associacao.tipo_conta.nome
+            if self.conta_associacao and self.conta_associacao.tipo_conta
+            else ''
+        )
+
+        return f"{self.periodo} - {nome_acao} - {nome_tipo_conta}  - {self.status}"
 
     def calcula_saldo_reprogramado_capital(self):
         saldo_anterior = self.fechamento_anterior.saldo_reprogramado_capital if self.fechamento_anterior else 0
@@ -174,12 +182,12 @@ class FechamentoPeriodo(ModeloBase):
         logger.debug(f'Saldo Reprogramado (Livre) antes de aplicar saldo livre:{saldo_reprogramado_livre:.2f}')
 
         if saldo_reprogramado_custeio < 0:
-            logger.debug(f'Usado saldo de livre aplicação para cobertura de custeio')
+            logger.debug('Usado saldo de livre aplicação para cobertura de custeio')
             saldo_reprogramado_livre += saldo_reprogramado_custeio
             saldo_reprogramado_custeio = 0
 
         if saldo_reprogramado_capital < 0:
-            logger.debug(f'Usado saldo de livre aplicação para cobertura de capital')
+            logger.debug('Usado saldo de livre aplicação para cobertura de capital')
             saldo_reprogramado_livre += saldo_reprogramado_capital
             saldo_reprogramado_capital = 0
 
