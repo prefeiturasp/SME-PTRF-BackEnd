@@ -5,6 +5,11 @@ from sme_ptrf_apps.core.models import Periodo
 from .models import TipoTransacao, TipoDocumento, TipoCusteio, EspecificacaoMaterialServico, Despesa, RateioDespesa, \
     Fornecedor, MotivoPagamentoAntecipado
 
+from .admin_filters import (
+    DespesaFilter,
+    RateioDespesaFilter
+)
+
 
 def custom_titled_filter(title):
     class Wrapper(admin.FieldListFilter):
@@ -52,6 +57,7 @@ class RateioDespesaAdmin(admin.ModelAdmin):
         ('tipo_custeio', custom_titled_filter('Tipo Custeio')),
         ('despesa__tipo_documento', custom_titled_filter('Tipo Documento')),
         ('despesa__tipo_transacao', custom_titled_filter('Tipo Transacao')),
+        RateioDespesaFilter,
     )
     raw_id_fields = ('despesa', 'associacao', 'acao_associacao', 'conta_associacao', 'especificacao_material_servico')
 
@@ -99,7 +105,8 @@ class PeriodoDaDespesaFilter(admin.SimpleListFilter):
 class DespesaAdmin(admin.ModelAdmin):
     list_display = (
         'tipo_documento', 'numero_documento', 'data_documento', 'nome_fornecedor', 'valor_total', 'status',
-        'associacao', 'retem_imposto', 'despesa_anterior_ao_uso_do_sistema', 'despesa_anterior_ao_uso_do_sistema_pc_concluida', 'recurso')
+        'associacao', 'retem_imposto', 'despesa_anterior_ao_uso_do_sistema',
+        'despesa_anterior_ao_uso_do_sistema_pc_concluida', 'recurso')
     ordering = ('-data_documento',)
     search_fields = (
         'numero_documento',
@@ -126,6 +133,7 @@ class DespesaAdmin(admin.ModelAdmin):
         'retem_imposto',
         'despesa_anterior_ao_uso_do_sistema',
         'despesa_anterior_ao_uso_do_sistema_pc_concluida',
+        DespesaFilter,
     )
     inlines = [RateioDespesaInLine, ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em', 'recurso')
