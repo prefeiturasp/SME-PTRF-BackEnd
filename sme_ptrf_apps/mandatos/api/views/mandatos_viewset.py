@@ -12,7 +12,11 @@ from rest_framework.response import Response
 
 from ...services import ServicoMandatoVigente, ServicoMandato
 
+from drf_spectacular.utils import extend_schema_view
+from .docs.mandatos_docs import DOCS
 
+
+@extend_schema_view(**DOCS)
 class MandatosViewSet(WaffleFlagMixin, viewsets.ModelViewSet):
     waffle_flag = "historico-de-membros"
     permission_classes = [IsAuthenticated & PermissaoApiSME]
@@ -120,7 +124,8 @@ class MandatosViewSet(WaffleFlagMixin, viewsets.ModelViewSet):
         if obj.composicoes_do_mandato.filter(cargos_da_composicao_da_composicao__isnull=False).exists():
             content = {
                 'erro': 'ProtectedError',
-                'mensagem': 'Não é possível excluir o período de mandato pois já existem membros cadastrados nas associações.'
+                'mensagem': ('Não é possível excluir o período de mandato pois '
+                             'já existem membros cadastrados nas associações.')
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
@@ -129,7 +134,8 @@ class MandatosViewSet(WaffleFlagMixin, viewsets.ModelViewSet):
         except ProtectedError:
             content = {
                 'erro': 'ProtectedError',
-                'mensagem': 'Essa operação não pode ser realizada. Há dados vinculados a essa ação da referida Associação'
+                'mensagem': ('Essa operação não pode ser realizada. '
+                             'Há dados vinculados a essa ação da referida Associação')
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
