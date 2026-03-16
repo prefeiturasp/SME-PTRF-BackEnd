@@ -1,5 +1,6 @@
 from django.contrib import admin
 from sme_ptrf_apps.core.models import Recurso
+from django.db.models import Q
 
 
 class RecursoListFilter(admin.SimpleListFilter):
@@ -24,8 +25,18 @@ class DetalheTipoReceitaFilter(RecursoListFilter):
 
 
 class ReceitaFilter(RecursoListFilter):
-    pass
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(
+                Q(acao_associacao__acao__recurso=self.value()) |
+                Q(conta_associacao__tipo_conta__recurso=self.value())
+            ).distinct()
+
+        return queryset
 
 
 class RepasseFilter(RecursoListFilter):
-    pass
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(periodo__recurso_id=self.value()).distinct()
+        return queryset
