@@ -26,50 +26,68 @@ class RecursoAssociacaoListFilter(RecursoListFilter):
 class DemonstrativoFinanceiroListFilter(RecursoListFilter):
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.filter(conta_associacao__associacao__periodos_iniciais__recurso_id=self.value()).distinct()
+            return queryset.filter(prestacao_conta__periodo__recurso_id=self.value()).distinct()
         return queryset
 
 
 class RelacaoBensListFilter(RecursoListFilter):
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.filter(conta_associacao__associacao__periodos_iniciais__recurso_id=self.value()).distinct()
+            return queryset.filter(prestacao_conta__periodo__recurso_id=self.value()).distinct()
         return queryset
 
 
 class DevolucaoPrestacaoContaFilter(RecursoListFilter):
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.filter(prestacao_conta__associacao__periodos_iniciais__recurso_id=self.value()).distinct()
+            return queryset.filter(prestacao_conta__periodo__recurso_id=self.value()).distinct()
         return queryset
 
 
 class AnalisePrestacaoContaFilter(RecursoListFilter):
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.filter(prestacao_conta__associacao__periodos_iniciais__recurso_id=self.value()).distinct()
+            return queryset.filter(prestacao_conta__periodo__recurso_id=self.value()).distinct()
         return queryset
 
 
 class RecursoContasAssociacaoListFilter(RecursoListFilter):
-    pass
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(tipo_conta__recurso_id=self.value()).distinct()
+        return queryset
 
 
 class AcaoAssociacaoAListFilter(RecursoListFilter):
-    pass
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(acao__recurso_id=self.value()).distinct()
+        return queryset
 
 
 class PrestacaoContaListFilter(RecursoListFilter):
-    pass
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(periodo__recurso_id=self.value()).distinct()
+        return queryset
 
 
 class FechamentoPeriodoListFilter(RecursoListFilter):
-    pass
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(periodo__recurso_id=self.value()).distinct()
+        return queryset
 
 
 class AtaListFilter(RecursoListFilter):
-    pass
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(periodo__recurso_id=self.value()).distinct()
+        return queryset
 
 
 class ObservacaoConciliacaoFilter(RecursoListFilter):
-    pass
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(periodo__recurso_id=self.value()).distinct()
+        return queryset
