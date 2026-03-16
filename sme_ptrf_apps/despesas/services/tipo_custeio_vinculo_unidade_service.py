@@ -153,8 +153,8 @@ class TipoCusteioVinculoUnidadeService:
 
         if qt_nao_removidas == len(unidades):
             raise ValidacaoVinculoException(
-                "Não é possível desvincular a(s) unidade(s) "
-                "pois as unidades possuem débito vinculado."
+                "Não é possível desvincular pois a(s) unidade(s) "
+                "possuem lançamentos deste tipo."
             )
 
         mensagem = (

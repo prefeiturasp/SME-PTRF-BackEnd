@@ -77,4 +77,4 @@ def test_api_tipos_custeio_desvincular_com_erro(jwt_authenticated_client_sme, ti
     response = jwt_authenticated_client_sme.post(url, data=json.dumps(payload), content_type='application/json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert response.json() == {'mensagem': 'Não é possível desvincular a(s) unidade(s) pois as unidades possuem débito vinculado.'}  
+    assert response.json() == {'mensagem': "Não é possível desvincular pois a(s) unidade(s) possuem lançamentos deste tipo."}
