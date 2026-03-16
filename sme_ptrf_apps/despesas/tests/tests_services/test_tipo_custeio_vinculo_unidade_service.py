@@ -110,7 +110,7 @@ class TestDesvincularUnidades:
         with pytest.raises(ValidacaoVinculoException) as excinfo:
             service_vinculo.desvincular_unidades(uuids)
 
-        assert "Não é possível desvincular a(s) unidade(s)" in str(excinfo.value)
+        assert "Não é possível desvincular pois a(s) unidade(s)" in str(excinfo.value)
     
     @pytest.mark.django_db
     def test_vincular_unidades_com_erro(self, service_vinculo):

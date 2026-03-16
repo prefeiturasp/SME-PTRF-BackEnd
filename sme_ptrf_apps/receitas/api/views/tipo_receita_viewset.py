@@ -218,8 +218,8 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return Response(
                 {
                     "mensagem": (
-                        "Não é possível desvincular a(s) unidade(s) "
-                        "pois as unidades possuem crédito vinculado."
+                        "Não é possível desvincular pois a(s) unidade(s) "
+                        "possuem lançamentos deste tipo."
                     )
                 },
                 status=status.HTTP_400_BAD_REQUEST,
