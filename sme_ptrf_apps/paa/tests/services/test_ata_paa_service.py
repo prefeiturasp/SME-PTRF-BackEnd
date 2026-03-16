@@ -272,9 +272,13 @@ def ata_paa_completa(paa_com_documento_concluido):
     ata_paa = baker.make(
         'AtaPaa',
         paa=paa_com_documento_concluido,
+        tipo_ata=AtaPaa.ATA_APRESENTACAO,
         data_reuniao=date(2024, 3, 15),
+        tipo_reuniao=AtaPaa.REUNIAO_ORDINARIA,
         hora_reuniao=time(14, 30),
         local_reuniao='Sala de Reuniões da Escola',
+        convocacao=AtaPaa.CONVOCACAO_PRIMEIRA,
+        parecer_conselho=AtaPaa.PARECER_APROVADA,
     )
     participante_presidente = baker.make(
         'ParticipanteAtaPaa',
@@ -286,7 +290,8 @@ def ata_paa_completa(paa_com_documento_concluido):
     )
     ata_paa.presidente_da_reuniao = participante_presidente
     ata_paa.secretario_da_reuniao = participante_secretario
-    ata_paa.parecer_conselho = 'APROVADA'
+    ata_paa.save()
+
     return ata_paa
 
 
@@ -331,8 +336,10 @@ class TestValidarGeracaoAtaPaa:
         assert isinstance(resultado, dict)
         assert 'is_valid' in resultado
 
-    def test_validacao_ata_completa_e_valida(self, ata_paa_completa):
+    def test_validacao_ata_completa_e_valida(self, ata_paa_completa, flag_factory):
         """Testa validação com ata completa e válida"""
+        flag_factory.create(name='historico-de-membros', everyone=True)
+
         resultado = validar_geracao_ata_paa(ata_paa_completa)
 
         assert 'mensagem' not in resultado, resultado['mensagem']
