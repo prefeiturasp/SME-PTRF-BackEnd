@@ -1,5 +1,5 @@
 from ...admin_filters import (
-    FechamentoPeriodoListFilter,
+    PeriodoRecursoListFilter,
 )
 
 
@@ -11,7 +11,7 @@ def test_fechamento_periodo_list_filter(fechamento_periodo_admin):
     assert fechamento_periodo_admin.list_filter == ('status', 'associacao', 'acao_associacao__acao',
                                                     'periodo', 'associacao__unidade__tipo_unidade',
                                                     'associacao__unidade__dre', 'conta_associacao__tipo_conta',
-                                                    FechamentoPeriodoListFilter)
+                                                    PeriodoRecursoListFilter)
 
 
 def test_fechamento_periodo_list_display(fechamento_periodo_admin):
