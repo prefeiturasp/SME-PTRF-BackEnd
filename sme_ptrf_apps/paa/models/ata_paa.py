@@ -1,7 +1,7 @@
 from django.db import models
 from auditlog.models import AuditlogHistoryField
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-
+from waffle import get_waffle_flag_model
 
 class AtaPaa(ModeloBase):
     history = AuditlogHistoryField()
@@ -184,6 +184,14 @@ class AtaPaa(ModeloBase):
 
     @property
     def completa(self):
+        flags = get_waffle_flag_model()
+        historico_ativo = flags.objects.filter(name='historico-de-membros', everyone=True).exists()
+        consta_pre_e_sec = (
+            self.presidente_da_reuniao and self.secretario_da_reuniao
+            if historico_ativo
+            else self.presidente_reuniao and self.secretario_reuniao
+        )
+        
         campos_basicos = bool(
             self.tipo_ata and
             self.tipo_reuniao and
@@ -191,8 +199,7 @@ class AtaPaa(ModeloBase):
             self.hora_reuniao and
             self.local_reuniao and
             self.convocacao and
-            self.presidente_da_reuniao and
-            self.secretario_da_reuniao and
+            consta_pre_e_sec and
             self.parecer_conselho
         )
 
