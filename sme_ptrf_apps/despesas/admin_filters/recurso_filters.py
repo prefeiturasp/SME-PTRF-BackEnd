@@ -17,7 +17,10 @@ class RecursoListFilter(admin.SimpleListFilter):
 
 
 class DespesaFilter(RecursoListFilter):
-    pass
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(recurso_id=self.value()).distinct()
+        return queryset
 
 
 class RateioDespesaFilter(RecursoListFilter):

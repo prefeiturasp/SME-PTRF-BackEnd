@@ -73,7 +73,7 @@ from .admin_filters import (
     RecursoAssociacaoListFilter,
     RecursoContasAssociacaoListFilter,
     PrestacaoContaListFilter,
-    FechamentoPeriodoListFilter,
+    PeriodoRecursoListFilter,
     AcaoAssociacaoAListFilter,
     DemonstrativoFinanceiroListFilter,
     RelacaoBensListFilter,
@@ -432,7 +432,7 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
                     'total_despesas', 'saldo_reprogramado', 'status')
     list_filter = ('status', 'associacao', 'acao_associacao__acao', 'periodo',
                    'associacao__unidade__tipo_unidade', 'associacao__unidade__dre', 'conta_associacao__tipo_conta',
-                   FechamentoPeriodoListFilter)
+                   PeriodoRecursoListFilter)
     list_display_links = ('periodo',)
     readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio',
                        'saldo_reprogramado_livre', 'uuid', 'id', 'criado_em')
