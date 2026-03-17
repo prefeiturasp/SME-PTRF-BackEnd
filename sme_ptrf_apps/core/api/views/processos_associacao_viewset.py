@@ -11,7 +11,7 @@ from sme_ptrf_apps.core.api.serializers import (
     ProcessoAssociacaoCreateSerializer,
     ProcessoAssociacaoRetrieveSerializer,
     PeriodoLookUpSerializer)
-from sme_ptrf_apps.core.models import ProcessoAssociacao, Periodo, Recurso
+from sme_ptrf_apps.core.models import ProcessoAssociacao, Periodo, Recurso, PeriodoInicialAssociacao
 from sme_ptrf_apps.users.permissoes import PermissaoApiDre
 
 
@@ -89,11 +89,21 @@ class ProcessosAssociacaoViewSet(mixins.RetrieveModelMixin,
                 processos_associacao_query,
                 Recurso.objects.filter(uuid=recurso_uuid).first()
             )
+
+            periodo_inicial_assoc = PeriodoInicialAssociacao.objects.filter(
+                associacao__uuid=associacao_uuid,
+                recurso__uuid=recurso_uuid
+            ).first()
         else:
             processos_associacao_query = ProcessoAssociacao.filter_by_recurso(
                 processos_associacao_query,
                 self.request.recurso
             )
+
+            periodo_inicial_assoc = PeriodoInicialAssociacao.objects.filter(
+                associacao__uuid=associacao_uuid,
+                recurso=self.request.recurso
+            ).first()
 
         if processo_uuid:
             processos_associacao_query = processos_associacao_query.exclude(uuid=processo_uuid)
@@ -103,5 +113,9 @@ class ProcessosAssociacaoViewSet(mixins.RetrieveModelMixin,
             'periodos__uuid', flat=True).distinct() if uuid is not None]
         periodos_disponiveis = periodos_query.exclude(uuid__in=periodos_ja_vinculados)
 
+        # Exclui o período inicial da associação dos períodos disponíveis, caso exista, para permitir que ele seja mantido no processo em edição ou inclusão.
+        if periodo_inicial_assoc and periodo_inicial_assoc.periodo_inicial:
+            periodos_disponiveis = periodos_disponiveis.exclude(uuid=periodo_inicial_assoc.periodo_inicial.uuid)
+        
         serializer = PeriodoLookUpSerializer(periodos_disponiveis, many=True)
         return Response(serializer.data)
