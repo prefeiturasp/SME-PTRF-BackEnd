@@ -33,8 +33,11 @@ def test_instance_model(ata_paa):
     assert model.pdf_gerado_previamente is False
 
 
-def test_completa_ata_aprovada_com_professor_gremio(ata_paa, participante_ata_paa_factory):
+def test_completa_ata_aprovada_com_professor_gremio(ata_paa, participante_ata_paa_factory, flag_factory):
     """Testa se ata está completa com parecer APROVADA e professor do grêmio"""
+
+    flag_factory.create(name='historico-de-membros', everyone=True)
+
     # Cria presidente e secretário
     presidente = participante_ata_paa_factory.create(ata_paa=ata_paa, nome="Presidente")
     secretario = participante_ata_paa_factory.create(ata_paa=ata_paa, nome="Secretário")
@@ -54,8 +57,11 @@ def test_completa_ata_aprovada_com_professor_gremio(ata_paa, participante_ata_pa
     assert ata_paa.completa is True
 
 
-def test_completa_ata_rejeitada_com_justificativa_e_professor_gremio(ata_paa, participante_ata_paa_factory):
+def test_completa_ata_rejeitada_com_justificativa_e_professor_gremio(ata_paa, participante_ata_paa_factory, flag_factory):
     """Testa se ata está completa com parecer REJEITADA, justificativa e professor do grêmio"""
+
+    flag_factory.create(name='historico-de-membros', everyone=True)
+
     # Cria presidente e secretário
     presidente = participante_ata_paa_factory.create(ata_paa=ata_paa, nome="Presidente")
     secretario = participante_ata_paa_factory.create(ata_paa=ata_paa, nome="Secretário")
@@ -76,8 +82,10 @@ def test_completa_ata_rejeitada_com_justificativa_e_professor_gremio(ata_paa, pa
     assert ata_paa.completa is True
 
 
-def test_completa_ata_incompleta_sem_presidente(ata_paa, participante_ata_paa_factory):
+def test_completa_ata_incompleta_sem_presidente(ata_paa, participante_ata_paa_factory, flag_factory):
     """Testa se ata está incompleta sem presidente"""
+    flag_factory.create(name='historico-de-membros', everyone=True)
+
     secretario = participante_ata_paa_factory.create(ata_paa=ata_paa, nome="Secretário")
     
     participante_ata_paa_factory.create(
@@ -93,8 +101,10 @@ def test_completa_ata_incompleta_sem_presidente(ata_paa, participante_ata_paa_fa
     assert ata_paa.completa is False
 
 
-def test_completa_ata_incompleta_sem_secretario(ata_paa, participante_ata_paa_factory):
+def test_completa_ata_incompleta_sem_secretario(ata_paa, participante_ata_paa_factory, flag_factory):
     """Testa se ata está incompleta sem secretário"""
+    flag_factory.create(name='historico-de-membros', everyone=True)
+
     presidente = participante_ata_paa_factory.create(ata_paa=ata_paa, nome="Presidente")
     
     participante_ata_paa_factory.create(
@@ -110,8 +120,10 @@ def test_completa_ata_incompleta_sem_secretario(ata_paa, participante_ata_paa_fa
     assert ata_paa.completa is False
 
 
-def test_completa_ata_rejeitada_sem_justificativa(ata_paa, participante_ata_paa_factory):
+def test_completa_ata_rejeitada_sem_justificativa(ata_paa, participante_ata_paa_factory, flag_factory):
     """Testa se ata está incompleta quando rejeitada sem justificativa"""
+    flag_factory.create(name='historico-de-membros', everyone=True)
+
     presidente = participante_ata_paa_factory.create(ata_paa=ata_paa, nome="Presidente")
     secretario = participante_ata_paa_factory.create(ata_paa=ata_paa, nome="Secretário")
     
@@ -130,8 +142,10 @@ def test_completa_ata_rejeitada_sem_justificativa(ata_paa, participante_ata_paa_
     assert ata_paa.completa is False
 
 
-def test_completa_ata_rejeitada_justificativa_vazia(ata_paa, participante_ata_paa_factory):
+def test_completa_ata_rejeitada_justificativa_vazia(ata_paa, participante_ata_paa_factory, flag_factory):
     """Testa se ata está incompleta quando rejeitada com justificativa apenas com espaços"""
+    flag_factory.create(name='historico-de-membros', everyone=True)
+
     presidente = participante_ata_paa_factory.create(ata_paa=ata_paa, nome="Presidente")
     secretario = participante_ata_paa_factory.create(ata_paa=ata_paa, nome="Secretário")
     
@@ -150,8 +164,10 @@ def test_completa_ata_rejeitada_justificativa_vazia(ata_paa, participante_ata_pa
     assert ata_paa.completa is False
 
 
-def test_completa_ata_sem_professor_gremio_quando_precisa(ata_paa, participante_ata_paa_factory, parametros):
+def test_completa_ata_sem_professor_gremio_quando_precisa(ata_paa, participante_ata_paa_factory, parametros, flag_factory):
     """Testa se ata está completa sem professor do grêmio quando unidade precisa (professor não é obrigatório)"""
+    flag_factory.create(name='historico-de-membros', everyone=True)
+
     parametros.tipos_unidades_professor_gremio = ['EMEF']
     parametros.save()
     
@@ -230,8 +246,10 @@ def test_precisa_professor_gremio_sem_associacao(ata_paa):
     assert ata_paa.precisa_professor_gremio is False
 
 
-def test_completa_ata_aprovada_sem_professor_gremio_quando_nao_precisa(ata_paa, participante_ata_paa_factory, parametros):
+def test_completa_ata_aprovada_sem_professor_gremio_quando_nao_precisa(ata_paa, participante_ata_paa_factory, parametros, flag_factory):
     """Testa se ata está completa sem professor do grêmio quando unidade não precisa"""
+    flag_factory.create(name='historico-de-membros', everyone=True)
+
     parametros.tipos_unidades_professor_gremio = []
     parametros.save()
     
@@ -246,8 +264,9 @@ def test_completa_ata_aprovada_sem_professor_gremio_quando_nao_precisa(ata_paa, 
     assert ata_paa.completa is True
 
 
-def test_completa_ata_aprovada_sem_professor_gremio_quando_precisa(ata_paa, participante_ata_paa_factory, parametros):
+def test_completa_ata_aprovada_sem_professor_gremio_quando_precisa(ata_paa, participante_ata_paa_factory, parametros, flag_factory):
     """Testa se ata está completa sem professor do grêmio quando unidade precisa (professor não é obrigatório)"""
+    flag_factory.create(name='historico-de-membros', everyone=True)
     parametros.tipos_unidades_professor_gremio = ['EMEF']
     parametros.save()
     
