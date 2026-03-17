@@ -1,7 +1,5 @@
 import pytest
 
-from django.db import IntegrityError, transaction
-
 from sme_ptrf_apps.paa.models import ObjetivoPaa
 from sme_ptrf_apps.paa.models.objetivo_paa import StatusChoices
 
@@ -42,13 +40,3 @@ def test_status_pode_ser_sim_ou_nao(objetivo_paa_factory):
 
     assert objetivo_sim.status == StatusChoices.ATIVO
     assert objetivo_nao.status == StatusChoices.INATIVO
-
-
-@pytest.mark.django_db
-def test_nome_deve_ser_unico(objetivo_paa_factory):
-    objetivo_paa_factory.create(nome="Único")
-    with pytest.raises(IntegrityError):
-        with transaction.atomic():
-            objetivo_paa_factory.create(nome="Único")
-
-    assert ObjetivoPaa.objects.filter(nome="Único").count() == 1

@@ -128,6 +128,14 @@ class PaaUpdateSerializer(serializers.ModelSerializer):
                     current_objetivos_ids.append(objetivo.id)
 
                 elif "nome" in objetivo_input:
+                    exists = ObjetivoPaa.objects.filter(
+                        nome__iexact=objetivo_input["nome"], paa=paa
+                    ).exists()
+
+                    if exists:
+                        raise serializers.ValidationError({
+                            'mensagem': ['Já existe um objetivo cadastrado com este nome.']
+                        })
                     objetivo = ObjetivoPaa.objects.create(
                         nome=objetivo_input["nome"],
                         paa=paa
