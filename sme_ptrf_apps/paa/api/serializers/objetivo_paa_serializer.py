@@ -47,20 +47,22 @@ class ObjetivoPaaSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         nome = validated_data['nome']
-        nome_ja_cadastrado = ObjetivoPaa.objects.filter(nome__iexact=nome).all()
+        paa = validated_data.get('paa')
+        objetivo_cadastrado = ObjetivoPaa.objects.filter(nome__iexact=nome, paa=paa).exists()
 
-        if nome_ja_cadastrado:
+        if objetivo_cadastrado:
             raise serializers.ValidationError(self.ERROR_MSG_NOME_JA_CADASTRADO)
         return ObjetivoPaa.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        nome = validated_data.get("nome", None)
+        nome = validated_data.get("nome", instance.nome)
+        paa = validated_data.get("paa", instance.paa)
 
-        if nome and instance.nome != nome:
-            nome_ja_cadastrado = ObjetivoPaa.objects.filter(nome__iexact=nome).exists()
+        objetivo_cadastrado = ObjetivoPaa.objects.exclude(
+            pk=instance.pk).filter(nome__iexact=nome, paa=paa).exists()
 
-            if nome_ja_cadastrado:
-                raise serializers.ValidationError(self.ERROR_MSG_NOME_JA_CADASTRADO)
+        if objetivo_cadastrado:
+            raise serializers.ValidationError(self.ERROR_MSG_NOME_JA_CADASTRADO)
         return super().update(instance, validated_data)
 
     def get_status_objeto(self, obj):

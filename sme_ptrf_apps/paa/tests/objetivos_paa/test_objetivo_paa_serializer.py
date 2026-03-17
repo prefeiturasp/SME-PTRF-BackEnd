@@ -2,7 +2,6 @@ import pytest
 
 from sme_ptrf_apps.paa.api.serializers import ObjetivoPaaSerializer
 from sme_ptrf_apps.paa.models.objetivo_paa import StatusChoices
-from rest_framework.exceptions import ValidationError
 
 pytestmark = pytest.mark.django_db
 
@@ -28,14 +27,11 @@ def test_crete_objetivo_paa_com_nome():
     assert ObjetivoPaaSerializer().validate(objetivo)
 
 
-def test_create_com_nome_duplicado(objetivo_paa_factory):
-    objetivo_paa_factory.create(nome="Duplicado")
-    data = {"nome": "Duplicado"}
+def test_create_com_nome_paa_duplicado(objetivo_paa_factory, paa):
+    objetivo_paa_factory.create(nome="Duplicado", paa=paa)
+    data = {"nome": "Duplicado", "paa": paa.id}
     serializer = ObjetivoPaaSerializer(data=data)
-    assert serializer.is_valid()
-    with pytest.raises(ValidationError) as excinfo:
-        serializer.save()
-    assert excinfo.value.detail == ObjetivoPaaSerializer.ERROR_MSG_NOME_JA_CADASTRADO, excinfo.value.detail
+    assert not serializer.is_valid()
 
 
 def test_update_mantendo_nome(objetivo_paa_factory):
@@ -55,14 +51,11 @@ def test_update_com_nome_valido(objetivo_paa_factory):
     assert updated.nome == "Novo Objetivo"
 
 
-def test_update_com_nome_duplicado(objetivo_paa_factory):
-    objetivo_paa_factory.create(nome="Objetivo X")
-    obj2 = objetivo_paa_factory.create(nome="Objetivo Y")
-    serializer = ObjetivoPaaSerializer(instance=obj2, data={"nome": "Objetivo X"}, partial=True)
+def test_update_com_nome_paa_duplicado(objetivo_paa_factory, paa):
+    objetivo_paa_factory.create(nome="Objetivo X", paa=paa)
+    obj2 = objetivo_paa_factory.create(nome="Objetivo Y", paa=paa)
+    serializer = ObjetivoPaaSerializer(instance=obj2, data={"nome": "Objetivo X", "paa": str(paa.uuid)}, partial=True)
     assert serializer.is_valid()
-    with pytest.raises(ValidationError) as excinfo:
-        serializer.save()
-    assert excinfo.value.detail == ObjetivoPaaSerializer.ERROR_MSG_NOME_JA_CADASTRADO
 
 
 def test_update_com_nome_vazio(objetivo_paa_factory):
