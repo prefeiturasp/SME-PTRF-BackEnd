@@ -35,7 +35,7 @@ class PeriodoPaa(ModeloBase):
         Retornar um período vigente, ou seja, o período que está em vigor no momento atual.
         """
         hoje = date.today()
-        return cls.objects.filter(data_inicial__lte=hoje, data_final__gte=hoje).order_by("data_inicial").first()
+        return cls.objects.filter(data_inicial__year=hoje.year).order_by("data_inicial").first()
 
     def clean(self):
         # Validar se a data final é maior ou igual à data inicial ou se tem o mesmo mês com dias diferentes
