@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from sme_ptrf_apps.core.api.serializers.recurso_serializer import RecursoSerializer
 from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
 from ...api.serializers.unidade_serializer import (UnidadeInfoAtaSerializer, UnidadeLookUpSerializer,
                                                    UnidadeListEmAssociacoesSerializer, UnidadeSerializer, UnidadeCreateSerializer)
@@ -156,6 +157,7 @@ class AssociacaoCompletoSerializer(serializers.ModelSerializer):
     periodo_inicial = PeriodoLookUpSerializer()
 
     data_de_encerramento = serializers.SerializerMethodField('get_data_de_encerramento')
+    recursos_da_associacao = serializers.SerializerMethodField('get_recursos_da_associacao')
 
     def get_data_de_encerramento(self, obj):
         response = {
@@ -163,6 +165,15 @@ class AssociacaoCompletoSerializer(serializers.ModelSerializer):
             "help_text": "A associação deixará de ser exibida nos períodos posteriores à data de encerramento informada.",
             "pode_editar_dados_associacao_encerrada": obj.pode_editar_dados_associacao_encerrada
         }
+        return response
+    
+    def get_recursos_da_associacao(self, obj):
+        recursos = set()
+        for periodo_inicial in obj.periodos_iniciais.all():
+            recursos.add(periodo_inicial.recurso)
+ 
+        response = RecursoSerializer(recursos, many=True).data
+ 
         return response
 
     class Meta:
@@ -181,4 +192,5 @@ class AssociacaoCompletoSerializer(serializers.ModelSerializer):
             'data_de_encerramento',
             'id',
             'pode_editar_periodo_inicial',
+            'recursos_da_associacao'
         ]

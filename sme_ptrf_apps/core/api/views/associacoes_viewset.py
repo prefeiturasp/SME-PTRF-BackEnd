@@ -34,7 +34,7 @@ from ....dre.services import (
     atualiza_itens_verificacao,
 )
 from ...models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade, Ata, AnalisePrestacaoConta, \
-    FechamentoPeriodo
+    FechamentoPeriodo, Recurso
 from ...services import (
     atualiza_dados_unidade,
     gerar_planilha,
@@ -662,7 +662,8 @@ class AssociacoesViewSet(ModelViewSet):
         if recurso_uuid and flag_is_active(self.request, "premio-excelencia-processo-sei"):
             processos = processos.filter(recurso__uuid=recurso_uuid)
         else:
-            processos = processos.filter(recurso__uuid=self.request.recurso.uuid)
+            recurso_legado = Recurso.objects.filter(legado=True).first()
+            processos = processos.filter(recurso__uuid=recurso_legado.uuid)
 
         return Response(ProcessoAssociacaoRetrieveSerializer(processos, many=True).data)
 

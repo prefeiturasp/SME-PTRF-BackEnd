@@ -71,14 +71,17 @@ class ProcessosAssociacaoViewSet(mixins.RetrieveModelMixin,
             return Response({"erro": "Os parâmetros 'associacao_uuid' e 'ano' são obrigatórios."}, status=400)
 
         periodos_query = Periodo.objects.filter(referencia__startswith=ano)
+        
+        if not recurso_uuid:
+            recurso_legado = Recurso.objects.filter(legado=True).first()
 
         # Filtra por recurso se o recurso_uuid for fornecido e a flag estiver ativa,
-        # caso contrário, filtra pelo recurso da requisição
+        # caso contrário, filtra pelo recurso legado
         if recurso_uuid and flag_is_active(self.request, "premio-excelencia-processo-sei"):
             recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
             periodos_query = Periodo.filter_by_recurso(periodos_query, recurso)
         else:
-            periodos_query = Periodo.filter_by_recurso(periodos_query, self.request.recurso)
+            periodos_query = Periodo.filter_by_recurso(periodos_query, recurso_legado)
 
         # Identifica todos os períodos já vinculados a processos para a associação especificada,
         # Excluindo o próprio processo se um UUID foi fornecido.
@@ -97,12 +100,12 @@ class ProcessosAssociacaoViewSet(mixins.RetrieveModelMixin,
         else:
             processos_associacao_query = ProcessoAssociacao.filter_by_recurso(
                 processos_associacao_query,
-                self.request.recurso
+                recurso_legado
             )
 
             periodo_inicial_assoc = PeriodoInicialAssociacao.objects.filter(
                 associacao__uuid=associacao_uuid,
-                recurso=self.request.recurso
+                recurso=recurso_legado
             ).first()
 
         if processo_uuid:
