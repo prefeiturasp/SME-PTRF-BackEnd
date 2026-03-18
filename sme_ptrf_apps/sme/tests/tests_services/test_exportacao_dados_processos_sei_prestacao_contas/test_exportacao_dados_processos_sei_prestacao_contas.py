@@ -20,6 +20,7 @@ def test_cabecalho():
         "Nome Associação",
         "CNPj da Associação",
         "DRE",
+        "Recurso",
         "Número do processo SEI",
         "Ano",
         "Períodos"
@@ -56,6 +57,7 @@ def test_dados_processos_sei_esperados_csv(processo_associacao_factory):
             queryset[0].associacao.nome,
             queryset[0].associacao.cnpj,
             queryset[0].associacao.unidade.dre.nome,
+            queryset[0].recurso.nome,
             queryset[0].numero_processo,
             queryset[0].ano,
             periodos_concat_1
@@ -66,6 +68,7 @@ def test_dados_processos_sei_esperados_csv(processo_associacao_factory):
             queryset[1].associacao.nome,
             queryset[1].associacao.cnpj,
             queryset[1].associacao.unidade.dre.nome,
+            queryset[1].recurso.nome,
             queryset[1].numero_processo,
             queryset[1].ano,
             periodos_concat_2

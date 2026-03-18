@@ -21,6 +21,7 @@ CABECALHO = [
     ('Nome Associação', 'associacao__nome'),
     ("CNPj da Associação", "associacao__cnpj"),
     ('DRE', 'associacao__unidade__dre__nome'),
+    ('Recurso', 'recurso__nome'),
     ('Número do processo SEI', 'numero_processo'),
     ('Ano', 'ano'),
     ('Períodos', 'periodos'),

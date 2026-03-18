@@ -35,6 +35,10 @@ class TipoReceita(ModeloIdNome):
     def tem_detalhamento(self):
         return self.detalhes_tipo_receita.exists()
 
+    def uso_associacao(self):
+        tem_unidades_vinculadas = self.unidades.exists()
+        return "Parcial" if tem_unidades_vinculadas else "Todas"
+
     @classmethod
     def get_valores(cls, user=None, associacao_uuid=None):
         query = cls.objects.all()
@@ -54,9 +58,9 @@ class TipoReceita(ModeloIdNome):
         from sme_ptrf_apps.core.models import Unidade
 
         unidades_obj = Unidade.objects.filter(uuid__in=unidades_uuid)
-        
+
         receitas = self.receita_set.filter(associacao__unidade__in=unidades_obj)
-        
+
         unidades_com_receitas = receitas.values_list('associacao__unidade__uuid', flat=True).distinct()
 
         if set(unidades_com_receitas).issubset(set(unidades_uuid)):

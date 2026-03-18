@@ -123,7 +123,8 @@ class ReceitaPrevistaOutroRecursoPeriodoAdmin(admin.ModelAdmin):
         'outro_recurso_periodo', 'previsao_valor_custeio', 'previsao_valor_capital', 'previsao_valor_livre',
         'unidade_nome'
     )
-    search_fields = ('outro_recurso_periodo__outro_recurso__nome', 'outro_recurso_periodo__periodo_paa__referencia')
+    search_fields = ('outro_recurso_periodo__outro_recurso__nome', 'outro_recurso_periodo__periodo_paa__referencia',
+                     'paa__associacao__nome', 'paa__associacao__unidade__codigo_eol')
     list_filter = ('outro_recurso_periodo__outro_recurso', 'paa', 'paa__associacao')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     raw_id_fields = ('outro_recurso_periodo', 'paa')
@@ -132,7 +133,8 @@ class ReceitaPrevistaOutroRecursoPeriodoAdmin(admin.ModelAdmin):
 @admin.register(ReceitaPrevistaPaa)
 class ReceitaPrevistaPaaAdmin(admin.ModelAdmin):
     list_display = ('acao_associacao', 'previsao_valor_custeio', 'previsao_valor_capital', 'previsao_valor_livre')
-    search_fields = ('acao_associacao__acao__nome', 'acao_associacao__associacao__nome')
+    search_fields = ('acao_associacao__acao__nome', 'acao_associacao__associacao__nome',
+                     'acao_associacao__associacao__unidade__codigo_eol')
     list_filter = ('acao_associacao__associacao', 'paa')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     raw_id_fields = ('acao_associacao', 'paa')
@@ -188,7 +190,8 @@ class PrioridadePaaAdmin(admin.ModelAdmin):
     raw_id_fields = ('paa', 'acao_pdde', 'acao_associacao', 'programa_pdde', 'tipo_despesa_custeio',
                      'especificacao_material')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em', 'paa_importado')
-    search_fields = ('acao_associacao__acao__nome', 'acao_associacao__associacao__nome', 'programa_pdde__nome',
+    search_fields = ('acao_associacao__acao__nome', 'acao_associacao__associacao__nome',
+                     'acao_associacao__associacao__unidade__codigo_eol', 'programa_pdde__nome',
                      'acao_pdde__nome', 'tipo_despesa_custeio__nome', 'especificacao_material__descricao')
 
     def get_queryset(self, request):

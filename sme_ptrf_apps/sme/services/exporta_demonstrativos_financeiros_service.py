@@ -23,7 +23,7 @@ CABECALHO_DEMONSTATIVOS_FINANCEIROS = [
     ('Nome Unidade', 'conta_associacao__associacao__unidade__nome'),
     ('Nome Associação', 'conta_associacao__associacao__nome'),
     ('DRE', 'conta_associacao__associacao__unidade__dre__nome'),
-    # ('Recurso', 'conta_associacao__tipo_conta__recurso__nome'),
+    ('Recurso', 'conta_associacao__tipo_conta__recurso__nome'),
     ('Referência do Período da PC', 'prestacao_conta__periodo__referencia'),
     ('Nome do tipo de Conta', 'conta_associacao__tipo_conta__nome'),
     ('Data (Saldo bancário)', 'DATA_SALDO_BANCARIO'),

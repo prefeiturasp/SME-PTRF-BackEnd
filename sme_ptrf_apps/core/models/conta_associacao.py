@@ -127,7 +127,7 @@ class ContaAssociacao(ModeloBase):
         from sme_ptrf_apps.core.models import Periodo
 
         if self.data_encerramento:
-            periodo = Periodo.da_data(self.data_encerramento)
+            periodo = Periodo.da_data_por_recurso(self.data_encerramento, self.tipo_conta.recurso)
             if periodo:
                 return periodo
         return None
@@ -175,14 +175,9 @@ class ContaAssociacao(ModeloBase):
         return motivo_string
 
     def conta_encerrada_em_periodos_anteriores(self, periodo):
-        from sme_ptrf_apps.core.models import Periodo
-
         if hasattr(self, "solicitacao_encerramento"):
             if self.solicitacao_encerramento.aprovada:
-                data_encerramento = (
-                    self.solicitacao_encerramento.data_de_encerramento_na_agencia
-                )
-                periodo_data_encerramento = Periodo.da_data(data_encerramento)
+                periodo_data_encerramento = self.periodo_encerramento
 
                 return (
                     periodo_data_encerramento.data_inicio_realizacao_despesas <
@@ -194,14 +189,12 @@ class ContaAssociacao(ModeloBase):
     def conta_encerrada_em(
         self, periodo, adiciona_prefixo=True, origem_relatorio_consolidado=False
     ):
-        from sme_ptrf_apps.core.models import Periodo
-
         if hasattr(self, "solicitacao_encerramento"):
             if self.solicitacao_encerramento.aprovada:
                 data_encerramento = (
                     self.solicitacao_encerramento.data_de_encerramento_na_agencia
                 )
-                periodo_data_encerramento = Periodo.da_data(data_encerramento)
+                periodo_data_encerramento = self.periodo_encerramento
 
                 if origem_relatorio_consolidado:
                     if (
@@ -239,7 +232,8 @@ class ContaAssociacao(ModeloBase):
         from sme_ptrf_apps.core.models import Periodo
 
         saldo_atual = 0
-        periodo_saldo = Periodo.da_data_por_recurso(data, self.tipo_conta.recurso) if data else Periodo.periodo_atual()
+        periodo_saldo = Periodo.da_data_por_recurso(
+            data, self.tipo_conta.recurso) if data else Periodo.periodo_atual_por_recurso(self.tipo_conta.recurso)
         if periodo_saldo:
             painel = PainelResumoRecursosService.painel_resumo_recursos(
                 self.associacao, periodo_saldo, self
@@ -431,7 +425,6 @@ class ContaAssociacao(ModeloBase):
 
     def get_info_solicitacao_encerramento(self, periodo):
         from sme_ptrf_apps.core.models import SolicitacaoEncerramentoContaAssociacao
-        from sme_ptrf_apps.core.models import Periodo
 
         info = {
             "data_encerramento": None,
@@ -443,7 +436,7 @@ class ContaAssociacao(ModeloBase):
             if (
                 self.solicitacao_encerramento.status != SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA
             ):
-                periodo_encerramento = Periodo.da_data(self.solicitacao_encerramento.data_de_encerramento_na_agencia)
+                periodo_encerramento = self.periodo_encerramento
 
                 if periodo_encerramento and periodo_encerramento.referencia == periodo.referencia:
                     info["data_encerramento"] = self.solicitacao_encerramento.data_de_encerramento_na_agencia
@@ -458,14 +451,14 @@ class ContaAssociacao(ModeloBase):
         if not self.data_inicio:
             return False
 
-        periodo_da_data = Periodo.da_data(self.data_inicio)
+        periodo_da_data = Periodo.da_data_por_recurso(self.data_inicio, periodo.recurso)
 
         if not periodo_da_data:
-            primeiro_periodo = Periodo.objects.order_by('data_inicio_realizacao_despesas').first()
+            primeiro_periodo = Periodo.primeiro_periodo_do_recurso(periodo.recurso)
             if primeiro_periodo and self.data_inicio < primeiro_periodo.data_inicio_realizacao_despesas:
                 return True
 
-            ultimo_periodo = Periodo.objects.order_by('-data_inicio_realizacao_despesas').first()
+            ultimo_periodo = Periodo.ultimo_periodo_do_recurso(periodo.recurso)
             if ultimo_periodo and self.data_inicio > ultimo_periodo.data_fim_realizacao_despesas:
                 return False
 

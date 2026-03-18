@@ -229,10 +229,13 @@ class Associacao(ModeloIdNome):
     def encerrada(self):
         return self.data_de_encerramento is not None
 
-    def periodos_com_prestacao_de_contas(self, ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=False):
+    def periodos_com_prestacao_de_contas(self, ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=False, recurso=None):
+        from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
         periodos = set()
 
         prestacoes_da_associacao = self.prestacoes_de_conta_da_associacao
+        if recurso is not None:
+            prestacoes_da_associacao = PrestacaoConta.filter_by_recurso(prestacoes_da_associacao, recurso)
 
         if self.encerrada:
             prestacoes_da_associacao = prestacoes_da_associacao.filter(
@@ -247,8 +250,12 @@ class Associacao(ModeloIdNome):
 
         return periodos
 
-    def proximo_periodo_de_prestacao_de_contas(self, ignorar_devolvidas=False):
+    def proximo_periodo_de_prestacao_de_contas(self, ignorar_devolvidas=False, recurso=None):
+        from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
         prestacoes_da_associacao = self.prestacoes_de_conta_da_associacao
+
+        if recurso is not None:
+            prestacoes_da_associacao = PrestacaoConta.filter_by_recurso(prestacoes_da_associacao, recurso)
 
         if ignorar_devolvidas:
             prestacoes_da_associacao = prestacoes_da_associacao.exclude(status='DEVOLVIDA')
@@ -267,13 +274,13 @@ class Associacao(ModeloIdNome):
             else:
                 return None
         else:
-            return self.periodo_inicial.periodo_seguinte.first() if self.periodo_inicial else None
+            return self.primeiro_periodo_ativo_por_recurso(recurso)
 
-    def periodos_para_prestacoes_de_conta(self, ignorar_devolvidas=False):
+    def periodos_para_prestacoes_de_conta(self, ignorar_devolvidas=False, recurso=None):
         periodos = set(
-            self.periodos_com_prestacao_de_contas(ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=True))
+            self.periodos_com_prestacao_de_contas(ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=True, recurso=recurso))
 
-        proximo_periodo = self.proximo_periodo_de_prestacao_de_contas(ignorar_devolvidas)
+        proximo_periodo = self.proximo_periodo_de_prestacao_de_contas(ignorar_devolvidas, recurso=recurso)
         if proximo_periodo:
             periodos.add(proximo_periodo)
 
@@ -352,8 +359,9 @@ class Associacao(ModeloIdNome):
                 return False
         return True
 
-    def pendencias_dados_da_associacao(self):
+    def pendencias_dados_da_associacao(self, recurso):
         from ...mandatos.services import ServicoPendenciaCargosDaComposicaoVigenteDaAssociacao, ServicoMandato
+        from sme_ptrf_apps.core.models import ContaAssociacao
         flags = get_waffle_flag_model()
         LOGGER.info("Verificando se a flag <historico-de-membros> está ativa...")
         if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
@@ -368,8 +376,10 @@ class Associacao(ModeloIdNome):
 
         pendencia_cadastro = not self.nome or not self.ccm
 
-        pendencia_contas = self.contas.filter(Q(banco_nome__exact='') | Q(agencia__exact='') | Q(numero_conta__exact='',
-                                                                                                 status=ContaAssociacao.STATUS_ATIVA)).exists()
+        contas = ContaAssociacao.filter_by_recurso(self.contas.all(), recurso)
+
+        pendencia_contas = contas.filter(Q(banco_nome__exact='') | Q(agencia__exact='') | Q(numero_conta__exact='',
+                                                                                            status=ContaAssociacao.STATUS_ATIVA)).exists()
         if pendencia_cadastro or pendencia_membros or pendencia_contas or pendencia_novo_mandato:
             pendencias = {
                 'pendencia_cadastro': pendencia_cadastro,
@@ -389,9 +399,11 @@ class Associacao(ModeloIdNome):
         contas_pendentes = []
 
         if periodo:
+            contas = self.contas_por_recurso(periodo.recurso)
+
             observacoes = self.observacoes_conciliacao_da_associacao.filter(periodo=periodo)
 
-            for conta in self.contas.all():
+            for conta in contas:
 
                 if conta.ativa_no_periodo(periodo=periodo):
 
@@ -440,10 +452,19 @@ class Associacao(ModeloIdNome):
 
         return contas_pendentes
 
-    def contas_ativas_do_periodo_selecionado(self, periodo):
-        contas_a_retornar = []
+    def contas_por_recurso(self, recurso):
+        from sme_ptrf_apps.core.models import ContaAssociacao
+        contas = ContaAssociacao.filter_by_recurso(self.contas.all(), recurso)
+        return contas
 
-        for conta in self.contas.all():
+    def contas_ativas_do_periodo_selecionado(self, periodo):
+        from sme_ptrf_apps.core.models import ContaAssociacao
+        contas_a_retornar = []
+        contas = self.contas.all()
+
+        contas = ContaAssociacao.filter_by_recurso(contas, periodo.recurso)
+
+        for conta in contas:
             if conta.ativa_no_periodo(periodo=periodo):
                 obj_conta = {
                     "nome": conta.tipo_conta.nome,

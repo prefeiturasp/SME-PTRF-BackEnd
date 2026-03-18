@@ -109,7 +109,7 @@ def test_rateio_capital_valor_divergente():
 
 
 @pytest.mark.django_db
-def test_validar_conta_rateio_inicio_maior(conta_ativa):
+def test_validar_conta_rateio_inicio_maior(conta_ativa, recurso_legado):
     rateios = [
         {"conta_associacao": conta_ativa}
     ]
@@ -122,13 +122,14 @@ def test_validar_conta_rateio_inicio_maior(conta_ativa):
             data_transacao=date(2025, 1, 5),
             rateios=rateios,
             despesas_impostos=[],
+            recurso=recurso_legado
         )
 
     assert "data de início posterior" in str(exc.value)
 
 
 @pytest.mark.django_db
-def test_validar_conta_rateio_encerrada(conta_encerrada):
+def test_validar_conta_rateio_encerrada(conta_encerrada, recurso_legado):
     rateios = [
         {"conta_associacao": conta_encerrada}
     ]
@@ -139,13 +140,14 @@ def test_validar_conta_rateio_encerrada(conta_encerrada):
             data_transacao=date(2025, 2, 1),
             rateios=rateios,
             despesas_impostos=[],
+            recurso=recurso_legado
         )
 
     assert "data de encerramento anterior" in str(exc.value)
 
 
 @pytest.mark.django_db
-def test_validar_conta_imposto_inicio_maior(conta_ativa):
+def test_validar_conta_imposto_inicio_maior(conta_ativa, recurso_legado):
     conta_ativa.data_inicio = date(2025, 2, 1)
 
     despesas_impostos = [
@@ -163,6 +165,7 @@ def test_validar_conta_imposto_inicio_maior(conta_ativa):
             data_transacao=date(2025, 1, 15),
             rateios=[],
             despesas_impostos=despesas_impostos,
+            recurso=recurso_legado
         )
 
     assert "rateios de imposto" in str(exc.value)

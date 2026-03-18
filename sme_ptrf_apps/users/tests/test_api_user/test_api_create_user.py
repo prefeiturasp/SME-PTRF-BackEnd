@@ -127,7 +127,6 @@ def test_criar_usuario_servidor_sem_email(
         visao_ue,
         unidade_ue_271170
 ):
-
     payload = {
         'e_servidor': True,
         'username': "9876543",
@@ -139,12 +138,20 @@ def test_criar_usuario_servidor_sem_email(
         ],
         'unidade': unidade_ue_271170.codigo_eol
     }
-    response = jwt_authenticated_client_u.post(
-        "/api/usuarios/", data=json.dumps(payload), content_type='application/json')
+    api_cria_ou_atualiza_usuario_core_sso = (
+        'sme_ptrf_apps.users.api.serializers.user.cria_ou_atualiza_usuario_core_sso'
+    )
+    with patch(api_cria_ou_atualiza_usuario_core_sso) as mock_cria_ou_atualiza_usuario_core_sso:
+        response = jwt_authenticated_client_u.post(
+            "/api/usuarios/", data=json.dumps(payload), content_type='application/json'
+        )
+
     result = response.json()
+    assert response.status_code == status.HTTP_201_CREATED
 
     User = get_user_model()
     u = User.objects.filter(username='9876543').first()
+    assert u is not None
 
     esperado = {
         'username': '9876543',
@@ -158,8 +165,8 @@ def test_criar_usuario_servidor_sem_email(
 
     assert list(u.visoes.values_list('nome', flat=True)) == ["UE", ]
     assert list(u.unidades.values_list('codigo_eol', flat=True)) == [unidade_ue_271170.codigo_eol, ]
-    assert response.status_code == status.HTTP_201_CREATED
     assert result == esperado
+    mock_cria_ou_atualiza_usuario_core_sso.assert_called_once()
 
 def test_criar_usuario_servidor_visao_sme(
         jwt_authenticated_client_u,
@@ -262,4 +269,3 @@ def test_criar_usuario_servidor_com_visoes_sem_definir_unidade(
         nome='Lukaku Silva'
     )
     mock_atribuir_perfil_core_sso.assert_called_once_with(login='9876543', visao='UE')
-

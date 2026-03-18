@@ -58,13 +58,7 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
         return obj.tipo_conta.recurso.nome
 
     def get_periodo_encerramento_conta(self, obj):
-        from sme_ptrf_apps.core.models import Periodo
-
-        if obj.data_encerramento:
-            periodo = Periodo.da_data(obj.data_encerramento)
-            if periodo:
-                return periodo.referencia
-        return None
+        return obj.periodo_encerramento.referencia if obj.periodo_encerramento else None
 
     class Meta:
         model = ContaAssociacao
@@ -158,7 +152,7 @@ class ContaAssociacaoCriacaoSerializer(serializers.ModelSerializer):
                 numero_cartao=numero_cartao).exists():
             raise serializers.ValidationError({
                 'non_field_errors': 'Esta conta de associacao já existe.'
-                })
+            })
 
         instance = super().create(validated_data)
         return instance
@@ -181,7 +175,7 @@ class ContaAssociacaoCriacaoSerializer(serializers.ModelSerializer):
         ).exclude(pk=self.instance.pk).exists():
             raise serializers.ValidationError({
                 'non_field_errors': 'Esta conta de associacao já existe.'
-                })
+            })
 
         instance = super().update(instance, validated_data)
         return instance

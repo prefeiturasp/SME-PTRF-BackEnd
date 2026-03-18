@@ -10,8 +10,8 @@ pytestmark = pytest.mark.django_db
 @override_flag('premio-excelencia', active=True)
 def test_list_recursos(recurso_factory, usuario_permissao_associacao):
     """Teste list retorna 200 OK e lista de recursos"""
-    recurso_factory.create(nome='Recurso A', ativo=True)
-    recurso_factory.create(nome='Recurso B', ativo=True)
+    recurso_a = recurso_factory.create(nome='Recurso A', ativo=True)
+    recurso_b = recurso_factory.create(nome='Recurso B', ativo=True)
 
     request = APIRequestFactory().get("/api/recursos")
     view = RecursoViewSet.as_view({'get': 'list'})
@@ -19,7 +19,9 @@ def test_list_recursos(recurso_factory, usuario_permissao_associacao):
     response = view(request)
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 2
+    recursos_uuids = {item["uuid"] for item in response.data}
+    assert str(recurso_a.uuid) in recursos_uuids
+    assert str(recurso_b.uuid) in recursos_uuids
 
 
 @override_flag('premio-excelencia', active=True)

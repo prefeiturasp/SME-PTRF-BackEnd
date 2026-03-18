@@ -16,6 +16,7 @@ import "./commands_ui/commands_commons";
 import "./commands_ui/commands_tipos_de_transacao";
 import "./commands_ui/commands_associacao"; 
 import "./commands_ui/commands_dados_das_contas";
+import "./commands_ui/commands_resumo_dos_recursos";
 
 import "./commands_api/commands_login";
 import "./commands_api/commands_acoes";

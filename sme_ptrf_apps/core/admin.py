@@ -69,6 +69,20 @@ from .models import (
     PeriodoInicialAssociacao
 )
 
+from .admin_filters import (
+    RecursoAssociacaoListFilter,
+    RecursoContasAssociacaoListFilter,
+    PrestacaoContaListFilter,
+    PeriodoRecursoListFilter,
+    AcaoAssociacaoAListFilter,
+    DemonstrativoFinanceiroListFilter,
+    RelacaoBensListFilter,
+    AtaListFilter,
+    ObservacaoConciliacaoFilter,
+    DevolucaoPrestacaoContaFilter,
+    AnalisePrestacaoContaFilter,
+)
+
 from django.db.models import Count
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html
@@ -229,6 +243,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
         'unidade__tipo_unidade',
         ('data_de_encerramento', DateRangeFilter),
         'migrada_para_historico_de_membros',
+        RecursoAssociacaoListFilter,
     )
     readonly_fields = ('uuid', 'id')
     list_display_links = ('nome', 'cnpj')
@@ -295,7 +310,7 @@ class ContaAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('associacao', 'tipo_conta', 'status', 'data_inicio')
     search_fields = ('uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
     list_filter = ('status', 'tipo_conta', 'associacao__unidade__tipo_unidade',
-                   'associacao__unidade__dre', ('data_inicio', DateRangeFilter),)
+                   'associacao__unidade__dre', ('data_inicio', DateRangeFilter), RecursoContasAssociacaoListFilter)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     raw_id_fields = ('associacao',)
 
@@ -320,7 +335,8 @@ class AcaoAssociacaoAdmin(admin.ModelAdmin):
     form = AcaoAssociacaoForm
     list_display = ('associacao', 'acao', 'status', 'criado_em')
     search_fields = ('uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
-    list_filter = ('status', 'acao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre',)
+    list_filter = ('status', 'acao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre',
+                   AcaoAssociacaoAListFilter,)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     raw_id_fields = ('associacao',)
 
@@ -415,7 +431,8 @@ class FechamentoPeriodoAdmin(admin.ModelAdmin):
     list_display = ('get_eol_unidade', 'periodo', 'get_nome_acao', 'get_nome_conta', 'saldo_anterior', 'total_receitas',
                     'total_despesas', 'saldo_reprogramado', 'status')
     list_filter = ('status', 'associacao', 'acao_associacao__acao', 'periodo',
-                   'associacao__unidade__tipo_unidade', 'associacao__unidade__dre', 'conta_associacao__tipo_conta')
+                   'associacao__unidade__tipo_unidade', 'associacao__unidade__dre', 'conta_associacao__tipo_conta',
+                   PeriodoRecursoListFilter)
     list_display_links = ('periodo',)
     readonly_fields = ('saldo_reprogramado_capital', 'saldo_reprogramado_custeio',
                        'saldo_reprogramado_livre', 'uuid', 'id', 'criado_em')
@@ -546,7 +563,8 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
         'publicada',
         'consolidado_dre__sequencia_de_publicacao',
         'consolidado_dre__id',
-        'associacao__unidade__tipo_unidade'
+        'associacao__unidade__tipo_unidade',
+        PrestacaoContaListFilter
     )
     list_display_links = ('get_nome_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
@@ -625,7 +643,8 @@ class AtaAdmin(admin.ModelAdmin):
         'tipo_ata',
         'previa',
         'parecer_conselho',
-        'associacao__unidade__dre'
+        'associacao__unidade__dre',
+        AtaListFilter,
     )
     list_display_links = ('get_eol_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
@@ -656,11 +675,24 @@ class TagAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', id)
 
 
+class ProcessoAssociacaoAdminForm(ModelForm):
+    class Meta:
+        model = ProcessoAssociacao
+        fields = "__all__"
+
+    def clean_recurso(self):
+        from sme_ptrf_apps.core.services.processos_services import validar_troca_recurso_em_processo_associacao
+        recurso = self.cleaned_data["recurso"]
+        validar_troca_recurso_em_processo_associacao(self.instance)
+        return recurso
+
+
 @admin.register(ProcessoAssociacao)
 class ProcessoAssociacaoAdmin(admin.ModelAdmin):
-    list_display = ('associacao', 'numero_processo', 'ano', 'periodos_str')
+    form = ProcessoAssociacaoAdminForm
+    list_display = ('associacao', 'numero_processo', 'ano', 'periodos_str', 'recurso')
     search_fields = ('uuid', 'numero_processo', 'associacao__nome', 'associacao__unidade__codigo_eol')
-    list_filter = ('ano', 'associacao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre')
+    list_filter = ('ano', 'associacao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre', 'recurso')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     filter_horizontal = ('periodos',)
     raw_id_fields = ('associacao',)
@@ -694,6 +726,7 @@ class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
         'associacao__unidade__dre',
         'associacao__unidade__tipo_unidade',
         'periodo',
+        ObservacaoConciliacaoFilter,
     )
     list_display_links = ('periodo',)
     readonly_fields = ('uuid', 'id')
@@ -752,6 +785,7 @@ class DevolucaoPrestacaoContaAdmin(admin.ModelAdmin):
         'prestacao_conta__periodo',
         'prestacao_conta__associacao__unidade__tipo_unidade',
         'prestacao_conta__associacao__unidade__dre',
+        DevolucaoPrestacaoContaFilter,
     )
     list_display_links = ('get_associacao',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em', )
@@ -1109,7 +1143,7 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
         'get_nome_dre',
         'criado_em',
         'versao',
-        'status'
+        'status',
     )
 
     list_filter = (
@@ -1121,7 +1155,8 @@ class DemonstrativoFinanceiroAdmin(admin.ModelAdmin):
         'status',
         'versao',
         ('criado_em', DateRangeFilter),
-        'arquivo_pdf_regerado'
+        'arquivo_pdf_regerado',
+        DemonstrativoFinanceiroListFilter
     )
 
     list_display_links = ('get_nome_associacao',)
@@ -1182,7 +1217,8 @@ class RelacaoBensAdmin(admin.ModelAdmin):
         'prestacao_conta__associacao__unidade__dre',
         'periodo_previa',
         'versao',
-        'status'
+        'status',
+        RelacaoBensListFilter
     )
 
     list_display_links = ('get_nome_associacao',)
@@ -1346,6 +1382,7 @@ class AnalisePrestacaoContaAdmin(admin.ModelAdmin):
         'versao',
         'status_versao_apresentacao_apos_acertos',
         'versao_pdf_apresentacao_apos_acertos',
+        AnalisePrestacaoContaFilter,
     )
     list_display_links = ('get_unidade',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')

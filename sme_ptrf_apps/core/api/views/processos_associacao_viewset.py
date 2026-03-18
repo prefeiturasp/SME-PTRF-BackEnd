@@ -6,11 +6,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
 from rest_framework import status
+from waffle import flag_is_active
 from sme_ptrf_apps.core.api.serializers import (
     ProcessoAssociacaoCreateSerializer,
     ProcessoAssociacaoRetrieveSerializer,
     PeriodoLookUpSerializer)
-from sme_ptrf_apps.core.models import ProcessoAssociacao, Periodo
+from sme_ptrf_apps.core.models import ProcessoAssociacao, Periodo, Recurso, PeriodoInicialAssociacao
 from sme_ptrf_apps.users.permissoes import PermissaoApiDre
 
 
@@ -63,16 +64,50 @@ class ProcessosAssociacaoViewSet(mixins.RetrieveModelMixin,
     def periodos_disponiveis(self, request):
         associacao_uuid = request.query_params.get('associacao_uuid')
         processo_uuid = request.query_params.get('processo_uuid')
+        recurso_uuid = request.query_params.get('recurso_uuid')
         ano = request.query_params.get('ano')
 
         if not associacao_uuid or not ano:
             return Response({"erro": "Os parâmetros 'associacao_uuid' e 'ano' são obrigatórios."}, status=400)
 
         periodos_query = Periodo.objects.filter(referencia__startswith=ano)
+        
+        if not recurso_uuid:
+            recurso_legado = Recurso.objects.filter(legado=True).first()
+
+        # Filtra por recurso se o recurso_uuid for fornecido e a flag estiver ativa,
+        # caso contrário, filtra pelo recurso legado
+        if recurso_uuid and flag_is_active(self.request, "premio-excelencia-processo-sei"):
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
+            periodos_query = Periodo.filter_by_recurso(periodos_query, recurso)
+        else:
+            periodos_query = Periodo.filter_by_recurso(periodos_query, recurso_legado)
 
         # Identifica todos os períodos já vinculados a processos para a associação especificada,
         # Excluindo o próprio processo se um UUID foi fornecido.
         processos_associacao_query = ProcessoAssociacao.objects.filter(associacao__uuid=associacao_uuid)
+
+        if recurso_uuid and flag_is_active(self.request, "premio-excelencia-processo-sei"):
+            processos_associacao_query = ProcessoAssociacao.filter_by_recurso(
+                processos_associacao_query,
+                Recurso.objects.filter(uuid=recurso_uuid).first()
+            )
+
+            periodo_inicial_assoc = PeriodoInicialAssociacao.objects.filter(
+                associacao__uuid=associacao_uuid,
+                recurso__uuid=recurso_uuid
+            ).first()
+        else:
+            processos_associacao_query = ProcessoAssociacao.filter_by_recurso(
+                processos_associacao_query,
+                recurso_legado
+            )
+
+            periodo_inicial_assoc = PeriodoInicialAssociacao.objects.filter(
+                associacao__uuid=associacao_uuid,
+                recurso=recurso_legado
+            ).first()
+
         if processo_uuid:
             processos_associacao_query = processos_associacao_query.exclude(uuid=processo_uuid)
 
@@ -81,5 +116,9 @@ class ProcessosAssociacaoViewSet(mixins.RetrieveModelMixin,
             'periodos__uuid', flat=True).distinct() if uuid is not None]
         periodos_disponiveis = periodos_query.exclude(uuid__in=periodos_ja_vinculados)
 
+        # Exclui o período inicial da associação dos períodos disponíveis, caso exista, para permitir que ele seja mantido no processo em edição ou inclusão.
+        if periodo_inicial_assoc and periodo_inicial_assoc.periodo_inicial:
+            periodos_disponiveis = periodos_disponiveis.exclude(uuid=periodo_inicial_assoc.periodo_inicial.uuid)
+        
         serializer = PeriodoLookUpSerializer(periodos_disponiveis, many=True)
         return Response(serializer.data)
