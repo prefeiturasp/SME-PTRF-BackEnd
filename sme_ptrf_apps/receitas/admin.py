@@ -5,6 +5,12 @@ from rangefilter.filters import DateRangeFilter
 from sme_ptrf_apps.core.models import Unidade
 from sme_ptrf_apps.receitas.models import Receita, TipoReceita, Repasse, DetalheTipoReceita, MotivoEstorno
 
+from .admin_filters import (
+    ReceitaFilter,
+    RepasseFilter,
+    DetalheTipoReceitaFilter
+)
+
 
 class TipoReceitaForm(ModelForm):
     def clean_unidades(self):
@@ -15,12 +21,14 @@ class TipoReceitaForm(ModelForm):
                 'associacao').values_list('associacao__unidade', flat=True)
             unidades_selecionadas = unidades.values_list('codigo_eol', flat=True)
 
-            if len(unidades_com_receita_do_tipo) > 0 and not (unidades.filter(codigo_eol__in=unidades_com_receita_do_tipo).exists() and (len(unidades_selecionadas) == len(unidades_com_receita_do_tipo))):
+            if len(unidades_com_receita_do_tipo) > 0 and not (unidades.filter(codigo_eol__in=unidades_com_receita_do_tipo).exists() and (len(unidades_selecionadas) == len(unidades_com_receita_do_tipo))):  # noqa
                 unidades_faltantes = Unidade.objects.filter(codigo_eol__in=unidades_com_receita_do_tipo).exclude(
                     codigo_eol__in=unidades_selecionadas).values_list('codigo_eol', flat=True)
                 if len(unidades_faltantes) > 0:
                     raise ValidationError(
-                        f"Não é possível restringir tipo de receita, pois existem unidades que já possuem receita criada com esse tipo e não estão selecionadas. Unidades faltantes: {list(unidades_faltantes)}")
+                        ("Não é possível restringir tipo de receita, pois existem unidades que"
+                         " já possuem receita criada com esse tipo e não estão selecionadas."
+                         f" Unidades faltantes: {list(unidades_faltantes)}"))
         return unidades
 
 
@@ -31,7 +39,7 @@ class TipoReceitaAdmin(admin.ModelAdmin):
         'nome', 'e_repasse', 'e_rendimento', 'aceita_capital', 'aceita_custeio', 'aceita_livre',
         'mensagem_usuario', 'possui_detalhamento'
     )
-    readonly_fields= ('uuid',)
+    readonly_fields = ('uuid',)
     autocomplete_fields = ('unidades',)
 
 
@@ -76,6 +84,7 @@ class ReceitaAdmin(admin.ModelAdmin):
         ('tipo_receita', customTitledFilter('Tipo Receita')),
         'categoria_receita',
         'status',
+        ReceitaFilter
     )
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     actions = ['conciliar_receita', 'desconciliar_receita', ]
@@ -84,7 +93,7 @@ class ReceitaAdmin(admin.ModelAdmin):
         for receita in queryset.all():
             receita.marcar_conferido()
 
-        self.message_user(request, f"Processo Terminado. Verifique o status do processo.")
+        self.message_user(request, "Processo Terminado. Verifique o status do processo.")
 
     conciliar_receita.short_description = "Conciliar receitas."
 
@@ -92,7 +101,7 @@ class ReceitaAdmin(admin.ModelAdmin):
         for receita in queryset.all():
             receita.desmarcar_conferido()
 
-        self.message_user(request, f"Processo Terminado. Verifique o status do processo.")
+        self.message_user(request, "Processo Terminado. Verifique o status do processo.")
 
     desconciliar_receita.short_description = "Desconciliar receitas."
 
@@ -102,7 +111,7 @@ class RepasseAdmin(admin.ModelAdmin):
     search_fields = ('associacao__nome', 'associacao__unidade__codigo_eol', 'carga_origem_linha_id')
     list_display = ('associacao', 'periodo', 'valor_capital', 'valor_custeio',
                     'valor_livre', 'tipo_conta', 'acao', 'status')
-    list_filter = ('periodo', 'status', 'carga_origem', 'associacao__unidade__dre')
+    list_filter = ('periodo', 'status', 'carga_origem', 'associacao__unidade__dre', RepasseFilter,)
     raw_id_fields = ('associacao', 'periodo', 'conta_associacao', 'acao_associacao', 'carga_origem')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
@@ -122,7 +131,7 @@ class DetalheTipoReceitaAdmin(admin.ModelAdmin):
     list_display = ('nome', 'tipo_receita')
     readonly_fields = ('uuid', 'id')
     search_fields = ('nome',)
-    list_filter = ('tipo_receita',)
+    list_filter = ('tipo_receita', DetalheTipoReceitaFilter)
 
 
 @admin.register(MotivoEstorno)

@@ -115,6 +115,7 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
 
 def cria_cabecalho(periodo, conta_associacao, previa):
     cabecalho = {
+        "recurso": periodo.recurso.nome,
         "titulo": "Demonstrativo Financeiro - PRÉVIA" if previa else "Demonstrativo Financeiro - FINAL",
         "periodo": str(periodo),
         "periodo_referencia": periodo.referencia,

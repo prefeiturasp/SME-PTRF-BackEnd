@@ -2,6 +2,9 @@ import datetime
 
 import pytest
 from model_bakery import baker
+from sme_ptrf_apps.core.models import FechamentoPeriodo
+from sme_ptrf_apps.core.admin import FechamentoPeriodoAdmin
+from django.contrib.admin.sites import site
 
 
 @pytest.fixture
@@ -95,3 +98,8 @@ def rateio_despesa_ar_condicionado_ptrf(associacao, despesa, conta_associacao, a
         numero_processo_incorporacao_capital='Teste123456'
 
     )
+
+
+@pytest.fixture
+def fechamento_periodo_admin():
+    return FechamentoPeriodoAdmin(model=FechamentoPeriodo, admin_site=site)

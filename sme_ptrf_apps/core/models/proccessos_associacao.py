@@ -17,6 +17,14 @@ class ProcessoAssociacao(ModeloBase):
 
     periodos = models.ManyToManyField('Periodo', related_name='processos', blank=True)
 
+    recurso = models.ForeignKey(
+        "core.Recurso",
+        verbose_name="Recurso",
+        on_delete=models.PROTECT,
+        null=False,
+        blank=False,
+    )
+
     class Meta:
         verbose_name = "Processo de prestação de contas"
         verbose_name_plural = "07.2) Processos de prestação de contas"
@@ -94,6 +102,10 @@ class ProcessoAssociacao(ModeloBase):
                     primeiro_processo_cadastrado = processos_do_ano.first()
                     primeiro_processo_cadastrado.periodos.set(periodos_deste_ano)
                     primeiro_processo_cadastrado.save()
+
+    @classmethod
+    def filter_by_recurso(cls, queryset, recurso):
+        return queryset.filter(recurso=recurso)
 
 
 auditlog.register(ProcessoAssociacao)

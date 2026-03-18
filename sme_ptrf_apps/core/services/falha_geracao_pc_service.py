@@ -6,13 +6,14 @@ logger = logging.getLogger(__name__)
 
 
 class FalhaGeracaoPcService:
-    def __init__(self, periodo=None, usuario=None, associacao=None, prestacao_de_contas=None):
+    def __init__(self, periodo=None, usuario=None, associacao=None, prestacao_de_contas=None, recurso=None):
         self.__prestacao_de_contas = prestacao_de_contas
         self.__periodo = periodo
         self.__usuario = usuario
         self.__associacao = associacao
         self.__quantidade_tentativas_concluir_pc = Parametros.get().quantidade_tentativas_concluir_pc
         self.__periodo_de_tempo_tentativas_concluir_pc = Parametros.get().periodo_de_tempo_tentativas_concluir_pc
+        self.__recurso = periodo.recurso if periodo else recurso
 
     @property
     def prestacao_de_contas(self):
@@ -29,6 +30,10 @@ class FalhaGeracaoPcService:
     @property
     def associacao(self):
         return self.__associacao
+
+    @property
+    def recurso(self):
+        return self.__recurso
 
     @property
     def quantidade_tentativas_concluir_pc(self):
@@ -88,8 +93,8 @@ class FalhaGeracaoPcService:
 
 
 class InfoRegistroFalhaGeracaoPc(FalhaGeracaoPcService):
-    def __init__(self, associacao, usuario):
-        super().__init__(associacao=associacao, usuario=usuario)
+    def __init__(self, associacao, usuario, recurso):
+        super().__init__(associacao=associacao, usuario=usuario, recurso=recurso)
 
     def info_registro_falha_geracao_pc(self):
 
@@ -99,6 +104,7 @@ class InfoRegistroFalhaGeracaoPc(FalhaGeracaoPcService):
             associacao=self.associacao,
             ultimo_usuario=self.usuario,
             resolvido=False,
+            periodo__recurso=self.recurso
         )
 
         for registro in registros_de_falha_ao_gerar_pc:

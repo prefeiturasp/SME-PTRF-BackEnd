@@ -1,6 +1,11 @@
 import logging
 
 from django.contrib import admin, messages
+from sme_ptrf_apps.core.admin_filters.recurso_filters import (
+    PeriodoRecursoListFilter,
+    AtaListFilter,
+    AnaliseConsolidadoDreListFilter,
+)
 
 from .models import (
     Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade,
@@ -45,7 +50,7 @@ class LaudaAdmin(admin.ModelAdmin):
     get_nome_tipo_conta.short_description = 'Tipo de conta'
 
     list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'status', 'consolidado_dre')
-    list_filter = ('status', 'dre', 'periodo', 'tipo_conta', 'consolidado_dre')
+    list_filter = ('status', 'dre', 'periodo', 'tipo_conta', 'consolidado_dre', PeriodoRecursoListFilter)
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome',)
@@ -81,7 +86,15 @@ class ConsolidadoDREAdmin(admin.ModelAdmin):
         'pagina_publicacao',
         'responsavel_pela_analise',
     )
-    list_filter = ('status', 'dre', 'periodo', 'versao', 'status_sme', 'responsavel_pela_analise')
+    list_filter = (
+        'status',
+        'dre',
+        'periodo',
+        'versao',
+        'status_sme',
+        'responsavel_pela_analise',
+        PeriodoRecursoListFilter,
+    )
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id', 'pcs_do_consolidado', 'criado_em', 'alterado_em', )
     search_fields = ('dre__nome',)
@@ -191,7 +204,7 @@ class RelatorioConsolidadoDREAdmin(admin.ModelAdmin):
     get_nome_tipo_conta.short_description = 'Tipo de conta'
 
     list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'status', 'versao', 'consolidado_dre')
-    list_filter = ('status', 'dre', 'periodo', 'tipo_conta', 'consolidado_dre')
+    list_filter = ('status', 'dre', 'periodo', 'tipo_conta', 'consolidado_dre', PeriodoRecursoListFilter)
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome',)
@@ -221,7 +234,7 @@ class JustificativaRelatorioConsolidadoDREAdmin(admin.ModelAdmin):
     get_nome_tipo_conta.short_description = 'Tipo de conta'
 
     list_display = ('get_nome_dre', 'periodo', 'get_nome_tipo_conta', 'texto', 'consolidado_dre')
-    list_filter = ('dre', 'periodo', 'tipo_conta', 'consolidado_dre')
+    list_filter = ('dre', 'periodo', 'tipo_conta', 'consolidado_dre', PeriodoRecursoListFilter)
     list_display_links = ('get_nome_dre',)
     readonly_fields = ('uuid', 'id')
     search_fields = ('dre__nome', 'texto')
@@ -333,7 +346,7 @@ class VerificacaoRegularidadeAssociacaoAdmin(admin.ModelAdmin):
 @admin.register(AtaParecerTecnico)
 class AtaParecerTecnicoAdmin(admin.ModelAdmin):
     list_display = ('uuid', 'periodo', 'dre', 'consolidado_dre', 'sequencia_de_publicacao')
-    list_filter = ['periodo', 'dre', 'consolidado_dre']
+    list_filter = ['periodo', 'dre', 'consolidado_dre', AtaListFilter]
     readonly_fields = ('uuid', 'id')
 
     actions = ('vincular_consolidado_dre',)
@@ -399,7 +412,7 @@ class AnaliseConsolidadoDreAdmin(admin.ModelAdmin):
     get_periodo.short_description = 'Período'
 
     list_display = ('get_dre', 'get_periodo', 'consolidado_dre', 'get_id')
-    list_filter = ('consolidado_dre__dre', 'consolidado_dre__periodo', 'consolidado_dre',)
+    list_filter = ('consolidado_dre__dre', 'consolidado_dre__periodo', 'consolidado_dre', AnaliseConsolidadoDreListFilter)
     readonly_fields = ('uuid', 'id')
 
 

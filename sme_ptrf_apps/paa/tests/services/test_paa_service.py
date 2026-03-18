@@ -8,6 +8,7 @@ from unittest.mock import patch, MagicMock
 from sme_ptrf_apps.paa.services.paa_service import PaaService
 from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.models import PrioridadePaa
+from sme_ptrf_apps.paa.services.resumo_prioridades_service import ResumoPrioridadesService
 
 
 @pytest.mark.django_db
@@ -445,3 +446,37 @@ class TestPodeGerarDocumentoFinal:
         erros = PaaService.pode_gerar_documento_final(paa)
 
         assert erros == []
+
+    @patch.object(ResumoPrioridadesService, "recursos_totalmente_utilizados", return_value=False)
+    def test_nao_pode_gerar_documento_final_quando_ha_saldo_recursos(
+        self,
+        mock_recursos_utilizados,
+        paa,
+        acao_associacao_ativa,
+        especificacao_material,
+        tipo_despesa_custeio,
+        prioridade_paa_factory,
+        objetivo_paa_factory,
+    ):
+        """Deve retornar erro quando existe saldo de recursos nas prioridades."""
+        paa.texto_introducao = '<p>Introdução</p>'
+        paa.texto_conclusao = '<p>Conclusão</p>'
+        paa.save()
+
+        objetivo = objetivo_paa_factory.create(paa=paa, nome='Objetivo 1', status=True)
+        paa.objetivos.set([objetivo])
+
+        prioridade_paa_factory.create(
+            paa=paa,
+            prioridade=True,
+            recurso='PTRF',
+            acao_associacao=acao_associacao_ativa,
+            tipo_aplicacao='CUSTEIO',
+            tipo_despesa_custeio=tipo_despesa_custeio,
+            especificacao_material=especificacao_material,
+            valor_total=Decimal('1000')
+        )
+
+        erros = PaaService.pode_gerar_documento_final(paa)
+
+        assert "Prioridades - há recurso com saldo." in erros

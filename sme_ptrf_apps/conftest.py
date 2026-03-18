@@ -52,7 +52,8 @@ from sme_ptrf_apps.despesas.fixtures.factories import (
     MotivoPagamentoAntecipadoFactory, EspecificacaoMaterialServicoFactory, TipoCusteioFactory
 )
 from sme_ptrf_apps.receitas.fixtures.factories import (
-    TipoReceitaFactory
+    TipoReceitaFactory,
+    ReceitaFactory
 )
 from sme_ptrf_apps.paa.fixtures.factories import (
     PeriodoPaaFactory, PaaFactory, ParametroPaaFactory, ReceitaPrevistaPaaFactory,
@@ -82,7 +83,7 @@ factories_to_register = [
     SolicitacaoAcertoLancamentoFactory, SolicitacaoAcertoDocumentoFactory,
     TipoTransacaoFactory, ProcessoAssociacaoFactory, OcupanteCargoFactory,
     CargoComposicaoFactory, DemonstrativoFinanceiroFactory, ItemResumoPorAcaoFactory,
-    ItemDespesaFactory, ItemCreditoFactory, TipoReceitaFactory, RelacaoBensFactory,
+    ItemDespesaFactory, ItemCreditoFactory, TipoReceitaFactory, ReceitaFactory, RelacaoBensFactory,
     RelatorioRelacaoBensFactory, ItemRelatorioRelacaoDeBensFactory,
     SolicitacaoEncerramentoContaAssociacaoFactory, ArquivoDownloadFactory,
     TipoDevolucaoAoTesouroFactory, TipoDocumentoFactory, MotivoPagamentoAntecipadoFactory,
@@ -2262,13 +2263,14 @@ def tag_ativa():
 
 
 @pytest.fixture
-def processo_associacao_123456_2019(associacao, periodo_2019_1, periodo_2019_2):
+def processo_associacao_123456_2019(associacao, periodo_2019_1, periodo_2019_2, recurso_legado):
     return baker.make(
         'ProcessoAssociacao',
         associacao=associacao,
         numero_processo='123456',
         ano='2019',
         periodos=[periodo_2019_1, periodo_2019_2],
+        recurso=recurso_legado,
     )
 
 

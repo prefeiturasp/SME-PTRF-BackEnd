@@ -15,7 +15,7 @@ class StatusChoices(models.IntegerChoices):
 
 class ObjetivoPaa(ModeloBase):
     history = AuditlogHistoryField()
-    nome = models.CharField('Objetivo', max_length=160, unique=True, blank=False)
+    nome = models.CharField('Objetivo', max_length=160, blank=False)
     paa = models.ForeignKey('paa.Paa', on_delete=models.PROTECT, verbose_name="PAA", blank=True, null=True)
     status = models.BooleanField(choices=StatusChoices.choices, default=StatusChoices.ATIVO)
 

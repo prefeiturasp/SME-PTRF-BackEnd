@@ -34,7 +34,7 @@ from ....dre.services import (
     atualiza_itens_verificacao,
 )
 from ...models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade, Ata, AnalisePrestacaoConta, \
-    FechamentoPeriodo
+    FechamentoPeriodo, Recurso
 from ...services import (
     atualiza_dados_unidade,
     gerar_planilha,
@@ -218,7 +218,8 @@ class AssociacoesViewSet(ModelViewSet):
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        periodo = Periodo.da_data(data)
+        periodo = Periodo.da_data_por_recurso(data, self.request.recurso)
+
         prestacao_conta = None
         if periodo:
             periodo_referencia = periodo.referencia
@@ -246,7 +247,8 @@ class AssociacoesViewSet(ModelViewSet):
         if prestacao_conta:
             gerar_previas = pc_requer_geracao_documentos(prestacao_conta)
 
-        pendencias_dados = associacao.pendencias_dados_da_associacao()
+        pendencias_dados = associacao.pendencias_dados_da_associacao(periodo.recurso if periodo else self.request.recurso)
+
         contas_pendentes = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(
             periodo)
 
@@ -362,11 +364,11 @@ class AssociacoesViewSet(ModelViewSet):
                 tipo_conta__recurso=self.request.recurso
             )
 
-            contas_criadas_nesse_periodo_ou_anteriores = []
-            for conta in contas:
-                if conta.conta_criada_no_periodo_ou_periodo_anteriores(periodo):
-                    contas_criadas_nesse_periodo_ou_anteriores.append(conta)
-            contas = contas_criadas_nesse_periodo_ou_anteriores
+            # contas_criadas_nesse_periodo_ou_anteriores = []
+            # for conta in contas:
+            #     if conta.conta_criada_no_periodo_ou_periodo_anteriores(periodo):
+            #         contas_criadas_nesse_periodo_ou_anteriores.append(conta)
+            # contas = contas_criadas_nesse_periodo_ou_anteriores
         else:
             contas = ContaAssociacao.ativas_com_solicitacao_em_aberto.filter(
                 associacao=associacao, data_inicio__isnull=False).all()
@@ -417,6 +419,8 @@ class AssociacoesViewSet(ModelViewSet):
 
         contas = ContaAssociacao.objects.filter(associacao=associacao).all()
 
+        contas = ContaAssociacao.filter_by_recurso(contas, self.request.recurso)
+
         obj_contas = []
         for conta in contas:
             lancamentos = lancamentos_da_prestacao(
@@ -465,6 +469,8 @@ class AssociacoesViewSet(ModelViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         contas = ContaAssociacao.objects.filter(associacao=associacao).all()
+
+        contas = ContaAssociacao.filter_by_recurso(contas, self.request.recurso)
 
         obj_contas = []
         for conta in contas:
@@ -608,7 +614,7 @@ class AssociacoesViewSet(ModelViewSet):
     def periodos_para_prestacao_de_contas(self, request, uuid=None):
         associacao = self.get_object()
         ignorar_devolvidas = request.query_params.get('ignorar_devolvidas') == 'true'
-        periodos = associacao.periodos_para_prestacoes_de_conta(ignorar_devolvidas)
+        periodos = associacao.periodos_para_prestacoes_de_conta(ignorar_devolvidas, self.request.recurso)
         return Response(PeriodoLookUpSerializer(periodos, many=True).data)
 
     @action(detail=True, url_path='periodos-ate-agora-fora-implantacao', methods=['get'],
@@ -648,8 +654,17 @@ class AssociacoesViewSet(ModelViewSet):
     @action(detail=True, url_path='processos', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def processos_da_associacao(self, request, uuid=None):
+        recurso_uuid = request.query_params.get('recurso_uuid')
         associacao = self.get_object()
         processos = associacao.processos.all()
+
+        # Filtragem por recurso se flag estiver ativa
+        if recurso_uuid and flag_is_active(self.request, "premio-excelencia-processo-sei"):
+            processos = processos.filter(recurso__uuid=recurso_uuid)
+        else:
+            recurso_legado = Recurso.objects.filter(legado=True).first()
+            processos = processos.filter(recurso__uuid=recurso_legado.uuid)
+
         return Response(ProcessoAssociacaoRetrieveSerializer(processos, many=True).data)
 
     @action(detail=False, methods=['get'], url_path='eol',
@@ -867,7 +882,7 @@ class AssociacoesViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def status_cadastro(self, request, uuid=None):
         associacao = self.get_object()
-        response = associacao.pendencias_dados_da_associacao()
+        response = associacao.pendencias_dados_da_associacao(self.request.recurso)
         return Response(response)
 
     @action(detail=True, url_path='contas-do-periodo', methods=['get'],

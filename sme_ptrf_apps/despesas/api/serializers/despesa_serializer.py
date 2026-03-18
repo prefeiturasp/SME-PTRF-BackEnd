@@ -58,18 +58,7 @@ class DespesaSerializer(serializers.ModelSerializer):
         method_name="get_despesa_anterior_ao_uso_do_sistema_editavel", required=False, allow_null=True)
 
     def get_despesa_anterior_ao_uso_do_sistema_editavel(self, despesa):
-        associacao = despesa.associacao
-        pcs_da_associacao = associacao.prestacoes_de_conta_da_associacao.all().exists()
-        editavel = True
-
-        if not pcs_da_associacao:
-            editavel = True
-        elif (despesa.despesa_anterior_ao_uso_do_sistema and
-              despesa.despesa_anterior_ao_uso_do_sistema_pc_concluida and
-              pcs_da_associacao):
-            editavel = False
-
-        return editavel
+        return despesa.checa_despesa_anterior_ao_uso_do_sistema_editavel()
 
     def get_despesa_de_imposto(self, despesa):
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
@@ -117,14 +106,6 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
-
-        ValidacaoDespesaService.validar_periodo_e_contas(
-            instance=self.instance,
-            data_transacao=data.get("data_transacao"),
-            rateios=data.get("rateios", []),
-            despesas_impostos=data.get("despesas_impostos", [])
-        )
-
         if not self.instance:
             recurso = self.context.get("recurso")
 
@@ -132,6 +113,14 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     "Recurso da despesa é obrigatório"
                 )
+
+        ValidacaoDespesaService.validar_periodo_e_contas(
+            instance=self.instance,
+            data_transacao=data.get("data_transacao"),
+            rateios=data.get("rateios", []),
+            despesas_impostos=data.get("despesas_impostos", []),
+            recurso=self.instance.recurso if self.instance else recurso
+        )
 
         return data
 
@@ -219,11 +208,7 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
         return despesa.tags_de_informacao
 
     def get_periodo_referencia(self, despesa):
-        if not despesa.data_documento:
-            return None
-
-        periodo = Periodo.da_data(despesa.data_documento)
-        return periodo.referencia if periodo else None
+        return despesa.periodo_da_despesa.referencia if despesa.periodo_da_despesa else None
 
     class Meta:
         model = Despesa

@@ -22,7 +22,7 @@ CABECALHO = [
     ('Tipo da unidade', 'associacao__unidade__tipo_unidade'),
     ('Nome Associação', 'associacao__nome'),
     ('DRE', 'associacao__unidade__dre__nome'),
-    # ('Recurso', 'periodo__recurso__nome'),
+    ('Recurso', 'periodo__recurso__nome'),
     ('Data extrato', 'data_extrato'),
     ('Valor extrato', 'saldo_extrato'),
     ('Período', 'periodo__referencia'),
