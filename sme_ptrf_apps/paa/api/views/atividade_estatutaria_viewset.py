@@ -10,7 +10,7 @@ from waffle.mixins import WaffleFlagMixin
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.paa.models import AtividadeEstatutaria
-from sme_ptrf_apps.paa.enums import TipoAtividadeEstatutariaEnum
+from sme_ptrf_apps.paa.enums import TipoAtividadeEstatutariaEnum, TipoAnosAtividadeEstatutariaEnum
 from sme_ptrf_apps.paa.choices import Mes, StatusChoices
 from sme_ptrf_apps.paa.api.serializers import AtividadeEstatutariaSerializer
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoApiSME
@@ -23,12 +23,13 @@ logger = logging.getLogger(__name__)
 class AtividadeEstatutariaPaaFilterBackend(django_filters.FilterSet):
     nome = django_filters.CharFilter(field_name="nome", lookup_expr='icontains')
     tipo = django_filters.CharFilter(field_name="tipo", lookup_expr='exact')
+    ano = django_filters.CharFilter(field_name="ano", lookup_expr="exact")
     mes = django_filters.CharFilter(field_name="mes", lookup_expr="exact")
     status = django_filters.CharFilter(field_name="status", lookup_expr="exact")
 
     class Meta:
         model = AtividadeEstatutaria
-        fields = ['nome', 'tipo', 'status', 'mes']
+        fields = ['nome', 'tipo', 'status', 'ano', 'mes']
 
 
 @extend_schema_view(
@@ -43,6 +44,9 @@ class AtividadeEstatutariaPaaFilterBackend(django_filters.FilterSet):
             OpenApiParameter("tipo", str, OpenApiParameter.QUERY,
                              description="Filtra pelo tipo de atividade",
                              enum=list(TipoAtividadeEstatutariaEnum.choices())),
+            OpenApiParameter("ano", str, OpenApiParameter.QUERY,
+                             description="Filtra pelo ano da atividade",
+                             enum=list(TipoAnosAtividadeEstatutariaEnum.choices())),
             OpenApiParameter("mes", str, OpenApiParameter.QUERY,
                              description="Filtra por Mês", enum=list(Mes.choices)),
             OpenApiParameter("status", str, OpenApiParameter.QUERY,
@@ -78,6 +82,7 @@ class AtividadeEstatutariaViewSet(WaffleFlagMixin, ModelViewSet):
     def tabelas(self, request, *args, **kwrgs):
         tabelas = dict(
             status=StatusChoices.to_dict(),
+            ano=TipoAnosAtividadeEstatutariaEnum.to_dict(),
             mes=Mes.to_dict(),
             tipo=TipoAtividadeEstatutariaEnum.to_dict(),
         )
