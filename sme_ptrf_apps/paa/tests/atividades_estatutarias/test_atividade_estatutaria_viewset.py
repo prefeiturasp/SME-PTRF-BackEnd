@@ -146,9 +146,10 @@ def test_cria_atividade_estatutaria_sem_nome(jwt_authenticated_client_sme, flag_
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert AtividadeEstatutariaSerializer.MSG_NOME_NAO_INFORMADO in result['nome'], result['nome']
     assert AtividadeEstatutariaSerializer.MSG_MES_NAO_INFORMADO in result['mes'], result['mes']
+    assert AtividadeEstatutariaSerializer.MSG_ANO_NAO_INFORMADO in result['ano'], result['ano']
     assert AtividadeEstatutariaSerializer.MSG_TIPO_NAO_INFORMADO in result['tipo'], result['tipo']
     assert AtividadeEstatutariaSerializer.MSG_STATUS_NAO_INFORMADO in result['status'], result['status']
-    assert result.keys() == {'nome', 'tipo', 'mes', 'status'}, result.keys()
+    assert result.keys() == {'nome', 'tipo', 'mes', 'ano', 'status'}, result.keys()
 
 
 @pytest.mark.django_db
@@ -156,6 +157,7 @@ def test_cria_atividade_estatutaria_com_nome_vazio(jwt_authenticated_client_sme,
     data = {
         'nome': '',
         'tipo': 'ORDINARIA',
+        'ano': 'VIGENTE',
         'mes': 1,
         'status': 1
     }
@@ -202,6 +204,7 @@ def test_cria_atividade_estatutaria_com_sucesso(jwt_authenticated_client_sme, fl
     data = {
         "nome": "Teste",
         "status": 1,
+        'ano': 'VIGENTE',
         "mes": 1,
         "tipo": "ORDINARIA"
     }
@@ -214,6 +217,7 @@ def test_cria_atividade_estatutaria_com_sucesso(jwt_authenticated_client_sme, fl
     data = {
         "status": 0,
         "nome": "Teste 2",
+        'ano': 'VIGENTE',
         "mes": 1,
         "tipo": "ORDINARIA"
     }
@@ -230,6 +234,7 @@ def test_cria_atividade_estatutaria_duplicada(jwt_authenticated_client_sme, flag
         "nome": atividade_estatutaria_ativo.nome,
         "status": int(atividade_estatutaria_ativo.status),
         "mes": atividade_estatutaria_ativo.mes,
+        "ano": atividade_estatutaria_ativo.ano,
         "tipo": atividade_estatutaria_ativo.tipo
     }
     url = reverse("api:atividades-estatutarias-list")
