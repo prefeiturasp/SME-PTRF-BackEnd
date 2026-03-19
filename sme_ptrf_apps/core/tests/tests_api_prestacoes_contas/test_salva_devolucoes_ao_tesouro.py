@@ -1,8 +1,9 @@
 import json
+import pytz
 import pytest
 
 from freezegun import freeze_time
-from datetime import date
+from datetime import date, timedelta, datetime
 
 from model_bakery import baker
 from rest_framework import status
@@ -98,3 +99,36 @@ def test_api_salvar_devolucoes_ao_tesouro_sem_devolucao_tesouro(jwt_authenticate
     response = jwt_authenticated_client_a.patch(url, content_type='application/json')
 
     assert response.status_code == status.HTTP_200_OK
+
+
+
+def test_api_salva_devolucoes_ao_tesouro_com_data_futura(jwt_authenticated_client_a, prestacao_conta_em_analise, conta_associacao,
+                                         tipo_devolucao_ao_tesouro, despesa, devolucao_ao_tesouro):
+    
+    tz = pytz.timezone("America/Sao_Paulo")
+    amanha = (datetime.now(tz) + timedelta(days=1)).date()
+
+    payload = {
+        'devolucoes_ao_tesouro_da_prestacao': [
+            {
+                'data': amanha.isoformat(),
+                'devolucao_total': True,
+                'motivo': 'teste',
+                'valor': 100.00,
+                'tipo': f'{tipo_devolucao_ao_tesouro.uuid}',
+                'despesa': f'{despesa.uuid}',
+                'visao_criacao': 'UE',
+                'uuid': f"{devolucao_ao_tesouro.uuid}",
+            }
+        ]
+    }
+
+    url = f'/api/prestacoes-contas/{prestacao_conta_em_analise.uuid}/salvar-devolucoes-ao-tesouro/'
+
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    response_json = response.json()
+
+    assert 'mensagem' in response_json
+    assert response_json['mensagem'] == 'Data de devolução não pode ser futura'
