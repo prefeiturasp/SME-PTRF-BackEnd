@@ -43,7 +43,7 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
     pagination_class = AcaoAssociacaoPagination
 
     def get_queryset(self):
-        qs = AcaoAssociacao.objects.all()
+        qs = AcaoAssociacao.objects.filter(acao__recurso=self.request.recurso)
 
         nome = self.request.query_params.get('nome')
         filtro_informacoes = self.request.query_params.get('filtro_informacoes')
