@@ -48,6 +48,9 @@ class PeriodosViewSet(mixins.ListModelMixin,
         if associacao_uuid:
             qs = qs.filter(prestacoes_de_conta__associacao__uuid=associacao_uuid).distinct()
 
+        if self.request and hasattr(self.request, 'recurso') and self.request.recurso:
+            qs = Periodo.filter_by_recurso(qs, self.request.recurso)
+
         return qs.order_by('-referencia')
 
     def get_serializer_class(self):

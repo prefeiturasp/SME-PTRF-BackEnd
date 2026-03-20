@@ -2,6 +2,8 @@ import pytest
 
 from datetime import date
 
+UUID_RECURSO_A = '923c9c89-cba9-48f1-8b86-97ae97946356'
+UUID_RECURSO_B = '923c9c89-cba9-48f1-8b86-840ea9305835'
 
 @pytest.fixture
 def periodo_2020_4(periodo_factory):
@@ -52,4 +54,51 @@ def periodo_2021_2_aberto(periodo_factory, periodo_2021_1):
         data_inicio_prestacao_contas=date(2021, 7, 1),
         data_fim_prestacao_contas=date(2021, 7, 15),
         periodo_anterior=periodo_2021_1,
+    )
+
+@pytest.fixture
+def periodo_2020_4_com_recurso_a(periodo_factory, recurso_factory):
+    recurso_a = recurso_factory.create(nome='Recurso A', ativo=True, uuid=UUID_RECURSO_A)
+
+    return periodo_factory(
+        referencia='2020.4',
+        data_inicio_realizacao_despesas=date(2020, 10, 1),
+        data_fim_realizacao_despesas=date(2020, 12, 31),
+        data_prevista_repasse=date(2020, 10, 1),
+        data_inicio_prestacao_contas=date(2021, 1, 1),
+        data_fim_prestacao_contas=date(2021, 1, 15),
+        periodo_anterior=None,
+        recurso=recurso_a
+    )
+
+
+@pytest.fixture
+def periodo_2021_1_com_recurso_a(periodo_factory, periodo_2020_4_com_recurso_a):
+    recurso_a = periodo_2020_4_com_recurso_a.recurso
+
+    return periodo_factory(
+        referencia='2021.1',
+        data_inicio_realizacao_despesas=date(2021, 1, 1),
+        data_fim_realizacao_despesas=date(2021, 3, 31),
+        data_prevista_repasse=date(2021, 1, 1),
+        data_inicio_prestacao_contas=date(2021, 4, 1),
+        data_fim_prestacao_contas=date(2021, 4, 15),
+        periodo_anterior=periodo_2020_4_com_recurso_a,
+        recurso=recurso_a
+    )
+
+
+@pytest.fixture
+def periodo_2021_2_com_recurso_b(periodo_factory, recurso_factory):
+    recurso_b = recurso_factory.create(nome='Recurso B', ativo=True, uuid=UUID_RECURSO_B)
+
+    return periodo_factory(
+        referencia='2021.2',
+        data_inicio_realizacao_despesas=date(2021, 4, 1),
+        data_fim_realizacao_despesas=date(2021, 6, 30),
+        data_prevista_repasse=date(2021, 4, 1),
+        data_inicio_prestacao_contas=date(2021, 7, 1),
+        data_fim_prestacao_contas=date(2021, 7, 15),
+        periodo_anterior=None,
+        recurso=recurso_b
     )
