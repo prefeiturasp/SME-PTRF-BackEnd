@@ -602,11 +602,20 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
             return Response(response, status=status.HTTP_400_BAD_REQUEST)
 
-        prestacao_salva = prestacao_conta.salvar_devolucoes_ao_tesouro(
-            devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
-
-        return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
+        try:
+            prestacao_salva = prestacao_conta.salvar_devolucoes_ao_tesouro(
+                devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
+            
+            return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
+        except Exception as error:
+            return Response(data={
+                'uuid': f'{uuid}',
+                'status': prestacao_conta.status,
+                'operacao': 'salvar-devolucoes-ao-tesouro',
+                'mensagem': str(error),
+
+            }, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['delete'], url_path='apagar-devolucoes-ao-tesouro',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComGravacao])
