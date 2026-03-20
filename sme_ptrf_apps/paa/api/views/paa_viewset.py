@@ -246,7 +246,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoRetrieveSerializer
 
         paa = self.get_object()
-        acoes_associacoes = paa.associacao.acoes.all()
+        acoes_associacoes = paa.associacao.acoes.filter(acao__recurso__legado=True)
 
         serializer_acao_associacao = AcaoAssociacaoRetrieveSerializer(acoes_associacoes, many=True)
         for acao_assoc in serializer_acao_associacao.data:
