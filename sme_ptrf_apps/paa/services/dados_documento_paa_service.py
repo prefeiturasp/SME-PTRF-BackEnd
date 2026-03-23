@@ -2,7 +2,6 @@ import logging
 from datetime import datetime
 from django.db.models import Sum
 from sme_ptrf_apps.paa.utils import numero_decimal
-from dateutil.relativedelta import relativedelta
 from sme_ptrf_apps.paa.models.atividade_estatutaria import AtividadeEstatutaria
 from sme_ptrf_apps.paa.models.prioridade_paa import PrioridadePaa
 from sme_ptrf_apps.paa.models.parametro_paa import ParametroPaa
@@ -289,8 +288,8 @@ def criar_atividades_estatutarias(paa):
                 ano = paa.periodo_paa.data_inicial.year
                 mes_ano = f'{mes_ano}/{ano}'
             elif atividade.ano == TipoAnosAtividadeEstatutariaEnum.POSTERIOR.name:
-                nova_data = paa.periodo_paa.data_inicial + relativedelta(years=1)
-                mes_ano = f'{mes_ano}/{nova_data.year}'
+                ano_data_final = paa.periodo_paa.data_final.year
+                mes_ano = f'{mes_ano}/{ano_data_final}'
 
         items.append({
             "tipo_atividade": atividade.get_tipo_display(),
