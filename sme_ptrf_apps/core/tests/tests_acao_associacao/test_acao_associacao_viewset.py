@@ -10,6 +10,7 @@ pytestmark = pytest.mark.django_db
 
 def test_view_set(acao_associacao, usuario_permissao_associacao):
     request = APIRequestFactory().get("")
+    request.recurso = acao_associacao.acao.recurso
     detalhe = AcaoAssociacaoViewSet.as_view({'get': 'retrieve'})
     force_authenticate(request, user=usuario_permissao_associacao)
     response = detalhe(request, uuid=acao_associacao.uuid)

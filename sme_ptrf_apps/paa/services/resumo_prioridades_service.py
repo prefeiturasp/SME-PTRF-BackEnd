@@ -72,7 +72,12 @@ class ResumoPrioridadesService:
 
         # Queryset de Ações de Associação do PAA ordenados por nome da Ação.
         # Ignorar Açoes com o campo exibir_paa = False (História 134829)
-        acoes_associacoes_qs = self.paa.associacao.acoes.exclude(acao__exibir_paa=False).order_by('acao__nome')
+        acoes_associacoes_qs = (
+            self.paa.associacao.acoes
+            .exclude(acao__exibir_paa=False)
+            .filter(acao__recurso__legado=True)
+            .order_by("acao__nome")
+        )
 
         # Dados Serializados
         acoes_associacoes_data = AcaoAssociacaoRetrieveSerializer(acoes_associacoes_qs, many=True).data
