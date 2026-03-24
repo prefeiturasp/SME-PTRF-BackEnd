@@ -3,16 +3,18 @@ from rest_framework.pagination import PageNumberPagination
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
-    extend_schema, OpenApiExample)
+    extend_schema, OpenApiExample, OpenApiParameter)
 
-from rest_framework import mixins, status
+from rest_framework import mixins, serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from sme_ptrf_apps.core.api.serializers import AcaoAssociacaoCreateSerializer, AcaoAssociacaoRetrieveSerializer
+from sme_ptrf_apps.core.api.serializers import (
+    AcaoAssociacaoCreateSerializer, AcaoAssociacaoRetrieveSerializer, AcaoAssociacaoListaSimplesSerializer)
 from sme_ptrf_apps.core.choices.filtro_informacoes_associacao import FiltroInformacoesAssociacao
 from sme_ptrf_apps.core.models import AcaoAssociacao, Acao, Associacao
 from sme_ptrf_apps.users.permissoes import (
@@ -204,3 +206,29 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
     def obter_saldo_atual(self, request, uuid, *args, **kwrgs):
         saldos = self.get_object().saldo_atual()
         return Response(saldos, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='paa_uuid', description='UUID do PAA', required=True,
+                             type=OpenApiTypes.UUID, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: AcaoAssociacaoRetrieveSerializer(many=True)},
+        description="Retorna as Ações PTRF disponíveis para um PAA, sem paginação."
+    )
+    @action(detail=False, methods=['get'], url_path='acoes-ptrf-paa',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def acoes_ptrf_paa(self, request):
+        from sme_ptrf_apps.paa.models import Paa
+        from sme_ptrf_apps.paa.services import AcoesPaaService
+
+        paa_uuid = request.query_params.get('paa_uuid')
+        if not paa_uuid:
+            raise serializers.ValidationError({"non_field_errors": "PAA não foi informado."})
+
+        try:
+            paa = Paa.by_uuid(paa_uuid)
+        except Paa.DoesNotExist:
+            raise serializers.ValidationError({"non_field_errors": "PAA não encontrado."})
+
+        qs = AcoesPaaService(paa).obter_ptrf()
+        return Response(AcaoAssociacaoListaSimplesSerializer(qs, many=True).data, status=status.HTTP_200_OK)

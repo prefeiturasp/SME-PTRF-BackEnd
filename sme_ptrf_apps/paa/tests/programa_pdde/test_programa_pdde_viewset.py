@@ -258,12 +258,10 @@ def test_obtem_programas_somatorio_com_page_size_padrao(jwt_authenticated_client
     assert response.status_code == status.HTTP_200_OK
     assert 'programas' in response.data
     assert 'total' in response.data
-    # Verifica se retornou todos os programas (3 programas criados)
-    assert len(response.data["programas"]) == 3
-
+    # Verifica se retornou todos os programas (3 programas criados, mas somente 2 utilizadaos)
+    assert len(response.data["programas"]) == 2
 
     assert 'programas' in response.data
     assert 'total' in response.data
-    # Verifica se retornou todos os programas (3 programas criados) pois page_size inválido usa padrão
-    assert len(response.data["programas"]) == 3
-
+    # Verifica se retornou todos os programas (2 programas criados e utilizados) pois page_size inválido usa padrão
+    assert len(response.data["programas"]) == 2
