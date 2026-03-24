@@ -60,7 +60,7 @@ class UserAdmin(auth_admin.UserAdmin):
 @admin.register(Permission)
 class PermissaoAdmin(admin.ModelAdmin):
     list_display = ["name", "nome_permissao", "nome_plicativo", "nome_modelo"]
-    search_fields = ["name"]
+    search_fields = ["name", "codename"]
 
     def nome_plicativo(self, obj):
         return obj.content_type.app_label

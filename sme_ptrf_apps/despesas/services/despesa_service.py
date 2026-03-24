@@ -223,30 +223,94 @@ class DespesaService:
 
                     aplicacao_anterior = rateio_para_atualizar.aplicacao_recurso
                     nova_aplicacao = rateio.get("aplicacao_recurso")
+                    
+                    saida_recurso_externo = rateio.get(
+                            "saida_de_recurso_externo",
+                            rateio_para_atualizar.saida_de_recurso_externo
+                        )
+                        
+                    despesa_que_nao_precisam_especificacao = despesa.eh_despesa_sem_comprovacao_fiscal or saida_recurso_externo
 
                     # CAPITAL -> CUSTEIO
                     if aplicacao_anterior == APLICACAO_CAPITAL and nova_aplicacao == APLICACAO_CUSTEIO:
+
+                        if not despesa_que_nao_precisam_especificacao:
+                            tipo_custeio = rateio.get("tipo_custeio")
+                            especificacao = rateio.get("especificacao_material_servico")
+                            if not tipo_custeio or not especificacao:
+                                raise serializers.ValidationError({
+                                    "mensagem": (
+                                        "Ao alterar o tipo de aplicação de Capital para Custeio, "
+                                        "é obrigatório informar o Tipo de Custeio e a Especificação de "
+                                        "Material ou Serviço em cada rateio."
+                                    )
+                                })
+                            if especificacao.aplicacao_recurso != APLICACAO_CUSTEIO:
+                                raise serializers.ValidationError({
+                                    "mensagem": (
+                                        "Ao alterar o tipo de aplicação de Capital para Custeio, "
+                                        "é obrigatório informar uma Especificação de Material ou Serviço "
+                                        "de Custeio. A especificação atual é de Capital."
+                                    )
+                                })
+                            rateio.update({
+                                "numero_processo_incorporacao_capital": "",
+                                "quantidade_itens_capital": 0,
+                                "nao_exibir_em_rel_bens": False,
+                                "valor_item_capital": 0,
+                            })
+                        else:
+                            rateio.update({
+                                "numero_processo_incorporacao_capital": "",
+                                "quantidade_itens_capital": 0,
+                                "especificacao_material_servico": None,
+                                "nao_exibir_em_rel_bens": False,
+                                "valor_item_capital": 0,
+                            })
+
                         logger.info(
                             f"Resetando campos de CAPITAL → CUSTEIO "
                             f"no rateio {rateio['uuid']}"
                         )
-                        rateio.update({
-                            "numero_processo_incorporacao_capital": "",
-                            "especificacao_material_servico": None,
-                            "quantidade_itens_capital": 0,
-                            "nao_exibir_em_rel_bens": False,
-                            "valor_item_capital": 0,
-                        })
+                        
 
                     # CUSTEIO -> CAPITAL
                     if aplicacao_anterior == APLICACAO_CUSTEIO and nova_aplicacao == APLICACAO_CAPITAL:
+
+                        if not despesa_que_nao_precisam_especificacao:
+                            especificacao = rateio.get("especificacao_material_servico")
+                            if especificacao is None:
+                                especificacao = rateio_para_atualizar.especificacao_material_servico
+                            if not especificacao:
+                                raise serializers.ValidationError({
+                                    "mensagem": (
+                                        "Ao alterar o tipo de aplicação de Custeio para Capital, "
+                                        "é obrigatório informar a Especificação de Material ou Serviço "
+                                        "de Capital em cada rateio."
+                                    )
+                                })
+                            if especificacao.aplicacao_recurso != APLICACAO_CAPITAL:
+                                raise serializers.ValidationError({
+                                    "mensagem": (
+                                        "Ao alterar o tipo de aplicação de Custeio para Capital, "
+                                        "é obrigatório informar uma Especificação de Material ou Serviço "
+                                        "de Capital. A especificação atual é de Custeio."
+                                    )
+                                })
+                                
+                            rateio.update({
+                                "tipo_custeio": None,
+                            })
+                        else:
+                            rateio.update({
+                                "tipo_custeio": None,
+                                "especificacao_material_servico": None,
+                            })
+
                         logger.info(
                             f"Resetando campos de CUSTEIO → CAPITAL "
                             f"no rateio {rateio['uuid']}"
                         )
-                        rateio.update({
-                            "tipo_custeio": None,
-                        })
 
                     RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)
                     obj = RateioDespesa.objects.get(uuid=rateio["uuid"])
