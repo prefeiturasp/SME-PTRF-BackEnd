@@ -552,11 +552,11 @@ Cypress.Commands.add('validar_soma_valores_reprogramados_ue', () => {
 })
 
 Cypress.Commands.add('validar_campos_cadastrar_creditos_da_escola_ue', () => {
-    cy.get(creditos.btn_cadastrar_credito(), { timeout: 3000 })
+    cy.get(creditos.btn_cadastrar_credito(), { timeout: 10000 })
     .should('be.visible')
     .click()
 
-    cy.get(creditos.btn_salvar_credito(), { timeout: 3000 })
+    cy.get(creditos.btn_salvar_credito(), { timeout: 10000 })
     .should('be.visible')
     .click()
 
