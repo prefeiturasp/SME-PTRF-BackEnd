@@ -200,10 +200,10 @@ def test_list_ordenacao_customizada_prioridade_paa_relatorio(
 
 
 @pytest.mark.django_db
-def test_list_tabelas_endpoint(jwt_authenticated_client_sme, flag_paa):
-    response = jwt_authenticated_client_sme.get("/api/prioridades-paa/tabelas/")
+def test_list_tabelas_endpoint(jwt_authenticated_client_sme, flag_paa, paa):
+    response = jwt_authenticated_client_sme.get(f"/api/prioridades-paa/tabelas/?paa__uuid={paa.uuid}")
     result = response.json()
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_200_OK, result
     assert result['prioridades'] == SimNaoChoices.to_dict()
     assert result['recursos'] == RecursoOpcoesEnum.to_dict()
     assert result['tipos_aplicacao'] == TipoAplicacaoOpcoesEnum.to_dict()

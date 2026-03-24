@@ -1,3 +1,4 @@
+# flake8: noqa
 from .tag_serializer import TagLookupSerializer, TagSerializer
 from .devolucao_ao_tesouro_serializer import DevolucaoAoTesouroRetrieveSerializer
 from .devolucao_prestacao_conta_serializer import DevolucaoPrestacaoContaRetrieveSerializer
@@ -6,7 +7,8 @@ from .acao_associacao_serializer import (
     AcaoAssociacaoSerializer,
     AcaoAssociacaoRetrieveSerializer,
     AcaoAssociacaoCreateSerializer,
-    AcaoAssociacaoAjustesValoresIniciasSerializer
+    AcaoAssociacaoAjustesValoresIniciasSerializer,
+    AcaoAssociacaoListaSimplesSerializer
 )
 from .associacao_serializer import (
     AssociacaoCreateSerializer,
@@ -61,6 +63,7 @@ from .presentes_ata_serializer import PresentesAtaSerializer, PresentesAtaCreate
 from .solicitacao_devolucao_ao_tesouro_serializer import SolicitacaoDevolucaoAoTesouroRetrieveSerializer
 from .falha_geracao_pc_serializer import FalhaGeracaoPcSerializer
 from .solicitacao_encerramento_conta_associacao_serializer import SolicitacaoEncerramentoContaAssociacaoSerializer
-from .motivo_rejeicao_encerramento_conta_associacao_serializer import MotivoRejeicaoEncerramentoContaAssociacaoSerializer
+from .motivo_rejeicao_encerramento_conta_associacao_serializer import (
+    MotivoRejeicaoEncerramentoContaAssociacaoSerializer)
 from .prestacao_conta_reprovada_nao_apresentacao_serializer import PrestacaoContaReprovadaNaoApresentacaoSerializer
 from .acao_serializer import AcaoSerializer
