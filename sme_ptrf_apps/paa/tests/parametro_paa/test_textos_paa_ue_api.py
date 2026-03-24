@@ -125,7 +125,7 @@ class TestTextosPaaUeAPI:
         data = {
             'texto_pagina_paa_ue': '<p>Texto atualizado</p>',
             'introducao_do_paa_ue_1': None,
-            'introducao_do_paa_ue_2': '<p>Introdução 2 atualizada</p>'
+            'introducao_do_paa_ue_2': ''
         }
 
         response = jwt_authenticated_client_sme.patch(
@@ -134,12 +134,12 @@ class TestTextosPaaUeAPI:
             content_type='application/json'
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        content = json.loads(response.content)
 
-        parametro_paa.refresh_from_db()
-        assert parametro_paa.texto_pagina_paa_ue == '<p>Texto atualizado</p>'
-        assert parametro_paa.introducao_do_paa_ue_1 is None
-        assert parametro_paa.introducao_do_paa_ue_2 == '<p>Introdução 2 atualizada</p>'
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'introducao_do_paa_ue_1' in content
+        assert content['introducao_do_paa_ue_1'][0] == 'O campo Introdução 1 da aba Relatórios não foi informado.'
+        assert content['introducao_do_paa_ue_2'][0] == 'O campo Introdução 2 da aba Relatórios não foi informado.'
 
     def test_patch_update_textos_paa_ue_all_fields(self, jwt_authenticated_client_sme, flag_paa, parametro_paa):
         """Testa PATCH update-textos-paa-ue atualizando todos os campos"""
