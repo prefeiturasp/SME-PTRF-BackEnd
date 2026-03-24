@@ -220,7 +220,7 @@ class FuncUePlanoAnualDeAtividade(models.Model):
 
         permissions = (
             ('access_paa', '[UE] Pode acessar Plano Anual de Atividade.'),
-            ('change_paa', '[UE] Pode editar Plano Anual de Atividade".'),
+            ('custom_change_paa', '[UE] Pode editar Plano Anual de Atividade'),
         )
 
 class FuncUeSituacaoPatrimonial(models.Model):
