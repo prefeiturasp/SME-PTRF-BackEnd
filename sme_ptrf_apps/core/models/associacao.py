@@ -540,6 +540,10 @@ class Associacao(ModeloIdNome):
         self.clean()
         return super().save(*args, **kwargs)
 
+    """
+        A melhor forma é filtrar pelo recurso do próprio periodo usando PeriodoInicialAssociacao (modelo novo),
+        com fallback só para legado.
+    """
     @classmethod
     def get_associacoes_ativas_no_periodo(cls, periodo, dre=None):
         associacoes_ativas = cls.ativas
@@ -547,11 +551,16 @@ class Associacao(ModeloIdNome):
         if dre:
             associacoes_ativas = associacoes_ativas.filter(unidade__dre=dre)
 
-        associacoes_ativas = associacoes_ativas.exclude(periodo_inicial__isnull=True)
-        associacoes_ativas = associacoes_ativas.exclude(periodo_inicial__referencia__gte=periodo.referencia)
+        associacoes_ativas = cls.filter_by_recurso(
+            queryset=associacoes_ativas,
+            recurso=periodo.recurso,
+            referencia_periodo=periodo.referencia,
+            considerar_legado=bool(periodo.recurso and periodo.recurso.legado),
+        )
 
         associacoes_ativas = associacoes_ativas.exclude(
-            data_de_encerramento__lte=periodo.data_inicio_realizacao_despesas)
+            data_de_encerramento__lte=periodo.data_inicio_realizacao_despesas
+        )
 
         return associacoes_ativas
 
@@ -566,6 +575,27 @@ class Associacao(ModeloIdNome):
     @classmethod
     def get_tags_informacoes_list(cls):
         return [cls.TAG_ENCERRADA, cls.TAG_ENCERRAMENTO_DE_CONTA]
+
+    """
+        Passa a filtrar também pelo período inicial do recurso (não só pelo recurso)
+    """
+    @classmethod
+    def filter_by_recurso(cls, queryset, recurso, referencia_periodo=None, considerar_legado=False):
+        if not recurso:
+            return queryset
+
+        filtro_recurso = Q(periodos_iniciais__recurso=recurso)
+
+        if referencia_periodo is not None:
+            filtro_recurso &= Q(periodos_iniciais__periodo_inicial__referencia__lt=referencia_periodo)
+
+        if considerar_legado:
+            filtro_legado = Q(periodo_inicial__isnull=False)
+            if referencia_periodo is not None:
+                filtro_legado &= Q(periodo_inicial__referencia__lt=referencia_periodo)
+            filtro_recurso |= filtro_legado
+
+        return queryset.filter(filtro_recurso).distinct()
 
 
 def tag_informacao(tipo_de_tag, hint):
