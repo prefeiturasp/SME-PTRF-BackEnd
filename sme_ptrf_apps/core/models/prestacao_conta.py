@@ -430,6 +430,7 @@ class PrestacaoConta(ModeloBase):
         from sme_ptrf_apps.receitas.models import Receita
         from sme_ptrf_apps.despesas.models import RateioDespesa
         contas = ContaAssociacao.objects.filter(associacao=self.associacao).order_by('id')
+        contas = ContaAssociacao.filter_by_recurso(contas, self.periodo.recurso)
 
         contas_com_movimento = []
         for conta in contas:
@@ -465,6 +466,7 @@ class PrestacaoConta(ModeloBase):
         from sme_ptrf_apps.despesas.models import RateioDespesa
 
         contas = ContaAssociacao.objects.filter(associacao=self.associacao).order_by('id')
+        contas = ContaAssociacao.filter_by_recurso(contas, self.periodo.recurso)
 
         contas_com_movimento = []
         for conta in contas:
