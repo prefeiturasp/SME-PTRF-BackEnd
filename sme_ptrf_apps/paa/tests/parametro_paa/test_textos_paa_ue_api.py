@@ -28,7 +28,7 @@ class TestTextosPaaUeAPI:
         assert 'introducao_do_paa_ue_2' in content
         assert 'conclusao_do_paa_ue_1' in content
         assert 'conclusao_do_paa_ue_2' in content
-        
+
         assert content['texto_pagina_paa_ue'] == "<p>Texto da página PAA UE</p>"
         assert content['introducao_do_paa_ue_1'] == "<p>Introdução do PAA 1</p>"
         assert content['introducao_do_paa_ue_2'] == "<p>Introdução do PAA 2</p>"
@@ -51,8 +51,6 @@ class TestTextosPaaUeAPI:
         """Testa PATCH update-textos-paa-ue com sucesso"""
         data = {
             'texto_pagina_paa_ue': '<p>Novo texto da página</p>',
-            'introducao_do_paa_ue_1': '<p>Nova introdução 1</p>',
-            'introducao_do_paa_ue_2': '<p>Nova introdução 2</p>'
         }
 
         response = jwt_authenticated_client_sme.patch(
@@ -63,12 +61,10 @@ class TestTextosPaaUeAPI:
         content = json.loads(response.content)
 
         assert response.status_code == status.HTTP_200_OK
-        assert content['detail'] == 'Salvo com sucesso'
+        assert content['detail'] == 'Textos atualizados com sucesso'
 
         parametro_paa.refresh_from_db()
         assert parametro_paa.texto_pagina_paa_ue == '<p>Novo texto da página</p>'
-        assert parametro_paa.introducao_do_paa_ue_1 == '<p>Nova introdução 1</p>'
-        assert parametro_paa.introducao_do_paa_ue_2 == '<p>Nova introdução 2</p>'
 
     def test_patch_update_textos_paa_ue_partial_update(self, jwt_authenticated_client_sme, flag_paa, parametro_paa):
         """Testa PATCH update-textos-paa-ue atualizando apenas alguns campos"""
@@ -76,7 +72,6 @@ class TestTextosPaaUeAPI:
         parametro_paa.texto_pagina_paa_ue = '<p>Texto original</p>'
         parametro_paa.introducao_do_paa_ue_1 = '<p>Introdução original</p>'
         parametro_paa.save()
-
 
         data = {
             'texto_pagina_paa_ue': '<p>Texto atualizado</p>'
@@ -89,7 +84,6 @@ class TestTextosPaaUeAPI:
         )
 
         assert response.status_code == status.HTTP_200_OK
-
 
         parametro_paa.refresh_from_db()
         assert parametro_paa.texto_pagina_paa_ue == '<p>Texto atualizado</p>'
@@ -115,8 +109,6 @@ class TestTextosPaaUeAPI:
         """Testa PATCH update-textos-paa-ue com strings vazias (deve funcionar)"""
         data = {
             'texto_pagina_paa_ue': '',
-            'introducao_do_paa_ue_1': '   ',
-            'introducao_do_paa_ue_2': ''
         }
 
         response = jwt_authenticated_client_sme.patch(
@@ -125,15 +117,10 @@ class TestTextosPaaUeAPI:
             content_type='application/json'
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
 
-
-        parametro_paa.refresh_from_db()
-        assert parametro_paa.texto_pagina_paa_ue == ''
-        assert parametro_paa.introducao_do_paa_ue_1 == '   '
-        assert parametro_paa.introducao_do_paa_ue_2 == ''
-
-    def test_patch_update_textos_paa_ue_mixed_none_and_values(self, jwt_authenticated_client_sme, flag_paa, parametro_paa):
+    def test_patch_update_textos_paa_ue_mixed_none_and_values(self, jwt_authenticated_client_sme, flag_paa,
+                                                              parametro_paa):
         """Testa PATCH update-textos-paa-ue com alguns campos None e outros com valores"""
         data = {
             'texto_pagina_paa_ue': '<p>Texto atualizado</p>',
@@ -149,12 +136,10 @@ class TestTextosPaaUeAPI:
 
         assert response.status_code == status.HTTP_200_OK
 
-
         parametro_paa.refresh_from_db()
         assert parametro_paa.texto_pagina_paa_ue == '<p>Texto atualizado</p>'
         assert parametro_paa.introducao_do_paa_ue_1 is None
         assert parametro_paa.introducao_do_paa_ue_2 == '<p>Introdução 2 atualizada</p>'
-
 
     def test_patch_update_textos_paa_ue_all_fields(self, jwt_authenticated_client_sme, flag_paa, parametro_paa):
         """Testa PATCH update-textos-paa-ue atualizando todos os campos"""

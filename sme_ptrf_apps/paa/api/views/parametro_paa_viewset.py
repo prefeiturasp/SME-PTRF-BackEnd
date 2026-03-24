@@ -48,7 +48,11 @@ class ParametrosPaaViewSet(WaffleFlagMixin, GenericViewSet):
         if not request.data:
             logger.warning(f'Tentativa de atualizar textos PAA sem dados pelo usuário {request.user}')
             return Response(
-                {'detail': 'Dados de atualização não fornecidos'},
+                {
+                    'erro': 'falta_de_informacoes',
+                    'operacao': 'update_textos_paa_ue',
+                    'mensagem': 'Pelo menos um campo deve ser enviado para atualização.'
+                },
                 status=status.HTTP_400_BAD_REQUEST
             )
 
