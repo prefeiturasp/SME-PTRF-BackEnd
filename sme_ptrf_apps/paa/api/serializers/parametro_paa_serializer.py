@@ -7,10 +7,10 @@ class ParametroPaaSerializer(serializers.ModelSerializer):
         'null': ('O campo Explicação sobre o PAA não foi informado.'),
         'blank': ('O campo Explicação sobre o PAA não foi informado.')})
 
-    texto_atividades_previstas = serializers.CharField(error_messages={'null': ('O campo Atividades '
-                                                                                'previstas não foi informado.'),
-                                                                       'blank': ('O campo Atividades'
-                                                                                 ' previstas não foi informado.')})
+    texto_atividades_previstas = serializers.CharField(error_messages={
+        'null': ('O campo Atividades previstas não foi informado.'),
+        'blank': ('O campo Atividades previstas não foi informado.')})
+
     introducao_do_paa_ue_1 = serializers.CharField(error_messages={
         'null': ('O campo Introdução 1 da aba Relatórios não foi informado.'),
         'blank': ('O campo Introdução 1 da aba Relatórios não foi informado.')})
