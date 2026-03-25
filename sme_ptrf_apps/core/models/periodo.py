@@ -115,6 +115,10 @@ class Periodo(ModeloBase):
     def filter_by_recurso(cls, queryset, recurso):
         return queryset.filter(recurso=recurso)
 
+    @classmethod
+    def filter_by_periodo_referencia_gt(cls, queryset, referencia):
+        return queryset.filter(referencia__gt=referencia)
+
     def notificacao_inicio_prestacao_de_contas_realizada(self):
         self.notificacao_inicio_periodo_pc_realizada = True
         self.save()

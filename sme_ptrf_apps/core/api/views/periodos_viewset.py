@@ -9,7 +9,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from ..serializers.periodo_serializer import (PeriodoSerializer, PeriodoLookUpSerializer, PeriodoRetrieveSerializer,
                                               PeriodoCreateSerializer)
-from ...models import Periodo
+from ...models import Periodo, PeriodoInicialAssociacao, Associacao
 from ...services import valida_datas_periodo
 
 
@@ -30,6 +30,8 @@ class PeriodosViewSet(mixins.ListModelMixin,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
             OpenApiParameter(name='associacao_uuid', description='UUID da Associação', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='dre_uuid', description='UUID da DRE', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
         ],
         responses={200: PeriodoSerializer()},
     )
@@ -44,12 +46,30 @@ class PeriodosViewSet(mixins.ListModelMixin,
             qs = qs.filter(referencia__icontains=referencia)
 
         associacao_uuid = self.request.query_params.get('associacao_uuid')
-
         if associacao_uuid:
             qs = qs.filter(prestacoes_de_conta__associacao__uuid=associacao_uuid).distinct()
 
-        if self.request and hasattr(self.request, 'recurso') and self.request.recurso:
-            qs = Periodo.filter_by_recurso(qs, self.request.recurso)
+        recurso = self.request.recurso if self.request and hasattr(self.request, 'recurso') and self.request.recurso else None
+        if recurso:
+            qs = Periodo.filter_by_recurso(qs, recurso)
+
+        dre_uuid = self.request.query_params.get('dre_uuid')
+        if dre_uuid:
+            menor_referencia = None
+
+            associacao_periodo_inicial_menor = Associacao.get_menor_periodo_inicial_legado_by_dre_uuid_and_recurso(dre_uuid, recurso)
+            periodo_inicial_dre_menor = PeriodoInicialAssociacao.get_periodo_inicial_by_dre_and_recurso(dre_uuid, recurso)
+
+            if associacao_periodo_inicial_menor and periodo_inicial_dre_menor:
+                menor_referencia = min(associacao_periodo_inicial_menor.periodo_inicial.referencia, periodo_inicial_dre_menor.referencia)
+            elif associacao_periodo_inicial_menor and periodo_inicial_dre_menor is None:
+                menor_referencia = associacao_periodo_inicial_menor.periodo_inicial.referencia
+            elif associacao_periodo_inicial_menor is None and periodo_inicial_dre_menor:
+                menor_referencia = periodo_inicial_dre_menor.periodo_inicial.referencia
+
+            if menor_referencia:
+                qs = Periodo.filter_by_periodo_referencia_gt(qs, menor_referencia)
+
 
         return qs.order_by('-referencia')
 

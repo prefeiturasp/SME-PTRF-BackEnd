@@ -54,5 +54,40 @@ class PeriodoInicialAssociacao(ModeloBase):
                 )
             })
 
+    @classmethod
+    def filter_by_dre(cls, dre_uuid, queryset=None):
+        obj = cls.objects if queryset is None else queryset
+
+        return obj.filter(
+            associacao__unidade__dre__uuid=dre_uuid,
+            associacao__periodos_iniciais__isnull=False
+        ).distinct()
+
+    @classmethod
+    def filter_by_recurso(cls, recurso, queryset=None):
+        obj = cls.objects if queryset is None else queryset
+
+        return obj.filter(
+            recurso=recurso,
+            associacao__periodos_iniciais__isnull=False
+        ).distinct()
+
+    @classmethod
+    def order_by_referencia(cls, queryset=None):
+        obj = cls.objects if queryset is None else queryset
+
+        return obj.order_by('periodo_inicial__referencia')
+
+    @classmethod
+    def get_periodo_inicial_by_dre_and_recurso(cls, dre_uuid, recurso=None):
+        queryset = cls.filter_by_dre(dre_uuid)
+
+        if recurso:
+            queryset = cls.filter_by_recurso(recurso, queryset)
+
+        queryset = cls.order_by_referencia(queryset)
+
+        return queryset.first() if queryset.exists() else None
+
 
 auditlog.register(PeriodoInicialAssociacao)
