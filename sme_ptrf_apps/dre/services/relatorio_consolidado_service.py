@@ -71,7 +71,7 @@ def status_de_geracao_do_relatorio(dre, periodo, tipo_conta):
     return status
 
 
-def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consolidado_dre=None):
+def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consolidado_dre=None, recurso=None):
     from .consolidado_dre_service import verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao
     eh_retificacao = True if consolidado_dre and consolidado_dre.eh_retificacao else False
 
@@ -138,6 +138,9 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
     }
 
     tipos_de_conta = TipoConta.objects.all()
+
+    if recurso:
+        tipos_de_conta = TipoConta.filter_by_recurso(tipos_de_conta, recurso)
 
     objeto_tipo_de_conta = []
     dados['por_tipo_de_conta'] = []
@@ -1148,7 +1151,14 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
         dado = []
         objeto_tipo_de_conta = []
 
-        for conta_associacao in associacao.contas.all():
+        contas_da_associacao = associacao.contas.all()
+ 
+        recurso = periodo.recurso if periodo.recurso else None
+ 
+        if recurso:
+            contas_da_associacao = ContaAssociacao.filter_by_recurso(contas_da_associacao, recurso)
+
+        for conta_associacao in contas_da_associacao:
 
             if not conta_associacao.conta_criada_no_periodo_ou_periodo_anteriores(periodo=periodo):
                 continue

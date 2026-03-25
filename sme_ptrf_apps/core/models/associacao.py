@@ -565,6 +565,12 @@ class Associacao(ModeloIdNome):
         return associacoes_ativas
 
     @classmethod
+    def get_associacoes_ativas_by_dre_and_recurso(cls, dre, recurso):
+        associacoes_ativas = cls.ativas.filter(unidade__dre=dre)
+        associacoes_por_recurso = cls.filter_by_recurso(associacoes_ativas, recurso)
+        return associacoes_por_recurso
+
+    @classmethod
     def filtro_informacoes_to_json(cls):
         return FiltroInformacoesAssociacao.choices()
 
