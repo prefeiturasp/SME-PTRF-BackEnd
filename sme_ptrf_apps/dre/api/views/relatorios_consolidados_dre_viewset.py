@@ -262,10 +262,14 @@ class RelatoriosConsolidadosDREViewSet(GenericViewSet):
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        recurso = self.request.recurso if hasattr(self.request, 'recurso') else None
+
         info = retorna_informacoes_execucao_financeira_todas_as_contas(
             dre=dre,
             periodo=periodo,
-            consolidado_dre=consolidado_dre)
+            consolidado_dre=consolidado_dre,
+            recurso=recurso
+        )
 
         return Response(info)
 
