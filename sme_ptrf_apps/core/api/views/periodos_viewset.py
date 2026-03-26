@@ -61,7 +61,7 @@ class PeriodosViewSet(mixins.ListModelMixin,
             periodo_inicial_dre_menor = PeriodoInicialAssociacao.get_periodo_inicial_by_dre_and_recurso(dre_uuid, recurso)
 
             if associacao_periodo_inicial_menor and periodo_inicial_dre_menor:
-                menor_referencia = min(associacao_periodo_inicial_menor.periodo_inicial.referencia, periodo_inicial_dre_menor.referencia)
+                menor_referencia = min(associacao_periodo_inicial_menor.periodo_inicial.referencia, periodo_inicial_dre_menor.periodo_inicial.referencia)
             elif associacao_periodo_inicial_menor and periodo_inicial_dre_menor is None:
                 menor_referencia = associacao_periodo_inicial_menor.periodo_inicial.referencia
             elif associacao_periodo_inicial_menor is None and periodo_inicial_dre_menor:

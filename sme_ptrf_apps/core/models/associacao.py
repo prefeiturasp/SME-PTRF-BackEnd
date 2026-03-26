@@ -615,7 +615,7 @@ class Associacao(ModeloIdNome):
             queryset = cls.ativas
 
             queryset = cls.get_by_dre_uuid(dre_uuid, queryset)
-            queryset = cls.objects.filter(periodo_inicial__recurso=recurso)
+            queryset = queryset.filter(periodo_inicial__recurso=recurso)
             queryset = cls.order_by_referencia(queryset)
 
         return queryset.first() if queryset is not None and queryset.exists() else None
