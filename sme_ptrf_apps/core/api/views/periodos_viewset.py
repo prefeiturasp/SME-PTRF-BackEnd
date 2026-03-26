@@ -46,32 +46,61 @@ class PeriodosViewSet(mixins.ListModelMixin,
             qs = qs.filter(referencia__icontains=referencia)
 
         associacao_uuid = self.request.query_params.get('associacao_uuid')
+
         if associacao_uuid:
             qs = qs.filter(prestacoes_de_conta__associacao__uuid=associacao_uuid).distinct()
 
-        recurso = self.request.recurso if self.request and hasattr(self.request, 'recurso') and self.request.recurso else None
-        if recurso:
-            qs = Periodo.filter_by_recurso(qs, recurso)
+        if self.request and hasattr(self.request, 'recurso') and self.request.recurso:
+            qs = Periodo.filter_by_recurso(qs, self.request.recurso)
 
         dre_uuid = self.request.query_params.get('dre_uuid')
         if dre_uuid:
-            menor_referencia = None
+            periodo_corte = self.get_periodo_corte_por_dre(dre_uuid)
 
-            associacao_periodo_inicial_menor = Associacao.get_menor_periodo_inicial_legado_by_dre_uuid_and_recurso(dre_uuid, recurso)
-            periodo_inicial_dre_menor = PeriodoInicialAssociacao.get_periodo_inicial_by_dre_and_recurso(dre_uuid, recurso)
-
-            if associacao_periodo_inicial_menor and periodo_inicial_dre_menor:
-                menor_referencia = min(associacao_periodo_inicial_menor.periodo_inicial.referencia, periodo_inicial_dre_menor.periodo_inicial.referencia)
-            elif associacao_periodo_inicial_menor and periodo_inicial_dre_menor is None:
-                menor_referencia = associacao_periodo_inicial_menor.periodo_inicial.referencia
-            elif associacao_periodo_inicial_menor is None and periodo_inicial_dre_menor:
-                menor_referencia = periodo_inicial_dre_menor.periodo_inicial.referencia
-
-            if menor_referencia:
-                qs = Periodo.filter_by_periodo_referencia_gt(qs, menor_referencia)
-
+            if not periodo_corte:
+                qs = qs.none()
+            else:
+                qs = qs.filter(
+                    data_inicio_realizacao_despesas__gte=periodo_corte.data_inicio_realizacao_despesas
+                )
 
         return qs.order_by('-referencia')
+
+    def get_periodo_corte_por_dre(self, dre_uuid):
+        recurso = getattr(self.request, 'recurso', None)
+        if not recurso:
+            return None
+
+        periodo_inicial_assoc = (
+            PeriodoInicialAssociacao.objects
+            .filter(
+                associacao__unidade__dre__uuid=dre_uuid,
+                recurso=recurso,
+            )
+            .select_related('periodo_inicial')
+            .order_by('periodo_inicial__data_inicio_realizacao_despesas')
+            .first()
+        )
+
+        if periodo_inicial_assoc and periodo_inicial_assoc.periodo_inicial:
+            return periodo_inicial_assoc.periodo_inicial.proximo_periodo
+
+        if recurso.legado:
+            associacao_legado = (
+                Associacao.objects
+                .filter(
+                    unidade__dre__uuid=dre_uuid,
+                    periodo_inicial__isnull=False,
+                )
+                .select_related('periodo_inicial')
+                .order_by('periodo_inicial__data_inicio_realizacao_despesas')
+                .first()
+            )
+
+            if associacao_legado and associacao_legado.periodo_inicial:
+                return associacao_legado.periodo_inicial.proximo_periodo
+
+        return None
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
