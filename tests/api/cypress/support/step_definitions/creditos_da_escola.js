@@ -113,6 +113,7 @@ Dado('cadastro crédito da escola sem preencher os dados', () => {
 
 Entao('sistema não permite salvar créditos da UE', () => {
   cy.validar_campos_cadastrar_creditos_da_escola_ue()
+<<<<<<< HEAD
 })
 
 Dado('cadastro a {string} como crédito da escola', () => {
@@ -120,4 +121,6 @@ Dado('cadastro a {string} como crédito da escola', () => {
 })
 
 Entao('sistema insere a {string} nos créditos da UE', () => {
+=======
+>>>>>>> 0faf44dfc85aaa809de68c17c46ea139175091d3
 })

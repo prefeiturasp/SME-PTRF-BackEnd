@@ -236,7 +236,11 @@ Cypress.Commands.add('validar_total_filtrado_repasse_creditos_ue', () => {
 })
 
 Cypress.Commands.add('acionar_mais_filtros_creditos_da_escola', () => {
+<<<<<<< HEAD
   cy.get(creditos.mais_filtros(), { timeout: 10000 })
+=======
+  cy.get(creditos.mais_filtros(), { timeout: 3000 })
+>>>>>>> 0faf44dfc85aaa809de68c17c46ea139175091d3
     .should('be.visible')
     .click()
 })
@@ -556,7 +560,11 @@ Cypress.Commands.add('validar_campos_cadastrar_creditos_da_escola_ue', () => {
     .should('be.visible')
     .click()
 
+<<<<<<< HEAD
     cy.get(creditos.btn_salvar_credito(), { timeout: 3000 })
+=======
+    cy.get(creditos.btn_salvar_credito(), { timeout: 10000 })
+>>>>>>> 0faf44dfc85aaa809de68c17c46ea139175091d3
     .should('be.visible')
     .click()
 
@@ -637,6 +645,7 @@ Cypress.Commands.add('cadastrar_creditos_da_escola_ue', (campo) => {
       .click({ force: true })
   }
 
+<<<<<<< HEAD
   function processarFluxoRepasse() {
     cy.get('body', { timeout: 10000 }).then(($body) => {
       const textoTela = $body.text()
@@ -689,6 +698,8 @@ Cypress.Commands.add('cadastrar_creditos_da_escola_ue', (campo) => {
     })
   }
 
+=======
+>>>>>>> 0faf44dfc85aaa809de68c17c46ea139175091d3
   cy.get(creditos.btn_cadastrar_credito(), { timeout: 10000 })
     .should('be.visible')
     .click()
@@ -735,12 +746,27 @@ Cypress.Commands.add('cadastrar_creditos_da_escola_ue', (campo) => {
       break
 
     case 'repasse':
+<<<<<<< HEAD
       processarFluxoRepasse()
+=======
+      cy.get(creditos.btn_selecionar_repasse(), { timeout: 10000 })
+        .should('be.visible')
+        .click({ force: true })
+
+      cy.get(creditos.btn_salvar_credito(), { timeout: 5000 })
+        .should('be.visible')
+        .click({ force: true })
+
+      cy.get(creditos.btn_gravar_repasse(), { timeout: 10000 })
+        .should('be.visible')
+        .click({ force: true })
+>>>>>>> 0faf44dfc85aaa809de68c17c46ea139175091d3
       break
 
     default:
       throw new Error(`Tipo de crédito não tratado no comando: ${campo}`)
   }
+<<<<<<< HEAD
 })
 
 Cypress.Commands.add('cadastrar_devolucao_creditos_da_escola_ue', () => {
@@ -859,4 +885,6 @@ Cypress.Commands.add('cadastrar_devolucao_creditos_da_escola_ue', () => {
     .should('be.visible')
     .should('not.be.disabled')
     .click({ force: true })
+=======
+>>>>>>> 0faf44dfc85aaa809de68c17c46ea139175091d3
 })
