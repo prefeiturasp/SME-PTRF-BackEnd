@@ -597,29 +597,6 @@ class Associacao(ModeloIdNome):
 
         return queryset.filter(filtro_recurso).distinct()
 
-    @classmethod
-    def get_by_dre_uuid(cls, dre_uuid, queryset = None):
-        obj = cls.objects if queryset is None else queryset
-
-        return obj.filter(unidade__dre__uuid=dre_uuid)
-
-    @classmethod
-    def order_by_referencia(cls, queryset):
-        return queryset.order_by('periodo_inicial__referencia')
-
-    @classmethod
-    def get_menor_periodo_inicial_legado_by_dre_uuid_and_recurso(cls, dre_uuid, recurso):
-        queryset = None
-
-        if recurso.legado:
-            queryset = cls.ativas
-
-            queryset = cls.get_by_dre_uuid(dre_uuid, queryset)
-            queryset = queryset.filter(periodo_inicial__recurso=recurso)
-            queryset = cls.order_by_referencia(queryset)
-
-        return queryset.first() if queryset is not None and queryset.exists() else None
-
 def tag_informacao(tipo_de_tag, hint):
     return {
         'tag_id': tipo_de_tag['id'],
