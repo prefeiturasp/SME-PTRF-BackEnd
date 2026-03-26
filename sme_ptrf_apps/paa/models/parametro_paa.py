@@ -26,6 +26,9 @@ class ParametroPaa(SingletonModel, ModeloBase):
 
     conclusao_do_paa_ue_2 = RichTextField(null=True, verbose_name='Conclusão do PAA 2', blank=True)
 
+    texto_levantamento_prioridades = RichTextField(null=True, verbose_name='Texto do levantamento de prioridades',
+                                                   blank=True)
+
     class Meta:
         verbose_name = 'Parâmetro do PAA'
         verbose_name_plural = 'Parâmetros do PAA'
