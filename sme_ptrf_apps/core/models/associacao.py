@@ -597,7 +597,6 @@ class Associacao(ModeloIdNome):
 
         return queryset.filter(filtro_recurso).distinct()
 
-
 def tag_informacao(tipo_de_tag, hint):
     return {
         'tag_id': tipo_de_tag['id'],
