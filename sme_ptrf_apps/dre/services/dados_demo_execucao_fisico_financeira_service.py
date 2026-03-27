@@ -567,14 +567,8 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
 
     eh_relatorio_consolidado_publicacoes_parciais = verifica_se_eh_relatorio_publicacoes_parciais(dre, periodo)
 
-    # Implementa o método filter_by_recurso
-    associacoes_ativas_por_recurso = Associacao.get_associacoes_ativas_by_dre_and_recurso(
-        dre=dre,
-        recurso=periodo.recurso
-    )
-
     execucao_fisica = {
-        "ues_da_dre": associacoes_ativas_por_recurso.count(),
+        "ues_da_dre": quantidade_associacoes_ativas,
         "ues_com_associacao": quantidade_associacoes_ativas,
         "associacoes_regulares": quantidade_regular,
         "aprovada": quantidade_aprovada,
