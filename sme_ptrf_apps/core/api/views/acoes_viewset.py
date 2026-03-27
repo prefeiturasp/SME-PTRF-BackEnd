@@ -65,6 +65,15 @@ class AcoesViewSet(mixins.ListModelMixin,
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
+        responses={200: AcaoSerializer(many=True)},
+        summary='Retorna as ações cujo recurso é marcado como legado.',
+    )
+    @action(detail=False, methods=['get'], url_path='acoes-recurso-legado')
+    def acoes_ptrf(self, request):
+        qs = Acao.objects.filter(recurso__legado=True).order_by('nome')
+        return Response(AcaoSerializer(qs, many=True).data, status=status.HTTP_200_OK)
+
+    @extend_schema(
         parameters=[
             OpenApiParameter(name='filtro_informacoes', description='Filtrar por informações. Separado por vírgula',
                              required=False, type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),

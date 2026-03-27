@@ -44,4 +44,6 @@ class DocumentoPaaService:
 
     def registrar_historico_acoes(self):
         from sme_ptrf_apps.paa.services import PaaService
-        PaaService.registra_historico_acoes(self.paa)
+        if self.versao == DocumentoPaa.VersaoChoices.FINAL:
+            # Registrar as Ações somente na geração final, considerando que, em elaboracao, ainda pode have remoção
+            PaaService.registra_historico_acoes(self.paa)
