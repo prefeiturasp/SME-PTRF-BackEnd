@@ -345,6 +345,9 @@ class AssociacoesViewSet(ModelViewSet):
 
         periodo_uuid = request.query_params.get('periodo_uuid')
 
+        # Parâmetro opcional para exibir todas as contas da associação, independente do recurso.
+        get_all_contas = request.query_params.get('all')
+
         if periodo_uuid:
             try:
                 periodo = Periodo.objects.get(uuid=periodo_uuid)
@@ -354,7 +357,7 @@ class AssociacoesViewSet(ModelViewSet):
                     'mensagem': f"Não foi encontrado o objeto periodo para o uuid {periodo_uuid}"
                 }
                 return Response(erro, status=status.HTTP_404_NOT_FOUND)
-
+            
             contas = ContaAssociacao.objects.filter(
                 Q(status=ContaAssociacao.STATUS_ATIVA) |
                 (Q(status=ContaAssociacao.STATUS_INATIVA) &
@@ -373,7 +376,8 @@ class AssociacoesViewSet(ModelViewSet):
             contas = ContaAssociacao.ativas_com_solicitacao_em_aberto.filter(
                 associacao=associacao, data_inicio__isnull=False).all()
 
-            contas = ContaAssociacao.filter_by_recurso(contas, self.request.recurso)
+            if not get_all_contas:
+                contas = ContaAssociacao.filter_by_recurso(contas, self.request.recurso)
 
         contas_data = ContaAssociacaoDadosSerializer(contas, many=True).data
 
