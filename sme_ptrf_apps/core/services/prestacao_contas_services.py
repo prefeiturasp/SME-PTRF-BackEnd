@@ -1252,6 +1252,34 @@ def __atualiza_analise_lancamento_para_acerto(analise_lancamento):
     return analise_lancamento
 
 
+def __valida_tipos_acerto_para_despesa_periodo_anterior(analise_prestacao, lancamento, solicitacoes_acerto):
+    """
+    Despesas com data anterior ao período da PC só podem receber acertos de conciliação ou desconciliação
+    (regra alinhada a TipoAcertoLancamento.agrupado_por_categoria(aplicavel_despesas_periodos_anteriores=True)).
+    """
+    if lancamento.get('tipo_lancamento') != 'GASTO' or not solicitacoes_acerto:
+        return
+    periodo = analise_prestacao.prestacao_conta.periodo
+    if not periodo or not periodo.data_inicio_realizacao_despesas:
+        return
+    despesa = Despesa.by_uuid(lancamento['lancamento_uuid'])
+    if despesa.data_transacao >= periodo.data_inicio_realizacao_despesas:
+        return
+    permitidas = {
+        TipoAcertoLancamento.CATEGORIA_CONCILIACAO_LANCAMENTO,
+        TipoAcertoLancamento.CATEGORIA_DESCONCILIACAO_LANCAMENTO,
+    }
+    for solicitacao in solicitacoes_acerto:
+        if solicitacao.get('uuid'):
+            continue
+        tipo_acerto = TipoAcertoLancamento.objects.get(uuid=solicitacao['tipo_acerto'])
+        if tipo_acerto.categoria not in permitidas:
+            raise ValidationError(
+                'Para despesas de períodos anteriores, só são permitidos acertos de conciliação ou '
+                'desconciliação do lançamento. O tipo de acerto solicitado não se aplica a essa situação.'
+            )
+
+
 @transaction.atomic
 def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes_acerto):
     atualizacao_em_lote = len(lancamentos) > 1
@@ -1276,6 +1304,10 @@ def solicita_acertos_de_lancamentos(analise_prestacao, lancamentos, solicitacoes
             lancamento_tipo = lancamento.get('tipo_lancamento', 'tipo não informado')
             raise Exception(
                 f"Análise de lançamento não encontrada para o lançamento {lancamento_uuid} (tipo: {lancamento_tipo})")
+
+        __valida_tipos_acerto_para_despesa_periodo_anterior(
+            analise_prestacao, lancamento, solicitacoes_acerto
+        )
 
         __analisa_solicitacoes_acerto(
             solicitacoes_acerto=solicitacoes_acerto,
