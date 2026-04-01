@@ -6,8 +6,11 @@ from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 from rest_framework.permissions import IsAuthenticated
 from ...models import Composicao
 from ..serializers.composicao_serializer import ComposicaoSerializer
+from drf_spectacular.utils import extend_schema_view
+from .docs.composicoes_docs import DOCS
 
 
+@extend_schema_view(**DOCS)
 class ComposicoesViewSet(
     WaffleFlagMixin,
     mixins.ListModelMixin,
@@ -20,6 +23,3 @@ class ComposicoesViewSet(
     queryset = Composicao.objects.all()
     serializer_class = ComposicaoSerializer
     pagination_class = CustomPagination
-
-
-

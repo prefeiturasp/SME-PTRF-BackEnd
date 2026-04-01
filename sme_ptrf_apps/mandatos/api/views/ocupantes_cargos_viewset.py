@@ -9,11 +9,14 @@ from rest_framework.permissions import IsAuthenticated
 from sme_ptrf_apps.users.services import SmeIntegracaoService, SmeIntegracaoException
 from ...models import OcupanteCargo
 from ..serializers import OcupanteCargoSerializer
+from drf_spectacular.utils import extend_schema_view
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from requests import ConnectTimeout, ReadTimeout
+from .docs.ocupantes_cargos_docs import DOCS
 
 
+@extend_schema_view(**DOCS)
 class OcupantesCargosViewSet(
     WaffleFlagMixin,
     mixins.ListModelMixin,
@@ -32,7 +35,6 @@ class OcupantesCargosViewSet(
     def consulta_codigo_identificacao_no_smeintegracao(self, request):
         rf = self.request.query_params.get('rf')
         codigo_eol = self.request.query_params.get('codigo-eol')
-
         if not rf and not codigo_eol:
             erro = {
                 'erro': 'parametros_requeridos',
@@ -56,7 +58,7 @@ class OcupantesCargosViewSet(
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=['get'], url_path='cargos-do-rf',
-                permission_classes=[IsAuthenticated & PermissaoApiUe])
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
     def get_cargos_do_rf_no_smeintegracao(self, request):
         rf = self.request.query_params.get('rf')
 
