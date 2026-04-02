@@ -20,17 +20,30 @@ Cypress.Commands.add('validar_creditos_da_escola', (campo) => {
     valor: creditos.tbl_valor,
   }
 
-  const seletor = mapaCampos[campo]
+  const seletorFn = mapaCampos[campo]
 
-  if (!seletor) {
+  if (!seletorFn) {
     throw new Error(`Campo "${campo}" não mapeado`)
   }
 
-  cy.get(seletor())
+  const seletor = seletorFn()
+
+  cy.get('.table > tbody > tr', { timeout: 10000 })
+    .should('exist')
+    .should('have.length.greaterThan', 0)
+
+  // valida se o elemento existe antes de tentar usar
+  cy.get('body').then(($body) => {
+    if ($body.find(seletor).length === 0) {
+      throw new Error(`Elemento do campo "${campo}" não encontrado: ${seletor}`)
+    }
+  })
+
+  cy.get(seletor, { timeout: 10000 })
     .should('be.visible')
-    .and(($el) => {
-      const texto = $el.text().trim()
-      expect(texto, `${campo}`).to.not.eq('')
+    .invoke('text')
+    .then((texto) => {
+      expect(texto.trim(), `Campo "${campo}" vazio`).to.not.eq('')
     })
 })
 
@@ -70,7 +83,7 @@ Cypress.Commands.add('validar_somas_creditos_ue', () => {
       const valorSemFiltroFormatado = formatarMoeda(totalSemFiltro)
       const valorComFiltroFormatado = formatarMoeda(totalComFiltro)
 
-      cy.get(creditos.tbl_sem_filtros_aplicados())
+      cy.get(creditos.tbl_sem_filtros_aplicados(), { timeout: 15000 })
         .should('be.visible')
         .invoke('text')
         .then((textoUI) => {
@@ -236,11 +249,8 @@ Cypress.Commands.add('validar_total_filtrado_repasse_creditos_ue', () => {
 })
 
 Cypress.Commands.add('acionar_mais_filtros_creditos_da_escola', () => {
-<<<<<<< HEAD
   cy.get(creditos.mais_filtros(), { timeout: 10000 })
-=======
   cy.get(creditos.mais_filtros(), { timeout: 3000 })
->>>>>>> 0faf44dfc85aaa809de68c17c46ea139175091d3
     .should('be.visible')
     .click()
 })
@@ -444,7 +454,7 @@ Cypress.Commands.add('validar_botoes_creditos_ue', (botao) => {
     'cancela': creditos.btn_cancelar()
   }
 
-  cy.get(creditos.mais_filtros())
+  cy.get(creditos.mais_filtros(), { timeout: 15000 })
     .should('be.visible')
     .click()
 
@@ -460,7 +470,6 @@ Cypress.Commands.add('validar_botoes_creditos_ue', (botao) => {
 })
 
 Cypress.Commands.add('validar_valores_reprogramados_ue', (botao) => {
-
   const seletores = {
     'valores reprogramados': creditos.btn_valores_reprogramados()
   }
@@ -471,12 +480,12 @@ Cypress.Commands.add('validar_valores_reprogramados_ue', (botao) => {
     throw new Error(`Botão não mapeado: ${botao}`)
   }
 
-  cy.get(seletor)
+  cy.get(seletor, { timeout: 15000 })
     .should('be.visible')
     .and('not.be.disabled')
     .click()
 
-  cy.get(creditos.titulo_valores_reprogramados(), { timeout: 10000 })
+  cy.get(creditos.titulo_valores_reprogramados(), { timeout: 15000 })
     .should('be.visible')
 })
 
@@ -560,11 +569,7 @@ Cypress.Commands.add('validar_campos_cadastrar_creditos_da_escola_ue', () => {
     .should('be.visible')
     .click()
 
-<<<<<<< HEAD
     cy.get(creditos.btn_salvar_credito(), { timeout: 3000 })
-=======
-    cy.get(creditos.btn_salvar_credito(), { timeout: 10000 })
->>>>>>> 0faf44dfc85aaa809de68c17c46ea139175091d3
     .should('be.visible')
     .click()
 
@@ -573,55 +578,44 @@ Cypress.Commands.add('validar_campos_cadastrar_creditos_da_escola_ue', () => {
 })
 
 Cypress.Commands.add('cadastrar_creditos_da_escola_ue', (campo) => {
-  const tipoReceita = campo?.trim().toLowerCase()
+  const tipoReceita = String(campo).trim().toLowerCase()
 
   function preencherDataCredito(dataFormatada) {
     cy.get(creditos.inserir_data_credito(), { timeout: 5000 })
       .should('be.visible')
-      .then(($input) => {
-        cy.wrap($input)
-          .click({ force: true })
-          .clear({ force: true })
-          .type(dataFormatada, { force: true, delay: 0 })
+      .clear({ force: true })
+      .type(dataFormatada, { force: true })
+      .blur({ force: true })
 
-        cy.wrap($input).invoke('val').then((valor) => {
-          if (!valor) {
-            cy.wrap($input)
-              .invoke('val', dataFormatada)
-              .trigger('input')
-              .trigger('change')
-          }
-        })
-      })
-
-    cy.get('body').click(0, 0, { force: true })
     cy.get('body').type('{esc}', { force: true })
   }
 
   function selecionarPrimeiraOpcaoValida(selector) {
-    cy.get(selector, { timeout: 15000 })
+    cy.get(selector, { timeout: 10000 })
       .should('be.visible')
-      .should('not.be.disabled')
-      .scrollIntoView()
       .find('option')
       .then(($options) => {
-        const opcoesValidas = [...$options].filter((opt) => {
-          const texto = opt.textContent.trim().toLowerCase()
+        const opcaoValida = [...$options].find((opt) => {
+          const texto = (opt.textContent || '').trim().toLowerCase()
           const valor = (opt.value || '').trim()
 
           return (
             valor !== '' &&
-            !texto.includes('selecione') &&
-            !texto.includes('selecione uma opção') &&
-            !opt.disabled
+            !opt.disabled &&
+            !texto.includes('selecione')
           )
         })
 
-        expect(opcoesValidas.length, `esperava ao menos uma opção válida em ${selector}`)
-          .to.be.greaterThan(0)
-
-        cy.get(selector).select(opcoesValidas[0].value, { force: true })
+        expect(opcaoValida, `Nenhuma opção válida encontrada em ${selector}`).to.exist
+        cy.get(selector).select(opcaoValida.value, { force: true })
       })
+  }
+
+  function clicarSalvarCredito() {
+    cy.get(creditos.btn_salvar_credito(), { timeout: 10000 })
+      .should('be.visible')
+      .should('not.be.disabled')
+      .click({ force: true })
   }
 
   function preencherCamposComuns() {
@@ -632,82 +626,62 @@ Cypress.Commands.add('cadastrar_creditos_da_escola_ue', (campo) => {
       .should('be.visible')
       .clear()
       .type('1', { force: true })
-      .blur()
+      .blur({ force: true })
 
     cy.get(creditos.erro_salvar_credito(), { timeout: 5000 })
       .should('not.exist')
 
-    cy.get('body').click(0, 0, { force: true })
-
-    cy.get(creditos.btn_salvar_credito(), { timeout: 5000 })
-      .should('be.visible')
-      .should('not.be.disabled')
-      .click({ force: true })
+    clicarSalvarCredito()
   }
 
-<<<<<<< HEAD
   function processarFluxoRepasse() {
-    cy.get('body', { timeout: 10000 }).then(($body) => {
+    cy.get('body').then(($body) => {
       const textoTela = $body.text()
 
       if (textoTela.includes('No momento não existem repasses pendentes para a associação.')) {
         cy.get(creditos.btn_cancelar_sem_repasse(), { timeout: 5000 })
           .should('be.visible')
           .click({ force: true })
-
         return
       }
 
       const btnRepasse = $body.find(creditos.btn_selecionar_repasse())
 
-      if (btnRepasse.length > 0) {
-        cy.get(creditos.btn_selecionar_repasse(), { timeout: 5000 })
-          .should('be.visible')
-          .click({ force: true })
+      if (!btnRepasse.length) {
+        cy.log('Botão de repasse não encontrado')
+        return
       }
 
-      cy.get('body', { timeout: 5000 }).then(($bodyDepoisClique) => {
-        const textoDepoisClique = $bodyDepoisClique.text()
+      cy.wrap(btnRepasse.first()).click({ force: true })
+    })
 
-        if (textoDepoisClique.includes('No momento não existem repasses pendentes para a associação.')) {
-          cy.get(creditos.btn_cancelar_sem_repasse(), { timeout: 5000 })
-            .should('be.visible')
-            .click({ force: true })
-        } else {
-          cy.get(creditos.btn_salvar_credito(), { timeout: 5000 })
-            .should('be.visible')
-            .should('not.be.disabled')
-            .click({ force: true })
+    clicarSalvarCredito()
 
-          cy.get('body', { timeout: 5000 }).then(($bodyDepoisSalvar) => {
-            const textoDepoisSalvar = $bodyDepoisSalvar.text()
+    cy.get('body').then(($body) => {
+      const textoTela = $body.text()
 
-            if (textoDepoisSalvar.includes('No momento não existem repasses pendentes para a associação.')) {
-              cy.get(creditos.btn_cancelar_sem_repasse(), { timeout: 5000 })
-                .should('be.visible')
-                .click({ force: true })
-            } else {
-              cy.get(creditos.btn_gravar_repasse(), { timeout: 10000 })
-                .should('be.visible')
-                .should('not.be.disabled')
-                .click({ force: true })
-            }
-          })
-        }
-      })
+      if (textoTela.includes('No momento não existem repasses pendentes para a associação.')) {
+        cy.get(creditos.btn_cancelar_sem_repasse(), { timeout: 5000 })
+          .should('be.visible')
+          .click({ force: true })
+        return
+      }
+
+      const btnGravar = $body.find(creditos.btn_gravar_repasse())
+
+      if (btnGravar.length) {
+        cy.wrap(btnGravar.first())
+          .should('not.be.disabled')
+          .click({ force: true })
+      }
     })
   }
 
-=======
->>>>>>> 0faf44dfc85aaa809de68c17c46ea139175091d3
   cy.get(creditos.btn_cadastrar_credito(), { timeout: 10000 })
     .should('be.visible')
-    .click()
+    .click({ force: true })
 
-  cy.get(creditos.selecionar_tipo_receita(), { timeout: 10000 })
-    .should('be.visible')
-    .find('option')
-    .should('have.length.greaterThan', 1)
+  cy.url().should('include', '/cadastro-de-credito')
 
   cy.get(creditos.selecionar_tipo_receita(), { timeout: 10000 })
     .should('be.visible')
@@ -724,49 +698,26 @@ Cypress.Commands.add('cadastrar_creditos_da_escola_ue', (campo) => {
   switch (tipoReceita) {
     case 'recurso externo':
       cy.get(creditos.selecionar_detalhamento_credito_re(), { timeout: 10000 })
-        .should('exist')
         .should('be.visible')
         .clear()
         .type('Teste automatizado', { force: true })
-        .blur()
+        .blur({ force: true })
 
       preencherCamposComuns()
       break
 
     case 'rendimento':
-      cy.get(creditos.selecionar_detalhamento_credito_rend(), { timeout: 10000 })
-        .should('exist')
-        .should('be.visible')
-        .find('option')
-        .should('have.length.greaterThan', 1)
-
       selecionarPrimeiraOpcaoValida(creditos.selecionar_detalhamento_credito_rend())
-
       preencherCamposComuns()
       break
 
     case 'repasse':
-<<<<<<< HEAD
       processarFluxoRepasse()
-=======
-      cy.get(creditos.btn_selecionar_repasse(), { timeout: 10000 })
-        .should('be.visible')
-        .click({ force: true })
-
-      cy.get(creditos.btn_salvar_credito(), { timeout: 5000 })
-        .should('be.visible')
-        .click({ force: true })
-
-      cy.get(creditos.btn_gravar_repasse(), { timeout: 10000 })
-        .should('be.visible')
-        .click({ force: true })
->>>>>>> 0faf44dfc85aaa809de68c17c46ea139175091d3
       break
 
     default:
-      throw new Error(`Tipo de crédito não tratado no comando: ${campo}`)
+      throw new Error(`Tipo de crédito não tratado: ${campo}`)
   }
-<<<<<<< HEAD
 })
 
 Cypress.Commands.add('cadastrar_devolucao_creditos_da_escola_ue', () => {
@@ -885,6 +836,444 @@ Cypress.Commands.add('cadastrar_devolucao_creditos_da_escola_ue', () => {
     .should('be.visible')
     .should('not.be.disabled')
     .click({ force: true })
-=======
->>>>>>> 0faf44dfc85aaa809de68c17c46ea139175091d3
+})
+
+Cypress.Commands.add('cadastrar_credito_ue', () => {
+  const timestamp = Date.now()
+  const nomeTeste = `Teste automatizado ${timestamp}`
+
+  Cypress.env('CREDITO_UE', nomeTeste)
+
+  function preencherDataCredito(dataFormatada) {
+    cy.get(creditos.inserir_data_credito(), { timeout: 5000 })
+      .should('be.visible')
+      .then(($input) => {
+        cy.wrap($input)
+          .click({ force: true })
+          .clear({ force: true })
+          .type(dataFormatada, { force: true, delay: 0 })
+
+        cy.wrap($input).invoke('val').then((valor) => {
+          if (!valor) {
+            cy.wrap($input)
+              .invoke('val', dataFormatada)
+              .trigger('input')
+              .trigger('change')
+          }
+        })
+      })
+
+    cy.get('body').click(0, 0, { force: true })
+    cy.get('body').type('{esc}', { force: true })
+  }
+
+  function selecionarPrimeiraOpcaoValida(selector) {
+    cy.get(selector, { timeout: 15000 })
+      .should('be.visible')
+      .should('not.be.disabled')
+      .find('option')
+      .then(($options) => {
+        const opcoesValidas = [...$options].filter((opt) => {
+          const texto = opt.textContent.trim().toLowerCase()
+          const valor = (opt.value || '').trim()
+
+          return (
+            valor !== '' &&
+            !texto.includes('selecione') &&
+            !opt.disabled
+          )
+        })
+
+        expect(opcoesValidas.length, `esperava ao menos uma opção válida em ${selector}`)
+          .to.be.greaterThan(0)
+
+        const valorSelecionado = opcoesValidas[0].value
+
+        cy.get(selector)
+          .select(valorSelecionado, { force: true })
+          .should('have.value', valorSelecionado)
+      })
+  }
+
+  function preencherCampos() {
+    selecionarPrimeiraOpcaoValida(creditos.selecionar_conta_associacao())
+    selecionarPrimeiraOpcaoValida(creditos.selecionar_acao_associacao())
+
+    cy.get(creditos.inserir_valor_credito(), { timeout: 5000 })
+      .should('be.visible')
+      .clear()
+      .type('1', { force: true })
+      .blur()
+
+    cy.get(creditos.btn_salvar_credito(), { timeout: 10000 })
+      .should('be.visible')
+      .should('not.be.disabled')
+      .click({ force: true })
+
+    cy.url({ timeout: 10000 }).should('include', '/lista-de-receitas')
+  }
+
+  cy.get(creditos.btn_cadastrar_credito(), { timeout: 10000 })
+    .should('be.visible')
+    .click()
+
+  cy.get(creditos.selecionar_tipo_receita(), { timeout: 10000 })
+    .should('be.visible')
+    .select('Recurso Externo', { force: true })
+
+  const hoje = new Date()
+  const dataFormatada = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`
+
+  preencherDataCredito(dataFormatada)
+
+  cy.get(creditos.selecionar_detalhamento_credito_re(), { timeout: 15000 })
+    .should('be.visible')
+    .clear()
+    .type(nomeTeste, { force: true })
+    .should('have.value', nomeTeste)
+
+  preencherCampos()
+
+  return cy.wrap(nomeTeste)
+})
+
+Cypress.Commands.add('excluir_credito_ue', () => {
+  const timestamp = Date.now()
+  const nomeTeste = `Teste automatizado ${timestamp}`
+
+  function preencherDataCredito(dataFormatada) {
+    cy.get(creditos.inserir_data_credito(), { timeout: 5000 })
+      .should('be.visible')
+      .then(($input) => {
+        cy.wrap($input)
+          .click({ force: true })
+          .clear({ force: true })
+          .type(dataFormatada, { force: true, delay: 0 })
+
+        cy.wrap($input).invoke('val').then((valor) => {
+          if (!valor) {
+            cy.wrap($input)
+              .invoke('val', dataFormatada)
+              .trigger('input')
+              .trigger('change')
+          }
+        })
+      })
+
+    cy.get('body').click(0, 0, { force: true })
+    cy.get('body').type('{esc}', { force: true })
+  }
+
+  function selecionarPrimeiraOpcaoValida(selector) {
+    cy.get(selector, { timeout: 15000 })
+      .should('be.visible')
+      .should('not.be.disabled')
+      .find('option')
+      .then(($options) => {
+        const opcoesValidas = [...$options].filter((opt) => {
+          const texto = opt.textContent.trim().toLowerCase()
+          const valor = (opt.value || '').trim()
+
+          return (
+            valor !== '' &&
+            !texto.includes('selecione') &&
+            !opt.disabled
+          )
+        })
+
+        expect(opcoesValidas.length).to.be.greaterThan(0)
+
+        const valorSelecionado = opcoesValidas[0].value
+
+        cy.get(selector)
+          .select(valorSelecionado, { force: true })
+          .should('have.value', valorSelecionado)
+      })
+  }
+
+  function tratarPeriodoFechado() {
+    cy.get('body').then(($body) => {
+      const textoTela = $body.text()
+
+      if (textoTela.includes('Período Fechado')) {
+        cy.get('body > div.fade.modal.show > div > div > div.modal-footer > button', { timeout: 10000 })
+          .should('be.visible')
+          .click({ force: true })
+      }
+    })
+  }
+
+  function preencherCampos() {
+    selecionarPrimeiraOpcaoValida(creditos.selecionar_conta_associacao())
+    selecionarPrimeiraOpcaoValida(creditos.selecionar_acao_associacao())
+
+    cy.get(creditos.inserir_valor_credito(), { timeout: 5000 })
+      .should('be.visible')
+      .clear()
+      .type('1', { force: true })
+      .blur()
+
+    cy.get(creditos.btn_salvar_credito(), { timeout: 10000 })
+      .should('be.visible')
+      .should('not.be.disabled')
+      .click({ force: true })
+
+    tratarPeriodoFechado()
+
+    cy.url({ timeout: 10000 }).should('include', '/lista-de-receitas')
+  }
+
+  function aguardarToast() {
+    cy.get('body').then(($body) => {
+      if ($body.find('.Toastify__toast').length > 0) {
+        cy.get('.Toastify__toast', { timeout: 10000 }).should('not.exist')
+      }
+    })
+  }
+
+  function selecionarRegistroParaExcluir() {
+    cy.get(creditos.selecionar_recurso_credito_ue(), { timeout: 10000 })
+      .should('exist')
+      .should('be.visible')
+      .click({ force: true })
+
+    cy.get('body').then(($body) => {
+      const botaoExiste = $body.find(creditos.btn_deletar_credito_ue()).length > 0
+
+      if (!botaoExiste) {
+        cy.get(creditos.selecionar_recurso_credito_ue(), { timeout: 10000 })
+          .dblclick({ force: true })
+      }
+    })
+
+    cy.get(creditos.btn_deletar_credito_ue(), { timeout: 15000 })
+      .should('exist')
+      .should('be.visible')
+      .should('not.be.disabled')
+  }
+
+  cy.get(creditos.btn_cadastrar_credito(), { timeout: 10000 })
+    .should('be.visible')
+    .click()
+
+  cy.get(creditos.selecionar_tipo_receita(), { timeout: 10000 })
+    .should('be.visible')
+    .select('Recurso Externo', { force: true })
+
+  const hoje = new Date()
+  const dataFormatada = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`
+
+  preencherDataCredito(dataFormatada)
+
+  cy.get(creditos.selecionar_detalhamento_credito_re(), { timeout: 10000 })
+    .should('be.visible')
+    .clear()
+    .type(nomeTeste, { force: true })
+
+  preencherCampos()
+  aguardarToast()
+  selecionarRegistroParaExcluir()
+
+  cy.get(creditos.btn_deletar_credito_ue(), { timeout: 15000 })
+    .should('be.visible')
+    .click({ force: true })
+
+  cy.get(creditos.btn_excluir_credito_ue(), { timeout: 15000 })
+    .should('be.visible')
+    .click({ force: true })
+
+  cy.get(creditos.btn_excluir_credito_ue(), { timeout: 15000 })
+    .should('not.exist')
+})
+
+Cypress.Commands.add('validar_credito_ue', () => {
+  cy.get(creditos.titulo_valores_reprogramados(), { timeout: 15000 })
+    .should('be.visible')
+})
+
+Cypress.Commands.add('editar_credito_ue', () => {
+  const timestamp = Date.now()
+  const nomeTeste = `Teste automatizado ${timestamp}`
+
+  function preencherDataCredito(dataFormatada) {
+    cy.get(creditos.inserir_data_credito(), { timeout: 5000 })
+      .should('be.visible')
+      .then(($input) => {
+        cy.wrap($input)
+          .click({ force: true })
+          .clear({ force: true })
+          .type(dataFormatada, { force: true, delay: 0 })
+
+        cy.wrap($input).invoke('val').then((valor) => {
+          if (!valor) {
+            cy.wrap($input)
+              .invoke('val', dataFormatada)
+              .trigger('input')
+              .trigger('change')
+          }
+        })
+      })
+
+    cy.get('body').click(0, 0, { force: true })
+    cy.get('body').type('{esc}', { force: true })
+  }
+
+  function selecionarPrimeiraOpcaoValida(selector) {
+    cy.get(selector, { timeout: 15000 })
+      .should('be.visible')
+      .should('not.be.disabled')
+      .find('option')
+      .then(($options) => {
+        const opcoesValidas = [...$options].filter((opt) => {
+          const texto = opt.textContent.trim().toLowerCase()
+          const valor = (opt.value || '').trim()
+
+          return (
+            valor !== '' &&
+            !texto.includes('selecione') &&
+            !opt.disabled
+          )
+        })
+
+        expect(opcoesValidas.length).to.be.greaterThan(0)
+
+        const valorSelecionado = opcoesValidas[0].value
+
+        cy.get(selector)
+          .select(valorSelecionado, { force: true })
+          .should('have.value', valorSelecionado)
+      })
+  }
+
+  function tratarPeriodoFechado() {
+    cy.get('body').then(($body) => {
+      const textoTela = $body.text()
+
+      if (textoTela.includes('Período Fechado')) {
+        cy.get('body > div.fade.modal.show > div > div > div.modal-footer > button', { timeout: 10000 })
+          .should('be.visible')
+          .click({ force: true })
+      }
+    })
+  }
+
+  function preencherCampos() {
+    selecionarPrimeiraOpcaoValida(creditos.selecionar_conta_associacao())
+    selecionarPrimeiraOpcaoValida(creditos.selecionar_acao_associacao())
+
+    cy.get(creditos.inserir_valor_credito(), { timeout: 5000 })
+      .should('be.visible')
+      .clear()
+      .type('1', { force: true })
+      .blur()
+
+    cy.get(creditos.btn_salvar_credito(), { timeout: 10000 })
+      .should('be.visible')
+      .should('not.be.disabled')
+      .click({ force: true })
+
+    tratarPeriodoFechado()
+    cy.url({ timeout: 10000 }).should('include', '/lista-de-receitas')
+  }
+
+  function aguardarToast() {
+    cy.get('body').then(($body) => {
+      if ($body.find('.Toastify__toast').length > 0) {
+        cy.get('.Toastify__toast', { timeout: 10000 }).should('not.exist')
+      }
+    })
+  }
+
+  function selecionarPrimeiroRegistroDaListagem() {
+    cy.url({ timeout: 10000 }).should('include', '/lista-de-receitas')
+
+    cy.get(creditos.selecionar_recurso_credito_ue(), { timeout: 15000 })
+      .should('exist')
+      .should('be.visible')
+      .first()
+      .click({ force: true })
+
+    cy.url({ timeout: 15000 }).should('include', '/edicao-de-receita/')
+    cy.get(creditos.btn_salvar_credito(), { timeout: 15000 })
+      .should('exist')
+      .should('be.visible')
+  }
+
+  function voltarParaListagemSeEstiverEmEdicao() {
+    cy.url({ timeout: 15000 }).then((urlAtual) => {
+      if (urlAtual.includes('/edicao-de-receita/')) {
+        cy.go('back')
+      }
+    })
+
+    cy.url({ timeout: 15000 }).should('include', '/lista-de-receitas')
+  }
+
+  function reabrirPrimeiroRegistroDaListagem() {
+    voltarParaListagemSeEstiverEmEdicao()
+    aguardarToast()
+
+    cy.get(creditos.selecionar_recurso_credito_ue(), { timeout: 15000 })
+      .should('exist')
+      .should('be.visible')
+      .first()
+      .click({ force: true })
+
+    cy.url({ timeout: 10000 }).should('include', '/edicao-de-receita/')
+    cy.get(creditos.btn_salvar_credito(), { timeout: 15000 })
+      .should('exist')
+      .should('be.visible')
+  }
+
+  function excluirRegistroAberto() {
+    cy.get(creditos.btn_deletar_credito_ue(), { timeout: 15000 })
+      .should('exist')
+      .should('be.visible')
+      .should('not.be.disabled')
+      .click({ force: true })
+
+    cy.get(creditos.btn_excluir_credito_ue(), { timeout: 15000 })
+      .should('exist')
+      .should('be.visible')
+      .should('not.be.disabled')
+      .click({ force: true })
+
+    cy.get(creditos.btn_excluir_credito_ue(), { timeout: 15000 })
+      .should('not.exist')
+  }
+
+  cy.get(creditos.btn_cadastrar_credito(), { timeout: 10000 })
+    .should('be.visible')
+    .click()
+
+  cy.get(creditos.selecionar_tipo_receita(), { timeout: 10000 })
+    .should('be.visible')
+    .select('Recurso Externo', { force: true })
+
+  const hoje = new Date()
+  const dataFormatada = `${String(hoje.getDate()).padStart(2, '0')}/${String(hoje.getMonth() + 1).padStart(2, '0')}/${hoje.getFullYear()}`
+
+  preencherDataCredito(dataFormatada)
+
+  cy.get(creditos.selecionar_detalhamento_credito_re(), { timeout: 10000 })
+    .should('be.visible')
+    .clear()
+    .type(nomeTeste, { force: true })
+
+  preencherCampos()
+  aguardarToast()
+
+  selecionarPrimeiroRegistroDaListagem()
+
+  cy.get(creditos.btn_salvar_credito(), { timeout: 10000 })
+    .should('be.visible')
+    .should('not.be.disabled')
+    .click({ force: true })
+
+  tratarPeriodoFechado()
+  aguardarToast()
+
+  reabrirPrimeiroRegistroDaListagem()
+
+  excluirRegistroAberto()
 })

@@ -34,3 +34,6 @@ Funcionalidade: Cadastrar créditos da escola
     Exemplos:
       | visualizacao | campo             | caso                 |
       | web          | Devolução à conta | Cadastrar devolução  |
+      | web          | Rendimento        | Cadastrar rendimento |
+      | web          | Repasse           | Cadastrar repasse |
+
