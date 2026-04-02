@@ -1,10 +1,6 @@
 class Creditos_da_Escola_Localizadores {
 
-<<<<<<< HEAD
   // criação e consulta créditos da escola
-=======
-  // consulta créditos da escola
->>>>>>> 0faf44dfc85aaa809de68c17c46ea139175091d3
   menu_creditos_da_escola = () => '[data-cy="Créditos da escola"]'
   tbl_sem_filtros_aplicados = () => '.table > tbody > tr > :nth-child(1)'
   tbl_filtros_aplicados = () => '.table > tbody > tr > :nth-child(2)'
@@ -36,20 +32,22 @@ class Creditos_da_Escola_Localizadores {
   selecionar_acao_associacao = () => '#acao_associacao'
   selecionar_detalhamento_credito_re = () => '#detalhe_outros'
   selecionar_detalhamento_credito_rend = () => '#tipo_receita'
-<<<<<<< HEAD
   selecionar_periodo_referencia_credito = () => '#referencia_devolucao'
-=======
->>>>>>> 0faf44dfc85aaa809de68c17c46ea139175091d3
+
   inserir_valor_credito = () => '#valor'
   btn_salvar_credito = () => '.btn-success'
   erro_salvar_credito = () => '.span_erro'
   btn_selecionar_repasse = () => '[tabindex="0"] > :nth-child(5) > .btn-valores-repasses > span'
   btn_cancelar_selecione_repasse = () => '.modal-footer button'
   btn_gravar_repasse = () => '.modal-footer > .btn-success'
-<<<<<<< HEAD
   btn_cancelar_sem_repasse = () => '.modal-footer > .btn'
-=======
->>>>>>> 0faf44dfc85aaa809de68c17c46ea139175091d3
+
+  // excluir créditos da escola
+  selecionar_recurso_credito_ue = () => '[tabindex="0"] > :nth-child(1)'
+  btn_deletar_credito_ue = () => '.btn-danger'
+  btn_excluir_credito_ue = () => '.modal-footer > .btn-success'
+  btn_cancelar_excluir_credito_ue = () => '.modal-footer > .btn-danger'
+  btn_cancelar_excluir_credito_ue = () => '#receitaForm > .d-flex > :nth-child(2)'
 }
 
 export default Creditos_da_Escola_Localizadores
