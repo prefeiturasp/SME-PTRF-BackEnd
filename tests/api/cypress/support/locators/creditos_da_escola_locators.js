@@ -1,0 +1,53 @@
+class Creditos_da_Escola_Localizadores {
+
+  // criação e consulta créditos da escola
+  menu_creditos_da_escola = () => '[data-cy="Créditos da escola"]'
+  tbl_sem_filtros_aplicados = () => '.table > tbody > tr > :nth-child(1)'
+  tbl_filtros_aplicados = () => '.table > tbody > tr > :nth-child(2)'
+  tbl_linhas = () => 'table tbody tr'
+  tbl_tipo = () => 'table tbody tr td:nth-child(1)'
+  tbl_conta = () => 'table tbody tr td:nth-child(2)'
+  tbl_acao = () => 'table tbody tr td:nth-child(3)'
+  tbl_data = () => 'table tbody tr td:nth-child(4)'
+  tbl_valor = () => 'table tbody tr td:nth-child(5)'
+  filtrar_por = () => '.d-flex > #tipo_receita'
+  filtro = () => '.d-flex > #tipo_receita'
+  btn_filtrar = () => '.form-inline > .d-flex > .btn'
+  mais_filtros = () => '.col-md-2 > .btn'
+  detalhamento_credito = () => '#filtrar_por_termo'
+  filtrar_conta = () => '#conta_associacao'
+  acao = () => '#acao_associacao'
+  filtrar_periodo_de = () => '.pr-0 > .react-datepicker-wrapper > .react-datepicker__input-container > [data-qa]'
+  filtrar_periodo_ate = () => '.pl-0 > .react-datepicker-wrapper > .react-datepicker__input-container > [data-qa]'
+  btn_limpar_filtro = () => '.btn-outline-success.ml-2'
+  btn_cancelar = () => ':nth-child(1) > form > .d-flex > :nth-child(1)'
+  btn_valores_reprogramados = () => ':nth-child(4) > .mr-2'
+  titulo_valores_reprogramados = () => '.titulo-itens-painel'
+  tbl_total_cheque_ue = () => ':nth-child(2) > .col-12 > .tabela-valores-reprogramados > .tbody-total > tr > :nth-child(2) > .total-valor'
+  tbl_total_cheque_dre = () => ':nth-child(2) > .col-12 > .tabela-valores-reprogramados > .tbody-total > tr > :nth-child(3) > .total-valor'
+  btn_cadastrar_credito = () => '.col-md-5.mt-2 > :nth-child(1)'
+  selecionar_tipo_receita = () => '#tipo_receita'
+  inserir_data_credito = () => '[data-qa]'
+  selecionar_conta_associacao = () => '#conta_associacao'
+  selecionar_acao_associacao = () => '#acao_associacao'
+  selecionar_detalhamento_credito_re = () => '#detalhe_outros'
+  selecionar_detalhamento_credito_rend = () => '#tipo_receita'
+  selecionar_periodo_referencia_credito = () => '#referencia_devolucao'
+
+  inserir_valor_credito = () => '#valor'
+  btn_salvar_credito = () => '.btn-success'
+  erro_salvar_credito = () => '.span_erro'
+  btn_selecionar_repasse = () => '[tabindex="0"] > :nth-child(5) > .btn-valores-repasses > span'
+  btn_cancelar_selecione_repasse = () => '.modal-footer button'
+  btn_gravar_repasse = () => '.modal-footer > .btn-success'
+  btn_cancelar_sem_repasse = () => '.modal-footer > .btn'
+
+  // excluir créditos da escola
+  selecionar_recurso_credito_ue = () => '[tabindex="0"] > :nth-child(1)'
+  btn_deletar_credito_ue = () => '.btn-danger'
+  btn_excluir_credito_ue = () => '.modal-footer > .btn-success'
+  btn_cancelar_excluir_credito_ue = () => '.modal-footer > .btn-danger'
+  btn_cancelar_excluir_credito_ue = () => '#receitaForm > .d-flex > :nth-child(2)'
+}
+
+export default Creditos_da_Escola_Localizadores
