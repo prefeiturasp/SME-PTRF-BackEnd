@@ -102,7 +102,12 @@ class SmeIntegracaoService:
         try:
             response = requests.get(f'{settings.SME_INTEGRACAO_URL}/api/AutenticacaoSgp/{login}/dados', headers=cls.headers)
             if response.status_code == status.HTTP_200_OK:
-                return response.json()
+                response_parsed = response.json()
+                
+                if not response_parsed.get("nome"):
+                    return None
+                
+                return response_parsed
             else:
                 logger.info(f"Usuário {login} não encontrado no CoreSSO: {response}")
                 return None
