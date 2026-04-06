@@ -6,7 +6,7 @@ pytestmark = pytest.mark.django_db
 
 
 def test_api_tipos_custeio_list(jwt_authenticated_client_d, tipo_custeio_01, tipo_custeio_02):
-    response = jwt_authenticated_client_d.get(f'/api/tipos-custeio/', content_type='application/json')
+    response = jwt_authenticated_client_d.get('/api/tipos-custeio/', content_type='application/json')
     result = json.loads(response.content)
 
     resultado_esperado = [

@@ -1,4 +1,4 @@
-from rest_framework import status
+from rest_framework import status, serializers
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
@@ -58,27 +58,28 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
     @action(detail=False, methods=['get'], url_path='tabelas',
             permission_classes=[PermissaoApiUe])
     def tabelas(self, request, *args, **kwrgs):
-        from sme_ptrf_apps.paa.models.outros_recursos_periodo_paa import OutroRecursoPeriodoPaa
+        from sme_ptrf_apps.paa.services import AcoesPaaService
         from sme_ptrf_apps.paa.models.paa import Paa
         paa_uuid = request.query_params.get('paa__uuid')
 
         try:
-            paa = Paa.objects.get(uuid=paa_uuid)
-        except Exception:
-            paa = None
+            paa = Paa.by_uuid(paa_uuid)
+        except Paa.DoesNotExist:
+            raise serializers.ValidationError({"non_field_errors": "PAA não identificado."})
 
-        if paa:
-            outros_recursos = OutroRecursoPeriodoPaa.objects.disponiveis_para_paa(paa)
-            outros_recursos = [{"uuid": outro_recurso_periodo.outro_recurso.uuid, "nome": outro_recurso_periodo.outro_recurso.nome}
-                               for outro_recurso_periodo in outros_recursos]
-        else:
-            outros_recursos = None
+        outros_recursos = AcoesPaaService(paa).obter_outros_recursos_periodo()
+        outros_recursos = [
+            {
+                "uuid": outro_recurso_periodo.outro_recurso.uuid,
+                "nome": outro_recurso_periodo.outro_recurso.nome
+            } for outro_recurso_periodo in outros_recursos]
 
-        tabelas = dict(
-            prioridades=SimNaoChoices.to_dict(),
-            recursos=RecursoOpcoesEnum.to_dict(),
-            tipos_aplicacao=TipoAplicacaoOpcoesEnum.to_dict(),
-            outros_recursos=outros_recursos)
+        tabelas = {
+            'prioridades': SimNaoChoices.to_dict(),
+            'recursos': RecursoOpcoesEnum.to_dict(),
+            'tipos_aplicacao': TipoAplicacaoOpcoesEnum.to_dict(),
+            'outros_recursos': outros_recursos
+        }
 
         return Response(tabelas, status=status.HTTP_200_OK)
 

@@ -1,7 +1,7 @@
 import logging
+import pytz
 
-from datetime import date
-
+from datetime import date, datetime
 from django.db import models
 from django.db.models import Q
 from django.db import transaction
@@ -430,6 +430,7 @@ class PrestacaoConta(ModeloBase):
         from sme_ptrf_apps.receitas.models import Receita
         from sme_ptrf_apps.despesas.models import RateioDespesa
         contas = ContaAssociacao.objects.filter(associacao=self.associacao).order_by('id')
+        contas = ContaAssociacao.filter_by_recurso(contas, self.periodo.recurso)
 
         contas_com_movimento = []
         for conta in contas:
@@ -465,6 +466,7 @@ class PrestacaoConta(ModeloBase):
         from sme_ptrf_apps.despesas.models import RateioDespesa
 
         contas = ContaAssociacao.objects.filter(associacao=self.associacao).order_by('id')
+        contas = ContaAssociacao.filter_by_recurso(contas, self.periodo.recurso)
 
         contas_com_movimento = []
         for conta in contas:
@@ -530,15 +532,24 @@ class PrestacaoConta(ModeloBase):
         for devolucao in devolucoes_ao_tesouro_da_prestacao:
             tipo_devolucao = TipoDevolucaoAoTesouro.by_uuid(devolucao['tipo'])
             despesa = Despesa.by_uuid(devolucao['despesa'])
+            data_devolucao = devolucao.get('data')
             devolucao_uuid = devolucao['uuid']
 
+            if data_devolucao:
+                data_devolucao = datetime.strptime(data_devolucao, "%Y-%m-%d").date()
+                tz = pytz.timezone("America/Sao_Paulo")
+                hoje = datetime.now(tz).date()
+
+                if data_devolucao > hoje:
+                    raise ValueError("Data de devolução não pode ser futura")
+    
             if devolucao_uuid:
                 registro_devolucao = DevolucaoAoTesouro.objects.get(uuid=devolucao_uuid)
 
                 registro_devolucao.prestacao_conta = self
                 registro_devolucao.tipo = tipo_devolucao
                 registro_devolucao.despesa = despesa
-                registro_devolucao.data = devolucao['data']
+                registro_devolucao.data = data_devolucao
                 registro_devolucao.devolucao_total = devolucao['devolucao_total']
                 registro_devolucao.motivo = devolucao['motivo']
                 registro_devolucao.valor = devolucao['valor']
@@ -550,7 +561,7 @@ class PrestacaoConta(ModeloBase):
                     prestacao_conta=self,
                     tipo=tipo_devolucao,
                     despesa=despesa,
-                    data=devolucao['data'],
+                    data=data_devolucao,
                     devolucao_total=devolucao['devolucao_total'],
                     motivo=devolucao['motivo'],
                     valor=devolucao['valor'],

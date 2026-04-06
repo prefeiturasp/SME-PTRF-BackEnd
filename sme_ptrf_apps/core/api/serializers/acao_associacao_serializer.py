@@ -5,6 +5,14 @@ from ..serializers.associacao_serializer import AssociacaoSerializer, Associacao
 from ...models import AcaoAssociacao, Associacao, Acao
 
 
+class AcaoAssociacaoListaSimplesSerializer(serializers.ModelSerializer):
+    acao = AcaoSerializer()
+
+    class Meta:
+        model = AcaoAssociacao
+        fields = ('uuid', 'acao',)
+
+
 class AcaoAssociacaoSerializer(serializers.ModelSerializer):
     acao = AcaoSerializer()
     associacao = AssociacaoSerializer()

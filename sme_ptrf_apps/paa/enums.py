@@ -54,6 +54,19 @@ class TipoAtividadeEstatutariaEnum(Enum):
         return [dict(key=key.name, value=key.value) for key in cls]
 
 
+class TipoAnosAtividadeEstatutariaEnum(Enum):
+    VIGENTE = "Vigente"
+    POSTERIOR = "Posterior"
+
+    @classmethod
+    def choices(cls):
+        return [(key.name, key.value) for key in cls]
+
+    @classmethod
+    def to_dict(cls):
+        return [dict(key=key.name, value=key.value) for key in cls]
+
+
 class PaaStatusEnum(Enum):
     NAO_INICIADO = "Não iniciado"
     EM_ELABORACAO = "Em elaboração"

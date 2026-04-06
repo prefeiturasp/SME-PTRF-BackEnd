@@ -1,7 +1,7 @@
 import pytest
 from model_bakery import baker
 from sme_ptrf_apps.paa.models import AtividadeEstatutaria
-from sme_ptrf_apps.paa.enums import TipoAtividadeEstatutariaEnum
+from sme_ptrf_apps.paa.enums import TipoAtividadeEstatutariaEnum, TipoAnosAtividadeEstatutariaEnum
 from sme_ptrf_apps.paa.choices import Mes
 
 from sme_ptrf_apps.paa.admin import AtividadeEstatutariaAdmin
@@ -19,6 +19,7 @@ def atividade_estatutaria_ativo():
                       nome="Atividade Estatutária 1",
                       status=True,
                       mes=Mes.JANEIRO,
+                      ano=TipoAnosAtividadeEstatutariaEnum.VIGENTE.name,
                       tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name, paa=None)
 
 

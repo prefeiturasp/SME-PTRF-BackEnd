@@ -27,6 +27,7 @@ from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.services.paa_service import PaaService, ImportacaoConfirmacaoNecessaria
 from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
 from sme_ptrf_apps.paa.services.resumo_prioridades_service import ResumoPrioridadesService
+from sme_ptrf_apps.paa.services.acoes_paa_service import AcoesReceitasPrevistasPaaService
 
 from sme_ptrf_apps.paa.tasks.gerar_documento_paa import gerar_documento_paa_async
 from sme_ptrf_apps.paa.tasks.gerar_previa_documento_paa import gerar_previa_documento_paa_async
@@ -243,20 +244,10 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
     @action(detail=True, methods=['get'], url_path='receitas-previstas',
             permission_classes=[IsAuthenticated])
     def receitas_previstas(self, request, uuid=None):
-        from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoRetrieveSerializer
-
         paa = self.get_object()
-        acoes_associacoes = paa.associacao.acoes.all()
+        acoes_associacoes = AcoesReceitasPrevistasPaaService(paa).serialized_ptrf_com_receitas_previstas()
 
-        serializer_acao_associacao = AcaoAssociacaoRetrieveSerializer(acoes_associacoes, many=True)
-        for acao_assoc in serializer_acao_associacao.data:
-            acao_assoc['receitas_previstas_paa'] = ReceitaPrevistaPaaSerializer(
-                paa.receitaprevistapaa_set.filter(
-                    acao_associacao__acao__uuid=str(acao_assoc['acao']['uuid'])
-                ),
-                many=True).data
-
-        return Response(serializer_acao_associacao.data, status=status.HTTP_200_OK)
+        return Response(acoes_associacoes, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'], url_path='plano-orcamentario',
             permission_classes=[IsAuthenticated])
@@ -328,15 +319,10 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
     @action(detail=True, methods=['get'], url_path='outros-recursos-do-periodo',
             permission_classes=[IsAuthenticated])
     def outros_recursos_periodo(self, request, uuid=None):
-        from sme_ptrf_apps.paa.services import OutroRecursoPeriodoPaaListagemService
-
         paa = self.get_object()
 
-        service = OutroRecursoPeriodoPaaListagemService(
-            paa=paa,
-            unidade=paa.associacao.unidade
-        )
-        data = service.serialized_listar_outros_recursos_periodo_receitas_previstas(paa)
+        data = AcoesReceitasPrevistasPaaService(paa).serialized_outros_recursos_periodo_com_receitas_previstas()
+
         return Response(data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"], url_path="gerar-documento")

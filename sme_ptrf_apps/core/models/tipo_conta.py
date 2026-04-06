@@ -24,6 +24,10 @@ class TipoConta(ModeloIdNome):
         null=False
     )
 
+    @classmethod
+    def filter_by_recurso(cls, queryset, recurso):
+        return queryset.filter(recurso=recurso)
+
     class Meta:
         verbose_name = "Tipo de conta"
         verbose_name_plural = "04.0) Tipos de conta"

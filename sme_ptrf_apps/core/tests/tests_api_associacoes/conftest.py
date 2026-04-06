@@ -516,3 +516,10 @@ def periodo_inicial_associacao_encerrada_2021_2(periodo_inicial_associacao_facto
         periodo_inicial=periodo_2019_2,
         associacao=associacao_encerrada_2021_2
     )
+
+@pytest.fixture
+def periodo_inicial_associacao_teste(periodo_inicial_associacao_factory, periodo_2019_1, associacao_teste):
+    return periodo_inicial_associacao_factory(
+        periodo_inicial=periodo_2019_1,
+        associacao=associacao_teste
+    )

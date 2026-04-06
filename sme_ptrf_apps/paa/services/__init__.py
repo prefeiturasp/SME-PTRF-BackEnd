@@ -4,7 +4,6 @@ from .resumo_prioridades_service import ResumoPrioridadesService, ValidacaoSaldo
 from .receitas_previstas_paa_service import SaldosPorAcaoPaaService
 
 from .outros_recursos_periodo_service import OutroRecursoPeriodoBaseService
-from .outros_recursos_periodo_listagem_service import OutroRecursoPeriodoPaaListagemService
 from .outros_recursos_periodo_importacao_service import (
     ImportacaoUnidadesOutroRecursoException, OutroRecursoPeriodoPaaImportacaoService
 )
@@ -30,3 +29,4 @@ from .prioridades_impactadas_receitas_previstas_service import (
     ConfirmarExlusaoPrioridadesPaaRecursoProprioService
 )
 from .acoes_pdde_service import AcoesPddeService
+from .acoes_paa_service import AcoesPaaService, AcoesReceitasPrevistasPaaService

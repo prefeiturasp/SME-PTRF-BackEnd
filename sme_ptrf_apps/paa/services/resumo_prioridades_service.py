@@ -7,6 +7,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+LABEL_DESPESAS_PREVISTAS = 'Despesas Previstas'
+LABEL_RECEITAS_PREVISTAS = 'Receita'
+VALOR_INDICADO_EXCEDE_VALOR = 'O valor indicado para a prioridade excede o valor disponível de receita prevista.'
+
+
 class ValidacaoSaldoIndisponivel(serializers.ValidationError):
     """ raise para Validação de Saldo Indisponível """
     pass
@@ -65,14 +70,13 @@ class ResumoPrioridadesService:
 
     def calcula_node_ptrf(self) -> dict:
         from sme_ptrf_apps.core.api.serializers import AcaoAssociacaoRetrieveSerializer
+        from sme_ptrf_apps.paa.services import AcoesPaaService
 
         # Queryset Somente de Prioridades do PAA do recurso PTRF
         prioridades_ptrf_qs = self.paa.prioridadepaa_set.filter(
             recurso=RecursoOpcoesEnum.PTRF.name)
 
-        # Queryset de Ações de Associação do PAA ordenados por nome da Ação.
-        # Ignorar Açoes com o campo exibir_paa = False (História 134829)
-        acoes_associacoes_qs = self.paa.associacao.acoes.exclude(acao__exibir_paa=False).order_by('acao__nome')
+        acoes_associacoes_qs = AcoesPaaService(self.paa).obter_ptrf().order_by('acao__nome')
 
         # Dados Serializados
         acoes_associacoes_data = AcaoAssociacaoRetrieveSerializer(acoes_associacoes_qs, many=True).data
@@ -177,13 +181,13 @@ class ResumoPrioridadesService:
             # Retorna um Node 3 de Receita
             return {
                 'key': item.get('uuid') + '_' + 'receita',
-                "recurso": 'Receita',
+                "recurso": LABEL_RECEITAS_PREVISTAS,
                 "custeio": get_valor_custeio(item),
                 "capital": get_valor_capital(item),
                 "livre_aplicacao": get_valor_livre(item),
             }
 
-        def calcula_despesas(item, receitas) -> dict:
+        def calcula_despesas(item) -> dict:
             """
                 Retorna um Node 3 de Despesas previstas (Prioridades do PAA).
 
@@ -191,7 +195,6 @@ class ResumoPrioridadesService:
                 A despesa considera as prioridades do PAA cadastradas com tipo CUSTEIO e CAPITAL.
 
                 :param item: Dado de uma Acao Associacao
-                :param receitas: Receitas da Acao Associacao
                 :return: Node 3 de Despesa, com estrutura de um dicionário com os valores de custeio, capital e livre
                 necessários para utilização em tabela no frontend com expand de 3 níveis
             """
@@ -214,7 +217,7 @@ class ResumoPrioridadesService:
 
             return {
                 'key': item.get('uuid') + '_' + 'despesa',
-                "recurso": 'Despesas previstas',
+                "recurso": LABEL_DESPESAS_PREVISTAS,
                 "custeio": despesa_custeio,
                 "capital": despesa_capital,
                 "livre_aplicacao": 0,
@@ -242,7 +245,7 @@ class ResumoPrioridadesService:
             receitas = calcula_receitas(item)
 
             # Node 3 - Valores da Despesas (Custeio, Capital, Livre)
-            despesas = calcula_despesas(item, receitas)
+            despesas = calcula_despesas(item)
 
             # Node 3 - Valores Saldo
             saldo = self.calcula_saldos(item.get('uuid'), receitas, despesas)
@@ -275,14 +278,13 @@ class ResumoPrioridadesService:
         return tipo_recurso_map
 
     def calcula_node_pdde(self) -> dict:
-        from sme_ptrf_apps.paa.models import AcaoPdde
-
+        from sme_ptrf_apps.paa.services import AcoesPaaService
         # Queryset Somente de Prioridades do PAA do recurso PDDE
         prioridades_pdde_qs = self.paa.prioridadepaa_set.filter(
             recurso=RecursoOpcoesEnum.PDDE.name)
 
         # Obtenção do Service de Programas PDDE
-        acoes_PDDE = AcaoPdde.objects.all()
+        acoes_pdde = AcoesPaaService(paa=self.paa).obter_pdde()
 
         def calcula_receitas(item) -> dict:
             def get_valor_capital(item) -> Decimal:
@@ -301,13 +303,13 @@ class ResumoPrioridadesService:
 
             return {
                 'key': item.get('uuid') + '_' + 'receita',
-                "recurso": 'Receita',
+                "recurso": LABEL_RECEITAS_PREVISTAS,
                 "custeio": get_valor_custeio(item),
                 "capital": get_valor_capital(item),
                 "livre_aplicacao": get_valor_livre(item),
             }
 
-        def calcula_despesas(item, receitas) -> dict:
+        def calcula_despesas(item) -> dict:
             """
                 Calcula as despesas previstas de um item de PDDE para montagem de tabela de
                 hierarquias no frontend.
@@ -334,7 +336,7 @@ class ResumoPrioridadesService:
 
             return {
                 'key': item.get('uuid') + '_' + 'despesa',
-                "recurso": 'Despesas previstas',
+                "recurso": LABEL_DESPESAS_PREVISTAS,
                 "custeio": despesa_custeio,
                 "capital": despesa_capital,
                 "livre_aplicacao": 0,
@@ -352,7 +354,7 @@ class ResumoPrioridadesService:
         }
 
         # Obter a lista de Programas da Associação do PAA, serializada
-        for item in acoes_PDDE:
+        for item in acoes_pdde:
             # hierarquia filhos do Node Pai
             children = tipo_recurso_map['children']
 
@@ -389,7 +391,7 @@ class ResumoPrioridadesService:
             receitas = calcula_receitas(acao)
 
             # Node 3 - Valores da Despesas (Custeio, Capital, Livre)
-            despesas = calcula_despesas(acao, receitas)
+            despesas = calcula_despesas(acao)
 
             # Node 3 - Valores Saldo
             saldo = self.calcula_saldos(acao.get('uuid'), receitas, despesas)
@@ -428,8 +430,7 @@ class ResumoPrioridadesService:
             Recursos próprios: Item único e de posição fixa
             Outros Recursos: Lista de acordo com outros recursos habilitados para a unidade no período
         """
-
-        from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa
+        from sme_ptrf_apps.paa.services import AcoesPaaService
         from sme_ptrf_apps.paa.models.receita_prevista_outro_recurso_periodo import ReceitaPrevistaOutroRecursoPeriodo
 
         prioridades_recurso_proprio_qs = self.paa.prioridadepaa_set.filter(
@@ -438,7 +439,7 @@ class ResumoPrioridadesService:
         prioridades_outros_recursos_qs = self.paa.prioridadepaa_set.filter(
             recurso=RecursoOpcoesEnum.OUTRO_RECURSO.name)
 
-        outros_recursos_qs = OutroRecursoPeriodoPaa.objects.disponiveis_para_paa(self.paa)
+        outros_recursos_qs = AcoesPaaService(self.paa).obter_outros_recursos_periodo()
 
         recursos_proprios_data = [
             {
@@ -464,7 +465,7 @@ class ResumoPrioridadesService:
         def calcula_receitas_recursos_proprios(item) -> dict:
             return {
                 'key': item.get('uuid') + '_' + 'receita',
-                "recurso": 'Receita',
+                "recurso": LABEL_RECEITAS_PREVISTAS,
                 "custeio": Decimal(0),
                 "capital": Decimal(0),
                 "livre_aplicacao": item.get("total_recursos_proprios", 0),
@@ -482,7 +483,7 @@ class ResumoPrioridadesService:
 
             return {
                 'key': item.get('uuid') + '_' + 'receita',
-                "recurso": 'Receita',
+                "recurso": LABEL_RECEITAS_PREVISTAS,
                 "custeio": valor_custeio,
                 "capital": valor_capital,
                 "livre_aplicacao": valor_livre,
@@ -515,7 +516,7 @@ class ResumoPrioridadesService:
 
             return {
                 'key': item.get('uuid') + '_' + 'despesa',
-                "recurso": 'Despesas previstas',
+                "recurso": LABEL_DESPESAS_PREVISTAS,
                 "custeio": despesa_custeio,
                 "capital": despesa_capital,
                 "livre_aplicacao": 0,
@@ -550,7 +551,7 @@ class ResumoPrioridadesService:
 
             return {
                 'key': item.get('uuid') + '_' + 'despesa',
-                "recurso": 'Despesas previstas',
+                "recurso": LABEL_DESPESAS_PREVISTAS,
                 "custeio": despesa_custeio,
                 "capital": despesa_capital,
                 "livre_aplicacao": 0,
@@ -749,8 +750,7 @@ class ResumoPrioridadesService:
                 if saldo_disponivel < valor_total:
                     raise ValidacaoSaldoIndisponivel(
                         {
-                            'mensagem': (
-                                'O valor indicado para a prioridade excede o valor disponível de receita prevista.'),
+                            'mensagem': VALOR_INDICADO_EXCEDE_VALOR,
                             'detail': saldo_disponivel
                         })
                 else:
@@ -761,8 +761,7 @@ class ResumoPrioridadesService:
                 if saldo_disponivel < valor_total:
                     raise ValidacaoSaldoIndisponivel(
                         {
-                            'mensagem': (
-                                'O valor indicado para a prioridade excede o valor disponível de receita prevista.'),
+                            'mensagem': VALOR_INDICADO_EXCEDE_VALOR,
                             'detail': saldo_disponivel
                         })
                 else:
@@ -773,8 +772,7 @@ class ResumoPrioridadesService:
                 if saldo_disponivel < valor_total:
                     raise ValidacaoSaldoIndisponivel(
                         {
-                            'mensagem': (
-                                'O valor indicado para a prioridade excede o valor disponível de receita prevista.'),
+                            'mensagem': VALOR_INDICADO_EXCEDE_VALOR,
                             'detail': saldo_disponivel
                         })
                 else:
@@ -785,8 +783,7 @@ class ResumoPrioridadesService:
                 if saldo_disponivel < valor_total:
                     raise ValidacaoSaldoIndisponivel(
                         {
-                            'mensagem': (
-                                'O valor indicado para a prioridade excede o valor disponível de receita prevista.'),
+                            'mensagem': VALOR_INDICADO_EXCEDE_VALOR,
                             'detail': saldo_disponivel
                         })
                 else:

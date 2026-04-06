@@ -2,7 +2,7 @@ from django.db import models
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-from sme_ptrf_apps.paa.enums import TipoAtividadeEstatutariaEnum
+from sme_ptrf_apps.paa.enums import TipoAtividadeEstatutariaEnum, TipoAnosAtividadeEstatutariaEnum
 from sme_ptrf_apps.paa.choices import Mes, StatusChoices
 
 
@@ -12,6 +12,7 @@ class AtividadeEstatutaria(ModeloBase):
     tipo = models.CharField(max_length=20, null=True, blank=True,
                             default=TipoAtividadeEstatutariaEnum.ORDINARIA.name,
                             choices=TipoAtividadeEstatutariaEnum.choices())
+    ano = models.CharField('Ano', choices=TipoAnosAtividadeEstatutariaEnum.choices(), blank=False, null=True)
     mes = models.IntegerField('Mês', choices=Mes.choices, blank=False, null=True)
     status = models.BooleanField(choices=StatusChoices.choices, default=StatusChoices.ATIVO)
     paa = models.ForeignKey('paa.Paa', on_delete=models.PROTECT, verbose_name="PAA", blank=True, null=True)

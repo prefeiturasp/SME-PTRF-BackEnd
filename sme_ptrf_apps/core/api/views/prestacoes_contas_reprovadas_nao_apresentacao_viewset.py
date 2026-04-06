@@ -1,4 +1,4 @@
-from rest_framework import mixins, status
+from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
 from waffle.mixins import WaffleFlagMixin
@@ -8,8 +8,11 @@ from ..serializers.prestacao_conta_reprovada_nao_apresentacao_serializer import 
     PrestacaoContaReprovadaNaoApresentacaoSerializer, PrestacaoContaReprovadaNaoApresentacaoCreateSerializer
 
 from ...models.prestacao_conta_reprovada_nao_apresentacao import PrestacaoContaReprovadaNaoApresentacao
+from drf_spectacular.utils import extend_schema_view
+from .docs.prestacoes_contas_reprovadas_nao_apresentacao_docs import DOCS
 
 
+@extend_schema_view(**DOCS)
 class PrestacaoContaReprovadaNaoApresentacaoViewSet(
     WaffleFlagMixin,
     mixins.RetrieveModelMixin,

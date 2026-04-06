@@ -14,15 +14,21 @@ class ParametroPaa(SingletonModel, ModeloBase):
                                              help_text='indica o mês que pode ser iniciada a elaboração do PAA',
                                              blank=False, null=True)
 
-    texto_pagina_paa_ue = RichTextField(null=True, verbose_name='Texto da página de PAA (UE)')
-    
-    introducao_do_paa_ue_1 = RichTextField(null=True, verbose_name='Introdução do PAA 1')
-    
-    introducao_do_paa_ue_2 = RichTextField(null=True, verbose_name='Introdução do PAA 2')
+    texto_pagina_paa_ue = RichTextField(null=True, verbose_name='Texto da página de PAA (UE)', blank=True)
 
-    conclusao_do_paa_ue_1 = RichTextField(null=True, verbose_name='Conclusão do PAA 1')
-    
-    conclusao_do_paa_ue_2 = RichTextField(null=True, verbose_name='Conclusão do PAA 2')
+    introducao_do_paa_ue_1 = RichTextField(null=True, verbose_name='Introdução do PAA 1', blank=True)
+
+    introducao_do_paa_ue_2 = RichTextField(null=True, verbose_name='Introdução do PAA 2', blank=True)
+
+    texto_atividades_previstas = RichTextField(null=True, verbose_name='Texto das atividades previstas', blank=True)
+
+    conclusao_do_paa_ue_1 = RichTextField(null=True, verbose_name='Conclusão do PAA 1', blank=True)
+
+    conclusao_do_paa_ue_2 = RichTextField(null=True, verbose_name='Conclusão do PAA 2', blank=True)
+
+    texto_levantamento_prioridades = RichTextField(null=True, verbose_name='Texto do levantamento de prioridades',
+                                                   blank=True)
+
     class Meta:
         verbose_name = 'Parâmetro do PAA'
         verbose_name_plural = 'Parâmetros do PAA'

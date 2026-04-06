@@ -9,7 +9,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from ..serializers.periodo_serializer import (PeriodoSerializer, PeriodoLookUpSerializer, PeriodoRetrieveSerializer,
                                               PeriodoCreateSerializer)
-from ...models import Periodo
+from ...models import Periodo, PeriodoInicialAssociacao, Associacao
 from ...services import valida_datas_periodo
 
 
@@ -30,6 +30,8 @@ class PeriodosViewSet(mixins.ListModelMixin,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
             OpenApiParameter(name='associacao_uuid', description='UUID da Associação', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='dre_uuid', description='UUID da DRE', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
         ],
         responses={200: PeriodoSerializer()},
     )
@@ -48,7 +50,57 @@ class PeriodosViewSet(mixins.ListModelMixin,
         if associacao_uuid:
             qs = qs.filter(prestacoes_de_conta__associacao__uuid=associacao_uuid).distinct()
 
+        if self.request and hasattr(self.request, 'recurso') and self.request.recurso:
+            qs = Periodo.filter_by_recurso(qs, self.request.recurso)
+
+        dre_uuid = self.request.query_params.get('dre_uuid')
+        if dre_uuid:
+            periodo_corte = self.get_periodo_corte_por_dre(dre_uuid)
+
+            if not periodo_corte:
+                qs = qs.none()
+            else:
+                qs = qs.filter(
+                    data_inicio_realizacao_despesas__gte=periodo_corte.data_inicio_realizacao_despesas
+                )
+
         return qs.order_by('-referencia')
+
+    def get_periodo_corte_por_dre(self, dre_uuid):
+        recurso = getattr(self.request, 'recurso', None)
+        if not recurso:
+            return None
+
+        periodo_inicial_assoc = (
+            PeriodoInicialAssociacao.objects
+            .filter(
+                associacao__unidade__dre__uuid=dre_uuid,
+                recurso=recurso,
+            )
+            .select_related('periodo_inicial')
+            .order_by('periodo_inicial__data_inicio_realizacao_despesas')
+            .first()
+        )
+
+        if periodo_inicial_assoc and periodo_inicial_assoc.periodo_inicial:
+            return periodo_inicial_assoc.periodo_inicial.proximo_periodo
+
+        if recurso.legado:
+            associacao_legado = (
+                Associacao.objects
+                .filter(
+                    unidade__dre__uuid=dre_uuid,
+                    periodo_inicial__isnull=False,
+                )
+                .select_related('periodo_inicial')
+                .order_by('periodo_inicial__data_inicio_realizacao_despesas')
+                .first()
+            )
+
+            if associacao_legado and associacao_legado.periodo_inicial:
+                return associacao_legado.periodo_inicial.proximo_periodo
+
+        return None
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
