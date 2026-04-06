@@ -6,7 +6,7 @@ from sme_ptrf_apps.paa.models.atividade_estatutaria import AtividadeEstatutaria
 from sme_ptrf_apps.paa.models.prioridade_paa import PrioridadePaa
 from sme_ptrf_apps.paa.models.parametro_paa import ParametroPaa
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
-from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum
+from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAnosAtividadeEstatutariaEnum
 from sme_ptrf_apps.paa.services.plano_orcamentario_service import PlanoOrcamentarioService
 
 from sme_ptrf_apps.mandatos.services import ServicoCargosDaComposicao
@@ -279,15 +279,23 @@ def criar_atividades_estatutarias(paa):
 
     for atividade in atividades:
         atividade_paa = paa.atividadeestatutariapaa_set.filter(atividade_estatutaria=atividade).first()
+        mes_ano = MESES_PT[atividade.mes - 1]
+
+        if atividade_paa and atividade.paa:
+            mes_ano = f"{MESES_PT[atividade_paa.data.month - 1]}/{atividade_paa.data.year}"
+        else:
+            if atividade.ano == TipoAnosAtividadeEstatutariaEnum.VIGENTE.name:
+                ano = paa.periodo_paa.data_inicial.year
+                mes_ano = f'{mes_ano}/{ano}'
+            elif atividade.ano == TipoAnosAtividadeEstatutariaEnum.POSTERIOR.name:
+                ano_data_final = paa.periodo_paa.data_final.year
+                mes_ano = f'{mes_ano}/{ano_data_final}'
+
         items.append({
             "tipo_atividade": atividade.get_tipo_display(),
             "data": atividade_paa.data.strftime("%d/%m/%Y") if atividade_paa else "",
             "atividades_previstas": atividade.nome,
-            "mes_ano": (
-                f"{MESES_PT[atividade_paa.data.month - 1]}/{atividade_paa.data.year}"
-                if atividade_paa
-                else MESES_PT[atividade.mes - 1]
-            ),
+            "mes_ano": mes_ano,
         })
 
     return items

@@ -568,7 +568,7 @@ def cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, e
     eh_relatorio_consolidado_publicacoes_parciais = verifica_se_eh_relatorio_publicacoes_parciais(dre, periodo)
 
     execucao_fisica = {
-        "ues_da_dre": dre.unidades_da_dre.count(),
+        "ues_da_dre": quantidade_associacoes_ativas,
         "ues_com_associacao": quantidade_associacoes_ativas,
         "associacoes_regulares": quantidade_regular,
         "aprovada": quantidade_aprovada,

@@ -68,8 +68,9 @@ class ParametroPaaAdmin(admin.ModelAdmin):
         }),
         ('Texto PAA (UE)', {
             'fields':
-                ('texto_pagina_paa_ue', 'introducao_do_paa_ue_1', 'introducao_do_paa_ue_2',
-                 'conclusao_do_paa_ue_1', 'conclusao_do_paa_ue_2')
+                ('texto_pagina_paa_ue', 'texto_atividades_previstas', 'texto_levantamento_prioridades',
+                 'introducao_do_paa_ue_1', 'introducao_do_paa_ue_2', 'conclusao_do_paa_ue_1', 'conclusao_do_paa_ue_2'
+                 )
         }),
     )
 

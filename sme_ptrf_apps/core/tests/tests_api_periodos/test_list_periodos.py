@@ -3,6 +3,8 @@ import pytest
 from freezegun import freeze_time
 from rest_framework import status
 
+from .conftest import UUID_RECURSO_A
+
 pytestmark = pytest.mark.django_db
 
 
@@ -137,3 +139,22 @@ def test_api_list_periodos_por_associacao(jwt_authenticated_client, prestacao_co
 
     assert response.status_code == status.HTTP_200_OK
     assert result == expected_results
+
+
+def test_api_list_periodos_por_recurso_selecionado(jwt_authenticated_client, periodo_2020_4_com_recurso_a, periodo_2021_1_com_recurso_a, periodo_2021_2_com_recurso_legado_ptrf):
+    response = jwt_authenticated_client.get('/api/periodos/', content_type='application/json', HTTP_X_RECURSO_SELECIONADO=UUID_RECURSO_A)
+    result = json.loads(response.content)
+
+    periodos = [
+        periodo_2021_2_com_recurso_legado_ptrf,
+        periodo_2021_1_com_recurso_a,
+        periodo_2020_4_com_recurso_a
+    ]
+    total_periodos_recurso_a = []
+    for p in periodos:
+        if p.recurso and str(p.recurso.uuid) == UUID_RECURSO_A:
+            total_periodos_recurso_a.append(p)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(total_periodos_recurso_a) == len(result)
+

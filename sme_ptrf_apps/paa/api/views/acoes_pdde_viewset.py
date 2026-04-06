@@ -12,9 +12,10 @@ from django.db.models.deletion import ProtectedError
 import django_filters
 from waffle.mixins import WaffleFlagMixin
 
-from sme_ptrf_apps.paa.models import AcaoPdde, ReceitaPrevistaPdde
+from sme_ptrf_apps.paa.services import AcoesReceitasPrevistasPaaService, AcoesPaaService
+
+from sme_ptrf_apps.paa.models import AcaoPdde, Paa
 from ..serializers.acao_pdde_serializer import AcaoPddeSerializer
-from ..serializers.receita_prevista_pdde_serializer import ReceitasPrevistasPDDEValoresSerializer
 from sme_ptrf_apps.paa.services.acoes_pdde_service import ExcluirAcaoPDDEException
 from ....core.api.utils.pagination import CustomPagination
 
@@ -58,38 +59,56 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
             OpenApiParameter(name='paa_uuid', description='UUID do PAA', required=True,
                              type=OpenApiTypes.UUID, location=OpenApiParameter.QUERY),
         ],
+        responses={200: AcaoPddeSerializer(many=True)},
+        description="Retorna as Ações PDDE disponíveis para um PAA, sem paginação."
+    )
+    @action(detail=False, methods=['get'], url_path='acoes-pdde-paa',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def acoes_pdde_paa(self, request):
+        paa_uuid = request.query_params.get('paa_uuid')
+        if not paa_uuid:
+            raise serializers.ValidationError({"non_field_errors": "PAA não foi informado."})
+
+        try:
+            paa = Paa.by_uuid(paa_uuid)
+        except Paa.DoesNotExist:
+            raise serializers.ValidationError({"non_field_errors": "PAA não encontrado."})
+
+        qs = AcoesPaaService(paa).obter_pdde()
+        serializer = AcaoPddeSerializer(qs, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='paa_uuid', description='UUID do PAA', required=True,
+                             type=OpenApiTypes.UUID, location=OpenApiParameter.QUERY),
+        ],
         responses={200: OpenApiTypes.OBJECT},
         description="Retornam as receitas previstas PDDE das Ações PDDE de um PAA"
     )
     @action(detail=False, methods=['get'], url_path='receitas-previstas-pdde',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def receitas_previstas_pdde(self, request):
-
         paa_uuid = self.request.query_params.get('paa_uuid')
         if not paa_uuid:
             raise serializers.ValidationError({"non_field_errors": "PAA não foi informado."})
 
-        # Lista ações PDDE com os totais de receitas previstas PDDE de acordo com o PAA
-        qs_acoes_pdde = AcaoPdde.objects.filter(status=AcaoPdde.STATUS_ATIVA)
+        try:
+            paa = Paa.by_uuid(paa_uuid)
+        except Paa.DoesNotExist:
+            raise serializers.ValidationError({"non_field_errors": "PAA não encontrado."})
+
+        qs_acoes_pdde = AcoesReceitasPrevistasPaaService(paa).obter_pdde()
 
         # Paginação na action
         page = self.paginate_queryset(qs_acoes_pdde)
-        serializer = self.get_serializer(page, many=True)
-
-        # Adicionar dados extras aos dados serializados
-        for serial_acao_pdde in serializer.data:
-            qs_receitas_pdde = ReceitaPrevistaPdde.objects.filter(
-                acao_pdde__uuid=serial_acao_pdde.get('uuid'),
-                paa__uuid=paa_uuid
-            ).first()
-
-            serial_acao_pdde['receitas_previstas_pdde_valores'] = ReceitasPrevistasPDDEValoresSerializer(
-                qs_receitas_pdde).data
+        serialized_data = AcoesReceitasPrevistasPaaService(paa).serialized_pdde_com_receitas_previstas(page)
 
         if page is not None:
-            return self.get_paginated_response(serializer.data)
+            return self.get_paginated_response(serialized_data)
 
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serialized_data, status=status.HTTP_200_OK)
 
     def valida_campos(self, request):
         nome = request.data.get('nome')

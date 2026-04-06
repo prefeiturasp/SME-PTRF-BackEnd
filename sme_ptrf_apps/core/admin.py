@@ -133,10 +133,13 @@ class AcaoAdminForm(ModelForm):
 @admin.register(Acao)
 class AcaoAdmin(admin.ModelAdmin):
     form = AcaoAdminForm
-    list_display = ('nome', 'recurso',)
+    search_fields = ('nome', 'recurso__nome')
+    list_display = (
+        'nome', 'recurso', 'aceita_custeio', 'aceita_capital', 'aceita_livre', 'exibir_paa', 'e_recursos_proprios')
     readonly_fields = ('uuid', 'id')
     list_filter = (
         ('recurso__nome', custom_titled_filter('Recurso')),
+        'exibir_paa',
     )
 
     def save_model(self, request, obj, form, change):
@@ -145,9 +148,9 @@ class AcaoAdmin(admin.ModelAdmin):
         """
         if change:
             # Obtem o valor atual do formulário admin
-            exibir_paa_newVal = form.cleaned_data['exibir_paa']
+            exibir_paa_new_val = form.cleaned_data['exibir_paa']
 
-            desabilitando_acao = not exibir_paa_newVal
+            desabilitando_acao = not exibir_paa_new_val
 
             if desabilitando_acao:
                 from .services.acoes_desabilitadas_paa import desabilitar_acao_ptrf_paa
@@ -336,7 +339,8 @@ class AcaoAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('associacao', 'acao', 'status', 'criado_em')
     search_fields = ('uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
     list_filter = ('status', 'acao', 'associacao__unidade__tipo_unidade', 'associacao__unidade__dre',
-                   AcaoAssociacaoAListFilter,)
+                   AcaoAssociacaoAListFilter, 'acao__aceita_custeio', 'acao__aceita_capital', 'acao__aceita_livre',
+                   'acao__exibir_paa')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     raw_id_fields = ('associacao',)
 

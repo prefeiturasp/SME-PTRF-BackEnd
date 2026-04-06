@@ -9,6 +9,8 @@ from django.http import HttpResponse
 from django.db.models import Sum
 from django.db import transaction
 
+from waffle import get_waffle_flag_model
+
 from weasyprint import HTML, CSS
 
 from sme_ptrf_apps.paa.models import ParametroPaa, ProgramaPdde, PrioridadePaa, Paa
@@ -65,10 +67,27 @@ class PaaService:
 
     @classmethod
     def somatorio_totais_por_programa_pdde(cls, paa_uuid):
+        from sme_ptrf_apps.paa.services.acoes_paa_service import AcoesPaaService
+
+        flags = get_waffle_flag_model()
+        paa_retificacao = flags.objects.filter(name='paa-retificacao', everyone=True).exists()
+
+        paa = Paa.by_uuid(paa_uuid)
+
         # Obtem todos os programas sem paginação
         qs_programas = ProgramaPdde.objects.prefetch_related('acaopdde_set').all()
         programas = []
         for qs_programa in qs_programas:
+
+            if paa_retificacao:
+                qs_acoes_pdde = AcoesPaaService(paa).obter_pdde().filter(programa=qs_programa)
+            else:
+                qs_acoes_pdde = qs_programa.acaopdde_set.all()
+
+            # Não exibir Programa quando não houver ações utilizando-o
+            if not qs_acoes_pdde:
+                continue
+
             # Objeto padrão por programa
             programa = {
                 "uuid": str(qs_programa.uuid),
@@ -79,11 +98,9 @@ class PaaService:
                 "total": 0
             }
 
-            # Obtem todas as ações do programa
-            qs_acoes_pdde = qs_programa.acaopdde_set.all()
             for qs_acao_pdde in qs_acoes_pdde:
                 # Obtem todas as receitas previstas do Programa PDDE x Ação PDDE x  PAA
-                qs_receitas_previstas_pdde = qs_acao_pdde.receitaprevistapdde_set.filter(paa__uuid=paa_uuid)
+                qs_receitas_previstas_pdde = qs_acao_pdde.receitaprevistapdde_set.filter(paa=paa)
 
                 # Somar somente custeios
                 valores_custeio = qs_receitas_previstas_pdde.aggregate(

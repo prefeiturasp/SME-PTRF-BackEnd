@@ -11,7 +11,9 @@ def test_acao_associacao_search_fields(acao_associacao_admin):
 
 def test_acao_associacao_list_filter(acao_associacao_admin):
     assert acao_associacao_admin.list_filter == ('status', 'acao', 'associacao__unidade__tipo_unidade',
-                                                 'associacao__unidade__dre', AcaoAssociacaoAListFilter,)
+                                                 'associacao__unidade__dre', AcaoAssociacaoAListFilter,
+                                                 'acao__aceita_custeio', 'acao__aceita_capital', 'acao__aceita_livre',
+                                                 'acao__exibir_paa')
 
 
 def test_acao_ssociacao_list_display(acao_associacao_admin):

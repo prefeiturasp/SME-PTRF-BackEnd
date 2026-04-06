@@ -65,6 +65,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
 
     cabecalho = {
         "titulo": periodo.recurso.nome,
+        "recurso": periodo.recurso.nome,
         "sub_titulo": f"Diretoria Regional de Educação - {formata_nome_dre(dre.nome)}",
         "nome_ata": f"Ata de Parecer Técnico Conclusivo",
         "nome_dre": f"{formata_nome_dre(dre.nome)}",

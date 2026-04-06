@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from sme_ptrf_apps.paa.models import AtividadeEstatutaria
 from sme_ptrf_apps.paa.models.atividade_estatutaria import StatusChoices
-from sme_ptrf_apps.paa.enums import TipoAtividadeEstatutariaEnum
+from sme_ptrf_apps.paa.enums import TipoAtividadeEstatutariaEnum, TipoAnosAtividadeEstatutariaEnum
 from sme_ptrf_apps.paa.choices import Mes
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -10,6 +10,7 @@ class AtividadeEstatutariaSerializer(serializers.ModelSerializer):
     ERROR_MSG_JA_CADASTRADO = {"mensagem": "Esta atividade estatutária já existe."}
     MSG_TIPO_NAO_INFORMADO = "Tipo não foi informado."
     MSG_NOME_NAO_INFORMADO = "Atividade Estatutária não foi informada."
+    MSG_ANO_NAO_INFORMADO = "Ano não foi informado."
     MSG_MES_NAO_INFORMADO = "Mês não foi informado."
     MSG_STATUS_NAO_INFORMADO = "Status não foi informado."
 
@@ -44,6 +45,17 @@ class AtividadeEstatutariaSerializer(serializers.ModelSerializer):
         required=True
     )
 
+    ano = serializers.ChoiceField(
+        choices=TipoAnosAtividadeEstatutariaEnum.choices(),
+        error_messages={
+            'invalid_choice': 'Valor inválido para o Ano.',
+            'null': MSG_ANO_NAO_INFORMADO,
+            'blank': MSG_ANO_NAO_INFORMADO,
+            'required': MSG_ANO_NAO_INFORMADO,
+        },
+        required=True
+    )
+
     mes = serializers.ChoiceField(
         choices=Mes.choices,
         error_messages={
@@ -57,10 +69,14 @@ class AtividadeEstatutariaSerializer(serializers.ModelSerializer):
 
     status_label = serializers.SerializerMethodField()
     tipo_label = serializers.SerializerMethodField()
+    ano_label = serializers.SerializerMethodField()
     mes_label = serializers.SerializerMethodField()
 
     def get_status_label(self, obj):
         return StatusChoices(int(obj.status)).label
+
+    def get_ano_label(self, obj):
+        return TipoAnosAtividadeEstatutariaEnum[obj.ano].value if obj.ano else ""
 
     def get_mes_label(self, obj):
         return Mes(int(obj.mes)).label if obj.mes else ""
@@ -70,9 +86,9 @@ class AtividadeEstatutariaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = AtividadeEstatutaria
-        fields = ('uuid', 'id', 'nome', 'status', 'tipo', 'mes',
-                  'status_label', 'tipo_label', 'mes_label', 'paa', 'ordem')
-        read_only_fields = ('uuid', 'id', 'status_label', 'tipo_label', 'mes_label', 'paa')
+        fields = ('uuid', 'id', 'nome', 'status', 'tipo', 'ano', 'mes',
+                  'status_label', 'tipo_label', 'ano_label', 'mes_label', 'paa', 'ordem')
+        read_only_fields = ('uuid', 'id', 'status_label', 'tipo_label', 'ano_label', 'mes_label', 'paa')
         validators = [
             UniqueTogetherValidator(
                 queryset=AtividadeEstatutaria.objects.all(),
