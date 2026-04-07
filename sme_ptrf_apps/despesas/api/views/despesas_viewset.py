@@ -5,7 +5,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from django.db.models.query import QuerySet
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiResponse
+from drf_spectacular.utils import extend_schema_view
+from .docs.despesas_viewset_docs import DOCS
 from sme_ptrf_apps.core.models.periodo import Periodo
 from sme_ptrf_apps.despesas.services.filtra_despesas_por_tags import filtra_despesas_por_tags
 
@@ -52,6 +53,7 @@ class CustomPagination(PageNumberPagination):
         })
 
 
+@extend_schema_view(**DOCS)
 class DespesasViewSet(mixins.CreateModelMixin,
                       mixins.RetrieveModelMixin,
                       mixins.UpdateModelMixin,
@@ -305,27 +307,6 @@ class DespesasViewSet(mixins.CreateModelMixin,
                 }
                 return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(name='associacao_uuid', description='UUID da Associação', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-        ],
-        responses={200: OpenApiResponse(
-            response={
-                'type': 'object',
-                'properties': {
-                    'tipos_aplicacao_recurso': {'type': 'object'},
-                    'tipos_custeio': {'type': 'object'},
-                    'tipos_documento': {'type': 'object'},
-                    'tipos_transacao': {'type': 'object'},
-                    'acoes_associacao': {'type': 'object'},
-                    'contas_associacao': {'type': 'object'},
-                    'tags': {'type': 'object'},
-                },
-            }
-        )},
-        description="Retorna tabela de dados relacionados as associações, conforme parâmetro do endpoint."
-    )
     @action(detail=False, url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, request):
@@ -364,21 +345,6 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
         return Response(result)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(name='tipo_documento', description='ID do tipo de documento', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-            OpenApiParameter(name='numero_documento', description='Número de documento', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-            OpenApiParameter(name='cpf_cnpj_fornecedor', description='CPF/CNPJ do Fornecedor', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-            OpenApiParameter(name='associacao__uuid', description='UUID da Associação', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-            OpenApiParameter(name='despesa_uuid', description='UUID da Despesa', required=False,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-        ],
-        description="Retorna lista de despesas por filtro aplicado."
-    )
     @action(detail=False, url_path='ja-lancada',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def ja_lancada(self, request):
@@ -440,26 +406,6 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
         return Response(result)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(name='data', description='Data', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-            OpenApiParameter(name='associacao_uuid', description='UUID da Associação', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-        ],
-        responses={200: OpenApiResponse(
-            response={
-                'type': 'object',
-                'properties': {
-                    'erro_data_da_despesa': {'type': 'string'},
-                    'data_de_encerramento': {'type': 'string'},
-                    'mensagem': {'type': 'string'},
-                    'status': {'type': 'integer'},
-                },
-            }
-        )},
-        description="Valida data de despesa."
-    )
     @action(detail=False, url_path='validar-data-da-despesa', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def valida_data_da_despesa(self, request):
