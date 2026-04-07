@@ -32,8 +32,8 @@ CABECALHO_DOCS = [
     ('Tipo de transação', 'tipo_transacao__nome'),
     ('Número do documento de transação', 'documento_transacao'),
     ('Data da transação', 'data_transacao'),
-    ('Valor total do documento', 'valor_total'),
-    ('Valor realizado', 'valor_original'),
+    ('Valor total do documento', 'valor_original'),
+    ('Valor realizado', 'valor_total'),
     ('Valor pago com recursos próprios', 'valor_recursos_proprios'),
     ('Número do Boletim de Ocorrência', 'numero_boletim_de_ocorrencia'),
     ('Retem impostos?', 'retem_imposto'),
@@ -190,8 +190,8 @@ class ExportacoesDocumentosDespesasService:
 
                 if campo == "valor_total":
                     campo = get_recursive_attr(instance, campo)
-                    valor_total_formatado = str(campo).replace(".", ",") if campo is not None else ''
-                    linha_horizontal.append(valor_total_formatado)
+                    valor_total = str(campo).replace(".", ",") if campo else ""
+                    linha_horizontal.append(valor_total)
                     continue
 
                 if campo == "valor_original":

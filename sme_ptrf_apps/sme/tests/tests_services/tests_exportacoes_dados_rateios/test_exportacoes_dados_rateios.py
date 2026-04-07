@@ -218,7 +218,7 @@ def test_resultado_esperado_dados_extracao(rateios_despesa_queryset):
         str(getattr(primeiro_rateio, 'valor_item_capital')).replace(".", ","),
         primeiro_rateio.numero_processo_incorporacao_capital,
         str(getattr(primeiro_rateio, 'valor_rateio')).replace(".", ","),
-        str(getattr(primeiro_rateio, 'valor_original')).replace(".", ","),
+        str(primeiro_rateio.despesa.valor_total).replace(".", ","),
         "Completo",
         "Sim",
         primeiro_rateio.periodo_conciliacao.referencia,
