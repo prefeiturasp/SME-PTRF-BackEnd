@@ -8,7 +8,7 @@ from .motivo_pagamento_antecipado_serializer import MotivoPagamentoAntecipadoSer
 from ..serializers.rateio_despesa_serializer import RateioDespesaCreateSerializer
 from ...models import Despesa, TipoDocumento, TipoTransacao
 from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
-from ....core.models import Associacao, Periodo
+from ....core.models import Associacao
 from sme_ptrf_apps.despesas.services.validacao_despesa_service import ValidacaoDespesaService
 
 
