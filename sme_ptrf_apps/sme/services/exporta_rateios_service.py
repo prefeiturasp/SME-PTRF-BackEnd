@@ -43,8 +43,8 @@ CABECALHO_RATEIOS = [
     ('Quantidade de itens', 'quantidade_itens_capital'),
     ('Valor unitário', 'valor_item_capital'),
     ('Número do processo de incorporação', 'numero_processo_incorporacao_capital'),
-    ('Valor', 'valor_rateio'),
-    ('Valor realizado', 'despesa__valor_total'),
+    ('Valor', 'valor_original'),
+    ('Valor realizado', 'valor_rateio'),
     ('Status do rateio', 'despesa__status'),
     ('Conferido', 'conferido'),
     ('Referência do período de conciliação', 'periodo_conciliacao__referencia'),
@@ -264,12 +264,6 @@ class ExportacoesRateiosService:
                 if campo == "valor_original":
                     valor_original = str(getattr(instance, campo)).replace(".", ",")
                     linha_horizontal.append(valor_original)
-                    continue
-
-                if campo == "despesa__valor_total":
-                    campo = get_recursive_attr(instance, campo)
-                    valor_total = str(campo).replace(".", ",") if campo else ""
-                    linha_horizontal.append(valor_total)
                     continue
 
                 if campo == "despesa__status":
