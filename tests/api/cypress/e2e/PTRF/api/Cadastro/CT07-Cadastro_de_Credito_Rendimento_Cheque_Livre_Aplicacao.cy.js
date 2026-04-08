@@ -1,37 +1,32 @@
-//<reference types="cypress" />
+///<reference types="cypress" />
 
-import usuarios from "../../../../fixtures/usuariosPTRF.json";
-const usuario = usuarios.Josue;
+import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF"
+const Comum = new ComumPaginaPTRF()
 
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
-const Comum = new ComumPaginaPTRF();
-
-import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina";
-const Creditos = new CreditosEscolaPagina();
+import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina"
+const Creditos = new CreditosEscolaPagina()
 
 Cypress.on("uncaught:exception", (err, runnable) => {
   // quando retorna falso previne o  Cypress de falhar o teste
-  return false;
-});
+  return false
+})
 
 describe("Credito Escola - Cadastro", () => {
   it("CT07-Cadastro_de_Credito_Rendimento_Cheque_Livre_Aplicacao", () => {
-    Comum.visitarPaginaPTRF();
+    Comum.visitarPaginaPTRF()
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    cy.realizar_login('UE')
 
-    Comum.selecionarCeuVilaAlpina();
+    Creditos.selecionarCreditosDaEscola()
 
-    Creditos.selecionarCreditosDaEscola();
+    cy.wait(4000)
 
-    cy.wait(4000);
+    Creditos.selecionarRendimento()
 
-    Creditos.selecionarRendimento();
+    Creditos.filtrarReceita()
 
-    Creditos.filtrarReceita();
+    Creditos.validarCreditosCadastrados()
 
-    Creditos.validarCreditosCadastrados();
-
-    Comum.logout();
-  });
-});
+    Comum.logout()
+  })
+})

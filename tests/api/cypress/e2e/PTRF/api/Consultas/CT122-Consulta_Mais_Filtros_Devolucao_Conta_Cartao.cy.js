@@ -1,128 +1,149 @@
 ///<reference types="cypress" />
 
-// Fixture (3 níveis acima)
-import usuarios from "../../../../fixtures/usuariosPTRF.json";
-const usuario = usuarios.Kellen;
+import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF"
+const Comum = new ComumPaginaPTRF()
 
-// Páginas (3 níveis acima)
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
-const Comum = new ComumPaginaPTRF();
-
-import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina";
-const Creditos = new CreditosEscolaPagina();
-
-Cypress.on("uncaught:exception", (err, runnable) => {
-  return false;
-});
+import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina"
+const Creditos = new CreditosEscolaPagina()
 
 describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
 
   it('CT122-Consulta_Mais_Filtros_Devolucao_Conta_Cartao', () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuEmefMariaClara();
+    Comum.visitarPaginaPTRF()
 
-    cy.wait(3000);
+    cy.realizar_login('UE')
 
-    Creditos.selecionarCreditosDaEscola();
-    Creditos.selecionarMaisFiltros();
-    Creditos.selecionarDevolacaoContaMaisFiltros();
-    Creditos.selecionarDetalhamentoMaisFiltros();
-    Creditos.realizaConsultaTipoContaCartao();
-    Creditos.realizaConsultaAcaoPtrf();
-    Creditos.realizaConsultaDataInicio();
-    Creditos.realizaConsultaDataFim();
-    Creditos.selecionarFiltrarMaisFiltros();
+    cy.wait(3000)
 
-    Comum.selecionarPerfil();
-    Comum.logout();
-  });
+    Creditos.selecionarCreditosDaEscola()
+
+    Creditos.selecionarMaisFiltros()
+
+    Creditos.selecionarDevolacaoContaMaisFiltros()
+
+    Creditos.selecionarDetalhamentoMaisFiltros()
+
+    Creditos.realizaConsultaTipoContaCartao()
+
+    Creditos.realizaConsultaAcaoPtrf()
+
+    Creditos.realizaConsultaDataInicio()
+
+    Creditos.realizaConsultaDataFim()
+
+    Creditos.selecionarFiltrarMaisFiltros()
+
+    Comum.selecionarPerfil()
+
+    Comum.logout()
+  })
 
   it('CT157-Consulta_Mais_Filtros_Devolucao_Conta_Cartao_Sem_Data', () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuEmefMariaClara();
+    Comum.visitarPaginaPTRF()
 
-    cy.wait(3000);
+    cy.realizar_login('UE')
 
-    Creditos.selecionarCreditosDaEscola();
-    Creditos.selecionarMaisFiltros();
-    Creditos.selecionarDevolacaoContaMaisFiltros();
-    Creditos.selecionarDetalhamentoMaisFiltros();
-    Creditos.realizaConsultaTipoContaCartao();
-    Creditos.realizaConsultaAcaoPtrf();
+    cy.wait(3000)
 
-    // 🔹 Sem data início e fim
-    Creditos.selecionarFiltrarMaisFiltros();
+    Creditos.selecionarCreditosDaEscola()
 
-    Comum.selecionarPerfil();
-    Comum.logout();
-  });
+    Creditos.selecionarMaisFiltros()
+
+    Creditos.selecionarDevolacaoContaMaisFiltros()
+
+    Creditos.selecionarDetalhamentoMaisFiltros()
+
+    Creditos.realizaConsultaTipoContaCartao()
+
+    Creditos.realizaConsultaAcaoPtrf()
+
+    // Sem data início e fim
+    Creditos.selecionarFiltrarMaisFiltros()
+
+    Comum.selecionarPerfil()
+
+    Comum.logout()
+  })
 
   it('CT158-Consulta_Mais_Filtros_Devolucao_Conta_Cartao_Sem_Acao', () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuEmefMariaClara();
+    Comum.visitarPaginaPTRF()
 
-    cy.wait(3000);
+    cy.realizar_login('UE')
 
-    Creditos.selecionarCreditosDaEscola();
-    Creditos.selecionarMaisFiltros();
-    Creditos.selecionarDevolacaoContaMaisFiltros();
-    Creditos.selecionarDetalhamentoMaisFiltros();
-    Creditos.realizaConsultaTipoContaCartao();
+    cy.wait(3000)
 
-    // 🔹 Sem ação PTRF
-    Creditos.realizaConsultaDataInicio();
-    Creditos.realizaConsultaDataFim();
-    Creditos.selecionarFiltrarMaisFiltros();
+    Creditos.selecionarCreditosDaEscola()
 
-    Comum.selecionarPerfil();
-    Comum.logout();
-  });
+    Creditos.selecionarMaisFiltros()
+
+    Creditos.selecionarDevolacaoContaMaisFiltros()
+
+    Creditos.selecionarDetalhamentoMaisFiltros()
+
+    Creditos.realizaConsultaTipoContaCartao()
+
+    // Sem ação PTRF
+    Creditos.realizaConsultaDataInicio()
+
+    Creditos.realizaConsultaDataFim()
+
+    Creditos.selecionarFiltrarMaisFiltros()
+
+    Comum.selecionarPerfil()
+
+    Comum.logout()
+  })
 
   it('CT159-Consulta_Mais_Filtros_Devolucao_Conta_Cartao_Somente_Tipo_Conta', () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuEmefMariaClara();
+    Comum.visitarPaginaPTRF()
 
-    cy.wait(3000);
+    cy.realizar_login('UE')
 
-    Creditos.selecionarCreditosDaEscola();
-    Creditos.selecionarMaisFiltros();
-    Creditos.selecionarDevolacaoContaMaisFiltros();
-    Creditos.selecionarDetalhamentoMaisFiltros();
+    cy.wait(3000)
 
-    // 🔹 Apenas tipo de conta Cartão
-    Creditos.realizaConsultaTipoContaCartao();
-    Creditos.selecionarFiltrarMaisFiltros();
+    Creditos.selecionarCreditosDaEscola()
 
-    Comum.selecionarPerfil();
-    Comum.logout();
-  });
+    Creditos.selecionarMaisFiltros()
+
+    Creditos.selecionarDevolacaoContaMaisFiltros()
+    
+    Creditos.selecionarDetalhamentoMaisFiltros()
+
+    // Apenas tipo de conta Cartão
+    Creditos.realizaConsultaTipoContaCartao()
+
+    Creditos.selecionarFiltrarMaisFiltros()
+
+    Comum.selecionarPerfil()
+
+    Comum.logout()
+  })
 
   it('CT160-Consulta_Mais_Filtros_Devolucao_Conta_Cartao_Sem_Filtros_Complementares', () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuEmefMariaClara();
+    Comum.visitarPaginaPTRF()
 
-    cy.wait(3000);
+    cy.realizar_login('UE')
 
-    Creditos.selecionarCreditosDaEscola();
-    Creditos.selecionarMaisFiltros();
-    Creditos.selecionarDevolacaoContaMaisFiltros();
-    Creditos.selecionarDetalhamentoMaisFiltros();
+    cy.wait(3000)
 
-    // 🔹 Sem tipo de conta, ação e datas
-    Creditos.selecionarFiltrarMaisFiltros();
+    Creditos.selecionarCreditosDaEscola()
 
-    Comum.selecionarPerfil();
-    Comum.logout();
-  });
+    Creditos.selecionarMaisFiltros()
 
-});
+    Creditos.selecionarDevolacaoContaMaisFiltros()
+
+    Creditos.selecionarDetalhamentoMaisFiltros()
+
+    // Sem tipo de conta, ação e datas
+    Creditos.selecionarFiltrarMaisFiltros()
+
+    Comum.selecionarPerfil()
+
+    Comum.logout()
+  })
+})
