@@ -1,66 +1,63 @@
 ///<reference types="cypress" />
 
-import usuarios from "../../../../fixtures/usuariosPTRF.json";
-const usuario = usuarios.Josue;
+import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF"
 
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
-const Comum = new ComumPaginaPTRF();
+const Comum = new ComumPaginaPTRF()
 
-import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina";
-const Creditos = new CreditosEscolaPagina();
+import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina"
 
-Cypress.on("uncaught:exception", (err, runnable) => {
-  // quando retorna falso previne o Cypress de falhar o teste
-  return false;
-});
+const Creditos = new CreditosEscolaPagina()
 
 describe("Credito Escola - Consulta", () => {
 
   it("CT05-Consulta_Creditos_Escola_Devolucao_Conta", () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuVilaAlpina();
+    Comum.visitarPaginaPTRF()
+    
+    cy.realizar_login('UE')
 
-    Creditos.selecionarCreditosDaEscola();
-    cy.wait(3000);
+    Creditos.selecionarCreditosDaEscola()
 
-    Creditos.selecionarDevolacaoConta();
-    Creditos.filtrarReceita();
+    cy.wait(3000)
 
-    Comum.logout();
-  });
+    Creditos.selecionarDevolacaoConta()
+    Creditos.filtrarReceita()
+
+    Comum.logout()
+  })
 
   it("CT226-Consulta_Creditos_Escola_Devolucao_Conta_Sem_Filtro", () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuVilaAlpina();
+    Comum.visitarPaginaPTRF()
 
-    Creditos.selecionarCreditosDaEscola();
-    cy.wait(3000);
+    cy.realizar_login('UE')
 
-    Creditos.selecionarDevolacaoConta();
+    Creditos.selecionarCreditosDaEscola()
 
-    Comum.logout();
-  });
+    cy.wait(3000)
+
+    Creditos.selecionarDevolacaoConta()
+
+    Comum.logout()
+  })
 
   it("CT227-Consulta_Creditos_Escola_Devolucao_Conta_Reconsultar", () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuVilaAlpina();
+    Comum.visitarPaginaPTRF()
 
-    Creditos.selecionarCreditosDaEscola();
-    cy.wait(3000);
+    cy.realizar_login('UE')
 
-    Creditos.selecionarDevolacaoConta();
-    Creditos.filtrarReceita();
+    Creditos.selecionarCreditosDaEscola()
+    
+    cy.wait(3000)
+
+    Creditos.selecionarDevolacaoConta()
+    Creditos.filtrarReceita()
 
     // Reconsulta
-    Creditos.selecionarDevolacaoConta();
-    Creditos.filtrarReceita();
+    Creditos.selecionarDevolacaoConta()
+    Creditos.filtrarReceita()
 
-    Comum.logout();
-  });
-});
+    Comum.logout()
+  })
+})

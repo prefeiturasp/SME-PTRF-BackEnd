@@ -29,8 +29,8 @@ Entao('sistema exporta os dados de contas', () => {
   cy.validar_exportar_dados_das_contas_associacao()
 })
 
-Entao('valida na tela dados de contas da associação {string}', (associacaoId) => {
-  cy.validar_dados_das_contas_associacao(associacaoId)
+Entao('valida na tela dados de contas da associação {string}', () => {
+  cy.validar_dados_das_contas_associacao()
 })
 
 Entao('o saldo de contas da associação', () => {

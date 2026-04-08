@@ -1,33 +1,23 @@
-//<reference types="cypress" />
+///<reference types="cypress" />
 
-import usuarios from "../../../../fixtures/usuariosPTRF.json";
-const usuario = usuarios.Josue;
+import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF"
+const Comum = new ComumPaginaPTRF()
 
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
-const Comum = new ComumPaginaPTRF();
+import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina"
+const Creditos = new CreditosEscolaPagina()
 
-import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina";
-const Creditos = new CreditosEscolaPagina();
-
-Cypress.on("uncaught:exception", (err, runnable) => {
-  // quando retorna falso previne o  Cypress de falhar o teste
-  return false;
-});
-
-describe.skip("Credito Escola - Cadastro", () => {
+describe("Credito Escola - Cadastro", () => {
   it("CT139-Cadastro_de_Credito_Repasse_Valor_Capital_Incompleto", () => {
-    Comum.visitarPaginaPTRF();
+    Comum.visitarPaginaPTRF()
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    cy.realizar_login('UE')
 
-    Comum.selecionarCeuVilaAlpina();
+    Creditos.selecionarCreditosDaEscola()
 
-    Creditos.selecionarCreditosDaEscola();
+    cy.wait(3000)
 
-    cy.wait(3000);
+    Creditos.selecionarCadastrarCredito()
 
-    Creditos.selecionarCadastrarCredito();
-
-    Comum.logout();
-  });
-});
+    Comum.logout()
+  })
+})

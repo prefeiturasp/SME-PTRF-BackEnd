@@ -1,36 +1,28 @@
 ///<reference types="cypress" />
-import usuarios from "../../../../fixtures/usuariosPTRF.json";
-const usuario = usuarios.Kellen;
 
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
-const Comum = new ComumPaginaPTRF();
+import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF"
+const Comum = new ComumPaginaPTRF()
 
-import GastosEscolaPagina from "../../../../support/Paginas/GastosEscolaPagina";
-const Gastos = new GastosEscolaPagina();
-
-Cypress.on("uncaught:exception", () => {
-  return false;
-});
+import GastosEscolaPagina from "../../../../support/Paginas/GastosEscolaPagina"
+const Gastos = new GastosEscolaPagina()
 
 describe("Gastos da Escola - Cadastro", () => {
 
   it("CT137-Cadastro_Gastos_Escola_Genero_Alimenticio_Periodo_Fora_Fechamento", () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
+    Comum.visitarPaginaPTRF()
+
+    cy.realizar_login('UE')
+
+    Gastos.selecionarGastosDaEscola()
     
-    Comum.selecionarCeuVilaAlpina();
+    cy.wait(3000)
 
-    Gastos.selecionarGastosDaEscola();
-    
-    cy.wait(3000);
+    Gastos.selecionarCadastrarDespesa()
 
-    Gastos.selecionarCadastrarDespesa();
+    Gastos.validarCadastroDespesaComprovanteGeneroAlimenticioSalasEspacosLeitura()
 
-    Gastos.validarCadastroDespesaComprovanteGeneroAlimenticioSalasEspacosLeitura();
+    Comum.logout()
 
-    Comum.logout();
-
-  });
-
-});
+  })
+})

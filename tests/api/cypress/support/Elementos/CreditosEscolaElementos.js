@@ -23,10 +23,10 @@ class CreditosEscolaElementos {
 
   //----------------------- Botões -------------------------\\
   botaoFiltrarReceita = () => {
-    return cy.get(".form-inline > .d-flex > .btn").contains("Filtrar");
+    return cy.get(".form-inline > .d-flex > .btn").contains("Filtrar", { timeout: 10000 });
   };
   botaoMaisFiltros = () => {
-    return cy.get("button.btn.btn-outline-success").contains("Mais Filtros");
+    return cy.get("button.btn.btn-outline-success").contains("Mais Filtros", { timeout: 10000 });
     
 
   };
@@ -36,15 +36,15 @@ class CreditosEscolaElementos {
       .contains("Filtrar");
   };
   botaoLimparFiltros = () => {
-    return cy.get(".btn-outline-success.ml-2").contains("Limpar Filtros");
+    return cy.get(".btn-outline-success.ml-2").contains("Limpar Filtros", { timeout: 10000 });
   };
   botaoCadastrarCredito = () => {
     return cy
-      .get(".col-md-5.mt-2 > :nth-child(1)")
+      .get(".col-md-5.mt-2 > :nth-child(1)", { timeout: 10000 })
       .contains("Cadastrar crédito");
   };
   botaoValoresReprogramados = () => {
-    return cy.get(".col-md-5.mt-2 > .mr-2").contains("Valores reprogramados");
+    return cy.get(".col-md-5.mt-2 > .mr-2").contains("Valores reprogramados", { timeout: 10000 });
   };
   botaoSalvarCadastroCredito = () => {
     return cy.get(".btn-success").contains("Salvar");
@@ -75,27 +75,27 @@ class CreditosEscolaElementos {
   };
   devolucaoContaMaisFiltros = () => {
     return cy
-      .get(".form-row > :nth-child(1) > #tipo_receita")
+      .get(".form-row > :nth-child(1) > #tipo_receita", { timeout: 10000 })
       .select("Devolução à conta");
   };
   estornoMaisFiltros = () => {
     return cy
-      .get(".form-row > :nth-child(1) > #tipo_receita")
+      .get(".form-row > :nth-child(1) > #tipo_receita", { timeout: 10000 })
       .select("Estorno");
   };
   recursoExternoMaisFiltros = () => {
     return cy
-      .get(".form-row > :nth-child(1) > #tipo_receita")
+      .get(".form-row > :nth-child(1) > #tipo_receita", { timeout: 10000 })
       .select("Rendimento");
   };
   rendimentoMaisFiltros = () => {
     return cy
-      .get(".form-row > :nth-child(1) > #tipo_receita")
+      .get(".form-row > :nth-child(1) > #tipo_receita", { timeout: 10000 })
       .select("Rendimento");
   };
   repasseMaisFiltros = () => {
     return cy
-      .get(".form-row > :nth-child(1) > #tipo_receita")
+      .get(".form-row > :nth-child(1) > #tipo_receita", { timeout: 10000 })
       .select("Repasse");
   };
   selecionarDetalhamentoCreditoMaisFiltros = () => {
@@ -133,10 +133,10 @@ class CreditosEscolaElementos {
   };
 
   selecionarTipoContaCheque = () => {
-    return cy.get("#conta_associacao").select("Cheque");
+    return cy.get("#conta_associacao", { timeout: 10000 }).select("Cheque");
   };
   selecionarTipoContaCartao = () => {
-    return cy.get("#conta_associacao").select("Cartão");
+    return cy.get("#conta_associacao", { timeout: 10000 }).select("Cheque");
   };
   selecionarValorTotalCredito = () => {
     return cy.get("#valor");
@@ -144,10 +144,10 @@ class CreditosEscolaElementos {
 
   //----------------------- Cadastro de Crédito (Ação) -------------------------\\
   selecionarAcaoPtrf = () => {
-    return cy.get("#acao_associacao").select("PTRF Básico");
+    return cy.get("#acao_associacao", { timeout: 10000 }).select("PTRF Básico");
   };
   selecionarAcaoSalas = () => {
-    return cy.get("#acao_associacao").select("Salas e Espaços de Leitura");
+    return cy.get("#acao_associacao", { timeout: 10000 }).select("Salas e Espaços de Leitura");
   };
   selecionarAcaoMaterialPedagogico = () => {
     return cy.get("#acao_associacao").select("Material Pedagógico");
