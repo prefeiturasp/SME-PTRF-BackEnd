@@ -8,6 +8,7 @@ from sme_ptrf_apps.paa.services.ata_paa_dados_service import (
     formata_data,
     formatar_hora_ata,
     criar_identificacao_associacao_ata,
+    formatar_datas_periodo,
 )
 
 from unittest.mock import patch, MagicMock
@@ -444,3 +445,8 @@ class TestCriarIdentificacaoAssociacaoAta:
         assert 'codigo_eol' in resultado
         assert 'dre' in resultado
         assert len(resultado) == 4
+
+
+def test_formatar_datas_periodo_padrao(periodo_paa_completo):
+    resultado = formatar_datas_periodo(periodo_paa_completo)
+    assert resultado == "1º de janeiro de 2024 a 31 de dezembro de 2024"
