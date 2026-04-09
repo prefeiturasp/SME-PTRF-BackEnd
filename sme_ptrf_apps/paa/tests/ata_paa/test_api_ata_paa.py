@@ -56,8 +56,7 @@ def test_api_update_ata_paa(jwt_authenticated_client_sme, flag_paa, ata_paa):
 
 def test_api_update_ata_paa_com_presentes(jwt_authenticated_client_sme, flag_paa, ata_paa):
     """Testa atualizar ata PAA criando presentes automaticamente"""
-    from sme_ptrf_apps.paa.models import ParticipanteAtaPaa
-    
+
     payload = {
         "tipo_reuniao": "ORDINARIA",
         "convocacao": "PRIMEIRA",
@@ -113,10 +112,10 @@ def test_api_update_ata_paa_com_presentes(jwt_authenticated_client_sme, flag_paa
     )
 
     assert response.status_code == status.HTTP_200_OK
-    
+
     # Recarrega a ata do banco
     registro_alterado = AtaPaa.by_uuid(uuid=ata_paa.uuid)
-    
+
     # Verifica os dados da ata
     assert registro_alterado.tipo_reuniao == 'ORDINARIA'
     assert registro_alterado.convocacao == "PRIMEIRA"
@@ -124,23 +123,23 @@ def test_api_update_ata_paa_com_presentes(jwt_authenticated_client_sme, flag_paa
     assert registro_alterado.local_reuniao == "Sala de Reuniões"
     assert registro_alterado.parecer_conselho == "APROVADA"
     assert registro_alterado.comentarios == "Reunião de teste com presentes"
-    
+
     # Verifica que os presentes foram criados
     assert registro_alterado.presentes_na_ata_paa.count() == 3
-    
+
     # Verifica os presentes criados
     presentes = registro_alterado.presentes_na_ata_paa.all()
     nomes_presentes = [p.nome for p in presentes]
     assert "João Silva" in nomes_presentes
     assert "Maria Santos" in nomes_presentes
     assert "Pedro Oliveira" in nomes_presentes
-    
+
     # Verifica presidente e secretário
     assert registro_alterado.presidente_da_reuniao is not None
     assert registro_alterado.presidente_da_reuniao.nome == "João Silva"
     assert registro_alterado.secretario_da_reuniao is not None
     assert registro_alterado.secretario_da_reuniao.nome == "Maria Santos"
-    
+
     # Verifica dados de um presente específico
     joao = presentes.get(nome="João Silva")
     assert joao.identificacao == "1234567"
@@ -158,7 +157,11 @@ def test_api_get_atas_paa_tabelas(jwt_authenticated_client_sme, flag_paa, ata_pa
             {
                 'id': AtaPaa.ATA_APRESENTACAO,
                 'nome': AtaPaa.ATA_NOMES[AtaPaa.ATA_APRESENTACAO]
-            }
+            },
+            {
+                'id': AtaPaa.ATA_RETIFICACAO,
+                'nome': AtaPaa.ATA_NOMES[AtaPaa.ATA_RETIFICACAO]
+            },
         ],
         'tipos_reuniao': [
             {
@@ -194,4 +197,3 @@ def test_api_get_atas_paa_tabelas(jwt_authenticated_client_sme, flag_paa, ata_pa
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
-
