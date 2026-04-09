@@ -1,7 +1,7 @@
 import logging
 from datetime import datetime
 
-from sme_ptrf_apps.paa.models import AtaPaa, ParticipanteAtaPaa
+from sme_ptrf_apps.paa.models import AtaPaa, ParticipanteAtaPaa, PeriodoPaa
 from sme_ptrf_apps.paa.services.dados_documento_paa_service import (
     criar_grupos_prioridades,
     criar_atividades_estatutarias
@@ -143,6 +143,7 @@ def dados_texto_ata_paa(ata_paa: AtaPaa, usuario=None):
         "unidade_nome": associacao.unidade.nome if associacao.unidade.nome else "___",
         "local_reuniao": ata_paa.local_reuniao if ata_paa.local_reuniao else "___",
         "periodo_referencia": paa.periodo_paa.referencia if paa.periodo_paa.referencia else "___",
+        "datas_limite_periodo_por_extenso": formatar_datas_periodo(paa.periodo_paa) if paa.periodo_paa else "___",
         "presidente_reuniao": ata_paa.presidente_da_reuniao.nome if ata_paa.presidente_da_reuniao else "___",
         "cargo_presidente_reuniao": ata_paa.presidente_da_reuniao.cargo if ata_paa.presidente_da_reuniao else "___",
         "secretario_reuniao": ata_paa.secretario_da_reuniao.nome if ata_paa.secretario_da_reuniao else "___",
@@ -239,6 +240,27 @@ def formatar_hora_ata(hora):
                 return "00h00"
 
     return hora.strftime('%Hh%M')
+
+
+def formatar_datas_periodo(periodo_paa: PeriodoPaa) -> str:
+    """
+    Dado data inicia e final de um periodo, retorna por extenso deste modo:
+    1º de maio de 2026 a 30 de abril de 2027 por exemplo
+    """
+    meses = {
+        1: "janeiro", 2: "fevereiro", 3: "março", 4: "abril",
+        5: "maio", 6: "junho", 7: "julho", 8: "agosto",
+        9: "setembro", 10: "outubro", 11: "novembro", 12: "dezembro",
+    }
+
+    def formatar(data):
+        if not data:
+            return ""
+
+        dia = "1º" if data.day == 1 else str(data.day)
+        return f"{dia} de {meses[data.month]} de {data.year}"
+
+    return f"{formatar(periodo_paa.data_inicial)} a {formatar(periodo_paa.data_final)}"
 
 
 def criar_identificacao_associacao_ata(paa):
