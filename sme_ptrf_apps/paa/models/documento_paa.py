@@ -35,6 +35,17 @@ class DocumentoPaa(ModeloBase):
         default=VersaoChoices.FINAL
     )
 
+    versao_documento = models.IntegerField(
+        'Versão do documento',
+        default=1
+    )
+
+    retificacao = models.BooleanField(
+        'Retificação',
+        default=False,
+        help_text="Identifica se o documento é gerado por uma retificação"
+    )
+
     def __str__(self):
         versao_label = DocumentoPaa.VersaoChoices(self.versao).label
         if self.status_geracao == DocumentoPaa.StatusChoices.CONCLUIDO:

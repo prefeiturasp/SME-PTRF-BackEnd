@@ -22,9 +22,21 @@ from sme_ptrf_apps.paa.models import (
     OutroRecursoPeriodoPaa,
     ReceitaPrevistaOutroRecursoPeriodo,
     ModeloCargaPaa,
+    ReplicaPaa
 )
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
+from sme_ptrf_apps.paa.admin_inlines import (
+    ReceitasPrevistasPTRFInline,
+    ReceitasPrevistasPDDEInline,
+    ReceitasPrevistasRecursoProprioInline,
+    ReceitasPrevistasOutrosRecursosPeriodoInline,
+    ObjetivosPaaInline,
+    AtividadeEstatutariaPaaInline,
+    DocumentoPAAInline,
+    AtaPAAInline,
+    PrioridadesPaaInline,
+)
 
 
 class StatusAndamentoFilter(SimpleListFilter):
@@ -75,20 +87,25 @@ class ParametroPaaAdmin(admin.ModelAdmin):
     )
 
 
-class AtividadeEstatutariaPaaInline(admin.TabularInline):
-    model = AtividadeEstatutariaPaa
-    extra = 1
-
-
 @admin.register(Paa)
 class PaaAdmin(admin.ModelAdmin):
     list_display = ('periodo_paa', 'associacao', 'status', 'status_andamento')
-    readonly_fields = ('uuid', 'id', 'status_andamento', 'criado_em', 'alterado_em')
+    readonly_fields = ('uuid', 'id', 'status_andamento', 'criado_em', 'alterado_em', 'replica')
     list_display_links = ['periodo_paa']
     search_fields = ('periodo_paa__referencia', 'associacao__nome', 'associacao__unidade__codigo_eol')
     list_filter = ('periodo_paa', 'associacao', 'status', StatusAndamentoFilter)
     raw_id_fields = ['periodo_paa', 'associacao']
-    inlines = [AtividadeEstatutariaPaaInline]
+    inlines = [
+        ObjetivosPaaInline,
+        AtividadeEstatutariaPaaInline,
+        ReceitasPrevistasPTRFInline,
+        ReceitasPrevistasPDDEInline,
+        ReceitasPrevistasRecursoProprioInline,
+        ReceitasPrevistasOutrosRecursosPeriodoInline,
+        DocumentoPAAInline,
+        AtaPAAInline,
+        PrioridadesPaaInline,
+    ]
     actions = ["gerar_documento"]
 
     def status_andamento(self, obj):
@@ -349,3 +366,17 @@ class ModeloCargaPaaAdmin(admin.ModelAdmin):
     list_display = ('tipo_carga', 'arquivo')
     search_fields = ('tipo_carga', )
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+
+
+@admin.register(ReplicaPaa)
+class ReplicaPaaAdmin(admin.ModelAdmin):
+    list_display = ('paa',)
+    search_fields = ('paa__associacao__nome', 'paa__associacao__unidade__codigo_eol')
+    raw_id_fields = ('paa',)
+    readonly_fields = ('uuid', 'id', 'paa', 'formatted_json_replica', 'criado_em', 'historico')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
