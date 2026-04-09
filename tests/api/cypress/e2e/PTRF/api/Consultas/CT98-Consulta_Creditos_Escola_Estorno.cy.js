@@ -1,92 +1,86 @@
 ///<reference types="cypress" />
 
-// Fixture (3 níveis acima)
-import usuarios from "../../../../fixtures/usuariosPTRF.json";
-const usuario = usuarios.Kellen;
+import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF"
+const Comum = new ComumPaginaPTRF()
 
-// Páginas (3 níveis acima)
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
-const Comum = new ComumPaginaPTRF();
-
-import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina";
-const Creditos = new CreditosEscolaPagina();
-
-Cypress.on("uncaught:exception", (err, runnable) => {
-  // quando retorna falso previne o Cypress de falhar o teste
-  return false;
-});
+import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina"
+const Creditos = new CreditosEscolaPagina()
 
 describe("Credito Escola - Consulta", () => {
 
   it("CT98-Consulta_Creditos_Escola_Estorno", () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuEmefMariaClara();
+    Comum.visitarPaginaPTRF()
+    
+    cy.realizar_login('UE')
 
-    Creditos.selecionarCreditosDaEscola();
-    cy.wait(3000);
+    Creditos.selecionarCreditosDaEscola()
 
-    Creditos.selecionarEstorno();
+    cy.wait(3000)
 
-    Comum.selecionarPerfil();
-    Comum.logout();
-  });
+    Creditos.selecionarEstorno()
+
+    Comum.selecionarPerfil()
+
+    Comum.logout()
+  })
 
   it("CT220-Consulta_Creditos_Escola_Estorno_Sem_Filtro", () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuEmefMariaClara();
+    Comum.visitarPaginaPTRF()
+    
+    cy.realizar_login('UE')
 
-    Creditos.selecionarCreditosDaEscola();
-    cy.wait(3000);
+    Creditos.selecionarCreditosDaEscola()
 
-    Creditos.selecionarEstorno();
+    cy.wait(3000)
 
-    Comum.selecionarPerfil();
-    Comum.logout();
-  });
+    Creditos.selecionarEstorno()
+
+    Comum.selecionarPerfil()
+
+    Comum.logout()
+  })
 
   it("CT221-Consulta_Creditos_Escola_Estorno_Reconsultar", () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuEmefMariaClara();
+    Comum.visitarPaginaPTRF()
+    
+    cy.realizar_login('UE')
 
-    Creditos.selecionarCreditosDaEscola();
-    cy.wait(3000);
+    Creditos.selecionarCreditosDaEscola()
+    cy.wait(3000)
 
-    Creditos.selecionarEstorno();
-    Creditos.selecionarEstorno();
+    Creditos.selecionarEstorno()
+    Creditos.selecionarEstorno()
 
-    Comum.selecionarPerfil();
-    Comum.logout();
-  });
+    Comum.selecionarPerfil()
+    Comum.logout()
+  })
 
   it("CT222-Consulta_Creditos_Escola_Estorno_Reabrir_Tela", () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuEmefMariaClara();
+    Comum.visitarPaginaPTRF()
 
-    Creditos.selecionarCreditosDaEscola();
-    cy.wait(3000);
+    cy.realizar_login('UE')
 
-    Creditos.selecionarEstorno();
+    Creditos.selecionarCreditosDaEscola()
+    cy.wait(3000)
 
-    Comum.logout();
+    Creditos.selecionarEstorno()
+
+    Comum.logout()
 
     // Novo acesso
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuEmefMariaClara();
+    Comum.visitarPaginaPTRF()
 
-    Creditos.selecionarCreditosDaEscola();
-    Creditos.selecionarEstorno();
+    cy.realizar_login('UE')
 
-    Comum.selecionarPerfil();
-    Comum.logout();
-  });
+    Creditos.selecionarCreditosDaEscola()
 
-});
+    Creditos.selecionarEstorno()
+
+    Comum.selecionarPerfil()
+    Comum.logout()
+  })
+})

@@ -53,16 +53,25 @@ class ReceitaPrevistaOutroRecursoPeriodoSerializer(serializers.ModelSerializer):
         ordering = ('outro_recurso_periodo__outro_recurso__nome',)
 
     def validate(self, attrs):
+        if not attrs.get('paa') and not self.instance:
+            raise serializers.ValidationError({'paa': 'PAA não informado.'})
+
         paa = attrs.get('paa') or (self.instance.paa if self.instance else None)
 
-        if paa:
-            # Bloqueia edição quando o documento final foi gerado
-            documento_final = paa.documento_final
-            if documento_final and documento_final.concluido:
-                raise serializers.ValidationError({
-                    'mensagem': ('Não é possível editar receitas previstas de outros recursos após a geração do '
-                                 'documento final do PAA.')
-                })
+        # Resolve paa quando é string UUID
+        if paa and isinstance(paa, str):
+            try:
+                paa = Paa.by_uuid(paa)
+            except Paa.DoesNotExist:
+                raise serializers.ValidationError({'mensagem': 'PAA não encontrado!'})
+
+        # Bloqueia edição quando o documento final foi gerado
+        if paa.get_tem_documento_final_concluido():
+            raise serializers.ValidationError({
+                'mensagem': (
+                    'Não é possível editar receitas previstas de outros recursos após a geração do '
+                    'documento final do PAA.')
+            })
 
         self._verificar_prioridades_paa_impactadas(attrs, self.instance)
         return super().validate(attrs)
