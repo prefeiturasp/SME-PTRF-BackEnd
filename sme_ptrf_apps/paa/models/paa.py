@@ -60,6 +60,14 @@ class Paa(ModeloBase):
         self.saldo_congelado_em = datetime.now()
         self.save()
 
+    def set_paa_status_em_retificacao(self):
+        self.status = PaaStatusEnum.EM_RETIFICACAO.name
+        self.save()
+
+    def set_paa_status_gerado(self):
+        self.status = PaaStatusEnum.GERADO.name
+        self.save()
+
     def set_descongelar_saldo(self):
         self.saldo_congelado_em = None
         self.save()

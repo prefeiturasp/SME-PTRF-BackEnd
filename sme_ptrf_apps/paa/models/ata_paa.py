@@ -3,17 +3,21 @@ from auditlog.models import AuditlogHistoryField
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from waffle import get_waffle_flag_model
 
+
 class AtaPaa(ModeloBase):
     history = AuditlogHistoryField()
 
     ATA_APRESENTACAO = 'APRESENTACAO'
+    ATA_RETIFICACAO = 'RETIFICACAO'
 
     ATA_NOMES = {
         ATA_APRESENTACAO: 'Apresentação',
+        ATA_RETIFICACAO: 'Retificação',
     }
 
     ATA_CHOICES = (
         (ATA_APRESENTACAO, ATA_NOMES[ATA_APRESENTACAO]),
+        (ATA_RETIFICACAO, ATA_NOMES[ATA_RETIFICACAO]),
     )
 
     # Tipo de Reunião
@@ -191,7 +195,7 @@ class AtaPaa(ModeloBase):
             if historico_ativo
             else self.presidente_reuniao and self.secretario_reuniao
         )
-        
+
         campos_basicos = bool(
             self.tipo_ata and
             self.tipo_reuniao and

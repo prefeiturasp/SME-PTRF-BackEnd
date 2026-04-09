@@ -8,19 +8,55 @@ class PaaQuerySet(models.QuerySet):
         from sme_ptrf_apps.paa.models.documento_paa import DocumentoPaa
         from sme_ptrf_apps.paa.models.ata_paa import AtaPaa
 
-        tem_documento_final_concluido = Exists(
+        # Documento final concluído PAA Original
+        doc_final_original = Exists(
             DocumentoPaa.objects.filter(
                 paa=OuterRef('pk'),
                 versao=DocumentoPaa.VersaoChoices.FINAL,
+                retificacao=False,
+                status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+            )
+        )
+        # Documento final concluído PAA Retificação
+        doc_final_retificacao = Exists(
+            DocumentoPaa.objects.filter(
+                paa=OuterRef('pk'),
+                versao=DocumentoPaa.VersaoChoices.FINAL,
+                retificacao=True,
                 status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
             )
         )
 
-        tem_ata_concluida = Exists(
+        # Ata concluída PAA Original
+        ata_apresentacao = Exists(
             AtaPaa.objects.filter(
                 paa=OuterRef('pk'),
                 status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+                tipo_ata=AtaPaa.ATA_APRESENTACAO,
             )
+        )
+
+        # Ata concluída PAA Retificacao
+        ata_retificacao = Exists(
+            AtaPaa.objects.filter(
+                paa=OuterRef('pk'),
+                status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+                tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            )
+        )
+
+        # Anota o documento correto conforme o status do PAA
+        tem_documento_final_concluido = Case(
+            When(status=PaaStatusEnum.EM_RETIFICACAO.name, then=doc_final_retificacao),
+            default=doc_final_original,
+            output_field=models.BooleanField(),
+        )
+
+        # Anota a ata correta conforme o status do PAA
+        tem_ata_concluida = Case(
+            When(status=PaaStatusEnum.EM_RETIFICACAO.name, then=ata_retificacao),
+            default=ata_apresentacao,
+            output_field=models.BooleanField(),
         )
 
         return self.annotate(
@@ -36,18 +72,19 @@ class PaaQuerySet(models.QuerySet):
                     then=Value(PaaStatusAndamentoEnum.GERADO.name),
                 ),
 
-                # GERADO: status GERADO e ata gerado
+                # RETIFICACAO: status EM_RETIFICACAO + com replica
+                # Enquanto Status está em retificação, deve haver uma réplica
+                When(
+                    status=PaaStatusEnum.EM_RETIFICACAO.name,
+                    replica__isnull=False,
+                    then=Value(PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name),
+                ),
+
+                # GERADO: status GERADO e sem ata gerada
                 # Cenário fora de fluxo, mas possível(em manipulação admin)
                 When(
                     status=PaaStatusEnum.GERADO.name,
                     tem_ata_concluida=False,
-                    then=Value(PaaStatusAndamentoEnum.FORA_FLUXO.name),
-                ),
-                # RETIFICADO: status RETIFICACAO e sem documento ou ata gerado
-                # Cenário fora de fluxo, mas possível(em manipulação admin)
-                When(
-                    Q(status=PaaStatusEnum.EM_RETIFICACAO.name) &
-                    ~Q(tem_ata_concluida=True, tem_documento_final_concluido=True),
                     then=Value(PaaStatusAndamentoEnum.FORA_FLUXO.name),
                 ),
 
