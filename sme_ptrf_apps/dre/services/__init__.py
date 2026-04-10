@@ -26,6 +26,8 @@ from .lauda_service import (
 
 from .ata_parecer_tecnico_service import (
     gerar_arquivo_ata_parecer_tecnico,
+    obter_payload_ata,
+    congelar_snapshot_ata,
     informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre,
     informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre
 )
