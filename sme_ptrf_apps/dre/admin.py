@@ -6,6 +6,7 @@ from sme_ptrf_apps.core.admin_filters.recurso_filters import (
     AtaListFilter,
     AnaliseConsolidadoDreListFilter,
 )
+from sme_ptrf_apps.dre.models.ata_parecer_tecnico_snapshot import AtaParecerTecnicoSnapshot
 
 from .models import (
     Atribuicao, GrupoVerificacaoRegularidade, ListaVerificacaoRegularidade,
@@ -358,6 +359,13 @@ class AtaParecerTecnicoAdmin(admin.ModelAdmin):
             VincularConsolidadoService.vincular_artefato(ata)
 
         self.message_user(request, f"Atas vinculadas com sucesso!")
+
+
+@admin.register(AtaParecerTecnicoSnapshot)
+class AtaParecerTecnicoSnapshotAdmin(admin.ModelAdmin):
+    list_display = ('uuid', 'ata', 'schema_version', 'origem', 'congelado_em')
+    list_filter = ('origem', 'congelado_em')
+    readonly_fields = ('ata', 'dados', 'schema_version', 'origem', 'uuid', 'id', 'hash_dados', 'congelado_em')
 
 
 @admin.register(PresenteAtaDre)
