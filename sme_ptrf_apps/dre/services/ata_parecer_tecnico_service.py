@@ -119,7 +119,6 @@ def gerar_arquivo_ata_parecer_tecnico(
 
     except Exception as e:
         LOGGER.exception("FALHA AO GERAR O ARQUIVO DA ATA")
-        # LOGGER.info(f'FALHA AO GERAR O ARQUIVO DA ATA', e)
         ata.arquivo_pdf_nao_gerado()
         return None
 
