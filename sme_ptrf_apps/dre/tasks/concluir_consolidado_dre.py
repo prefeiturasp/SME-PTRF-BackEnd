@@ -39,7 +39,15 @@ def verificar_se_gera_ata_parecer_tecnico(dre=None, periodo=None, consolidado_dr
             f'Iniciando a geração do Arquivo da Ata de Parecer Técnico da DRE {dre}, Período {periodo} '
             f'e Consolidado DRE {consolidado_dre}')
         ata_uuid = ata.uuid
-        gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario, parcial)
+        gerar_arquivo_ata_parecer_tecnico_async(
+            ata_uuid=ata_uuid,
+            dre_uuid=dre_uuid,
+            periodo_uuid=periodo_uuid,
+            usuario=usuario,
+            parcial=parcial,
+            congelar_snapshot=True,
+            origem='PUBLICACAO',
+        )
     else:
         logger.info("Ata não preenchida, portanto Arquivo PDF não será gerado")
 

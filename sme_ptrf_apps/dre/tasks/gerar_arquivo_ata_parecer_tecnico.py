@@ -20,7 +20,15 @@ logger = logging.getLogger(__name__)
     time_limit=333333,
     soft_time_limit=333333
 )
-def gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, usuario, parcial):
+def gerar_arquivo_ata_parecer_tecnico_async(
+    ata_uuid,
+    dre_uuid,
+    periodo_uuid,
+    usuario=None,
+    parcial=None,
+    congelar_snapshot=False,
+    origem='MANUAL',
+):
     logger.info(f'Iniciando a geração da Ata de Parecer Técnico Async. DRE {dre_uuid} e Período {periodo_uuid}')
     from ..services import gerar_arquivo_ata_parecer_tecnico
 
@@ -28,7 +36,15 @@ def gerar_arquivo_ata_parecer_tecnico_async(ata_uuid, dre_uuid, periodo_uuid, us
     dre = Unidade.dres.get(uuid=dre_uuid)
     periodo = Periodo.by_uuid(periodo_uuid)
 
-    arquivo_ata = gerar_arquivo_ata_parecer_tecnico(ata=ata, dre=dre, periodo=periodo, usuario=usuario, parcial=parcial)
+    arquivo_ata = gerar_arquivo_ata_parecer_tecnico(
+        ata=ata,
+        dre=dre,
+        periodo=periodo,
+        usuario=usuario,
+        parcial=parcial,
+        congelar_snapshot=congelar_snapshot,
+        origem=origem,
+    )
 
     if arquivo_ata is not None:
         logger.info(f'Arquivo ata parecer técnico: {arquivo_ata} gerado com sucesso.')
