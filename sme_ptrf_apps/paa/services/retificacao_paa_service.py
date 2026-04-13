@@ -19,11 +19,64 @@ class RetificacaoPaaService:
             username=getattr(usuario, 'username', str(usuario))
         )
 
-    def _snapshot_objetivos(self):
-        return {
+    def _snapshot_objetivos_globais(self):
+        result = {}
+        # Lista de objetivos criados dentro do PAA (diferencia dos objetivos globais)
+        objs_paa = self.paa.objetivopaa_set.values_list('uuid', flat=True)
+        objs_globais = self.paa.objetivos.exclude(uuid__in=objs_paa)
+        for obj in objs_globais:
+            result[str(obj.uuid)] = {'nome': obj.nome}
+        return result
+
+    def _snapshot_objetivos_paa(self):
+        result = {
             str(obj.uuid): {'nome': obj.nome}
-            for obj in self.paa.objetivos.all()
+            for obj in self.paa.objetivopaa_set.all()
         }
+        return result
+
+    def _snapshot_atividades_estatutarias_paa(self):
+        result = {}
+        # Atividade Estatutárias(Instância AtividadePrevista) Globais (Não relacionadasa nenhum PAA)
+        _atvs_paa = self.paa.atividades_estatutarias.select_related('paa').filter(paa__isnull=False).all()
+
+        # filtra todas as atividades estatutárias(Instância AtividadePrevistaPaa) relacionadas ao m2m no PAA,
+        # filtrando apenas as atividades acima
+        atvs_paa = self.paa.atividadeestatutariapaa_set \
+            .select_related('paa', 'atividade_estatutaria') \
+            .filter(atividade_estatutaria__in=_atvs_paa) \
+            .all()
+        for atividadepaa in atvs_paa:
+            result[str(atividadepaa.atividade_estatutaria.uuid)] = {
+                'nome': str(atividadepaa.atividade_estatutaria.nome),
+                'tipo': str(atividadepaa.atividade_estatutaria.tipo),
+                'ano': str(atividadepaa.atividade_estatutaria.ano),
+                'mes': str(atividadepaa.atividade_estatutaria.mes),
+                'status': str(atividadepaa.atividade_estatutaria.status),
+                'data': str(atividadepaa.data),
+            }
+        return result
+
+    def _snapshot_atividades_estatutarias_globais(self):
+        result = {}
+        # Atividade Estatutárias Globais (Não relacionadas a nenhum PAA)
+        _atvs_globais = self.paa.atividades_estatutarias.select_related('paa').filter(paa__isnull=True).all()
+
+        # filtra todas as atividades estatutárias relacionadas ao m2m no PAA, filtrando apenas as atividades globais
+        atvs_globais = self.paa.atividadeestatutariapaa_set \
+            .select_related('paa', 'atividade_estatutaria') \
+            .filter(atividade_estatutaria__in=_atvs_globais) \
+            .all()
+        for atividadepaa in atvs_globais:
+            result[str(atividadepaa.atividade_estatutaria.uuid)] = {
+                'nome': str(atividadepaa.atividade_estatutaria.nome),
+                'tipo': str(atividadepaa.atividade_estatutaria.tipo),
+                'ano': str(atividadepaa.atividade_estatutaria.ano),
+                'mes': str(atividadepaa.atividade_estatutaria.mes),
+                'status': str(atividadepaa.atividade_estatutaria.status),
+                'data': str(atividadepaa.data),
+            }
+        return result
 
     def _snapshot_receitas_ptrf(self):
         result = {}
@@ -102,7 +155,10 @@ class RetificacaoPaaService:
         snapshot = {
             'texto_introducao': self.paa.texto_introducao or '',
             'texto_conclusao': self.paa.texto_conclusao or '',
-            'objetivos': self._snapshot_objetivos(),
+            'atividades_estatutarias_globais': self._snapshot_atividades_estatutarias_globais(),
+            'atividades_estatutarias_paa': self._snapshot_atividades_estatutarias_paa(),
+            'objetivos_globais': self._snapshot_objetivos_globais(),
+            'objetivos_paa': self._snapshot_objetivos_paa(),
             'receitas_ptrf': self._snapshot_receitas_ptrf(),
             'receitas_pdde': self._snapshot_receitas_pdde(),
             'receitas_recurso_proprio': self._snapshot_receitas_recurso_proprio(),
@@ -193,7 +249,17 @@ class RetificacaoPaaService:
 
         alteracoes = self._comparar_campos_texto(historico, snapshot_atual)
 
-        secoes_dict = ('objetivos', 'receitas_ptrf', 'receitas_pdde', 'receitas_outros_recursos', 'prioridades')
+        secoes_dict = (
+            'objetivos_paa',
+            'objetivos_globais',
+            'atividades_estatutarias_paa',
+            'atividades_estatutarias_globais',
+            'receitas_ptrf',
+            'receitas_pdde',
+            'receitas_recurso_proprio',
+            'receitas_outros_recursos',
+            'prioridades',
+        )
         for secao in secoes_dict:
             secao_alteracoes = self._comparar_secao_dict(
                 historico.get(secao, {}),

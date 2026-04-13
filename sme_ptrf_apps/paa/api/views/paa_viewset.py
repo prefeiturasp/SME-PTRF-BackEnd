@@ -508,12 +508,16 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         """
 
         from sme_ptrf_apps.paa.models import ReplicaPaa
+        from sme_ptrf_apps.paa.enums import PaaStatusEnum
 
         paa = self.get_object()
 
         try:
+            # Valida se existe Réplica
             paa.replica
-        except ReplicaPaa.DoesNotExist:
+            # Valida se o PAA foi iniciado para retificação
+            Paa.objects.get(uuid=uuid, status=PaaStatusEnum.EM_RETIFICACAO.name)
+        except (ReplicaPaa.DoesNotExist, Paa.DoesNotExist):
             return Response(
                 {'erro': 'sem_retificacao', 'mensagem': 'Nenhuma retificação iniciada para este PAA.'},
                 status=status.HTTP_404_NOT_FOUND
