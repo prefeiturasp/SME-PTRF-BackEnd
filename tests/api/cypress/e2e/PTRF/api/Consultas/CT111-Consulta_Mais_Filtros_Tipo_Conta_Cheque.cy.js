@@ -65,6 +65,8 @@ describe('Credito Escola - Consulta - Filtros', () => {
 
     Creditos.selecionarCreditosDaEscola()
 
+    cy.wait(5000)
+
     Creditos.selecionarMaisFiltros()
 
     Creditos.realizaConsultaTipoContaCheque()
@@ -88,6 +90,8 @@ describe('Credito Escola - Consulta - Filtros', () => {
 
     Creditos.selecionarCreditosDaEscola()
 
+    cy.wait(5000)
+
     Creditos.selecionarMaisFiltros()
 
     Creditos.selecionarDetalhamentoMaisFiltros()
@@ -110,6 +114,8 @@ describe('Credito Escola - Consulta - Filtros', () => {
     cy.wait(3000)
 
     Creditos.selecionarCreditosDaEscola()
+
+    cy.wait(5000)
 
     Creditos.selecionarMaisFiltros()
 
@@ -140,6 +146,8 @@ describe('Credito Escola - Consulta - Filtros', () => {
 
     Creditos.selecionarCreditosDaEscola()
 
+    cy.wait(5000)
+
     Creditos.selecionarMaisFiltros()
 
     Creditos.realizaConsultaTipoContaCheque()
@@ -164,6 +172,8 @@ describe('Credito Escola - Consulta - Filtros', () => {
     cy.wait(3000)
 
     Creditos.selecionarCreditosDaEscola()
+
+    cy.wait(5000)
 
     Creditos.selecionarMaisFiltros()
 

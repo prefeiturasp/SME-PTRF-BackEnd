@@ -61,8 +61,7 @@ Entao('sistema não altera os dados das contas na tela', () => {
   cy.validar_cancelar_edicao_dados_das_contas_associacao()   
 })
 
-Quando('clico em {string} conta da associação', (botao) => {
-  cy.solicitar_encerramento_dados_das_contas_associacao(botao) 
+Quando('clico em {string} conta da associação', () => {  
 })
 
 Entao('sistema envia a solicitação dos dados das contas', () => {   
