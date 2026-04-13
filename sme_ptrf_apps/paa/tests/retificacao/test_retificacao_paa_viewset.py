@@ -9,8 +9,9 @@ pytestmark = pytest.mark.django_db
 
 HISTORICO_VAZIO = {
     'texto_introducao': '', 'texto_conclusao': '',
-    'objetivos': {}, 'receitas_ptrf': {},
-    'receitas_pdde': {}, 'receitas_outros_recursos': {},
+    'objetivos_paa': {}, 'objetivos_globais': {}, 'receitas_ptrf': {},
+    'atividades_estatutarias_paa': {}, 'atividades_estatutarias_globais': {},
+    'receitas_pdde': {}, 'receitas_outros_recursos': {}, 'receitas_recurso_proprio': {},
     'prioridades': {},
 }
 
@@ -257,7 +258,7 @@ class TestPaaRetificacaoAction:
     def test_retorna_200_quando_replica_existe(
         self, jwt_authenticated_client_sme, flag_paa, flag_paa_retificacao, paa_factory, replica_paa_factory
     ):
-        paa = paa_factory()
+        paa = paa_factory(status='EM_RETIFICACAO')
         replica_paa_factory(paa=paa, historico=HISTORICO_VAZIO)
 
         response = jwt_authenticated_client_sme.get(
@@ -269,7 +270,7 @@ class TestPaaRetificacaoAction:
     def test_resposta_contem_campo_alteracoes(
         self, jwt_authenticated_client_sme, flag_paa, flag_paa_retificacao, paa_factory, replica_paa_factory
     ):
-        paa = paa_factory()
+        paa = paa_factory(status='EM_RETIFICACAO')
         replica_paa_factory(paa=paa, historico=HISTORICO_VAZIO)
 
         response = jwt_authenticated_client_sme.get(
@@ -281,7 +282,7 @@ class TestPaaRetificacaoAction:
     def test_alteracoes_e_dict(
         self, jwt_authenticated_client_sme, flag_paa, flag_paa_retificacao, paa_factory, replica_paa_factory
     ):
-        paa = paa_factory()
+        paa = paa_factory(status='EM_RETIFICACAO')
         replica_paa_factory(paa=paa, historico=HISTORICO_VAZIO)
 
         response = jwt_authenticated_client_sme.get(
@@ -293,7 +294,7 @@ class TestPaaRetificacaoAction:
     def test_alteracoes_detecta_mudanca_em_texto(
         self, jwt_authenticated_client_sme, flag_paa, flag_paa_retificacao, paa_factory, replica_paa_factory
     ):
-        paa = paa_factory(texto_introducao='Texto novo.')
+        paa = paa_factory(texto_introducao='Texto novo.', status='EM_RETIFICACAO')
         replica_paa_factory(paa=paa, historico={
             **HISTORICO_VAZIO,
             'texto_introducao': 'Texto original.',
@@ -308,7 +309,7 @@ class TestPaaRetificacaoAction:
     def test_resposta_contem_campos_do_paa(
         self, jwt_authenticated_client_sme, flag_paa, flag_paa_retificacao, paa_factory, replica_paa_factory
     ):
-        paa = paa_factory()
+        paa = paa_factory(status='EM_RETIFICACAO',)
         replica_paa_factory(paa=paa, historico=HISTORICO_VAZIO)
 
         response = jwt_authenticated_client_sme.get(

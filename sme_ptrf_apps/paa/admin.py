@@ -278,6 +278,9 @@ class AtaPaaAdmin(admin.ModelAdmin):
         'parecer_conselho',
         'previa',
     )
+    list_select_related = (
+        'paa', 'paa__periodo_paa', 'paa__associacao', 'paa__associacao__unidade',
+        'composicao', 'presidente_da_reuniao', 'secretario_da_reuniao')
 
     list_filter = (
         'paa__periodo_paa',
@@ -379,4 +382,4 @@ class ReplicaPaaAdmin(admin.ModelAdmin):
         return False
 
     def has_change_permission(self, request, obj=None):
-        return request.user.is_superuser
+        return False

@@ -19,9 +19,13 @@ class TestGerarSnapshot:
 
         assert 'texto_introducao' in snapshot
         assert 'texto_conclusao' in snapshot
-        assert 'objetivos' in snapshot
+        assert 'objetivos_paa' in snapshot
+        assert 'objetivos_globais' in snapshot
+        assert 'atividades_estatutarias_paa' in snapshot
+        assert 'atividades_estatutarias_globais' in snapshot
         assert 'receitas_ptrf' in snapshot
         assert 'receitas_pdde' in snapshot
+        assert 'receitas_recurso_proprio' in snapshot
         assert 'receitas_outros_recursos' in snapshot
         assert 'prioridades' in snapshot
 
@@ -36,12 +40,12 @@ class TestGerarSnapshot:
     def test_snapshot_captura_objetivo(self, paa_retificacao, objetivo_no_paa):
         snapshot = _service(paa_retificacao).gerar_snapshot()
 
-        assert str(objetivo_no_paa.uuid) in snapshot['objetivos']
-        assert snapshot['objetivos'][str(objetivo_no_paa.uuid)]['nome'] == objetivo_no_paa.nome
+        assert str(objetivo_no_paa.uuid) in snapshot['objetivos_paa']
+        assert snapshot['objetivos_paa'][str(objetivo_no_paa.uuid)]['nome'] == objetivo_no_paa.nome
 
     def test_snapshot_sem_objetivos_retorna_dict_vazio(self, paa_retificacao):
         snapshot = _service(paa_retificacao).gerar_snapshot()
-        assert snapshot['objetivos'] == {}
+        assert snapshot['objetivos_paa'] == {}
 
     def test_snapshot_captura_receita_ptrf(self, paa_retificacao, receita_ptrf_no_paa):
         snapshot = _service(paa_retificacao).gerar_snapshot()
@@ -244,9 +248,9 @@ class TestIdentificarAlteracoes:
 
         resultado = _service(paa_retificacao).identificar_alteracoes()
 
-        assert 'objetivos' in resultado
-        assert str(novo_objetivo.uuid) in resultado['objetivos']
-        assert resultado['objetivos'][str(novo_objetivo.uuid)]['acao'] == 'adicionado'
+        assert 'objetivos_paa' in resultado
+        assert str(novo_objetivo.uuid) in resultado['objetivos_paa']
+        assert resultado['objetivos_paa'][str(novo_objetivo.uuid)]['acao'] == 'adicionado'
 
     def test_detecta_receita_ptrf_adicionada(self, paa_retificacao, replica_paa, receita_ptrf_no_paa):
         resultado = _service(paa_retificacao).identificar_alteracoes()
@@ -265,6 +269,6 @@ class TestIdentificarAlteracoes:
     def test_secoes_inalteradas_nao_aparecem(self, paa_retificacao, replica_paa):
         resultado = _service(paa_retificacao).identificar_alteracoes()
 
-        assert 'objetivos' not in resultado
+        assert 'objetivos_paa' not in resultado
         assert 'receitas_ptrf' not in resultado
         assert 'prioridades' not in resultado
