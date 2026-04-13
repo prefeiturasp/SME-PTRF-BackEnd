@@ -1,45 +1,70 @@
 from django.contrib import admin
 from sme_ptrf_apps.paa.models import (
+    Paa,
     ReceitaPrevistaPaa,
     RecursoProprioPaa,
     ReceitaPrevistaPdde,
     PrioridadePaa,
-    ObjetivoPaa,
     AtaPaa,
-    AtividadeEstatutariaPaa,
     DocumentoPaa,
     ReceitaPrevistaOutroRecursoPeriodo
 )
 
 
 class ObjetivosPaaInline(admin.TabularInline):
-    model = ObjetivoPaa
+    model = Paa.objetivos.through
     extra = 0
     fields = (
-        'uuid',
-        'nome',
-        'status',
+        'get_uuid',
+        'get_nome',
+        'get_status',
+        'get_objetivo_do_paa',
     )
     readonly_fields = fields
     can_delete = False
+    verbose_name = 'Objetivo'
+    verbose_name_plural = 'Objetivos'
 
-    def has_add_permission(self, request, obj):
+    def has_add_permission(self, request, obj=None):
         return False
+
+    def get_uuid(self, obj):
+        return obj.objetivopaa.uuid
+    get_uuid.short_description = 'UUID'
+
+    def get_nome(self, obj):
+        return obj.objetivopaa.nome
+    get_nome.short_description = 'Nome'
+
+    def get_status(self, obj):
+        return obj.objetivopaa.get_status_display()
+    get_status.short_description = 'Status'
+
+    def get_objetivo_do_paa(self, obj):
+        return obj.objetivopaa.paa_id is not None
+    get_objetivo_do_paa.short_description = 'Criado no PAA'
+    get_objetivo_do_paa.boolean = True
 
 
 class AtividadeEstatutariaPaaInline(admin.TabularInline):
-    model = AtividadeEstatutariaPaa
+    model = Paa.atividades_estatutarias.through
     extra = 0
     fields = (
         'uuid',
         'atividade_estatutaria',
         'data',
+        'get_atividade_estatutaria_do_paa',
     )
     readonly_fields = fields
     can_delete = False
 
     def has_add_permission(self, request, obj):
         return False
+
+    def get_atividade_estatutaria_do_paa(self, obj):
+        return obj.atividade_estatutaria.paa_id is not None
+    get_atividade_estatutaria_do_paa.short_description = 'Criada no PAA'
+    get_atividade_estatutaria_do_paa.boolean = True
 
 
 class ReceitasPrevistasPTRFInline(admin.TabularInline):
@@ -128,13 +153,7 @@ class PrioridadesPaaInline(admin.TabularInline):
         'uuid',
         'prioridade',
         'recurso',
-        # 'acao_associacao',
-        # 'programa_pdde',
-        # 'acao_pdde',
-        # 'outro_recurso',
         'tipo_aplicacao',
-        # 'tipo_despesa_custeio',
-        # 'especificacao_material',
         'valor_total',
     )
     readonly_fields = fields
