@@ -1,6 +1,5 @@
 from datetime import datetime
 from auditlog.models import AuditlogHistoryField
-from django.db.models import Q
 from auditlog.registry import auditlog
 from django.db import models
 from django.db.models.signals import pre_save, post_save
@@ -115,7 +114,8 @@ class Despesa(ModeloBase):
     def set_despesa_anterior_ao_uso_do_sistema_pc_concluida(self):
 
         logger.info(
-            "Método set_despesa_anterior_ao_uso_do_sistema_pc_concluida. Verificando se a flag <ajustes-despesas-anteriores> está ativa...")
+            "Método set_despesa_anterior_ao_uso_do_sistema_pc_concluida. "
+            "Verificando se a flag <ajustes-despesas-anteriores> está ativa...")
 
         flags = get_waffle_flag_model()
         flag_ajustes_despesas_anteriores_ativa = flags.objects.filter(
@@ -133,7 +133,8 @@ class Despesa(ModeloBase):
 
     def set_despesa_anterior_ao_uso_do_sistema(self):
         logger.info(
-            "Método set_despesa_anterior_ao_uso_do_sistema. Verificando se a flag <ajustes-despesas-anteriores> está ativa...")
+            "Método set_despesa_anterior_ao_uso_do_sistema. Verificando se a flag "
+            "<ajustes-despesas-anteriores> está ativa...")
 
         flags = get_waffle_flag_model()
         flag_ajustes_despesas_anteriores_ativa = flags.objects.filter(
@@ -250,9 +251,12 @@ class Despesa(ModeloBase):
             ))
 
         if self.conferido:
+            rateio = self.rateios.all().order_by('periodo_conciliacao').last()
             tags.append(tag_informacao(
                 self.TAG_CONCILIADA,
-                f"Essa despesa já possui conciliação bancária."
+                f"Essa despesa já possui conciliação bancária.",
+                periodo_conciliacao=rateio.periodo_conciliacao.referencia if rateio and rateio.periodo_conciliacao else None,
+                periodo_conciliacao_hint=None,
             ))
 
         if not self.conferido:
@@ -532,11 +536,12 @@ def rateio_post_save(instance, created, **kwargs):
         Fornecedor.atualiza_ou_cria(cpf_cnpj=instance.cpf_cnpj_fornecedor, nome=instance.nome_fornecedor)
 
 
-def tag_informacao(tipo_de_tag, hint):
+def tag_informacao(tipo_de_tag, hint, **extra):
     return {
         'tag_id': tipo_de_tag['id'],
         'tag_nome': tipo_de_tag['nome'],
         'tag_hint': hint,
+        **extra
     }
 
 
