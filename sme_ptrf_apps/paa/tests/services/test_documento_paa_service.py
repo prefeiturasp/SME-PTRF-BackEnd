@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch, call
 
 from sme_ptrf_apps.paa.services.documento_paa_service import DocumentoPaaService
 from sme_ptrf_apps.paa.models.documento_paa import DocumentoPaa
+from sme_ptrf_apps.paa.models import AtaPaa
 
 logger = logging.getLogger(__name__)
 
@@ -323,6 +324,35 @@ class TestDocumentoPaaServiceIntegracao:
 
         service.documento_paa.refresh_from_db()
         assert service.documento_paa.status_geracao == DocumentoPaa.StatusChoices.CONCLUIDO
+
+    def test_marcar_concluido_final_cria_ata_apresentacao(self, paa):
+        assert not AtaPaa.objects.filter(paa=paa, tipo_ata=AtaPaa.ATA_APRESENTACAO).exists()
+
+        service = DocumentoPaaService(paa=paa, usuario=MagicMock(), previa=False, logger=logger)
+        service.criar_novo_documento()
+        service.registrar_historico_acoes = MagicMock()
+        service.marcar_concluido()
+
+        ata = AtaPaa.objects.get(paa=paa, tipo_ata=AtaPaa.ATA_APRESENTACAO)
+        assert ata.pk is not None
+
+    def test_marcar_concluido_previa_nao_cria_ata(self, paa):
+        service = DocumentoPaaService(paa=paa, usuario=MagicMock(), previa=True, logger=logger)
+        service.criar_novo_documento()
+        service.registrar_historico_acoes = MagicMock()
+        service.marcar_concluido()
+
+        assert not AtaPaa.objects.filter(paa=paa).exists()
+
+    def test_marcar_concluido_documento_retificacao_nao_cria_ata(self, paa):
+        service = DocumentoPaaService(paa=paa, usuario=MagicMock(), previa=False, logger=logger)
+        service.criar_novo_documento()
+        service.documento_paa.retificacao = True
+        service.documento_paa.save()
+        service.registrar_historico_acoes = MagicMock()
+        service.marcar_concluido()
+
+        assert not AtaPaa.objects.filter(paa=paa).exists()
 
     def test_marcar_erro_atualiza_status_no_banco(self, paa):
         service = DocumentoPaaService(paa=paa, usuario=MagicMock(), previa=True, logger=logger)

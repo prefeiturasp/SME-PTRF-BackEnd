@@ -1,5 +1,6 @@
 import pytest
 from datetime import date
+from django.core.files.base import ContentFile
 from freezegun import freeze_time
 from rest_framework import status
 from sme_ptrf_apps.paa.choices import StatusChoices
@@ -76,7 +77,9 @@ def test_get_atividades_estatutarias_disponiveis(jwt_authenticated_client_sme, f
     assert len(result) == 1
 
 
-def test_get_atividades_estatutarias_previstas(jwt_authenticated_client_sme, flag_paa, atividade_estatutaria_paa_factory):
+def test_get_atividades_estatutarias_previstas(
+    jwt_authenticated_client_sme, flag_paa, atividade_estatutaria_paa_factory,
+):
 
     atividade = atividade_estatutaria_paa_factory()
 
@@ -103,7 +106,14 @@ def test_get_recursos_proprios_previstos(jwt_authenticated_client_sme, flag_paa,
 
 
 @freeze_time('2025-06-15')
-def test_get_paa_vigente_e_anteriores(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory, ata_paa_factory, documento_paa_factory):
+def test_get_paa_vigente_e_anteriores(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    paa_factory,
+    periodo_paa_factory,
+    ata_paa_factory,
+    documento_paa_factory,
+):
     periodo_2024 = periodo_paa_factory.create(
         referencia="Periodo 2024", data_inicial=date(2024, 1, 1), data_final=date(2024, 12, 31))
     periodo_2025 = periodo_paa_factory.create(
@@ -121,7 +131,11 @@ def test_get_paa_vigente_e_anteriores(jwt_authenticated_client_sme, flag_paa, pa
         status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
     )
 
-    paa_2025 = paa_factory.create(periodo_paa=periodo_2025, associacao=paa_2024.associacao, status=PaaStatusEnum.GERADO.name)
+    paa_2025 = paa_factory.create(
+        periodo_paa=periodo_2025,
+        associacao=paa_2024.associacao,
+        status=PaaStatusEnum.GERADO.name,
+    )
 
     ata_paa_factory.create(
         paa=paa_2025,
@@ -141,12 +155,71 @@ def test_get_paa_vigente_e_anteriores(jwt_authenticated_client_sme, flag_paa, pa
 
     assert response.status_code == status.HTTP_200_OK
     assert result['vigente']['uuid'] == str(paa_2025.uuid)
+    assert result['vigente']['referencia'] == 'Periodo 2025'
+    assert result['vigente']['esta_em_retificacao'] is False
+    assert result['vigente']['retificacao'] is None
+    assert result['vigente']['original']['documento']['status']['status_geracao'] == 'CONCLUIDO'
+    assert result['vigente']['original']['ata']['status']['status_geracao'] == AtaPaa.STATUS_CONCLUIDO
+    assert result['vigente']['original']['ata']['apresenta_botoes_acao'] is False
     assert len(result['anteriores']) == 1
     assert result['anteriores'][0]['uuid'] == str(paa_2024.uuid)
+    assert result['anteriores'][0]['referencia'] == 'Periodo 2024'
+    assert result['anteriores'][0]['original']['ata']['apresenta_botoes_acao'] is False
+
+
+@freeze_time('2025-06-15')
+def test_get_documento_final_com_query_retificacao(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    paa_factory,
+    periodo_paa_factory,
+    documento_paa_factory,
+):
+    periodo_2025 = periodo_paa_factory.create(
+        referencia='Periodo 2025',
+        data_inicial=date(2025, 1, 1),
+        data_final=date(2025, 12, 31),
+    )
+    paa = paa_factory.create(periodo_paa=periodo_2025, status=PaaStatusEnum.GERADO.name)
+    pdf_orig = b'%PDF-1.4 orig'
+    pdf_ret = b'%PDF-1.4 ret'
+
+    doc_orig = documento_paa_factory.create(
+        paa=paa,
+        versao=DocumentoPaa.VersaoChoices.FINAL,
+        status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+        retificacao=False,
+    )
+    doc_orig.arquivo_pdf.save('orig.pdf', ContentFile(pdf_orig), save=True)
+
+    doc_ret = documento_paa_factory.create(
+        paa=paa,
+        versao=DocumentoPaa.VersaoChoices.FINAL,
+        status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+        retificacao=True,
+    )
+    doc_ret.arquivo_pdf.save('ret.pdf', ContentFile(pdf_ret), save=True)
+
+    r_false = jwt_authenticated_client_sme.get(
+        f'/api/paa/{paa.uuid}/documento-final/?retificacao=false'
+    )
+    r_true = jwt_authenticated_client_sme.get(
+        f'/api/paa/{paa.uuid}/documento-final/?retificacao=true'
+    )
+
+    assert r_false.status_code == status.HTTP_200_OK
+    assert r_true.status_code == status.HTTP_200_OK
+    assert r_false.content == pdf_orig
+    assert r_true.content == pdf_ret
 
 
 @freeze_time('2026-01-01')
-def test_get_paa_vigente_e_anteriores_sem_periodo(jwt_authenticated_client_sme, flag_paa, associacao, periodo_paa_factory):
+def test_get_paa_vigente_e_anteriores_sem_periodo(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    associacao,
+    periodo_paa_factory,
+):
     periodo_paa_factory.create(
         referencia="Periodo 2024", data_inicial=date(2024, 1, 1), data_final=date(2024, 12, 31))
 

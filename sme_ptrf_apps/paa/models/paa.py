@@ -7,6 +7,7 @@ from ckeditor.fields import RichTextField
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.models.periodo_paa import PeriodoPaa
+from sme_ptrf_apps.paa.models.documento_paa import obter_documento_final_por_retificacao
 from sme_ptrf_apps.paa.enums import PaaStatusEnum, PaaStatusAndamentoEnum
 from sme_ptrf_apps.paa.paa_querysets.paa_queryset import PaaManager
 
@@ -78,7 +79,9 @@ class Paa(ModeloBase):
 
     @property
     def documento_final(self):
-        return self.documentopaa_set.filter(versao="FINAL").first()
+        if self.status == PaaStatusEnum.EM_RETIFICACAO.name:
+            return obter_documento_final_por_retificacao(self, True)
+        return obter_documento_final_por_retificacao(self, False)
 
     @property
     def documento_previa(self):
