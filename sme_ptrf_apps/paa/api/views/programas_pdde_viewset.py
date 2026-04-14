@@ -17,8 +17,7 @@ from sme_ptrf_apps.paa.services import PaaService
 from sme_ptrf_apps.paa.api.serializers import ProgramaPddeSerializer, ProgramasPddeSomatorioTotalSerializer
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 
-from sme_ptrf_apps.users.permissoes import PermissaoAPIApenasSmeComLeituraOuGravacao
-
+from sme_ptrf_apps.users.permissoes import PermissaoAPIApenasSmeComLeituraOuGravacao, PermissaoApiUe
 from drf_spectacular.utils import extend_schema_view
 from .docs.programas_pdde_docs import DOCS
 
@@ -105,7 +104,8 @@ class ProgramaPddeViewSet(WaffleFlagMixin, ModelViewSet):
         responses={200: OpenApiTypes.OBJECT},
         description="Retornam os totais por programa PDDE relacionados a um PAA"
     )
-    @action(detail=False, methods=['get'], url_path='totais')
+    @action(detail=False, methods=['get'], url_path='totais',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
     def somatorio_total_por_programas(self, request):
         paa = request.query_params.get('paa_uuid')
         if not paa:
