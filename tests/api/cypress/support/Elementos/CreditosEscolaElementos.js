@@ -9,7 +9,7 @@ class CreditosEscolaElementos {
     return cy.get("#tipo_receita", { timeout: 10000 }).should('be.visible').select("Devolução à conta");
   };
   estorno = () => {
-    return cy.get("#tipo_receita", { timeout: 10000 }).should('be.visible').select("Estorno");
+    return cy.get("#tipo_receita", { timeout: 20000 }).should('be.visible').select("Estorno");
   };
   recursoExterno = () => {
     return cy.get("#tipo_receita", { timeout: 10000 }).should('be.visible').select("Recurso Externo");

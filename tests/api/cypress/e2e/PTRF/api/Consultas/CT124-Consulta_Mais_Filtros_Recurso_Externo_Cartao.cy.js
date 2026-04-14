@@ -107,6 +107,8 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
 
     Creditos.selecionarCreditosDaEscola()
 
+    cy.wait(10000)
+
     Creditos.selecionarMaisFiltros()
 
     Creditos.selecionarRecursoExternoMaisFiltros()

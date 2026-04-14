@@ -1,8 +1,5 @@
 ///<reference types="cypress" />
 
-import usuarios from "../../../../fixtures/usuariosPTRF.json"
-const usuario = usuarios.Josue
-
 import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF"
 const Comum = new ComumPaginaPTRF()
 
