@@ -292,3 +292,57 @@ sme_ptrf_apps/media/
 dump.rdb
 
 **/*testsuite.xml
+
+
+# =============================================================================
+# Coreções — Arquivos sensíveis que NUNCA devem ir ao repositório
+# =============================================================================
+
+# Backups de banco de dados
+*.sql
+*.bak
+*.backup
+*.dump
+*.db
+*.sqlite
+*.sqlite3
+
+# Arquivos compactados (possíveis backups)
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.7z
+
+# Certificados e chaves criptográficas
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+*.csr
+id_rsa
+id_rsa.pub
+id_ed25519
+id_ed25519.pub
+
+# Variáveis de ambiente (já existe .env acima, mas reforçamos variações)
+.env.*
+!.env.example
+!.env.sample
+env-sample
+env_sample
+
+# Diretórios de backup
+backup/
+backups/
+bkp/
+old/
+temp/
+tmp/
+
+# Logs de aplicação
+*.log
+logs/

@@ -23,3 +23,10 @@ from .outros_recursos_serializer import OutroRecursoSerializer
 from .outros_recursos_periodo_paa_serializer import OutrosRecursosPeriodoPaaSerializer
 from .receita_prevista_outro_recurso_periodo_serializer import ReceitaPrevistaOutroRecursoPeriodoSerializer
 from .modelo_carga_paa_serializer import ModeloCargaPaaSerializer
+from .replica_paa_serializer import ReplicaPaaSerializer
+from .renderizador_paa_serializer import (
+    RenderizadorPaaSerializer,
+    RenderizadorPaaBuilder,
+    RenderizadorDocumentoPaaSerializer,
+    RenderizadorAtaPaaSerializer,
+)

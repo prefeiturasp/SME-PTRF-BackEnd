@@ -1,83 +1,78 @@
-//<reference types="cypress" />
+///<reference types="cypress" />
 
-import usuarios from "../../../../fixtures/usuariosPTRF.json";
-const usuario = usuarios.Josue;
+import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF"
+const Comum = new ComumPaginaPTRF()
 
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
-const Comum = new ComumPaginaPTRF();
-
-import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina";
-const Creditos = new CreditosEscolaPagina();
-
-Cypress.on("uncaught:exception", (err, runnable) => {
-  // quando retorna falso previne o Cypress de falhar o teste
-  return false;
-});
+import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina"
+const Creditos = new CreditosEscolaPagina()
 
 describe("Credito Escola - Consulta", () => {
 
   it("CT99-Consulta_Creditos_Escola_Rendimento", () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuVilaAlpina();
+    Comum.visitarPaginaPTRF()
+    
+    cy.realizar_login('UE')
 
-    Creditos.selecionarCreditosDaEscola();
+    Creditos.selecionarCreditosDaEscola()
 
-    cy.wait(3000);
+    cy.wait(3000)
 
-    Creditos.selecionarRendimento();
-    Creditos.filtrarReceita();
+    Creditos.selecionarRendimento()
 
-    Comum.logout();
-  });
+    Creditos.filtrarReceita()
+
+    Comum.logout()
+  })
 
   it("CT215-Consulta_Creditos_Escola_Rendimento_Sem_Filtro", () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuVilaAlpina();
+    Comum.visitarPaginaPTRF()
 
-    Creditos.selecionarCreditosDaEscola();
+    cy.realizar_login('UE')
 
-    cy.wait(3000);
+    Creditos.selecionarCreditosDaEscola()
 
-    Creditos.selecionarRendimento();
+    cy.wait(3000)
 
-    Comum.logout();
-  });
+    Creditos.selecionarRendimento()
+
+    Comum.logout()
+  })
 
   it("CT216-Consulta_Creditos_Escola_Rendimento_Com_Filtro_Receita", () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuVilaAlpina();
+    Comum.visitarPaginaPTRF()
 
-    Creditos.selecionarCreditosDaEscola();
+    cy.realizar_login('UE')
 
-    cy.wait(3000);
+    Creditos.selecionarCreditosDaEscola()
 
-    Creditos.selecionarRendimento();
-    Creditos.filtrarReceita();
+    cy.wait(3000)
 
-    Comum.logout();
-  });
+    Creditos.selecionarRendimento()
+
+    Creditos.filtrarReceita()
+
+    Comum.logout()
+  })
 
   it("CT217-Consulta_Creditos_Escola_Rendimento_Reconsultar", () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
-    Comum.selecionarCeuVilaAlpina();
+    Comum.visitarPaginaPTRF()
 
-    Creditos.selecionarCreditosDaEscola();
+    cy.realizar_login('UE')
 
-    cy.wait(3000);
+    Creditos.selecionarCreditosDaEscola()
 
-    Creditos.selecionarRendimento();
-    Creditos.filtrarReceita();
+    cy.wait(3000)
 
-    Creditos.selecionarRendimento();
+    Creditos.selecionarRendimento()
+    
+    Creditos.filtrarReceita()
 
-    Comum.logout();
-  });
-});
+    Creditos.selecionarRendimento()
+
+    Comum.logout()
+  })
+})

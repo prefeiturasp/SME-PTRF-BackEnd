@@ -35,6 +35,13 @@ class Recurso(ModeloIdNome, TemAtivo):
     legado = models.BooleanField(verbose_name="Legado?",
                                  help_text='Em caso de flag inativa, esse recurso será utilizado nos filtros.', default=False)
 
+    exibe_valores_reprogramados = models.BooleanField(
+        verbose_name="Exibir valores reprogramados?",
+        default=False,
+        null=False,
+        blank=False
+    )
+
     class Meta:
         verbose_name = 'Recurso'
         verbose_name_plural = '20.0) Recursos'

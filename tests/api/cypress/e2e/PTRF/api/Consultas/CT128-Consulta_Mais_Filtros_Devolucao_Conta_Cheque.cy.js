@@ -1,83 +1,69 @@
 ///<reference types="cypress" />
 
-// Fixture (3 níveis acima)
-import usuarios from "../../../../fixtures/usuariosPTRF.json";
-const usuario = usuarios.Kellen;
+import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF"
+const Comum = new ComumPaginaPTRF()
 
-// Páginas (3 níveis acima)
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
-const Comum = new ComumPaginaPTRF();
-
-import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina";
-const Creditos = new CreditosEscolaPagina();
-
-Cypress.on("uncaught:exception", (err, runnable) => {
-  return false;
-});
+import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina"
+const Creditos = new CreditosEscolaPagina()
 
 describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cheque', () => {
 
   it('CT128-Consulta_Mais_Filtros_Devolucao_Conta_Cheque', () => {
 
-    Comum.visitarPaginaPTRF();
+    Comum.visitarPaginaPTRF()
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    cy.realizar_login('UE')
 
-    Comum.selecionarCeuEmefMariaClara();
+    cy.wait(3000)
 
-    cy.wait(3000);
+    Creditos.selecionarCreditosDaEscola()
 
-    Creditos.selecionarCreditosDaEscola();
+    Creditos.selecionarMaisFiltros()
 
-    Creditos.selecionarMaisFiltros();
+    Creditos.selecionarDevolacaoContaMaisFiltros()
 
-    Creditos.selecionarDevolacaoContaMaisFiltros();
+    Creditos.selecionarDetalhamentoMaisFiltros()
 
-    Creditos.selecionarDetalhamentoMaisFiltros();
+    Creditos.realizaConsultaTipoContaCheque()
 
-    Creditos.realizaConsultaTipoContaCheque();
+    Creditos.realizaConsultaAcaoPtrf()
 
-    Creditos.realizaConsultaAcaoPtrf();
+    Creditos.realizaConsultaDataInicio()
 
-    Creditos.realizaConsultaDataInicio();
+    Creditos.realizaConsultaDataFim()
 
-    Creditos.realizaConsultaDataFim();
+    Creditos.selecionarFiltrarMaisFiltros()
 
-    Creditos.selecionarFiltrarMaisFiltros();
+    Comum.selecionarPerfil()
 
-    Comum.selecionarPerfil();
-
-    Comum.logout();
-  });
+    Comum.logout()
+  })
 
   it('CT143-Consulta_Mais_Filtros_Devolucao_Conta_Cheque_Sem_Data', () => {
 
-    Comum.visitarPaginaPTRF();
+    Comum.visitarPaginaPTRF()
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    cy.realizar_login('UE')
 
-    Comum.selecionarCeuEmefMariaClara();
+    cy.wait(3000)
 
-    cy.wait(3000);
+    Creditos.selecionarCreditosDaEscola()
 
-    Creditos.selecionarCreditosDaEscola();
+    Creditos.selecionarMaisFiltros()
 
-    Creditos.selecionarMaisFiltros();
+    Creditos.selecionarDevolacaoContaMaisFiltros()
 
-    Creditos.selecionarDevolacaoContaMaisFiltros();
+    Creditos.selecionarDetalhamentoMaisFiltros()
 
-    Creditos.selecionarDetalhamentoMaisFiltros();
+    Creditos.realizaConsultaTipoContaCheque()
 
-    Creditos.realizaConsultaTipoContaCheque();
+    Creditos.realizaConsultaAcaoPtrf()
 
-    Creditos.realizaConsultaAcaoPtrf();
+    // Sem data início e fim
+    Creditos.selecionarFiltrarMaisFiltros()
 
-    // 🔹 Sem data início e fim
-    Creditos.selecionarFiltrarMaisFiltros();
+    Comum.selecionarPerfil()
 
-    Comum.selecionarPerfil();
-
-    Comum.logout();
-  });
-
-});
+    Comum.logout()
+  })
+})

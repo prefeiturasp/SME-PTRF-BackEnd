@@ -46,23 +46,18 @@ class ReceitaPrevistaPddeSerializer(serializers.ModelSerializer):
 
         paa = attrs.get('paa') or (self.instance.paa if self.instance else None)
 
-        # Resolve paa if it's a string (UUID) to the actual Paa object
+        # Resolve paa quando é string UUID
         if paa and isinstance(paa, str):
             try:
-                paa = Paa.objects.get(uuid=paa)
+                paa = Paa.by_uuid(paa)
             except Paa.DoesNotExist:
-                # If paa doesn't exist, skip the documento_final check
-                # The field validation will handle the error
-                paa = None
+                raise serializers.ValidationError({'mensagem': 'PAA não encontrado!'})
 
-        if paa:
-            # Bloqueia edição quando o documento final foi gerado
-            documento_final = paa.documento_final
-            if documento_final and documento_final.concluido:
-                raise serializers.ValidationError({
-                    'mensagem': (
-                        'Não é possível editar receitas previstas PDDE após a geração do documento final do PAA.')
-                })
+        # Bloqueia edição quando o documento final foi gerado
+        if paa.get_tem_documento_final_concluido():
+            raise serializers.ValidationError({
+                'mensagem': ('Não é possível editar receitas previstas PDDE após a geração do documento final do PAA.')
+            })
 
         # Verifica prioridades do PAA impactadas
         self._verificar_prioridades_paa_impactadas(attrs, self.instance)

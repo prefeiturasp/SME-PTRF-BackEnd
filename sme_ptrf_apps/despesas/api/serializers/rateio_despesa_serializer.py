@@ -10,7 +10,8 @@ from ...models import Despesa, RateioDespesa
 from ....core.api.serializers import TagLookupSerializer
 from ....core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer, AcaoAssociacaoSerializer
 from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
-from ....core.api.serializers.conta_associacao_serializer import ContaAssociacaoSerializer, ContaAssociacaoLookUpSerializer
+from ....core.api.serializers.conta_associacao_serializer import (ContaAssociacaoSerializer,
+                                                                  ContaAssociacaoLookUpSerializer)
 from ....core.models import AcaoAssociacao, Associacao, ContaAssociacao, Tag
 
 
@@ -129,7 +130,8 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
         return rateio.despesa.data_transacao
 
     def get_recurso_externo(self, rateio):
-        return rateio.despesa.receitas_saida_do_recurso.first().uuid if rateio.despesa.receitas_saida_do_recurso.exists() else None
+        return (rateio.despesa.receitas_saida_do_recurso.first().uuid
+                if rateio.despesa.receitas_saida_do_recurso.exists() else None)
 
     def get_estorno(self, rateio):
         return rateio.estorno.first()
@@ -203,6 +205,11 @@ class RateioDespesaTabelaGastosEscolaSerializer(serializers.ModelSerializer):
     tipo_custeio = TipoCusteioSerializer()
     tag = TagLookupSerializer()
     estorno = serializers.SerializerMethodField(method_name="get_estorno")
+    periodo_conciliacao = serializers.SlugRelatedField(
+        slug_field='referencia',
+        read_only=True,
+        allow_null=True
+    )
 
     def get_estorno(self, rateio):
         from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaLookUpSerializer

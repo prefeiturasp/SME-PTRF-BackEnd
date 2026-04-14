@@ -25,7 +25,7 @@ Funcionalidade: Edição de dados das contas da associação
     Exemplos:
       | visualizacao | campo    | caso               |
       | web          | cancelar | Clicar em cancelar |
-@ignore
+
   Esquema do Cenário: Validar encerramento da conta: <caso>
     Quando clico em dados das contas
     E clico em "<botao>" conta da associação

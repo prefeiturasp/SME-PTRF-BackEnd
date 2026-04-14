@@ -20,9 +20,15 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPITodosComLeituraOuGravacao,
     PermissaoApiUe
 )
-from sme_ptrf_apps.paa.api.serializers.paa_serializer import PaaSerializer, PaaUpdateSerializer
+from sme_ptrf_apps.paa.api.serializers.paa_serializer import (
+    PaaSerializer,
+    PaaUpdateSerializer,
+    PaaRetificacaoComparativoSerializer,
+)
+from sme_ptrf_apps.paa.api.serializers.renderizador_paa_serializer import RenderizadorPaaBuilder
 from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
 from sme_ptrf_apps.paa.models import Paa, PeriodoPaa
+from sme_ptrf_apps.paa.models.documento_paa import obter_documento_final_por_retificacao
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.services.paa_service import PaaService, ImportacaoConfirmacaoNecessaria
 from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
@@ -31,10 +37,17 @@ from sme_ptrf_apps.paa.services.acoes_paa_service import AcoesReceitasPrevistasP
 
 from sme_ptrf_apps.paa.tasks.gerar_documento_paa import gerar_documento_paa_async
 from sme_ptrf_apps.paa.tasks.gerar_previa_documento_paa import gerar_previa_documento_paa_async
+from sme_ptrf_apps.paa.services.retificacao_paa_service import (
+    RetificacaoPaaService,
+    ValidacaoRetificacao,
+)
+from drf_spectacular.utils import extend_schema_view
+from .docs.paa_viewset_docs import DOCS as PAA_DOCS
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**PAA_DOCS)
 class PaaViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated & PermissaoApiUe]
@@ -185,20 +198,36 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         paas_andamento_gerados_e_parciais = Paa.objects.filter(
             pk=models.OuterRef('id')).paas_gerados_e_parciais()
 
-        paa_vigente = self.queryset.filter(
-            models.Exists(paas_andamento_gerados_e_parciais),
-            periodo_paa=periodo_paa_vigente,
-            associacao=associacao
-        ).first()
+        paa_vigente = (
+            self.queryset.select_related('periodo_paa', 'associacao__unidade')
+            .filter(
+                models.Exists(paas_andamento_gerados_e_parciais),
+                periodo_paa=periodo_paa_vigente,
+                associacao=associacao,
+            )
+            .first()
+        )
 
-        paas_anteriores = self.queryset.filter(
-            periodo_paa__data_inicial__lt=periodo_paa_vigente.data_inicial,
-            associacao=associacao
-        ).paas_gerados().order_by('-periodo_paa__data_inicial')
+        paas_anteriores = (
+            self.queryset.select_related('periodo_paa', 'associacao__unidade')
+            .filter(
+                periodo_paa__data_inicial__lt=periodo_paa_vigente.data_inicial,
+                associacao=associacao,
+            )
+            .paas_gerados()
+            .order_by('-periodo_paa__data_inicial')
+        )
+
+        def montar_render(paa, eh_paa_vigente):
+            return RenderizadorPaaBuilder(
+                paa,
+                request=request,
+                usuario=request.user,
+            ).build(eh_paa_vigente=eh_paa_vigente)
 
         result = {
-            'vigente': PaaSerializer(paa_vigente).data if paa_vigente else None,
-            'anteriores': PaaSerializer(paas_anteriores, many=True).data
+            'vigente': montar_render(paa_vigente, True) if paa_vigente else None,
+            'anteriores': [montar_render(p, False) for p in paas_anteriores],
         }
 
         return Response(result, status=status.HTTP_200_OK)
@@ -376,13 +405,20 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
     def documento_final(self, request, uuid=None):
         paa = self.get_object()
 
-        if not paa.documento_final:
+        retificacao = request.query_params.get('retificacao')
+        if retificacao is not None:
+            eh_retificacao = retificacao == 'true'
+            documento = obter_documento_final_por_retificacao(paa, eh_retificacao)
+        else:
+            documento = paa.documento_final
+
+        if not documento:
             return Response(
                 {"mensagem": "Documento final não gerado"},
                 status=400
             )
 
-        if not paa.documento_final.concluido:
+        if not documento.concluido:
             return Response(
                 {"mensagem": "Documento final não concluído"},
                 status=400
@@ -390,7 +426,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
 
         filename = 'documento_final_paa.pdf'
         response = HttpResponse(
-            open(paa.documento_final.arquivo_pdf.path, 'rb'),
+            open(documento.arquivo_pdf.path, 'rb'),
             content_type='application/pdf'
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
@@ -445,3 +481,78 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         return Response(
             {"mensagem": "Documento pendente de geração"}, status=200
         )
+
+    @action(detail=True, methods=['post'], url_path='iniciar-retificacao',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def iniciar_retificacao(self, request, uuid=None):
+        """
+        Inicia o processo de retificação do PAA.
+
+        Recebe no body:
+            justificativa (str): Justificativa da retificação (obrigatória).
+
+        Fluxo:
+            1. Cria/atualiza uma ReplicaPaa com snapshot do estado atual.
+            2. Cria uma AtaPaa do tipo RETIFICACAO com a justificativa informada.
+        """
+        paa = self.get_object()
+        justificativa = request.data.get('justificativa', '').strip()
+
+        service = RetificacaoPaaService(paa=paa, usuario=request.user)
+
+        try:
+            service.iniciar_retificacao(justificativa=justificativa)
+        except ValidacaoRetificacao as e:
+            return Response(
+                {'erro': 'iniciar_retificacao', 'mensagem': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {'erro': 'erro_retificacao', 'mensagem': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            {
+                'mensagem': 'Retificação iniciada com sucesso.',
+                'paa_uuid': str(paa.uuid),
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+    @action(detail=True, methods=['get'], url_path='paa-retificacao',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def paa_retificacao(self, request, uuid=None):
+        """
+        Retorna os dados do PAA enriquecidos com o comparativo em relação ao snapshot
+        armazenado na réplica, permitindo ao frontend identificar registros
+        adicionados, modificados ou removidos desde o início da retificação.
+
+        Retorna 404 se nenhuma retificação foi iniciada para este PAA.
+        """
+
+        from sme_ptrf_apps.paa.models import ReplicaPaa
+        from sme_ptrf_apps.paa.enums import PaaStatusEnum
+
+        paa = self.get_object()
+
+        try:
+            # Valida se existe Réplica
+            paa.replica
+            # Valida se o PAA foi iniciado para retificação
+            Paa.objects.get(uuid=uuid, status=PaaStatusEnum.EM_RETIFICACAO.name)
+        except (ReplicaPaa.DoesNotExist, Paa.DoesNotExist):
+            return Response(
+                {'erro': 'sem_retificacao', 'mensagem': 'Nenhuma retificação iniciada para este PAA.'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        service = RetificacaoPaaService(paa=paa, usuario=request.user)
+        alteracoes = service.identificar_alteracoes()
+
+        serializer = PaaRetificacaoComparativoSerializer(
+            paa,
+            context={'request': request, 'alteracoes': alteracoes}
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
