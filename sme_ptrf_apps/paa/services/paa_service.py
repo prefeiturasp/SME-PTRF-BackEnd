@@ -85,7 +85,7 @@ class PaaService:
                 qs_acoes_pdde = qs_programa.acaopdde_set.all()
 
             # Não exibir Programa quando não houver ações utilizando-o
-            if not qs_acoes_pdde:
+            if not qs_acoes_pdde.exists():
                 continue
 
             # Objeto padrão por programa
