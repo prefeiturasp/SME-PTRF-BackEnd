@@ -33,9 +33,18 @@ class DocumentoPaaService:
         self.documento_paa.arquivo_em_processamento()
         self.logger.info('Documento PAA em processamento')
 
+    def _iniciar_modelo_ata_apresentacao(self):
+        if self.previa or self.documento_paa.retificacao:
+            return
+        from sme_ptrf_apps.paa.models import AtaPaa, Paa
+
+        if isinstance(self.paa, Paa):
+            AtaPaa.iniciar(self.paa)
+
     def marcar_concluido(self):
         self.documento_paa.arquivo_concluido()
         self.registrar_historico_acoes()
+        self._iniciar_modelo_ata_apresentacao()
         self.logger.info('Documento PAA concluído')
 
     def marcar_erro(self):
