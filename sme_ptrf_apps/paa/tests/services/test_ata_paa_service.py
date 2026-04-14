@@ -325,6 +325,16 @@ def ata_paa_ja_gerada(paa_com_documento_concluido):
     )
 
 
+@pytest.fixture
+def ata_paa_em_processamento(paa_com_documento_concluido):
+    """Fixture para AtaPaa em processamento"""
+    return baker.make(
+        'AtaPaa',
+        paa=paa_com_documento_concluido,
+        status_geracao_pdf='EM_PROCESSAMENTO'
+    )
+
+
 @pytest.mark.django_db
 class TestValidarGeracaoAtaPaa:
     """Testes para a função validar_geracao_ata_paa"""
@@ -372,4 +382,12 @@ class TestValidarGeracaoAtaPaa:
 
         assert 'mensagem' in resultado, resultado
         assert 'A ata já foi gerada anteriormente' in resultado['mensagem']
+        assert resultado['is_valid'] is False
+
+    def test_validacao_ata_em_processamento(self, ata_paa_em_processamento):
+        """Testa validação quando ata está em processamento"""
+        resultado = validar_geracao_ata_paa(ata_paa_em_processamento)
+
+        assert 'mensagem' in resultado, resultado
+        assert 'A ata já está sendo gerada' in resultado['mensagem']
         assert resultado['is_valid'] is False

@@ -13,7 +13,7 @@ from waffle import get_waffle_flag_model
 
 from weasyprint import HTML, CSS
 
-from sme_ptrf_apps.paa.models import ParametroPaa, ProgramaPdde, PrioridadePaa, Paa
+from sme_ptrf_apps.paa.models import ParametroPaa, ProgramaPdde, PrioridadePaa, Paa, DocumentoPaa
 from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.services.registrar_acoes_conclusao_paa_service import (
     RegistrarAcoesPtrfConclusaoPaaService,
@@ -271,8 +271,11 @@ class PaaService:
 
             return not texto
 
-        if paa.documento_final and paa.documento_final.concluido:
-            return ["O documento final já foi gerado."]
+        if paa.documento_final:
+            if paa.documento_final.concluido:
+                return ["O documento final já foi gerado."]
+            if paa.documento_final.status_geracao == DocumentoPaa.StatusChoices.EM_PROCESSAMENTO:
+                return ["O documento já está sendo gerado."]
 
         errors = []
         # Valida se todas as receitas previstas foram totalmente utilizadas nas prioridades
