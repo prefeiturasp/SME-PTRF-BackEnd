@@ -54,6 +54,9 @@ def validar_geracao_ata_paa(ata_paa: AtaPaa) -> dict:
     if ata_paa.documento_gerado:
         errors.append("A ata já foi gerada anteriormente")
 
+    if ata_paa.status_geracao_pdf == AtaPaa.STATUS_EM_PROCESSAMENTO:
+        errors.append("A ata já está sendo gerada")
+
     if errors:
         return {
             'is_valid': False,
