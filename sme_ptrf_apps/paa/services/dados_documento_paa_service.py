@@ -385,7 +385,8 @@ def cria_cabecalho(periodo_paa):
     cabecalho = {
         "mes_ano_inicio": periodo_paa.data_inicial.strftime("%m/%Y"),
         "mes_ano_fim": periodo_paa.data_final.strftime("%m/%Y"),
-        "ano": periodo_paa.data_final.strftime("%Y")
+        "ano": periodo_paa.data_final.strftime("%Y"),
+        "referencia": periodo_paa.referencia,
     }
 
     return cabecalho
