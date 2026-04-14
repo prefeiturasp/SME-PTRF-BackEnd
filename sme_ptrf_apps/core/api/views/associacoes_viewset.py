@@ -589,6 +589,7 @@ class AssociacoesViewSet(ModelViewSet):
             'associacao': associacao,
             'contas': contas,
             'dataAtual': data_atual,
+            'dataHoraAtual': datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
             'usuarioLogado': usuario_logado,
             'base_static_url': staticfiles_storage.location
         }
