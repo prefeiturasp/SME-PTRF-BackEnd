@@ -61,7 +61,7 @@ from sme_ptrf_apps.paa.fixtures.factories import (
     ReceitaPrevistaPddeFactory, PrioridadePaaFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory,
     AtaPaaFactory, ParticipanteAtaPaaFactory, AtividadeEstatutariaPaaFactory,
     OutroRecursoFactory, DocumentoPaaFactory, OutroRecursoPeriodoFactory,
-    ReceitaPrevistaOutroRecursoPeriodoFactory, ModeloCargaPaaFactory
+    ReceitaPrevistaOutroRecursoPeriodoFactory, ModeloCargaPaaFactory, ReplicaPaaFactory
 )
 from sme_ptrf_apps.situacao_patrimonial.fixtures.factories import (
     BemProduzidoFactory,
@@ -95,7 +95,7 @@ factories_to_register = [
     PDFFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory, AtaPaaFactory, ParticipanteAtaPaaFactory,
     AtividadeEstatutariaPaaFactory, OutroRecursoFactory, DocumentoPaaFactory, OutroRecursoPeriodoFactory,
     ReceitaPrevistaOutroRecursoPeriodoFactory, RecursoFactory, PeriodoInicialAssociacaoFactory,
-    ModeloCargaPaaFactory,
+    ModeloCargaPaaFactory, ReplicaPaaFactory,
 ]
 
 for factory in factories_to_register:
@@ -2463,7 +2463,8 @@ def analise_lancamento_receita_prestacao_conta_2020_1_com_justificativa(
 
 
 @pytest.fixture
-def despesa_no_periodo_2020_1(despesa_factory, prestacao_conta_2020_1_conciliada, tipo_documento, tipo_transacao, periodo_2020_1):
+def despesa_no_periodo_2020_1(despesa_factory, prestacao_conta_2020_1_conciliada, tipo_documento, tipo_transacao,
+                              periodo_2020_1):
     return despesa_factory(
         associacao=prestacao_conta_2020_1_conciliada.associacao,
         numero_documento='123456',

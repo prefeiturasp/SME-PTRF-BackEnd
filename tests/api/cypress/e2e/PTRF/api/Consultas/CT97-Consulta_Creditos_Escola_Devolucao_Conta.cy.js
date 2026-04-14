@@ -1,70 +1,56 @@
 ///<reference types="cypress" />
 
-// Fixture (3 níveis acima)
-import usuarios from "../../../../fixtures/usuariosPTRF.json";
-const usuario = usuarios.Kellen;
+import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF"
+const Comum = new ComumPaginaPTRF()
 
-// Páginas (3 níveis acima)
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
-const Comum = new ComumPaginaPTRF();
-
-import GastosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina";
-const Gastos = new GastosEscolaPagina();
-
-Cypress.on("uncaught:exception", (err, runnable) => {
-  // quando retorna falso previne o Cypress de falhar o teste
-  return false;
-});
+import GastosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina"
+const Gastos = new GastosEscolaPagina()
 
 describe("Credito Escola - Consulta", () => {
 
   it("CT97-Consulta_Creditos_Escola_Devolucao_Conta", () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
+    Comum.visitarPaginaPTRF()
 
-    Comum.selecionarCeuEmefMariaClara();
+    cy.realizar_login('UE')
 
-    Gastos.selecionarCreditosDaEscola();
+    Gastos.selecionarCreditosDaEscola()
 
-    cy.wait(3000);
+    cy.wait(3000)
 
-    Gastos.selecionarDevolucaoConta?.();
+    Gastos.selecionarDevolucaoConta?.()
 
-    Comum.logout();
-  });
+    Comum.logout()
+  })
 
   it("CT223-Consulta_Creditos_Escola_Devolucao_Conta_Sem_Filtros", () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
+    Comum.visitarPaginaPTRF()
 
-    Comum.selecionarCeuEmefMariaClara();
+    cy.realizar_login('UE')
 
-    Gastos.selecionarCreditosDaEscola();
+    Gastos.selecionarCreditosDaEscola()
 
-    cy.wait(3000);
+    cy.wait(3000)
 
-    Gastos.selecionarDevolucaoConta?.();
+    Gastos.selecionarDevolucaoConta?.()
 
-    Comum.logout();
-  });
+    Comum.logout()
+  })
 
   it("CT224-Consulta_Creditos_Escola_Devolucao_Conta_Reconsultar", () => {
 
-    Comum.visitarPaginaPTRF();
-    Comum.login(usuario.Usuario, usuario.Senha);
+    Comum.visitarPaginaPTRF()
 
-    Comum.selecionarCeuEmefMariaClara();
+    cy.realizar_login('UE')
 
-    Gastos.selecionarCreditosDaEscola();
+    Gastos.selecionarCreditosDaEscola()
 
-    cy.wait(3000);
+    cy.wait(3000)
 
-    Gastos.selecionarDevolucaoConta?.();
-    Gastos.selecionarDevolucaoConta?.();
+    Gastos.selecionarDevolucaoConta?.()
+    Gastos.selecionarDevolucaoConta?.()
 
-    Comum.logout();
-  });
-
-});
+    Comum.logout()
+  })
+})

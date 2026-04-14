@@ -103,7 +103,7 @@ def custom_titled_filter(title):
 
 @admin.register(Recurso)
 class RecursoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'nome_exibicao', 'legado', 'ativo', 'cor_preview')
+    list_display = ('nome', 'nome_exibicao', 'legado', 'ativo', 'exibe_valores_reprogramados', 'cor_preview')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('uuid', 'nome', 'nome_exibicao',)
 

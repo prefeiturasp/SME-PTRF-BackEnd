@@ -72,6 +72,17 @@ class PaaSerializer(serializers.ModelSerializer):
         return instance
 
 
+class PaaRetificacaoComparativoSerializer(PaaSerializer):
+    alteracoes = serializers.SerializerMethodField()
+
+    def get_alteracoes(self, obj):
+        return self.context.get('alteracoes', {})
+
+    class Meta(PaaSerializer.Meta):
+        fields = PaaSerializer.Meta.fields + ('alteracoes',)
+        read_only_fields = PaaSerializer.Meta.read_only_fields + ('alteracoes',)
+
+
 class PaaUpdateSerializer(serializers.ModelSerializer):
     objetivos = ObjetivoPaaUpdateSerializer(many=True)
     atividades_estatutarias = AtividadeEstaturariaPaaUpdateSerializer(

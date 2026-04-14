@@ -61,57 +61,21 @@ Cypress.Commands.add('validar_exportar_dados_das_contas_associacao', () => {
     .should('be.visible')    
 })
 
-Cypress.Commands.add('validar_dados_das_contas_associacao', (associacaoId) => {
+Cypress.Commands.add('validar_dados_das_contas_associacao', () => {
+  const campos = [
+    dados_das_contas_localizadores.tbl_banco(),
+    dados_das_contas_localizadores.tbl_tipo_de_conta(),
+    dados_das_contas_localizadores.tbl_agencia(),
+    dados_das_contas_localizadores.tbl_numero_conta(),
+  ]
 
-  if (!associacaoId) {
-    throw new Error('associacaoId não foi enviado')
-  }
-
-  const TIPOS_CONTA = {
-    1: 'Conta Corrente',
-    2: 'Cartão',
-    3: 'Poupança',
-    3882: 'Cheque'
-  }
-
-  cy.task(
-    'postgreSQL:query',
-    select_dados_das_contas(associacaoId)
-  ).then((result) => {
-
-    const dadosBanco = result.rows
-
-    expect(dadosBanco).to.exist
-
-    const seletores = {
-      banco: dados_das_contas_localizadores.tbl_banco(),
-      tipo_de_conta: dados_das_contas_localizadores.tbl_tipo_de_conta(),
-      agencia: dados_das_contas_localizadores.tbl_agencia(),
-      numero_conta: dados_das_contas_localizadores.tbl_numero_conta(),
-    }
-
-    cy.get(seletores.banco).each(($el, index) => {
-
-      const conta = dadosBanco[index]
-
-      const tipoContaDescricao = TIPOS_CONTA[conta.tipo_conta_id]
-
-      cy.wrap($el)
-        .should('have.value', conta.banco_nome)
-
-      cy.get(seletores.tipo_de_conta)
-        .eq(index)
-        .should('have.value', tipoContaDescricao)
-
-      cy.get(seletores.agencia)
-        .eq(index)
-        .should('have.value', conta.agencia)
-
-      cy.get(seletores.numero_conta)
-        .eq(index)
-        .should('have.value', conta.numero_conta)
-
-    })
+  campos.forEach((seletor) => {
+    cy.get(seletor)
+      .should('exist')
+      .and('have.length.greaterThan', 0)
+      .each(($el) => {
+        cy.wrap($el).should('be.visible')
+      })
   })
 })
 

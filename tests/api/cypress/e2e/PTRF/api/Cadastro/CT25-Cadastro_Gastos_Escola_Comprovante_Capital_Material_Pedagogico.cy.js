@@ -1,44 +1,30 @@
 ///<reference types="cypress" />
 
-// Fixture (3 níveis acima)
-import usuarios from "../../../../fixtures/usuariosPTRF.json";
-const usuario = usuarios.Kellen;
+import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF"
+const Comum = new ComumPaginaPTRF()
 
-// Páginas (3 níveis acima)
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
-const Comum = new ComumPaginaPTRF();
-
-import GastosEscolaPagina from "../../../../support/Paginas/GastosEscolaPagina";
-const Gastos = new GastosEscolaPagina();
-
-
-Cypress.on('uncaught:exception', (err, runnable) => {
-    // quando retorna falso previne o  Cypress de falhar o teste
-    return false
-  })
+import GastosEscolaPagina from "../../../../support/Paginas/GastosEscolaPagina"
+const Gastos = new GastosEscolaPagina()
 
   describe('Gastos da Escola - Cadastro', () => {
 
     it('CT25-Cadastro_Gastos_Escola_Comprovante_Capital_Material_Pedagogico',()=>{
 
-    Comum.visitarPaginaPTRF();
+    Comum.visitarPaginaPTRF()
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    cy.realizar_login('UE')
 
-    Comum.selecionarCeuVilaAlpina();
+    Gastos.selecionarGastosDaEscola()  
 
-    Gastos.selecionarGastosDaEscola();  
+    Gastos.selecionarCadastrarDespesa()
 
-    Gastos.selecionarCadastrarDespesa();
+    cy.wait(2000) 
 
-    cy.wait(2000); 
-
-    Gastos.validarCadastroDespesaComprovanteCapitalMaterialPedagogico();
+    Gastos.validarCadastroDespesaComprovanteCapitalMaterialPedagogico()
     
-    Comum.selecionarPerfil();
+    Comum.selecionarPerfil()
 
-    Comum.logout();
+    Comum.logout()
     
   })  
-
 })

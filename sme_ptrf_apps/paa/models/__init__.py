@@ -19,3 +19,4 @@ from .documento_paa import DocumentoPaa
 from .outros_recursos_periodo_paa import OutroRecursoPeriodoPaa
 from .receita_prevista_outro_recurso_periodo import ReceitaPrevistaOutroRecursoPeriodo
 from .modelo_carga_paa import ModeloCargaPaa
+from .replica_paa import ReplicaPaa
