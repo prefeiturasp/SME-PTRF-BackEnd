@@ -66,14 +66,13 @@ def demonstrativo_financeiro_previa(demonstrativo_financeiro_factory, conta_asso
 
 
 @pytest.fixture
-def mock_arquivo_pdf(tmp_path):
-    pdf_file = tmp_path / "demonstrativo_financeiro.pdf"
-    pdf_file.write_bytes(b"%PDF-1.4 fake pdf content")
-    return pdf_file
+def mock_arquivo_pdf():
+    # FileField é persistido como varchar(100) no banco;
+    # usar caminho absoluto de tmp_path pode estourar esse limite.
+    return "dummy/demonstrativo_financeiro.pdf"
 
 
 @pytest.fixture
-def mock_arquivo_xlsx(tmp_path):
-    xlsx_file = tmp_path / "demonstrativo_financeiro.xlsx"
-    xlsx_file.write_bytes(b"PK fake xlsx content")
-    return xlsx_file
+def mock_arquivo_xlsx():
+    # Mantém o caminho curto para evitar DataError ao salvar o FileField.
+    return "dummy/demonstrativo_financeiro.xlsx"
