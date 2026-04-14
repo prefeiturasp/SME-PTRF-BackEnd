@@ -25,8 +25,10 @@ from sme_ptrf_apps.paa.api.serializers.paa_serializer import (
     PaaUpdateSerializer,
     PaaRetificacaoComparativoSerializer,
 )
+from sme_ptrf_apps.paa.api.serializers.renderizador_paa_serializer import RenderizadorPaaBuilder
 from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
 from sme_ptrf_apps.paa.models import Paa, PeriodoPaa
+from sme_ptrf_apps.paa.models.documento_paa import obter_documento_final_por_retificacao
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.services.paa_service import PaaService, ImportacaoConfirmacaoNecessaria
 from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
@@ -196,20 +198,36 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         paas_andamento_gerados_e_parciais = Paa.objects.filter(
             pk=models.OuterRef('id')).paas_gerados_e_parciais()
 
-        paa_vigente = self.queryset.filter(
-            models.Exists(paas_andamento_gerados_e_parciais),
-            periodo_paa=periodo_paa_vigente,
-            associacao=associacao
-        ).first()
+        paa_vigente = (
+            self.queryset.select_related('periodo_paa', 'associacao__unidade')
+            .filter(
+                models.Exists(paas_andamento_gerados_e_parciais),
+                periodo_paa=periodo_paa_vigente,
+                associacao=associacao,
+            )
+            .first()
+        )
 
-        paas_anteriores = self.queryset.filter(
-            periodo_paa__data_inicial__lt=periodo_paa_vigente.data_inicial,
-            associacao=associacao
-        ).paas_gerados().order_by('-periodo_paa__data_inicial')
+        paas_anteriores = (
+            self.queryset.select_related('periodo_paa', 'associacao__unidade')
+            .filter(
+                periodo_paa__data_inicial__lt=periodo_paa_vigente.data_inicial,
+                associacao=associacao,
+            )
+            .paas_gerados()
+            .order_by('-periodo_paa__data_inicial')
+        )
+
+        def montar_render(paa, eh_paa_vigente):
+            return RenderizadorPaaBuilder(
+                paa,
+                request=request,
+                usuario=request.user,
+            ).build(eh_paa_vigente=eh_paa_vigente)
 
         result = {
-            'vigente': PaaSerializer(paa_vigente).data if paa_vigente else None,
-            'anteriores': PaaSerializer(paas_anteriores, many=True).data
+            'vigente': montar_render(paa_vigente, True) if paa_vigente else None,
+            'anteriores': [montar_render(p, False) for p in paas_anteriores],
         }
 
         return Response(result, status=status.HTTP_200_OK)
@@ -387,13 +405,20 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
     def documento_final(self, request, uuid=None):
         paa = self.get_object()
 
-        if not paa.documento_final:
+        retificacao = request.query_params.get('retificacao')
+        if retificacao is not None:
+            eh_retificacao = retificacao == 'true'
+            documento = obter_documento_final_por_retificacao(paa, eh_retificacao)
+        else:
+            documento = paa.documento_final
+
+        if not documento:
             return Response(
                 {"mensagem": "Documento final não gerado"},
                 status=400
             )
 
-        if not paa.documento_final.concluido:
+        if not documento.concluido:
             return Response(
                 {"mensagem": "Documento final não concluído"},
                 status=400
@@ -401,7 +426,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
 
         filename = 'documento_final_paa.pdf'
         response = HttpResponse(
-            open(paa.documento_final.arquivo_pdf.path, 'rb'),
+            open(documento.arquivo_pdf.path, 'rb'),
             content_type='application/pdf'
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % filename

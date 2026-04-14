@@ -78,4 +78,18 @@ class DocumentoPaa(ModeloBase):
         self.save()
 
 
+def obter_documento_final_por_retificacao(paa, retificacao: bool):
+    if paa is None or not getattr(paa, 'pk', None):
+        return None
+    return (
+        DocumentoPaa.objects.filter(
+            paa=paa,
+            versao=DocumentoPaa.VersaoChoices.FINAL,
+            retificacao=retificacao,
+        )
+        .order_by('-pk')
+        .first()
+    )
+
+
 auditlog.register(DocumentoPaa)
