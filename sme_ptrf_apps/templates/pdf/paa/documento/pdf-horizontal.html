@@ -11,6 +11,12 @@
   <link href="{{ base_static_url }}/css/pdf-documento-paa-horizontal.css" rel="stylesheet">
 
   <title>Plano Anual de Atividades</title>
+  <style>
+    .section-bloco {
+        margin-left: -15px!important;
+        margin-right: -15px!important;
+    }
+  </style>
 </head>
 <body>
 {% if dados.previa %}
@@ -52,7 +58,7 @@
 
 <section class="conteudo mt-0">
 
-  <section class="row">
+  <section class="section-bloco">
     <article id="bloco-1" class="col mb-3 border p-0">
       <p class="font-14 pt-1 pb-1 pl-2 border-bottom"><strong>Bloco 1 - Identificação da Associação</strong></p>
       <div class="col-12">
@@ -84,7 +90,7 @@
     </article>
   </section>
 
-  <section class="row">
+  <section class="section-bloco">
     <article id="bloco-2" class="col mb-3 border p-0">
       <p class="font-14 pt-1 pb-1 pl-2 border-bottom"><strong>Bloco 2 - Introdução</strong></p>
       <div class="col-12">
@@ -94,7 +100,7 @@
     </article>
   </section>
 
-  <section class="row">
+  <section class="section-bloco">
     <article id="bloco-3" class="col mb-3 border p-0">
       <p class="font-14 pt-1 pb-1 pl-2 border-bottom"><strong>Bloco 3 - Objetivos</strong></p>
       <div class="col-12">
@@ -114,7 +120,7 @@
   
   {% include "./partials/tabela-atividades-previstas.html" with dados=dados %}
 
-  <section class="row">
+  <section class="section-bloco">
     <article id="bloco-7" class="col mb-3 border p-0">
       <p class="font-14 pt-1 pb-1 pl-2 border-bottom"><strong>Bloco 7 - Conclusão</strong></p>
       <div class="col-12">
@@ -125,7 +131,7 @@
   </section>
 
   {% if not dados.previa %}
-  <section class="row">
+  <section class="section-bloco">
     <article id="bloco-8" class="col mb-3 border p-0">
       <p class="font-14 pt-1 pb-1 pl-2 border-bottom"><strong>Bloco 8 - Assinatura do Responsável pelo Plano Anual de Atividades</strong></p>
       <div class="col-12">
