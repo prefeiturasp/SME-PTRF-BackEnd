@@ -19,11 +19,6 @@ from sme_ptrf_apps.paa.api.serializers.objetivo_paa_serializer import ObjetivoPa
 from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_serializer import AtividadeEstatutariaSerializer
 from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_paa_serializer import AtividadeEstatutariaPaaSerializer
 
-
-# ---------------------------------------------------------------------------
-# Params
-# ---------------------------------------------------------------------------
-
 PARAM_PAGE = {
     "name": "page",
     "description": "Número da página dentro do conjunto de resultados paginados.",
@@ -74,11 +69,6 @@ PARAM_CONFIRMAR = {
     "type": OpenApiTypes.INT,
     "location": OpenApiParameter.QUERY,
 }
-
-
-# ---------------------------------------------------------------------------
-# Schemas
-# ---------------------------------------------------------------------------
 
 SCHEMA_LIST = extend_schema(
     description=(

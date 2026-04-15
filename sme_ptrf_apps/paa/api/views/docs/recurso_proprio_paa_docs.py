@@ -10,10 +10,6 @@ from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import (
     RecursoProprioPaaListSerializer,
 )
 
-# ---------------------------------------------------------------------------
-# Params
-# ---------------------------------------------------------------------------
-
 PARAM_PAGE = {
     "name": "page",
     "description": "Número da página dentro do conjunto paginado.",
@@ -56,11 +52,6 @@ PARAM_CONFIRMAR_LIMPEZA = {
     "type": OpenApiTypes.BOOL,
     "location": OpenApiParameter.QUERY,
 }
-
-
-# ---------------------------------------------------------------------------
-# Schemas
-# ---------------------------------------------------------------------------
 
 SCHEMA_LIST = extend_schema(
     description=(
@@ -185,11 +176,6 @@ SCHEMA_TOTAL_RECURSOS = extend_schema(
         403: OpenApiResponse(description="You do not have permission to perform this action."),
     },
 )
-
-
-# ---------------------------------------------------------------------------
-# DOCS
-# ---------------------------------------------------------------------------
 
 DOCS = dict(
     list=SCHEMA_LIST,

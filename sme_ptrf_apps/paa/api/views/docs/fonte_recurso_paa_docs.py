@@ -7,11 +7,6 @@ from drf_spectacular.utils import (
 
 from sme_ptrf_apps.paa.api.serializers.fonte_recurso_paa_serializer import FonteRecursoPaaSerializer
 
-
-# ---------------------------------------------------------------------------
-# Params
-# ---------------------------------------------------------------------------
-
 PARAM_PAGE = {
     "name": "page",
     "description": "Número da página dentro do conjunto de resultados paginados.",
@@ -27,11 +22,6 @@ PARAM_PAGE_SIZE = {
     "type": OpenApiTypes.INT,
     "location": OpenApiParameter.QUERY,
 }
-
-
-# ---------------------------------------------------------------------------
-# Schemas
-# ---------------------------------------------------------------------------
 
 SCHEMA_LIST = extend_schema(
     description=(
@@ -94,11 +84,6 @@ SCHEMA_PARTIAL_UPDATE = extend_schema(
         404: OpenApiResponse(description="Fonte de recurso não encontrada."),
     },
 )
-
-
-# ---------------------------------------------------------------------------
-# DOCS
-# ---------------------------------------------------------------------------
 
 DOCS = dict(
     list=SCHEMA_LIST,

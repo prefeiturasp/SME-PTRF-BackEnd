@@ -7,11 +7,6 @@ from drf_spectacular.utils import (
 
 from sme_ptrf_apps.paa.api.serializers.periodo_paa_serializer import PeriodoPaaSerializer
 
-
-# ---------------------------------------------------------------------------
-# Params
-# ---------------------------------------------------------------------------
-
 PARAM_PAGE = {
     "name": "page",
     "description": "Número da página dentro do conjunto de resultados paginados.",
@@ -47,11 +42,6 @@ PARAM_OUTRO_RECURSO = {
     "type": OpenApiTypes.UUID,
     "location": OpenApiParameter.QUERY,
 }
-
-
-# ---------------------------------------------------------------------------
-# Schemas
-# ---------------------------------------------------------------------------
 
 SCHEMA_LIST = extend_schema(
     description=(
@@ -146,11 +136,6 @@ SCHEMA_DESTROY = extend_schema(
         404: OpenApiResponse(description="Período não encontrado."),
     },
 )
-
-
-# ---------------------------------------------------------------------------
-# DOCS
-# ---------------------------------------------------------------------------
 
 DOCS = dict(
     list=SCHEMA_LIST,
