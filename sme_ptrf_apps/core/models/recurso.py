@@ -21,8 +21,6 @@ class Recurso(ModeloIdNome, TemAtivo):
     nome_exibicao = models.CharField(
         verbose_name='Nome exibição', help_text='Será usado no seletor de recursos do site.', max_length=160)
 
-    logo = models.FileField(verbose_name='Logo', help_text='Será usada no header do site.', blank=True, null=True)
-
     icone = models.FileField(
         verbose_name='Ícone', help_text='Será usado no menu lateral e modal de escolha de recurso.', blank=True, null=True)
 
@@ -33,7 +31,10 @@ class Recurso(ModeloIdNome, TemAtivo):
     )
 
     legado = models.BooleanField(verbose_name="Legado?",
-                                 help_text='Em caso de flag inativa, esse recurso será utilizado nos filtros.', default=False)
+                                 help_text='Em caso de flag inativa, esse recurso será utilizado nos filtros. '
+                                           'No caso da SME/SP, o recurso legado refere-se ao PTRF.',
+                                 default=False
+                                )
 
     exibe_valores_reprogramados = models.BooleanField(
         verbose_name="Exibir valores reprogramados?",
@@ -64,9 +65,6 @@ def auto_delete_file_on_delete(sender, instance, **kwargs):
     Deleta o arquivo do sistema de arquivos quando
     o correspondente objeto 'MediaFile' é deletado.
     """
-    if instance.logo:
-        if os.path.isfile(instance.logo.path):
-            os.remove(instance.logo.path)
 
     if instance.icone:
         if os.path.isfile(instance.icone.path):
@@ -85,19 +83,9 @@ def auto_delete_file_on_change(sender, instance, **kwargs):
         return False
 
     try:
-        old_logo_file = sender.objects.get(pk=instance.pk).logo
-    except sender.DoesNotExist:
-        return False
-
-    try:
         old_icone_file = sender.objects.get(pk=instance.pk).icone
     except sender.DoesNotExist:
         return False
-
-    new_logo_file = instance.logo
-    if old_logo_file and not old_logo_file == new_logo_file:
-        if os.path.isfile(old_logo_file.path):
-            os.remove(old_logo_file.path)
 
     new_icone_file = instance.icone
     if old_icone_file and not old_icone_file == new_icone_file:
