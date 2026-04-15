@@ -7,11 +7,6 @@ from drf_spectacular.utils import (
 
 from ...serializers import CargoComposicaoSerializer, CargoComposicaoCreateSerializer
 
-
-# ---------------------------------------------------------------------------
-# Params
-# ---------------------------------------------------------------------------
-
 PARAM_PAGE = {
     "name": "page",
     "description": "Número da página dentro do conjunto de resultados paginados.",
@@ -62,11 +57,6 @@ PARAM_DATA = {
     "type": OpenApiTypes.DATE,
     "location": OpenApiParameter.QUERY,
 }
-
-
-# ---------------------------------------------------------------------------
-# Schemas
-# ---------------------------------------------------------------------------
 
 SCHEMA_LIST = extend_schema(
     description=(
