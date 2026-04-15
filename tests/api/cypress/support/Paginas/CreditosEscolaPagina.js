@@ -8,11 +8,14 @@ const Creditos = new CreditosEscolaElementos();
 
 import { format } from "../Elementos/UtilsCreditosEscolaElementos";
 
-var esperar = 2000;
+var esperar = 4000;
 
 class CreditosEscolaPagina {
   selecionarCreditosDaEscola() {
-    Parametros.menuCreditosDaEscola().click();
+    Parametros.menuCreditosDaEscola().click()
+
+    cy.get('.d-flex > #tipo_receita', { timeout: 20000 })
+      .should('be.visible')
   }
 
   selecionarArredondamento() {

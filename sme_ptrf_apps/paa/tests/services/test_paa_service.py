@@ -345,6 +345,22 @@ class TestPodeGerarDocumentoFinal:
         assert len(erros) == 1
         assert "O documento final já foi gerado" in erros[0]
 
+    def test_pode_gerar_documento_em_processamento(self, paa):
+        """
+        Testa quando se tenta gerar documento final e já tem uma
+        solicitação em processamento.
+        """
+        baker.make(
+            'DocumentoPaa',
+            paa=paa,
+            status_geracao='EM_PROCESSAMENTO'
+        )
+
+        erros = PaaService.pode_gerar_documento_final(paa)
+
+        assert len(erros) == 1
+        assert "O documento já está sendo gerado" in erros[0]
+
     def test_pode_gerar_prioridades_incompletas(
         self,
         paa,
