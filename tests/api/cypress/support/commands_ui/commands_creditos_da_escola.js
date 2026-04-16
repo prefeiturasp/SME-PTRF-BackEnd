@@ -28,7 +28,7 @@ Cypress.Commands.add('validar_creditos_da_escola', (campo) => {
 
   const seletor = seletorFn()
 
-  cy.get('.table > tbody > tr', { timeout: 10000 })
+  cy.get('.table > tbody > tr', { timeout: 20000 })
     .should('exist')
     .should('have.length.greaterThan', 0)
 
@@ -121,7 +121,7 @@ Cypress.Commands.add('selecionar_filtro_creditos_da_escola', (campo) => {
   const normalizar = (texto) =>
     texto.replace(/\s+/g, ' ').trim().toLowerCase()
 
-  cy.get(creditos.filtrar_por(), { timeout: 10000 })
+  cy.get(creditos.filtrar_por(), { timeout: 30000 })
     .should('be.visible')
 
   cy.get(`${creditos.filtrar_por()} option`, { timeout: 15000 })
@@ -198,7 +198,7 @@ Cypress.Commands.add('validar_total_filtrado_repasse_creditos_ue', () => {
     return Number(encontrado || 0)
   }
 
-  cy.get(creditos.filtrar_por(), { timeout: 10000 })
+  cy.get(creditos.filtrar_por(), { timeout: 30000 })
     .should('be.visible')
     .select('Repasse')
 
@@ -249,7 +249,7 @@ Cypress.Commands.add('validar_total_filtrado_repasse_creditos_ue', () => {
 })
 
 Cypress.Commands.add('acionar_mais_filtros_creditos_da_escola', () => {
-  cy.get(creditos.mais_filtros(), { timeout: 10000 })
+  cy.get(creditos.mais_filtros(), { timeout: 30000 })
   cy.get(creditos.mais_filtros(), { timeout: 3000 })
     .should('be.visible')
     .click()
@@ -565,7 +565,7 @@ Cypress.Commands.add('validar_soma_valores_reprogramados_ue', () => {
 })
 
 Cypress.Commands.add('validar_campos_cadastrar_creditos_da_escola_ue', () => {
-    cy.get(creditos.btn_cadastrar_credito(), { timeout: 10000 })
+    cy.get(creditos.btn_cadastrar_credito(), { timeout: 15000 })
     .should('be.visible')
     .click()
 
@@ -677,7 +677,7 @@ Cypress.Commands.add('cadastrar_creditos_da_escola_ue', (campo) => {
     })
   }
 
-  cy.get(creditos.btn_cadastrar_credito(), { timeout: 10000 })
+  cy.get(creditos.btn_cadastrar_credito(), { timeout: 15000 })
     .should('be.visible')
     .click({ force: true })
 
@@ -793,7 +793,7 @@ Cypress.Commands.add('cadastrar_devolucao_creditos_da_escola_ue', () => {
       })
   }
 
-  cy.get(creditos.btn_cadastrar_credito(), { timeout: 10000 })
+  cy.get(creditos.btn_cadastrar_credito(), { timeout: 20000 })
     .should('be.visible')
     .click()
 

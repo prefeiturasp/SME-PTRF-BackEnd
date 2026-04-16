@@ -48,13 +48,4 @@ export function insert_tipo_de_transacao(nome) {
 	VALUES ('${nome}', now(), now(), 'e20a9358-15e0-4e9c-844a-06960154903c', true);`;
 }
 
-export function select_dados_das_contas(associacaoId) {
-  return `select tipo_conta_id, agencia, banco_nome, numero_conta from public.core_contaassociacao
-where status = 'ATIVA' and tipo_conta_id ='2' and associacao_id = '${associacaoId}' order by tipo_conta_id`
-}
 
-export function select_saldo_recursos_dados_das_contas(saldos) {
-  return `SELECT saldo_extrato FROM public.core_dadosdemonstrativofinanceiro
-    WHERE conta = '${saldos.numero_conta}'
-    AND agencia = '${saldos.agencia}'`
-}

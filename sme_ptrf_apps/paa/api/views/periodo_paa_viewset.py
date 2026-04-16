@@ -8,6 +8,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from django.http import Http404
 from django.db.models import Count, Q
+from drf_spectacular.utils import extend_schema_view
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import (
@@ -15,10 +16,12 @@ from sme_ptrf_apps.users.permissoes import (
 )
 from sme_ptrf_apps.paa.api.serializers.periodo_paa_serializer import PeriodoPaaSerializer
 from sme_ptrf_apps.paa.models import PeriodoPaa, Paa
+from .docs.periodo_paa_docs import DOCS
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class PeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]

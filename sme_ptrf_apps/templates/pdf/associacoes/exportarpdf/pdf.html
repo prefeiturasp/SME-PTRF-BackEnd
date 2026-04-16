@@ -118,7 +118,7 @@
       <tbody>
       {% for conta in contas %}
       <tr><td>
-        <h3>Conta Corrente ({{ conta.tipo_conta }})</h3>
+        <h3>Conta Corrente ({{ conta.tipo_conta }}) - {{ conta.tipo_conta.recurso.nome }}</h3>
         <table class="tablebloco"><tr>
           <td class="tdbloco"><strong>Código do Banco:</strong><br> {{ conta.banco_nome }}</td><td class="tdbloco"><strong>Código da Agência/DV:</strong><br> {{ conta.agencia }}</td><td class="tdblocofim"><strong>N° da Conta Corrente/DV:</strong><br> {{ conta.numero_conta }}</td>
         </tr></table>
@@ -131,7 +131,7 @@
 
   <div>
   <span id="footer">
-    <i>Documento gerado pelo Sig_Escola em {{ dataAtual }} pelo usuário {{  usuarioLogado }}.</i>
+    <i>{{ associacao.nome }}. - Documento gerado pelo usuário {{ usuarioLogado.username }}, via SIG - Escola, em {{ dataHoraAtual }}.</i>
   </span>
   </div>
 </html>

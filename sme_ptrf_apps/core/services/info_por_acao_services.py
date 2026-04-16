@@ -3,13 +3,37 @@ import logging
 from decimal import Decimal
 from django.db.models import Sum
 
-from ..models import FechamentoPeriodo, Associacao, AcaoAssociacao, ContaAssociacao, Periodo, Parametros
+from ..models import (
+    FechamentoPeriodo,
+    Associacao,
+    AcaoAssociacao,
+    ContaAssociacao,
+    Periodo,
+    Parametros,
+    PrestacaoConta,
+)
 from ..services.periodo_services import status_prestacao_conta_associacao
 from ...despesas.models import RateioDespesa, Despesa
 from ...despesas.tipos_aplicacao_recurso import APLICACAO_CUSTEIO, APLICACAO_CAPITAL
 from ...receitas.models import Receita, Repasse
 
 logger = logging.getLogger(__name__)
+
+
+def _associacao_sem_pc_e_sem_fechamentos(associacao):
+    """
+    Associação sem nenhuma prestação de contas e sem fechamentos de período.
+    O saldo em período aberto passa a considerar receitas/despesas desde o 
+    período inicial de implantação até o período analisado, em vez de só a 
+    janela entre períodos encadeados.
+    """
+    if associacao is None:
+        return False
+    if PrestacaoConta.objects.filter(associacao=associacao).exists():
+        return False
+    if FechamentoPeriodo.objects.filter(associacao=associacao).exists():
+        return False
+    return True
 
 
 def especificacoes_despesas_acao_associacao_no_periodo(acao_associacao, periodo, exclude_despesa=None, conta=None):
@@ -446,7 +470,24 @@ def info_acao_associacao_no_periodo(
         else:
             periodo_do_saldo = periodo
 
-        if (not apenas_transacoes_do_periodo) and periodo_do_saldo and periodo_do_saldo.proximo_periodo:
+        usar_historico_completo = (
+            (not apenas_transacoes_do_periodo)
+            and _associacao_sem_pc_e_sem_fechamentos(acao_associacao.associacao)
+        )
+
+        if usar_historico_completo:
+            periodo_inicial_assoc = acao_associacao.associacao.periodo_inicial
+            if periodo_inicial_assoc:
+                periodo_inicial_transacoes = periodo_inicial_assoc
+            elif periodo_do_saldo and periodo_do_saldo.proximo_periodo:
+                periodo_inicial_transacoes = periodo_do_saldo.proximo_periodo
+            else:
+                periodo_inicial_transacoes = periodo
+            logger.info(
+                'Saldo por histórico completo (associação sem PC e sem fechamentos). '
+                f'Período inicial transações: {periodo_inicial_transacoes}'
+            )
+        elif (not apenas_transacoes_do_periodo) and periodo_do_saldo and periodo_do_saldo.proximo_periodo:
             periodo_inicial_transacoes = periodo_do_saldo.proximo_periodo
         else:
             periodo_inicial_transacoes = periodo
@@ -811,22 +852,43 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
         else:
             periodo_do_saldo = periodo
 
-        if not periodo_do_saldo.proximo_periodo:
-            logger.info("Periodo indefinido ou sem periodo inicial. Retornando vazio")
-            info = resultado_vazio()
-            return info
+        usar_historico_completo = _associacao_sem_pc_e_sem_fechamentos(conta_associacao.associacao)
+
+        if usar_historico_completo:
+            periodo_inicial_assoc = conta_associacao.associacao.periodo_inicial
+            if periodo_inicial_assoc:
+                periodo_inicial_transacoes = periodo_inicial_assoc
+            elif periodo_do_saldo.proximo_periodo:
+                periodo_inicial_transacoes = periodo_do_saldo.proximo_periodo
+            else:
+                logger.info(
+                    "Histórico completo: sem periodo_inicial da associação e sem proximo_periodo. Retornando vazio"
+                )
+                info = resultado_vazio()
+                return info
+        else:
+            if not periodo_do_saldo.proximo_periodo:
+                logger.info("Periodo indefinido ou sem periodo inicial. Retornando vazio")
+                info = resultado_vazio()
+                return info
+            periodo_inicial_transacoes = periodo_do_saldo.proximo_periodo
 
         logger.info(f'Usando saldos do período {periodo_do_saldo}')
+        if usar_historico_completo:
+            logger.info(
+                'Saldo por histórico completo (associação sem PC e sem fechamentos). '
+                f'Período inicial transações: {periodo_inicial_transacoes}'
+            )
         logger.info(
             f"Saldo capital:{info['saldo_atual_capital']} custeio:{info['saldo_atual_custeio']} livre:{info['saldo_atual_livre']}")
         info = sumariza_receitas_conta_entre_periodos(
-            periodo_inicial=periodo_do_saldo.proximo_periodo,
+            periodo_inicial=periodo_inicial_transacoes,
             periodo_final=periodo,
             conta_associacao=conta_associacao,
             info=info
         )
         info = sumariza_despesas_conta_entre_periodos(
-            periodo_inicial=periodo_do_saldo.proximo_periodo,
+            periodo_inicial=periodo_inicial_transacoes,
             periodo_final=periodo,
             conta_associacao=conta_associacao,
             info=info

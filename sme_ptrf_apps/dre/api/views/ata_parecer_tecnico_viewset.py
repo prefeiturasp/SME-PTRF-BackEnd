@@ -16,7 +16,7 @@ from sme_ptrf_apps.dre.api.serializers.ata_parecer_tecnico_serializer import (
     AtaParecerTecnicoCreateSerializer,
 )
 from ...services import (
-    informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
+    obter_payload_ata
 )
 from django.core.exceptions import ValidationError
 
@@ -95,6 +95,9 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
             dre_uuid=dre_uuid,
             periodo_uuid=periodo_uuid,
             usuario=request.user.username,
+            parcial=None,
+            congelar_snapshot=False,
+            origem='MANUAL',
         )
         return Response({'mensagem': 'Arquivo na fila para processamento.'}, status=status.HTTP_200_OK)
 
@@ -258,7 +261,15 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        info = informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre(
-            dre=dre, periodo=periodo, ata_de_parecer_tecnico=ata_de_parecer_tecnico)
+        info = obter_payload_ata(
+            dre=dre,
+            periodo=periodo,
+            ata_de_parecer_tecnico=ata_de_parecer_tecnico,
+            usuario=request.user.username,
+            parcial=None,
+            usar_snapshot=True,
+            congelar_snapshot=False,
+            origem='TELA',
+        )
 
         return Response(info)

@@ -1,7 +1,8 @@
 import datetime
 import logging
 from sme_ptrf_apps.core.models import PrestacaoConta
-from sme_ptrf_apps.dre.models import PresenteAtaDre
+from django.db import transaction
+from sme_ptrf_apps.dre.models import PresenteAtaDre, AtaParecerTecnicoSnapshot, AtaParecerTecnico
 from sme_ptrf_apps.dre.services.ata_pdf_parecer_tecnico_service import gerar_arquivo_ata_parecer_tecnico_pdf
 from sme_ptrf_apps.core.services.ata_dados_service import data_por_extenso
 from sme_ptrf_apps.core.services.dados_demo_financeiro_service import formata_data
@@ -11,18 +12,105 @@ from django.db.models import Q
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_arquivo_ata_parecer_tecnico(ata=None, dre=None, periodo=None, usuario=None, parcial=None):
+def congelar_snapshot_ata(
+    ata,
+    dre=None,
+    periodo=None,
+    usuario=None,
+    parcial=None,
+    dados=None,
+    origem=AtaParecerTecnicoSnapshot.ORIGEM_PUBLICACAO,
+    schema_version=1,
+):
+    with transaction.atomic():
+        ata_bloqueada = AtaParecerTecnico.objects.select_for_update().get(pk=ata.pk)
+        snapshot_existente = AtaParecerTecnicoSnapshot.objects.filter(ata=ata_bloqueada).first()
+        if snapshot_existente:
+            return snapshot_existente, False
+
+        if dados is None:
+            if not dre or not periodo:
+                raise Exception("dre e periodo sao obrigatorios para congelar snapshot sem dados.")
+
+            dados = informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre(
+                dre=dre,
+                periodo=periodo,
+                ata_de_parecer_tecnico=ata_bloqueada,
+                usuario=usuario,
+                parcial=parcial,
+            )
+
+        return AtaParecerTecnicoSnapshot.criar_se_nao_existir(
+            ata=ata_bloqueada,
+            dados=dados,
+            schema_version=schema_version,
+            origem=origem,
+        )
+
+
+def obter_payload_ata(
+    dre,
+    periodo,
+    ata_de_parecer_tecnico=None,
+    usuario=None,
+    parcial=None,
+    usar_snapshot=True,
+    congelar_snapshot=False,
+    origem=AtaParecerTecnicoSnapshot.ORIGEM_TELA,
+):
+    snapshot = None
+    if usar_snapshot and ata_de_parecer_tecnico:
+        snapshot = AtaParecerTecnicoSnapshot.objects.filter(ata=ata_de_parecer_tecnico).first()
+
+    if snapshot:
+        return snapshot.dados
+
+    dados = informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre(
+        dre=dre,
+        periodo=periodo,
+        ata_de_parecer_tecnico=ata_de_parecer_tecnico,
+        usuario=usuario,
+        parcial=parcial,
+    )
+
+    if congelar_snapshot and ata_de_parecer_tecnico:
+        snapshot, _ = congelar_snapshot_ata(
+            ata=ata_de_parecer_tecnico,
+            dre=dre,
+            periodo=periodo,
+            usuario=usuario,
+            parcial=parcial,
+            dados=dados,
+            origem=origem,
+        )
+        return snapshot.dados
+
+    return dados
+
+
+def gerar_arquivo_ata_parecer_tecnico(
+    ata=None,
+    dre=None,
+    periodo=None,
+    usuario=None,
+    parcial=None,
+    congelar_snapshot=False,
+    origem=AtaParecerTecnicoSnapshot.ORIGEM_MANUAL,
+):
     LOGGER.info(f"Gerando Arquivo da Ata, Ata {ata}, DRE {dre} e Período {periodo}")
 
     ata.arquivo_pdf_iniciar()
 
     try:
-        dados_da_ata = informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre(
-            dre,
-            periodo,
+        dados_da_ata = obter_payload_ata(
+            dre=dre,
+            periodo=periodo,
             ata_de_parecer_tecnico=ata,
             usuario=usuario,
-            parcial=parcial
+            parcial=parcial,
+            usar_snapshot=True,
+            congelar_snapshot=congelar_snapshot,
+            origem=origem,
         )
         gerar_arquivo_ata_parecer_tecnico_pdf(dados_da_ata, ata)
         LOGGER.info(f'Gerando arquivo ata parecer técnico em PDF')
@@ -30,7 +118,7 @@ def gerar_arquivo_ata_parecer_tecnico(ata=None, dre=None, periodo=None, usuario=
         return ata
 
     except Exception as e:
-        LOGGER.info(f'FALHA AO GERAR O ARQUIVO DA ATA', e)
+        LOGGER.exception("FALHA AO GERAR O ARQUIVO DA ATA")
         ata.arquivo_pdf_nao_gerado()
         return None
 

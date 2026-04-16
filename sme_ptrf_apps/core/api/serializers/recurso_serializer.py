@@ -14,10 +14,10 @@ class RecursoSerializer(serializers.ModelSerializer):
             'criado_em',
             'alterado_em',
             'cor',
-            'logo',
             'icone',
             'ativo',
-            'legado'
+            'legado',
+            'exibe_valores_reprogramados'
         )
         read_only_fields = (
             'id',
@@ -27,8 +27,8 @@ class RecursoSerializer(serializers.ModelSerializer):
             'criado_em',
             'alterado_em',
             'cor',
-            'logo',
             'icone',
             'ativo',
-            'legado'
+            'legado',
+            'exibe_valores_reprogramados'
         )

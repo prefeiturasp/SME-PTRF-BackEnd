@@ -1,42 +1,31 @@
-//<reference types="cypress" />
+///<reference types="cypress" />
 
-import usuarios from "../../../../fixtures/usuariosPTRF.json";
+import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF"
 
-const usuario = usuarios.Josue;
+const Comum = new ComumPaginaPTRF()
 
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
+import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina"
 
-const Comum = new ComumPaginaPTRF();
-
-import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina";
-
-const Creditos = new CreditosEscolaPagina();
-
-Cypress.on("uncaught:exception", (err, runnable) => {
-  // quando retorna falso previne o  Cypress de falhar o teste
-  return false;
-});
+const Creditos = new CreditosEscolaPagina()
 
 describe("Credito Escola - Consulta", () => {
   it("CT12-Consulta_Creditos_Escola_Rendimento", () => {
-    Comum.visitarPaginaPTRF();
+    Comum.visitarPaginaPTRF()
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    cy.realizar_login('UE')
 
-    Comum.selecionarCeuVilaAlpina();
+    Creditos.selecionarCreditosDaEscola()
 
-    Creditos.selecionarCreditosDaEscola();
+    cy.wait(4000)
 
-    cy.wait(4000);
+    Creditos.selecionarRendimento()
 
-    Creditos.selecionarRendimento();
+    Creditos.filtrarReceita()
 
-    Creditos.filtrarReceita();
-
-    Creditos.validarCreditosCadastrados();
+    Creditos.validarCreditosCadastrados()
     
-    Comum.selecionarPerfil();
+    Comum.selecionarPerfil()
 
-    Comum.logout();
-  });
-});
+    Comum.logout()
+  })
+})

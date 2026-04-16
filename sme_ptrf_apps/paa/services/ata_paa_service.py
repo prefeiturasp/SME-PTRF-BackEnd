@@ -1,6 +1,7 @@
 import logging
 
 from sme_ptrf_apps.paa.models import AtaPaa
+from sme_ptrf_apps.paa.models.documento_paa import obter_documento_final_por_retificacao
 from sme_ptrf_apps.paa.services.ata_paa_dados_service import gerar_dados_ata_paa
 from sme_ptrf_apps.paa.services.ata_paa_pdf_service import gerar_arquivo_ata_paa_pdf
 from sme_ptrf_apps.despesas.models import RateioDespesa
@@ -44,8 +45,8 @@ def validar_geracao_ata_paa(ata_paa: AtaPaa) -> dict:
         errors.append("Todos os dados da edição da ata devem estar preenchidos")
 
     paa = ata_paa.paa
-    documento_final = paa.documento_final
-
+    eh_retificacao = ata_paa.tipo_ata == AtaPaa.ATA_RETIFICACAO
+    documento_final = obter_documento_final_por_retificacao(paa, eh_retificacao)
     if not documento_final or documento_final.status_geracao != 'CONCLUIDO':
         errors.append("O documento Plano Anual deve estar gerado")
 

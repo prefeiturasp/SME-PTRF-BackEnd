@@ -582,13 +582,14 @@ class AssociacoesViewSet(ModelViewSet):
         data_atual = datetime.date.today().strftime("%d-%m-%Y")
         usuario_logado = self.request.user
         associacao = Associacao.by_uuid(uuid)
-        contas = list(ContaAssociacao.objects.filter(associacao=associacao).all())
+        contas = list(ContaAssociacao.objects.filter(associacao=associacao).select_related('tipo_conta', 'tipo_conta__recurso').all())
         atualiza_dados_unidade(associacao)
 
         dados_template = {
             'associacao': associacao,
             'contas': contas,
             'dataAtual': data_atual,
+            'dataHoraAtual': datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
             'usuarioLogado': usuario_logado,
             'base_static_url': staticfiles_storage.location
         }
