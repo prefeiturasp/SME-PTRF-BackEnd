@@ -35,6 +35,17 @@ class DocumentoPaa(ModeloBase):
         default=VersaoChoices.FINAL
     )
 
+    versao_documento = models.IntegerField(
+        'Versão do documento',
+        default=1
+    )
+
+    retificacao = models.BooleanField(
+        'Retificação',
+        default=False,
+        help_text="Identifica se o documento é gerado por uma retificação"
+    )
+
     def __str__(self):
         versao_label = DocumentoPaa.VersaoChoices(self.versao).label
         if self.status_geracao == DocumentoPaa.StatusChoices.CONCLUIDO:
@@ -65,6 +76,20 @@ class DocumentoPaa(ModeloBase):
     def arquivo_em_erro_processamento(self):
         self.status_geracao = DocumentoPaa.StatusChoices.ERRO_PROCESSAMENTO
         self.save()
+
+
+def obter_documento_final_por_retificacao(paa, retificacao: bool):
+    if paa is None or not getattr(paa, 'pk', None):
+        return None
+    return (
+        DocumentoPaa.objects.filter(
+            paa=paa,
+            versao=DocumentoPaa.VersaoChoices.FINAL,
+            retificacao=retificacao,
+        )
+        .order_by('-pk')
+        .first()
+    )
 
 
 auditlog.register(DocumentoPaa)

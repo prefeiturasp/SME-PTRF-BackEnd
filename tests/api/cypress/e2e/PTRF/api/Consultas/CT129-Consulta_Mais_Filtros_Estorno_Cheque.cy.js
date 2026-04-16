@@ -1,83 +1,69 @@
 ///<reference types="cypress" />
 
-// Fixture (3 níveis acima)
-import usuarios from "../../../../fixtures/usuariosPTRF.json";
-const usuario = usuarios.Kellen;
+import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF"
+const Comum = new ComumPaginaPTRF()
 
-// Páginas (3 níveis acima)
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
-const Comum = new ComumPaginaPTRF();
-
-import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina";
-const Creditos = new CreditosEscolaPagina();
-
-Cypress.on("uncaught:exception", (err, runnable) => {
-  return false;
-});
+import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina"
+const Creditos = new CreditosEscolaPagina()
 
 describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cheque', () => {
 
   it('CT129-Consulta_Mais_Filtros_Estorno_Cheque', () => {
 
-    Comum.visitarPaginaPTRF();
+    Comum.visitarPaginaPTRF()
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    cy.realizar_login('UE')
 
-    Comum.selecionarCeuEmefMariaClara();
+    cy.wait(3000)
 
-    cy.wait(3000);
+    Creditos.selecionarCreditosDaEscola()
 
-    Creditos.selecionarCreditosDaEscola();
+    Creditos.selecionarMaisFiltros()
 
-    Creditos.selecionarMaisFiltros();
+    Creditos.selecionarEstornoMaisFiltos()
 
-    Creditos.selecionarEstornoMaisFiltos();
+    Creditos.selecionarDetalhamentoMaisFiltros()
 
-    Creditos.selecionarDetalhamentoMaisFiltros();
+    Creditos.realizaConsultaTipoContaCheque()
 
-    Creditos.realizaConsultaTipoContaCheque();
+    Creditos.realizaConsultaAcaoPtrf()
 
-    Creditos.realizaConsultaAcaoPtrf();
+    Creditos.realizaConsultaDataInicio()
 
-    Creditos.realizaConsultaDataInicio();
+    Creditos.realizaConsultaDataFim()
 
-    Creditos.realizaConsultaDataFim();
+    Creditos.selecionarFiltrarMaisFiltros()
 
-    Creditos.selecionarFiltrarMaisFiltros();
+    Comum.selecionarPerfil()
 
-    Comum.selecionarPerfil();
-
-    Comum.logout();
-  });
+    Comum.logout()
+  })
 
   it('CT142-Consulta_Mais_Filtros_Estorno_Cheque_Sem_Data', () => {
 
-    Comum.visitarPaginaPTRF();
+    Comum.visitarPaginaPTRF()
 
-    Comum.login(usuario.Usuario, usuario.Senha);
+    cy.realizar_login('UE')
+    
+    cy.wait(3000)
 
-    Comum.selecionarCeuEmefMariaClara();
+    Creditos.selecionarCreditosDaEscola()
 
-    cy.wait(3000);
+    Creditos.selecionarMaisFiltros()
 
-    Creditos.selecionarCreditosDaEscola();
+    Creditos.selecionarEstornoMaisFiltos()
 
-    Creditos.selecionarMaisFiltros();
+    Creditos.selecionarDetalhamentoMaisFiltros()
 
-    Creditos.selecionarEstornoMaisFiltos();
+    Creditos.realizaConsultaTipoContaCheque()
 
-    Creditos.selecionarDetalhamentoMaisFiltros();
+    Creditos.realizaConsultaAcaoPtrf()
 
-    Creditos.realizaConsultaTipoContaCheque();
+    // Sem filtro de data início/fim
+    Creditos.selecionarFiltrarMaisFiltros()
 
-    Creditos.realizaConsultaAcaoPtrf();
+    Comum.selecionarPerfil()
 
-    // 🔹 Sem filtro de data início/fim
-    Creditos.selecionarFiltrarMaisFiltros();
-
-    Comum.selecionarPerfil();
-
-    Comum.logout();
-  });
-
-});
+    Comum.logout()
+  })
+})

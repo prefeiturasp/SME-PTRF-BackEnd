@@ -44,6 +44,7 @@ class TipoCusteioAdmin(admin.ModelAdmin):
 class RateioDespesaAdmin(admin.ModelAdmin):
     list_display = (
         "uuid", 'numero_documento', 'associacao', 'acao', 'valor_rateio', 'quantidade_itens_capital', 'status',)
+    list_select_related = ('despesa', 'associacao', 'acao_associacao', 'acao_associacao__acao')
     search_fields = (
         'despesa__numero_documento', 'despesa__nome_fornecedor', 'especificacao_material_servico__descricao',
         'associacao__unidade__codigo_eol', 'associacao__unidade__nome',)
@@ -75,13 +76,17 @@ class RateioDespesaAdmin(admin.ModelAdmin):
 
 class RateioDespesaInLine(admin.TabularInline):
     model = RateioDespesa
-    extra = 1  # Quantidade de linhas que serão exibidas.
+    extra = 0
 
     search_fields = (
         'despesa__numero_documento', 'despesa__nome_fornecedor', 'especificacao_material_servico__descricao',
         'associacao__unidade__codigo_eol', 'associacao__unidade__nome',)
 
     autocomplete_fields = ['associacao', 'despesa', 'conta_associacao', 'acao_associacao']
+    raw_id_fields = [
+        'associacao', 'despesa', 'conta_associacao', 'acao_associacao',
+        'especificacao_material_servico', 'tag', 'periodo_conciliacao',
+    ]
 
 
 class PeriodoDaDespesaFilter(admin.SimpleListFilter):
@@ -107,6 +112,8 @@ class DespesaAdmin(admin.ModelAdmin):
         'tipo_documento', 'numero_documento', 'data_documento', 'nome_fornecedor', 'valor_total', 'status',
         'associacao', 'retem_imposto', 'despesa_anterior_ao_uso_do_sistema',
         'despesa_anterior_ao_uso_do_sistema_pc_concluida', 'recurso')
+    list_select_related = ('tipo_documento', 'associacao', 'recurso')
+    show_full_result_count = False
     ordering = ('-data_documento',)
     search_fields = (
         'numero_documento',

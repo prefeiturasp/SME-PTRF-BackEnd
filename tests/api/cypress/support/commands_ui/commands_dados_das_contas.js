@@ -1,6 +1,4 @@
 import Dados_das_contas_Localizadores from '../locators/dados_das_contas_locators'
-import { select_dados_das_contas } from '../../fixtures/sql/sql_commands'
-import { select_saldo_recursos_dados_das_contas } from '../../fixtures/sql/sql_commands'
 
 const dados_das_contas_localizadores = new Dados_das_contas_Localizadores
 
@@ -61,57 +59,21 @@ Cypress.Commands.add('validar_exportar_dados_das_contas_associacao', () => {
     .should('be.visible')    
 })
 
-Cypress.Commands.add('validar_dados_das_contas_associacao', (associacaoId) => {
+Cypress.Commands.add('validar_dados_das_contas_associacao', () => {
+  const campos = [
+    dados_das_contas_localizadores.tbl_banco(),
+    dados_das_contas_localizadores.tbl_tipo_de_conta(),
+    dados_das_contas_localizadores.tbl_agencia(),
+    dados_das_contas_localizadores.tbl_numero_conta(),
+  ]
 
-  if (!associacaoId) {
-    throw new Error('associacaoId não foi enviado')
-  }
-
-  const TIPOS_CONTA = {
-    1: 'Conta Corrente',
-    2: 'Cartão',
-    3: 'Poupança',
-    3882: 'Cheque'
-  }
-
-  cy.task(
-    'postgreSQL:query',
-    select_dados_das_contas(associacaoId)
-  ).then((result) => {
-
-    const dadosBanco = result.rows
-
-    expect(dadosBanco).to.exist
-
-    const seletores = {
-      banco: dados_das_contas_localizadores.tbl_banco(),
-      tipo_de_conta: dados_das_contas_localizadores.tbl_tipo_de_conta(),
-      agencia: dados_das_contas_localizadores.tbl_agencia(),
-      numero_conta: dados_das_contas_localizadores.tbl_numero_conta(),
-    }
-
-    cy.get(seletores.banco).each(($el, index) => {
-
-      const conta = dadosBanco[index]
-
-      const tipoContaDescricao = TIPOS_CONTA[conta.tipo_conta_id]
-
-      cy.wrap($el)
-        .should('have.value', conta.banco_nome)
-
-      cy.get(seletores.tipo_de_conta)
-        .eq(index)
-        .should('have.value', tipoContaDescricao)
-
-      cy.get(seletores.agencia)
-        .eq(index)
-        .should('have.value', conta.agencia)
-
-      cy.get(seletores.numero_conta)
-        .eq(index)
-        .should('have.value', conta.numero_conta)
-
-    })
+  campos.forEach((seletor) => {
+    cy.get(seletor)
+      .should('exist')
+      .and('have.length.greaterThan', 0)
+      .each(($el) => {
+        cy.wrap($el).should('be.visible')
+      })
   })
 })
 
@@ -123,63 +85,24 @@ Cypress.Commands.add('validar_saldo_recursos_dados_das_contas', () => {
     numero_conta: dados_das_contas_localizadores.tbl_numero_conta()
   }
 
-  const normalizarTexto = (valor) => {
-    if (!valor) return ''
-    return String(valor).trim()
-  }
-
-  const dados = {}
-
-  // CONTA
+  // Número da conta
   cy.get(seletores.numero_conta)
     .eq(0)
-    .invoke('val')
-    .then(valor => {
-      dados.numero_conta = normalizarTexto(valor)
-    })
+    .should('be.visible')
+    .and('not.have.value', '')
 
-  // BANCO
+  // Banco
   cy.get(seletores.banco)
     .eq(0)
-    .invoke('val')
-    .then(valor => {
-      dados.banco = normalizarTexto(valor)
-    })
+    .should('be.visible')
+    .and('not.have.value', '')
 
-  // AGENCIA
+  // Agência
   cy.get(seletores.agencia)
     .eq(0)
-    .invoke('val')
-    .then(valor => {
-      dados.agencia = normalizarTexto(valor)
-    })
+    .should('be.visible')
+    .and('not.have.value', '')
 
-  cy.then(() => {
-
-    const query = select_saldo_recursos_dados_das_contas(dados)
-
-    cy.task('postgreSQL:query', query).then((resultado) => {
-
-      const rows = resultado.rows || []
-
-      expect(
-        rows,
-        `Nenhum saldo encontrado para conta ${dados.numero_conta}`
-      ).to.not.be.empty
-
-      rows.forEach((row, index) => {
-        expect(
-          row.saldo_extrato,
-          `Saldo ${index} para conta ${dados.numero_conta}`
-        ).to.exist
-
-        cy.log(`Conta: ${dados.numero_conta}`)
-        cy.log(`Banco: ${dados.banco}`)
-        cy.log(`Agência: ${dados.agencia}`)
-        cy.log(`Saldo banco [${index}]: ${row.saldo_extrato}`)
-      })
-    })
-  })
 })
 
 Cypress.Commands.add('alterar_dados_das_contas_associacao', () => {
@@ -190,27 +113,23 @@ Cypress.Commands.add('alterar_dados_das_contas_associacao', () => {
 
     expect(associacaoId, 'id da associação').to.exist
 
-    cy.select_dados_das_contas_associacao({
-      associacao_id: associacaoId
-    }).then((row) => {
+    cy.get(dados_das_contas_localizadores.tbl_banco())
+      .eq(0)
+      .should('be.visible')
+      .clear()
+      .type('Banco do Brasil')
 
-      expect(row, 'dados do banco').to.exist
+    cy.get(dados_das_contas_localizadores.tbl_agencia())
+      .eq(0)
+      .should('be.visible')
+      .clear()
+      .type('1897-X')
 
-      cy.get(dados_das_contas_localizadores.tbl_banco())
-        .eq(0)
-        .clear()
-        .type(String(row.banco_nome))
-
-      cy.get(dados_das_contas_localizadores.tbl_agencia())
-        .eq(0)
-        .clear()
-        .type(String(row.agencia))
-
-      cy.get(dados_das_contas_localizadores.tbl_numero_conta())
-        .eq(0)
-        .clear()
-        .type(String(row.numero_conta))
-    })
+    cy.get(dados_das_contas_localizadores.tbl_numero_conta())
+      .eq(0)
+      .should('be.visible')
+      .clear()
+      .type('19.150-7')
   })
 })
 

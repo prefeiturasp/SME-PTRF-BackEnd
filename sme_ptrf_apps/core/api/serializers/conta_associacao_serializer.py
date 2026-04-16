@@ -47,6 +47,7 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
     habilitar_solicitar_encerramento = serializers.SerializerMethodField()
     nome = serializers.SerializerMethodField('get_nome_conta')
     nome_recurso = serializers.SerializerMethodField('get_nome_recurso')
+    nome_exibicao_recurso = serializers.SerializerMethodField('get_nome_exibicao_recurso')
     periodo_encerramento_conta = serializers.SerializerMethodField('get_periodo_encerramento_conta')
     mostrar_alerta_valores_reprogramados_ao_solicitar = serializers.SerializerMethodField(
         'get_mostrar_alerta_valores_reprogramados_ao_solicitar')
@@ -56,6 +57,9 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
 
     def get_nome_recurso(self, obj):
         return obj.tipo_conta.recurso.nome
+  
+    def get_nome_exibicao_recurso(self, obj):
+        return obj.tipo_conta.recurso.nome_exibicao
 
     def get_periodo_encerramento_conta(self, obj):
         return obj.periodo_encerramento.referencia if obj.periodo_encerramento else None
@@ -73,6 +77,7 @@ class ContaAssociacaoDadosSerializer(serializers.ModelSerializer):
             'habilitar_solicitar_encerramento',
             'nome',
             'nome_recurso',
+            'nome_exibicao_recurso',
             'status',
             'periodo_encerramento_conta',
             'mostrar_alerta_valores_reprogramados_ao_solicitar'

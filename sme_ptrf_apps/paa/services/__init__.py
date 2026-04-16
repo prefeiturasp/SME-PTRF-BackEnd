@@ -30,3 +30,4 @@ from .prioridades_impactadas_receitas_previstas_service import (
 )
 from .acoes_pdde_service import AcoesPddeService
 from .acoes_paa_service import AcoesPaaService, AcoesReceitasPrevistasPaaService
+from .retificacao_paa_service import RetificacaoPaaService

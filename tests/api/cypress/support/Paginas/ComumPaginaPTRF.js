@@ -7,7 +7,7 @@ var esperar = 2000;
 
 class ComumPaginaPTRF {
   visitarPaginaPTRF() {
-    cy.visit(Cypress.config("baseUrlPTRF"));
+    cy.visit(Cypress.config("baseUrlPTRFHomol"));
   }
 
   login(Usuario, Senha) {
