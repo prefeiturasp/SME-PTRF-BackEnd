@@ -17,6 +17,7 @@ from sme_ptrf_apps.dre.fixtures.factories import (
 )
 from sme_ptrf_apps.dre.models import AtaParecerTecnicoSnapshot
 from sme_ptrf_apps.dre.services.ata_parecer_tecnico_service import (
+    _normalizar_datas_do_payload,
     gerar_arquivo_ata_parecer_tecnico,
     obter_payload_ata,
 )
@@ -126,7 +127,7 @@ def test_snapshot_e_criado_na_publicacao_e_congelado(mock_pdf):
         congelar_snapshot=False,
     )
 
-    assert payload_em_tela == snapshot.dados
+    assert payload_em_tela == _normalizar_datas_do_payload(snapshot.dados)
     assert _contar_status(payload_em_tela) == {"APROVADA": 1, "APROVADA_RESSALVA": 1, "REPROVADA": 1}
     assert mock_pdf.called
 
