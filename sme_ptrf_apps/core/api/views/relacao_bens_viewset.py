@@ -87,6 +87,29 @@ class RelacaoBensViewSet(GenericViewSet):
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        # Validações extras
+        conta_associacao = ContaAssociacao.objects.filter(uuid=conta_associacao_uuid)\
+            .only('associacao_id')\
+            .first()
+
+        if conta_associacao:
+            prestacao_conta = PrestacaoConta.objects.filter(
+                periodo_id=periodo.id,
+                associacao_id=conta_associacao.associacao_id
+            ).only('id', 'status').first()
+
+            if prestacao_conta:
+                existe_doc_final = RelacaoBens.objects.filter(
+                    prestacao_conta_id=prestacao_conta.id,
+                    versao=RelacaoBens.VERSAO_FINAL
+                ).exists()
+
+                if existe_doc_final and prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
+                    return Response({
+                        'erro': 'erro_status_pc',
+                        'mensagem': 'O status da PC não permite a geração da prévia'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
         gerar_previa_relacao_de_bens_async.delay(periodo_uuid=periodo_uuid,
                                                  conta_associacao_uuid=conta_associacao_uuid,
                                                  data_inicio=data_inicio,
