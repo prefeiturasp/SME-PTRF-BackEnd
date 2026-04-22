@@ -19,7 +19,7 @@ class RecursoService:
                 .order_by("nome")
             )
         else:
-            return Recurso.objects.none()
+            return Recurso.objects.filter(legado=True, id__in=recurso_ids, ativo=True).distinct().order_by("nome")
 
     @classmethod
     def por_associacao(cls, unidade):
