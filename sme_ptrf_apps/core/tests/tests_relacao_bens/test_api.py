@@ -93,6 +93,38 @@ def test_previa_data_fim_maior_que_fim_realizacao_retorna_400(jwt_authenticated_
     assert response.json()['erro'] == 'erro_nas_datas'
 
 
+def test_previa_com_documento_final_e_pc_nao_devolvida_retorna_400(
+    jwt_authenticated_client_a,
+    periodo,
+    conta_associacao,
+    prestacao_conta_factory,
+    relacao_bens_factory
+):
+    prestacao_conta = prestacao_conta_factory(
+        periodo=periodo,
+        associacao=conta_associacao.associacao,
+        status='EM_ANALISE'
+    )
+
+    relacao_bens_factory(
+        prestacao_conta=prestacao_conta,
+        versao='FINAL'
+    )
+
+    url = (
+        f"/api/relacao-bens/previa/"
+        f"?conta-associacao={conta_associacao.uuid}"
+        f"&periodo={periodo.uuid}"
+        f"&data_inicio=2019-09-01"
+        f"&data_fim=2019-09-30"
+    )
+
+    response = jwt_authenticated_client_a.get(url)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()['erro'] == 'erro_status_pc'
+
+
 def test_previa_parametros_validos_retorna_200(jwt_authenticated_client_a, periodo, conta_associacao):
     url = (
         f"/api/relacao-bens/previa/"
