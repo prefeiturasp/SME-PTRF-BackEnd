@@ -214,7 +214,8 @@ def processa_repasse(reader, tipo_conta_uuid, instance_tipo_conta, arquivo, peri
 
             if associacao_periodo_tem_pc(associacao, periodo):
                 msg_erro = (
-                    f"A associação {associacao.unidade.codigo_eol} já possui PC gerada no "
+                    "Não foi possível realizar a carga. "
+                    f"Unidade {associacao.unidade.codigo_eol} já possui PC gerada no "
                     f"período {periodo.referencia}.")
                 raise CargaRepassePrevistoException(msg_erro)
 
