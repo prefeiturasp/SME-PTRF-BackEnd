@@ -70,7 +70,8 @@ def test_lista_notificacoes(jwt_authenticated_client_a, notificacao):
                             'hora': notificacao.hora.strftime("%H:%M"),
                             'tipo': Notificacao.TIPO_NOTIFICACAO_NOMES[notificacao.tipo],
                             'remetente': Notificacao.REMETENTE_NOTIFICACAO_NOMES[notificacao.remetente],
-                            'categoria': Notificacao.CATEGORIA_NOTIFICACAO_NOMES[notificacao.categoria]
+                            'categoria': Notificacao.CATEGORIA_NOTIFICACAO_NOMES[notificacao.categoria],
+                            'recurso': notificacao.recurso
                         }
                     ]
                 }
@@ -104,7 +105,8 @@ def test_filtro_lido(jwt_authenticated_client_a, notificacao, notificacao2):
                             'hora': notificacao2.hora.strftime("%H:%M"),
                             'tipo': Notificacao.TIPO_NOTIFICACAO_NOMES[notificacao2.tipo],
                             'remetente': Notificacao.REMETENTE_NOTIFICACAO_NOMES[notificacao2.remetente],
-                            'categoria': Notificacao.CATEGORIA_NOTIFICACAO_NOMES[notificacao2.categoria]
+                            'categoria': Notificacao.CATEGORIA_NOTIFICACAO_NOMES[notificacao2.categoria],
+                            'recurso': notificacao2.recurso
                         }
                     ]
                 }
@@ -139,7 +141,8 @@ def test_filtro_tipo(jwt_authenticated_client_a, notificacao, notificacao2):
                             'hora': notificacao2.hora.strftime("%H:%M"),
                             'tipo': Notificacao.TIPO_NOTIFICACAO_NOMES[notificacao2.tipo],
                             'remetente': Notificacao.REMETENTE_NOTIFICACAO_NOMES[notificacao2.remetente],
-                            'categoria': Notificacao.CATEGORIA_NOTIFICACAO_NOMES[notificacao2.categoria]
+                            'categoria': Notificacao.CATEGORIA_NOTIFICACAO_NOMES[notificacao2.categoria],
+                            'recurso': notificacao2.recurso
                         }
                     ]
                 }
