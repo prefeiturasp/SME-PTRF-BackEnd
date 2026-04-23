@@ -12,6 +12,25 @@ from django.db.models import Q
 LOGGER = logging.getLogger(__name__)
 
 
+def _normalizar_datas_do_payload(dados):
+    """Converte campos de data no payload de string ISO (vindo do JSON/snapshot) para datetime.date."""
+    data_reuniao = dados.get("dados_texto_da_ata", {}).get("data_reuniao")
+    if isinstance(data_reuniao, str) and data_reuniao not in ("---", "", None):
+        try:
+            dados["dados_texto_da_ata"]["data_reuniao"] = datetime.date.fromisoformat(data_reuniao)
+        except (ValueError, KeyError):
+            pass
+
+    data_portaria = dados.get("cabecalho", {}).get("data_portaria")
+    if isinstance(data_portaria, str) and data_portaria not in ("--", "", None):
+        try:
+            dados["cabecalho"]["data_portaria"] = datetime.date.fromisoformat(data_portaria)
+        except (ValueError, KeyError):
+            pass
+
+    return dados
+
+
 def congelar_snapshot_ata(
     ata,
     dre=None,
@@ -63,7 +82,7 @@ def obter_payload_ata(
         snapshot = AtaParecerTecnicoSnapshot.objects.filter(ata=ata_de_parecer_tecnico).first()
 
     if snapshot:
-        return snapshot.dados
+        return _normalizar_datas_do_payload(snapshot.dados)
 
     dados = informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre(
         dre=dre,
@@ -83,7 +102,7 @@ def obter_payload_ata(
             dados=dados,
             origem=origem,
         )
-        return snapshot.dados
+        return _normalizar_datas_do_payload(snapshot.dados)
 
     return dados
 
