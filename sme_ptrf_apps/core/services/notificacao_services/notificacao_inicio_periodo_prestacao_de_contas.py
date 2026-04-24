@@ -40,6 +40,8 @@ def notificar_inicio_periodo_prestacao_de_contas(enviar_email=True):
                     usuario=user,
                     renotificar=False,
                     enviar_email=enviar_email,
+                    periodo=periodo,
+                    recurso=periodo.recurso if periodo.recurso else None
                 )
 
             periodo.notificacao_inicio_prestacao_de_contas_realizada()
