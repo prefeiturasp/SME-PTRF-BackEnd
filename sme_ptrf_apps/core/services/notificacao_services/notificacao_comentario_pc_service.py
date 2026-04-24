@@ -47,6 +47,8 @@ def notificar_comentario_pc(dado, enviar_email=True):
                 renotificar=True,
                 enviar_email=enviar_email,
                 unidade=associacao.unidade,
+                periodo=periodo,
+                recurso=periodo.recurso if periodo.recurso else None,
             )
 
             comentario.set_comentario_notificado()

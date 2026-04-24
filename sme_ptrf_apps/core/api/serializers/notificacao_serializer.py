@@ -9,6 +9,7 @@ class NotificacaoSerializer(serializers.ModelSerializer):
     categoria = serializers.SerializerMethodField(method_name='get_categoria')
     hora = serializers.SerializerMethodField(method_name='get_hora')
     periodo = serializers.SerializerMethodField(method_name='get_periodo')
+    recurso = serializers.SerializerMethodField(method_name='get_recurso')
 
     def get_periodo(self, obj):
         obj_periodo = None
@@ -39,6 +40,9 @@ class NotificacaoSerializer(serializers.ModelSerializer):
     def get_hora(self, obj):
         return obj.hora.strftime("%H:%M")
 
+    def get_recurso(self, obj):
+        return obj.recurso.nome_exibicao if obj.recurso else None
+
     class Meta:
         model = Notificacao
         fields = [
@@ -52,4 +56,5 @@ class NotificacaoSerializer(serializers.ModelSerializer):
             'categoria',
             'unidade',
             'periodo',
+            'recurso',
         ]

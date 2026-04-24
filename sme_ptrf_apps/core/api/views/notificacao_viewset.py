@@ -59,6 +59,9 @@ class NotificacaoViewSet(viewsets.ModelViewSet):
         if self.request.query_params.get('categoria'):
             qs = qs.filter(categoria=self.request.query_params.get('categoria'))
 
+        if self.request.query_params.get('recurso'):
+            qs = qs.filter(recurso__uuid=self.request.query_params.get('recurso'))
+
         data_inicio = self.request.query_params.get('data_inicio')
         data_fim = self.request.query_params.get('data_fim')
 
