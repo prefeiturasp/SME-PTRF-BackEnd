@@ -2,6 +2,7 @@
 from .periodo_paa_viewset import PeriodoPaaViewSet
 from .parametro_paa_viewset import ParametrosPaaViewSet
 from .paa_viewset import PaaViewSet
+from .paa_dre_viewset import PaaDreViewSet
 from .acoes_pdde_viewset import AcoesPddeViewSet
 from .programas_pdde_viewset import ProgramaPddeViewSet
 from .receitas_previstas_paa_viewset import ReceitaPrevistaPaaViewSet
