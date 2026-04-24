@@ -18,9 +18,7 @@ def test_obtem_lista_de_unidades_do_usuario_sem_acesso_suporte(
                 'uuid': ''
             },
             'nome': 'Secretaria Municipal de Educação',
-            'notificacao_uuid': None,
-            'notificar_devolucao_pc_uuid': None,
-            'notificar_devolucao_referencia': None,
+            'notificar_devolucao_por_recurso': {},
             'tipo_unidade': 'SME',
             'uuid': '8919f454-bee5-419c-ad54-b2df27bf8007',
             'acesso_de_suporte': False
@@ -46,9 +44,7 @@ def test_obtem_lista_de_unidades_do_usuario_com_acesso_suporte(
                 'uuid': associacao_em_suporte.uuid
             },
             'nome': 'Escola Unidade Diferente',
-            'notificacao_uuid': None,
-            'notificar_devolucao_pc_uuid': None,
-            'notificar_devolucao_referencia': None,
+            'notificar_devolucao_por_recurso': {},
             'tipo_unidade': 'EMEI',
             'uuid': unidade_do_suporte.uuid,
             'acesso_de_suporte': True
@@ -59,9 +55,7 @@ def test_obtem_lista_de_unidades_do_usuario_com_acesso_suporte(
                 'uuid': ''
             },
             'nome': 'Secretaria Municipal de Educação',
-            'notificacao_uuid': None,
-            'notificar_devolucao_pc_uuid': None,
-            'notificar_devolucao_referencia': None,
+            'notificar_devolucao_por_recurso': {},
             'tipo_unidade': 'SME',
             'uuid': '8919f454-bee5-419c-ad54-b2df27bf8007',
             'acesso_de_suporte': False
