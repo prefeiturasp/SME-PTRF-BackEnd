@@ -43,6 +43,24 @@ class Recurso(ModeloIdNome, TemAtivo):
         blank=False
     )
 
+    tipo_conta_um = models.ForeignKey(
+        "core.TipoConta",
+        on_delete=models.CASCADE,
+        related_name="recurso_tipo_conta_um",
+        null=True,
+        blank=True,
+        default=None,
+    )
+
+    tipo_conta_dois = models.ForeignKey(
+        "core.TipoConta",
+        on_delete=models.CASCADE,
+        related_name="recurso_tipo_conta_dois",
+        null=True,
+        blank=True,
+        default=None,
+    )
+
     class Meta:
         verbose_name = 'Recurso'
         verbose_name_plural = '20.0) Recursos'
