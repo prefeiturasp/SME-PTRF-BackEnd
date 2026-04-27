@@ -235,7 +235,7 @@ class PaaDreService:
                 "uuid": item["unidade__uuid"],
                 "nome": item["unidade__nome"],
                 "tipo_unidade": item["unidade__tipo_unidade"],
-                "unidade_educacional": f"{item["unidade__tipo_unidade"]} {item["unidade__nome"]}"
+                "unidade_educacional": f"{item['unidade__tipo_unidade']} {item['unidade__nome']}"
             }
             for item in qs
         ]

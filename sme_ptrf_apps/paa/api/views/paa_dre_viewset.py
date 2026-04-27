@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import (    
-    PermissaoAPIApenasDreComLeituraOuGravacao
+    PermissaoApiDre
 )
 from sme_ptrf_apps.paa.models import Paa
 from sme_ptrf_apps.paa.services.paa_dre_service import PaaDreService, ValidacaoPaaDre
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 class PaaDreViewSet(WaffleFlagMixin, GenericViewSet):
     waffle_flag = "paa-dre"
-    permission_classes = [IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao]
+    permission_classes = [IsAuthenticated & PermissaoApiDre]
     pagination_class = CustomPagination
     queryset = Paa.objects.none()
     http_method_names = ['get']
