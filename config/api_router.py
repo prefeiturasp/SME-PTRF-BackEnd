@@ -99,6 +99,7 @@ from sme_ptrf_apps.paa.api.views import (
     PeriodoPaaViewSet,
     ParametrosPaaViewSet,
     PaaViewSet,
+    PaaDreViewSet,
     AcoesPddeViewSet,
     ProgramaPddeViewSet,
     ReceitaPrevistaOutroRecursoPeriodoViewSet,
@@ -275,6 +276,7 @@ router.register("cargos-composicao", CargosComposicoesViewSet, basename="cargos-
 router.register("prestacoes-contas-reprovadas-nao-apresentacao", PrestacaoContaReprovadaNaoApresentacaoViewSet,
                 basename="prestacoes-contas-reprovadas-nao-apresentacao")
 router.register("paa", PaaViewSet, basename='paa')
+router.register("paa-dre", PaaDreViewSet, basename='paa-dre')
 router.register("fontes-recursos-paa", FonteRecursoPaaViewSet, basename='fonte_recurso_paa')
 router.register("recursos-proprios-paa", RecursoProprioPaaViewSet, basename='recursos_proprios_paa')
 router.register("periodos-paa", PeriodoPaaViewSet, basename='periodos_paa')

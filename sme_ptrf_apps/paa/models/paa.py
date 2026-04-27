@@ -87,6 +87,13 @@ class Paa(ModeloBase):
     def documento_previa(self):
         return self.documentopaa_set.filter(versao="PREVIA").first()
 
+    @property
+    def tem_documentos(self):
+        return (
+            self.documentopaa_set.exists() or
+            self.atas_da_paa.exists()
+        )
+
     def get_status_andamento(self) -> str:
         """
         Retorna o status de andamento do PAA.

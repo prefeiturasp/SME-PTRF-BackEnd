@@ -142,3 +142,14 @@ class UnidadeCreateSerializer(serializers.ModelSerializer):
             unidade.save()
             
         return unidade
+
+
+class UnidadeSimplesSerializer(serializers.ModelSerializer):
+    unidade_educacional = serializers.SerializerMethodField()
+
+    def get_unidade_educacional(self, obj):
+        return obj.nome_com_tipo
+
+    class Meta:
+        model = Unidade
+        fields = ('uuid', 'unidade_educacional', 'codigo_eol', 'nome', 'tipo_unidade')
