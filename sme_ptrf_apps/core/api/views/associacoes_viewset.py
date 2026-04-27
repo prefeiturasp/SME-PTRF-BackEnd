@@ -295,14 +295,17 @@ class AssociacoesViewSet(ModelViewSet):
 
         associacao = self.get_object()
 
-        result = associacao_pode_implantar_saldo(associacao=associacao)
+        result = associacao_pode_implantar_saldo(associacao=associacao, recurso=self.request.recurso)
 
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, url_path='implantacao-saldos', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def implantacao_saldos(self, request, uuid=None):
-        result = get_implantacao_de_saldos_da_associacao(associacao=self.get_object())
+        result = get_implantacao_de_saldos_da_associacao(
+            associacao=self.get_object(),
+            recurso=self.request.recurso
+        )
         return Response(result['conteudo'], result['status_code'])
 
     @action(detail=True, url_path='implanta-saldos', methods=['post'],
@@ -320,12 +323,17 @@ class AssociacoesViewSet(ModelViewSet):
             }
             return Response(result_error, status=status.HTTP_400_BAD_REQUEST)
 
-        resultado_implantacao = implanta_saldos_da_associacao(associacao=associacao, saldos=saldos)
+        resultado_implantacao = implanta_saldos_da_associacao(
+            associacao=associacao,
+            saldos=saldos,
+            recurso=self.request.recurso
+        )
 
         if resultado_implantacao['saldo_implantado']:
+            periodo_implantacao = resultado_implantacao.get("periodo")
             result = {
                 'associacao': f'{uuid}',
-                'periodo': PeriodoLookUpSerializer(associacao.periodo_inicial).data,
+                'periodo': PeriodoLookUpSerializer(periodo_implantacao).data if periodo_implantacao else None,
                 'saldos': saldos,
             }
             status_code = status.HTTP_200_OK
