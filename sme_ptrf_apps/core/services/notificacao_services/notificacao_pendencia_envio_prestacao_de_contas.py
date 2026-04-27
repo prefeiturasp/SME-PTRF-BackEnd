@@ -51,7 +51,9 @@ def notificar_pendencia_envio_prestacao_de_contas(enviar_email=True):
                         descricao=f"Terminou o período de prestações de contas para a associação {associacao.unidade.codigo_eol} - {associacao.unidade.nome} e você ainda não enviou sua PC.",
                         usuario=usuario,
                         renotificar=True,
-                        enviar_email=enviar_email
+                        enviar_email=enviar_email,
+                        periodo=periodo,
+                        recurso=periodo.recurso if periodo.recurso else None
                     )
 
                 periodo.notificacao_pendencia_envio_prestacao_de_contas_realizada()

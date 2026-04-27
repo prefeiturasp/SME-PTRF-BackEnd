@@ -58,6 +58,8 @@ def notificar_proximidade_fim_prazo_ajustes_prestacao_de_contas(enviar_email=Tru
                         enviar_email=enviar_email,
                         unidade=associacao.unidade if associacao else None,
                         prestacao_conta=prestacao_de_contas,
+                        periodo=prestacao_de_contas.periodo if prestacao_de_contas.periodo else None,
+                        recurso=prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
                     )
     else:
         logger.info(f"Não foram encontrados prestações de contas próximas ao fim do prazo de envio de ajustes.")

@@ -147,7 +147,10 @@ class Notificacao(ModeloBase):
                                         related_name='notificacoes_da_prestacao', blank=True, null=True)
 
     periodo = models.ForeignKey('Periodo', on_delete=models.CASCADE, verbose_name='período',
-                                        related_name='notificacoes_do_periodo', null=True, blank=True)
+                                related_name='notificacoes_do_periodo', null=True, blank=True)
+
+    recurso = models.ForeignKey('Recurso', on_delete=models.SET_NULL, verbose_name='recurso',
+                                null=True, blank=True)
 
     class Meta:
         verbose_name = "Notificação"
@@ -207,6 +210,7 @@ class Notificacao(ModeloBase):
         unidade=None,
         prestacao_conta=None,
         periodo=None,
+        recurso=None
     ):
 
         from sme_ptrf_apps.core.services.notificacao_services.enviar_email_notificacao import enviar_email_nova_notificacao
@@ -269,6 +273,7 @@ class Notificacao(ModeloBase):
                 unidade=unidade,
                 periodo=periodo,
                 prestacao_conta=prestacao_conta,
+                recurso=recurso
             )
             logger.info(f'===> Notificação criada: {nc.uuid}, usuário:{nc.usuario}, titulo:{nc.titulo}, descricao:{nc.descricao}, unidade:{nc.unidade if nc.unidade else ""}')
 

@@ -106,17 +106,11 @@ class PaaAdmin(admin.ModelAdmin):
         AtaPAAInline,
         PrioridadesPaaInline,
     ]
-    actions = ["gerar_documento"]
 
     def status_andamento(self, obj):
         from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
         return PaaStatusAndamentoEnum[obj.get_status_andamento()].value
     status_andamento.short_description = 'Status Andamento'
-
-    def gerar_documento(self, request, queryset):
-        from sme_ptrf_apps.paa.services.documento_paa_pdf_service import gerar_arquivo_documento_paa_pdf
-        for paa in queryset:
-            return gerar_arquivo_documento_paa_pdf(paa)
 
 
 @admin.register(ProgramaPdde)
