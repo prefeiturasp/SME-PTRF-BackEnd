@@ -113,6 +113,8 @@ def _garantir_recurso_legado(db):
             "nome": "Programa de Transferência de Recursos Financeiros - PTRF",
             "nome_exibicao": "PTRF",
             "cor": "#01585E",
+            "permite_saldo_conta_negativo": False,
+            "permite_saldo_acoes_negativo": True
         },
     )
 
