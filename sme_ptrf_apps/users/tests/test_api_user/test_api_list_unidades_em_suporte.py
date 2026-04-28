@@ -12,7 +12,7 @@ def test_usuario_sem_unidades_em_suporte(jwt_authenticated_client_u):
     response = jwt_authenticated_client_u.get(
         f'/api/usuarios/{usuario.username}/unidades-em-suporte/?page=1')
 
-    assert response.json() == {'links': {'next': None, 'previous': None},
+    assert response.json() == {'links': {'next': None, 'previous': None}, 'total_pages': 1,
                                'count': 0, 'page': 1, 'page_size': 10, 'results': []}
 
 
