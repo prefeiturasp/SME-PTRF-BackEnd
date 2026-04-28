@@ -94,6 +94,10 @@ class AcaoAssociacao(ModeloBase):
     def receitas_previstas_paa(self):
         return self.receitaprevistapaa_set.all()
 
+    @staticmethod
+    def filter_by_recurso(queryset, recurso):
+        return queryset.filter(acao__recurso=recurso)
+
     class Meta:
         verbose_name = "Ação de Associação"
         verbose_name_plural = "07.3) Ações de Associações"

@@ -1,6 +1,7 @@
 import logging
 
 from django.contrib.postgres.fields import ArrayField
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
@@ -312,11 +313,37 @@ class FechamentoPeriodo(ModeloBase):
         return novo_fechamento
 
     @classmethod
-    def implanta_saldo(cls, acao_associacao, conta_associacao, aplicacao, saldo):
+    def implanta_saldo(cls, acao_associacao, conta_associacao, aplicacao, saldo, periodo=None):
+        if not periodo:
+            associacao = conta_associacao.associacao if conta_associacao else None
+            recurso = conta_associacao.tipo_conta.recurso if conta_associacao and conta_associacao.tipo_conta else None
+            periodo_inicial_associacao = (
+                associacao.get_periodo_inicial_associacao(recurso=recurso)
+                if associacao else None
+            )
+            periodo = (
+                periodo_inicial_associacao.periodo_inicial
+                if periodo_inicial_associacao else None
+            )
+
+            if not periodo and associacao and not recurso and associacao.periodo_inicial:
+                periodo = associacao.periodo_inicial
+
+            if (
+                not periodo and associacao and recurso and recurso.legado and
+                associacao.periodo_inicial and associacao.periodo_inicial.recurso_id == recurso.id
+            ):
+                periodo = associacao.periodo_inicial
+
+        if not periodo:
+            raise ValidationError(
+                "Período inicial não definido para implantação de saldo da associação/recurso."
+            )
+
         total_receitas_field = f'total_receitas_{aplicacao.lower()}'
         saldo_reprogramado_field = f'saldo_reprogramado_{aplicacao.lower()}'
         fechamento_implantacao = cls.objects.update_or_create(
-            periodo=conta_associacao.associacao.periodo_inicial,
+            periodo=periodo,
             associacao=conta_associacao.associacao,
             conta_associacao=conta_associacao,
             acao_associacao=acao_associacao,

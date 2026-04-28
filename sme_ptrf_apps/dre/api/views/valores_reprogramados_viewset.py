@@ -32,6 +32,7 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         dre_uuid = self.request.query_params.get("dre_uuid")
+        recurso = self.request.recurso if hasattr(self.request, 'recurso') else None
 
         if dre_uuid:
             try:
@@ -44,8 +45,22 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
 
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-            qs = FechamentoPeriodo.objects.filter(associacao__unidade__dre=dre).filter(
-                status='IMPLANTACAO').exclude(associacao__periodo_inicial=None)
+            qs = FechamentoPeriodo.objects.filter(
+                associacao__unidade__dre=dre,
+                status='IMPLANTACAO'
+            )
+
+            if recurso:
+                qs = qs.filter(periodo__recurso=recurso)
+                if recurso.legado:
+                    qs = qs.filter(
+                        Q(associacao__periodos_iniciais__recurso=recurso) |
+                        Q(associacao__periodo_inicial__recurso=recurso)
+                    )
+                else:
+                    qs = qs.filter(associacao__periodos_iniciais__recurso=recurso)
+            else:
+                qs = qs.exclude(associacao__periodo_inicial=None)
 
             qs = qs.distinct("associacao__uuid")
 
@@ -65,7 +80,20 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
             status_valores_reprogramados = self.request.query_params.get('status')
             status_list = status_valores_reprogramados.split(',') if status_valores_reprogramados else []
             if status_list:
-                qs = qs.filter(associacao__status_valores_reprogramados__in=status_list)
+                if recurso:
+                    if recurso.legado:
+                        associacao_ids = set()
+                        for fechamento in qs.select_related("associacao").all():
+                            if fechamento.associacao.get_status_valores_reprogramados(recurso=recurso) in status_list:
+                                associacao_ids.add(fechamento.associacao_id)
+                        qs = qs.filter(associacao_id__in=associacao_ids)
+                    else:
+                        qs = qs.filter(
+                            associacao__periodos_iniciais__recurso=recurso,
+                            associacao__periodos_iniciais__status_valores_reprogramados__in=status_list
+                        )
+                else:
+                    qs = qs.filter(associacao__periodos_iniciais__status_valores_reprogramados__in=status_list)
 
             return qs
 
@@ -94,8 +122,18 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         # query principal
-        associacoes_dre = Associacao.objects.filter(unidade__dre=dre).exclude(
-            periodo_inicial=None).order_by('nome')
+        associacoes_dre = Associacao.objects.filter(unidade__dre=dre).order_by('nome')
+
+        recurso = self.request.recurso if hasattr(self.request, 'recurso') else None
+
+        if recurso:
+            associacoes_dre = Associacao.filter_by_recurso(
+                queryset=associacoes_dre,
+                recurso=recurso,
+                considerar_legado=bool(recurso.legado)
+            )
+        else:
+            associacoes_dre = associacoes_dre.exclude(periodo_inicial=None)
 
         # filtros
         search = self.request.query_params.get('search')
@@ -113,9 +151,22 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
         status_valores_reprogramados = self.request.query_params.get('status')
         status_list = status_valores_reprogramados.split(',') if status_valores_reprogramados else []
         if status_list:
-            associacoes_dre = associacoes_dre.filter(status_valores_reprogramados__in=status_list)
+            if recurso:
+                if recurso.legado:
+                    associacao_ids = []
+                    for associacao in associacoes_dre.all():
+                        if associacao.get_status_valores_reprogramados(recurso=recurso) in status_list:
+                            associacao_ids.append(associacao.id)
+                    associacoes_dre = associacoes_dre.filter(id__in=associacao_ids)
+                else:
+                    associacoes_dre = associacoes_dre.filter(
+                        periodos_iniciais__recurso=recurso,
+                        periodos_iniciais__status_valores_reprogramados__in=status_list
+                    )
+            else:
+                associacoes_dre = associacoes_dre.filter(periodos_iniciais__status_valores_reprogramados__in=status_list)
 
-        valores_reprogramados = lista_valores_reprogramados(associacoes_dre)
+        valores_reprogramados = lista_valores_reprogramados(associacoes_dre, recurso=recurso)
 
         if valores_reprogramados == "Nenhum tipo de conta definida em Parâmetro DRE":
             erro = {
@@ -135,16 +186,28 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def salvar_valores_reprogramados(self, request):
         associacao_uuid = self.request.data.get('associacao_uuid', None)
+        recurso = self.request.recurso if hasattr(self.request, 'recurso') else None
 
         try:
             associacao = Associacao.objects.get(uuid=associacao_uuid)
-            periodo = associacao.periodo_inicial
         except Associacao.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
                 'mensagem': f"O objeto associacao para o uuid {associacao_uuid} não foi encontrado na base."
             }
 
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        periodo_inicial_associacao = associacao.get_periodo_inicial_associacao(recurso=recurso)
+        periodo = periodo_inicial_associacao.periodo_inicial if periodo_inicial_associacao else None
+        if not periodo and recurso and recurso.legado and associacao.periodo_inicial:
+            if associacao.periodo_inicial.recurso_id == recurso.id:
+                periodo = associacao.periodo_inicial
+        if not periodo:
+            erro = {
+                'erro': 'Período inicial não encontrado.',
+                'mensagem': "Não foi encontrado período inicial para o recurso selecionado."
+            }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         dados = self.request.data.get('dadosForm', None)
@@ -167,11 +230,24 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
 
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_selecionada)
+        resultado = salvar_e_concluir_valores_reprogramados(
+            associacao,
+            periodo,
+            dados,
+            visao_selecionada,
+            recurso=recurso
+        )
+
+        if not resultado.get("saldo_salvo", False):
+            erro = {
+                "erro": resultado.get("codigo_erro", "erro_ao_salvar_valores_reprogramados"),
+                "mensagem": resultado.get("mensagem", "Não foi possível salvar os valores reprogramados."),
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         result = {
-            "contas": monta_estrutura_valores_reprogramados(associacao),
-            "associacao": monta_estrutura_associacao(associacao)["associacao"]
+            "contas": monta_estrutura_valores_reprogramados(associacao, recurso=recurso),
+            "associacao": monta_estrutura_associacao(associacao, recurso=recurso)["associacao"]
         }
 
         return Response(result, status=status.HTTP_201_CREATED)
@@ -180,16 +256,28 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def concluir(self, request):
         associacao_uuid = self.request.data.get('associacao_uuid', None)
+        recurso = self.request.recurso if hasattr(self.request, 'recurso') else None
 
         try:
             associacao = Associacao.objects.get(uuid=associacao_uuid)
-            periodo = associacao.periodo_inicial
         except Associacao.DoesNotExist:
             erro = {
                 'erro': 'Objeto não encontrado.',
                 'mensagem': f"O objeto associacao para o uuid {associacao_uuid} não foi encontrado na base."
             }
 
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        periodo_inicial_associacao = associacao.get_periodo_inicial_associacao(recurso=recurso)
+        periodo = periodo_inicial_associacao.periodo_inicial if periodo_inicial_associacao else None
+        if not periodo and recurso and recurso.legado and associacao.periodo_inicial:
+            if associacao.periodo_inicial.recurso_id == recurso.id:
+                periodo = associacao.periodo_inicial
+        if not periodo:
+            erro = {
+                'erro': 'Período inicial não encontrado.',
+                'mensagem': "Não foi encontrado período inicial para o recurso selecionado."
+            }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         dados = self.request.data.get('dadosForm', None)
@@ -212,11 +300,25 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
 
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_selecionada, concluir=True)
+        resultado = salvar_e_concluir_valores_reprogramados(
+            associacao,
+            periodo,
+            dados,
+            visao_selecionada,
+            recurso=recurso,
+            concluir=True
+        )
+
+        if not resultado.get("saldo_salvo", False):
+            erro = {
+                "erro": resultado.get("codigo_erro", "erro_ao_concluir_valores_reprogramados"),
+                "mensagem": resultado.get("mensagem", "Não foi possível concluir os valores reprogramados."),
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         result = {
-            "contas": monta_estrutura_valores_reprogramados(associacao),
-            "associacao": monta_estrutura_associacao(associacao)["associacao"]
+            "contas": monta_estrutura_valores_reprogramados(associacao, recurso=recurso),
+            "associacao": monta_estrutura_associacao(associacao, recurso=recurso)["associacao"]
         }
 
         return Response(result, status=status.HTTP_201_CREATED)
@@ -236,9 +338,11 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
 
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        recurso = self.request.recurso if hasattr(self.request, 'recurso') else None
+
         result = {
-            "contas": monta_estrutura_valores_reprogramados(associacao),
-            "associacao": monta_estrutura_associacao(associacao)["associacao"]
+            "contas": monta_estrutura_valores_reprogramados(associacao, recurso=recurso),
+            "associacao": monta_estrutura_associacao(associacao, recurso=recurso)["associacao"]
         }
 
         return Response(result, status=status.HTTP_200_OK)
@@ -247,6 +351,8 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def get_status_valores_reprogramados(self, request):
         associacao_uuid = self.request.query_params.get("associacao_uuid")
+
+        recurso = self.request.recurso if hasattr(self.request, 'recurso') else None
 
         try:
             associacao = Associacao.objects.get(uuid=associacao_uuid)
@@ -259,7 +365,7 @@ class ValoresReprogramadosViewSet(viewsets.ModelViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         result = {
-            "status": barra_status(associacao)
+            "status": barra_status(associacao, recurso=recurso)
         }
 
         return Response(result, status=status.HTTP_200_OK)

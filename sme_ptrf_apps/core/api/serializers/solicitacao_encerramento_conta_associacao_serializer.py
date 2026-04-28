@@ -54,13 +54,21 @@ class SolicitacaoEncerramentoContaAssociacaoSerializer(serializers.ModelSerializ
         conta_associacao = data['conta_associacao']
         data_de_encerramento_na_agencia = data['data_de_encerramento_na_agencia']
         associacao = conta_associacao.associacao
+        recurso = conta_associacao.tipo_conta.recurso if conta_associacao.tipo_conta else None
+        periodo_inicial_associacao = associacao.get_periodo_inicial_associacao(recurso=recurso) if associacao else None
+        periodo_inicial = periodo_inicial_associacao.periodo_inicial if periodo_inicial_associacao else None
+        if (
+            associacao and not periodo_inicial and recurso and recurso.legado and
+            associacao.periodo_inicial and associacao.periodo_inicial.recurso_id == recurso.id
+        ):
+            periodo_inicial = associacao.periodo_inicial
         valida_valores_reprogramados = conta_associacao.valida_status_valores_reprogramados()
 
         if conta_associacao.get_saldo_atual_conta() != 0:
             raise serializers.ValidationError({"mensagem": "Não é permitido encerrar conta com saldo diferente de 0."})
 
-        if associacao and associacao.periodo_inicial:
-            if data_de_encerramento_na_agencia <= associacao.periodo_inicial.data_fim_realizacao_despesas:
+        if associacao and periodo_inicial:
+            if data_de_encerramento_na_agencia <= periodo_inicial.data_fim_realizacao_despesas:
                 raise serializers.ValidationError({"mensagem": "Data de encerramento deve ser posterior ao periodo inicial da associação."})
 
         if not conta_associacao.pode_encerrar(data_de_encerramento_na_agencia):

@@ -47,7 +47,9 @@ def notificar_proximidade_inicio_periodo_prestacao_conta(enviar_email=True):
                               f"de contas. Finalize o cadastro de crédito e de gastos, a conciliação bancária e "
                               f"gere os documentos da prestação de contas.",
                     usuario=user,
-                    enviar_email=enviar_email
+                    enviar_email=enviar_email,
+                    periodo=periodo,
+                    recurso=periodo.recurso if periodo.recurso else None
                 )
                 periodo.notificacao_proximidade_inicio_prestacao_de_contas_realizada()
         else:

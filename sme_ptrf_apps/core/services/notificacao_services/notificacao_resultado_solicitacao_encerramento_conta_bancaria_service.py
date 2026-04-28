@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 def notificar_resultado_solicitacao_encerramento_conta_bancaria(conta_associacao, enviar_email=False, resultado=None):
     associacao = conta_associacao.associacao
+    recurso = conta_associacao.tipo_conta.recurso
 
     logger.info(f'Iniciando serviço de notificação de resultado de '
                 f'solicitação de encerramento conta bancaria para a Associação: {associacao}.')
@@ -43,6 +44,7 @@ def notificar_resultado_solicitacao_encerramento_conta_bancaria(conta_associacao
                 titulo=titulo,
                 descricao=descricao,
                 usuario=usuario,
+                recurso=recurso,
                 renotificar=True,
                 enviar_email=enviar_email
             )

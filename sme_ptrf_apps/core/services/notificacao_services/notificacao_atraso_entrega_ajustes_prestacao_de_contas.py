@@ -55,6 +55,8 @@ def notificar_atraso_entrega_ajustes_prestacao_de_contas(enviar_email=True):
                         enviar_email=enviar_email,
                         unidade=associacao.unidade if associacao else None,
                         prestacao_conta=prestacao_de_contas,
+                        periodo=prestacao_de_contas.periodo,
+                        recurso=prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None,
                     )
     else:
         logger.info(f"Não foram encontrados prestações de contas a serem notificadas.")

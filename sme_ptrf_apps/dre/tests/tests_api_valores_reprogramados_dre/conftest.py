@@ -5,11 +5,26 @@ from datetime import date, timedelta
 
 @pytest.fixture
 def parametros_dre_valores_reprogramados(tipo_conta, tipo_conta_cartao):
-    return baker.make(
+    parametros = baker.make(
         'ParametrosDre',
         tipo_conta_um=tipo_conta,
         tipo_conta_dois=tipo_conta_cartao
     )
+
+    # Fluxo novo: tipo de conta vem do Recurso (não mais de ParametrosDre).
+    # Mantemos ParametrosDre por compatibilidade, mas preenchemos Recurso para os testes.
+    recurso_um = tipo_conta.recurso
+    recurso_um.tipo_conta_um = tipo_conta
+    recurso_um.tipo_conta_dois = tipo_conta_cartao
+    recurso_um.save(update_fields=["tipo_conta_um", "tipo_conta_dois", "alterado_em"])
+
+    recurso_dois = tipo_conta_cartao.recurso
+    if recurso_dois.id != recurso_um.id:
+        recurso_dois.tipo_conta_um = tipo_conta
+        recurso_dois.tipo_conta_dois = tipo_conta_cartao
+        recurso_dois.save(update_fields=["tipo_conta_um", "tipo_conta_dois", "alterado_em"])
+
+    return parametros
 
 
 @pytest.fixture

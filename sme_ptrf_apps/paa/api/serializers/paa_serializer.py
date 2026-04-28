@@ -2,13 +2,14 @@ from django.db import transaction
 from django.db import IntegrityError
 from rest_framework import serializers
 from sme_ptrf_apps.paa.models import Paa, PeriodoPaa, ObjetivoPaa, AtividadeEstatutaria, AtividadeEstatutariaPaa
+from sme_ptrf_apps.core.api.serializers.unidade_serializer import UnidadeSimplesSerializer
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.api.serializers.objetivo_paa_serializer import ObjetivoPaaSerializer, ObjetivoPaaUpdateSerializer
 from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_paa_serializer import (
     AtividadeEstatutariaPaaSerializer,
     AtividadeEstaturariaPaaUpdateSerializer
 )
-from sme_ptrf_apps.paa.api.serializers import PeriodoPaaSerializer
+from sme_ptrf_apps.paa.api.serializers import PeriodoPaaSerializer, PeriodoPaaSimplesSerializer
 
 
 class PaaSerializer(serializers.ModelSerializer):
@@ -227,3 +228,18 @@ class PaaUpdateSerializer(serializers.ModelSerializer):
                 except IntegrityError:
                     raise serializers.ValidationError(
                         {"mensagem": "Já existe uma atividade paa com esse paa e data."})
+
+
+class PaaDreSerializer(serializers.ModelSerializer):
+    tem_documentos = serializers.SerializerMethodField()
+    periodo_paa = PeriodoPaaSimplesSerializer(read_only=True)
+    unidade = UnidadeSimplesSerializer(source='associacao.unidade', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+
+    def get_tem_documentos(self, obj):
+        return obj.tem_documentos
+    
+    class Meta:
+        model = Paa
+        fields = ('uuid', 'periodo_paa', 'unidade', 'saldo_congelado_em',
+                  'status', 'status_display', 'tem_documentos')
