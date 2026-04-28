@@ -1,5 +1,6 @@
 import logging
 from rest_framework import status
+
 from .periodo_services import status_prestacao_conta_associacao
 from django.db.models import Q
 from django.core.exceptions import ValidationError
@@ -197,20 +198,32 @@ def cargo_diretoria_executiva_valido(cargo):
     return cargo in cargos_diretoria_executiva
 
 
-def associacao_pode_implantar_saldo(associacao):
+def associacao_pode_implantar_saldo(associacao, recurso=None):
     result = None
 
-    periodo_primeira_pc = associacao.periodo_inicial.proximo_periodo if associacao.periodo_inicial else None
+    periodo_inicial_associacao = associacao.get_periodo_inicial_associacao(recurso=recurso)
+    periodo_inicial = periodo_inicial_associacao.periodo_inicial if periodo_inicial_associacao else None
+    if not periodo_inicial and not recurso and associacao.periodo_inicial:
+        periodo_inicial = associacao.periodo_inicial
+    if not periodo_inicial and recurso and recurso.legado and associacao.periodo_inicial:
+        if associacao.periodo_inicial.recurso_id == recurso.id:
+            periodo_inicial = associacao.periodo_inicial
+    periodo_primeira_pc = periodo_inicial.proximo_periodo if periodo_inicial else None
 
-    if not associacao.periodo_inicial:
+    if not periodo_inicial:
         result = {
             'permite_implantacao': False,
             'erro': 'periodo_inicial_nao_definido',
             'mensagem': 'Período inicial não foi definido para essa associação. Verifique com o administrador.'
         }
 
-    if associacao.prestacoes_de_conta_da_associacao.exists():
-        if not associacao.prestacoes_de_conta_da_associacao.filter(
+    prestacoes_de_conta = associacao.prestacoes_de_conta_da_associacao
+
+    if recurso:
+        prestacoes_de_conta = PrestacaoConta.filter_by_recurso(queryset=associacao.prestacoes_de_conta_da_associacao, recurso=recurso)
+
+    if prestacoes_de_conta.exists():
+        if not prestacoes_de_conta.filter(
             Q(periodo=periodo_primeira_pc) & Q(status='DEVOLVIDA')
         ).exists():
             result = {
@@ -230,16 +243,23 @@ def associacao_pode_implantar_saldo(associacao):
     return result
 
 
-def get_implantacao_de_saldos_da_associacao(associacao):
+def get_implantacao_de_saldos_da_associacao(associacao, recurso=None):
     from rest_framework import status
     from .implantacao_saldos_services import implantacoes_de_saldo_da_associacao
     from ..api.serializers import (AcaoAssociacaoLookUpSerializer,
                                    ContaAssociacaoLookUpSerializer,
                                    PeriodoLookUpSerializer)
 
-    periodo_primeira_pc = associacao.periodo_inicial.proximo_periodo if associacao.periodo_inicial else None
+    periodo_inicial_associacao = associacao.get_periodo_inicial_associacao(recurso=recurso)
+    periodo_inicial = periodo_inicial_associacao.periodo_inicial if periodo_inicial_associacao else None
+    if not periodo_inicial and not recurso and associacao.periodo_inicial:
+        periodo_inicial = associacao.periodo_inicial
+    if not periodo_inicial and recurso and recurso.legado and associacao.periodo_inicial:
+        if associacao.periodo_inicial.recurso_id == recurso.id:
+            periodo_inicial = associacao.periodo_inicial
+    periodo_primeira_pc = periodo_inicial.proximo_periodo if periodo_inicial else None
 
-    if not associacao.periodo_inicial:
+    if not periodo_inicial:
         erro = {
             'erro': 'periodo_inicial_nao_definido',
             'mensagem': 'Período inicial não foi definido para essa associação. Verifique com o administrador.'
@@ -249,8 +269,12 @@ def get_implantacao_de_saldos_da_associacao(associacao):
             'status_code': status.HTTP_400_BAD_REQUEST
         }
 
-    if associacao.prestacoes_de_conta_da_associacao.exists():
-        if not associacao.prestacoes_de_conta_da_associacao.filter(
+    prestacoes_de_conta = associacao.prestacoes_de_conta_da_associacao
+    if recurso:
+        prestacoes_de_conta = PrestacaoConta.filter_by_recurso(queryset=prestacoes_de_conta, recurso=recurso)
+
+    if prestacoes_de_conta.exists():
+        if not prestacoes_de_conta.filter(
             Q(periodo=periodo_primeira_pc) & Q(status='DEVOLVIDA')
         ).exists():
             erro = {
@@ -264,20 +288,20 @@ def get_implantacao_de_saldos_da_associacao(associacao):
             }
 
     saldos = []
-    implantacoes = implantacoes_de_saldo_da_associacao(associacao=associacao)
+    implantacoes = implantacoes_de_saldo_da_associacao(associacao=associacao, recurso=recurso)
     for implantacao in implantacoes:
         saldo = {
             'acao_associacao': AcaoAssociacaoLookUpSerializer(implantacao['acao_associacao']).data,
             'conta_associacao': ContaAssociacaoLookUpSerializer(implantacao['conta_associacao']).data,
             'aplicacao': implantacao['aplicacao'],
             'saldo': implantacao['saldo'],
-            "status": associacao.status_valores_reprogramados
+            "status": associacao.get_status_valores_reprogramados(recurso=recurso)
         }
         saldos.append(saldo)
 
     result = {
         'associacao': f'{associacao.uuid}',
-        'periodo': PeriodoLookUpSerializer(associacao.periodo_inicial).data,
+        'periodo': PeriodoLookUpSerializer(periodo_inicial).data,
         'saldos': saldos,
     }
 
@@ -439,7 +463,18 @@ class ValidaSePodeEditarPeriodoInicial(AssociacaoService):
             ).exists()
 
     def __set_tem_valores_reprogramados(self):
-        self.tem_valores_reprogramados = self.associacao.status_valores_reprogramados != self.associacao.STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO
+        periodo_inicial_associacao = self.associacao.get_periodo_inicial_associacao()
+        if not periodo_inicial_associacao:
+            self.tem_valores_reprogramados = (
+                self.associacao.status_valores_reprogramados !=
+                self.associacao.STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO
+            )
+            return
+
+        self.tem_valores_reprogramados = (
+            periodo_inicial_associacao.status_valores_reprogramados !=
+            self.associacao.STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO
+        )
 
     def __faz_validacao(self):
         self.__set_tem_despesas()
@@ -481,4 +516,3 @@ class ValidaSePodeEditarPeriodoInicial(AssociacaoService):
         }
 
         return
-
