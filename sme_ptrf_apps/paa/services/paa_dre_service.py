@@ -83,7 +83,7 @@ class PaaDreService:
         if filtros.get('tipo_unidade'):
             qs = qs.filter(unidade__tipo_unidade=filtros['tipo_unidade'])
 
-        return qs
+        return qs.order_by('unidade__tipo_unidade', 'unidade__nome')
 
     @staticmethod
     def _get_periodos(filtros: Dict) -> QuerySet[PeriodoPaa]:
@@ -95,7 +95,7 @@ class PaaDreService:
         if filtros.get('periodo'):
             qs = qs.filter(uuid__in=filtros['periodo'])
 
-        return qs
+        return qs.order_by('-data_inicial')
 
     @staticmethod
     def _get_paas(
