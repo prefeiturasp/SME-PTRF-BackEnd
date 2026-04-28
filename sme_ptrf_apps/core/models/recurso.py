@@ -43,6 +43,10 @@ class Recurso(ModeloIdNome, TemAtivo):
         blank=False
     )
 
+    permite_saldo_conta_negativo = models.BooleanField('Permite saldo negativo em contas?', default=False)
+
+    permite_saldo_acoes_negativo = models.BooleanField('Permite saldo negativo em ações?', default=False)
+
     class Meta:
         verbose_name = 'Recurso'
         verbose_name_plural = '20.0) Recursos'

@@ -11,12 +11,12 @@ from auditlog.registry import auditlog
 
 class Parametros(SingletonModel, ModeloBase):
     history = AuditlogHistoryField()
-    permite_saldo_conta_negativo = models.BooleanField('Permite saldo negativo em contas?', default=True)
+    permite_saldo_conta_negativo = models.BooleanField('Permite saldo negativo em contas?', default=True) # TODO: Remover! Este campo foi movido para recurso
 
-    permite_saldo_acoes_negativo = models.BooleanField('Permite saldo negativo em ações?', default=True)
+    permite_saldo_acoes_negativo = models.BooleanField('Permite saldo negativo em ações?', default=True) # TODO: Remover! Este campo foi movido para recurso
 
     fique_de_olho = RichTextField(null=True)
-    fique_de_olho_relatorio_dre = RichTextField(null=True, verbose_name='Fique de olho (Relatório DRE)')    
+    fique_de_olho_relatorio_dre = RichTextField(null=True, verbose_name='Fique de olho (Relatório DRE)')
 
     tempo_aguardar_conclusao_pc = models.PositiveSmallIntegerField(
         'Quanto tempo deve-se aguardar a conclusão da PC (segundos)?',
@@ -69,13 +69,13 @@ class Parametros(SingletonModel, ModeloBase):
         'Quantos períodos consecutivos com saldo zerado para notificar a possibilidade de inativações de contas',
         default=2
     )
-    
+
     tipos_unidades_professor_gremio = ArrayField(
         models.CharField(max_length=20, choices=TIPOS_CHOICE),
         blank=True,
         default=list,
         verbose_name='Tipos de unidades que possuem professor grêmio na ata'
-    ) 
+    )
 
     def __str__(self):
         return 'Parâmetros do PTRF'

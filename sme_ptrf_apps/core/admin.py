@@ -1040,7 +1040,7 @@ class ParametrosAdmin(admin.ModelAdmin):
 
     list_display = [
         '__str__',
-        'permite_saldo_conta_negativo',
+        'permite_saldo_conta_negativo', # TODO: Remover! Este campo foi movido para recurso
         'get_tempo_notificar_nao_demonstrados',
         'get_dias_antes_inicio_periodo_pc_para_notificacao',
         'get_dias_antes_fim_periodo_pc_para_notificacao',
@@ -1053,8 +1053,8 @@ class ParametrosAdmin(admin.ModelAdmin):
         ('Associação', {
             'fields':
                 (
-                    'permite_saldo_conta_negativo',
-                    'permite_saldo_acoes_negativo',
+                    'permite_saldo_conta_negativo', # TODO: Remover! Este campo foi movido para recurso
+                    'permite_saldo_acoes_negativo', # TODO: Remover! Este campo foi movido para recurso
                     'tempo_aguardar_conclusao_pc',
                     'quantidade_tentativas_concluir_pc',
                     'periodo_de_tempo_tentativas_concluir_pc',
