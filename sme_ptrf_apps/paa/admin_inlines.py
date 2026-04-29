@@ -28,6 +28,9 @@ class ObjetivosPaaInline(admin.TabularInline):
     def has_add_permission(self, request, obj=None):
         return False
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('objetivopaa')
+
     def get_uuid(self, obj):
         return obj.objetivopaa.uuid
     get_uuid.short_description = 'UUID'
@@ -61,6 +64,9 @@ class AtividadeEstatutariaPaaInline(admin.TabularInline):
     def has_add_permission(self, request, obj):
         return False
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('atividade_estatutaria')
+
     def get_atividade_estatutaria_do_paa(self, obj):
         return obj.atividade_estatutaria.paa_id is not None
     get_atividade_estatutaria_do_paa.short_description = 'Criada no PAA'
@@ -86,6 +92,9 @@ class ReceitasPrevistasPTRFInline(admin.TabularInline):
     def has_add_permission(self, request, obj):
         return False
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('acao_associacao')
+
 
 class ReceitasPrevistasPDDEInline(admin.TabularInline):
     model = ReceitaPrevistaPdde
@@ -106,6 +115,9 @@ class ReceitasPrevistasPDDEInline(admin.TabularInline):
     def has_add_permission(self, request, obj):
         return False
 
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('acao_pdde')
+
 
 class ReceitasPrevistasRecursoProprioInline(admin.TabularInline):
     model = RecursoProprioPaa
@@ -123,6 +135,9 @@ class ReceitasPrevistasRecursoProprioInline(admin.TabularInline):
 
     def has_add_permission(self, request, obj):
         return False
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('fonte_recurso', 'associacao')
 
 
 class ReceitasPrevistasOutrosRecursosPeriodoInline(admin.TabularInline):
@@ -143,6 +158,9 @@ class ReceitasPrevistasOutrosRecursosPeriodoInline(admin.TabularInline):
 
     def has_add_permission(self, request, obj):
         return False
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('outro_recurso_periodo')
 
 
 class PrioridadesPaaInline(admin.TabularInline):
