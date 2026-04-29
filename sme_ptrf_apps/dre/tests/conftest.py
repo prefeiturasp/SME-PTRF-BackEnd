@@ -330,6 +330,7 @@ def verificacao_regularidade_associacao_documento_cnpj(
     )
 
 @pytest.fixture
+@freeze_time('2020-07-01 10:00:00')
 def consolidado_dre_ata_parecer_tecnico(periodo, dre):
     return baker.make(
         'ConsolidadoDRE',
@@ -339,6 +340,7 @@ def consolidado_dre_ata_parecer_tecnico(periodo, dre):
     )
 
 @pytest.fixture
+@freeze_time('2020-07-01 10:00:00')
 def ata_parecer_tecnico(dre, periodo, consolidado_dre_ata_parecer_tecnico):
     return baker.make(
         'AtaParecerTecnico',

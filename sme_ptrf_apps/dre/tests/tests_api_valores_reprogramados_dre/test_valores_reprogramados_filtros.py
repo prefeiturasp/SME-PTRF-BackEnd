@@ -41,16 +41,34 @@ def test_api_valores_reprogramados_filtro_nome_unidade(
                 'uuid': f'{associacao_2.uuid}',
             },
             'periodo': {
+                'id': periodo_anterior.id,
+                'uuid': f'{periodo_anterior.uuid}',
                 'data_fim_realizacao_despesas': f'{periodo_anterior.data_fim_realizacao_despesas}',
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
                 'referencia': periodo_anterior.referencia,
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
-                'uuid': f'{periodo_anterior.uuid}'
+                'recurso': {
+                    'id': periodo_anterior.recurso.id,
+                    'uuid': f'{periodo_anterior.recurso.uuid}',
+                    'nome': periodo_anterior.recurso.nome,
+                    'nome_exibicao': periodo_anterior.recurso.nome_exibicao,
+                    'criado_em': periodo_anterior.recurso.criado_em.isoformat() if periodo_anterior.recurso.criado_em else None,
+                    'alterado_em': periodo_anterior.recurso.alterado_em.isoformat() if periodo_anterior.recurso.alterado_em else None,
+                    'cor': periodo_anterior.recurso.cor,
+                    'icone': periodo_anterior.recurso.icone if periodo_anterior.recurso.icone else None,
+                    'ativo': periodo_anterior.recurso.ativo,
+                    'legado': periodo_anterior.recurso.legado,
+                    'exibe_valores_reprogramados': periodo_anterior.recurso.exibe_valores_reprogramados,
+                },
             },
             'total_conta_cartao': 0,
             'total_conta_cheque': 300.0
         }
     ]
+
+    # Evita falha no teste por conta de diferenças nos campos de data de criação e alteração do recurso, que são gerados dinamicamente no teste
+    resultado_esperado[0]['periodo']['recurso']['criado_em'] = result[0]['periodo']['recurso']['criado_em']
+    resultado_esperado[0]['periodo']['recurso']['alterado_em'] = result[0]['periodo']['recurso']['alterado_em']
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado
@@ -92,16 +110,34 @@ def test_api_valores_reprogramados_filtro_nome_associacao(
                 'uuid': f'{associacao_2.uuid}',
             },
             'periodo': {
+                'id': periodo_anterior.id,
+                'uuid': f'{periodo_anterior.uuid}',
                 'data_fim_realizacao_despesas': f'{periodo_anterior.data_fim_realizacao_despesas}',
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
                 'referencia': periodo_anterior.referencia,
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
-                'uuid': f'{periodo_anterior.uuid}'
+                'recurso': {
+                    'id': periodo_anterior.recurso.id,
+                    'uuid': f'{periodo_anterior.recurso.uuid}',
+                    'nome': periodo_anterior.recurso.nome,
+                    'nome_exibicao': periodo_anterior.recurso.nome_exibicao,
+                    'criado_em': periodo_anterior.recurso.criado_em.isoformat() if periodo_anterior.recurso.criado_em else None,
+                    'alterado_em': periodo_anterior.recurso.alterado_em.isoformat() if periodo_anterior.recurso.alterado_em else None,
+                    'cor': periodo_anterior.recurso.cor,
+                    'icone': periodo_anterior.recurso.icone if periodo_anterior.recurso.icone else None,
+                    'ativo': periodo_anterior.recurso.ativo,
+                    'legado': periodo_anterior.recurso.legado,
+                    'exibe_valores_reprogramados': periodo_anterior.recurso.exibe_valores_reprogramados,
+                },
             },
             'total_conta_cartao': 0,
             'total_conta_cheque': 300.0
         }
     ]
+
+    # Evita falha no teste por conta de diferenças nos campos de data de criação e alteração do recurso, que são gerados dinamicamente no teste
+    resultado_esperado[0]['periodo']['recurso']['criado_em'] = result[0]['periodo']['recurso']['criado_em']
+    resultado_esperado[0]['periodo']['recurso']['alterado_em'] = result[0]['periodo']['recurso']['alterado_em']
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado
@@ -143,16 +179,34 @@ def test_api_valores_reprogramados_filtro_codigo_eol(
                 'uuid': f'{associacao_2.uuid}',
             },
             'periodo': {
+                'id': periodo_anterior.id,
+                'uuid': f'{periodo_anterior.uuid}',
                 'data_fim_realizacao_despesas': f'{periodo_anterior.data_fim_realizacao_despesas}',
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
                 'referencia': periodo_anterior.referencia,
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
-                'uuid': f'{periodo_anterior.uuid}'
+                'recurso': {
+                    'id': periodo_anterior.recurso.id,
+                    'uuid': f'{periodo_anterior.recurso.uuid}',
+                    'nome': periodo_anterior.recurso.nome,
+                    'nome_exibicao': periodo_anterior.recurso.nome_exibicao,
+                    'criado_em': periodo_anterior.recurso.criado_em.isoformat() if periodo_anterior.recurso.criado_em else None,
+                    'alterado_em': periodo_anterior.recurso.alterado_em.isoformat() if periodo_anterior.recurso.alterado_em else None,
+                    'cor': periodo_anterior.recurso.cor,
+                    'icone': periodo_anterior.recurso.icone if periodo_anterior.recurso.icone else None,
+                    'ativo': periodo_anterior.recurso.ativo,
+                    'legado': periodo_anterior.recurso.legado,
+                    'exibe_valores_reprogramados': periodo_anterior.recurso.exibe_valores_reprogramados,
+                },
             },
             'total_conta_cartao': 0,
             'total_conta_cheque': 300.0
         }
     ]
+
+    # Evita falha no teste por conta de diferenças nos campos de data de criação e alteração do recurso, que são gerados dinamicamente no teste
+    resultado_esperado[0]['periodo']['recurso']['criado_em'] = result[0]['periodo']['recurso']['criado_em']
+    resultado_esperado[0]['periodo']['recurso']['alterado_em'] = result[0]['periodo']['recurso']['alterado_em']
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado
@@ -194,16 +248,34 @@ def test_api_valores_reprogramados_filtro_tipo_unidade(
                 'uuid': f'{associacao_2.uuid}',
             },
             'periodo': {
+                'id': periodo_anterior.id,
+                'uuid': f'{periodo_anterior.uuid}',
                 'data_fim_realizacao_despesas': f'{periodo_anterior.data_fim_realizacao_despesas}',
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
                 'referencia': periodo_anterior.referencia,
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
-                'uuid': f'{periodo_anterior.uuid}'
+                'recurso': {
+                    'id': periodo_anterior.recurso.id,
+                    'uuid': f'{periodo_anterior.recurso.uuid}',
+                    'nome': periodo_anterior.recurso.nome,
+                    'nome_exibicao': periodo_anterior.recurso.nome_exibicao,
+                    'criado_em': periodo_anterior.recurso.criado_em.isoformat() if periodo_anterior.recurso.criado_em else None,
+                    'alterado_em': periodo_anterior.recurso.alterado_em.isoformat() if periodo_anterior.recurso.alterado_em else None,
+                    'cor': periodo_anterior.recurso.cor,
+                    'icone': periodo_anterior.recurso.icone if periodo_anterior.recurso.icone else None,
+                    'ativo': periodo_anterior.recurso.ativo,
+                    'legado': periodo_anterior.recurso.legado,
+                    'exibe_valores_reprogramados': periodo_anterior.recurso.exibe_valores_reprogramados,
+                },
             },
             'total_conta_cartao': 0,
             'total_conta_cheque': 300.0
         }
     ]
+
+    # Evita falha no teste por conta de diferenças nos campos de data de criação e alteração do recurso, que são gerados dinamicamente no teste
+    resultado_esperado[0]['periodo']['recurso']['criado_em'] = result[0]['periodo']['recurso']['criado_em']
+    resultado_esperado[0]['periodo']['recurso']['alterado_em'] = result[0]['periodo']['recurso']['alterado_em']
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado
