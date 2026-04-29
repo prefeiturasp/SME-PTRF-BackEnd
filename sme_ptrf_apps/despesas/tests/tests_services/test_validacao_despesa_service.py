@@ -108,6 +108,23 @@ def test_rateio_capital_valor_divergente():
     assert "diverge do valor calculado" in str(exc.value)
 
 
+def test_rateio_capital_valores_float_equivalentes_decimal():
+    """612.9 * 3 em float dá 1838.699999…; com Decimal deve coincidir com 1838.7."""
+    rateios = [
+        {
+            "valor_rateio": 1838.7,
+            "aplicacao_recurso": APLICACAO_CAPITAL,
+            "quantidade_itens_capital": 3,
+            "valor_item_capital": 612.9,
+        }
+    ]
+
+    ValidacaoDespesaService.validar_rateios_serializer(
+        valor_total=1838.7,
+        raw_rateios=rateios,
+    )
+
+
 @pytest.mark.django_db
 def test_validar_conta_rateio_inicio_maior(conta_ativa, recurso_legado):
     rateios = [
