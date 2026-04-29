@@ -31,4 +31,5 @@ def test_readonly_fields(prioridade_paa_admin):
 
 def test_raw_fields(prioridade_paa_admin):
     assert prioridade_paa_admin.raw_id_fields == (
-        'paa', 'acao_pdde', 'acao_associacao', 'programa_pdde', 'tipo_despesa_custeio', 'especificacao_material')
+        'paa', 'acao_pdde', 'acao_associacao', 'programa_pdde', 'tipo_despesa_custeio',
+        'especificacao_material', 'outro_recurso', 'copia_de')

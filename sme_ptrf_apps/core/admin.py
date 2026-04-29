@@ -273,8 +273,8 @@ class AssociacaoAdmin(admin.ModelAdmin):
 
     def migrar_valores_reprogramados(self, request, queryset):
         for associacao in queryset.all():
-            for periodo_inicial_associacao in associacao.periodos_iniciais.select_related("recurso", "periodo_inicial").all():
-                if periodo_inicial_associacao.status_valores_reprogramados != Associacao.STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS:
+            for periodo_inicial_associacao in associacao.periodos_iniciais.select_related("recurso", "periodo_inicial").all():  # noqa
+                if periodo_inicial_associacao.status_valores_reprogramados != Associacao.STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS:  # noqa
                     continue
 
                 if associacao.valores_reprogramados_associacao.filter(
@@ -284,7 +284,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
                     continue
 
                 contas = associacao.contas.filter(tipo_conta__recurso=periodo_inicial_associacao.recurso)
-                acoes = associacao.acoes.exclude(acao__e_recursos_proprios=True).filter(acao__recurso=periodo_inicial_associacao.recurso)
+                acoes = associacao.acoes.exclude(acao__e_recursos_proprios=True).filter(acao__recurso=periodo_inicial_associacao.recurso)  # noqa
 
                 for conta_associacao in contas:
                     for acao_associacao in acoes:
@@ -388,12 +388,14 @@ class PeriodoAdmin(admin.ModelAdmin):
 
 @admin.register(Unidade)
 class UnidadeAdmin(admin.ModelAdmin):
+    list_select_related = ('dre',)
     list_display = ('nome', 'tipo_unidade', 'codigo_eol', 'sigla', 'dre', 'qtd_alunos')
     ordering = ('nome',)
     search_fields = ('nome', 'codigo_eol', 'sigla')
     list_filter = ('tipo_unidade', 'dre')
     list_display_links = ('nome', 'codigo_eol')
     readonly_fields = ('uuid',)
+    raw_id_fields = ('dre',)
 
     fieldsets = (
         ('Dados da Unidade', {
@@ -756,6 +758,7 @@ class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
 class NotificacaoAdmin(admin.ModelAdmin):
 
     list_select_related = ('unidade', 'prestacao_conta', 'usuario', 'periodo', 'prestacao_conta__periodo',)
+
     def get_codigo_eol(self, obj):
         if obj and obj.unidade:
             return obj.unidade.codigo_eol
@@ -1059,7 +1062,7 @@ class ParametrosAdmin(admin.ModelAdmin):
 
     list_display = [
         '__str__',
-        'permite_saldo_conta_negativo', # TODO: Remover! Este campo foi movido para recurso
+        'permite_saldo_conta_negativo',  # TODO: Remover! Este campo foi movido para recurso
         'get_tempo_notificar_nao_demonstrados',
         'get_dias_antes_inicio_periodo_pc_para_notificacao',
         'get_dias_antes_fim_periodo_pc_para_notificacao',
@@ -1072,8 +1075,8 @@ class ParametrosAdmin(admin.ModelAdmin):
         ('Associação', {
             'fields':
                 (
-                    'permite_saldo_conta_negativo', # TODO: Remover! Este campo foi movido para recurso
-                    'permite_saldo_acoes_negativo', # TODO: Remover! Este campo foi movido para recurso
+                    'permite_saldo_conta_negativo',  # TODO: Remover! Este campo foi movido para recurso
+                    'permite_saldo_acoes_negativo',  # TODO: Remover! Este campo foi movido para recurso
                     'tempo_aguardar_conclusao_pc',
                     'quantidade_tentativas_concluir_pc',
                     'periodo_de_tempo_tentativas_concluir_pc',

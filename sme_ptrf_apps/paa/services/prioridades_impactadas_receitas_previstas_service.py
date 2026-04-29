@@ -256,14 +256,14 @@ class PrioridadesPaaImpactadasBaseService(ABC):
     def _validar_pre_condicoes(self) -> bool:
         """Valida se as pré-condições estão satisfeitas."""
         if not self.instance_receita_prevista:
-            logger.error(f"Receita sem instância(Não há objeto de edição): {self.instance_receita_prevista}")
+            logger.info(f"Receita sem instância(Não há objeto de edição): {self.instance_receita_prevista}")
             return False
         if not self.acao_receita:
-            logger.error(f"Receita prevista sem acao definida: {self.acao_receita}")
+            logger.info(f"Receita prevista sem acao definida: {self.acao_receita}")
             return False
 
         if not self.recurso:
-            logger.error("Recurso no definido!")
+            logger.info("Recurso não definido!")
             return False
 
         return True
@@ -348,7 +348,7 @@ class PrioridadesPaaImpactadasBaseService(ABC):
         if qs.exists():
             prioridades_com_saldo_afetados = []
             if self.instance_receita_prevista:
-                logger.error(f"Checando edição de receita prevista: {self.instance_receita_prevista}")
+                logger.info(f"Checando edição de receita prevista: {self.instance_receita_prevista}")
                 # Se for edição
                 valor_custeio_edicao = Decimal(self._get_valor_custeio_edicao())
                 valor_capital_edicao = Decimal(self._get_valor_capital_edicao())
@@ -380,7 +380,7 @@ class PrioridadesPaaImpactadasBaseService(ABC):
                 if valor_custeio_foi_reduzido:
                     # verificar somente as prioridades de custeio para validação de saldo
                     prioridades_a_verificar = qs.filter(tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name)
-                    logger.error((
+                    logger.info((
                         "Validando a redução de valor de custeio em edição da receita prevista "
                         f"de {valor_custeio_atual} para {valor_custeio_edicao}. Valor dif. {valor_total}"))
 
@@ -398,7 +398,7 @@ class PrioridadesPaaImpactadasBaseService(ABC):
                 if valor_capital_foi_reduzido:
                     # verificar somente as prioridades de capital para validação de saldo
                     prioridades_a_verificar = qs.filter(tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name)
-                    logger.error((
+                    logger.info((
                         "Validando a redução de valor de capital em edição da receita prevista "
                         f"de {valor_capital_atual} para {valor_capital_edicao}. Valor dif. {valor_total}"))
                     for prioridade in prioridades_a_verificar:
@@ -424,7 +424,7 @@ class PrioridadesPaaImpactadasBaseService(ABC):
                             TipoAplicacaoOpcoesEnum.CUSTEIO.name,
                             TipoAplicacaoOpcoesEnum.CAPITAL.name
                         ])
-                    logger.error((
+                    logger.info((
                         "Validando a redução de valor de livre aplicacao em edição da receita prevista "
                         f"de {valor_livre_atual} para {valor_livre_edicao}"))
                     for prioridade in prioridades_a_verificar:
