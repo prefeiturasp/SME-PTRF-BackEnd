@@ -146,7 +146,8 @@ def valida_datas_periodo(
     data_inicio_realizacao_despesas,
     data_fim_realizacao_despesas,
     periodo_anterior,
-    periodo_uuid=None
+    periodo_uuid=None,
+    recurso=None
 ):
     mensagem = "Período de realização de despesas válido."
     valido = True
@@ -166,10 +167,28 @@ def valida_datas_periodo(
                         "data de fim do período anterior.")
             valido = False
     else:
-        if (not periodo_uuid and Periodo.objects.exists()) or (
-                periodo_uuid and Periodo.objects.exclude(uuid=periodo_uuid).exists()):
-            mensagem = "Período anterior não definido só é permitido para o primeiro período cadastrado."
-            valido = False
+        if recurso:
+            periodos_recurso = Periodo.objects.filter(recurso=recurso)
+            existe_periodo_para_recurso = (
+                periodos_recurso.exclude(uuid=periodo_uuid).exists()
+                if periodo_uuid
+                else periodos_recurso.exists()
+            )
+
+            if existe_periodo_para_recurso:
+                mensagem = "Período anterior não definido só é permitido para o primeiro período cadastrado para o recurso."
+                valido = False
+        else:
+            periodos = (
+                Periodo.objects.exclude(uuid=periodo_uuid)
+                if periodo_uuid
+                else Periodo.objects.all()
+            )
+
+            if periodos.exists():
+                mensagem = "Período anterior não definido só é permitido para o primeiro período cadastrado."
+                valido = False
+
     result = {
         "valido": valido,
         "mensagem": mensagem,
