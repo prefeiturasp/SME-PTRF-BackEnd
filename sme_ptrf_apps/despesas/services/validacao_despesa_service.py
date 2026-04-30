@@ -3,10 +3,6 @@ from rest_framework import serializers
 from sme_ptrf_apps.core.models import Periodo
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL
 
-from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import (
-    RateioDespesaCreateSerializer
-)
-
 
 class ValidacaoDespesaService:
 
@@ -22,12 +18,6 @@ class ValidacaoDespesaService:
             raise serializers.ValidationError(
                 "A despesa deve conter ao menos um rateio."
             )
-
-        serializer = RateioDespesaCreateSerializer(
-            data=raw_rateios,
-            many=True
-        )
-        serializer.is_valid(raise_exception=True)
 
         total_rateios = sum(
             Decimal(str(r.get("valor_rateio", 0)))
@@ -65,8 +55,11 @@ class ValidacaoDespesaService:
                     })
 
                 if valor_item_capital:
-                    valor_total_item_capital = valor_item_capital * quantidade_itens_capital
-                    valor_rateio = rateio.get('valor_rateio')
+                    valor_total_item_capital = (
+                        Decimal(str(valor_item_capital)) *
+                        Decimal(str(quantidade_itens_capital))
+                    )
+                    valor_rateio = Decimal(str(rateio.get('valor_rateio', 0)))
 
                     if valor_total_item_capital != valor_rateio:
                         raise serializers.ValidationError({
