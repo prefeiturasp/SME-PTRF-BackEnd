@@ -18,9 +18,13 @@ from sme_ptrf_apps.situacao_patrimonial.api.serializers import DespesaSituacaoPa
 from django.db.models.functions import Coalesce
 from django.db.models import Sum, F, OuterRef, Subquery, DecimalField, ExpressionWrapper, Q
 
+from drf_spectacular.utils import extend_schema_view
+from .docs.despesa_situacao_patrimonial_docs import DOCS
+
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class DespesaSituacaoPatrimonialViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "situacao-patrimonial"
     permission_classes = [IsAuthenticated & PermissaoApiUe]
@@ -45,7 +49,7 @@ class DespesaSituacaoPatrimonialViewSet(WaffleFlagMixin, ModelViewSet):
         bem_produzido_uuid = self.request.query_params.get('bem_produzido_uuid')
         if not bem_produzido_uuid:
             bem_produzido_uuid = self.kwargs.get('bem_produzido_uuid')
-        
+
         if bem_produzido_uuid:
             qs = qs.exclude(
                 pk__in=Subquery(
@@ -54,7 +58,7 @@ class DespesaSituacaoPatrimonialViewSet(WaffleFlagMixin, ModelViewSet):
                     ).values('despesa__pk')
                 )
             )
-        
+
         search = self.request.query_params.get('search')
         if search is not None and search != '':
             qs = qs.filter(
@@ -112,7 +116,7 @@ class DespesaSituacaoPatrimonialViewSet(WaffleFlagMixin, ModelViewSet):
             qs = qs.filter(data_documento__lte=data_fim)
 
         periodo = self.request.query_params.get('periodo__uuid')
-        
+
         if periodo is not None and periodo != '':
             periodo_obj = Periodo.objects.get(uuid=periodo)
             filtros = {
@@ -142,7 +146,7 @@ class DespesaSituacaoPatrimonialViewSet(WaffleFlagMixin, ModelViewSet):
             Despesa.objects
             .filter(uuid=OuterRef("uuid"))
             .order_by("-data_documento", "-pk")
-            
+
         )
 
         qs = qs.exclude(status='INCOMPLETO').filter(pk=Subquery(ultimas.values("pk")[:1]))
