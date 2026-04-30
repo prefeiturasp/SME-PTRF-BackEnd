@@ -122,7 +122,7 @@ def test_get_permite_implantacao_com_prestacao_contas_devolvida_periodo_posterio
 
 
 def test_retrieve_implanta_saldos_saldos_ainda_nao_implantados(
-    jwt_authenticated_client_a, associacao, periodo_anterior
+    jwt_authenticated_client_a, associacao, periodo_anterior,
 ):
     response = jwt_authenticated_client_a.get(
         f"/api/associacoes/{associacao.uuid}/implantacao-saldos/",
@@ -133,11 +133,25 @@ def test_retrieve_implanta_saldos_saldos_ainda_nao_implantados(
     esperado = {
         "associacao": f"{associacao.uuid}",
         "periodo": {
+            "id": periodo_anterior.id,
+            "uuid": f"{periodo_anterior.uuid}",
             "referencia": "2019.1",
             "data_inicio_realizacao_despesas": "2019-01-01",
             "data_fim_realizacao_despesas": "2019-08-31",
             "referencia_por_extenso": "1° repasse de 2019",
-            "uuid": f"{periodo_anterior.uuid}",
+            "recurso": {
+                "id": periodo_anterior.recurso.id,
+                "uuid": f"{periodo_anterior.recurso.uuid}",
+                "nome": periodo_anterior.recurso.nome,
+                "nome_exibicao": periodo_anterior.recurso.nome_exibicao,
+                "criado_em": periodo_anterior.recurso.criado_em.isoformat() if periodo_anterior.recurso.criado_em else None,
+                "alterado_em": periodo_anterior.recurso.alterado_em.isoformat() if periodo_anterior.recurso.alterado_em else None,
+                "cor": periodo_anterior.recurso.cor,
+                "icone": periodo_anterior.recurso.icone if periodo_anterior.recurso.icone else None,
+                "ativo": periodo_anterior.recurso.ativo,
+                "legado": periodo_anterior.recurso.legado,
+                "exibe_valores_reprogramados": periodo_anterior.recurso.exibe_valores_reprogramados,
+            },
         },
         "saldos": [],
     }
@@ -322,11 +336,25 @@ def test_post_implanta_saldos_sem_prestacao_contas(
     esperado = {
         "associacao": f"{associacao.uuid}",
         "periodo": {
+            "id": periodo_anterior.id,
+            "uuid": f"{periodo_anterior.uuid}",
             "data_fim_realizacao_despesas": "2019-08-31",
             "data_inicio_realizacao_despesas": "2019-01-01",
             "referencia": "2019.1",
             "referencia_por_extenso": "1° repasse de 2019",
-            "uuid": f"{periodo_anterior.uuid}",
+            "recurso": {
+                "id": periodo_anterior.recurso.id,
+                "uuid": f"{periodo_anterior.recurso.uuid}",
+                "nome": periodo_anterior.recurso.nome,
+                "nome_exibicao": periodo_anterior.recurso.nome_exibicao,
+                "criado_em": periodo_anterior.recurso.criado_em.isoformat() if periodo_anterior.recurso.criado_em else None,
+                "alterado_em": periodo_anterior.recurso.alterado_em.isoformat() if periodo_anterior.recurso.alterado_em else None,
+                "cor": periodo_anterior.recurso.cor,
+                "icone": periodo_anterior.recurso.icone if periodo_anterior.recurso.icone else None,
+                "ativo": periodo_anterior.recurso.ativo,
+                "legado": periodo_anterior.recurso.legado,
+                "exibe_valores_reprogramados": periodo_anterior.recurso.exibe_valores_reprogramados,
+            },
         },
         "saldos": [
             {
@@ -387,11 +415,25 @@ def test_post_implanta_saldos_ja_existente(
     esperado = {
         "associacao": f"{associacao.uuid}",
         "periodo": {
+            "id": periodo_anterior.id,
+            "uuid": f"{periodo_anterior.uuid}",
             "data_fim_realizacao_despesas": "2019-08-31",
             "data_inicio_realizacao_despesas": "2019-01-01",
             "referencia": "2019.1",
             "referencia_por_extenso": "1° repasse de 2019",
-            "uuid": f"{periodo_anterior.uuid}",
+            "recurso": {
+                "id": periodo_anterior.recurso.id,
+                "uuid": f"{periodo_anterior.recurso.uuid}",
+                "nome": periodo_anterior.recurso.nome,
+                "nome_exibicao": periodo_anterior.recurso.nome_exibicao,
+                "criado_em": periodo_anterior.recurso.criado_em.isoformat() if periodo_anterior.recurso.criado_em else None,
+                "alterado_em": periodo_anterior.recurso.alterado_em.isoformat() if periodo_anterior.recurso.alterado_em else None,
+                "cor": periodo_anterior.recurso.cor,
+                "icone": periodo_anterior.recurso.icone if periodo_anterior.recurso.icone else None,
+                "ativo": periodo_anterior.recurso.ativo,
+                "legado": periodo_anterior.recurso.legado,
+                "exibe_valores_reprogramados": periodo_anterior.recurso.exibe_valores_reprogramados,
+            },
         },
         "saldos": [
             {
@@ -524,11 +566,25 @@ def test_post_implanta_saldos_sem_prestacao_contas_com_livre_utilizacao(
     esperado = {
         "associacao": f"{associacao.uuid}",
         "periodo": {
+            "id": periodo_anterior.id,
+            "uuid": f"{periodo_anterior.uuid}",
             "data_fim_realizacao_despesas": "2019-08-31",
             "data_inicio_realizacao_despesas": "2019-01-01",
             "referencia": "2019.1",
             "referencia_por_extenso": "1° repasse de 2019",
-            "uuid": f"{periodo_anterior.uuid}",
+            "recurso": {
+                "id": periodo_anterior.recurso.id,
+                "uuid": f"{periodo_anterior.recurso.uuid}",
+                "nome": periodo_anterior.recurso.nome,
+                "nome_exibicao": periodo_anterior.recurso.nome_exibicao,
+                "criado_em": periodo_anterior.recurso.criado_em.isoformat() if periodo_anterior.recurso.criado_em else None,
+                "alterado_em": periodo_anterior.recurso.alterado_em.isoformat() if periodo_anterior.recurso.alterado_em else None,
+                "cor": periodo_anterior.recurso.cor,
+                "icone": periodo_anterior.recurso.icone if periodo_anterior.recurso.icone else None,
+                "ativo": periodo_anterior.recurso.ativo,
+                "legado": periodo_anterior.recurso.legado,
+                "exibe_valores_reprogramados": periodo_anterior.recurso.exibe_valores_reprogramados,
+            },
         },
         "saldos": [
             {
