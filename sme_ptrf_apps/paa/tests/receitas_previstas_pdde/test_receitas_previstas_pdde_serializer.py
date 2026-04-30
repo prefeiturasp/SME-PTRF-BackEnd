@@ -51,7 +51,10 @@ def test_receita_prevista_serializer_list_serializer_sem_erro_validate(paa, acao
         'paa': str(paa.uuid),
         'acao_pdde': str(acao_pdde.uuid),
     }
-    assert ReceitaPrevistaPddeSerializer().validate(data) == data
+
+    serializer = ReceitaPrevistaPddeSerializer(data=data)
+
+    assert serializer.is_valid(), serializer.errors
 
 
 def test_receita_prevista_pdde_serializer_bloqueia_edicao_com_documento_final_concluido(
@@ -77,3 +80,32 @@ def test_receita_prevista_pdde_serializer_bloqueia_edicao_com_documento_final_co
     assert (
         'Não é possível editar receitas previstas PDDE após a geração do '
         'documento final do PAA.') in serializer.errors['mensagem']
+
+
+def test_receita_prevista_pdde_serializer_bloqueia_create_duplicado(
+    receita_prevista_pdde
+):
+    """
+    Testa que não é possível criar uma nova receita prevista PDDE
+    com o mesmo PAA e Ação PDDE já existente.
+    """
+
+    payload = {
+        "paa": str(receita_prevista_pdde.paa.uuid),
+        "acao_pdde": str(receita_prevista_pdde.acao_pdde.uuid),
+        "previsao_valor_custeio": "500.00",
+        "previsao_valor_capital": "0.00",
+        "previsao_valor_livre": "0.00",
+        "saldo_custeio": "0.00",
+        "saldo_capital": "0.00",
+        "saldo_livre": "0.00",
+    }
+
+    serializer = ReceitaPrevistaPddeSerializer(data=payload)
+
+    assert not serializer.is_valid()
+    assert 'acao_pdde' in serializer.errors
+    assert (
+        'Já existe uma receita prevista para este PAA e Ação PDDE.'
+        in serializer.errors['acao_pdde']
+    )
