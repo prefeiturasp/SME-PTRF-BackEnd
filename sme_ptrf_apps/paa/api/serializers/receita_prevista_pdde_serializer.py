@@ -53,6 +53,21 @@ class ReceitaPrevistaPddeSerializer(serializers.ModelSerializer):
             except Paa.DoesNotExist:
                 raise serializers.ValidationError({'mensagem': 'PAA não encontrado!'})
 
+        acao_pdde = attrs.get('acao_pdde') or (self.instance.acao_pdde if self.instance else None)
+
+        receita_pdde = ReceitaPrevistaPdde.objects.filter(
+            paa=paa,
+            acao_pdde=acao_pdde
+        )
+
+        if self.instance:
+            receita_pdde = receita_pdde.exclude(pk=self.instance.pk)
+
+        if receita_pdde.exists():
+            raise serializers.ValidationError({
+                'acao_pdde': 'Já existe uma receita prevista para este PAA e Ação PDDE.'
+            })
+
         # Bloqueia edição quando o documento final foi gerado
         if paa.get_tem_documento_final_concluido():
             raise serializers.ValidationError({

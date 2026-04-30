@@ -12,11 +12,15 @@ from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoItem
-from sme_ptrf_apps.situacao_patrimonial.api.serializers import BemProduzidoItemSerializer, BemProduzidoItemCreateSerializer
+from sme_ptrf_apps.situacao_patrimonial.api.serializers import (BemProduzidoItemSerializer,
+                                                                BemProduzidoItemCreateSerializer)
+from drf_spectacular.utils import extend_schema_view
+from .docs.bem_produzido_item_docs import DOCS
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class BemProduzidoItemViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "situacao-patrimonial"
     permission_classes = [IsAuthenticated & PermissaoApiUe]
