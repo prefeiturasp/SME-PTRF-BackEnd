@@ -53,7 +53,8 @@ from sme_ptrf_apps.despesas.fixtures.factories import (
 )
 from sme_ptrf_apps.receitas.fixtures.factories import (
     TipoReceitaFactory,
-    ReceitaFactory
+    ReceitaFactory,
+    RepasseFactory,
 )
 from sme_ptrf_apps.paa.fixtures.factories import (
     PeriodoPaaFactory, PaaFactory, ParametroPaaFactory, ReceitaPrevistaPaaFactory,
@@ -83,7 +84,7 @@ factories_to_register = [
     SolicitacaoAcertoLancamentoFactory, SolicitacaoAcertoDocumentoFactory,
     TipoTransacaoFactory, ProcessoAssociacaoFactory, OcupanteCargoFactory,
     CargoComposicaoFactory, DemonstrativoFinanceiroFactory, ItemResumoPorAcaoFactory,
-    ItemDespesaFactory, ItemCreditoFactory, TipoReceitaFactory, ReceitaFactory, RelacaoBensFactory,
+    ItemDespesaFactory, ItemCreditoFactory, TipoReceitaFactory, ReceitaFactory, RelacaoBensFactory, RepasseFactory,
     RelatorioRelacaoBensFactory, ItemRelatorioRelacaoDeBensFactory,
     SolicitacaoEncerramentoContaAssociacaoFactory, ArquivoDownloadFactory,
     TipoDevolucaoAoTesouroFactory, TipoDocumentoFactory, MotivoPagamentoAntecipadoFactory,
@@ -112,6 +113,8 @@ def _garantir_recurso_legado(db):
             "nome": "Programa de Transferência de Recursos Financeiros - PTRF",
             "nome_exibicao": "PTRF",
             "cor": "#01585E",
+            "permite_saldo_conta_negativo": False,
+            "permite_saldo_acoes_negativo": True
         },
     )
 

@@ -273,10 +273,33 @@ class ContaAssociacao(ModeloBase):
             APLICACAO_CUSTEIO,
             APLICACAO_LIVRE,
         )
+        recurso = self.tipo_conta.recurso if self.tipo_conta else None
+        periodo_inicial_associacao = self.associacao.get_periodo_inicial_associacao(
+            recurso=recurso
+        )
+        periodo_inicial = (
+            periodo_inicial_associacao.periodo_inicial
+            if periodo_inicial_associacao else None
+        )
+        if not periodo_inicial and not recurso and self.associacao.periodo_inicial:
+            periodo_inicial = self.associacao.periodo_inicial
+        if (
+            not periodo_inicial and recurso and recurso.legado and
+            self.associacao.periodo_inicial and
+            self.associacao.periodo_inicial.recurso_id == recurso.id
+        ):
+            periodo_inicial = self.associacao.periodo_inicial
 
         valores_reprogramados = ValoresReprogramados.objects.filter(
             associacao=self.associacao, conta_associacao=self
-        ).all()
+        )
+
+        if periodo_inicial:
+            valores_reprogramados = valores_reprogramados.filter(periodo=periodo_inicial)
+        else:
+            valores_reprogramados = valores_reprogramados.none()
+
+        valores_reprogramados = valores_reprogramados.all()
 
         lista_de_valores_reprogramados = []
 
@@ -284,9 +307,11 @@ class ContaAssociacao(ModeloBase):
         # para cada aplicação (Custeio, Capital, Livre) que a ação aceite
         qtde_esperado = 0
 
-        for acao_associacao in self.associacao.acoes.exclude(
-            acao__e_recursos_proprios=True
-        ):
+        acoes_associacao = self.associacao.acoes.exclude(acao__e_recursos_proprios=True)
+        if recurso:
+            acoes_associacao = acoes_associacao.filter(acao__recurso=recurso)
+
+        for acao_associacao in acoes_associacao:
             valores_reprogramados_da_acao = valores_reprogramados.filter(
                 acao_associacao=acao_associacao
             )
@@ -348,10 +373,28 @@ class ContaAssociacao(ModeloBase):
 
     def valida_se_algum_valor_reprogramado_foi_preenchido(self):
         from sme_ptrf_apps.core.models import ValoresReprogramados
+        recurso = self.tipo_conta.recurso if self.tipo_conta else None
+        periodo_inicial_associacao = self.associacao.get_periodo_inicial_associacao(
+            recurso=recurso
+        )
+        periodo_inicial = (
+            periodo_inicial_associacao.periodo_inicial
+            if periodo_inicial_associacao else None
+        )
+        if not periodo_inicial and not recurso and self.associacao.periodo_inicial:
+            periodo_inicial = self.associacao.periodo_inicial
+        if (
+            not periodo_inicial and recurso and recurso.legado and
+            self.associacao.periodo_inicial and
+            self.associacao.periodo_inicial.recurso_id == recurso.id
+        ):
+            periodo_inicial = self.associacao.periodo_inicial
 
         valores_reprogramados = ValoresReprogramados.objects.filter(
-            associacao=self.associacao, conta_associacao=self
-        ).exists()
+            associacao=self.associacao,
+            conta_associacao=self,
+            periodo=periodo_inicial
+        ).exists() if periodo_inicial else False
 
         return valores_reprogramados
 
@@ -359,19 +402,38 @@ class ContaAssociacao(ModeloBase):
         from sme_ptrf_apps.core.models import Associacao
 
         resultado = {"pode_encerrar_conta": False, "mensagem": None}
-
-        pc_do_primeiro_periodo_de_uso_do_sistema = (
-            self.associacao.prestacoes_de_conta_da_associacao.filter(
-                periodo=self.associacao.periodo_inicial.proximo_periodo
-            )
+        recurso = self.tipo_conta.recurso if self.tipo_conta else None
+        periodo_inicial_associacao = self.associacao.get_periodo_inicial_associacao(
+            recurso=recurso
         )
+        periodo_primeira_pc = (
+            periodo_inicial_associacao.periodo_inicial.proximo_periodo
+            if periodo_inicial_associacao else None
+        )
+        if not periodo_primeira_pc and not recurso and self.associacao.periodo_inicial:
+            periodo_primeira_pc = self.associacao.periodo_inicial.proximo_periodo
+        if (
+            not periodo_primeira_pc and recurso and recurso.legado and
+            self.associacao.periodo_inicial and
+            self.associacao.periodo_inicial.recurso_id == recurso.id
+        ):
+            periodo_primeira_pc = self.associacao.periodo_inicial.proximo_periodo
+
+        pc_do_primeiro_periodo_de_uso_do_sistema = self.associacao.prestacoes_de_conta_da_associacao.filter(
+            periodo=periodo_primeira_pc
+        )
+
+        if recurso:
+            pc_do_primeiro_periodo_de_uso_do_sistema = pc_do_primeiro_periodo_de_uso_do_sistema.filter(
+                periodo__recurso=recurso
+            )
 
         if pc_do_primeiro_periodo_de_uso_do_sistema.exists():
             resultado["pode_encerrar_conta"] = True
             return resultado
 
         # Esse trecho só é executado caso a primeira PC não exista
-        status_atual = self.associacao.status_valores_reprogramados
+        status_atual = self.associacao.get_status_valores_reprogramados(recurso=recurso)
         status_nao_finalizado = Associacao.STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO
         status_correcao_ue = Associacao.STATUS_VALORES_REPROGRAMADOS_EM_CORRECAO_UE
         status_conferencia_dre = (

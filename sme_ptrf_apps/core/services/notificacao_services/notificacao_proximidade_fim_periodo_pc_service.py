@@ -45,7 +45,9 @@ def notificar_proximidade_fim_periodo_prestacao_conta(enviar_email=True):
                     titulo=f"Últimos dias para enviar a PC {periodo.referencia}",
                     descricao=f"Faltam apenas {dias_para_fim.days} dia(s) para o término do período de prestações de contas. Envie a sua prestação de contas.",
                     usuario=user,
-                    enviar_email=enviar_email
+                    enviar_email=enviar_email,
+                    periodo=periodo,
+                    recurso=periodo.recurso if periodo.recurso else None
                 )
                 periodo.notificacao_proximidade_fim_prestacao_de_contas_realizada()
         else:

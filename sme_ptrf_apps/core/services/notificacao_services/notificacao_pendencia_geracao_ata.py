@@ -27,6 +27,7 @@ def notificar_pendencia_geracao_ata_apresentacao(prestacao_de_contas):
             unidade=prestacao_de_contas.associacao.unidade,
             prestacao_conta=prestacao_de_contas,
             periodo=prestacao_de_contas.periodo,
+            recurso=prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
         )
 
     logger.info(f'Finalizando a geração de notificação de pendência de geração de ata de apresentação.')
@@ -54,6 +55,7 @@ def notificar_pendencia_geracao_ata_retificacao(prestacao_de_contas):
             unidade=prestacao_de_contas.associacao.unidade,
             prestacao_conta=prestacao_de_contas,
             periodo=prestacao_de_contas.periodo,
+            recurso=prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
         )
 
     logger.info(f'Finalizando a geração de notificação de pendência de geração de ata de retificação.')

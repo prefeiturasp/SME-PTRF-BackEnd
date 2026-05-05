@@ -16,9 +16,14 @@ from sme_ptrf_apps.situacao_patrimonial.api.serializers import BemProduzidoSeria
 from sme_ptrf_apps.situacao_patrimonial.services import BemProduzidoService
 from sme_ptrf_apps.despesas.models import Despesa
 
+from .docs.bem_produzido_docs import DOCS_BEM_PRODUZIDO
+from .docs.bem_produzido_rascunho_docs import DOCS_BEM_PRODUZIDO_RASCUNHO
+
+from drf_spectacular.utils import extend_schema_view
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS_BEM_PRODUZIDO)
 class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "situacao-patrimonial"
     permission_classes = [IsAuthenticated & PermissaoApiUe]
@@ -70,7 +75,7 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
     def verificar_se_pode_informar_valores(self, request, *args, **kwargs):
         """
         Verifica se há pelo menos uma despesa que permite informar valores em situação patrimonial.
-        
+
         Regra:
         - Se TODAS as despesas são de períodos finalizados com PC entregue: não permite (retorna False)
         - Se há pelo menos uma despesa de período não finalizado OU período finalizado sem PC entregue: permite (retorna True)
@@ -101,6 +106,7 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
         return Response(resultado, status=status.HTTP_200_OK)
 
 
+@extend_schema_view(**DOCS_BEM_PRODUZIDO_RASCUNHO)
 class BemProduzidoRascunhoViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "situacao-patrimonial"
     permission_classes = [IsAuthenticated & PermissaoApiUe]

@@ -29,6 +29,14 @@ class PeriodoPaa(ModeloBase):
         from sme_ptrf_apps.paa.services import PeriodoPaaService
         return not PeriodoPaaService(self).existe_paas_gerados_no_periodo()
 
+    @property
+    def ano_inicial_final(self):
+        if not self.data_inicial or not self.data_final:
+            return None
+
+        return f"{self.data_inicial.year}/{self.data_final.year}"
+
+
     @classmethod
     def periodo_vigente(cls):
         """

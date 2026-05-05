@@ -22,6 +22,7 @@ def notificar_erro_ao_concluir_pc(prestacao_de_contas, usuario, associacao, peri
             unidade=associacao.unidade,
             prestacao_conta=prestacao_de_contas,
             periodo=periodo,
+            recurso=periodo.recurso if periodo.recurso else None
         )
 
     logger.info(f'Finalizando a geração de notificação de erro ao concluir PC')
