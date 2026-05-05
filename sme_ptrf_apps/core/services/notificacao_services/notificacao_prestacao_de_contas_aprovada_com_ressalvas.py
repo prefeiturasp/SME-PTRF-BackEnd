@@ -34,6 +34,8 @@ def notificar_prestacao_de_contas_aprovada_com_ressalvas(prestacao_de_contas, mo
                 enviar_email=enviar_email,
                 unidade=associacao.unidade,
                 prestacao_conta=prestacao_de_contas,
+                periodo=prestacao_de_contas.periodo,
+                recurso=prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
             )
 
     logger.info(f'Finalizando a geração de notificação prestação de contas aprovada com ressalvas')

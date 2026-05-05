@@ -53,7 +53,7 @@ def notificar_encerramento_conta_bancaria(enviar_email=False):
                         o numero de periodos consecutivos com conta zerada,
                         é igual ao numero configurado em parametros (Parametros.get().numero_periodos_consecutivos)
                     """
-
+                    recurso = conta_associacao.tipo_conta.recurso
                     usuarios = users.filter(unidades__codigo_eol=associacao.unidade.codigo_eol)
 
                     for usuario in usuarios:
@@ -66,6 +66,7 @@ def notificar_encerramento_conta_bancaria(enviar_email=False):
                             titulo=f"Encerramento de Conta Bancária",
                             descricao=f"O saldo da conta bancária {conta_associacao.tipo_conta.nome} está zerada, caso deseje, o encerramento da conta pode ser solicitada. Acesse a página Dados das contas para validar.",
                             usuario=usuario,
+                            recurso=recurso,
                             renotificar=True,
                             enviar_email=enviar_email
                         )

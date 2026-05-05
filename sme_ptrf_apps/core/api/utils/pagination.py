@@ -35,6 +35,7 @@ class CustomPagination(PageNumberPagination):
                 },
                 'count': len(data),
                 'page': 1,
+                'total_pages': 1,
                 'page_size': len(data),
                 'results': data
             })
@@ -47,5 +48,6 @@ class CustomPagination(PageNumberPagination):
                 'count': self.page.paginator.count,
                 'page': int(self.request.GET.get('page', DEFAULT_PAGE)),
                 'page_size': int(self.request.GET.get('page_size', self.page_size)),
+                'total_pages': self.page.paginator.num_pages,
                 'results': data
             })

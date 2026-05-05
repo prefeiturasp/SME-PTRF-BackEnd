@@ -9,7 +9,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from ..serializers.periodo_serializer import (PeriodoSerializer, PeriodoLookUpSerializer, PeriodoRetrieveSerializer,
                                               PeriodoCreateSerializer)
-from ...models import Periodo, PeriodoInicialAssociacao, Associacao
+from ...models import Periodo, PeriodoInicialAssociacao, Associacao, Recurso
 from ...services import valida_datas_periodo
 
 
@@ -50,7 +50,10 @@ class PeriodosViewSet(mixins.ListModelMixin,
         if associacao_uuid:
             qs = qs.filter(prestacoes_de_conta__associacao__uuid=associacao_uuid).distinct()
 
-        if self.request and hasattr(self.request, 'recurso') and self.request.recurso:
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+        if recurso_uuid:
+            qs = qs.filter(recurso__uuid=recurso_uuid)
+        elif self.request and getattr(self.request, 'recurso', None) and self.request.method not in ['DELETE', 'PATCH']:
             qs = Periodo.filter_by_recurso(qs, self.request.recurso)
 
         dre_uuid = self.request.query_params.get('dre_uuid')
@@ -171,6 +174,11 @@ class PeriodosViewSet(mixins.ListModelMixin,
 
         data_fim_realizacao_despesas = request.query_params.get('data_fim_realizacao_despesas', None)
         periodo_anterior_uuid = request.query_params.get('periodo_anterior_uuid', None)
+        recurso_uuid = request.query_params.get('recurso_uuid', None)
+        recurso = None
+
+        if recurso_uuid is not None:
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first() or None
 
         if periodo_anterior_uuid:
             try:
@@ -192,7 +200,8 @@ class PeriodosViewSet(mixins.ListModelMixin,
             data_fim_realizacao_despesas=datetime.strptime(
                 data_fim_realizacao_despesas, '%Y-%m-%d').date() if data_fim_realizacao_despesas else None,
             periodo_anterior=periodo_anterior,
-            periodo_uuid=periodo_uuid
+            periodo_uuid=periodo_uuid,
+            recurso=recurso
         )
 
         return Response(result)

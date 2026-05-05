@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 def _associacao_sem_pc_e_sem_fechamentos(associacao):
     """
     Associação sem nenhuma prestação de contas e sem fechamentos de período.
-    O saldo em período aberto passa a considerar receitas/despesas desde o 
-    período inicial de implantação até o período analisado, em vez de só a 
+    O saldo em período aberto passa a considerar receitas/despesas desde o
+    período inicial de implantação até o período analisado, em vez de só a
     janela entre períodos encadeados.
     """
     if associacao is None:
@@ -235,7 +235,7 @@ def valida_rateios_quanto_aos_saldos(rateios, associacao, data_documento=None, e
             'situacao_do_saldo': 'saldo_conta_insuficiente',
             'mensagem': 'Não há saldo disponível em alguma das contas da despesa.',
             'saldos_insuficientes': saldos_insuficientes['saldos_insuficientes'],
-            'aceitar_lancamento': Parametros.get().permite_saldo_conta_negativo
+            'aceitar_lancamento': recurso.permite_saldo_conta_negativo
         }
     else:
         logger.info("Saldos insuficientes em Ações.")
@@ -243,7 +243,7 @@ def valida_rateios_quanto_aos_saldos(rateios, associacao, data_documento=None, e
             'situacao_do_saldo': 'saldo_insuficiente',
             'mensagem': 'Não há saldo disponível em alguma das ações da despesa.',
             'saldos_insuficientes': saldos_insuficientes['saldos_insuficientes'],
-            'aceitar_lancamento': Parametros.get().permite_saldo_acoes_negativo
+            'aceitar_lancamento': recurso.permite_saldo_acoes_negativo
         }
 
     return result

@@ -169,8 +169,13 @@ class Associacao(ModeloIdNome):
 
         return tags
 
-    def apaga_implantacoes_de_saldo(self):
-        self.fechamentos_associacao.filter(status='IMPLANTACAO').delete()
+    def apaga_implantacoes_de_saldo(self, recurso=None, periodo=None):
+        qs = self.fechamentos_associacao.filter(status='IMPLANTACAO')
+        if periodo:
+            qs = qs.filter(periodo=periodo)
+        elif recurso:
+            qs = qs.filter(periodo__recurso=recurso)
+        qs.delete()
 
     def primeiro_periodo_ativo_por_recurso(self, recurso):
         periodo_inicial = self.periodos_iniciais.filter(recurso=recurso).first()
@@ -323,9 +328,58 @@ class Associacao(ModeloIdNome):
         associacao = cls.objects.filter(uuid=associacao_uuid).first()
         return associacao.acoes.all().order_by('acao__posicao_nas_pesquisas') if associacao else []
 
-    def altera_status_valor_reprogramado(self, status):
-        self.status_valores_reprogramados = status
-        self.save()
+    def get_periodo_inicial_associacao(self, recurso=None):
+        if recurso:
+            return self.periodos_iniciais.filter(recurso=recurso).first()
+
+        periodo_inicial_associacao_legado = self.periodos_iniciais.filter(recurso__legado=True).first()
+        if periodo_inicial_associacao_legado:
+            return periodo_inicial_associacao_legado
+
+        if self.periodo_inicial:
+            periodo_inicial_associacao = self.periodos_iniciais.filter(
+                periodo_inicial=self.periodo_inicial
+            ).first()
+            if periodo_inicial_associacao:
+                return periodo_inicial_associacao
+
+        return self.periodos_iniciais.first()
+
+    def get_status_valores_reprogramados(self, recurso=None):
+        if not recurso:
+            return self.status_valores_reprogramados
+
+        periodo_inicial_associacao = self.get_periodo_inicial_associacao(recurso=recurso)
+        if periodo_inicial_associacao:
+            return periodo_inicial_associacao.status_valores_reprogramados
+        return self.status_valores_reprogramados
+
+    def altera_status_valor_reprogramado(self, status, recurso=None):
+        if status is None:
+            return
+
+        if not recurso:
+            self.status_valores_reprogramados = status
+            self.save(update_fields=["status_valores_reprogramados", "alterado_em"])
+            return
+
+        periodo_inicial_associacao = self.get_periodo_inicial_associacao(recurso=recurso)
+        if periodo_inicial_associacao:
+            periodo_inicial_associacao.status_valores_reprogramados = status
+            periodo_inicial_associacao.save(update_fields=["status_valores_reprogramados", "alterado_em"])
+
+        if recurso.legado:
+            self.status_valores_reprogramados = status
+            self.save(update_fields=["status_valores_reprogramados", "alterado_em"])
+
+    def popular_status_valores_reprogramados_por_recurso(self):
+        atualizado = 0
+        for periodo_inicial_associacao in self.periodos_iniciais.all():
+            if periodo_inicial_associacao.status_valores_reprogramados != self.status_valores_reprogramados:
+                periodo_inicial_associacao.status_valores_reprogramados = self.status_valores_reprogramados
+                periodo_inicial_associacao.save(update_fields=["status_valores_reprogramados", "alterado_em"])
+                atualizado += 1
+        return atualizado
 
     @property
     def pode_editar_periodo_inicial(self):

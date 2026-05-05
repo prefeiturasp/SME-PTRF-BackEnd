@@ -89,12 +89,15 @@ class ParametroPaaAdmin(admin.ModelAdmin):
 
 @admin.register(Paa)
 class PaaAdmin(admin.ModelAdmin):
+    list_select_related = ('periodo_paa', 'associacao')
     list_display = ('periodo_paa', 'associacao', 'status', 'status_andamento')
-    readonly_fields = ('uuid', 'id', 'status_andamento', 'criado_em', 'alterado_em', 'replica')
+    readonly_fields = ('uuid', 'id', 'status_andamento', 'criado_em', 'alterado_em', 'replica',
+                       'acoes_conclusao', 'acoes_pdde_conclusao', 'outros_recursos_periodo_conclusao')
     list_display_links = ['periodo_paa']
     search_fields = ('periodo_paa__referencia', 'associacao__nome', 'associacao__unidade__codigo_eol')
     list_filter = ('periodo_paa', 'associacao', 'status', StatusAndamentoFilter)
     raw_id_fields = ['periodo_paa', 'associacao']
+    filter_horizontal = ('objetivos',)
     inlines = [
         ObjetivosPaaInline,
         AtividadeEstatutariaPaaInline,
@@ -106,17 +109,11 @@ class PaaAdmin(admin.ModelAdmin):
         AtaPAAInline,
         PrioridadesPaaInline,
     ]
-    actions = ["gerar_documento"]
 
     def status_andamento(self, obj):
         from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
         return PaaStatusAndamentoEnum[obj.get_status_andamento()].value
     status_andamento.short_description = 'Status Andamento'
-
-    def gerar_documento(self, request, queryset):
-        from sme_ptrf_apps.paa.services.documento_paa_pdf_service import gerar_arquivo_documento_paa_pdf
-        for paa in queryset:
-            return gerar_arquivo_documento_paa_pdf(paa)
 
 
 @admin.register(ProgramaPdde)
@@ -129,14 +126,20 @@ class ProgramaPddeAdmin(admin.ModelAdmin):
 
 @admin.register(AcaoPdde)
 class AcaoPddeAdmin(admin.ModelAdmin):
+    list_select_related = ('programa',)
     list_display = ('nome', 'programa', 'status')
     search_fields = ('nome', 'programa__nome')
     list_filter = ('programa',)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    raw_id_fields = ('programa',)
 
 
 @admin.register(ReceitaPrevistaOutroRecursoPeriodo)
 class ReceitaPrevistaOutroRecursoPeriodoAdmin(admin.ModelAdmin):
+    list_select_related = (
+        'outro_recurso_periodo', 'outro_recurso_periodo__outro_recurso', 'outro_recurso_periodo__periodo_paa',
+        'paa', 'paa__periodo_paa', 'paa__associacao', 'paa__associacao__unidade',
+    )
     list_display = (
         'outro_recurso_periodo', 'previsao_valor_custeio', 'previsao_valor_capital', 'previsao_valor_livre',
         'unidade_nome'
@@ -167,7 +170,14 @@ class FonteRecursoPaaAdmin(admin.ModelAdmin):
 
 @admin.register(RecursoProprioPaa)
 class RecursoProprioPaaAdmin(admin.ModelAdmin):
-    list_display = ('fonte_recurso', 'associacao', 'data_prevista', 'descricao', 'valor',)
+    list_select_related = (
+        'paa', 'paa__associacao', 'paa__associacao__unidade', 'paa__periodo_paa',
+        'associacao', 'associacao__unidade',
+        'fonte_recurso',
+    )
+    list_display = (
+        'fonte_recurso', 'associacao', 'data_prevista', 'descricao', 'valor',
+    )
     search_fields = ('fonte_recurso__nome', 'associacao__nome', 'associacao__unidade__codigo_eol')
     list_filter = ('associacao', 'fonte_recurso', 'paa')
     raw_id_fields = ('paa', 'associacao', 'fonte_recurso')
@@ -176,6 +186,8 @@ class RecursoProprioPaaAdmin(admin.ModelAdmin):
 
 @admin.register(ReceitaPrevistaPdde)
 class ReceitaPrevistaPddeAdmin(admin.ModelAdmin):
+    list_select_related = ('paa', 'acao_pdde', 'acao_pdde__programa', 'paa__associacao', 'paa__associacao__unidade',
+                           'paa__periodo_paa')
     list_display = ('paa',
                     'acao_pdde',
                     'previsao_valor_custeio',
@@ -206,7 +218,7 @@ class PrioridadePaaAdmin(admin.ModelAdmin):
     )
     list_filter = ('recurso', 'prioridade', 'tipo_aplicacao', 'programa_pdde', 'acao_pdde', 'paa')
     raw_id_fields = ('paa', 'acao_pdde', 'acao_associacao', 'programa_pdde', 'tipo_despesa_custeio',
-                     'especificacao_material')
+                     'especificacao_material', 'outro_recurso', 'copia_de')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em', 'paa_importado')
     search_fields = ('acao_associacao__acao__nome', 'acao_associacao__associacao__nome',
                      'acao_associacao__associacao__unidade__codigo_eol', 'programa_pdde__nome',
@@ -228,6 +240,7 @@ class ObjetivoPaaAdmin(admin.ModelAdmin):
 
 @admin.register(AtividadeEstatutaria)
 class AtividadeEstatutariaAdmin(admin.ModelAdmin):
+    list_select_related = ('paa', )
     list_display = ('nome', 'status', 'mes', 'tipo', 'ordem')
     list_filter = ('status', 'mes', 'tipo')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
@@ -237,11 +250,12 @@ class AtividadeEstatutariaAdmin(admin.ModelAdmin):
 
 @admin.register(AtividadeEstatutariaPaa)
 class AtividadeEstatutariaPaaAdmin(admin.ModelAdmin):
+    list_select_related = ('atividade_estatutaria', 'paa')
     list_display = ('atividade_estatutaria', 'paa', 'data', 'criado_em', 'alterado_em',)
     list_filter = ('atividade_estatutaria__status', 'atividade_estatutaria__mes', 'atividade_estatutaria__tipo')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
-    raw_id_fields = ('paa', )
-    search_fields = ('nome',)
+    raw_id_fields = ('paa', 'atividade_estatutaria')
+    search_fields = ('atividade_estatutaria__nome', 'paa__associacao__nome', 'paa__associacao__unidade__codigo_eol')
 
 
 @admin.register(AtaPaa)
@@ -307,6 +321,9 @@ class ParticipanteAtaPaaAdmin(admin.ModelAdmin):
 
     get_periodo_paa.short_description = 'Período PAA'
 
+    list_select_related = (
+        'ata_paa', 'ata_paa__paa', 'ata_paa__paa__associacao', 'ata_paa__paa__associacao__unidade',
+        'ata_paa__paa__periodo_paa',)
     list_display = ['get_unidade', 'get_periodo_paa', 'ata_paa',
                     'identificacao', 'nome', 'cargo', 'membro', 'professor_gremio']
 
@@ -348,6 +365,7 @@ class OutroRecursoAdmin(admin.ModelAdmin):
 
 @admin.register(OutroRecursoPeriodoPaa)
 class OutroRecursoPeriodoPaaAdmin(admin.ModelAdmin):
+    list_select_related = ('periodo_paa', 'outro_recurso')
     list_display = ('periodo_paa', 'outro_recurso', 'ativo')
     search_fields = ('periodo_paa__referencia', 'outro_recurso__nome')
     raw_id_fields = ('periodo_paa', 'outro_recurso')
@@ -357,6 +375,7 @@ class OutroRecursoPeriodoPaaAdmin(admin.ModelAdmin):
 
 @admin.register(DocumentoPaa)
 class DocumentoPaaAdmin(admin.ModelAdmin):
+    list_select_related = ('paa', 'paa__periodo_paa', 'paa__associacao')
     list_display = ('paa', 'status_geracao', 'versao', 'criado_em', 'alterado_em')
     search_fields = ('paa__associacao__nome', 'paa__associacao__unidade__codigo_eol')
     raw_id_fields = ('paa',)
@@ -373,6 +392,7 @@ class ModeloCargaPaaAdmin(admin.ModelAdmin):
 
 @admin.register(ReplicaPaa)
 class ReplicaPaaAdmin(admin.ModelAdmin):
+    list_select_related = ('paa', 'paa__periodo_paa', 'paa__associacao')
     list_display = ('paa',)
     search_fields = ('paa__associacao__nome', 'paa__associacao__unidade__codigo_eol')
     raw_id_fields = ('paa',)

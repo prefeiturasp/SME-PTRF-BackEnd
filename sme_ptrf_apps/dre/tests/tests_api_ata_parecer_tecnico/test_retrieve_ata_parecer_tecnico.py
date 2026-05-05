@@ -9,6 +9,7 @@ pytestmark = pytest.mark.django_db
 def test_api_retrieve_ata_parecer_tecnico(jwt_authenticated_client_dre, ata_parecer_tecnico):
     response = jwt_authenticated_client_dre.get(f'/api/ata-parecer-tecnico/{ata_parecer_tecnico.uuid}/',
                                               content_type='application/json')
+    
     result = json.loads(response.content)
 
     result_esperado = {
@@ -31,7 +32,21 @@ def test_api_retrieve_ata_parecer_tecnico(jwt_authenticated_client_dre, ata_pare
                     'data_inicio_realizacao_despesas': '2019-09-01',
                     'referencia': '2019.2',
                     'referencia_por_extenso': '2° repasse de 2019',
-                    'uuid': f'{ata_parecer_tecnico.periodo.uuid}'},
+                    'id': ata_parecer_tecnico.periodo.id,
+                    'uuid': f'{ata_parecer_tecnico.periodo.uuid}',
+                    'recurso': {
+                        'id': ata_parecer_tecnico.periodo.recurso.id,
+                        'uuid': f'{ata_parecer_tecnico.periodo.recurso.uuid}',
+                        'ativo': True,
+                        'cor': ata_parecer_tecnico.periodo.recurso.cor,
+                        'icone': None,
+                        'legado': True,
+                        'nome': ata_parecer_tecnico.periodo.recurso.nome,
+                        'nome_exibicao': ata_parecer_tecnico.periodo.recurso.nome_exibicao,
+                        'criado_em': result['periodo']['recurso']['criado_em'],
+                        'alterado_em': result['periodo']['recurso']['alterado_em'],
+                        'exibe_valores_reprogramados': ata_parecer_tecnico.periodo.recurso.exibe_valores_reprogramados,
+                    }},
         'presentes_na_ata': [],
         'status_geracao_pdf': 'NAO_GERADO',
         'uuid': f'{ata_parecer_tecnico.uuid}',

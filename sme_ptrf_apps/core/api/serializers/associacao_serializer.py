@@ -127,6 +127,7 @@ class AssociacaoInfoAtaSerializer(serializers.ModelSerializer):
 class AssociacaoListSerializer(serializers.ModelSerializer):
     unidade = UnidadeListEmAssociacoesSerializer(many=False)
     encerrada = serializers.SerializerMethodField('get_encerrada')
+    status_valores_reprogramados = serializers.SerializerMethodField('get_status_valores_reprogramados')
 
     informacoes = serializers.SerializerMethodField(method_name='get_informacoes', required=False)
 
@@ -135,6 +136,11 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
 
     def get_informacoes(self, obj):
         return obj.tags_de_informacao
+
+    def get_status_valores_reprogramados(self, obj):
+        request = self.context.get("request") if hasattr(self, "context") else None
+        recurso = getattr(request, "recurso", None) if request else None
+        return obj.get_status_valores_reprogramados(recurso=recurso)
 
     class Meta:
         model = Associacao

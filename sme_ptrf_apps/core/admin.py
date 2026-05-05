@@ -257,29 +257,43 @@ class AssociacaoAdmin(admin.ModelAdmin):
 
     def define_status_nao_finalizado_valores_reprogramados(self, request, queryset):
         for associacao in queryset.all():
-            implantacao = associacao_pode_implantar_saldo(associacao=associacao)
+            for periodo_inicial_associacao in associacao.periodos_iniciais.select_related("recurso").all():
+                implantacao = associacao_pode_implantar_saldo(
+                    associacao=associacao,
+                    recurso=periodo_inicial_associacao.recurso
+                )
 
-            if implantacao["permite_implantacao"]:
-                associacao.status_valores_reprogramados = Associacao.STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO
-                associacao.save()
+                if implantacao["permite_implantacao"]:
+                    associacao.altera_status_valor_reprogramado(
+                        Associacao.STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO,
+                        recurso=periodo_inicial_associacao.recurso
+                    )
 
         self.message_user(request, "Status definido com sucesso!")
 
     def migrar_valores_reprogramados(self, request, queryset):
         for associacao in queryset.all():
-            if associacao.status_valores_reprogramados == Associacao.STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS:
-                # caso ja exista valores reprogramados para essa associação, nada deve ser feito
-                if associacao.valores_reprogramados_associacao.all():
+            for periodo_inicial_associacao in associacao.periodos_iniciais.select_related("recurso", "periodo_inicial").all():  # noqa
+                if periodo_inicial_associacao.status_valores_reprogramados != Associacao.STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS:  # noqa
                     continue
 
-                if not associacao.periodo_inicial:
+                if associacao.valores_reprogramados_associacao.filter(
+                    periodo=periodo_inicial_associacao.periodo_inicial,
+                    conta_associacao__tipo_conta__recurso=periodo_inicial_associacao.recurso
+                ).exists():
                     continue
 
-                for conta_associacao in associacao.contas.all():
-                    for acao_associacao in associacao.acoes.exclude(acao__e_recursos_proprios=True):
+                contas = associacao.contas.filter(tipo_conta__recurso=periodo_inicial_associacao.recurso)
+                acoes = associacao.acoes.exclude(acao__e_recursos_proprios=True).filter(acao__recurso=periodo_inicial_associacao.recurso)  # noqa
+
+                for conta_associacao in contas:
+                    for acao_associacao in acoes:
                         fechamento_implantacao = associacao.fechamentos_associacao.filter(
-                            conta_associacao=conta_associacao).filter(
-                            acao_associacao=acao_associacao).filter(status="IMPLANTACAO").first()
+                            periodo=periodo_inicial_associacao.periodo_inicial,
+                            conta_associacao=conta_associacao,
+                            acao_associacao=acao_associacao,
+                            status="IMPLANTACAO"
+                        ).first()
 
                         if acao_associacao.acao.aceita_custeio:
                             ValoresReprogramados.criar_valor_reprogramado_custeio(
@@ -374,12 +388,14 @@ class PeriodoAdmin(admin.ModelAdmin):
 
 @admin.register(Unidade)
 class UnidadeAdmin(admin.ModelAdmin):
+    list_select_related = ('dre',)
     list_display = ('nome', 'tipo_unidade', 'codigo_eol', 'sigla', 'dre', 'qtd_alunos')
     ordering = ('nome',)
     search_fields = ('nome', 'codigo_eol', 'sigla')
     list_filter = ('tipo_unidade', 'dre')
     list_display_links = ('nome', 'codigo_eol')
     readonly_fields = ('uuid',)
+    raw_id_fields = ('dre',)
 
     fieldsets = (
         ('Dados da Unidade', {
@@ -740,6 +756,9 @@ class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
 
 @admin.register(Notificacao)
 class NotificacaoAdmin(admin.ModelAdmin):
+
+    list_select_related = ('unidade', 'prestacao_conta', 'usuario', 'periodo', 'prestacao_conta__periodo',)
+
     def get_codigo_eol(self, obj):
         if obj and obj.unidade:
             return obj.unidade.codigo_eol
@@ -760,9 +779,12 @@ class NotificacaoAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id', 'criado_em', "hora")
     list_filter = (
         ('criado_em', DateRangeFilter),
-        "remetente", "categoria",
-        "tipo", "usuario",
-        "unidade", "prestacao_conta",
+        "remetente",
+        "categoria",
+        "tipo",
+        "usuario",
+        "periodo",
+        "unidade",
         "lido",
     )
     search_fields = ("titulo", "unidade__nome", "usuario__name", "unidade__codigo_eol", "descricao",
@@ -1040,7 +1062,7 @@ class ParametrosAdmin(admin.ModelAdmin):
 
     list_display = [
         '__str__',
-        'permite_saldo_conta_negativo',
+        'permite_saldo_conta_negativo',  # TODO: Remover! Este campo foi movido para recurso
         'get_tempo_notificar_nao_demonstrados',
         'get_dias_antes_inicio_periodo_pc_para_notificacao',
         'get_dias_antes_fim_periodo_pc_para_notificacao',
@@ -1053,8 +1075,8 @@ class ParametrosAdmin(admin.ModelAdmin):
         ('Associação', {
             'fields':
                 (
-                    'permite_saldo_conta_negativo',
-                    'permite_saldo_acoes_negativo',
+                    'permite_saldo_conta_negativo',  # TODO: Remover! Este campo foi movido para recurso
+                    'permite_saldo_acoes_negativo',  # TODO: Remover! Este campo foi movido para recurso
                     'tempo_aguardar_conclusao_pc',
                     'quantidade_tentativas_concluir_pc',
                     'periodo_de_tempo_tentativas_concluir_pc',
@@ -1807,7 +1829,7 @@ class ValoresReprogramadosAdmin(admin.ModelAdmin):
         'associacao__unidade',
         'associacao__unidade__tipo_unidade',
         'associacao__unidade__dre',
-        'associacao__status_valores_reprogramados',
+        'associacao__periodos_iniciais__status_valores_reprogramados',
         'associacao__periodo_inicial',
         'conta_associacao__tipo_conta',
         'acao_associacao__acao',

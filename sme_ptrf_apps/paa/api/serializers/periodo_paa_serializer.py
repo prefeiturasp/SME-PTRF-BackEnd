@@ -86,3 +86,10 @@ class PeriodoPaaSerializer(serializers.ModelSerializer):
         validated_data['data_final'] = data_final_ajustada
         instance = super().update(instance, validated_data)
         return instance
+
+
+class PeriodoPaaSimplesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = PeriodoPaa
+        fields = ('uuid', 'id', 'referencia', 'data_inicial', 'data_final', 'ano_inicial_final')

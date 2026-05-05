@@ -1,5 +1,5 @@
 # flake8: noqa
-from .periodo_paa_serializer import PeriodoPaaSerializer
+from .periodo_paa_serializer import PeriodoPaaSerializer, PeriodoPaaSimplesSerializer
 from .paa_serializer import PaaSerializer
 from .acao_pdde_serializer import AcaoPddeSerializer, AcaoPddeSimplesSerializer
 from .receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer

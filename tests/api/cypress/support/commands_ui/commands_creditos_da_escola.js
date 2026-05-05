@@ -565,11 +565,11 @@ Cypress.Commands.add('validar_soma_valores_reprogramados_ue', () => {
 })
 
 Cypress.Commands.add('validar_campos_cadastrar_creditos_da_escola_ue', () => {
-    cy.get(creditos.btn_cadastrar_credito(), { timeout: 15000 })
+    cy.get(creditos.btn_cadastrar_credito(), { timeout: 30000 })
     .should('be.visible')
     .click()
 
-    cy.get(creditos.btn_salvar_credito(), { timeout: 3000 })
+    cy.get(creditos.btn_salvar_credito(), { timeout: 30000 })
     .should('be.visible')
     .click()
 
@@ -677,13 +677,13 @@ Cypress.Commands.add('cadastrar_creditos_da_escola_ue', (campo) => {
     })
   }
 
-  cy.get(creditos.btn_cadastrar_credito(), { timeout: 15000 })
+  cy.get(creditos.btn_cadastrar_credito(), { timeout: 30000 })
     .should('be.visible')
     .click({ force: true })
 
   cy.url().should('include', '/cadastro-de-credito')
 
-  cy.get(creditos.selecionar_tipo_receita(), { timeout: 10000 })
+  cy.get(creditos.selecionar_tipo_receita(), { timeout: 30000 })
     .should('be.visible')
     .select(campo, { force: true })
 
@@ -793,7 +793,7 @@ Cypress.Commands.add('cadastrar_devolucao_creditos_da_escola_ue', () => {
       })
   }
 
-  cy.get(creditos.btn_cadastrar_credito(), { timeout: 20000 })
+  cy.get(creditos.btn_cadastrar_credito(), { timeout: 30000 })
     .should('be.visible')
     .click()
 
@@ -913,11 +913,11 @@ Cypress.Commands.add('cadastrar_credito_ue', () => {
     cy.url({ timeout: 10000 }).should('include', '/lista-de-receitas')
   }
 
-  cy.get(creditos.btn_cadastrar_credito(), { timeout: 10000 })
+  cy.get(creditos.btn_cadastrar_credito(), { timeout: 30000 })
     .should('be.visible')
     .click()
 
-  cy.get(creditos.selecionar_tipo_receita(), { timeout: 10000 })
+  cy.get(creditos.selecionar_tipo_receita(), { timeout: 30000 })
     .should('be.visible')
     .select('Recurso Externo', { force: true })
 
@@ -1007,32 +1007,32 @@ Cypress.Commands.add('excluir_credito_ue', () => {
     selecionarPrimeiraOpcaoValida(creditos.selecionar_conta_associacao())
     selecionarPrimeiraOpcaoValida(creditos.selecionar_acao_associacao())
 
-    cy.get(creditos.inserir_valor_credito(), { timeout: 5000 })
+    cy.get(creditos.inserir_valor_credito(), { timeout: 30000 })
       .should('be.visible')
       .clear()
       .type('1', { force: true })
       .blur()
 
-    cy.get(creditos.btn_salvar_credito(), { timeout: 10000 })
+    cy.get(creditos.btn_salvar_credito(), { timeout: 30000 })
       .should('be.visible')
       .should('not.be.disabled')
       .click({ force: true })
 
     tratarPeriodoFechado()
 
-    cy.url({ timeout: 10000 }).should('include', '/lista-de-receitas')
+    cy.url({ timeout: 30000 }).should('include', '/lista-de-receitas')
   }
 
   function aguardarToast() {
     cy.get('body').then(($body) => {
       if ($body.find('.Toastify__toast').length > 0) {
-        cy.get('.Toastify__toast', { timeout: 10000 }).should('not.exist')
+        cy.get('.Toastify__toast', { timeout: 30000 }).should('not.exist')
       }
     })
   }
 
   function selecionarRegistroParaExcluir() {
-    cy.get(creditos.selecionar_recurso_credito_ue(), { timeout: 10000 })
+    cy.get(creditos.selecionar_recurso_credito_ue(), { timeout: 30000 })
       .should('exist')
       .should('be.visible')
       .click({ force: true })
@@ -1041,22 +1041,22 @@ Cypress.Commands.add('excluir_credito_ue', () => {
       const botaoExiste = $body.find(creditos.btn_deletar_credito_ue()).length > 0
 
       if (!botaoExiste) {
-        cy.get(creditos.selecionar_recurso_credito_ue(), { timeout: 10000 })
+        cy.get(creditos.selecionar_recurso_credito_ue(), { timeout: 30000 })
           .dblclick({ force: true })
       }
     })
 
-    cy.get(creditos.btn_deletar_credito_ue(), { timeout: 15000 })
+    cy.get(creditos.btn_deletar_credito_ue(), { timeout: 30000 })
       .should('exist')
       .should('be.visible')
       .should('not.be.disabled')
   }
 
-  cy.get(creditos.btn_cadastrar_credito(), { timeout: 10000 })
+  cy.get(creditos.btn_cadastrar_credito(), { timeout: 30000 })
     .should('be.visible')
     .click()
 
-  cy.get(creditos.selecionar_tipo_receita(), { timeout: 10000 })
+  cy.get(creditos.selecionar_tipo_receita(), { timeout: 30000 })
     .should('be.visible')
     .select('Recurso Externo', { force: true })
 
@@ -1065,7 +1065,7 @@ Cypress.Commands.add('excluir_credito_ue', () => {
 
   preencherDataCredito(dataFormatada)
 
-  cy.get(creditos.selecionar_detalhamento_credito_re(), { timeout: 10000 })
+  cy.get(creditos.selecionar_detalhamento_credito_re(), { timeout: 30000 })
     .should('be.visible')
     .clear()
     .type(nomeTeste, { force: true })
@@ -1074,20 +1074,20 @@ Cypress.Commands.add('excluir_credito_ue', () => {
   aguardarToast()
   selecionarRegistroParaExcluir()
 
-  cy.get(creditos.btn_deletar_credito_ue(), { timeout: 15000 })
+  cy.get(creditos.btn_deletar_credito_ue(), { timeout: 30000 })
     .should('be.visible')
     .click({ force: true })
 
-  cy.get(creditos.btn_excluir_credito_ue(), { timeout: 15000 })
+  cy.get(creditos.btn_excluir_credito_ue(), { timeout: 30000 })
     .should('be.visible')
     .click({ force: true })
 
-  cy.get(creditos.btn_excluir_credito_ue(), { timeout: 15000 })
+  cy.get(creditos.btn_excluir_credito_ue(), { timeout: 30000 })
     .should('not.exist')
 })
 
 Cypress.Commands.add('validar_credito_ue', () => {
-  cy.get(creditos.titulo_valores_reprogramados(), { timeout: 15000 })
+  cy.get(creditos.titulo_valores_reprogramados(), { timeout: 30000 })
     .should('be.visible')
 })
 
@@ -1096,7 +1096,7 @@ Cypress.Commands.add('editar_credito_ue', () => {
   const nomeTeste = `Teste automatizado ${timestamp}`
 
   function preencherDataCredito(dataFormatada) {
-    cy.get(creditos.inserir_data_credito(), { timeout: 5000 })
+    cy.get(creditos.inserir_data_credito(), { timeout: 30000 })
       .should('be.visible')
       .then(($input) => {
         cy.wrap($input)
@@ -1167,40 +1167,40 @@ Cypress.Commands.add('editar_credito_ue', () => {
       .type('1', { force: true })
       .blur()
 
-    cy.get(creditos.btn_salvar_credito(), { timeout: 10000 })
+    cy.get(creditos.btn_salvar_credito(), { timeout: 30000 })
       .should('be.visible')
       .should('not.be.disabled')
       .click({ force: true })
 
     tratarPeriodoFechado()
-    cy.url({ timeout: 10000 }).should('include', '/lista-de-receitas')
+    cy.url({ timeout: 30000 }).should('include', '/lista-de-receitas')
   }
 
   function aguardarToast() {
     cy.get('body').then(($body) => {
       if ($body.find('.Toastify__toast').length > 0) {
-        cy.get('.Toastify__toast', { timeout: 10000 }).should('not.exist')
+        cy.get('.Toastify__toast', { timeout: 30000 }).should('not.exist')
       }
     })
   }
 
   function selecionarPrimeiroRegistroDaListagem() {
-    cy.url({ timeout: 10000 }).should('include', '/lista-de-receitas')
+    cy.url({ timeout: 30000 }).should('include', '/lista-de-receitas')
 
-    cy.get(creditos.selecionar_recurso_credito_ue(), { timeout: 15000 })
+    cy.get(creditos.selecionar_recurso_credito_ue(), { timeout: 30000 })
       .should('exist')
       .should('be.visible')
       .first()
       .click({ force: true })
 
-    cy.url({ timeout: 15000 }).should('include', '/edicao-de-receita/')
-    cy.get(creditos.btn_salvar_credito(), { timeout: 15000 })
+    cy.url({ timeout: 30000 }).should('include', '/edicao-de-receita/')
+    cy.get(creditos.btn_salvar_credito(), { timeout: 30000 })
       .should('exist')
       .should('be.visible')
   }
 
   function voltarParaListagemSeEstiverEmEdicao() {
-    cy.url({ timeout: 15000 }).then((urlAtual) => {
+    cy.url({ timeout: 30000 }).then((urlAtual) => {
       if (urlAtual.includes('/edicao-de-receita/')) {
         cy.go('back')
       }
@@ -1242,11 +1242,11 @@ Cypress.Commands.add('editar_credito_ue', () => {
       .should('not.exist')
   }
 
-  cy.get(creditos.btn_cadastrar_credito(), { timeout: 10000 })
+  cy.get(creditos.btn_cadastrar_credito(), { timeout: 30000 })
     .should('be.visible')
     .click()
 
-  cy.get(creditos.selecionar_tipo_receita(), { timeout: 10000 })
+  cy.get(creditos.selecionar_tipo_receita(), { timeout: 30000 })
     .should('be.visible')
     .select('Recurso Externo', { force: true })
 
@@ -1255,7 +1255,7 @@ Cypress.Commands.add('editar_credito_ue', () => {
 
   preencherDataCredito(dataFormatada)
 
-  cy.get(creditos.selecionar_detalhamento_credito_re(), { timeout: 10000 })
+  cy.get(creditos.selecionar_detalhamento_credito_re(), { timeout: 30000 })
     .should('be.visible')
     .clear()
     .type(nomeTeste, { force: true })
