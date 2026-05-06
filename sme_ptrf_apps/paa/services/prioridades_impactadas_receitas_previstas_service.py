@@ -24,7 +24,7 @@ class PrioridadesPaaImpactadasBaseService(ABC):
     Service para sincronizar prioridades do PAA quando Receitas Previstas PTRF, PDDE, Outros Recursos.
 
     Regras:
-    - PAA deve estar em elaboração (status = EM_ELABORACAO)
+    - PAA deve estar em elaboração (status = EM_ELABORACAO ou EM_RETIFICACAO)
     - Prioridades devem usar a mesma Ação(PTRF, PDDE, Outros Recursos)
     """
 
