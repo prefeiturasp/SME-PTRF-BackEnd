@@ -24,7 +24,7 @@ class PrioridadesPaaImpactadasBaseService(ABC):
     Service para sincronizar prioridades do PAA quando Receitas Previstas PTRF, PDDE, Outros Recursos.
 
     Regras:
-    - PAA deve estar em elaboração (status = EM_ELABORACAO)
+    - PAA deve estar em elaboração (status = EM_ELABORACAO ou EM_RETIFICACAO)
     - Prioridades devem usar a mesma Ação(PTRF, PDDE, Outros Recursos)
     """
 
@@ -274,18 +274,22 @@ class PrioridadesPaaImpactadasBaseService(ABC):
         para limpar o valor_total.
 
         As pré-condições são:
-        - PAA em elaboração
+        - PAA em elaboração ou em retificação
         - Valor total diferente de NULL (prioridades já limpas)
         - Tipo de aplicação igual ao da receita prevista (caso tenha)
 
         Esta função pode ser sobrescrita para customização para diversos tipos de Receita (PTRF, PDDE, Outros Recursos)
         """
         from sme_ptrf_apps.paa.models import Paa
+
         paas_em_elaboracao = Paa.objects.filter(
             pk=models.OuterRef('paa_id')).paas_em_elaboracao()
 
+        paas_em_retificacao = Paa.objects.filter(
+            pk=models.OuterRef('paa_id')).paas_em_retificacao()
+
         qs = PrioridadePaa.objects.filter(
-            models.Exists(paas_em_elaboracao),
+            models.Exists(paas_em_elaboracao) | models.Exists(paas_em_retificacao),
             valor_total__isnull=False,
         )
 
