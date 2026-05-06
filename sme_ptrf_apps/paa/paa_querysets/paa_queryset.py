@@ -142,6 +142,11 @@ class PaaQuerySet(models.QuerySet):
             status_andamento=PaaStatusAndamentoEnum.EM_ELABORACAO.name
         )
 
+    def paas_em_retificacao(self):
+        return self.annotate_status_geracao().filter(
+            status=PaaStatusEnum.EM_RETIFICACAO.name
+        )
+
 
 class PaaManager(models.Manager):
     def get_queryset(self):
