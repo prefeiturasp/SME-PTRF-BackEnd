@@ -184,7 +184,19 @@ class PaaUpdateSerializer(serializers.ModelSerializer):
                             if tipo:
                                 atividade.tipo = tipo
                             if mes:
-                                atividade.mes = mes
+                                atividade.mes = mes                            
+
+                            if self._atividade_duplicada(
+                                paa=paa,
+                                nome=atividade.nome,
+                                tipo=atividade.tipo,
+                                mes=mes,
+                                data=data,
+                                atividade_id=atividade.id
+                            ):
+                                raise serializers.ValidationError({
+                                    "mensagem": "Já existe uma atividade com mesmo nome, tipo, mês e data para este PAA."
+                                })
 
                             atividade.save()
 
@@ -208,16 +220,24 @@ class PaaUpdateSerializer(serializers.ModelSerializer):
                 if not nome or not tipo or not data:
                     raise serializers.ValidationError({"mensagem": "Nova atividade precisa de nome, tipo e data."})
 
-                try:
-                    nova_atividade = AtividadeEstatutaria.objects.create(
+
+                if self._atividade_duplicada(
+                        paa=paa,
                         nome=nome,
                         tipo=tipo,
                         mes=mes,
-                        paa=paa
-                    )
-                except IntegrityError:
-                    raise serializers.ValidationError(
-                        {"mensagem": "Já existe uma atividade com esse nome, mês e tipo."})
+                        data=data
+                ):
+                    raise serializers.ValidationError({
+                        "mensagem": "Já existe uma atividade com mesmo nome, tipo, mês e data para este PAA."
+                    })
+
+                nova_atividade = AtividadeEstatutaria.objects.create(
+                    nome=nome,
+                    tipo=tipo,
+                    mes=mes,
+                    paa=paa
+                )
 
                 try:
                     AtividadeEstatutariaPaa.objects.create(
@@ -229,6 +249,21 @@ class PaaUpdateSerializer(serializers.ModelSerializer):
                     raise serializers.ValidationError(
                         {"mensagem": "Já existe uma atividade paa com esse paa e data."})
 
+    def _atividade_duplicada(self, paa, nome, tipo, mes, data, atividade_id=None):
+        query = AtividadeEstatutariaPaa.objects.filter(
+            paa=paa,
+            data=data,
+            atividade_estatutaria__nome=nome,
+            atividade_estatutaria__tipo=tipo,
+            atividade_estatutaria__mes=mes,
+        )
+
+        if atividade_id:
+            query = query.exclude(
+                atividade_estatutaria_id=atividade_id
+            )
+
+        return query.exists()
 
 class PaaDreSerializer(serializers.ModelSerializer):
     tem_documentos = serializers.SerializerMethodField()

@@ -215,14 +215,20 @@ def test_patch_nao_pode_excluir_atividade_global(jwt_authenticated_client_sme, p
     assert AtividadeEstatutaria.objects.filter(id=atividade_global.id).exists()
 
 
-def test_patch_impedir_duplicidade(jwt_authenticated_client_sme, paa_factory, atividade_estatutaria_factory):
+def test_patch_impedir_duplicidade(jwt_authenticated_client_sme, paa_factory, atividade_estatutaria_factory, atividade_estatutaria_paa_factory):
     paa = paa_factory()
 
-    atividade_estatutaria_factory(
+    atividade = atividade_estatutaria_factory(
         nome="Reunião",
         tipo="ORDINARIA",
         mes=1,
         paa=paa
+    )
+
+    atividade_estatutaria_paa_factory(
+        paa=paa,
+        data=date(2025, 1, 10),
+        atividade_estatutaria=atividade
     )
 
     payload = {
