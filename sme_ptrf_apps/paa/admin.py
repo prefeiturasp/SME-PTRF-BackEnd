@@ -91,8 +91,10 @@ class ParametroPaaAdmin(admin.ModelAdmin):
 class PaaAdmin(admin.ModelAdmin):
     list_select_related = ('periodo_paa', 'associacao')
     list_display = ('periodo_paa', 'associacao', 'status', 'status_andamento')
-    readonly_fields = ('uuid', 'id', 'status_andamento', 'criado_em', 'alterado_em', 'replica',
-                       'acoes_conclusao', 'acoes_pdde_conclusao', 'outros_recursos_periodo_conclusao')
+    readonly_fields = (
+        'uuid', 'id', 'status_andamento', 'condicao_andamento', 'criado_em', 'alterado_em', 'replica',
+        'acoes_conclusao', 'acoes_pdde_conclusao', 'outros_recursos_periodo_conclusao'
+    )
     list_display_links = ['periodo_paa']
     search_fields = ('periodo_paa__referencia', 'associacao__nome', 'associacao__unidade__codigo_eol')
     list_filter = ('periodo_paa', 'associacao', 'status', StatusAndamentoFilter)
@@ -114,6 +116,10 @@ class PaaAdmin(admin.ModelAdmin):
         from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
         return PaaStatusAndamentoEnum[obj.get_status_andamento()].value
     status_andamento.short_description = 'Status Andamento'
+
+    def condicao_andamento(self, obj):
+        return obj.get_condicao_status_andamento()
+    condicao_andamento.short_description = 'Condição de Andamento'
 
 
 @admin.register(ProgramaPdde)

@@ -43,11 +43,12 @@ def queryset_prioridades_paa(qs):
     )
 
     qs = qs.select_related(
-        'paa',
+        'paa', 'paa__periodo_paa', 'paa__associacao', 'paa__associacao__unidade',
         'acao_associacao',
         'acao_associacao__acao',
         'acao_associacao__associacao',
         'programa_pdde',
+        'acao_pdde',
         'acao_pdde__programa',
         'especificacao_material',
         'especificacao_material__tipo_custeio',

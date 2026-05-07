@@ -43,6 +43,38 @@ class PlanoOrcamentarioService:
     def __init__(self, paa: Paa):
         self.paa = paa
 
+    def _obter_alteracoes(self) -> dict:
+        """Retorna alterações do PAA em relação ao snapshot da retificação (com cache por instância)."""
+        if not hasattr(self, '_alteracoes_cache'):
+            from sme_ptrf_apps.paa.services.retificacao_paa_service import RetificacaoPaaService
+            try:
+                self._alteracoes_cache = RetificacaoPaaService(self.paa, None).identificar_alteracoes()
+            except Exception as e:
+                logger.warning(f"Erro ao obter alterações do PAA {self.paa.uuid}: {str(e)}")
+                self._alteracoes_cache = {}
+        return self._alteracoes_cache
+
+    def _status_alteracao(self, alteracoes_secao, chave):
+        """Retorna 'adicionado', 'modificado', 'removido' ou None para uma chave na seção de alterações."""
+        item = alteracoes_secao.get(str(chave))
+        if item is None:
+            return None
+        return item.get('acao')
+
+    def _status_alteracao_agregado(self, alteracoes_secao):
+        """
+        Agrega status de múltiplos registros em uma seção.
+        Retorna 'adicionado' se só há adições, 'removido' se só há remoções, 'modificado' se há mix, None se vazio.
+        """
+        if not alteracoes_secao:
+            return None
+        acoes = {v.get('acao') for v in alteracoes_secao.values()}
+        if acoes == {'adicionado'}:
+            return 'adicionado'
+        if acoes == {'removido'}:
+            return 'removido'
+        return 'modificado'
+
     def _calcular_saldo(self, receitas, despesas):
         """
         Calcula saldo considerando regras de negativos.
@@ -120,6 +152,8 @@ class PlanoOrcamentarioService:
             acao__exibir_paa=True
         ).all()
 
+        alteracoes_receitas_ptrf = self._obter_alteracoes().get('receitas_ptrf', {})
+
         receitas = []
         for acao_assoc in acoes_associacoes:
             try:
@@ -169,7 +203,8 @@ class PlanoOrcamentarioService:
                 'uuid': acao_uuid,
                 'acao': acao_data,
                 'receitas_previstas_paa': receitas_previstas_data,
-                'saldos': saldos_finais
+                'saldos': saldos_finais,
+                'alteracao': self._status_alteracao(alteracoes_receitas_ptrf, acao_assoc.uuid),
             })
         return receitas
 
@@ -244,6 +279,9 @@ class PlanoOrcamentarioService:
             prioridadepaa__paa=self.paa
         ).distinct()
         acoes_pdde = (acoes_com_receitas | acoes_com_prioridades).distinct()
+
+        alteracoes_receitas_pdde = self._obter_alteracoes().get('receitas_pdde', {})
+
         acoes_com_totais = []
 
         for acao_pdde in acoes_pdde:
@@ -289,7 +327,8 @@ class PlanoOrcamentarioService:
                 'total_valor_custeio': float(valores_custeio),
                 'total_valor_capital': float(valores_capital),
                 'total_valor_livre_aplicacao': float(valores_livre),
-                'total': float(valores_custeio + valores_capital + valores_livre)
+                'total': float(valores_custeio + valores_capital + valores_livre),
+                'alteracao': self._status_alteracao(alteracoes_receitas_pdde, acao_pdde.uuid),
             })
 
         return acoes_com_totais
@@ -314,6 +353,10 @@ class PlanoOrcamentarioService:
         from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa, ReceitaPrevistaOutroRecursoPeriodo
         from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum
 
+        alteracoes = self._obter_alteracoes()
+        alteracoes_recurso_proprio = alteracoes.get('receitas_recurso_proprio', {})
+        alteracoes_outros_recursos = alteracoes.get('receitas_outros_recursos', {})
+
         receitas = []
 
         total_recursos_proprios = self._obter_total_recursos_proprios()
@@ -329,7 +372,8 @@ class PlanoOrcamentarioService:
                 'capital': Decimal('0'),
                 'livre': total_recursos_proprios,
                 'total': total_recursos_proprios
-            }
+            },
+            'alteracao': self._status_alteracao_agregado(alteracoes_recurso_proprio),
         })
 
         outros_recursos_periodo = OutroRecursoPeriodoPaa.objects.disponiveis_para_paa(self.paa)
@@ -377,7 +421,8 @@ class PlanoOrcamentarioService:
                     'capital': valores_capital,
                     'livre': valores_livre,
                     'total': valores_custeio + valores_capital + valores_livre
-                }
+                },
+                'alteracao': self._status_alteracao(alteracoes_outros_recursos, outro_recurso_periodo.uuid),
             })
 
         return receitas
@@ -490,7 +535,8 @@ class PlanoOrcamentarioService:
                 'receitas': _converter_valores_para_float(receita_valores),
                 'despesas': _converter_valores_para_float(despesa_valores),
                 'saldos': _converter_valores_para_float(saldo_valores),
-                'ocultarCusteioCapital': ocultar_custeio_capital
+                'ocultarCusteioCapital': ocultar_custeio_capital,
+                'historicos': receita_item.get('alteracao')
             })
 
             total_receitas['custeio'] += receita_valores['custeio']
@@ -628,7 +674,8 @@ class PlanoOrcamentarioService:
                 'exibirLivre': exibe_livre,
                 'receitas': _converter_valores_para_float(receita_valores),
                 'despesas': _converter_valores_para_float(despesa_valores),
-                'saldos': _converter_valores_para_float(saldo_valores)
+                'saldos': _converter_valores_para_float(saldo_valores),
+                'historicos': receita.get('alteracao')
             })
 
             total_receitas['custeio'] += receita_valores['custeio']
@@ -734,7 +781,8 @@ class PlanoOrcamentarioService:
                 'exibirLivre': exibe_livre,
                 'receitas': _converter_valores_para_float(receita_valores),
                 'despesas': _converter_valores_para_float(despesa_valores),
-                'saldos': _converter_valores_para_float(saldo_valores)
+                'saldos': _converter_valores_para_float(saldo_valores),
+                'historicos': acao.get('alteracao')
             })
 
             total_receitas['custeio'] += receita_valores['custeio']

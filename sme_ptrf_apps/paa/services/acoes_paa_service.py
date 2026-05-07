@@ -46,11 +46,11 @@ class AcoesPaaService:
         # Ações Registradas no PAA
         acoes_conclusao = self.paa.acoes_conclusao.all()
 
-        logger.info('Flag \'paa-retificacao\' encontrada. Carregando Ações PTRF + Ações salvas no PAA.')
         return self.associacao.acoes.filter(
             Q(acao__recurso__legado=True, acao__exibir_paa=True) |
             Q(acao__in=acoes_conclusao)
-        ).distinct()
+        ).select_related(
+            'acao', 'acao__recurso', 'associacao', 'associacao__unidade').distinct()
 
     def obter_pdde(self) -> QuerySet:
         """
@@ -74,7 +74,6 @@ class AcoesPaaService:
         # Açoes registradas no PAA
         acoes_pdde_conclusao = self.paa.acoes_pdde_conclusao.all()
 
-        logger.info('Flag \'paa-retificacao\' encontrada. Carregando Ações PDDE + Ações salvas no PAA.')
         return AcaoPdde.objects.filter(
             Q(pk__in=qs_disponiveis) |
             Q(pk__in=acoes_pdde_conclusao)
@@ -126,6 +125,9 @@ class AcoesReceitasPrevistasPaaService(AcoesPaaService):
             acao_assoc['receitas_previstas_paa'] = ReceitaPrevistaPaaSerializer(
                 self.paa.receitaprevistapaa_set.filter(
                     acao_associacao__acao__uuid=str(acao_assoc['acao']['uuid'])
+                ).select_related(
+                    'acao_associacao',
+                    'acao_associacao__acao',
                 ),
                 many=True).data
         return serialized_acoes

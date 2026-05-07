@@ -74,7 +74,11 @@ class ResumoPrioridadesService:
 
         # Queryset Somente de Prioridades do PAA do recurso PTRF
         prioridades_ptrf_qs = self.paa.prioridadepaa_set.filter(
-            recurso=RecursoOpcoesEnum.PTRF.name)
+            recurso=RecursoOpcoesEnum.PTRF.name
+        ).select_related(
+            'acao_associacao',
+            'acao_associacao__acao'
+        )
 
         acoes_associacoes_qs = AcoesPaaService(self.paa).obter_ptrf().order_by('acao__nome')
 
