@@ -538,9 +538,15 @@ class PrestacaoContaService:
 
     def criar_fechamentos(self):
         self.logger.info('Criando fechamentos.')
+
+        acoes = self.acoes
+        if self.periodo and self.periodo.recurso:
+            acoes = AcaoAssociacao.filter_by_recurso(acoes, self.periodo.recurso)
+
         for conta in self.contas:
             self.logger.info(f'Criando fechamentos da conta {conta}.')
-            for acao in self.acoes:
+
+            for acao in acoes:
                 self.logger.info(f'Criando fechamentos da ação {acao}.')
                 totais_receitas = Receita.totais_por_acao_associacao_no_periodo(
                     acao_associacao=acao,
