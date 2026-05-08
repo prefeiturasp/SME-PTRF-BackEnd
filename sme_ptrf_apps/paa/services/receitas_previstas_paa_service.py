@@ -1,5 +1,5 @@
 from django.db import transaction
-from sme_ptrf_apps.core.models import Associacao
+from sme_ptrf_apps.core.models import Associacao, Recurso
 from sme_ptrf_apps.core.models.periodo import Periodo
 from sme_ptrf_apps.paa.models import ReceitaPrevistaPaa
 from sme_ptrf_apps.core.services.resumo_rescursos_service import ResumoRecursosService
@@ -48,8 +48,10 @@ class SaldosPorAcaoPaaService:
             return []
 
         self.paa.set_congelar_saldo()
-        self.periodo = Periodo.da_data(self.paa.saldo_congelado_em)
-
+        recurso = Recurso.objects.filter(legado=True).first()
+        self.periodo = Periodo.da_data_por_recurso(self.paa.saldo_congelado_em, recurso=recurso)
+        if not self.periodo:
+            raise Exception('Não foi possivel encontrar o período relacionado à data de congelamento do saldo.')
         receitas_previstas = []
         acoes_associacao = Associacao.acoes_da_associacao(associacao_uuid=self.associacao.uuid)
 

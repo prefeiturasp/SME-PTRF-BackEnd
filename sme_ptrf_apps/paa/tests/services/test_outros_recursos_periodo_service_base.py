@@ -174,7 +174,8 @@ def test_paas_afetados_em_elaboracao(base_service, periodo_paa_1, ata_paa_factor
 
 
 @pytest.mark.django_db
-def test_paas_afetados_gerado_retificado(base_service, periodo_paa_1, ata_paa_factory, documento_paa_factory):
+def test_paas_afetados_gerado_retificado(base_service, periodo_paa_1, ata_paa_factory, documento_paa_factory,
+                                         replica_paa_factory):
     """Testa filtro de PAAs gerados ou em retificação"""
     paa_gerado_sem_documento_e_ata = PaaFactory.create(
         periodo_paa=periodo_paa_1,
@@ -193,6 +194,7 @@ def test_paas_afetados_gerado_retificado(base_service, periodo_paa_1, ata_paa_fa
         versao=DocumentoPaa.VersaoChoices.FINAL,
         status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
     )
+    replica_paa_factory.create(paa=paa_retificacao)
 
     paas_gerados_retificados = base_service._paas_afetados_gerado_retificado()
 
@@ -213,7 +215,8 @@ def test_paa_em_elaboracao_true(base_service, periodo_paa):
 
 
 @pytest.mark.django_db
-def test_paa_em_elaboracao_false(base_service, periodo_paa, ata_paa_factory, documento_paa_factory):
+def test_paa_em_elaboracao_false(
+        base_service, periodo_paa, ata_paa_factory, documento_paa_factory, replica_paa_factory):
     """Testa verificação quando PAA não está em elaboração"""
     paa = PaaFactory.create(
         periodo_paa=periodo_paa,
@@ -229,6 +232,7 @@ def test_paa_em_elaboracao_false(base_service, periodo_paa, ata_paa_factory, doc
         versao=DocumentoPaa.VersaoChoices.FINAL,
         status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
     )
+    replica_paa_factory.create(paa=paa)
 
     assert base_service._paa_gerado_retificado(paa) is True
 
@@ -276,7 +280,8 @@ def test_paa_gerado_retificado_gerado(base_service, periodo_paa, ata_paa_factory
 
 
 @pytest.mark.django_db
-def test_paa_gerado_retificacao_true(base_service, periodo_paa, ata_paa_factory, documento_paa_factory):
+def test_paa_gerado_retificacao_true(
+        base_service, periodo_paa, ata_paa_factory, documento_paa_factory, replica_paa_factory):
     """Testa verificação para PAA em retificação"""
     paa = PaaFactory.create(
         periodo_paa=periodo_paa,
@@ -291,6 +296,7 @@ def test_paa_gerado_retificacao_true(base_service, periodo_paa, ata_paa_factory,
         paa=paa,
         status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
     )
+    replica_paa_factory.create(paa=paa)
     assert base_service._paa_gerado_retificado(paa) is True
 
 

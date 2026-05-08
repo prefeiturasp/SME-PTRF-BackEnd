@@ -108,7 +108,14 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         associacao = instance.associacao
 
         saldos_por_acao_paa_service = SaldosPorAcaoPaaService(paa=instance, associacao=associacao)
-        receitas_previstas = saldos_por_acao_paa_service.congelar_saldos()
+        try:
+            receitas_previstas = saldos_por_acao_paa_service.congelar_saldos()
+        except Exception as e:
+            logger.error(f'Erro ao congelar saldos do PAA {instance.uuid}: {e}')
+            return Response(
+                {'mensagem': f'{e}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         serializer = ReceitaPrevistaPaaSerializer(receitas_previstas, many=True)
 

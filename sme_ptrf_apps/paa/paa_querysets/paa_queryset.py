@@ -59,55 +59,109 @@ class PaaQuerySet(models.QuerySet):
             output_field=models.BooleanField(),
         )
 
+        # Cada entrada: (condição, valor_status_andamento, label_debug)
+        # Condição pode ser dict (kwargs) ou Q expression
+        # Facilitar a identificação das condições que possam ocorrer fora de fluxo
+        case_definitions = [
+            # Fora do Fluxo - Réplica existente no PAA em Elaboração
+            (
+                {'status': PaaStatusEnum.EM_ELABORACAO.name, 'replica__isnull': False},
+                PaaStatusAndamentoEnum.FORA_FLUXO.name,
+                'Em elaboração + com Réplica',
+            ),
+            # Fora do Fluxo - Em Elaboração com ata gerada
+            (
+                {'status': PaaStatusEnum.EM_ELABORACAO.name, 'tem_ata_concluida': True},
+                PaaStatusAndamentoEnum.FORA_FLUXO.name,
+                'Em elaboração + com Ata gerada',
+            ),
+            # Fora de Fluxo - Réplica existente quando gerado
+            (
+                {
+                    'status': PaaStatusEnum.GERADO.name,
+                    'tem_documento_final_concluido': True,
+                    'tem_ata_concluida': True,
+                    'replica__isnull': False
+                },
+                PaaStatusAndamentoEnum.FORA_FLUXO.name,
+                'Gerado + Doc Final + Ata + Réplica',
+            ),
+            # Fora de Fluxo: é gerado, não tem ata
+            (
+                {'status': PaaStatusEnum.GERADO.name, 'tem_ata_concluida': False},
+                PaaStatusAndamentoEnum.FORA_FLUXO.name,
+                'Gerado + sem Ata',
+            ),
+            # Fora de Fluxo - Retificação sem Réplica
+            (
+                {'status': PaaStatusEnum.EM_RETIFICACAO.name, 'replica__isnull': True},
+                PaaStatusAndamentoEnum.FORA_FLUXO.name,
+                'Em retificação + sem Réplica',
+            ),
+            # Gerado completo - é gerado, tem documento e tem ata
+            (
+                {
+                    'status': PaaStatusEnum.GERADO.name,
+                    'tem_documento_final_concluido': True,
+                    'tem_ata_concluida': True
+                },
+                PaaStatusAndamentoEnum.GERADO.name,
+                'Gerado + Doc Final + Ata',
+            ),
+            # Retificação correta quando há uma Réplica
+            (
+                {'status': PaaStatusEnum.EM_RETIFICACAO.name, 'replica__isnull': False},
+                PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name,
+                'Em retificação + com Réplica',
+            ),
+            # Em Elaboração quando tem apenas documento final concluído
+            (
+                Q(status=PaaStatusEnum.EM_ELABORACAO.name) & tem_documento_final_concluido,
+                PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name,
+                'Em elaboração + Doc Final',
+            ),
+            # Em elaboração
+            (
+                {
+                    'status': PaaStatusEnum.EM_ELABORACAO.name,
+                    'tem_documento_final_concluido': False,
+                    'tem_ata_concluida': False
+                },
+                PaaStatusAndamentoEnum.EM_ELABORACAO.name,
+                'Em elaboração',
+            ),
+            # Fluxo não iniciado
+            (
+                {'status': PaaStatusEnum.NAO_INICIADO.name},
+                PaaStatusAndamentoEnum.FORA_FLUXO.name,
+                'PAA existente não pode ser \"Não iniciado\"',
+            ),
+        ]
+
+        def make_when(condition, value):
+            """
+                Método utilizado para reaproveitar os Cases de status_andamento para _debug_case
+            """
+            if isinstance(condition, dict):
+                return When(**condition, then=Value(value))
+            return When(condition, then=Value(value))
+
         return self.annotate(
             tem_documento_final_concluido=tem_documento_final_concluido,
             tem_ata_concluida=tem_ata_concluida,
             status_andamento=Case(
-
-                # GERADO: status GERADO + documento final concluído + ata concluída
-                When(
-                    status=PaaStatusEnum.GERADO.name,
-                    tem_documento_final_concluido=True,
-                    tem_ata_concluida=True,
-                    then=Value(PaaStatusAndamentoEnum.GERADO.name),
-                ),
-
-                # RETIFICACAO: status EM_RETIFICACAO + com replica
-                # Enquanto Status está em retificação, deve haver uma réplica
-                When(
-                    status=PaaStatusEnum.EM_RETIFICACAO.name,
-                    replica__isnull=False,
-                    then=Value(PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name),
-                ),
-
-                # GERADO: status GERADO e sem ata gerada
-                # Cenário fora de fluxo, mas possível(em manipulação admin)
-                When(
-                    status=PaaStatusEnum.GERADO.name,
-                    tem_ata_concluida=False,
-                    then=Value(PaaStatusAndamentoEnum.FORA_FLUXO.name),
-                ),
-
-                # GERADO_PARCIALMENTE: status EM_RETIFICACAO
-                When(
-                    status=PaaStatusEnum.EM_RETIFICACAO.name,
-                    then=Value(PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name),
-                ),
-
-                # GERADO_PARCIALMENTE: status EM_ELABORACAO + documento final concluído
-                When(
-                    Q(status=PaaStatusEnum.EM_ELABORACAO.name) & tem_documento_final_concluido,
-                    then=Value(PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name),
-                ),
-
-                # NAO_INICIADO: status padrão NAO_INICIADO
-                When(
-                    status=PaaStatusEnum.NAO_INICIADO.name,
-                    then=Value(PaaStatusAndamentoEnum.NAO_INICIADO.name)
-                ),
+                *[make_when(cond, status) for cond, status, _ in case_definitions],
                 default=Value(PaaStatusAndamentoEnum.EM_ELABORACAO.name),
                 output_field=CharField(),
-            )
+            ),
+            _debug_case=Case(
+                *[make_when(
+                    cond,
+                    f'Condição {index + 1} - {label}'
+                ) for index, (cond, _, label) in enumerate(case_definitions)],
+                default=Value('Condição padrão: Não mapeada'),
+                output_field=CharField(),
+            ),
         )
 
     def get_queryset(self):

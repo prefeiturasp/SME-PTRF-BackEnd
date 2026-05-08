@@ -94,6 +94,28 @@ class Paa(ModeloBase):
             self.atas_da_paa.exists()
         )
 
+    def get_condicao_status_andamento(self) -> str:
+        """
+        Retorna o status da condição do andamento do PAA.
+
+        Se o objeto já possui o campo anotado 'status_andamento'(PaaManager -> Queryset),
+        retorna-o diretamente. Caso contrário, recarrega o objeto do banco com as anotações.
+
+        Returns:
+            str: Nome do status da condição (CASE 1, CASE 2,...)
+        """
+        # Se já tem o campo anotado, retorne-o
+        if hasattr(self, '_debug_case'):
+            return self._debug_case
+
+        # Caso contrário, busque a versão anotada do banco
+        if self.pk:
+            paa_anotado = Paa.objects.get(pk=self.pk)
+            return paa_anotado._debug_case
+
+        # Se é um objeto novo (ainda não salvo), retorna padrão
+        return 'Condição #'
+
     def get_status_andamento(self) -> str:
         """
         Retorna o status de andamento do PAA.
