@@ -8,7 +8,7 @@ from .conftest import UUID_RECURSO_A
 pytestmark = pytest.mark.django_db
 
 
-def test_api_list_periodos(jwt_authenticated_client, periodo_2020_4, periodo_2021_1, periodo_2021_2):
+def test_api_list_periodos(jwt_authenticated_client, periodo_2020_4, periodo_2021_1, periodo_2021_2, recurso_esperado):
     response = jwt_authenticated_client.get('/api/periodos/', content_type='application/json')
     result = json.loads(response.content)
 
@@ -32,33 +32,9 @@ def test_api_list_periodos(jwt_authenticated_client, periodo_2020_4, periodo_202
                 "data_inicio_realizacao_despesas": f'{p.periodo_anterior.data_inicio_realizacao_despesas}' if p.periodo_anterior.data_inicio_realizacao_despesas else None,
                 "data_fim_realizacao_despesas": f'{p.periodo_anterior.data_fim_realizacao_despesas}' if p.periodo_anterior.data_fim_realizacao_despesas else None,
                 "referencia_por_extenso": f"{p.periodo_anterior.referencia.split('.')[1]}° repasse de {p.periodo_anterior.referencia.split('.')[0]}",
-                "recurso": {
-                    'id': p.periodo_anterior.recurso.id,
-                    'uuid': f'{p.periodo_anterior.recurso.uuid}',
-                    'nome': p.periodo_anterior.recurso.nome,
-                    'nome_exibicao': p.periodo_anterior.recurso.nome_exibicao,
-                    'criado_em': f'{p.periodo_anterior.recurso.criado_em.isoformat()}' if p.periodo_anterior.recurso.criado_em else None,
-                    'alterado_em': f'{p.periodo_anterior.recurso.alterado_em.isoformat()}' if p.periodo_anterior.recurso.alterado_em else None,
-                    'cor': p.periodo_anterior.recurso.cor,
-                    'icone': p.periodo_anterior.recurso.icone if p.periodo_anterior.recurso.icone else None,
-                    'ativo': p.periodo_anterior.recurso.ativo,
-                    'legado': p.periodo_anterior.recurso.legado,
-                    'exibe_valores_reprogramados': p.periodo_anterior.recurso.exibe_valores_reprogramados
-                }
+                "recurso": recurso_esperado(p.periodo_anterior.recurso),
             } if p.periodo_anterior else None,
-            "recurso": {
-                "id": p.recurso.id,
-                "uuid": f'{p.recurso.uuid}',
-                "nome": p.recurso.nome,
-                "nome_exibicao": p.recurso.nome_exibicao,
-                "criado_em": f'{p.recurso.criado_em.isoformat()}' if p.recurso.criado_em else None,
-                "alterado_em": f'{p.recurso.alterado_em.isoformat()}' if p.recurso.alterado_em else None,
-                "cor": p.recurso.cor,
-                "icone": p.recurso.icone if p.recurso.icone else None,
-                "ativo": p.recurso.ativo,
-                "legado": p.recurso.legado,
-                "exibe_valores_reprogramados": p.recurso.exibe_valores_reprogramados
-            }
+            "recurso": recurso_esperado(p.recurso),
         }
         expected_results.append(esperado)
 
@@ -66,7 +42,7 @@ def test_api_list_periodos(jwt_authenticated_client, periodo_2020_4, periodo_202
     assert result == expected_results
 
 
-def test_api_list_periodos_lookup(jwt_authenticated_client, periodo, periodo_anterior):
+def test_api_list_periodos_lookup(jwt_authenticated_client, periodo, periodo_anterior, recurso_esperado):
     response = jwt_authenticated_client.get('/api/periodos/lookup/', content_type='application/json')
     result = json.loads(response.content)
 
@@ -80,19 +56,7 @@ def test_api_list_periodos_lookup(jwt_authenticated_client, periodo, periodo_ant
             "data_inicio_realizacao_despesas": f'{p.data_inicio_realizacao_despesas}' if p.data_inicio_realizacao_despesas else None,
             "data_fim_realizacao_despesas": f'{p.data_fim_realizacao_despesas}' if p.data_fim_realizacao_despesas else None,
             "referencia_por_extenso": f"{p.referencia.split('.')[1]}° repasse de {p.referencia.split('.')[0]}",
-            "recurso": {
-                "id": p.recurso.id,
-                "uuid": f'{p.recurso.uuid}',
-                "nome": p.recurso.nome,
-                "nome_exibicao": p.recurso.nome_exibicao,
-                "criado_em": f'{p.recurso.criado_em.isoformat()}' if p.recurso.criado_em else None,
-                "alterado_em": f'{p.recurso.alterado_em.isoformat()}' if p.recurso.alterado_em else None,
-                "cor": p.recurso.cor,
-                "icone": p.recurso.icone if p.recurso.icone else None,
-                "ativo": p.recurso.ativo,
-                "legado": p.recurso.legado,
-                "exibe_valores_reprogramados": p.recurso.exibe_valores_reprogramados
-            }
+            "recurso": recurso_esperado(p.recurso),
         }
         expected_results.append(esperado)
 
@@ -101,7 +65,7 @@ def test_api_list_periodos_lookup(jwt_authenticated_client, periodo, periodo_ant
 
 
 @freeze_time('2020-06-14 10:11:12')
-def test_api_list_periodos_lookup_until_now(jwt_authenticated_client, periodo, periodo_anterior, periodo_futuro):
+def test_api_list_periodos_lookup_until_now(jwt_authenticated_client, periodo, periodo_anterior, periodo_futuro, recurso_esperado):
     """O esperado é que o periodo_futuro não esteja na lista de resultados."""
     response = jwt_authenticated_client.get('/api/periodos/lookup-until-now/', content_type='application/json')
     result = json.loads(response.content)
@@ -116,19 +80,7 @@ def test_api_list_periodos_lookup_until_now(jwt_authenticated_client, periodo, p
             "data_inicio_realizacao_despesas": f'{p.data_inicio_realizacao_despesas}' if p.data_inicio_realizacao_despesas else None,
             "data_fim_realizacao_despesas": f'{p.data_fim_realizacao_despesas}' if p.data_fim_realizacao_despesas else None,
             "referencia_por_extenso": f"{p.referencia.split('.')[1]}° repasse de {p.referencia.split('.')[0]}",
-            "recurso": {
-                "id": p.recurso.id,
-                "uuid": f'{p.recurso.uuid}',
-                "nome": p.recurso.nome,
-                "nome_exibicao": p.recurso.nome_exibicao,
-                "criado_em": f'{p.recurso.criado_em.isoformat()}' if p.recurso.criado_em else None,
-                "alterado_em": f'{p.recurso.alterado_em.isoformat()}' if p.recurso.alterado_em else None,
-                "cor": p.recurso.cor,
-                "icone": p.recurso.icone if p.recurso.icone else None,
-                "ativo": p.recurso.ativo,
-                "legado": p.recurso.legado,
-                "exibe_valores_reprogramados": p.recurso.exibe_valores_reprogramados
-            }
+            "recurso": recurso_esperado(p.recurso),
         }
         expected_results.append(esperado)
 
@@ -136,7 +88,7 @@ def test_api_list_periodos_lookup_until_now(jwt_authenticated_client, periodo, p
     assert result == expected_results
 
 
-def test_api_list_periodos_por_referencia(jwt_authenticated_client, periodo_2020_4, periodo_2021_1, periodo_2021_2):
+def test_api_list_periodos_por_referencia(jwt_authenticated_client, periodo_2020_4, periodo_2021_1, periodo_2021_2, recurso_esperado):
     response = jwt_authenticated_client.get('/api/periodos/?referencia=2021', content_type='application/json')
     result = json.loads(response.content)
 
@@ -160,33 +112,9 @@ def test_api_list_periodos_por_referencia(jwt_authenticated_client, periodo_2020
                 'data_fim_realizacao_despesas': f'{p.periodo_anterior.data_fim_realizacao_despesas}',
                 'referencia_por_extenso': f'{p.periodo_anterior.referencia_por_extenso}',
                 'uuid': f'{p.periodo_anterior.uuid}',
-                'recurso': {
-                    'id': p.periodo_anterior.recurso.id,
-                    'uuid': f'{p.periodo_anterior.recurso.uuid}',
-                    'nome': p.periodo_anterior.recurso.nome,
-                    'nome_exibicao': p.periodo_anterior.recurso.nome_exibicao,
-                    'criado_em': f'{p.periodo_anterior.recurso.criado_em.isoformat()}' if p.periodo_anterior.recurso.criado_em else None,
-                    'alterado_em': f'{p.periodo_anterior.recurso.alterado_em.isoformat()}' if p.periodo_anterior.recurso.alterado_em else None,
-                    'cor': p.periodo_anterior.recurso.cor,
-                    'icone': p.periodo_anterior.recurso.icone if p.periodo_anterior.recurso.icone else None,
-                    'ativo': p.periodo_anterior.recurso.ativo,
-                    'legado': p.periodo_anterior.recurso.legado,
-                    'exibe_valores_reprogramados': p.periodo_anterior.recurso.exibe_valores_reprogramados
-                }
+                "recurso": recurso_esperado(p.periodo_anterior.recurso),
             } if p.periodo_anterior else None,
-            "recurso": {
-                'id': p.recurso.id,
-                'uuid': f'{p.recurso.uuid}',
-                'nome': p.recurso.nome,
-                'nome_exibicao': p.recurso.nome_exibicao,
-                'criado_em': f'{p.recurso.criado_em.isoformat()}' if p.recurso.criado_em else None,
-                'alterado_em': f'{p.recurso.alterado_em.isoformat()}' if p.recurso.alterado_em else None,
-                'cor': p.recurso.cor,
-                'icone': p.recurso.icone if p.recurso.icone else None,
-                'ativo': p.recurso.ativo,
-                'legado': p.recurso.legado,
-                'exibe_valores_reprogramados': p.recurso.exibe_valores_reprogramados
-            }
+            "recurso": recurso_esperado(p.recurso),
         }
         expected_results.append(esperado)
 
@@ -194,7 +122,7 @@ def test_api_list_periodos_por_referencia(jwt_authenticated_client, periodo_2020
     assert result == expected_results
 
 
-def test_api_list_periodos_por_associacao(jwt_authenticated_client, prestacao_conta_2021_1_aprovada_associacao_encerrada, periodo_2021_1, periodo_2021_2):
+def test_api_list_periodos_por_associacao(jwt_authenticated_client, prestacao_conta_2021_1_aprovada_associacao_encerrada, periodo_2021_1, periodo_2021_2, recurso_esperado):
     response = jwt_authenticated_client.get(
         f'/api/periodos/?associacao_uuid={prestacao_conta_2021_1_aprovada_associacao_encerrada.associacao.uuid}', content_type='application/json')
     result = json.loads(response.content)
@@ -219,33 +147,9 @@ def test_api_list_periodos_por_associacao(jwt_authenticated_client, prestacao_co
                 'data_inicio_realizacao_despesas': f'{p.periodo_anterior.data_inicio_realizacao_despesas}',
                 'data_fim_realizacao_despesas': f'{p.periodo_anterior.data_fim_realizacao_despesas}',
                 'referencia_por_extenso': f'{p.periodo_anterior.referencia_por_extenso}',
-                'recurso': {
-                    'id': p.periodo_anterior.recurso.id,
-                    'uuid': f'{p.periodo_anterior.recurso.uuid}',
-                    'nome': p.periodo_anterior.recurso.nome,
-                    'nome_exibicao': p.periodo_anterior.recurso.nome_exibicao,
-                    'criado_em': f'{p.periodo_anterior.recurso.criado_em.isoformat()}' if p.periodo_anterior.recurso.criado_em else None,
-                    'alterado_em': f'{p.periodo_anterior.recurso.alterado_em.isoformat()}' if p.periodo_anterior.recurso.alterado_em else None,
-                    'cor': p.periodo_anterior.recurso.cor,
-                    'icone': p.periodo_anterior.recurso.icone if p.periodo_anterior.recurso.icone else None,
-                    'ativo': p.periodo_anterior.recurso.ativo,
-                    'legado': p.periodo_anterior.recurso.legado,
-                    'exibe_valores_reprogramados': p.periodo_anterior.recurso.exibe_valores_reprogramados
-                }
+                "recurso": recurso_esperado(p.periodo_anterior.recurso),
             } if p.periodo_anterior else None,
-            "recurso": {
-                'id': p.recurso.id,
-                'uuid': f'{p.recurso.uuid}',
-                'nome': p.recurso.nome,
-                'nome_exibicao': p.recurso.nome_exibicao,
-                'criado_em': f'{p.recurso.criado_em.isoformat()}' if p.recurso.criado_em else None,
-                'alterado_em': f'{p.recurso.alterado_em.isoformat()}' if p.recurso.alterado_em else None,
-                'cor': p.recurso.cor,
-                'icone': p.recurso.icone if p.recurso.icone else None,
-                'ativo': p.recurso.ativo,
-                'legado': p.recurso.legado,
-                'exibe_valores_reprogramados': p.recurso.exibe_valores_reprogramados
-            }
+            "recurso": recurso_esperado(p.recurso),
         }
         expected_results.append(esperado)
 

@@ -3185,3 +3185,23 @@ def receita_prevista_paa(acao_associacao, paa):
         previsao_valor_capital=2000.0,
         previsao_valor_livre=3000.0
     )
+
+@pytest.fixture
+def recurso_esperado():
+    def _recurso_esperado(recurso):
+        return {
+            "id": recurso.id,
+            "uuid": f"{recurso.uuid}",
+            "nome": recurso.nome,
+            "nome_exibicao": recurso.nome_exibicao,
+            "criado_em": recurso.criado_em.isoformat() if recurso.criado_em else None,
+            "alterado_em": recurso.alterado_em.isoformat() if recurso.alterado_em else None,
+            "cor": recurso.cor,
+            "icone": recurso.icone if recurso.icone else None,
+            "ativo": recurso.ativo,
+            "legado": recurso.legado,
+            "exibe_valores_reprogramados": recurso.exibe_valores_reprogramados,
+            "habilita_aprovacao_com_ressalvas": recurso.habilita_aprovacao_com_ressalvas,
+        }
+
+    return _recurso_esperado

@@ -43,6 +43,12 @@ class Recurso(ModeloIdNome, TemAtivo):
         blank=False
     )
 
+    habilita_aprovacao_com_ressalvas = models.BooleanField(
+        verbose_name="Habilitar Aprovação com ressalvas",
+        help_text="Define se o recurso exibe a opção de aprovação com ressalvas.",
+        default=False,
+    )
+
     permite_saldo_conta_negativo = models.BooleanField('Permite saldo negativo em contas?', default=False)
 
     permite_saldo_acoes_negativo = models.BooleanField('Permite saldo negativo em ações?', default=False)
