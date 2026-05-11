@@ -23,7 +23,7 @@ from .info_por_acao_services import (
 )
 from .membro_associacao_service import TerceirizadasException, TerceirizadasService, SmeIntegracaoApiException, SmeIntegracaoApiService, retorna_membros_do_conselho_fiscal_por_associacao
 from sme_ptrf_apps.core.services.notificacao_services.notificacao_inicio_periodo_prestacao_de_contas import notificar_inicio_periodo_prestacao_de_contas
-from .periodo_services import status_prestacao_conta_associacao, valida_datas_periodo
+from .periodo_services import status_prestacao_conta_associacao, valida_datas_periodo, get_periodo_corte_por_dre, get_periodo_corte
 from .prestacao_contas_services import (
     concluir_prestacao_de_contas,
     informacoes_financeiras_para_atas,
