@@ -3,7 +3,7 @@ from sme_ptrf_apps.core.models import Recurso
 
 
 class RecursoSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = Recurso
         fields = (
@@ -17,7 +17,8 @@ class RecursoSerializer(serializers.ModelSerializer):
             'icone',
             'ativo',
             'legado',
-            'exibe_valores_reprogramados'
+            'exibe_valores_reprogramados',
+            'habilita_aprovacao_com_ressalvas'
         )
         read_only_fields = (
             'id',
@@ -30,5 +31,6 @@ class RecursoSerializer(serializers.ModelSerializer):
             'icone',
             'ativo',
             'legado',
-            'exibe_valores_reprogramados'
+            'exibe_valores_reprogramados',
+            'habilita_aprovacao_com_ressalvas'
         )
