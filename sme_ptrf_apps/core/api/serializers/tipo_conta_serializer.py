@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from sme_ptrf_apps.core.api.serializers.recurso_serializer import RecursoSerializer
+
 from ...models import TipoConta, Recurso
 
 
@@ -9,6 +11,8 @@ class TipoContaSerializer(serializers.ModelSerializer):
         required=False,
         queryset=Recurso.objects.all()
     )
+
+    recurso_completo = RecursoSerializer(source='recurso', read_only=True, required=False, allow_null=True)
 
     class Meta:
         model = TipoConta
@@ -22,5 +26,6 @@ class TipoContaSerializer(serializers.ModelSerializer):
             'numero_cartao',
             'apenas_leitura',
             'permite_inativacao',
-            'recurso'
+            'recurso',
+            'recurso_completo'
         )
