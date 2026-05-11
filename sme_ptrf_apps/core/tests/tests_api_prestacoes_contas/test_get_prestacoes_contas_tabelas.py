@@ -8,12 +8,15 @@ from ...models import PrestacaoConta
 pytestmark = pytest.mark.django_db
 
 
-def test_api_get_prestacoes_contas_tabelas(jwt_authenticated_client_a):
+def test_api_get_prestacoes_contas_tabelas(jwt_authenticated_client_a, recurso_legado):
     response = jwt_authenticated_client_a.get('/api/prestacoes-contas/tabelas/', content_type='application/json')
     result = json.loads(response.content)
+
     esperado = {
         'status': PrestacaoConta.status_to_json(),
-        'status_de_conclusao_de_pc': PrestacaoConta.status_conclusao_pc_to_json()
+        'status_de_conclusao_de_pc': PrestacaoConta.status_conclusao_pc_to_json(
+            habilita_aprovacao_com_ressalvas=recurso_legado.habilita_aprovacao_com_ressalvas
+        )
     }
 
     assert response.status_code == status.HTTP_200_OK
