@@ -542,7 +542,7 @@ class PrestacaoConta(ModeloBase):
 
                 if data_devolucao > hoje:
                     raise ValueError("Data de devolução não pode ser futura")
-    
+
             if devolucao_uuid:
                 registro_devolucao = DevolucaoAoTesouro.objects.get(uuid=devolucao_uuid)
 
@@ -988,19 +988,20 @@ class PrestacaoConta(ModeloBase):
         return result
 
     @classmethod
-    def status_conclusao_pc_to_json(cls):
+    def status_conclusao_pc_to_json(cls, habilita_aprovacao_com_ressalvas=True):
         selecionaveis = [
             cls.STATUS_APROVADA,
-            cls.STATUS_APROVADA_RESSALVA,
-            cls.STATUS_REPROVADA
+            cls.STATUS_REPROVADA,
         ]
 
-        result = [{
-            'id': choice[0],
-            'nome': choice[1]
-        } for choice in cls.STATUS_CHOICES if choice[0] in selecionaveis]
+        if habilita_aprovacao_com_ressalvas:
+            selecionaveis.insert(1, cls.STATUS_APROVADA_RESSALVA)
 
-        return result
+        return [
+            {'id': choice[0], 'nome': choice[1]}
+            for choice in cls.STATUS_CHOICES
+            if choice[0] in selecionaveis
+        ]
 
     @classmethod
     def filter_by_recurso(cls, queryset, recurso):
