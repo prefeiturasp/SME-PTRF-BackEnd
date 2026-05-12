@@ -14,7 +14,8 @@ from sme_ptrf_apps.paa.enums import TipoAtividadeEstatutariaEnum, TipoAnosAtivid
 from sme_ptrf_apps.paa.choices import Mes, StatusChoices
 from sme_ptrf_apps.paa.api.serializers import AtividadeEstatutariaSerializer
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoApiSME
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.utils import extend_schema_view
+from sme_ptrf_apps.paa.api.views.docs.atividade_estatutaria_docs import DOCS
 from sme_ptrf_apps.paa.services.atividade_estatutaria_service import AtividadeEstatutariaOrdenacaoService
 
 logger = logging.getLogger(__name__)
@@ -32,29 +33,7 @@ class AtividadeEstatutariaPaaFilterBackend(django_filters.FilterSet):
         fields = ['nome', 'tipo', 'status', 'ano', 'mes']
 
 
-@extend_schema_view(
-    list=extend_schema(
-        description=(
-            "Retorna a lista de Atividades Estatutárias. "
-            "Permite filtrar por **nome**, **status**, **tipo** e **mes**"
-        ),
-        parameters=[
-            OpenApiParameter("nome", str, OpenApiParameter.QUERY,
-                             description="Filtra pelo nome (case-insensitive, acento ignorado)"),
-            OpenApiParameter("tipo", str, OpenApiParameter.QUERY,
-                             description="Filtra pelo tipo de atividade",
-                             enum=list(TipoAtividadeEstatutariaEnum.choices())),
-            OpenApiParameter("ano", str, OpenApiParameter.QUERY,
-                             description="Filtra pelo ano da atividade",
-                             enum=list(TipoAnosAtividadeEstatutariaEnum.choices())),
-            OpenApiParameter("mes", str, OpenApiParameter.QUERY,
-                             description="Filtra por Mês", enum=list(Mes.choices)),
-            OpenApiParameter("status", str, OpenApiParameter.QUERY,
-                             description="Filtra por Status (0 / 1)", enum=list(StatusChoices.choices)),
-        ],
-        responses={200: AtividadeEstatutariaSerializer(many=True)},
-    )
-)
+@extend_schema_view(**DOCS)
 class AtividadeEstatutariaViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated]

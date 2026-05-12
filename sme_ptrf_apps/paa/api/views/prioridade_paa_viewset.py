@@ -18,10 +18,14 @@ from sme_ptrf_apps.paa.api.serializers import (
 )
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComGravacao
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
+from drf_spectacular.utils import extend_schema_view
+from sme_ptrf_apps.paa.api.views.docs.prioridade_paa_docs import DOCS
+from sme_ptrf_apps.paa.api.views.docs.prioridade_paa_relatorio_docs import DOCS as DOCS_RELATORIO
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [PermissaoApiUe]
@@ -180,6 +184,7 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
         return Response(PrioridadePaaCreateUpdateSerializer(nova_prioridade).data, status=status.HTTP_201_CREATED)
 
 
+@extend_schema_view(**DOCS_RELATORIO)
 class PrioridadePaaRelatorioViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [PermissaoApiUe]

@@ -8,6 +8,7 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 import django_filters
 from django_filters import rest_framework as filters
+from drf_spectacular.utils import extend_schema_view
 
 from requests import ConnectTimeout, ReadTimeout
 from rest_framework import status
@@ -22,6 +23,7 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes,
 
 from brazilnum.cpf import format_cpf
 
+from .docs.usuarios_viewset_docs import DOCS
 from sme_ptrf_apps.mandatos.models import CargoComposicao
 from sme_ptrf_apps.users.api.serializers import (
     UsuarioSerializer,
@@ -92,6 +94,7 @@ class UsuariosFilter(django_filters.FilterSet):
         ]
 
 
+@extend_schema_view(**DOCS)
 class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "gestao-usuarios"
     lookup_field = "id"
@@ -176,28 +179,10 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
                 return qs.filter(
                     Q(unidades__uuid=uuid_unidade_base) | Q(unidades__uuid__in=unidades_da_dre)).distinct('name', 'id')
 
-    @extend_schema(parameters=[
-        OpenApiParameter(
-            name='uuid_unidade_base',
-            description='UUID da unidade ou "SME". Para exibir usuários da unidade e subordinadas. ',
-            required=False,
-            type=OpenApiTypes.STR,
-            location=OpenApiParameter.QUERY,
-        ),
-    ])
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
     # TODO Rever url_path 'usuarios/consultar'. É boa prática em APIs Rest evitar verbos. Poderia ser 'servidores'
-    @extend_schema(parameters=[
-        OpenApiParameter(
-            name='username',
-            description='Id do usuário',
-            required=True,
-            type=OpenApiTypes.STR,
-            location=OpenApiParameter.QUERY,
-        ),
-    ])
     @action(detail=False, methods=['get'], url_path='consultar')
     def consulta_servidor_sgp(self, request):
         username = self.request.query_params.get('username')
@@ -215,29 +200,6 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
         except ConnectTimeout:
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(parameters=[
-        OpenApiParameter(
-            name='username',
-            description='Id do usuário',
-            required=True,
-            type=OpenApiTypes.STR,
-            location=OpenApiParameter.QUERY,
-        ),
-        OpenApiParameter(
-            name='e_servidor',
-            description='É servidor? ("True" ou "False")',
-            required=False,
-            type=OpenApiTypes.STR,
-            location=OpenApiParameter.QUERY,
-        ),
-        OpenApiParameter(
-            name='uuid_unidade',
-            description='UUID da unidade base.',
-            required=False,
-            type=OpenApiTypes.STR,
-            location=OpenApiParameter.QUERY,
-        ),
-    ])
     # TODO Extrair validações para um serializer
     # TODO Extrair regras de negócio para um service
     @action(detail=False, methods=['get'], url_path='status')
@@ -334,7 +296,6 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
         return Response(result, status=status.HTTP_200_OK)
 
     # TODO Extrair validações para um serializer
-    @extend_schema(request=None)
     @action(detail=True, methods=['put'],
             url_path=f'remover-acessos-unidade-base/(?P<unidade_uuid>{UUID_OR_SME_REGEX})')
     def remover_acessos(self, request, unidade_uuid, id=None):
@@ -364,18 +325,7 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
                 logger.error('Erro ao remover acessos: %r', e)
                 return Response({'detail': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(name='username', description='username do Usuário', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-            OpenApiParameter(name='uuid_unidade', description='UUID da Unidade', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-            OpenApiParameter(name='visao_base', description='Visão', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=["SME", "DRE", "UE"]),
-        ],
-        responses={200: OpenApiTypes.OBJECT},
-        description="Retorna lista de unidades do usuários."
-    )
+
     @action(detail=False, methods=['get'], url_path='unidades-do-usuario')
     def unidades_do_usuario(self, request):
         from ....core.models import Unidade
@@ -434,27 +384,6 @@ class UsuariosViewSet(WaffleFlagMixin, ModelViewSet):
 
         return Response(response, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(name='username', description='username do Usuário', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-            OpenApiParameter(name='search', description='Pesquisa pelo código EOL ou nome da Unidade', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-        ],
-        responses={200: OpenApiResponse(
-            response={
-                'type': 'array',
-                'items': {
-                    'type': 'object',
-                    'properties': {
-                        'tipo_unidade': {'type': 'string'},
-                        'nome': {'type': 'string'},
-                    },
-                }
-            }
-        )},
-        description="Retorna lista de unidades disponíveis para inclusão do usuários."
-    )
     @action(detail=False, methods=['get'], url_path='unidades-disponiveis-para-inclusao')
     def unidades_disponiveis_para_inclusao(self, request):
         from sme_ptrf_apps.users.api.validations.usuario_validations import UnidadesDisponiveisInclusaoSerializer

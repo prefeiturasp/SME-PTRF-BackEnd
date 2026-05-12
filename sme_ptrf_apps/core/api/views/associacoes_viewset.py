@@ -15,6 +15,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from weasyprint import HTML, CSS
+from drf_spectacular.utils import extend_schema_view
 
 from sme_ptrf_apps.paa.models import PeriodoPaa
 from sme_ptrf_apps.paa.api.serializers import PaaSerializer
@@ -66,10 +67,13 @@ from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_gera
 from ....receitas.models import Receita
 from ...choices import FiltroInformacoesAssociacao
 from waffle import flag_is_active
+from .docs.associacoes_docs import DOCS
+
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class AssociacoesViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
