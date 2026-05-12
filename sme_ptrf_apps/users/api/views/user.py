@@ -1,10 +1,8 @@
 import logging
-from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.utils import extend_schema_view
 
 from django.contrib.auth import get_user_model
 from django.db.models import Q
-from django.conf import settings
 
 from requests import ConnectTimeout, ReadTimeout
 from rest_framework import status
@@ -13,13 +11,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from .docs.user_viewset_docs import DOCS
 from sme_ptrf_apps.users.api.serializers import (
     AlteraEmailSerializer,
     RedefinirSenhaSerializer,
     UserCreateSerializer,
     UserSerializer,
     UserRetrieveSerializer,
-    DocAPIResponseGruposSerializer
 )
 from sme_ptrf_apps.users.models import Grupo, Visao
 from sme_ptrf_apps.users.services import (
@@ -41,6 +39,7 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class UserViewSet(ModelViewSet):
     lookup_field = "id"
     serializer_class = UserSerializer
@@ -132,14 +131,6 @@ class UserViewSet(ModelViewSet):
             return instance
         return Response(UserSerializer(instance, context={'request': request}).data, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(name='visao', description='Visão do usuário', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=["SME", "DRE", "UE"])
-        ],
-        responses={200: DocAPIResponseGruposSerializer(many=True)},
-        description="Retorna a lista deos grupos de acordo com a visão."
-    )
     @action(detail=False, url_path="grupos", methods=['get'])
     def grupos(self, request):
         logger.info("Buscando grupos para usuario: %s", request.user)
@@ -196,15 +187,6 @@ class UserViewSet(ModelViewSet):
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
     # TODO Rever url_path 'usuarios/consultar'. É boa prática em APIs Rest evitar verbos. Poderia ser 'servidores'
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(name='username', description='username do Usuário', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY)
-        ],
-        responses={200: OpenApiTypes.OBJECT},
-        description=(
-            f"Retorna um json de response da API {settings.SME_INTEGRACAO_URL}/api/AutenticacaoSgp/[username]/dados.")
-    )
     @action(detail=False, methods=['get'], url_path='consultar')
     def consulta_servidor_sgp(self, request):
         username = self.request.query_params.get('username')
@@ -222,28 +204,6 @@ class UserViewSet(ModelViewSet):
         except ConnectTimeout:
             return Response({'detail': 'EOL Timeout'}, status=status.HTTP_400_BAD_REQUEST)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(name='username', description='username do Usuário', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-            OpenApiParameter(name='servidor', description='é Servidor', required=False,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=["True", "False"]),
-            OpenApiParameter(name='unidade', description='UUID da Unidade', required=False,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-        ],
-        responses={200: OpenApiResponse(
-            response={
-                'type': 'object',
-                'properties': {
-                    'usuario_core_sso': {'type': 'string'},
-                    'usuario_sig_escola': {'type': 'string'},
-                    'validacao_username': {'type': 'string'},
-                    'e_servidor_na_unidade': {'type': 'object'},
-                },
-            }
-        )},
-        description="Retorna status de usuário na integração Core SSO"
-    )
     @action(detail=False, methods=['get'], url_path='status')
     def usuario_status(self, request):
         from ....core.models import MembroAssociacao, Unidade
@@ -315,28 +275,6 @@ class UserViewSet(ModelViewSet):
 
         return Response(result, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(name='unidade_logada_uuid', description='UUID da unidade Logada', required=False,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-        ],
-        responses={200: OpenApiResponse(
-            response={
-                'type': 'array',
-                'items': {
-                    'type': 'object',
-                    'properties': {
-                        'uuid': {'type': 'string'},
-                        'nome': {'type': 'string'},
-                        'codigo_eol': {'type': 'string'},
-                        'tipo_unidade': {'type': 'string'},
-                        'pode_excluir': {'type': 'boolean'}
-                    },
-                }
-            }
-        )},
-        description="Retorna lista de unidades do usuário."
-    )
     @action(detail=True, methods=['get'], url_path='unidades-e-permissoes-na-visao/(?P<visao>[^/.]+)')
     def unidades_e_permissoes_na_visao(self, request, visao, id):
         from ....core.models import Unidade
@@ -484,26 +422,6 @@ class UserViewSet(ModelViewSet):
 
         return Response({"mensagem": "Acesso de suporte encerrado para as unidades selecionadas."}, status=status.HTTP_200_OK)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(name='visao', description='Visão', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=["SME", "DRE", "UE"]),
-        ],
-        responses={200: OpenApiResponse(
-            response={
-                'type': 'array',
-                'items': {
-                    'type': 'object',
-                    'properties': {
-                        'usuario': {'type': 'string'},
-                        'username': {'type': 'string'},
-                        'nome': {'type': 'string'},
-                    },
-                }
-            }
-        )},
-        description="Retorna usuários servidores por visão."
-    )
     @action(detail=False, url_path="usuarios-servidores-por-visao", methods=['get'])
     def usuarios_servidores_por_visao(self, request):
         from ...services.get_usuarios_servidores_por_visao import get_usuarios_servidores_por_visao
