@@ -608,21 +608,31 @@ class PrestacaoConta(ModeloBase):
     @transaction.atomic
     def devolver(self, data_limite_ue):
         from ..services.notificacao_services import notificar_prestacao_de_contas_devolvida_para_acertos
-        from ..models import DevolucaoPrestacaoConta
+        from ..models import DevolucaoPrestacaoConta, AnalisePrestacaoConta
+        
         devolucao = DevolucaoPrestacaoConta.objects.create(
             prestacao_conta=self,
             data=date.today(),
             data_limite_ue=data_limite_ue
         )
 
-        if self.analise_atual:
-            self.analise_atual.devolucao_prestacao_conta = devolucao
-            self.analise_atual.status = self.STATUS_DEVOLVIDA
-            self.analise_atual.save()
+        analise_id = self.analise_atual_id
 
-        self.analise_atual = None
+        if analise_id:
+            AnalisePrestacaoConta.objects.filter(
+                id=analise_id
+            ).update(
+                devolucao_prestacao_conta=devolucao,
+                status=self.STATUS_DEVOLVIDA
+            )
+
+        self.analise_atual_id = None
         self.justificativa_pendencia_realizacao = ""
-        self.save()
+
+        self.save(update_fields=[
+            "analise_atual",
+            "justificativa_pendencia_realizacao"
+        ])
 
         notificar_prestacao_de_contas_devolvida_para_acertos(self, data_limite_ue)
         return self
