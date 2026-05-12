@@ -6,17 +6,22 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
+from drf_spectacular.utils import extend_schema_view
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
-from sme_ptrf_apps.users.permissoes import (    
+from sme_ptrf_apps.users.permissoes import (
     PermissaoApiDre
 )
 from sme_ptrf_apps.paa.models import Paa
 from sme_ptrf_apps.paa.services.paa_dre_service import PaaDreService, ValidacaoPaaDre
 from sme_ptrf_apps.paa.filters import PaaDreFilter
 
+from .docs.paa_dre_docs import DOCS
+
+
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class PaaDreViewSet(WaffleFlagMixin, GenericViewSet):
     waffle_flag = "paa-dre"
     permission_classes = [IsAuthenticated & PermissaoApiDre]

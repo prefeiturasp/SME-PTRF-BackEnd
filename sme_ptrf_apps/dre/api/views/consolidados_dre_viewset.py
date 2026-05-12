@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
+from drf_spectacular.utils import extend_schema_view
 
 from sme_ptrf_apps.core.models import Unidade, Periodo, Associacao
 from ..serializers.ata_parecer_tecnico_serializer import AtaParecerTecnicoLookUpSerializer
@@ -33,6 +34,8 @@ from ...services import concluir_consolidado_dre, \
     criar_ata_e_atribuir_ao_consolidado_dre, \
     concluir_consolidado_de_publicacoes_parciais
 
+from .docs.consolidados_dre_docs import DOCS
+
 import mimetypes
 
 from django.contrib.auth import get_user_model
@@ -41,6 +44,7 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
                             mixins.ListModelMixin,
                             GenericViewSet):
@@ -313,7 +317,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
                 ata_parecer_tecnico = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo,
                                                                        consolidado_dre=retificacao).first()
             else:
-                sequencia_de_publicacao_atual = parcial['sequencia_de_publicacao_atual']            
+                sequencia_de_publicacao_atual = parcial['sequencia_de_publicacao_atual']
                 ata_parecer_tecnico = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo,
                                                                     sequencia_de_publicacao=sequencia_de_publicacao_atual).last()
 
