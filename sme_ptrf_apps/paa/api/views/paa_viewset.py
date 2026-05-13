@@ -323,10 +323,15 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         from sme_ptrf_apps.paa.models.atividade_estatutaria import AtividadeEstatutaria
 
         paa = self.get_object()
+        alteracoes = RetificacaoPaaService(paa=paa, usuario=request.user).identificar_alteracoes()
 
         objetivos = AtividadeEstatutaria.disponiveis_ordenadas(paa)
 
-        serializer = AtividadeEstatutariaSerializer(objetivos, many=True)
+        serializer = AtividadeEstatutariaSerializer(
+            objetivos,
+            many=True,
+            context={'alteracoes': alteracoes},
+        )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -347,8 +352,13 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import RecursoProprioPaaListSerializer
 
         paa = self.get_object()
+        alteracoes = RetificacaoPaaService(paa=paa, usuario=request.user).identificar_alteracoes()
 
-        serializer = RecursoProprioPaaListSerializer(paa.recursopropriopaa_set.all(), many=True)
+        serializer = RecursoProprioPaaListSerializer(
+            paa.recursopropriopaa_set.all(),
+            many=True,
+            context={'alteracoes': alteracoes},
+        )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
