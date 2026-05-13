@@ -71,6 +71,15 @@ class AtividadeEstatutariaSerializer(serializers.ModelSerializer):
     tipo_label = serializers.SerializerMethodField()
     ano_label = serializers.SerializerMethodField()
     mes_label = serializers.SerializerMethodField()
+    alteracao = serializers.SerializerMethodField()
+
+    def get_alteracao(self, obj):
+        alteracoes = self.context.get('alteracoes', {})
+        if not alteracoes:
+            return None
+        secao_key = 'atividades_estatutarias_globais' if obj.paa is None else 'atividades_estatutarias_paa'
+        item = alteracoes.get(secao_key, {}).get(str(obj.uuid))
+        return item.get('acao') if item else None
 
     def get_status_label(self, obj):
         return StatusChoices(int(obj.status)).label
@@ -87,8 +96,8 @@ class AtividadeEstatutariaSerializer(serializers.ModelSerializer):
     class Meta:
         model = AtividadeEstatutaria
         fields = ('uuid', 'id', 'nome', 'status', 'tipo', 'ano', 'mes',
-                  'status_label', 'tipo_label', 'ano_label', 'mes_label', 'paa', 'ordem')
-        read_only_fields = ('uuid', 'id', 'status_label', 'tipo_label', 'ano_label', 'mes_label', 'paa')
+                  'status_label', 'tipo_label', 'ano_label', 'mes_label', 'paa', 'ordem', 'alteracao')
+        read_only_fields = ('uuid', 'id', 'status_label', 'tipo_label', 'ano_label', 'mes_label', 'paa', 'alteracao')
         validators = [
             UniqueTogetherValidator(
                 queryset=AtividadeEstatutaria.objects.all(),
