@@ -39,7 +39,8 @@ def test_api_list_tipos_conta(jwt_authenticated_client_a, tipo_conta):
                 'icone': tipo_conta.recurso.icone if tipo_conta.recurso.icone else None,
                 'ativo': tipo_conta.recurso.ativo,
                 'legado': tipo_conta.recurso.legado,
-                'exibe_valores_reprogramados': tipo_conta.recurso.exibe_valores_reprogramados
+                'exibe_valores_reprogramados': tipo_conta.recurso.exibe_valores_reprogramados,
+                'habilita_aprovacao_com_ressalvas': tipo_conta.recurso.habilita_aprovacao_com_ressalvas,
             }
         }
     ]
