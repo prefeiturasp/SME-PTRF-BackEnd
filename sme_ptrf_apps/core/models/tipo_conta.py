@@ -31,7 +31,7 @@ class TipoConta(ModeloIdNome):
     class Meta:
         verbose_name = "Tipo de conta"
         verbose_name_plural = "04.0) Tipos de conta"
-        unique_together = ['nome', ]
+        unique_together = ['nome', 'recurso']
 
 
 auditlog.register(TipoConta)
