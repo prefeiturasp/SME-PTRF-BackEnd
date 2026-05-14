@@ -986,7 +986,8 @@ def motivo_aprovacao_ressalva_x():
 def motivo_reprovacao_x():
     return baker.make(
         'dre.MotivoReprovacao',
-        motivo='X'
+        motivo='X',
+        recurso=Recurso.objects.get(legado=True)
     )
 
 
@@ -994,7 +995,8 @@ def motivo_reprovacao_x():
 def motivo_reprovacao_y():
     return baker.make(
         'dre.MotivoReprovacao',
-        motivo='Y'
+        motivo='Y',
+        recurso=Recurso.objects.get(legado=True)
     )
 
 
