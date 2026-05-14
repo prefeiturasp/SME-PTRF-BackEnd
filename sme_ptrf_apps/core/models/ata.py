@@ -225,8 +225,9 @@ class Ata(ModeloBase):
 
     @property
     def completa(self):
+        
         from sme_ptrf_apps.core.services.associacoes_service import (
-            tem_repasses_pendentes_periodos_ate_agora,
+            tem_repasses_pendentes_periodos_ate_agora, PrestacaoConta
         )
 
         flags = get_waffle_flag_model()
@@ -276,9 +277,10 @@ class Ata(ModeloBase):
                 self.cargo_secretaria_reuniao and
                 self.hora_reuniao
             )
-
-            if tem_repasses_pendentes_periodos_ate_agora(associacao=self.associacao, periodo=self.periodo):
-                esta_completa = esta_completa and self.justificativa_repasses_pendentes
+            
+            if self.prestacao_conta and self.prestacao_conta.status == PrestacaoConta.STATUS_NAO_APRESENTADA:
+                if tem_repasses_pendentes_periodos_ate_agora(associacao=self.associacao, periodo=self.periodo):
+                    esta_completa = esta_completa and self.justificativa_repasses_pendentes
 
             presidente_presente = self.presentes_na_ata.filter(nome=self.presidente_reuniao).exists()
             esta_completa = esta_completa and presidente_presente

@@ -11,10 +11,6 @@ from ...serializers.despesa_serializer import (
     DespesaListComRateiosSerializer,
 )
 
-# ---------------------------------------------------------------------------
-# Parâmetros de filtro – lista
-# ---------------------------------------------------------------------------
-
 PARAM_SEARCH = {
     "name": "search",
     "description": "Busca por descrição de especificação de material/serviço (sem acento, parcial).",
@@ -176,10 +172,6 @@ PARAM_FILTRO_INFORMACOES = {
     "location": OpenApiParameter.QUERY,
 }
 
-# ---------------------------------------------------------------------------
-# Parâmetros de ordenação
-# ---------------------------------------------------------------------------
-
 PARAM_ORDENAR_POR_NUMERO_DO_DOCUMENTO = {
     "name": "ordenar_por_numero_do_documento",
     "description": "Ordena pelo número do documento. Valores aceitos: `crescente`, `decrescente`.",
@@ -219,10 +211,6 @@ PARAM_ORDENAR_POR_IMPOSTO = {
     "location": OpenApiParameter.QUERY,
 }
 
-# ---------------------------------------------------------------------------
-# Parâmetros de paginação
-# ---------------------------------------------------------------------------
-
 PARAM_PAGE = {
     "name": "page",
     "description": "Número da página dentro do conjunto de resultados paginados.",
@@ -240,10 +228,6 @@ PARAM_PAGE_SIZE = {
     "type": OpenApiTypes.INT,
     "location": OpenApiParameter.QUERY,
 }
-
-# ---------------------------------------------------------------------------
-# Schemas dos métodos CRUD
-# ---------------------------------------------------------------------------
 
 SCHEMA_LIST = extend_schema(
     description=(
@@ -364,10 +348,6 @@ SCHEMA_DESTROY = extend_schema(
         404: OpenApiResponse(description="No Despesa matches the given query."),
     },
 )
-
-# ---------------------------------------------------------------------------
-# Schemas das actions customizadas
-# ---------------------------------------------------------------------------
 
 SCHEMA_TABELAS = extend_schema(
     description=(
@@ -539,10 +519,6 @@ SCHEMA_VALIDA_DATA_DA_DESPESA = extend_schema(
         403: OpenApiResponse(description="You do not have permission to perform this action."),
     },
 )
-
-# ---------------------------------------------------------------------------
-# Mapa de schemas para uso com @extend_schema_view
-# ---------------------------------------------------------------------------
 
 DOCS = dict(
     list=SCHEMA_LIST,

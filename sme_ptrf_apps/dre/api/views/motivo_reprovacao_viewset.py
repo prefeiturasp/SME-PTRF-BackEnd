@@ -17,6 +17,17 @@ class MotivoReprovacaoViewSet(viewsets.ModelViewSet):
     queryset = MotivoReprovacao.objects.all().order_by('motivo')
     serializer_class = MotivoReprovacaoSerializer
 
+    def get_queryset(self):
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+
+        filters = Q()
+        if recurso_uuid:
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first() or None
+            if recurso:
+                filters &= Q(recurso=recurso)
+
+        return MotivoReprovacao.objects.filter(filters)
+
 
 class MotivoReprovacaoParametrizacaoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
