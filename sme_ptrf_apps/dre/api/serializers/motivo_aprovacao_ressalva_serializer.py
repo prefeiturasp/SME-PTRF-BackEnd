@@ -40,6 +40,11 @@ class MotivoAprovacaoRessalvaParametrizacaoSerializer(serializers.ModelSerialize
         motivo = validated_data.get('motivo')
         recurso = validated_data.get('recurso')
 
+        # Normaliza o motivo: remove espaços em branco extras
+        if motivo:
+            motivo = ' '.join(motivo.split())
+            validated_data['motivo'] = motivo
+
         if MotivoAprovacaoRessalva.objects.filter(motivo__iexact=motivo, recurso=recurso).exists():
             raise serializers.ValidationError({
                 'non_field_errors': 'Este motivo de aprovação de PC com ressalva já existe para este recurso.'
@@ -51,6 +56,11 @@ class MotivoAprovacaoRessalvaParametrizacaoSerializer(serializers.ModelSerialize
     def update(self, instance, validated_data):
         motivo = validated_data.get('motivo')
         recurso = validated_data.get('recurso')
+
+        # Normaliza o motivo: remove espaços em branco extras
+        if motivo:
+            motivo = ' '.join(motivo.split())
+            validated_data['motivo'] = motivo
 
         if MotivoAprovacaoRessalva.objects.filter(motivo__iexact=motivo, recurso=recurso).exclude(pk=self.instance.pk).exists():
             raise serializers.ValidationError({
