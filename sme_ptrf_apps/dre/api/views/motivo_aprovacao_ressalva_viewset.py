@@ -13,12 +13,25 @@ from ..serializers.motivo_aprovacao_ressalva_serializer import (
 )
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 
+from sme_ptrf_apps.core.models import Recurso
+
 
 class MotivoAprovacaoRessalvaViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
     queryset = MotivoAprovacaoRessalva.objects.all().order_by('motivo')
     serializer_class = MotivoAprovacaoRessalvaSerializer
+
+    def get_queryset(self):
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+
+        filters = Q()
+        if recurso_uuid:
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first() or None
+            if recurso:
+                filters &= Q(recurso=recurso)
+
+        return MotivoAprovacaoRessalva.objects.filter(filters)
 
 
 class MotivoAprovacaoRessalvaParametrizacaoViewSet(viewsets.ModelViewSet):
@@ -30,10 +43,16 @@ class MotivoAprovacaoRessalvaParametrizacaoViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         motivo = self.request.query_params.get('motivo')
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
 
         filters = Q()
         if motivo:
             filters &= Q(motivo__icontains=motivo)
+
+        if recurso_uuid:
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first() or None
+            if recurso:
+                filters &= Q(recurso=recurso)
 
         return MotivoAprovacaoRessalva.objects.filter(filters)
 
