@@ -89,9 +89,6 @@ class PrioridadesPaaImpactadasDespesaRateioService:
             valor_total__isnull=False
         )
 
-        if self.tipo_aplicacao:
-            qs = qs.filter(tipo_aplicacao=self.tipo_aplicacao)
-
         if qs.exists():
             prioridades_com_saldo_afetados = []
             for prioridade in qs:
