@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="pt-br">
+{% load static %}
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link href="{{ base_static_url }}/css/bootstrap/bootstrap-4.6.0.min.css" rel="stylesheet">
+  <link href="{{ base_static_url }}/css/lauda-pdf.css" rel="stylesheet">
+  <title>Lauda — {{ dados.cabecalho.linha_programa_ptrf }}</title>
+</head>
+<body>
+
+{# Tabela: layout estável no WeasyPrint (flex/col costuma quebrar no running header) #}
+<header class="lauda-doc-header">
+  <table class="lauda-header-tabela" cellspacing="0" cellpadding="0">
+    <tr>
+      <td class="lauda-header-cel-logo">
+        <img class="lauda-header-logo-img"
+             src="{{ base_static_url }}/images/logo_PrefSP_sem_fundo_horizontal_colorida.svg"
+             alt="Prefeitura de São Paulo">
+      </td>
+      <td class="lauda-header-cel-titulos">
+        <p class="lauda-header-titulos mb-0">
+          <span class="lauda-header-linha1"><strong>{{ dados.cabecalho.linha_programa_ptrf }}</strong></span><br/>
+          <span class="lauda-header-linha2"><strong>{{ dados.cabecalho.titulo_lauda_publicacao }}</strong></span>
+        </p>
+      </td>
+      <td class="lauda-header-cel-periodo">
+        <div class="lauda-box-periodo font-12 borda-box-cabecalho-left borda-box-cabecalho-right">
+          <span class="lauda-box-periodo-label">Período de Realização:</span><br/>
+          <span class="lauda-box-periodo-valor"><strong>{{ dados.cabecalho.periodo_referencia }} - {{ dados.cabecalho.periodo_data_inicio }} a {{ dados.cabecalho.periodo_data_fim }}</strong></span>
+        </div>
+      </td>
+    </tr>
+  </table>
+</header>
+
+<p id="nome-associacao-rodape" class="font-10">
+  <i>{{ dados.cabecalho.data_geracao_documento }}</i>
+</p>
+
+<section class="conteudo mt-0">
+
+  <article class="lauda-titulo-corpo col-12 px-0 mb-3">
+    <p class="mb-1 font-14 text-center lauda-titulo-corpo-linha"><strong>{{ dados.titulo_corpo.dre_maiusculo }}</strong></p>
+    <p class="mb-0 font-14 text-center lauda-titulo-corpo-linha"><strong>{{ dados.titulo_corpo.programa_ptrf_maiusculo }}</strong></p>
+  </article>
+
+  {% if dados.titulo_retificacao %}
+  <div class="lauda-retificacao-caixa mb-3">
+    <p class="mb-1 font-12 text-center"><strong>{{ dados.titulo_retificacao }}</strong></p>
+    <p class="mb-0 font-12 text-center"><strong>{{ dados.subtitulo_retificacao }}</strong></p>
+  </div>
+  {% endif %}
+
+  <article class="col-12 px-0">
+    <p class="font-12 text-justify border-bottom pb-3 mb-3 lauda-texto-intro">{{ dados.texto_intro }}</p>
+  </article>
+
+  {% if dados.tabelas.aprovadas %}
+  <article class="col-12 px-0">
+    <p class="titulo-tabelas lauda-secao-cabecalho"><strong>Prestações de contas aprovadas</strong></p>
+    {% include "pdf/lauda/partials/tabela-lauda.html" with linhas=dados.tabelas.aprovadas %}
+  </article>
+  {% endif %}
+
+  {% if dados.tabelas.aprovadas_ressalva %}
+  <article class="col-12 px-0 mt-3">
+    <p class="titulo-tabelas lauda-secao-cabecalho"><strong>Prestações de contas aprovadas com ressalvas</strong></p>
+    {% include "pdf/lauda/partials/tabela-lauda.html" with linhas=dados.tabelas.aprovadas_ressalva %}
+  </article>
+  {% endif %}
+
+  {% if dados.tabelas.reprovadas %}
+  <article class="col-12 px-0 mt-3">
+    <p class="titulo-tabelas lauda-secao-cabecalho lauda-titulo-reprovadas"><strong>Prestações de contas reprovadas</strong></p>
+    {% include "pdf/lauda/partials/tabela-lauda.html" with linhas=dados.tabelas.reprovadas %}
+  </article>
+  {% endif %}
+
+</section>
+
+</body>
+</html>

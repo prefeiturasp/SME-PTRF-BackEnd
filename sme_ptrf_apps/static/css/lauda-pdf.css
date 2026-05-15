@@ -1,0 +1,326 @@
+@charset "UTF-8";
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  src: url(../fonts/Roboto-Regular.ttf);
+}
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 700;
+  src: url(../fonts/Roboto-Bold.ttf);
+}
+
+@font-face {
+  font-family: Roboto;
+  font-weight: 400;
+  font-style: italic;
+  src: url(../fonts/Roboto-Italic.ttf);
+}
+
+@page {
+  size: A4 landscape;
+  margin: 3cm -2mm 2cm -2mm;
+  padding: 0;
+  @top-center {
+    content: element(heading);
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    vertical-align: top;
+  }
+  @bottom-right {
+    color: #000;
+    content: counter(page) "/" counter(pages);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: 1.4cm 0;
+    font-weight: bold;
+    font-style: italic;
+  }
+  @bottom-center {
+    content: none;
+  }
+  @bottom-left {
+    color: #000;
+    content: element(nome-associacao);
+    font-size: 9pt;
+    padding: 0 1cm;
+    margin: 1.5cm 0;
+    font-style: normal;
+  }
+}
+
+@media print {
+  body,
+  page {
+    margin: 0;
+  }
+}
+
+html {
+  font-family: Roboto, sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 10pt;
+}
+
+body {
+  font-family: Roboto, sans-serif;
+  font-style: normal;
+}
+
+html body header.lauda-doc-header {
+  background: #eeeeee;
+  margin: 0;
+  padding: 0.3cm 1cm;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+header.lauda-doc-header {
+  position: running(heading);
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0.35cm 1cm;
+  box-sizing: border-box;
+}
+
+.lauda-header-tabela {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.lauda-header-cel-logo {
+  width: 20%;
+  vertical-align: middle;
+  padding: 0.1cm 0.35cm 0.1cm 0;
+}
+
+.lauda-header-logo-img {
+  width: 100%;
+  max-width: 52mm;
+  height: auto;
+  max-height: 16mm;
+  display: block;
+  object-fit: contain;
+}
+
+.lauda-header-cel-titulos {
+  width: 50%;
+  vertical-align: middle;
+  text-align: center;
+  padding: 0.15cm 0.35cm;
+}
+
+.lauda-header-titulos {
+  line-height: 1.35;
+  color: #0c0c0c;
+}
+
+.lauda-header-linha1 {
+  font-size: 13px;
+  font-family: Roboto, serif;
+  font-weight: 700;
+}
+
+.lauda-header-linha2 {
+  font-size: 12px;
+  font-family: Roboto, serif;
+  font-weight: 700;
+}
+
+.lauda-header-cel-periodo {
+  width: 30%;
+  vertical-align: middle;
+  text-align: right;
+  padding: 0.1cm 0 0.1cm 0.35cm;
+}
+
+.borda-box-cabecalho-left {
+  border-top: solid 1px #a4a4a4;
+  border-bottom: solid 1px #a4a4a4;
+  border-left: solid 1px #a4a4a4;
+}
+
+.borda-box-cabecalho-right {
+  border-top: solid 1px #a4a4a4;
+  border-bottom: solid 1px #a4a4a4;
+  border-left: solid 1px #a4a4a4;
+  border-right: solid 1px #a4a4a4;
+}
+
+.lauda-box-periodo {
+  display: inline-block;
+  text-align: left;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 0.35cm 0.45cm;
+  line-height: 1.35;
+  vertical-align: top;
+}
+
+.lauda-box-periodo-label {
+  color: #42474a;
+}
+
+.lauda-box-periodo-valor {
+  word-break: break-word;
+  hyphens: none;
+}
+
+.lauda-titulo-corpo {
+  margin-top: 0.15cm;
+}
+
+.lauda-titulo-corpo-linha {
+  font-family: Roboto, serif;
+  color: #0c0c0c;
+  letter-spacing: 0.02em;
+}
+
+#nome-associacao-rodape {
+  position: running(nome-associacao);
+  font-style: normal;
+  color: #000;
+}
+
+.conteudo {
+  margin: 0;
+  padding: 0 1cm;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-16 {
+  font-size: 16px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-14 {
+  font-size: 14px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-12 {
+  font-size: 12px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.font-10 {
+  font-size: 10px;
+  font-family: Roboto, serif;
+  font-style: normal;
+}
+
+.texto-verde {
+  color: #2b7d83;
+}
+
+.titulo-tabelas {
+  font-size: 12px;
+  color: #42474a;
+}
+
+.lauda-secao-cabecalho {
+  margin-bottom: 0.25cm;
+  margin-top: 0.15cm;
+}
+
+.lauda-titulo-reprovadas {
+  color: #b40c02;
+}
+
+.lauda-texto-intro {
+  line-height: 1.4;
+  margin-bottom: 0.35cm;
+  color: #42474a;
+}
+
+.lauda-retificacao-caixa {
+  border: 1px solid #a4a4a4;
+  border-radius: 2px;
+  padding: 0.35cm 0.5cm;
+  background: #fafafa;
+  color: #42474a;
+}
+
+html body .conteudo .lauda-table {
+  font-size: 9.5pt;
+  width: 100%;
+  table-layout: fixed;
+  page-break-inside: auto;
+}
+
+html body .conteudo .lauda-table thead {
+  display: table-header-group;
+}
+
+html body .conteudo .lauda-table tbody tr {
+  page-break-inside: avoid;
+}
+
+html body .conteudo .lauda-table thead tr th {
+  background-color: #f5f6f8 !important;
+  font-size: 10pt;
+  font-weight: 600;
+  vertical-align: middle;
+  text-align: center;
+  border: 1px solid #a4a4a4;
+  padding: 7px 6px;
+  line-height: 1.28;
+  white-space: nowrap;
+  hyphens: none;
+}
+
+html body .conteudo .lauda-table thead tr th.lauda-th-wrap {
+  white-space: normal !important;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+html body .conteudo .lauda-table tbody td {
+  vertical-align: middle;
+  padding: 5px 6px;
+  border: 1px solid #a4a4a4;
+  word-break: break-word;
+}
+
+html body .conteudo .lauda-table tbody td.lauda-col-moeda {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+html body .conteudo .lauda-table tbody tr:nth-child(even) {
+  background-color: #f3f3f3 !important;
+}
+
+.lauda-col-ordem {
+  width: 5%;
+}
+
+.lauda-col-eol {
+  width: 8%;
+}
+
+.lauda-col-unidade {
+  width: 20%;
+}
+
+html body .conteudo .lauda-table thead tr th.lauda-col-moeda {
+  text-align: center;
+}
+
+.lauda-col-moeda {
+  text-align: right;
+}
