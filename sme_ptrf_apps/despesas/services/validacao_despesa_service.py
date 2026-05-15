@@ -113,7 +113,7 @@ class ValidacaoDespesaService:
             if not conta:
                 continue
 
-            if conta.data_inicio > data_transacao:
+            if data_transacao and conta.data_inicio and conta.data_inicio > data_transacao:
                 raise serializers.ValidationError({
                     "mensagem": (
                         "Um ou mais rateios possuem conta com data de início "
@@ -121,10 +121,7 @@ class ValidacaoDespesaService:
                     )
                 })
 
-            if (
-                conta.data_encerramento and
-                conta.data_encerramento < data_transacao
-            ):
+            if (data_transacao and conta.data_encerramento and conta.data_encerramento < data_transacao):
                 raise serializers.ValidationError({
                     "mensagem": (
                         "Um ou mais rateios possuem conta com data de "
