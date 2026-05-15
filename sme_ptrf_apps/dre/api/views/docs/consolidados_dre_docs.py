@@ -211,7 +211,7 @@ SCHEMA_DOWNLOAD_ATA = extend_schema(
 )
 
 SCHEMA_DOWNLOAD_LAUDA = extend_schema(
-    description="Realiza download da lauda.",
+    description="Realiza download da lauda em PDF (registros antigos podem ainda ter apenas TXT legado).",
     tags=["Consolidados DRE"],
     parameters=[
         OpenApiParameter(**PARAM_LAUDA),
