@@ -1,0 +1,28 @@
+<table class="table table-bordered lauda-table">
+  <thead>
+  <tr>
+    <th scope="col" class="lauda-col-ordem">Ordem</th>
+    <th scope="col" class="lauda-col-eol">Cód EOL</th>
+    <th scope="col" class="lauda-col-unidade">Unidade</th>
+    <th scope="col" class="lauda-col-moeda lauda-th-wrap">{{ dados.col_saldo_inicial }}</th>
+    <th scope="col" class="lauda-col-moeda">Repasses</th>
+    <th scope="col" class="lauda-col-moeda">Outros Créditos</th>
+    <th scope="col" class="lauda-col-moeda">Despesas</th>
+    <th scope="col" class="lauda-col-moeda lauda-th-wrap">{{ dados.col_saldo_final }}</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for row in linhas %}
+    <tr>
+      <td class="text-center">{{ row.ordem }}</td>
+      <td class="text-center">{{ row.codigo_eol }}</td>
+      <td>{{ row.unidade }}</td>
+      <td class="lauda-col-moeda">{{ row.saldo_inicial }}</td>
+      <td class="lauda-col-moeda">{{ row.repasses }}</td>
+      <td class="lauda-col-moeda">{{ row.outros_creditos }}</td>
+      <td class="lauda-col-moeda">{{ row.despesas }}</td>
+      <td class="lauda-col-moeda">{{ row.saldo_final }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>

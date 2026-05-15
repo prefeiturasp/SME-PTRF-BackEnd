@@ -14,6 +14,34 @@ from sme_ptrf_apps.core.models import (
 logger = logging.getLogger(__name__)
 
 
+def _linha_lauda_txt_por_status_com_tipo_conta(status):
+    rc, dp, sd = status["receita"], status["despesa"], status["saldo"]
+    return (
+        f"{status['ordem']}\t{status['codigo_eol']}\t{status['unidade']}\t{status['tipo_conta']}\t"
+        f"{rc['custeio']}\t{rc['livre_aplicacao']}\t{rc['capital']}\t"
+        f"{dp['custeio']}\t{dp['capital']}\t"
+        f"{sd['custeio']}\t{sd['livre_aplicacao']}\t{sd['capital']}\n"
+    )
+
+
+def _linha_lauda_txt_por_status_sem_tipo_conta(status):
+    rc, dp, sd = status["receita"], status["despesa"], status["saldo"]
+    return (
+        f"{status['ordem']}\t{status['codigo_eol']}\t{status['unidade']}\t"
+        f"{rc['custeio']}\t{rc['livre_aplicacao']}\t{rc['capital']}\t"
+        f"{dp['custeio']}\t{dp['capital']}\t"
+        f"{sd['custeio']}\t{sd['livre_aplicacao']}\t{sd['capital']}\n"
+    )
+
+
+def _consolidado_lauda_esta_sem_movimentacao(status_separados):
+    for chave in ("aprovadas", "aprovadas_ressalva", "rejeitadas"):
+        for status in status_separados[chave]:
+            if not verificar_se_todos_os_valores_da_conta_estao_zerados(status):
+                return False
+    return True
+
+
 def gerar_csv(dre, periodo, tipo_conta, obj_arquivo_download, parcial=False):
     logger.info("csv lauda em processamento...")
     with NamedTemporaryFile(mode="r+", newline='', encoding='utf-8') as tmp:
@@ -46,7 +74,59 @@ def gerar_csv(dre, periodo, tipo_conta, obj_arquivo_download, parcial=False):
             obj_arquivo_download.save()
 
 
-def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre,  parcial, apenas_nao_publicadas=False):
+def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, parcial, apenas_nao_publicadas=False):
+    """
+    Gera apenas o PDF da Lauda vinculado ao consolidado DRE.
+    O texto .docx.txt do consolidado não é mais gerado; o código que o produzia foi
+    preservado em referencia_legacy_gerar_arquivo_lauda_txt_consolidado_dre (não chamado).
+    """
+    from sme_ptrf_apps.core.services.lauda_pdf_service import gerar_arquivo_lauda_pdf_consolidado_dre
+
+    eh_retificacao = bool(lauda and lauda.consolidado_dre and lauda.consolidado_dre.eh_retificacao)
+    if eh_retificacao:
+        logger.info("Lauda PDF (retificação) em processamento.")
+    else:
+        logger.info("Lauda PDF consolidado DRE em processamento.")
+
+    dados = gerar_dados_lauda(dre, periodo, apenas_nao_publicadas, lauda)
+    status_separados = separa_status(dados)
+    lauda_vazia = _consolidado_lauda_esta_sem_movimentacao(status_separados)
+
+    try:
+        if not lauda_vazia:
+            lauda.sem_movimentacao = False
+            lauda.save()
+            eh_parcial = parcial['parcial']
+            lauda.passar_para_status_gerado(eh_parcial)
+            gerar_arquivo_lauda_pdf_consolidado_dre(
+                lauda,
+                dre,
+                periodo,
+                ata,
+                nome_dre,
+                parcial,
+                apenas_nao_publicadas,
+            )
+        else:
+            logger.info(
+                "Os registros das contas bancárias das PCs estão zerados; Lauda PDF não será gerada.",
+            )
+            lauda.sem_movimentacao = True
+            lauda.save()
+            eh_parcial = parcial['parcial']
+            lauda.passar_para_status_gerado(eh_parcial)
+    except Exception as err:
+        logger.error("Erro ao gerar lauda consolidada (PDF): %s", str(err))
+        raise Exception(err)
+
+
+def referencia_legacy_gerar_arquivo_lauda_txt_consolidado_dre(
+    lauda, dre, periodo, ata, nome_dre, parcial, apenas_nao_publicadas=False
+):
+    """
+    Referência: fluxo antigo que gerava Lauda .docx.txt no consolidado (tags ((TITULO)), etc.).
+    Não é invocado pelo sistema — mantido apenas para consulta futura.
+    """
     eh_retificacao = True if lauda and lauda.consolidado_dre and lauda.consolidado_dre.eh_retificacao else False
 
     if eh_retificacao:
@@ -64,7 +144,8 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
         sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
 
         if eh_retificacao:
-            titulo_sequencia_publicacao = f'Parcial #{lauda.consolidado_dre.consolidado_retificado.sequencia_de_publicacao} \n'
+            seq_pub = lauda.consolidado_dre.consolidado_retificado.sequencia_de_publicacao
+            titulo_sequencia_publicacao = f'Parcial #{seq_pub} \n'
         elif eh_parcial == "Parcial":
             titulo_sequencia_publicacao = f'Parcial #{sequencia_de_publicacao} \n\n'
         else:
@@ -79,10 +160,14 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
         titulo_retificacao_continuacao = None
 
         if eh_retificacao:
-            titulo_retificacao = f"((TITULO))RETIFICAÇÃO DA PUBLICAÇÃO DO DOC {formata_data_publicacao(lauda.consolidado_dre)} " \
-                                 f"- PÁGINA {lauda.consolidado_dre.consolidado_retificado.pagina_publicacao} \n"
+            doc_pub = formata_data_publicacao(lauda.consolidado_dre)
+            pag_pub = lauda.consolidado_dre.consolidado_retificado.pagina_publicacao
+            titulo_retificacao = (
+                f"((TITULO))RETIFICAÇÃO DA PUBLICAÇÃO DO DOC {doc_pub} "
+                f"- PÁGINA {pag_pub} \n"
+            )
 
-            titulo_retificacao_continuacao = f"((TITULO))LEIA - SE COMO SEGUE E NÃO COMO CONSTOU: \n\n"
+            titulo_retificacao_continuacao = "((TITULO))LEIA - SE COMO SEGUE E NÃO COMO CONSTOU: \n\n"
 
         texto = f"((TEXTO)) No exercício da atribuição a mim conferida pela Portaria SME nº 5.318/2020, torno " \
                 f"público o Parecer Técnico Conclusivo da Comissão de Prestação de Contas do PTRF da DRE " \
@@ -113,10 +198,7 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
 
             for status in status_separados["aprovadas"]:
                 # Atenção para não mudar a formatação da string
-                linha = f"{status['ordem']}	{status['codigo_eol']}	{status['unidade']}	{status['tipo_conta']}	" \
-                        f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
-                        f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
-                        f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
+                linha = _linha_lauda_txt_por_status_com_tipo_conta(status)
 
                 if not verificar_se_todos_os_valores_da_conta_estao_zerados(status):
                     lauda_vazia = False
@@ -137,10 +219,7 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
 
             for status in status_separados["aprovadas_ressalva"]:
                 # Atenção para não mudar a formatação da string
-                linha = f"{status['ordem']}	{status['codigo_eol']}	{status['unidade']}	{status['tipo_conta']}	" \
-                        f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
-                        f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
-                        f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
+                linha = _linha_lauda_txt_por_status_com_tipo_conta(status)
 
                 if not verificar_se_todos_os_valores_da_conta_estao_zerados(status):
                     lauda_vazia = False
@@ -161,10 +240,7 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
 
             for status in status_separados["rejeitadas"]:
                 # Atenção para não mudar a formatação da string
-                linha = f"{status['ordem']}	{status['codigo_eol']}	{status['unidade']}	{status['tipo_conta']}	" \
-                        f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
-                        f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
-                        f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
+                linha = _linha_lauda_txt_por_status_com_tipo_conta(status)
 
                 if not verificar_se_todos_os_valores_da_conta_estao_zerados(status):
                     lauda_vazia = False
@@ -174,23 +250,22 @@ def gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, 
 
         tmp.seek(0)
 
-        try:
-            if not lauda_vazia:
-                nome_lauda = f"Lauda_{nome_dre}.docx.txt"
-                lauda.arquivo_lauda_txt.save(name=f'{nome_lauda}', content=File(tmp))
-                lauda.sem_movimentacao = False
-                lauda.save()
-                eh_parcial = parcial['parcial']
-                lauda.passar_para_status_gerado(eh_parcial)
-            else:
-                logger.info("Os registros das contas bancárias das PCs estão zerados, logo o arquivo txt lauda não foi gerado.")
-                lauda.sem_movimentacao = True
-                lauda.save()
-                eh_parcial = parcial['parcial']
-                lauda.passar_para_status_gerado(eh_parcial)
-        except Exception as err:
-            logger.error("Erro ao gerar arquivo txt lauda: %s", str(err))
-            raise Exception(err)
+        if not lauda_vazia:
+            nome_lauda = f"Lauda_{nome_dre}.docx.txt"
+            lauda.arquivo_lauda_txt.save(name=f'{nome_lauda}', content=File(tmp))
+            lauda.sem_movimentacao = False
+            lauda.save()
+            eh_parcial = parcial['parcial']
+            lauda.passar_para_status_gerado(eh_parcial)
+        else:
+            logger.info(
+                "Os registros das contas bancárias das PCs estão zerados, "
+                "logo o arquivo txt lauda não foi gerado."
+            )
+            lauda.sem_movimentacao = True
+            lauda.save()
+            eh_parcial = parcial['parcial']
+            lauda.passar_para_status_gerado(eh_parcial)
 
 
 def gerar_txt(dre, periodo, tipo_conta, obj_arquivo_download, ata, parcial=False):
@@ -226,10 +301,7 @@ def gerar_txt(dre, periodo, tipo_conta, obj_arquivo_download, ata, parcial=False
 
             for status in status_separados["aprovadas"]:
                 # Atenção para não mudar a formatação da string
-                linha = f"{status['ordem']}	{status['codigo_eol']}	{status['unidade']}	" \
-                        f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
-                        f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
-                        f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
+                linha = _linha_lauda_txt_por_status_sem_tipo_conta(status)
                 linhas.append(linha)
 
             linhas.append("\n")
@@ -247,10 +319,7 @@ def gerar_txt(dre, periodo, tipo_conta, obj_arquivo_download, ata, parcial=False
 
             for status in status_separados["aprovadas_ressalva"]:
                 # Atenção para não mudar a formatação da string
-                linha = f"{status['ordem']}	{status['codigo_eol']}	{status['unidade']}	" \
-                        f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
-                        f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
-                        f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
+                linha = _linha_lauda_txt_por_status_sem_tipo_conta(status)
                 linhas.append(linha)
 
             linhas.append("\n")
@@ -268,10 +337,7 @@ def gerar_txt(dre, periodo, tipo_conta, obj_arquivo_download, ata, parcial=False
 
             for status in status_separados["rejeitadas"]:
                 # Atenção para não mudar a formatação da string
-                linha = f"{status['ordem']}	{status['codigo_eol']}	{status['unidade']}	" \
-                        f"{status['receita']['custeio']}	{status['receita']['livre_aplicacao']}	{status['receita']['capital']}	" \
-                        f"{status['despesa']['custeio']}	{status['despesa']['capital']}	" \
-                        f"{status['saldo']['custeio']}	{status['saldo']['livre_aplicacao']}	{status['saldo']['capital']}\n"
+                linha = _linha_lauda_txt_por_status_sem_tipo_conta(status)
                 linhas.append(linha)
 
         tmp.file.writelines(linhas)
@@ -467,6 +533,16 @@ def formata_periodo_repasse(ata):
     return ata.periodo.referencia_por_extenso
 
 
+def formata_periodo_referencia_lauda_pdf(ata):
+    ref = ata.periodo.referencia
+    if not ref:
+        return ""
+    ano, parte = ref.split(".")
+    if parte == "u":
+        return f"Período {ano}"
+    return f"{parte}° período de {ano}"
+
+
 def separa_status(dados):
     lista_aprovadas = []
     lista_aprovadas_ressalva = []
@@ -525,10 +601,135 @@ def formata_data_publicacao(consolidado_dre):
 
     return ""
 
-def verificar_se_todos_os_valores_da_conta_estao_zerados(status):
-    if(string_to_float(status["receita"]["custeio"]) or string_to_float(status["receita"]["livre_aplicacao"]) or string_to_float(status["receita"]["capital"]) or
-        string_to_float(status["despesa"]["custeio"]) or string_to_float(status["despesa"]["capital"]) or string_to_float(status["saldo"]["custeio"]) or
-        string_to_float(status["saldo"]["livre_aplicacao"]) or string_to_float(status["saldo"]["capital"])):
-        return False
 
-    return True
+def verificar_se_todos_os_valores_da_conta_estao_zerados(status):
+    receita = status["receita"]
+    despesa = status["despesa"]
+    saldo = status["saldo"]
+    valores = (
+        receita["custeio"],
+        receita["livre_aplicacao"],
+        receita["capital"],
+        despesa["custeio"],
+        despesa["capital"],
+        saldo["custeio"],
+        saldo["livre_aplicacao"],
+        saldo["capital"],
+    )
+    return not any(string_to_float(x) for x in valores)
+
+
+def gerar_dados_lauda_agregados_por_unidade(dre, periodo, apenas_nao_publicadas, lauda):
+    """
+    Uma linha por unidade (código EOL), somando todos os tipos de conta,
+    para exibição na Lauda em PDF.
+    """
+    cons = lauda.consolidado_dre if lauda else None
+    eh_retificacao = bool(cons and cons.eh_retificacao)
+
+    por_eol = {}
+
+    tipo_contas = TipoConta.objects.all().order_by('nome')
+    for tipo_conta in tipo_contas:
+        informacao_unidades = informacoes_execucao_financeira_unidades(
+            dre,
+            periodo,
+            tipo_conta,
+            apenas_nao_publicadas,
+            consolidado_dre=cons if eh_retificacao else None
+        )
+
+        for info in informacao_unidades:
+            if pc_em_analise(info["status_prestacao_contas"]):
+                continue
+
+            eol = str(info["unidade"]["codigo_eol"])
+            status_txt = formata_resultado_analise(info["status_prestacao_contas"])
+            v = info["valores"]
+
+            r_rend = v["receitas_rendimento_no_periodo_total"]
+            r_dev = v["receitas_devolucao_no_periodo_total"]
+            demais = v["demais_creditos_no_periodo_total"]
+            outros_creditos = r_rend + r_dev + demais
+
+            if eol not in por_eol:
+                por_eol[eol] = {
+                    "codigo_eol": eol,
+                    "unidade": f"{info['unidade']['tipo_unidade']} {info['unidade']['nome']}",
+                    "tipo_unidade_sort": info["unidade"]["tipo_unidade"] or "",
+                    "nome_sort": info["unidade"]["nome"] or "",
+                    "status_prestacao_contas": status_txt,
+                    "saldo_inicial": 0.0,
+                    "repasses": 0.0,
+                    "outros_creditos": 0.0,
+                    "despesas": 0.0,
+                    "saldo_final": 0.0,
+                }
+            else:
+                if por_eol[eol]["status_prestacao_contas"] != status_txt:
+                    logger.warning(
+                        "Lauda PDF: status divergente para mesmo EOL %s (mantendo o primeiro encontrado).",
+                        eol,
+                    )
+
+            agg = por_eol[eol]
+            agg["saldo_inicial"] += float(v["saldo_reprogramado_periodo_anterior_total"] or 0)
+            agg["repasses"] += float(v["repasses_no_periodo_total"] or 0)
+            agg["outros_creditos"] += float(outros_creditos or 0)
+            agg["despesas"] += float(v["despesas_no_periodo_total"] or 0)
+            agg["saldo_final"] += float(v["saldo_reprogramado_proximo_periodo_total"] or 0)
+
+    return list(por_eol.values())
+
+
+def atribui_ordem_lauda_pdf(lista):
+    lista_ordenada = sorted(
+        lista,
+        key=lambda row: (
+            (row["tipo_unidade_sort"] or "").lower(),
+            (row["nome_sort"] or "").lower(),
+        ),
+    )
+    for i, row in enumerate(lista_ordenada, start=1):
+        row["ordem"] = i
+    return lista_ordenada
+
+
+def separa_status_lauda_pdf(dados_agregados):
+    lista_aprovadas = []
+    lista_aprovadas_ressalva = []
+    lista_reprovadas = []
+
+    for dado in dados_agregados:
+        st = dado["status_prestacao_contas"]
+        if st == "Aprovada":
+            lista_aprovadas.append(dado.copy())
+        elif st == "Aprovada com ressalvas":
+            lista_aprovadas_ressalva.append(dado.copy())
+        elif st == "Rejeitada":
+            lista_reprovadas.append(dado.copy())
+
+    lista_aprovadas = atribui_ordem_lauda_pdf(lista_aprovadas)
+    lista_aprovadas_ressalva = atribui_ordem_lauda_pdf(lista_aprovadas_ressalva)
+    lista_reprovadas = atribui_ordem_lauda_pdf(lista_reprovadas)
+
+    def _format_rows(lista):
+        out = []
+        for row in lista:
+            out.append({
+                "ordem": row["ordem"],
+                "codigo_eol": row["codigo_eol"],
+                "unidade": row["unidade"],
+                "saldo_inicial": formata_valor(row["saldo_inicial"]),
+                "repasses": formata_valor(row["repasses"]),
+                "outros_creditos": formata_valor(row["outros_creditos"]),
+                "despesas": formata_valor(row["despesas"]),
+                "saldo_final": formata_valor(row["saldo_final"]),
+            })
+        return out
+
+    return {
+        "aprovadas": _format_rows(lista_aprovadas),
+        "aprovadas_ressalva": _format_rows(lista_aprovadas_ressalva),
+        "reprovadas": _format_rows(lista_reprovadas),
+    }
