@@ -89,9 +89,6 @@ class PrioridadesPaaImpactadasDespesaRateioService:
             valor_total__isnull=False
         )
 
-        if self.tipo_aplicacao:
-            qs = qs.filter(tipo_aplicacao=self.tipo_aplicacao)
-
         if qs.exists():
             prioridades_com_saldo_afetados = []
             for prioridade in qs:
@@ -120,7 +117,6 @@ class PrioridadesPaaImpactadasDespesaRateioService:
                         # Considera 0 apenas para simular uma validação de saldo(simula uma prioridade sem valor para checar o saldo)  # noqa
                         valor_atual_prioridade=0
                     )
-                    pass
                 except ValidacaoSaldoIndisponivel as e:
                     logger.error(f"Saldo insuficiente para a prioridade {prioridade.uuid}: {e.args[0]}")
                     prioridades_com_saldo_afetados.append(str(prioridade.uuid))
