@@ -4,7 +4,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('dre', '0079_ataparecertecnicosnapshot'),
+        ('dre', '0081_merge_20260514_1000'),
     ]
 
     operations = [
