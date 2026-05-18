@@ -327,6 +327,10 @@ html body .conteudo .lauda-table thead tr th.lauda-col-ordem {
   text-align: right;
 }
 
+html body .conteudo .lauda-table thead tr th.lauda-col-eol {
+  text-align: right;
+}
+
 .lauda-col-unidade {
   width: 30%;
 }
