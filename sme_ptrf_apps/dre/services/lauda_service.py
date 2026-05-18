@@ -561,7 +561,7 @@ def formata_nome_dre(dre, capitalize=False):
         nome_dre = nome_dre.strip()
 
     if capitalize:
-        nome_dre = nome_dre.capitalize()
+        nome_dre = " ".join(p.capitalize() for p in nome_dre.lower().split())
 
     return nome_dre
 
