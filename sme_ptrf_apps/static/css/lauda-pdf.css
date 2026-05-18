@@ -175,12 +175,14 @@ header.lauda-doc-header {
 
 .lauda-titulo-corpo {
   margin-top: 0.15cm;
+  text-align: left;
 }
 
 .lauda-titulo-corpo-linha {
   font-family: Roboto, serif;
   color: #0c0c0c;
   letter-spacing: 0.02em;
+  text-align: left;
 }
 
 #nome-associacao-rodape {
@@ -268,7 +270,7 @@ html body .conteudo .lauda-table tbody tr {
 
 html body .conteudo .lauda-table thead tr th {
   background-color: #f5f6f8 !important;
-  font-size: 10pt;
+  font-size: 9.5pt;
   font-weight: 600;
   vertical-align: middle;
   text-align: center;
@@ -279,13 +281,19 @@ html body .conteudo .lauda-table thead tr th {
   hyphens: none;
 }
 
-html body .conteudo .lauda-table thead tr th.lauda-th-wrap {
+html body .conteudo .lauda-table thead tr th.lauda-th-saldo {
   white-space: normal !important;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  vertical-align: middle;
+}
+
+html body .conteudo .lauda-table thead tr th.lauda-th-valor-menor {
+  white-space: nowrap !important;
 }
 
 html body .conteudo .lauda-table tbody td {
+  font-size: 9.5pt;
   vertical-align: middle;
   padding: 5px 6px;
   border: 1px solid #a4a4a4;
@@ -297,24 +305,46 @@ html body .conteudo .lauda-table tbody td.lauda-col-moeda {
   font-variant-numeric: tabular-nums;
 }
 
+html body .conteudo .lauda-table tbody td.lauda-col-valor-menor {
+  padding: 5px 3px;
+}
+
 html body .conteudo .lauda-table tbody tr:nth-child(even) {
   background-color: #f3f3f3 !important;
 }
 
 .lauda-col-ordem {
   width: 5%;
+  text-align: right;
+}
+
+html body .conteudo .lauda-table thead tr th.lauda-col-ordem {
+  text-align: right;
 }
 
 .lauda-col-eol {
-  width: 8%;
+  width: 7%;
+  text-align: right;
 }
 
 .lauda-col-unidade {
-  width: 20%;
+  width: 30%;
+}
+
+.lauda-col-saldo {
+  width: 14%;
+}
+
+.lauda-col-valor-menor {
+  width: 9%;
 }
 
 html body .conteudo .lauda-table thead tr th.lauda-col-moeda {
   text-align: center;
+}
+
+html body .conteudo .lauda-table thead tr th.lauda-col-valor-menor {
+  padding: 5px 3px;
 }
 
 .lauda-col-moeda {
