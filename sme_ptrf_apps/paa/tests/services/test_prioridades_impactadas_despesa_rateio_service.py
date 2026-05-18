@@ -274,10 +274,14 @@ class TestBuscarPrioridadesImpactadas:
 
     @patch(f'{SERVICE_MODULE}.Paa')
     @patch(f'{SERVICE_MODULE}.PrioridadePaa.objects')
-    def test_com_tipo_aplicacao_aplica_filtro_adicional(
+    def test_com_tipo_aplicacao_nao_aplica_filtro_adicional(
         self, mock_queryset, mock_paa_class, rateio_attrs, mock_qs_vazio
     ):
-        """Testa que filtro de tipo_aplicacao é aplicado quando definido"""
+        """Testa que filtro de tipo_aplicacao NÃO é aplicado mesmo quando definido.
+
+        O filtro foi removido pois uma despesa pode usar a mesma Ação da prioridade
+        com tipo diferente (CAPITAL/CUSTEIO), logo não se deve filtrar por tipo_aplicacao.
+        """
         mock_queryset.filter.return_value = mock_qs_vazio
 
         mock_paa_qs = Mock()
@@ -287,9 +291,7 @@ class TestBuscarPrioridadesImpactadas:
         service = PrioridadesPaaImpactadasDespesaRateioService(rateio_attrs)
         service._buscar_prioridades_impactadas()
 
-        mock_qs_vazio.filter.assert_called_once_with(
-            tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name
-        )
+        mock_qs_vazio.filter.assert_not_called()
 
     @patch(f'{SERVICE_MODULE}.Paa')
     @patch(f'{SERVICE_MODULE}.PrioridadePaa.objects')

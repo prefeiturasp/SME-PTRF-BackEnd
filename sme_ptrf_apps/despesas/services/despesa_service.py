@@ -74,8 +74,6 @@ class DespesaService:
     def create(cls, validated_data, limpar_prioridades_callback=None):
         logger.info("Iniciando criação de despesa")
 
-        validated_data.pop("confirmar_limpeza_prioridades_paa")
-
         rateios = validated_data.pop("rateios")
         despesas_impostos = validated_data.pop("despesas_impostos", None)
 
@@ -106,8 +104,6 @@ class DespesaService:
     @transaction.atomic
     def update(cls, instance: Despesa, validated_data, limpar_prioridades_callback=None):
         logger.info("Iniciando atualização de despesa")
-
-        validated_data.pop("confirmar_limpeza_prioridades_paa")
 
         rateios = validated_data.pop("rateios")
         despesas_impostos = validated_data.pop("despesas_impostos", [])
@@ -223,13 +219,13 @@ class DespesaService:
 
                     aplicacao_anterior = rateio_para_atualizar.aplicacao_recurso
                     nova_aplicacao = rateio.get("aplicacao_recurso")
-                    
+
                     saida_recurso_externo = rateio.get(
-                            "saida_de_recurso_externo",
-                            rateio_para_atualizar.saida_de_recurso_externo
-                        )
-                        
-                    despesa_que_nao_precisam_especificacao = despesa.eh_despesa_sem_comprovacao_fiscal or saida_recurso_externo
+                        "saida_de_recurso_externo",
+                        rateio_para_atualizar.saida_de_recurso_externo
+                    )
+
+                    despesa_que_nao_precisam_especificacao = despesa.eh_despesa_sem_comprovacao_fiscal or saida_recurso_externo   # noqa
 
                     # CAPITAL -> CUSTEIO
                     if aplicacao_anterior == APLICACAO_CAPITAL and nova_aplicacao == APLICACAO_CUSTEIO:
@@ -272,11 +268,9 @@ class DespesaService:
                             f"Resetando campos de CAPITAL → CUSTEIO "
                             f"no rateio {rateio['uuid']}"
                         )
-                        
 
                     # CUSTEIO -> CAPITAL
                     if aplicacao_anterior == APLICACAO_CUSTEIO and nova_aplicacao == APLICACAO_CAPITAL:
-
                         if not despesa_que_nao_precisam_especificacao:
                             especificacao = rateio.get("especificacao_material_servico")
                             if especificacao is None:
@@ -297,7 +291,7 @@ class DespesaService:
                                         "de Capital. A especificação atual é de Custeio."
                                     )
                                 })
-                                
+
                             rateio.update({
                                 "tipo_custeio": None,
                             })
