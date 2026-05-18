@@ -6,6 +6,7 @@ from django.db.models import Sum
 from sme_ptrf_apps.paa.models import Paa, RecursoProprioPaa
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum
+from sme_ptrf_apps.paa.services.acoes_paa_service import AcoesPaaService
 
 logger = logging.getLogger(__name__)
 
@@ -148,9 +149,7 @@ class PlanoOrcamentarioService:
         Obtém receitas PTRF formatadas com saldos atuais e congelados.
         Retorna lista de receitas com informações completas para cada ação.
         """
-        acoes_associacoes = self.paa.associacao.acoes.select_related('acao').filter(
-            acao__exibir_paa=True
-        ).all()
+        acoes_associacoes = AcoesPaaService(self.paa).obter_ptrf()
 
         alteracoes_receitas_ptrf = self._obter_alteracoes().get('receitas_ptrf', {})
 
