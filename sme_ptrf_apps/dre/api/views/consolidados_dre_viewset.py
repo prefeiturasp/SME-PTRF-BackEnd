@@ -1,6 +1,7 @@
 import logging
+import os
 
-from django.http import HttpResponse
+from django.http import FileResponse, HttpResponse
 from rest_framework import mixins, status
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
@@ -24,6 +25,8 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPITodosComLeituraOuGravacao,
     PermissaoAPIApenasSmeComLeituraOuGravacao
 )
+
+from ...services.lauda_service import campo_arquivo_lauda_para_download
 
 from ...services import concluir_consolidado_dre, \
     verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao, \
@@ -611,7 +614,7 @@ class ConsolidadosDreViewSet(
     @action(detail=False, methods=['get'], url_path='download-lauda',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def download_lauda(self, request):
-        logger.info("Download da Ata de Parecer Técnico.")
+        logger.info("Download da Lauda consolidada.")
 
         lauda_uuid = request.query_params.get('lauda')
 
@@ -632,37 +635,33 @@ class ConsolidadosDreViewSet(
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        arquivo_field = None
-        if lauda and lauda.arquivo_lauda_pdf and lauda.arquivo_lauda_pdf.name:
-            arquivo_field = lauda.arquivo_lauda_pdf
-        elif lauda and lauda.arquivo_lauda_txt and lauda.arquivo_lauda_txt.name:
-            arquivo_field = lauda.arquivo_lauda_txt
+        arquivo_field = campo_arquivo_lauda_para_download(lauda)
 
         if arquivo_field:
-            arquivo_nome = arquivo_field.name
-            arquivo_path = arquivo_field.path
-            arquivo_file_mime = mimetypes.guess_type(arquivo_field.name)[0]
+            arquivo_nome = os.path.basename(arquivo_field.name)
+            arquivo_file_mime = mimetypes.guess_type(arquivo_nome)[0] or 'application/octet-stream'
 
             try:
-                response = HttpResponse(
-                    open(arquivo_path, 'rb'),
-                    content_type=arquivo_file_mime
+                file_handle = arquivo_field.open('rb')
+                return FileResponse(
+                    file_handle,
+                    as_attachment=True,
+                    filename=arquivo_nome,
+                    content_type=arquivo_file_mime,
                 )
-                response['Content-Disposition'] = 'attachment; filename=%s' % arquivo_nome
             except Exception as err:
                 erro = {
                     'erro': 'arquivo_nao_gerado',
                     'mensagem': str(err)
                 }
+                logger.info('Erro download lauda: %s', str(err))
                 return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
-            return response
-        else:
-            erro = {
-                'erro': 'arquivo_nao_encontrado',
-                'mensagem': 'Arquivo não encontrado'
-            }
-            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+        erro = {
+            'erro': 'arquivo_nao_encontrado',
+            'mensagem': 'Arquivo não encontrado'
+        }
+        return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=False, methods=['get'], url_path='trilha-de-status',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])

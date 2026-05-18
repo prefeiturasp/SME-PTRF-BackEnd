@@ -1,5 +1,6 @@
 import csv
 import logging
+
 from django.core.files import File
 from tempfile import NamedTemporaryFile
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
@@ -12,6 +13,51 @@ from sme_ptrf_apps.core.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def campo_arquivo_lauda_para_download(lauda):
+    """
+    Escolhe o arquivo da lauda para download: PDF (gerações novas) primeiro,
+    depois TXT legado (.docx.txt) se o PDF não existir no armazenamento ou estiver ilegível.
+    """
+    candidatos = ()
+    if lauda.arquivo_lauda_pdf and lauda.arquivo_lauda_pdf.name:
+        candidatos += (lauda.arquivo_lauda_pdf,)
+    if lauda.arquivo_lauda_txt and lauda.arquivo_lauda_txt.name:
+        candidatos += (lauda.arquivo_lauda_txt,)
+
+    for field in candidatos:
+        name = field.name
+        existe = True
+        try:
+            existe = field.storage.exists(name)
+        except Exception as exc:
+            logger.warning(
+                "Lauda: erro ao consultar armazenamento (%s): %s",
+                name,
+                exc,
+            )
+
+        if existe is False:
+            continue
+
+        try:
+            field.open("rb")
+        except Exception as exc:
+            logger.info(
+                "Lauda: arquivo registrado mas ilegível, tentando formato alternativo (%s): %s",
+                name,
+                exc,
+            )
+            continue
+        else:
+            try:
+                field.close()
+            except Exception:
+                pass
+            return field
+
+    return None
 
 
 def _linha_lauda_txt_por_status_com_tipo_conta(status):
