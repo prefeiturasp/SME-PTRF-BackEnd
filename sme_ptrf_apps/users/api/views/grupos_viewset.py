@@ -7,12 +7,14 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.filters import SearchFilter
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiResponse
+from drf_spectacular.utils import extend_schema_view
 
+from .docs.grupos_viewset_docs import DOCS
 from ..serializers import GrupoSerializer
 from ...models import Grupo, User, Unidade
 
 
+@extend_schema_view(**DOCS)
 class GruposViewSet(mixins.ListModelMixin, GenericViewSet):
     # TODO: Voltar a usar IsAuthenticated
     # permission_classes = [IsAuthenticated]
@@ -51,43 +53,9 @@ class GruposViewSet(mixins.ListModelMixin, GenericViewSet):
         if visao_base == 'DRE':
             return qs.filter(visoes__nome__in=['DRE', 'UE'])
 
-    @extend_schema(parameters=[
-        OpenApiParameter(
-            name='visao_base',
-            description='"UE", "DRE" ou "SME". Para exibirapenas grupos da visão e suas subordinadas. ',
-            required=False,
-            type=OpenApiTypes.STR,
-            location=OpenApiParameter.QUERY,
-        ),
-    ])
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(name='username', description='username do Usuário', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-            OpenApiParameter(name='uuid_unidade', description='UUID da Unidade', required=False,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
-            OpenApiParameter(name='visao_base', description='Visão', required=True,
-                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY, enum=["SME", "DRE", "UE"]),
-        ],
-        responses={200: OpenApiResponse(
-            response={
-                'type': 'array',
-                'items': {
-                    'type': 'object',
-                    'properties': {
-                        'id': {'type': 'integer'},
-                        'grupo': {'type': 'string'},
-                        'descricao': {'type': 'string'},
-                        'possui_acesso': {'type': 'boolean'},
-                    },
-                }
-            }
-        )},
-        description="Retorna lista de grupos disponíveis por acesso Visão."
-    )
     @action(detail=False, methods=['get'], url_path='grupos-disponiveis-por-acesso-visao')
     def grupos_disponiveis_por_acesso_visao(self, request):
         from sme_ptrf_apps.users.services.gestao_usuario_service import GestaoUsuarioService

@@ -542,7 +542,7 @@ class PrestacaoConta(ModeloBase):
 
                 if data_devolucao > hoje:
                     raise ValueError("Data de devolução não pode ser futura")
-    
+
             if devolucao_uuid:
                 registro_devolucao = DevolucaoAoTesouro.objects.get(uuid=devolucao_uuid)
 
@@ -608,21 +608,31 @@ class PrestacaoConta(ModeloBase):
     @transaction.atomic
     def devolver(self, data_limite_ue):
         from ..services.notificacao_services import notificar_prestacao_de_contas_devolvida_para_acertos
-        from ..models import DevolucaoPrestacaoConta
+        from ..models import DevolucaoPrestacaoConta, AnalisePrestacaoConta
+        
         devolucao = DevolucaoPrestacaoConta.objects.create(
             prestacao_conta=self,
             data=date.today(),
             data_limite_ue=data_limite_ue
         )
 
-        if self.analise_atual:
-            self.analise_atual.devolucao_prestacao_conta = devolucao
-            self.analise_atual.status = self.STATUS_DEVOLVIDA
-            self.analise_atual.save()
+        analise_id = self.analise_atual_id
 
-        self.analise_atual = None
+        if analise_id:
+            AnalisePrestacaoConta.objects.filter(
+                id=analise_id
+            ).update(
+                devolucao_prestacao_conta=devolucao,
+                status=self.STATUS_DEVOLVIDA
+            )
+
+        self.analise_atual_id = None
         self.justificativa_pendencia_realizacao = ""
-        self.save()
+
+        self.save(update_fields=[
+            "analise_atual",
+            "justificativa_pendencia_realizacao"
+        ])
 
         notificar_prestacao_de_contas_devolvida_para_acertos(self, data_limite_ue)
         return self
@@ -988,19 +998,20 @@ class PrestacaoConta(ModeloBase):
         return result
 
     @classmethod
-    def status_conclusao_pc_to_json(cls):
+    def status_conclusao_pc_to_json(cls, habilita_aprovacao_com_ressalvas=True):
         selecionaveis = [
             cls.STATUS_APROVADA,
-            cls.STATUS_APROVADA_RESSALVA,
-            cls.STATUS_REPROVADA
+            cls.STATUS_REPROVADA,
         ]
 
-        result = [{
-            'id': choice[0],
-            'nome': choice[1]
-        } for choice in cls.STATUS_CHOICES if choice[0] in selecionaveis]
+        if habilita_aprovacao_com_ressalvas:
+            selecionaveis.insert(1, cls.STATUS_APROVADA_RESSALVA)
 
-        return result
+        return [
+            {'id': choice[0], 'nome': choice[1]}
+            for choice in cls.STATUS_CHOICES
+            if choice[0] in selecionaveis
+        ]
 
     @classmethod
     def filter_by_recurso(cls, queryset, recurso):

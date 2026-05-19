@@ -605,7 +605,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         try:
             prestacao_salva = prestacao_conta.salvar_devolucoes_ao_tesouro(
                 devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
-            
+
             return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
                         status=status.HTTP_200_OK)
         except Exception as error:
@@ -1022,12 +1022,22 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(dashboard)
 
     @action(detail=False, url_path='tabelas',
-            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+        permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, _):
+        recurso = getattr(self.request, 'recurso', None)
+        habilita_aprovacao_com_ressalvas = getattr(
+            recurso,
+            'habilita_aprovacao_com_ressalvas',
+            True
+        )
+
         result = {
             'status': PrestacaoConta.status_to_json(),
-            'status_de_conclusao_de_pc': PrestacaoConta.status_conclusao_pc_to_json()
+            'status_de_conclusao_de_pc': PrestacaoConta.status_conclusao_pc_to_json(
+                habilita_aprovacao_com_ressalvas=habilita_aprovacao_com_ressalvas
+            )
         }
+
         return Response(result)
 
     @extend_schema(

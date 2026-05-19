@@ -15,7 +15,8 @@ def test_api_valores_reprogramados_filtro_nome_unidade(
     periodo_anterior,
     fechamento_conta_cheque_valores_reprogramados,
     fechamento_conta_cheque_valores_reprogramados_2,
-    parametros_dre_valores_reprogramados
+    parametros_dre_valores_reprogramados,
+    recurso_esperado
 ):
     response = jwt_authenticated_client_dre.get(
         f'/api/valores-reprogramados/?dre_uuid={dre.uuid}&search=Duar', content_type='application/json')
@@ -47,19 +48,7 @@ def test_api_valores_reprogramados_filtro_nome_unidade(
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
                 'referencia': periodo_anterior.referencia,
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
-                'recurso': {
-                    'id': periodo_anterior.recurso.id,
-                    'uuid': f'{periodo_anterior.recurso.uuid}',
-                    'nome': periodo_anterior.recurso.nome,
-                    'nome_exibicao': periodo_anterior.recurso.nome_exibicao,
-                    'criado_em': periodo_anterior.recurso.criado_em.isoformat() if periodo_anterior.recurso.criado_em else None,
-                    'alterado_em': periodo_anterior.recurso.alterado_em.isoformat() if periodo_anterior.recurso.alterado_em else None,
-                    'cor': periodo_anterior.recurso.cor,
-                    'icone': periodo_anterior.recurso.icone if periodo_anterior.recurso.icone else None,
-                    'ativo': periodo_anterior.recurso.ativo,
-                    'legado': periodo_anterior.recurso.legado,
-                    'exibe_valores_reprogramados': periodo_anterior.recurso.exibe_valores_reprogramados,
-                },
+                "recurso": recurso_esperado(periodo_anterior.recurso),
             },
             'total_conta_cartao': 0,
             'total_conta_cheque': 300.0
@@ -84,7 +73,8 @@ def test_api_valores_reprogramados_filtro_nome_associacao(
     periodo_anterior,
     fechamento_conta_cheque_valores_reprogramados,
     fechamento_conta_cheque_valores_reprogramados_2,
-    parametros_dre_valores_reprogramados
+    parametros_dre_valores_reprogramados,
+    recurso_esperado
 ):
     response = jwt_authenticated_client_dre.get(
         f'/api/valores-reprogramados/?dre_uuid={dre.uuid}&search=Anton', content_type='application/json')
@@ -116,19 +106,7 @@ def test_api_valores_reprogramados_filtro_nome_associacao(
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
                 'referencia': periodo_anterior.referencia,
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
-                'recurso': {
-                    'id': periodo_anterior.recurso.id,
-                    'uuid': f'{periodo_anterior.recurso.uuid}',
-                    'nome': periodo_anterior.recurso.nome,
-                    'nome_exibicao': periodo_anterior.recurso.nome_exibicao,
-                    'criado_em': periodo_anterior.recurso.criado_em.isoformat() if periodo_anterior.recurso.criado_em else None,
-                    'alterado_em': periodo_anterior.recurso.alterado_em.isoformat() if periodo_anterior.recurso.alterado_em else None,
-                    'cor': periodo_anterior.recurso.cor,
-                    'icone': periodo_anterior.recurso.icone if periodo_anterior.recurso.icone else None,
-                    'ativo': periodo_anterior.recurso.ativo,
-                    'legado': periodo_anterior.recurso.legado,
-                    'exibe_valores_reprogramados': periodo_anterior.recurso.exibe_valores_reprogramados,
-                },
+                "recurso": recurso_esperado(periodo_anterior.recurso),
             },
             'total_conta_cartao': 0,
             'total_conta_cheque': 300.0
@@ -153,7 +131,8 @@ def test_api_valores_reprogramados_filtro_codigo_eol(
     periodo_anterior,
     fechamento_conta_cheque_valores_reprogramados,
     fechamento_conta_cheque_valores_reprogramados_2,
-    parametros_dre_valores_reprogramados
+    parametros_dre_valores_reprogramados,
+    recurso_esperado
 ):
     response = jwt_authenticated_client_dre.get(
         f'/api/valores-reprogramados/?dre_uuid={dre.uuid}&search=123457', content_type='application/json')
@@ -185,19 +164,7 @@ def test_api_valores_reprogramados_filtro_codigo_eol(
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
                 'referencia': periodo_anterior.referencia,
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
-                'recurso': {
-                    'id': periodo_anterior.recurso.id,
-                    'uuid': f'{periodo_anterior.recurso.uuid}',
-                    'nome': periodo_anterior.recurso.nome,
-                    'nome_exibicao': periodo_anterior.recurso.nome_exibicao,
-                    'criado_em': periodo_anterior.recurso.criado_em.isoformat() if periodo_anterior.recurso.criado_em else None,
-                    'alterado_em': periodo_anterior.recurso.alterado_em.isoformat() if periodo_anterior.recurso.alterado_em else None,
-                    'cor': periodo_anterior.recurso.cor,
-                    'icone': periodo_anterior.recurso.icone if periodo_anterior.recurso.icone else None,
-                    'ativo': periodo_anterior.recurso.ativo,
-                    'legado': periodo_anterior.recurso.legado,
-                    'exibe_valores_reprogramados': periodo_anterior.recurso.exibe_valores_reprogramados,
-                },
+                "recurso": recurso_esperado(periodo_anterior.recurso),
             },
             'total_conta_cartao': 0,
             'total_conta_cheque': 300.0
@@ -222,7 +189,8 @@ def test_api_valores_reprogramados_filtro_tipo_unidade(
     periodo_anterior,
     fechamento_conta_cheque_valores_reprogramados,
     fechamento_conta_cheque_valores_reprogramados_2,
-    parametros_dre_valores_reprogramados
+    parametros_dre_valores_reprogramados,
+    recurso_esperado
 ):
     response = jwt_authenticated_client_dre.get(
         f'/api/valores-reprogramados/?dre_uuid={dre.uuid}&tipo_unidade=EMEF', content_type='application/json')
@@ -254,19 +222,7 @@ def test_api_valores_reprogramados_filtro_tipo_unidade(
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
                 'referencia': periodo_anterior.referencia,
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
-                'recurso': {
-                    'id': periodo_anterior.recurso.id,
-                    'uuid': f'{periodo_anterior.recurso.uuid}',
-                    'nome': periodo_anterior.recurso.nome,
-                    'nome_exibicao': periodo_anterior.recurso.nome_exibicao,
-                    'criado_em': periodo_anterior.recurso.criado_em.isoformat() if periodo_anterior.recurso.criado_em else None,
-                    'alterado_em': periodo_anterior.recurso.alterado_em.isoformat() if periodo_anterior.recurso.alterado_em else None,
-                    'cor': periodo_anterior.recurso.cor,
-                    'icone': periodo_anterior.recurso.icone if periodo_anterior.recurso.icone else None,
-                    'ativo': periodo_anterior.recurso.ativo,
-                    'legado': periodo_anterior.recurso.legado,
-                    'exibe_valores_reprogramados': periodo_anterior.recurso.exibe_valores_reprogramados,
-                },
+                "recurso": recurso_esperado(periodo_anterior.recurso),
             },
             'total_conta_cartao': 0,
             'total_conta_cheque': 300.0

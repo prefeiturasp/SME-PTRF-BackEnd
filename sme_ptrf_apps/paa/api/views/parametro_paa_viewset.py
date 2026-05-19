@@ -6,16 +6,18 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
+from drf_spectacular.utils import extend_schema_view
 from ..serializers.parametro_paa_serializer import ParametroPaaSerializer
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 from sme_ptrf_apps.paa.models import ParametroPaa
-
 from sme_ptrf_apps.users.permissoes import PermissaoAPITodosComLeituraOuGravacao
+from sme_ptrf_apps.paa.api.views.docs.parametro_paa_docs import DOCS
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class ParametrosPaaViewSet(WaffleFlagMixin, GenericViewSet):
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated & PermissaoApiUe]

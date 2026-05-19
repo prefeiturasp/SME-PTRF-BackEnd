@@ -4,16 +4,19 @@ from django_filters import rest_framework as filters
 from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from drf_spectacular.utils import extend_schema_view
 
 from sme_ptrf_apps.users.permissoes import PermissaoApiDre
 
 from ...models import TecnicoDre
 from ...services.atribuicao_service import troca_atribuicao_em_lote
 from ..serializers.tecnico_dre_serializer import TecnicoDreCreateSerializer, TecnicoDreSerializer
+from .docs.tecnicos_dre_docs import DOCS
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class TecnicosDreViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiDre]
     lookup_field = 'uuid'

@@ -1,6 +1,7 @@
 import logging
+import os
 
-from django.http import HttpResponse
+from django.http import FileResponse, HttpResponse
 from rest_framework import mixins, status
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
@@ -8,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
+from drf_spectacular.utils import extend_schema_view
 
 from sme_ptrf_apps.core.models import Unidade, Periodo, Associacao
 from ..serializers.ata_parecer_tecnico_serializer import AtaParecerTecnicoLookUpSerializer
@@ -24,14 +26,17 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasSmeComLeituraOuGravacao
 )
 
+from ...services.lauda_service import campo_arquivo_lauda_para_download
+
 from ...services import concluir_consolidado_dre, \
     verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao, \
     status_consolidado_dre, \
     retornar_trilha_de_status, \
     gerar_previa_consolidado_dre, \
     retornar_consolidados_dre_ja_criados_e_proxima_criacao, \
-    criar_ata_e_atribuir_ao_consolidado_dre, \
-    concluir_consolidado_de_publicacoes_parciais
+    criar_ata_e_atribuir_ao_consolidado_dre
+
+from .docs.consolidados_dre_docs import DOCS
 
 import mimetypes
 
@@ -41,9 +46,12 @@ User = get_user_model()
 logger = logging.getLogger(__name__)
 
 
-class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
-                            mixins.ListModelMixin,
-                            GenericViewSet):
+@extend_schema_view(**DOCS)
+class ConsolidadosDreViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet,
+):
     permission_classes = [IsAuthenticated & PermissaoApiDre]
     lookup_field = 'uuid'
     queryset = ConsolidadoDRE.objects.all()
@@ -67,11 +75,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
     def criar_ata_e_atrelar_consolidado_dre(self, request):
         dados = request.data
 
-        if (
-            not dados
-            or not dados.get('dre')
-            or not dados.get('periodo')
-        ):
+        if not dados or not dados.get('dre') or not dados.get('periodo'):
             erro = {
                 'erro': 'parametros_requeridos',
                 'mensagem': 'É necessário enviar os uuids da dre e período'
@@ -118,8 +122,13 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         eh_retificacao = True if consolidado_dre and consolidado_dre.eh_retificacao else False
 
-        ata = criar_ata_e_atribuir_ao_consolidado_dre(dre=dre, periodo=periodo, consolidado_dre=consolidado_dre,
-                                                      sequencia_de_publicacao=sequencia_de_publicacao, eh_retificacao=eh_retificacao)
+        ata = criar_ata_e_atribuir_ao_consolidado_dre(
+            dre=dre,
+            periodo=periodo,
+            consolidado_dre=consolidado_dre,
+            sequencia_de_publicacao=sequencia_de_publicacao,
+            eh_retificacao=eh_retificacao,
+        )
 
         return Response(AtaParecerTecnicoLookUpSerializer(ata, many=False).data, status=status.HTTP_200_OK)
 
@@ -184,8 +193,10 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        consolidados_ja_criados_e_proxima = retornar_consolidados_dre_ja_criados_e_proxima_criacao(dre=dre,
-                                                                                                 periodo=periodo)
+        consolidados_ja_criados_e_proxima = retornar_consolidados_dre_ja_criados_e_proxima_criacao(
+            dre=dre,
+            periodo=periodo,
+        )
         return Response(consolidados_ja_criados_e_proxima, status=status.HTTP_200_OK)
 
     @action(
@@ -197,11 +208,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
     def gerar_previa_consolidado_dre(self, request):
         dados = request.data
 
-        if (
-            not dados
-            or not dados.get('dre_uuid')
-            or not dados.get('periodo_uuid')
-        ):
+        if not dados or not dados.get('dre_uuid') or not dados.get('periodo_uuid'):
             erro = {
                 'erro': 'parametros_requeridos',
                 'mensagem': 'É necessário enviar os uuids da dre e período'
@@ -234,11 +241,14 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         try:
             ano = str(periodo.data_inicio_realizacao_despesas.year)
-            ano_analise_regularidade = AnoAnaliseRegularidade.objects.get(ano=ano)
+            AnoAnaliseRegularidade.objects.get(ano=ano)
         except (AnoAnaliseRegularidade.DoesNotExist, ValidationError):
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"Não foi possível publicar o Consolidado Dre, pois o AnoAnaliseRegularidade para o ano {ano} não foi encontrado na base."
+                'mensagem': (
+                    f"Não foi possível publicar o Consolidado Dre, pois o AnoAnaliseRegularidade "
+                    f"para o ano {ano} não foi encontrado na base."
+                ),
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -255,7 +265,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             )
             logger.info(f"Consolidado DRE finalizado. Status: {consolidado_dre.get_valor_status_choice()}")
 
-        except(IntegrityError):
+        except (IntegrityError):
             erro = {
                 'erro': 'consolidado_dre_ja_criado',
                 'mensagem': 'Você não pode criar um Consolidado DRE que já existe'
@@ -270,11 +280,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
     def publicar(self, request):
         dados = request.data
 
-        if (
-            not dados
-            or not dados.get('dre_uuid')
-            or not dados.get('periodo_uuid')
-        ):
+        if not dados or not dados.get('dre_uuid') or not dados.get('periodo_uuid'):
             erro = {
                 'erro': 'parametros_requeridos',
                 'mensagem': 'É necessário enviar os uuids da dre e período'
@@ -307,15 +313,23 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         parcial = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid, periodo_uuid)
 
+        parcial = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid, periodo_uuid)
+
         try:
             if uuid_retificacao:
                 retificacao = ConsolidadoDRE.by_uuid(uuid_retificacao)
-                ata_parecer_tecnico = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo,
-                                                                       consolidado_dre=retificacao).first()
+                ata_parecer_tecnico = AtaParecerTecnico.objects.filter(
+                    dre=dre,
+                    periodo=periodo,
+                    consolidado_dre=retificacao,
+                ).first()
             else:
-                sequencia_de_publicacao_atual = parcial['sequencia_de_publicacao_atual']            
-                ata_parecer_tecnico = AtaParecerTecnico.objects.filter(dre=dre, periodo=periodo,
-                                                                    sequencia_de_publicacao=sequencia_de_publicacao_atual).last()
+                sequencia_de_publicacao_atual = parcial['sequencia_de_publicacao_atual']
+                ata_parecer_tecnico = AtaParecerTecnico.objects.filter(
+                    dre=dre,
+                    periodo=periodo,
+                    sequencia_de_publicacao=sequencia_de_publicacao_atual,
+                ).last()
 
             if not ata_parecer_tecnico:
                 raise ValidationError(f"O objeto Ata para a DRE {dre} e Período {periodo} não foi encontrado na base.")
@@ -339,18 +353,21 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
         if not alterado_em:
             erro = {
                 'erro': 'Ata não preenchida',
-                'mensagem': f"Para fazer a publicação você precisa preencher as informações da ata."
+                'mensagem': "Para fazer a publicação você precisa preencher as informações da ata.",
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             ano = str(periodo.data_inicio_realizacao_despesas.year)
-            ano_analise_regularidade = AnoAnaliseRegularidade.objects.get(ano=ano)
+            AnoAnaliseRegularidade.objects.get(ano=ano)
         except (AnoAnaliseRegularidade.DoesNotExist, ValidationError):
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"Não foi possível publicar o Consolidado Dre, pois o AnoAnaliseRegularidade para o ano {ano} não foi encontrado na base."
+                'mensagem': (
+                    f"Não foi possível publicar o Consolidado Dre, pois o AnoAnaliseRegularidade "
+                    f"para o ano {ano} não foi encontrado na base."
+                ),
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -365,7 +382,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             )
             logger.info(f"Consolidado DRE finalizado. Status: {consolidado_dre.get_valor_status_choice()}")
 
-        except(IntegrityError):
+        except (IntegrityError):
             erro = {
                 'erro': 'consolidado_dre_ja_criado',
                 'mensagem': 'Você não pode criar um Consolidado DRE que já existe'
@@ -409,7 +426,13 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        relatorio_consolidado_publicacoes_parciais = RelatorioConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao="CONSOLIDADA").last()
+        relatorio_consolidado_publicacoes_parciais = (
+            RelatorioConsolidadoDRE.objects.filter(
+                dre=dre,
+                periodo=periodo,
+                versao="CONSOLIDADA",
+            ).last()
+        )
         status_relatorio_consolidado_publicacoes_parciais = {
             'status': None
         }
@@ -506,14 +529,17 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
         except (RelatorioConsolidadoDRE.DoesNotExist, ValidationError):
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto Relatório Físico Financeiro para o uuid {relatorio_fisico_financeiro_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto Relatório Físico Financeiro para o uuid {relatorio_fisico_financeiro_uuid} "
+                    f"não foi encontrado na base."
+                ),
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             ano = str(relatorio_fisico_financeiro.periodo.data_inicio_realizacao_despesas.year)
-            ano_analise_regularidade = AnoAnaliseRegularidade.objects.get(ano=ano)
+            AnoAnaliseRegularidade.objects.get(ano=ano)
         except (AnoAnaliseRegularidade.DoesNotExist, ValidationError):
             erro = {
                 'erro': 'Objeto não encontrado.',
@@ -523,19 +549,22 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            arquivo = relatorio_fisico_financeiro.arquivo.path
+            arquivo_path = relatorio_fisico_financeiro.arquivo.path
         except (ValueError,):
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"Não foi encontrado o arquivo solicitado"
+                'mensagem': "Não foi encontrado o arquivo solicitado"
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        filename = 'relatorio_fisico_financeiro_dre.pdf' if relatorio_fisico_financeiro.versao == RelatorioConsolidadoDRE.VERSAO_FINAL else 'previa_relatorio_fisico_financeiro_dre.pdf'
+        if relatorio_fisico_financeiro.versao == RelatorioConsolidadoDRE.VERSAO_FINAL:
+            filename = 'relatorio_fisico_financeiro_dre.pdf'
+        else:
+            filename = 'previa_relatorio_fisico_financeiro_dre.pdf'
 
         response = HttpResponse(
-            open(relatorio_fisico_financeiro.arquivo.path, 'rb'),
+            open(arquivo_path, 'rb'),
             content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         response['Content-Disposition'] = 'attachment; filename=%s' % filename
@@ -585,7 +614,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
     @action(detail=False, methods=['get'], url_path='download-lauda',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def download_lauda(self, request):
-        logger.info("Download da Ata de Parecer Técnico.")
+        logger.info("Download da Lauda consolidada.")
 
         lauda_uuid = request.query_params.get('lauda')
 
@@ -606,31 +635,33 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        if lauda and lauda.arquivo_lauda_txt and lauda.arquivo_lauda_txt.name:
-            arquivo_nome = lauda.arquivo_lauda_txt.name
-            arquivo_path = lauda.arquivo_lauda_txt.path
-            arquivo_file_mime = mimetypes.guess_type(lauda.arquivo_lauda_txt.name)[0]
+        arquivo_field = campo_arquivo_lauda_para_download(lauda)
+
+        if arquivo_field:
+            arquivo_nome = os.path.basename(arquivo_field.name)
+            arquivo_file_mime = mimetypes.guess_type(arquivo_nome)[0] or 'application/octet-stream'
 
             try:
-                response = HttpResponse(
-                    open(arquivo_path, 'rb'),
-                    content_type=arquivo_file_mime
+                file_handle = arquivo_field.open('rb')
+                return FileResponse(
+                    file_handle,
+                    as_attachment=True,
+                    filename=arquivo_nome,
+                    content_type=arquivo_file_mime,
                 )
-                response['Content-Disposition'] = 'attachment; filename=%s' % arquivo_nome
             except Exception as err:
                 erro = {
                     'erro': 'arquivo_nao_gerado',
                     'mensagem': str(err)
                 }
+                logger.info('Erro download lauda: %s', str(err))
                 return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
-            return response
-        else:
-            erro = {
-                'erro': 'arquivo_nao_encontrado',
-                'mensagem': 'Arquivo não encontrado'
-            }
-            return Response(erro, status=status.HTTP_404_NOT_FOUND)
+        erro = {
+            'erro': 'arquivo_nao_encontrado',
+            'mensagem': 'Arquivo não encontrado'
+        }
+        return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=False, methods=['get'], url_path='trilha-de-status',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
@@ -707,7 +738,10 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        return Response(ConsolidadoDreDetalhamentoSerializer(consolidado_dre, many=False).data, status=status.HTTP_200_OK)
+        return Response(
+            ConsolidadoDreDetalhamentoSerializer(consolidado_dre, many=False).data,
+            status=status.HTTP_200_OK,
+        )
 
     @action(detail=False, methods=['get'],
             url_path='detalhamento-conferencia-documentos',
@@ -724,7 +758,10 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             except (AnaliseConsolidadoDre.DoesNotExist, ValidationError):
                 erro = {
                     'erro': 'analise_nao_encontrada',
-                    'mensagem': f"O objeto AnaliseConsolidadoDre para o uuid {uuid_analise_atual} não foi encontrado na base"
+                    'mensagem': (
+                        f"O objeto AnaliseConsolidadoDre para o uuid {uuid_analise_atual} "
+                        f"não foi encontrado na base"
+                    ),
                 }
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
@@ -863,7 +900,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
             return Response(listagem, status=status.HTTP_200_OK)
 
-        except:
+        except Exception:
             erro = {
                 'erro': 'ListagemPorStatusComFiltros().retorna_listagem()',
                 'operacao': 'listagem-de-relatorios-consolidados-sme-por-status',
@@ -876,14 +913,19 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             url_path='devolver-consolidado',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def devolver(self, request, uuid):
-        from sme_ptrf_apps.dre.api.validation_serializers.consolidado_dre_devolver_serializer import ConsolidadoDreDevolverSerializer
+        from sme_ptrf_apps.dre.api.validation_serializers.consolidado_dre_devolver_serializer import (
+            ConsolidadoDreDevolverSerializer,
+        )
         consolidado: ConsolidadoDRE = self.get_object()
 
         query = ConsolidadoDreDevolverSerializer(data=self.request.data)
 
         query.is_valid(raise_exception=True)
         try:
-            consolidado.devolver_consolidado(data_limite=request.data.get('data_limite'), username=request.user.username)
+            consolidado.devolver_consolidado(
+                data_limite=request.data.get('data_limite'),
+                username=request.user.username,
+            )
             response = {
                 'uuid': f'{uuid}',
                 'mensagem': 'Consolidado dre devolvido com sucesso.'
@@ -905,11 +947,8 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
     def marcar_como_publicado_no_diario_oficial(self, request):
         dados = request.data
 
-        if (
-            not dados
-            or not dados.get('consolidado_dre')
-            or not dados.get('data_publicacao')
-            or not dados.get('pagina_publicacao')
+        if not dados or not dados.get('consolidado_dre') or not dados.get('data_publicacao') or not dados.get(
+            'pagina_publicacao'
         ):
             erro = {
                 'erro': 'parametros_requeridos',
@@ -918,8 +957,9 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             logger.info('Erro ao gerar Consolidado DRE: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        consolidado_dre_uuid, data_publicacao, pagina_publicacao = dados['consolidado_dre'], dados['data_publicacao'], \
-                                                                   dados['pagina_publicacao']
+        consolidado_dre_uuid = dados['consolidado_dre']
+        data_publicacao = dados['data_publicacao']
+        pagina_publicacao = dados['pagina_publicacao']
 
         try:
             consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
@@ -936,10 +976,10 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
                 data_publicacao=data_publicacao,
                 pagina_publicacao=pagina_publicacao
             )
-        except:
+        except Exception:
             erro = {
                 'erro': 'Erro ao passar o relatório para status_sme_publicado',
-                'mensagem': f"Não foi possível passar o relarório para o status de publicado no Diário Oficial"
+                'mensagem': "Não foi possível passar o relarório para o status de publicado no Diário Oficial",
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -952,10 +992,7 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
     def marcar_como_nao_publicado_no_diario_oficial(self, request):
         dados = request.data
 
-        if (
-            not dados
-            or not dados.get('consolidado_dre')
-        ):
+        if not dados or not dados.get('consolidado_dre'):
             erro = {
                 'erro': 'parametros_requeridos',
                 'mensagem': 'É necessário enviar o uuid do Consolidado DRE'
@@ -977,10 +1014,10 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         try:
             consolidado_dre = consolidado_dre.marcar_status_sme_como_nao_publicado()
-        except:
+        except Exception:
             erro = {
                 'erro': 'Erro ao passar o relatório para status_sme_nao_publicado',
-                'mensagem': f"Não foi possível passar o relarório para o status de Não Publicado no Diário Oficial"
+                'mensagem': "Não foi possível passar o relarório para o status de Não Publicado no Diário Oficial",
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1043,14 +1080,10 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         dados = request.data
 
-        if (
-            not dados
-            or not dados.get('consolidado_dre')
-            or not dados.get('usuario')
-        ):
+        if not dados or not dados.get('consolidado_dre') or not dados.get('usuario'):
             erro = {
                 'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid do Consolidado DRE e o Usuário (username)'
+                'mensagem': 'É necessário enviar o uuid do Consolidado DRE e o Usuário (username)',
             }
             logger.info('Erro ao gerar Consolidado DRE: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1080,11 +1113,14 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         try:
             consolidado_dre.analisar_consolidado(usuario)
-            return Response("Consolidado DRE foi passado para o status Em Análise com Sucesso!", status=status.HTTP_200_OK)
-        except:
+            return Response(
+                "Consolidado DRE foi passado para o status Em Análise com Sucesso!",
+                status=status.HTTP_200_OK,
+            )
+        except Exception:
             erro = {
                 'erro': 'Erro ao analisar o Consolidado Dre',
-                'mensagem': f"Não foi possível passar o status do Consolidado DRE para EM_ANALISE"
+                'mensagem': "Não foi possível passar o status do Consolidado DRE para EM_ANALISE",
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1095,14 +1131,12 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
     def marcar_como_analisado(self, request):
         dados = request.data
 
-        if (
-            not dados
-            or not dados.get('consolidado_dre')
-            or not dados.get('usuario')
-        ):
+        if not dados or not dados.get('consolidado_dre') or not dados.get('usuario'):
             erro = {
                 'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid do Consolidado DRE e o Username de um usuário válido'
+                'mensagem': (
+                    'É necessário enviar o uuid do Consolidado DRE e o Username de um usuário válido'
+                ),
             }
             logger.info('Erro ao gerar Consolidado DRE: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1132,10 +1166,10 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
 
         try:
             consolidado_dre = consolidado_dre.concluir_analise_consolidado(usuario)
-        except:
+        except Exception:
             erro = {
                 'erro': 'Erro ao passar o relatório para status_sme_analisado',
-                'mensagem': f"Não foi possível passar o relarório para o status de Analisado"
+                'mensagem': "Não foi possível passar o relarório para o status de Analisado",
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1153,7 +1187,9 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComLeituraOuGravacao])
     def pcs_retificaveis(self, request, uuid):
         consolidado: ConsolidadoDRE = self.get_object()
-        from sme_ptrf_apps.core.api.serializers.prestacao_conta_serializer import PrestacaoContaListRetificaveisSerializer
+        from sme_ptrf_apps.core.api.serializers.prestacao_conta_serializer import (
+            PrestacaoContaListRetificaveisSerializer,
+        )
         pcs = consolidado.pcs_retificaveis()
         return Response(PrestacaoContaListRetificaveisSerializer(pcs, many=True).data, status=status.HTTP_200_OK)
 
@@ -1166,9 +1202,16 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
         pcs = consolidado.pcs_em_retificacao()
         return Response(PrestacaoContaListRetificaveisSerializer(pcs, many=True).data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post'], url_path='retificar', permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])
+    @action(
+        detail=True,
+        methods=['post'],
+        url_path='retificar',
+        permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao],
+    )
     def retificar(self, request, uuid):
-        from sme_ptrf_apps.dre.api.serializers.validation_serializers.consolidado_dre_retificacao import ConsolidadoDreRetificacaoSerializer
+        from sme_ptrf_apps.dre.api.serializers.validation_serializers.consolidado_dre_retificacao import (
+            ConsolidadoDreRetificacaoSerializer,
+        )
         from sme_ptrf_apps.dre.services.consolidado_dre_service import retificar_consolidado_dre
         consolidado: ConsolidadoDRE = self.get_object()
 
@@ -1245,7 +1288,6 @@ class ConsolidadosDreViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(ConsolidadoDreSerializer(retificacao, many=False).data, status=status.HTTP_200_OK)
-
 
     @action(detail=True, methods=['patch'], url_path='update_motivo_retificacao',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasDreComGravacao])

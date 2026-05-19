@@ -103,7 +103,15 @@ def custom_titled_filter(title):
 
 @admin.register(Recurso)
 class RecursoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'nome_exibicao', 'legado', 'ativo', 'exibe_valores_reprogramados', 'cor_preview')
+    list_display = (
+        'nome',
+        'nome_exibicao',
+        'legado',
+        'ativo',
+        'exibe_valores_reprogramados',
+        'habilita_aprovacao_com_ressalvas',
+        'cor_preview'
+    )
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('uuid', 'nome', 'nome_exibicao',)
 
@@ -114,6 +122,46 @@ class RecursoAdmin(admin.ModelAdmin):
         )
 
     cor_preview.short_description = "Cor"
+
+    fieldsets = (
+        ('Tema', {
+            'fields': (
+                'nome',
+                'ativo',
+                'nome_exibicao',
+                'icone',
+                'cor',
+                'legado',
+            ),
+            'classes': ('wide',),
+        }),
+        ('Contas e Ações', {
+            'fields': (
+                'permite_saldo_conta_negativo',
+                'permite_saldo_acoes_negativo',
+            )
+        }),
+        ('Análise de Prestação de Contas', {
+            'fields': (
+                'habilita_aprovacao_com_ressalvas',
+            )
+        }),
+        ('Valores Reprogramados', {
+            'fields': (
+                'exibe_valores_reprogramados',
+                'tipo_conta_um',
+                'tipo_conta_dois',
+            )
+        }),
+        ('Informações Internas', {
+            'fields': (
+                'uuid',
+                'id',
+                'criado_em',
+                'alterado_em',
+            )
+        }),
+    )
 
 
 class AcaoAdminForm(ModelForm):

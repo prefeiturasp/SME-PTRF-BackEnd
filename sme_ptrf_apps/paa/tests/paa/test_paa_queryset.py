@@ -13,7 +13,7 @@ def _qs():
 
 
 class TestAnnotateStatusGeracao:
-    def test_status_nao_iniciado_andamento_tambem_nao_iniciado(
+    def test_status_nao_iniciado_retorna_fora_fluxo(
         self, paa_factory, periodo_paa_factory, associacao
     ):
         periodo = periodo_paa_factory.create()
@@ -23,8 +23,8 @@ class TestAnnotateStatusGeracao:
             status=PaaStatusEnum.NAO_INICIADO.name,
         )
 
-        qs = _qs().filter(pk=paa.pk).filter_por_status_geracao(PaaStatusAndamentoEnum.NAO_INICIADO.name)
-        assert qs.first().status_andamento == PaaStatusAndamentoEnum.NAO_INICIADO.name
+        qs = _qs().filter(pk=paa.pk)
+        assert qs.first().get_status_andamento() == PaaStatusAndamentoEnum.FORA_FLUXO.name
 
     def test_status_gerado_com_documento_final_concluido_e_ata_concluida(
         self, paa_factory, documento_paa_factory, ata_paa_factory, periodo_paa_factory, associacao
@@ -84,7 +84,7 @@ class TestAnnotateStatusGeracao:
         assert qs.first().get_status_andamento() == PaaStatusAndamentoEnum.FORA_FLUXO.name
 
     def test_status_em_retificacao_retorna_gerado_parcialmente(
-        self, paa_factory, periodo_paa_factory, associacao, documento_paa_factory, ata_paa_factory
+        self, paa_factory, periodo_paa_factory, associacao, documento_paa_factory, ata_paa_factory, replica_paa_factory
     ):
         periodo = periodo_paa_factory.create()
         paa = paa_factory.create(
@@ -101,6 +101,7 @@ class TestAnnotateStatusGeracao:
             paa=paa,
             status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
         )
+        replica_paa_factory.create(paa=paa)
 
         qs = _qs().filter(pk=paa.pk).paas_gerados_parcialmente()
         assert qs.first().status_andamento == PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name
@@ -172,6 +173,73 @@ class TestAnnotateStatusGeracao:
         qs = _qs().filter(pk=paa.pk).paas_em_elaboracao()
         assert qs.first().status_andamento == PaaStatusAndamentoEnum.EM_ELABORACAO.name
 
+    def test_status_em_elaboracao_com_replica_retorna_fora_fluxo(
+        self, paa_factory, periodo_paa_factory, associacao, replica_paa_factory
+    ):
+        periodo = periodo_paa_factory.create()
+        paa = paa_factory.create(
+            periodo_paa=periodo,
+            associacao=associacao,
+            status=PaaStatusEnum.EM_ELABORACAO.name,
+        )
+        replica_paa_factory.create(paa=paa)
+
+        qs = _qs().filter(pk=paa.pk)
+        assert qs.first().get_status_andamento() == PaaStatusAndamentoEnum.FORA_FLUXO.name
+
+    def test_status_em_elaboracao_com_ata_concluida_retorna_fora_fluxo(
+        self, paa_factory, ata_paa_factory, periodo_paa_factory, associacao
+    ):
+        periodo = periodo_paa_factory.create()
+        paa = paa_factory.create(
+            periodo_paa=periodo,
+            associacao=associacao,
+            status=PaaStatusEnum.EM_ELABORACAO.name,
+        )
+        ata_paa_factory.create(
+            paa=paa,
+            status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        )
+
+        qs = _qs().filter(pk=paa.pk)
+        assert qs.first().get_status_andamento() == PaaStatusAndamentoEnum.FORA_FLUXO.name
+
+    def test_status_gerado_com_documento_ata_e_replica_retorna_fora_fluxo(
+        self, paa_factory, documento_paa_factory, ata_paa_factory, periodo_paa_factory, associacao, replica_paa_factory
+    ):
+        periodo = periodo_paa_factory.create()
+        paa = paa_factory.create(
+            periodo_paa=periodo,
+            associacao=associacao,
+            status=PaaStatusEnum.GERADO.name,
+        )
+        documento_paa_factory.create(
+            paa=paa,
+            versao=DocumentoPaa.VersaoChoices.FINAL,
+            status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+        )
+        ata_paa_factory.create(
+            paa=paa,
+            status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        )
+        replica_paa_factory.create(paa=paa)
+
+        qs = _qs().filter(pk=paa.pk)
+        assert qs.first().get_status_andamento() == PaaStatusAndamentoEnum.FORA_FLUXO.name
+
+    def test_status_em_retificacao_sem_replica_retorna_fora_fluxo(
+        self, paa_factory, periodo_paa_factory, associacao
+    ):
+        periodo = periodo_paa_factory.create()
+        paa = paa_factory.create(
+            periodo_paa=periodo,
+            associacao=associacao,
+            status=PaaStatusEnum.EM_RETIFICACAO.name,
+        )
+
+        qs = _qs().filter(pk=paa.pk)
+        assert qs.first().get_status_andamento() == PaaStatusAndamentoEnum.FORA_FLUXO.name
+
 
 class TestFilterPorStatusGeracao:
     def test_filtra_somente_gerados(
@@ -205,7 +273,8 @@ class TestFilterPorStatusGeracao:
         assert resultado_qs.first().pk == paa_gerado.pk
 
     def test_filtra_somente_gerados_parcialmente(
-        self, paa_factory, documento_paa_factory, periodo_paa_factory, associacao_factory, ata_paa_factory
+        self, paa_factory, documento_paa_factory, periodo_paa_factory,
+        associacao_factory, ata_paa_factory, replica_paa_factory
     ):
         periodo = periodo_paa_factory.create()
 
@@ -220,6 +289,7 @@ class TestFilterPorStatusGeracao:
             status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
         )
         ata_paa_factory.create(paa=paa_retificacao, status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO)
+        replica_paa_factory.create(paa=paa_retificacao)
 
         # PAA em elaboracao com doc final
         assoc2 = associacao_factory.create()
