@@ -5,6 +5,7 @@ import datetime
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.files import File
 from django.template.loader import get_template
+from django.utils.safestring import mark_safe
 from tempfile import NamedTemporaryFile
 from weasyprint import CSS, HTML
 
@@ -18,6 +19,13 @@ from sme_ptrf_apps.dre.services.lauda_service import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _titulo_coluna_saldo(tipo, data=None):
+    """Cabeçalho em 2 linhas: 'Saldo reprogramado' e o complemento na linha seguinte."""
+    if data:
+        return mark_safe(f"Saldo reprogramado<br>{tipo} em {data}")
+    return mark_safe(f"Saldo reprogramado<br>{tipo}")
 
 
 def _rodape_lauda_sem_identificacao_pessoal(dre):
@@ -124,8 +132,8 @@ def gerar_arquivo_lauda_pdf_consolidado_dre(
         "subtitulo_retificacao": titulos_pub["subtitulo_retificacao"],
         "texto_intro": texto_intro,
         "periodo_datas": periodo_datas,
-        "col_saldo_inicial": f"Saldo reprogramado inicial em {inicio}" if inicio else "Saldo reprogramado inicial",
-        "col_saldo_final": f"Saldo reprogramado final em {fim}" if fim else "Saldo reprogramado final",
+        "col_saldo_inicial": _titulo_coluna_saldo("inicial", inicio or None),
+        "col_saldo_final": _titulo_coluna_saldo("final", fim or None),
         "tabelas": tabelas,
     }
 
