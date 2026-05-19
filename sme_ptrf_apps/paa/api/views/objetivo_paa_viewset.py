@@ -13,7 +13,8 @@ from sme_ptrf_apps.paa.models import ObjetivoPaa
 from sme_ptrf_apps.paa.models.objetivo_paa import StatusChoices
 from sme_ptrf_apps.paa.api.serializers import ObjetivoPaaSerializer
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.utils import extend_schema_view
+from sme_ptrf_apps.paa.api.views.docs.objetivo_paa_docs import DOCS
 
 logger = logging.getLogger(__name__)
 
@@ -28,24 +29,7 @@ class ObjetivoPAAFilterBackend(django_filters.FilterSet):
         fields = ['nome', 'status', 'paa__uuid']
 
 
-@extend_schema_view(
-    list=extend_schema(
-        description=(
-            "Retorna a lista de objetivos do PAA. "
-            "Permite filtrar por **nome**, **status**, "
-            "e também pelo campo relacional **paa__uuid**."
-        ),
-        parameters=[
-            OpenApiParameter("nome", str, OpenApiParameter.QUERY,
-                             description="Filtra pelo nome (case-insensitive, acento ignorado)"),
-            OpenApiParameter("status", str, OpenApiParameter.QUERY,
-                             description="Filtra por Status (0 / 1)", enum=list(StatusChoices.choices)),
-            OpenApiParameter("paa__uuid", bool, OpenApiParameter.QUERY,
-                             description="Filtra pelo UUID do PAA"),
-        ],
-        responses={200: ObjetivoPaaSerializer(many=True)},
-    )
-)
+@extend_schema_view(**DOCS)
 class ObjetivoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated]

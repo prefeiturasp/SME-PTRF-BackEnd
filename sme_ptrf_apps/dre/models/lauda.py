@@ -28,7 +28,14 @@ class Lauda(ModeloBase):
         (STATUS_EM_PROCESSAMENTO, STATUS_NOMES[STATUS_EM_PROCESSAMENTO]),
     )
 
-    arquivo_lauda_txt = models.FileField(blank=True, null=True, verbose_name='Arquivo Lauda TXT')
+    arquivo_lauda_txt = models.FileField(
+        blank=True,
+        null=True,
+        verbose_name='Arquivo Lauda (TXT legado)',
+        help_text='Texto utilizado por fluxos legados; a publicação passa a priorizar o PDF.',
+    )
+
+    arquivo_lauda_pdf = models.FileField(blank=True, null=True, verbose_name='Arquivo Lauda (PDF)')
 
     consolidado_dre = models.ForeignKey('ConsolidadoDRE', on_delete=models.CASCADE,
                                         related_name='laudas_do_consolidado_dre',

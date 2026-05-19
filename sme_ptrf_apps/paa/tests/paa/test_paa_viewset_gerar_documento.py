@@ -71,3 +71,20 @@ def test_iniciar_geracao_previa_com_sucesso(jwt_authenticated_client_sme, flag_p
 
     assert response.status_code == status.HTTP_200_OK
     assert result["mensagem"] == 'Geração de documento prévia iniciada'
+
+
+def test_gerar_documento_sem_confirmacao(jwt_authenticated_client_sme, flag_paa, paa_factory,
+                                         objetivo_paa_factory, atividade_estatutaria_paa_factory):
+    objetivo = objetivo_paa_factory()
+    paa = paa_factory(texto_introducao="Intro", texto_conclusao="Conclusao")
+    paa.objetivos.add(objetivo)
+    atividade_estatutaria_paa_factory(paa=paa)
+
+    response = jwt_authenticated_client_sme.post(f'/api/paa/{paa.uuid}/gerar-documento/',
+                                                 content_type='application/json',
+                                                 data=json.dumps({}))
+
+    result = response.json()
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'confirmar' in result

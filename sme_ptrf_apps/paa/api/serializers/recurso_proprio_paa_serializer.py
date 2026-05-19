@@ -116,13 +116,25 @@ class RecursoProprioPaaListSerializer(serializers.ModelSerializer):
     fonte_recurso = FonteRecursoPaaSerializer()
     valor = serializers.FloatField()
     associacao = serializers.SerializerMethodField('get_associacao_uuid')
+    alteracao = serializers.SerializerMethodField()
+
+    def get_alteracao(self, obj):
+        alteracoes = self.context.get('alteracoes', {})
+        if not alteracoes:
+            return None
+        secao_key = 'receitas_recurso_proprio'
+        print(alteracoes.get(secao_key, {}))
+        item = alteracoes.get(secao_key, {}).get(str(obj.uuid))
+        return item.get('acao') if item else None
 
     def get_associacao_uuid(self, obj):
         return obj.associacao.uuid
 
     class Meta:
         model = RecursoProprioPaa
-        fields = ('id', 'paa', 'uuid', 'associacao', 'fonte_recurso', 'data_prevista', 'descricao', 'valor')
+        fields = (
+            'id', 'paa', 'uuid', 'associacao', 'fonte_recurso', 'data_prevista', 'descricao', 'valor', 'alteracao'
+        )
 
 
 class RecursoProprioPaaListDocumentoPaaSerializer(serializers.ModelSerializer):

@@ -3,7 +3,7 @@ from django.apps import apps
 from functools import lru_cache
 from django.db import models
 from datetime import timedelta
-from ..models import Associacao, Periodo, PrestacaoConta
+from ..models import Associacao, Periodo, PrestacaoConta, PeriodoInicialAssociacao
 
 
 def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
@@ -237,3 +237,54 @@ def validar_troca_recurso(periodo, recurso_novo):
         raise ValidationError(
             "Não é possível alterar o recurso de um período já utilizado."
         )
+
+
+def _primeiro_periodo_inicial_associado(recurso, dre_uuid=None):
+    queryset = (
+        PeriodoInicialAssociacao.objects
+        .filter(recurso=recurso)
+        .select_related('periodo_inicial')
+    )
+
+    if dre_uuid is not None:
+        queryset = queryset.filter(associacao__unidade__dre__uuid=dre_uuid)
+
+    return queryset.order_by('periodo_inicial__data_inicio_realizacao_despesas').first()
+
+
+def _primeira_associacao_com_periodo_inicial_legado(dre_uuid=None):
+    queryset = (
+        Associacao.objects
+        .filter(periodo_inicial__isnull=False)
+        .select_related('periodo_inicial')
+    )
+
+    if dre_uuid is not None:
+        queryset = queryset.filter(unidade__dre__uuid=dre_uuid)
+
+    return queryset.order_by('periodo_inicial__data_inicio_realizacao_despesas').first()
+
+
+def get_periodo_corte(recurso, dre_uuid=None):
+    if not recurso:
+        return None
+
+    periodo_inicial_assoc = _primeiro_periodo_inicial_associado(recurso=recurso, dre_uuid=dre_uuid)
+
+    if periodo_inicial_assoc and periodo_inicial_assoc.periodo_inicial:
+        return periodo_inicial_assoc.periodo_inicial.proximo_periodo
+
+    if recurso.legado:
+        associacao_legado = _primeira_associacao_com_periodo_inicial_legado(dre_uuid=dre_uuid)
+
+        if associacao_legado and associacao_legado.periodo_inicial:
+            return associacao_legado.periodo_inicial.proximo_periodo
+
+    return None
+
+
+def get_periodo_corte_por_dre(dre_uuid, recurso):
+    if not dre_uuid or not recurso:
+        return None
+
+    return get_periodo_corte(recurso=recurso, dre_uuid=dre_uuid)

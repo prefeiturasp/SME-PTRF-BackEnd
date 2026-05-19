@@ -6,7 +6,7 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_api_retrieve_ata_associacao(jwt_authenticated_client_a, associacao, ata_2020_1_cheque_aprovada):
+def test_api_retrieve_ata_associacao(jwt_authenticated_client_a, associacao, ata_2020_1_cheque_aprovada, recurso_esperado):
     response = jwt_authenticated_client_a.get(f'/api/atas-associacao/{ata_2020_1_cheque_aprovada.uuid}/', content_type='application/json')
     result = json.loads(response.content)
 
@@ -25,25 +25,16 @@ def test_api_retrieve_ata_associacao(jwt_authenticated_client_a, associacao, ata
         'local_reuniao': 'Escola Teste',
         'nome': 'Ata de Apresentação da prestação de contas',
         'parecer_conselho': 'APROVADA',
-        'periodo': {'data_fim_realizacao_despesas': '2020-06-30',
-                    'data_inicio_realizacao_despesas': '2020-01-01',
-                    'referencia': '2020.1',
-                    'referencia_por_extenso': '1° repasse de 2020',
-                    'id': ata_2020_1_cheque_aprovada.periodo.id,
-                    'uuid': f'{ata_2020_1_cheque_aprovada.periodo.uuid}',
-                    'recurso': {
-                        'id': ata_2020_1_cheque_aprovada.periodo.recurso.id,
-                        'uuid': f'{ata_2020_1_cheque_aprovada.periodo.recurso.uuid}',
-                        'nome': ata_2020_1_cheque_aprovada.periodo.recurso.nome,
-                        'nome_exibicao': ata_2020_1_cheque_aprovada.periodo.recurso.nome_exibicao,
-                        'criado_em': f'{ata_2020_1_cheque_aprovada.periodo.recurso.criado_em.isoformat()}' if ata_2020_1_cheque_aprovada.periodo.recurso.criado_em else None,
-                        'alterado_em': f'{ata_2020_1_cheque_aprovada.periodo.recurso.alterado_em.isoformat()}' if ata_2020_1_cheque_aprovada.periodo.recurso.alterado_em else None,
-                        'cor': ata_2020_1_cheque_aprovada.periodo.recurso.cor,
-                        'icone': ata_2020_1_cheque_aprovada.periodo.recurso.icone if ata_2020_1_cheque_aprovada.periodo.recurso.icone else None,
-                        'ativo': ata_2020_1_cheque_aprovada.periodo.recurso.ativo,
-                        'legado': ata_2020_1_cheque_aprovada.periodo.recurso.legado,
-                        'exibe_valores_reprogramados': ata_2020_1_cheque_aprovada.periodo.recurso.exibe_valores_reprogramados
-                    }},
+        'periodo':
+            {
+                'data_fim_realizacao_despesas': '2020-06-30',
+                'data_inicio_realizacao_despesas': '2020-01-01',
+                'referencia': '2020.1',
+                'referencia_por_extenso': '1° repasse de 2020',
+                'id': ata_2020_1_cheque_aprovada.periodo.id,
+                'uuid': f'{ata_2020_1_cheque_aprovada.periodo.uuid}',
+                'recurso': recurso_esperado(ata_2020_1_cheque_aprovada.periodo.recurso),
+            },
         'presentes_na_ata': [],
         'presidente_reuniao': 'José',
         'prestacao_conta': f'{ata_2020_1_cheque_aprovada.prestacao_conta.uuid}',
@@ -61,7 +52,7 @@ def test_api_retrieve_ata_associacao(jwt_authenticated_client_a, associacao, ata
     assert result == result_esperado
 
 
-def test_api_retrieve_ata_retificacao_associacao(jwt_authenticated_client_a, associacao, ata_2020_1_retificacao):
+def test_api_retrieve_ata_retificacao_associacao(jwt_authenticated_client_a, associacao, ata_2020_1_retificacao, recurso_esperado):
     response = jwt_authenticated_client_a.get(f'/api/atas-associacao/{ata_2020_1_retificacao.uuid}/', content_type='application/json')
     result = json.loads(response.content)
 
@@ -86,19 +77,8 @@ def test_api_retrieve_ata_retificacao_associacao(jwt_authenticated_client_a, ass
                     'referencia_por_extenso': '1° repasse de 2020',
                     'id': ata_2020_1_retificacao.periodo.id,
                     'uuid': f'{ata_2020_1_retificacao.periodo.uuid}',
-                    'recurso': {
-                        'id': ata_2020_1_retificacao.periodo.recurso.id,
-                        'uuid': f'{ata_2020_1_retificacao.periodo.recurso.uuid}',
-                        'nome': ata_2020_1_retificacao.periodo.recurso.nome,
-                        'nome_exibicao': ata_2020_1_retificacao.periodo.recurso.nome_exibicao,
-                        'criado_em': f'{ata_2020_1_retificacao.periodo.recurso.criado_em.isoformat()}' if ata_2020_1_retificacao.periodo.recurso.criado_em else None,
-                        'alterado_em': f'{ata_2020_1_retificacao.periodo.recurso.alterado_em.isoformat()}' if ata_2020_1_retificacao.periodo.recurso.alterado_em else None,
-                        'cor': ata_2020_1_retificacao.periodo.recurso.cor,
-                        'icone': ata_2020_1_retificacao.periodo.recurso.icone if ata_2020_1_retificacao.periodo.recurso.icone else None,
-                        'ativo': ata_2020_1_retificacao.periodo.recurso.ativo,
-                        'legado': ata_2020_1_retificacao.periodo.recurso.legado,
-                        'exibe_valores_reprogramados': ata_2020_1_retificacao.periodo.recurso.exibe_valores_reprogramados
-                    }},
+                    'recurso': recurso_esperado(ata_2020_1_retificacao.periodo.recurso),
+                    },
         'presentes_na_ata': [],
         'presidente_reuniao': 'José',
         'prestacao_conta': f'{ata_2020_1_retificacao.prestacao_conta.uuid}',

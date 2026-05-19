@@ -79,13 +79,6 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     )
     rateios = RateioDespesaCreateSerializer(many=True, required=True, allow_null=False)
     despesas_impostos = DespesaImpostoSerializer(many=True, required=False, allow_null=True)
-    confirmar_limpeza_prioridades_paa = serializers.BooleanField(
-        required=False,
-        default=False,
-        write_only=True,
-        help_text='Se True, confirma a limpeza do valor das prioridades do PAA impactadas.'
-    )
-
     valor_total = serializers.DecimalField(
         max_digits=8,
         decimal_places=2,

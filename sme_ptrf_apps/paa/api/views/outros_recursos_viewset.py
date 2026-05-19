@@ -10,6 +10,8 @@ from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.paa.models import OutroRecurso
 from sme_ptrf_apps.paa.api.serializers.outros_recursos_serializer import OutroRecursoSerializer
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
+from drf_spectacular.utils import extend_schema_view
+from .docs.outros_recursos_docs import DOCS
 
 
 class OutroRecursoFiltro(django_filters.FilterSet):
@@ -28,6 +30,7 @@ class OutroRecursoFiltro(django_filters.FilterSet):
         ]
 
 
+@extend_schema_view(**DOCS)
 class OutrosRecursosPaaViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated & PermissaoApiUe]

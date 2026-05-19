@@ -27,7 +27,7 @@ def verificar_se_gera_ata_parecer_tecnico(dre=None, periodo=None, consolidado_dr
                                           parcial=None):
     from .gerar_arquivo_ata_parecer_tecnico import gerar_arquivo_ata_parecer_tecnico_async
 
-    logger.info(f'Iniciando a verificação para gerar a Ata de Parecer Técnico')
+    logger.info('Iniciando a verificação para gerar a Ata de Parecer Técnico')
 
     dre_uuid = dre.uuid
     periodo_uuid = periodo.uuid
@@ -54,7 +54,11 @@ def verificar_se_gera_ata_parecer_tecnico(dre=None, periodo=None, consolidado_dr
 
 def gerar_lauda_txt_consolidado_dre(consolidado_dre, dre, periodo, parcial, usuario, apenas_nao_publicadas):
     logger.info(
-        f'Iniciando a geração do arquivo txt da lauda async. DRE:{dre} Período:{periodo} Consolidado DRE {consolidado_dre}.')
+        'Iniciando a geração da lauda (PDF) no consolidado. DRE:%s Período:%s Consolidado DRE %s.',
+        dre,
+        periodo,
+        consolidado_dre,
+    )
     from sme_ptrf_apps.dre.services import gerar_arquivo_lauda_txt_consolidado_dre
 
     usuario = get_user_model().objects.get(username=usuario)
@@ -77,7 +81,10 @@ def gerar_lauda_txt_consolidado_dre(consolidado_dre, dre, periodo, parcial, usua
     except (AtaParecerTecnico.DoesNotExist, ValidationError):
         erro = {
             'erro': 'Objeto não encontrado.',
-            'mensagem': f"O objeto ata parecer tecnico para a dre {dre.uuid} e periodo {periodo.uuid} não foi encontrado na base."
+            'mensagem': (
+                f"O objeto ata parecer tecnico para a dre {dre.uuid} "
+                f"e periodo {periodo.uuid} não foi encontrado na base."
+            )
         }
         logger.error('Erro: %r', erro)
         raise Exception(erro)
@@ -92,14 +99,14 @@ def gerar_lauda_txt_consolidado_dre(consolidado_dre, dre, periodo, parcial, usua
         gerar_arquivo_lauda_txt_consolidado_dre(lauda, dre, periodo, ata, nome_dre, parcial, apenas_nao_publicadas)
     except Exception as err:
         erro = {
-            'erro': 'problema_geracao_txt',
-            'mensagem': 'Erro ao gerar txt.'
+            'erro': 'problema_geracao_lauda',
+            'mensagem': 'Erro ao gerar lauda (PDF).'
         }
         logger.error("Erro ao gerar lauda: %s", str(err))
         raise Exception(erro)
 
     logger.info(
-        f'Finalizado geração arquivo txt da lauda async. DRE:{dre} Período:{periodo}.')
+        f'Finalizado geração dos arquivos da lauda async. DRE:{dre} Período:{periodo}.')
 
 
 def passar_pcs_do_relatorio_para_publicadas(dre, periodo, consolidado_dre):

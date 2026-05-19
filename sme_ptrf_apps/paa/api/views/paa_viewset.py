@@ -108,7 +108,14 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         associacao = instance.associacao
 
         saldos_por_acao_paa_service = SaldosPorAcaoPaaService(paa=instance, associacao=associacao)
-        receitas_previstas = saldos_por_acao_paa_service.congelar_saldos()
+        try:
+            receitas_previstas = saldos_por_acao_paa_service.congelar_saldos()
+        except Exception as e:
+            logger.error(f'Erro ao congelar saldos do PAA {instance.uuid}: {e}')
+            return Response(
+                {'mensagem': f'{e}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         serializer = ReceitaPrevistaPaaSerializer(receitas_previstas, many=True)
 
@@ -316,10 +323,15 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         from sme_ptrf_apps.paa.models.atividade_estatutaria import AtividadeEstatutaria
 
         paa = self.get_object()
+        alteracoes = RetificacaoPaaService(paa=paa, usuario=request.user).identificar_alteracoes()
 
         objetivos = AtividadeEstatutaria.disponiveis_ordenadas(paa)
 
-        serializer = AtividadeEstatutariaSerializer(objetivos, many=True)
+        serializer = AtividadeEstatutariaSerializer(
+            objetivos,
+            many=True,
+            context={'alteracoes': alteracoes},
+        )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -340,8 +352,13 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import RecursoProprioPaaListSerializer
 
         paa = self.get_object()
+        alteracoes = RetificacaoPaaService(paa=paa, usuario=request.user).identificar_alteracoes()
 
-        serializer = RecursoProprioPaaListSerializer(paa.recursopropriopaa_set.all(), many=True)
+        serializer = RecursoProprioPaaListSerializer(
+            paa.recursopropriopaa_set.all(),
+            many=True,
+            context={'alteracoes': alteracoes},
+        )
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 

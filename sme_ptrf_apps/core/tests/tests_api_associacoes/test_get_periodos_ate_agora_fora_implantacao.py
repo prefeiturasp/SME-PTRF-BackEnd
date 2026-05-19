@@ -98,6 +98,7 @@ def test_get_periodos_ate_agora_fora_implantacao_da_associacao(
     periodo_2019_2,
     periodo_2020_1,
     periodo_2020_2,
+    recurso_esperado
 ):
     response = jwt_authenticated_client_a.get(
         f'/api/associacoes/{associacao_teste.uuid}/periodos-ate-agora-fora-implantacao/',
@@ -113,19 +114,7 @@ def test_get_periodos_ate_agora_fora_implantacao_da_associacao(
             'data_inicio_realizacao_despesas': f'{periodo_2020_1.data_inicio_realizacao_despesas}',
             'referencia': '2020.1',
             'referencia_por_extenso': periodo_2020_1.referencia_por_extenso,
-            'recurso': {
-                'id': periodo_2020_1.recurso.id,
-                'uuid': f'{periodo_2020_1.recurso.uuid}',
-                'nome': periodo_2020_1.recurso.nome,
-                'nome_exibicao': periodo_2020_1.recurso.nome_exibicao,
-                'criado_em': periodo_2020_1.recurso.criado_em.isoformat() if periodo_2020_1.recurso.criado_em else None,
-                'alterado_em': periodo_2020_1.recurso.alterado_em.isoformat() if periodo_2020_1.recurso.alterado_em else None,
-                'cor': periodo_2020_1.recurso.cor,
-                'icone': periodo_2020_1.recurso.icone if periodo_2020_1.recurso.icone else None,
-                'ativo': periodo_2020_1.recurso.ativo,
-                'legado': periodo_2020_1.recurso.legado,
-                'exibe_valores_reprogramados': periodo_2020_1.recurso.exibe_valores_reprogramados,
-            },
+            "recurso": recurso_esperado(periodo_2020_1.recurso),
         },
         {
             'id': periodo_2019_2.id,
@@ -134,19 +123,7 @@ def test_get_periodos_ate_agora_fora_implantacao_da_associacao(
             'data_inicio_realizacao_despesas': f'{periodo_2019_2.data_inicio_realizacao_despesas}',
             'referencia': '2019.2',
             'referencia_por_extenso': periodo_2019_2.referencia_por_extenso,
-            'recurso': {
-                'id': periodo_2019_2.recurso.id,
-                'uuid': f'{periodo_2019_2.recurso.uuid}',
-                'nome': periodo_2019_2.recurso.nome,
-                'nome_exibicao': periodo_2019_2.recurso.nome_exibicao,
-                'criado_em': periodo_2019_2.recurso.criado_em.isoformat() if periodo_2019_2.recurso.criado_em else None,
-                'alterado_em': periodo_2019_2.recurso.alterado_em.isoformat() if periodo_2019_2.recurso.alterado_em else None,
-                'cor': periodo_2019_2.recurso.cor,
-                'icone': periodo_2019_2.recurso.icone if periodo_2019_2.recurso.icone else None,
-                'ativo': periodo_2019_2.recurso.ativo,
-                'legado': periodo_2019_2.recurso.legado,
-                'exibe_valores_reprogramados': periodo_2019_2.recurso.exibe_valores_reprogramados,
-            },
+            "recurso": recurso_esperado(periodo_2019_2.recurso),
         },
     ]
 
@@ -164,6 +141,7 @@ def test_get_periodos_ate_encerramento_da_associacao_e_fora_implantacao_da_assoc
     periodo_2019_2,
     periodo_2020_1,
     periodo_2020_2,
+    recurso_esperado,
 ):
     response = jwt_authenticated_client_a.get(
         f'/api/associacoes/{associacao_encerrada_teste.uuid}/periodos-ate-agora-fora-implantacao/',
@@ -179,19 +157,7 @@ def test_get_periodos_ate_encerramento_da_associacao_e_fora_implantacao_da_assoc
             'data_inicio_realizacao_despesas': f'{periodo_2019_2.data_inicio_realizacao_despesas}',
             'referencia': '2019.2',
             'referencia_por_extenso': periodo_2019_2.referencia_por_extenso,
-            'recurso': {
-                'id': periodo_2019_2.recurso.id,
-                'uuid': f'{periodo_2019_2.recurso.uuid}',
-                'nome': periodo_2019_2.recurso.nome,
-                'nome_exibicao': periodo_2019_2.recurso.nome_exibicao,
-                'criado_em': periodo_2019_2.recurso.criado_em.isoformat() if periodo_2019_2.recurso.criado_em else None,
-                'alterado_em': periodo_2019_2.recurso.alterado_em.isoformat() if periodo_2019_2.recurso.alterado_em else None,
-                'cor': periodo_2019_2.recurso.cor,
-                'icone': periodo_2019_2.recurso.icone if periodo_2019_2.recurso.icone else None,
-                'ativo': periodo_2019_2.recurso.ativo,
-                'legado': periodo_2019_2.recurso.legado,
-                'exibe_valores_reprogramados': periodo_2019_2.recurso.exibe_valores_reprogramados,
-            },
+            "recurso": recurso_esperado(periodo_2019_2.recurso),
         },
     ]
 

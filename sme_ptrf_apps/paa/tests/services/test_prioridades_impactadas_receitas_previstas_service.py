@@ -285,13 +285,16 @@ class TestPrioridadesPaaImpactadasBaseService:
         mock_paa_class,
         receita_prevista_ptrf_data
     ):
+        from django.db.models import Q, Exists
         """Testa que query_base retorna queryset com filtros corretos via Exists(paas_em_elaboracao)"""
         mock_qs = Mock(spec=models.QuerySet)
         mock_queryset.filter.return_value = mock_qs
 
         mock_paa_qs = Mock()
         mock_paa_class.objects.filter.return_value = mock_paa_qs
+
         mock_paa_qs.paas_em_elaboracao.return_value = Mock()
+        mock_paa_qs.paas_em_retificacao.return_value = Mock()
 
         service = ConcretePrioridadesPaaImpactadasService(receita_prevista_ptrf_data)
 
@@ -299,7 +302,13 @@ class TestPrioridadesPaaImpactadasBaseService:
 
         # Verifica que filter foi chamado com Exists como arg posicional e valor_total__isnull=False
         call_args = mock_queryset.filter.call_args
-        assert isinstance(call_args.args[0], models.Exists)
+        condition = call_args.args[0]
+
+        assert isinstance(condition, Q)
+        assert condition.connector == 'OR'
+        assert len(condition.children) == 2
+        for child in condition.children:
+            assert isinstance(child, Exists)
         assert call_args.kwargs == {'valor_total__isnull': False}
         assert result == mock_qs
 

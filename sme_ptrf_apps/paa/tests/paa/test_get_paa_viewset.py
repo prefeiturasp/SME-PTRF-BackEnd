@@ -228,3 +228,111 @@ def test_get_paa_vigente_e_anteriores_sem_periodo(
     )
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+def test_get_paa_vigente_e_anteriores_sem_associacao_uuid(
+    jwt_authenticated_client_sme,
+    flag_paa,
+):
+    response = jwt_authenticated_client_sme.get("/api/paa/paa-vigente-e-anteriores/")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data['erro'] == 'parametros_requeridos'
+
+
+def test_get_paa_vigente_e_anteriores_associacao_nao_encontrada(
+    jwt_authenticated_client_sme,
+    flag_paa,
+):
+    response = jwt_authenticated_client_sme.get(
+        "/api/paa/paa-vigente-e-anteriores/?associacao_uuid=00000000-0000-0000-0000-000000000000"
+    )
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert response.data['erro'] == 'Objeto não encontrado.'
+
+
+def test_get_receitas_previstas(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory):
+    periodo = periodo_paa_factory.create(
+        referencia="Periodo 2025", data_inicial=date(2025, 1, 1), data_final=date(2025, 12, 31))
+    paa = paa_factory.create(periodo_paa=periodo)
+
+    response = jwt_authenticated_client_sme.get(f"/api/paa/{paa.uuid}/receitas-previstas/")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert isinstance(response.data, list)
+
+
+def test_get_plano_orcamentario(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory):
+    periodo = periodo_paa_factory.create(
+        referencia="Periodo 2025", data_inicial=date(2025, 1, 1), data_final=date(2025, 12, 31))
+    paa = paa_factory.create(periodo_paa=periodo)
+
+    response = jwt_authenticated_client_sme.get(f"/api/paa/{paa.uuid}/plano-orcamentario/")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert isinstance(response.data, dict)
+
+
+def test_get_outros_recursos_periodo(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory):
+    periodo = periodo_paa_factory.create(
+        referencia="Periodo 2025", data_inicial=date(2025, 1, 1), data_final=date(2025, 12, 31))
+    paa = paa_factory.create(periodo_paa=periodo)
+
+    response = jwt_authenticated_client_sme.get(f"/api/paa/{paa.uuid}/outros-recursos-do-periodo/")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert isinstance(response.data, list)
+
+
+def test_get_documento_previa_nao_gerado(jwt_authenticated_client_sme, flag_paa, paa_factory):
+    paa = paa_factory()
+
+    response = jwt_authenticated_client_sme.get(f"/api/paa/{paa.uuid}/documento-previa/")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data['mensagem'] == 'Documento prévia não gerado'
+
+
+def test_get_documento_previa_nao_concluido(jwt_authenticated_client_sme, flag_paa, paa_factory,
+                                            documento_paa_factory):
+    paa = paa_factory()
+    documento_paa_factory.create(paa=paa, versao='PREVIA', status_geracao='NAO_GERADO')
+
+    response = jwt_authenticated_client_sme.get(f"/api/paa/{paa.uuid}/documento-previa/")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data['mensagem'] == 'Documento prévia não concluído'
+
+
+def test_get_status_geracao_pendente(jwt_authenticated_client_sme, flag_paa, paa_factory):
+    paa = paa_factory()
+
+    response = jwt_authenticated_client_sme.get(f"/api/paa/{paa.uuid}/status-geracao/")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['mensagem'] == 'Documento pendente de geração'
+
+
+def test_get_status_geracao_com_documento_previa(jwt_authenticated_client_sme, flag_paa, paa_factory,
+                                                 documento_paa_factory):
+    paa = paa_factory()
+    documento_paa_factory.create(paa=paa, versao='PREVIA', status_geracao='EM_PROCESSAMENTO')
+
+    response = jwt_authenticated_client_sme.get(f"/api/paa/{paa.uuid}/status-geracao/")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['versao'] == 'PREVIA'
+    assert response.data['status'] == 'EM_PROCESSAMENTO'
+
+
+def test_get_status_geracao_com_documento_final(jwt_authenticated_client_sme, flag_paa, paa_factory,
+                                                documento_paa_factory):
+    paa = paa_factory()
+    documento_paa_factory.create(paa=paa, versao='FINAL', status_geracao='CONCLUIDO')
+
+    response = jwt_authenticated_client_sme.get(f"/api/paa/{paa.uuid}/status-geracao/")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['versao'] == 'FINAL'
+    assert response.data['status'] == 'CONCLUIDO'

@@ -163,6 +163,21 @@ def test_validar_conta_rateio_encerrada(conta_encerrada, recurso_legado):
     assert "data de encerramento anterior" in str(exc.value)
 
 
+def test_validar_periodo_e_contas_rascunho_sem_data_transacao_nao_raise(conta_ativa):
+    """Despesa RASCUNHO (STATUS_INCOMPLETO) sem data_transacao não deve levantar exceção."""
+    rateios = [
+        {"conta_associacao": None, "acao_associacao": None}
+    ]
+
+    ValidacaoDespesaService.validar_periodo_e_contas(
+        instance=None,
+        data_transacao=None,
+        rateios=rateios,
+        despesas_impostos=[],
+        recurso=None,
+    )
+
+
 @pytest.mark.django_db
 def test_validar_conta_imposto_inicio_maior(conta_ativa, recurso_legado):
     conta_ativa.data_inicio = date(2025, 2, 1)
