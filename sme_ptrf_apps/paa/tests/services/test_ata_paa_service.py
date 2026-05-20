@@ -7,12 +7,14 @@ from model_bakery import baker
 from sme_ptrf_apps.paa.models import AtaPaa
 
 
+from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.services.ata_paa_service import (
     gerar_arquivo_ata_paa,
     unidade_precisa_professor_gremio,
     verifica_precisa_professor_gremio,
     validar_geracao_ata_paa,
 )
+from sme_ptrf_apps.paa.services.validacao_edicao_ata_paa_service import validar_edicao_ata_paa
 from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
 
 pytestmark = pytest.mark.django_db
@@ -255,14 +257,9 @@ class TestGerarArquivoAtaPaa:
 
 
 @pytest.fixture
-def paa_com_documento_concluido(paa):
+def paa_com_documento_concluido(paa, documento_paa_factory):
     """Fixture para PAA com documento final concluído"""
-    baker.make(
-        'DocumentoPaa',
-        paa=paa,
-        status_geracao='CONCLUIDO',
-        versao='FINAL'
-    )
+    documento_paa_factory.create(paa=paa)
     return paa
 
 
@@ -391,3 +388,85 @@ class TestValidarGeracaoAtaPaa:
         assert 'mensagem' in resultado, resultado
         assert 'A ata já está sendo gerada' in resultado['mensagem']
         assert resultado['is_valid'] is False
+
+
+@pytest.mark.django_db
+class TestValidarEdicaoAtaPaa:
+    """Testes para validar_edicao_ata_paa"""
+
+    def test_bloqueia_edicao_ata_apresentacao_quando_paa_gerado_e_pdf_concluido(
+        self, paa_com_documento_concluido, ata_paa_factory,
+    ):
+        paa_com_documento_concluido.status = PaaStatusEnum.GERADO.name
+        paa_com_documento_concluido.save()
+        ata = ata_paa_factory.create(
+            paa=paa_com_documento_concluido,
+            tipo_ata=AtaPaa.ATA_APRESENTACAO,
+            status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        )
+
+        resultado = validar_edicao_ata_paa(ata)
+
+        assert resultado['is_valid'] is False
+        assert 'retificação' in resultado['mensagem'].lower()
+
+    def test_permite_edicao_ata_apresentacao_quando_paa_gerado_sem_pdf(
+        self, paa_com_documento_concluido, ata_paa_factory,
+    ):
+        paa_com_documento_concluido.status = PaaStatusEnum.GERADO.name
+        paa_com_documento_concluido.save()
+        ata = ata_paa_factory.create(
+            paa=paa_com_documento_concluido,
+            tipo_ata=AtaPaa.ATA_APRESENTACAO,
+            status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO,
+        )
+
+        resultado = validar_edicao_ata_paa(ata)
+
+        assert resultado['is_valid'] is True
+
+    def test_permite_edicao_ata_retificacao_durante_retificacao(
+        self, paa_com_documento_concluido, ata_paa_factory,
+    ):
+        paa_com_documento_concluido.status = PaaStatusEnum.EM_RETIFICACAO.name
+        paa_com_documento_concluido.save()
+        ata_ret = ata_paa_factory.create(
+            paa=paa_com_documento_concluido,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO,
+        )
+
+        resultado = validar_edicao_ata_paa(ata_ret)
+
+        assert resultado['is_valid'] is True
+
+    def test_permite_reeditar_ata_retificacao_mesmo_com_pdf_para_regerar(
+        self, paa_com_documento_concluido, ata_paa_factory,
+    ):
+        paa_com_documento_concluido.status = PaaStatusEnum.EM_RETIFICACAO.name
+        paa_com_documento_concluido.save()
+        ata_ret = ata_paa_factory.create(
+            paa=paa_com_documento_concluido,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        )
+
+        resultado = validar_edicao_ata_paa(ata_ret)
+
+        assert resultado['is_valid'] is True
+
+    def test_bloqueia_edicao_ata_apresentacao_durante_retificacao(
+        self, paa_com_documento_concluido, ata_paa_factory,
+    ):
+        paa_com_documento_concluido.status = PaaStatusEnum.EM_RETIFICACAO.name
+        paa_com_documento_concluido.save()
+        ata_apresentacao = ata_paa_factory.create(
+            paa=paa_com_documento_concluido,
+            tipo_ata=AtaPaa.ATA_APRESENTACAO,
+            status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        )
+
+        resultado = validar_edicao_ata_paa(ata_apresentacao)
+
+        assert resultado['is_valid'] is False
+        assert 'apenas a ata de retificação' in resultado['mensagem'].lower()
