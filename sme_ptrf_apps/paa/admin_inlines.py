@@ -1,218 +1,206 @@
-from django.contrib import admin
+from django.urls import reverse
+from django.utils.html import escape, format_html, mark_safe
 from sme_ptrf_apps.paa.models import (
-    Paa,
     ReceitaPrevistaPaa,
     RecursoProprioPaa,
     ReceitaPrevistaPdde,
     PrioridadePaa,
     AtaPaa,
     DocumentoPaa,
+    AtividadeEstatutariaPaa,
     ReceitaPrevistaOutroRecursoPeriodo
 )
 
 
-class ObjetivosPaaInline(admin.TabularInline):
-    model = Paa.objetivos.through
-    extra = 0
-    fields = (
-        'get_uuid',
-        'get_nome',
-        'get_status',
-        'get_objetivo_do_paa',
-    )
-    readonly_fields = fields
-    can_delete = False
-    verbose_name = 'Objetivo'
-    verbose_name_plural = 'Objetivos'
+class PaaTabelasMixin:
+    """Métodos readonly que renderizam registros relacionados ao PAA como tabelas HTML."""
 
-    def has_add_permission(self, request, obj=None):
-        return False
+    @staticmethod
+    def _link(app_label, model_name, pk, label):
+        url = reverse(f'admin:{app_label}_{model_name}_change', args=[pk])
+        return format_html('<a href="{}">{}</a>', url, label)
 
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('objetivopaa')
+    @staticmethod
+    def _check_boolean(b):
+        return '✓' if b else '✗'
 
-    def get_uuid(self, obj):
-        return obj.objetivopaa.uuid
-    get_uuid.short_description = 'UUID'
+    @staticmethod
+    def _table(headers, rows):
+        style_th = 'padding:4px 8px;text-align:left;background:#f8f8f8;border-bottom:1px solid #ccc'
+        style_td = 'padding:4px 8px;border-bottom:1px solid #eee;vertical-align:top'
+        ths = ''.join(f'<th style="{style_th}">{escape(h)}</th>' for h in headers)
+        if rows:
+            trs = ''
+            for row in rows:
+                cells = ''.join(
+                    f'<td style="{style_td}">'
+                    f'{c if hasattr(c, "__html__") else escape(str(c) if c is not None else "-")}'
+                    f'</td>'
+                    for c in row
+                )
+                trs += f'<tr>{cells}</tr>'
+        else:
+            trs = (
+                f'<tr><td colspan="{len(headers)}" style="{style_td};color:#999">'
+                f'Nenhum registro.</td></tr>'
+            )
+        return mark_safe(
+            f'<div style="overflow-x:auto">'
+            f'<table style="border-collapse:collapse;width:100%">'
+            f'<thead><tr>{ths}</tr></thead><tbody>{trs}</tbody>'
+            f'</table></div>'
+        )
 
-    def get_nome(self, obj):
-        return obj.objetivopaa.nome
-    get_nome.short_description = 'Nome'
+    def tabela_objetivos(self, obj):
+        if not obj or not obj.pk:
+            return self._table(['UUID', 'Nome', 'Status', 'Criado no PAA'], [])
+        rows = [
+            [
+                self._link('paa', 'objetivopaa', item.pk, item.uuid),
+                item.nome,
+                item.get_status_display(),
+                self._check_boolean(bool(item.paa_id)),
+            ]
+            for item in obj.objetivos.all()
+        ]
+        return self._table(['UUID', 'Nome', 'Status', 'Criado no PAA'], rows)
+    tabela_objetivos.short_description = 'Objetivos'
 
-    def get_status(self, obj):
-        return obj.objetivopaa.get_status_display()
-    get_status.short_description = 'Status'
+    def tabela_atividades_estatutarias(self, obj):
+        if not obj or not obj.pk:
+            return self._table(['UUID', 'Atividade Estatutária', 'Data', 'Criada no PAA'], [])
+        qs = AtividadeEstatutariaPaa.objects.filter(paa=obj).select_related('atividade_estatutaria')
+        rows = [
+            [
+                self._link('paa', 'atividadeestatutariapaa', item.pk, item.uuid),
+                str(item.atividade_estatutaria),
+                item.data or '-',
+                self._check_boolean(bool(item.atividade_estatutaria.paa_id)),
+            ]
+            for item in qs
+        ]
+        return self._table(['UUID', 'Atividade Estatutária', 'Data', 'Criada no PAA'], rows)
+    tabela_atividades_estatutarias.short_description = 'Atividades Estatutárias'
 
-    def get_objetivo_do_paa(self, obj):
-        return obj.objetivopaa.paa_id is not None
-    get_objetivo_do_paa.short_description = 'Criado no PAA'
-    get_objetivo_do_paa.boolean = True
+    def tabela_receitas_ptrf(self, obj):
+        if not obj or not obj.pk:
+            return self._table([], [])
+        headers = [
+            'UUID', 'Ação Associação',
+            'Saldo Custeio', 'Saldo Capital', 'Saldo Livre', 'Prev. Custeio', 'Prev. Capital', 'Prev. Livre']  # noqa
+        rows = [
+            [
+                self._link('paa', 'receitaprevistapaa', item.pk, item.uuid),
+                str(item.acao_associacao),
+                item.saldo_congelado_custeio, item.saldo_congelado_capital, item.saldo_congelado_livre,
+                item.previsao_valor_custeio, item.previsao_valor_capital, item.previsao_valor_livre,
+            ]
+            for item in ReceitaPrevistaPaa.objects.filter(paa=obj).select_related('acao_associacao')
+        ]
+        return self._table(headers, rows)
+    tabela_receitas_ptrf.short_description = 'Receitas Previstas PTRF'
 
+    def tabela_receitas_pdde(self, obj):
+        if not obj or not obj.pk:
+            return self._table([], [])
+        headers = ['UUID', 'Ação PDDE', 'Saldo Custeio', 'Saldo Capital', 'Saldo Livre',
+                   'Prev. Custeio', 'Prev. Capital', 'Prev. Livre']
+        rows = [
+            [
+                self._link('paa', 'receitaprevistapdde', item.pk, item.uuid),
+                str(item.acao_pdde),
+                item.saldo_custeio, item.saldo_capital, item.saldo_livre,
+                item.previsao_valor_custeio, item.previsao_valor_capital, item.previsao_valor_livre,
+            ]
+            for item in ReceitaPrevistaPdde.objects.filter(paa=obj).select_related('acao_pdde')
+        ]
+        return self._table(headers, rows)
+    tabela_receitas_pdde.short_description = 'Receitas Previstas PDDE'
 
-class AtividadeEstatutariaPaaInline(admin.TabularInline):
-    model = Paa.atividades_estatutarias.through
-    extra = 0
-    fields = (
-        'uuid',
-        'atividade_estatutaria',
-        'data',
-        'get_atividade_estatutaria_do_paa',
-    )
-    readonly_fields = fields
-    can_delete = False
+    def tabela_recursos_proprios(self, obj):
+        if not obj or not obj.pk:
+            return self._table([], [])
+        headers = ['UUID', 'Fonte Recurso', 'Associação', 'Data Prevista', 'Descrição', 'Valor']
+        rows = [
+            [
+                self._link('paa', 'recursopropriopaa', item.pk, item.uuid),
+                str(item.fonte_recurso),
+                str(item.associacao),
+                item.data_prevista or '-',
+                item.descricao or '-',
+                item.valor,
+            ]
+            for item in RecursoProprioPaa.objects.filter(paa=obj).select_related('fonte_recurso', 'associacao')
+        ]
+        return self._table(headers, rows)
+    tabela_recursos_proprios.short_description = 'Recursos Próprios'
 
-    def has_add_permission(self, request, obj):
-        return False
+    def tabela_outros_recursos_periodo(self, obj):
+        if not obj or not obj.pk:
+            return self._table([], [])
+        headers = ['UUID', 'Outro Recurso (Período)', 'Saldo Custeio', 'Saldo Capital', 'Saldo Livre',
+                   'Prev. Custeio', 'Prev. Capital', 'Prev. Livre']
+        rows = [
+            [
+                self._link('paa', 'receitaprevistaoutrorecursoperiodo', item.pk, item.uuid),
+                str(item.outro_recurso_periodo),
+                item.saldo_custeio, item.saldo_capital, item.saldo_livre,
+                item.previsao_valor_custeio, item.previsao_valor_capital, item.previsao_valor_livre,
+            ]
+            for item in ReceitaPrevistaOutroRecursoPeriodo.objects.filter(
+                paa=obj).select_related('outro_recurso_periodo')
+        ]
+        return self._table(headers, rows)
+    tabela_outros_recursos_periodo.short_description = 'Outros Recursos (Período)'
 
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('atividade_estatutaria')
+    def tabela_documentos(self, obj):
+        if not obj or not obj.pk:
+            return self._table([], [])
+        headers = ['UUID', 'Status Geração', 'Versão', 'Versão Doc.', 'Retificação']
+        rows = [
+            [
+                self._link('paa', 'documentopaa', item.pk, item.uuid),
+                item.get_status_geracao_display() if hasattr(item, 'get_status_geracao_display') else item.status_geracao,  # noqa
+                item.versao or '-',
+                item.versao_documento or '-',
+                self._check_boolean(item.retificacao),
+            ]
+            for item in DocumentoPaa.objects.filter(paa=obj)
+        ]
+        return self._table(headers, rows)
+    tabela_documentos.short_description = 'Documentos'
 
-    def get_atividade_estatutaria_do_paa(self, obj):
-        return obj.atividade_estatutaria.paa_id is not None
-    get_atividade_estatutaria_do_paa.short_description = 'Criada no PAA'
-    get_atividade_estatutaria_do_paa.boolean = True
+    def tabela_atas(self, obj):
+        if not obj or not obj.pk:
+            return self._table([], [])
+        headers = ['UUID', 'Tipo Ata', 'Status Geração PDF', 'Parecer Conselho', 'Prévia', 'Preenchida Em']
+        rows = [
+            [
+                self._link('paa', 'atapaa', item.pk, item.uuid),
+                item.get_tipo_ata_display() if hasattr(item, 'get_tipo_ata_display') else item.tipo_ata,
+                item.status_geracao_pdf,
+                item.parecer_conselho,
+                self._check_boolean(item.previa),
+                item.preenchida_em or '-',
+            ]
+            for item in AtaPaa.objects.filter(paa=obj)
+        ]
+        return self._table(headers, rows)
+    tabela_atas.short_description = 'Atas'
 
-
-class ReceitasPrevistasPTRFInline(admin.TabularInline):
-    model = ReceitaPrevistaPaa
-    extra = 0
-    fields = (
-        'uuid',
-        'acao_associacao',
-        'saldo_congelado_custeio',
-        'saldo_congelado_capital',
-        'saldo_congelado_livre',
-        'previsao_valor_custeio',
-        'previsao_valor_capital',
-        'previsao_valor_livre',
-    )
-    readonly_fields = fields
-    can_delete = False
-
-    def has_add_permission(self, request, obj):
-        return False
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('acao_associacao')
-
-
-class ReceitasPrevistasPDDEInline(admin.TabularInline):
-    model = ReceitaPrevistaPdde
-    extra = 0
-    fields = (
-        'uuid',
-        'acao_pdde',
-        'saldo_custeio',
-        'saldo_capital',
-        'saldo_livre',
-        'previsao_valor_custeio',
-        'previsao_valor_capital',
-        'previsao_valor_livre',
-    )
-    readonly_fields = fields
-    can_delete = False
-
-    def has_add_permission(self, request, obj):
-        return False
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('acao_pdde')
-
-
-class ReceitasPrevistasRecursoProprioInline(admin.TabularInline):
-    model = RecursoProprioPaa
-    extra = 0
-    fields = (
-        'uuid',
-        'fonte_recurso',
-        'associacao',
-        'data_prevista',
-        'descricao',
-        'valor',
-    )
-    readonly_fields = fields
-    can_delete = False
-
-    def has_add_permission(self, request, obj):
-        return False
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('fonte_recurso', 'associacao')
-
-
-class ReceitasPrevistasOutrosRecursosPeriodoInline(admin.TabularInline):
-    model = ReceitaPrevistaOutroRecursoPeriodo
-    extra = 0
-    fields = (
-        'uuid',
-        'outro_recurso_periodo',
-        'saldo_custeio',
-        'saldo_capital',
-        'saldo_livre',
-        'previsao_valor_custeio',
-        'previsao_valor_capital',
-        'previsao_valor_livre',
-    )
-    readonly_fields = fields
-    can_delete = False
-
-    def has_add_permission(self, request, obj):
-        return False
-
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('outro_recurso_periodo')
-
-
-class PrioridadesPaaInline(admin.TabularInline):
-    model = PrioridadePaa
-    extra = 0
-    fk_name = 'paa'
-    fields = (
-        'uuid',
-        'prioridade',
-        'recurso',
-        'tipo_aplicacao',
-        'valor_total',
-    )
-    readonly_fields = fields
-    can_delete = False
-
-    def has_add_permission(self, request, obj):
-        return False
-
-
-class DocumentoPAAInline(admin.TabularInline):
-    model = DocumentoPaa
-    extra = 0
-    fields = (
-        'arquivo_pdf',
-        'status_geracao',
-        'versao',
-        'versao_documento',
-        'retificacao',
-    )
-    readonly_fields = fields
-    can_delete = False
-
-    def has_add_permission(self, request, obj):
-        return False
-
-
-class AtaPAAInline(admin.TabularInline):
-    model = AtaPaa
-    extra = 0
-    fields = (
-        'arquivo_pdf',
-        'tipo_ata',
-        'status_geracao_pdf',
-        'parecer_conselho',
-        'preenchida_em',
-        'previa',
-        'justificativa',
-        'pdf_gerado_previamente',
-    )
-    readonly_fields = fields
-    can_delete = False
-
-    def has_add_permission(self, request, obj):
-        return False
+    def tabela_prioridades(self, obj):
+        if not obj or not obj.pk:
+            return self._table([], [])
+        headers = ['UUID', 'Prioridade', 'Recurso', 'Tipo Aplicação', 'Valor Total']
+        rows = [
+            [
+                self._link('paa', 'prioridadepaa', item.pk, item.uuid),
+                self._check_boolean(item.prioridade),
+                item.recurso,
+                item.tipo_aplicacao,
+                item.valor_total,
+            ]
+            for item in PrioridadePaa.objects.filter(paa=obj)
+        ]
+        return self._table(headers, rows)
+    tabela_prioridades.short_description = 'Prioridades'
