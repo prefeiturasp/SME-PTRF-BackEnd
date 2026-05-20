@@ -8,6 +8,7 @@ from sme_ptrf_apps.core.api.serializers import AssociacaoInfoAtaSerializer
 from sme_ptrf_apps.paa.api.serializers.presentes_ata_paa_serializer import (PresentesAtaPaaSerializer,
                                                                             PresentesAtaPaaCreateSerializer)
 from sme_ptrf_apps.paa.models import AtaPaa, Paa
+from sme_ptrf_apps.paa.services.validacao_edicao_ata_paa_service import validar_edicao_ata_paa
 from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
 
 from waffle import get_waffle_flag_model
@@ -112,6 +113,11 @@ class AtaPaaCreateSerializer(serializers.ModelSerializer):
     def get_nome_ata(self, obj):
         return obj.nome
 
+    def _checar_permite_edicao_ata(self, ata_paa: AtaPaa):
+        validacao = validar_edicao_ata_paa(ata_paa)
+        if not validacao.get('is_valid'):
+            raise serializers.ValidationError({'mensagem': validacao.get('mensagem')})
+
     def create(self, validated_data):
         with transaction.atomic():
             presentes_na_ata_paa = validated_data.pop('presentes_na_ata_paa', [])
@@ -189,6 +195,8 @@ class AtaPaaCreateSerializer(serializers.ModelSerializer):
             return ata_paa
 
     def update(self, instance, validated_data):
+        self._checar_permite_edicao_ata(instance)
+
         with transaction.atomic():
             presentes_json = validated_data.pop('presentes_na_ata_paa', [])
 
