@@ -27,17 +27,7 @@ from sme_ptrf_apps.paa.models import (
 )
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
-from sme_ptrf_apps.paa.admin_inlines import (
-    ReceitasPrevistasPTRFInline,
-    ReceitasPrevistasPDDEInline,
-    ReceitasPrevistasRecursoProprioInline,
-    ReceitasPrevistasOutrosRecursosPeriodoInline,
-    ObjetivosPaaInline,
-    AtividadeEstatutariaPaaInline,
-    DocumentoPAAInline,
-    AtaPAAInline,
-    PrioridadesPaaInline,
-)
+from sme_ptrf_apps.paa.admin_inlines import PaaTabelasMixin
 
 
 class StatusAndamentoFilter(SimpleListFilter):
@@ -89,29 +79,21 @@ class ParametroPaaAdmin(admin.ModelAdmin):
 
 
 @admin.register(Paa)
-class PaaAdmin(admin.ModelAdmin):
+class PaaAdmin(PaaTabelasMixin, admin.ModelAdmin):
     list_select_related = ('periodo_paa', 'associacao')
     list_display = ('periodo_paa', 'associacao', 'status', 'status_andamento')
     readonly_fields = (
         'uuid', 'id', 'status_andamento', 'condicao_andamento', 'criado_em', 'alterado_em', 'replica',
-        'acoes_conclusao', 'acoes_pdde_conclusao', 'outros_recursos_periodo_conclusao'
+        'acoes_conclusao', 'acoes_pdde_conclusao', 'outros_recursos_periodo_conclusao',
+        'tabela_objetivos', 'tabela_atividades_estatutarias', 'tabela_receitas_ptrf',
+        'tabela_receitas_pdde', 'tabela_recursos_proprios', 'tabela_outros_recursos_periodo',
+        'tabela_prioridades', 'tabela_documentos', 'tabela_atas',
     )
     list_display_links = ['periodo_paa']
     search_fields = ('periodo_paa__referencia', 'associacao__nome', 'associacao__unidade__codigo_eol')
     list_filter = ('periodo_paa', 'associacao', 'status', StatusAndamentoFilter)
     raw_id_fields = ['periodo_paa', 'associacao']
     filter_horizontal = ('objetivos',)
-    inlines = [
-        ObjetivosPaaInline,
-        AtividadeEstatutariaPaaInline,
-        ReceitasPrevistasPTRFInline,
-        ReceitasPrevistasPDDEInline,
-        ReceitasPrevistasRecursoProprioInline,
-        ReceitasPrevistasOutrosRecursosPeriodoInline,
-        DocumentoPAAInline,
-        AtaPAAInline,
-        PrioridadesPaaInline,
-    ]
 
     def status_andamento(self, obj):
         from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
