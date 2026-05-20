@@ -1,12 +1,19 @@
 from rest_framework import serializers
 
 from sme_ptrf_apps.core.api.serializers import TipoContaSerializer, UnidadeSerializer
+from sme_ptrf_apps.core.api.serializers.recurso_serializer import RecursoSerializer
 from .detalhe_tipo_receita_serializer import DetalheTipoReceitaSerializer
 from sme_ptrf_apps.receitas.models import TipoReceita, DetalheTipoReceita
-from sme_ptrf_apps.core.models import TipoConta
+from sme_ptrf_apps.core.models import TipoConta, Recurso
 
 
 class TipoReceitaSerializer(serializers.ModelSerializer):
+    recurso = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Recurso.objects.all()
+    )
+
     class Meta:
         model = TipoReceita
         fields = (
@@ -17,7 +24,8 @@ class TipoReceitaSerializer(serializers.ModelSerializer):
             'aceita_custeio',
             'aceita_livre',
             'e_devolucao',
-            'e_recursos_proprios'
+            'e_recursos_proprios',
+            'recurso'
         )
 
 
@@ -58,6 +66,12 @@ class TipoReceitaListaSerializer(serializers.ModelSerializer):
     unidades = UnidadeSerializer(many=True)
     todas_unidades_selecionadas = serializers.SerializerMethodField()
 
+    recurso = RecursoSerializer(
+        read_only=True,
+        required=False,
+        allow_null=True
+    )
+
     class Meta:
         model = TipoReceita
         fields = (
@@ -79,6 +93,7 @@ class TipoReceitaListaSerializer(serializers.ModelSerializer):
             'unidades',
             'todas_unidades_selecionadas',
             'uso_associacao',
+            'recurso'
         )
 
     def get_todas_unidades_selecionadas(self, obj):
@@ -90,6 +105,11 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
         child=serializers.CharField(), required=False, write_only=True
     )
     tipos_conta = serializers.SlugRelatedField(many=True, queryset=TipoConta.objects.all(), slug_field='uuid')
+    recurso = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Recurso.objects.all()
+    )
 
     class Meta:
         model = TipoReceita
@@ -109,6 +129,7 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
             'detalhes',
             'possui_detalhamento',
             'tipos_conta',
+            'recurso'
         )
 
     def create(self, validated_data):

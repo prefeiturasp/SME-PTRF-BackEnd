@@ -36,7 +36,7 @@ class TipoReceitaForm(ModelForm):
 class TipoReceitaAdmin(admin.ModelAdmin):
     form = TipoReceitaForm
     list_display = (
-        'nome', 'e_repasse', 'e_rendimento', 'aceita_capital', 'aceita_custeio', 'aceita_livre',
+        'nome', 'recurso', 'e_repasse', 'e_rendimento', 'aceita_capital', 'aceita_custeio', 'aceita_livre',
         'mensagem_usuario', 'possui_detalhamento'
     )
     readonly_fields = ('uuid',)
