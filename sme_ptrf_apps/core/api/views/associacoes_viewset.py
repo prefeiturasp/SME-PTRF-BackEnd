@@ -144,6 +144,14 @@ class AssociacoesViewSet(ModelViewSet):
 
             qs = qs.exclude(id__in=ids_para_excluir_da_listagem)
 
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+        if recurso_uuid:
+            try:
+                recurso = Recurso.objects.get(uuid=recurso_uuid)
+                qs = Associacao.filter_by_recurso(qs, recurso)
+            except Recurso.DoesNotExist:
+                return Response({"mensagem": "Recurso não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
         return qs
 
     @action(detail=True, url_path='repasses-pendentes-por-periodo', methods=['get'],
