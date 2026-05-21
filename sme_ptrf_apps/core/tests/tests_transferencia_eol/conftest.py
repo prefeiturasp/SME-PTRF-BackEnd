@@ -361,9 +361,10 @@ def transf_eol_rateio_despesa_2_conta_cheque(
 
 
 @pytest.fixture
-def transf_eol_tipo_receita(transf_eol_tipo_conta_cheque, transf_eol_tipo_conta_cartao):
-    return baker.make('TipoReceita', nome='Repasse', e_repasse=True, aceita_capital=True, aceita_custeio=True,
-                      tipos_conta=[transf_eol_tipo_conta_cheque, transf_eol_tipo_conta_cartao])
+def transf_eol_tipo_receita(tipo_receita_factory, transf_eol_tipo_conta_cheque, transf_eol_tipo_conta_cartao):
+    tipo_receita = tipo_receita_factory.create(nome='Repasse', e_repasse=True, aceita_capital=True, aceita_custeio=True)
+    tipo_receita.tipos_conta.set([transf_eol_tipo_conta_cheque, transf_eol_tipo_conta_cartao])
+    return tipo_receita
 
 
 @pytest.fixture

@@ -11,9 +11,12 @@ from datetime import date
 
 
 @pytest.fixture
-def tipo_receita(tipo_conta, dre_ipiranga, dre, unidade):
-    return baker.make('TipoReceita', nome='Estorno', e_repasse=False, aceita_capital=False, aceita_custeio=False,
-                      e_devolucao=False, tipos_conta=[tipo_conta], detalhes=[], unidades=[dre_ipiranga, dre, unidade])
+def tipo_receita(tipo_receita_factory, tipo_conta, dre_ipiranga, dre, unidade):
+    tipo_rec = tipo_receita_factory.create(nome='Estorno', e_repasse=False, aceita_capital=False, aceita_custeio=False, 
+                                           e_devolucao=False)
+    tipo_rec.tipos_conta.set([tipo_conta])
+    tipo_rec.unidades.set([dre_ipiranga, dre, unidade])
+    return tipo_rec
 
 
 @pytest.fixture
@@ -22,15 +25,18 @@ def tipo_receita_estorno(tipo_receita):
 
 
 @pytest.fixture
-def tipo_receita_repasse(tipo_conta, dre_ipiranga):
-    return baker.make('TipoReceita', nome='Repasse', e_repasse=True, aceita_capital=True, aceita_custeio=True,
-                      tipos_conta=[tipo_conta], detalhes=[], unidades=[dre_ipiranga])
+def tipo_receita_repasse(tipo_receita_factory, tipo_conta, dre_ipiranga):
+    tipo_rec = tipo_receita_factory.create(nome='Repasse', e_repasse=True, aceita_capital=True, aceita_custeio=True)
+    tipo_rec.tipos_conta.set([tipo_conta])
+    tipo_rec.unidades.set([dre_ipiranga])
+    return tipo_rec
 
 
 @pytest.fixture
-def tipo_receita_devolucao(tipo_conta):
-    return baker.make('TipoReceita', nome='Devolução', e_devolucao=True, aceita_capital=True, aceita_custeio=True,
-                      tipos_conta=[tipo_conta], detalhes=[])
+def tipo_receita_devolucao(tipo_receita_factory, tipo_conta):
+    tipo_rec = tipo_receita_factory.create(nome='Devolução', e_devolucao=True, aceita_capital=True, aceita_custeio=True)
+    tipo_rec.tipos_conta.set([tipo_conta])
+    return tipo_rec
 
 
 @pytest.fixture
@@ -584,28 +590,31 @@ def motivo_estorno_02():
 
 # Inativar ou excluir Receita
 @pytest.fixture
-def tipo_receita_outros():
+def tipo_receita_outros(recurso_legado):
     return baker.make(
         'TipoReceita',
-        nome='Outros'
+        nome='Outros',
+        recurso=recurso_legado
     )
 
 
 @pytest.fixture
-def tipo_receita_e_estorno():
+def tipo_receita_e_estorno(recurso_legado):
     return baker.make(
         'TipoReceita',
         nome='Estorno',
         e_estorno=True,
+        recurso=recurso_legado
     )
 
 
 @pytest.fixture
-def tipo_receita_e_repasse():
+def tipo_receita_e_repasse(recurso_legado):
     return baker.make(
         'TipoReceita',
         nome='Repasse',
         e_repasse=True,
+        recurso=recurso_legado
     )
 
 
