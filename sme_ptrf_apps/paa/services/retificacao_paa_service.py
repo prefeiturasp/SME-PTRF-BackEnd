@@ -3,6 +3,8 @@ from django.db import transaction
 from waffle import get_waffle_flag_model
 from sme_ptrf_apps.paa.models import Paa
 from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
+from sme_ptrf_apps.paa.models.documento_paa import DocumentoPaa
+from sme_ptrf_apps.paa.models.ata_paa import AtaPaa
 
 
 class ValidacaoRetificacao(Exception):
@@ -148,7 +150,48 @@ class RetificacaoPaaService:
                     str(prioridade.especificacao_material.uuid) if prioridade.especificacao_material else None
                 ),
             }
-        return result
+        return 
+    
+    def _snapshot_documento_original(self):
+        documento_original = self.paa.documentopaa_set.filter(
+            versao=DocumentoPaa.VersaoChoices.FINAL,
+            retificacao=False,
+        ).only('uuid').first()
+
+        return {
+            'uuid': documento_original.uuid if documento_original else None
+        }
+    
+    def _snapshot_documento_retificado(self):
+        documento_retificado = self.paa.documentopaa_set.filter(
+            versao=DocumentoPaa.VersaoChoices.FINAL,
+            retificacao=True,
+        ).only('uuid', 'versao_documento').first()
+
+        return {
+            'uuid': documento_retificado.uuid if documento_retificado else None,
+            'versao': documento_retificado.versao_documento if documento_retificado else None
+        }
+    
+    def _snapshot_ata_original(self):
+        ata_original = self.paa.atas_da_paa.filter(
+            tipo_ata=AtaPaa.ATA_APRESENTACAO,
+            previa=False,
+        ).only('uuid').first()
+
+        return {
+            'uuid': ata_original.uuid if ata_original else None
+        }
+    
+    def _snapshot_ata_retificada(self):
+        ata_retificada = self.paa.atas_da_paa.filter(
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            previa=False,
+        ).only('uuid').first()
+
+        return {
+            'uuid': ata_retificada.uuid if ata_retificada else None
+        }
 
     def gerar_snapshot(self):
         self.logger.info(f'Gerando snapshot do PAA {self.paa.uuid}...')
@@ -164,6 +207,10 @@ class RetificacaoPaaService:
             'receitas_recurso_proprio': self._snapshot_receitas_recurso_proprio(),
             'receitas_outros_recursos': self._snapshot_receitas_outros_recursos(),
             'prioridades': self._snapshot_prioridades(),
+            'documento_original': self._snapshot_documento_original(),
+            'documento_retificado': self._snapshot_documento_retificado(),
+            'ata_original': self._snapshot_ata_original(),
+            'ata_retificada': self._snapshot_ata_retificada(),
         }
         self.logger.info('Snapshot gerado com sucesso.')
         return snapshot
@@ -192,6 +239,7 @@ class RetificacaoPaaService:
         ata = AtaPaa.objects.create(
             paa=self.paa,
             tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            previa=True,
             justificativa=justificativa,
         )
         self.logger.info(f'Ata de Retificação criada com sucesso (uuid={ata.uuid}).')
