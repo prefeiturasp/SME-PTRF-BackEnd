@@ -375,8 +375,10 @@ def tapi_rateio_despesa_estornada(associacao, tapi_despesa, conta_associacao, ti
 
 
 @pytest.fixture
-def tapi_tipo_receita_estorno(tipo_conta):
-    return baker.make('TipoReceita', nome='Estorno', e_estorno=True, tipos_conta=[tipo_conta])
+def tapi_tipo_receita_estorno(tipo_receita_factory, tipo_conta):
+    tipo_receita = tipo_receita_factory.create(nome='Estorno', e_estorno=True)
+    tipo_receita.tipos_conta.set([tipo_conta])
+    return tipo_receita
 
 
 @pytest.fixture

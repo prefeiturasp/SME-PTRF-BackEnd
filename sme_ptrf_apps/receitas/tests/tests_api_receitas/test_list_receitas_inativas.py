@@ -10,10 +10,11 @@ def test_list_receitas_inativas(
     jwt_authenticated_client_p,
     associacao,
     receita_inativa,
-    receita_ativa
+    receita_ativa,
+    recurso_legado
 ):
     response = jwt_authenticated_client_p.get(
-        f'/api/receitas/?associacao__uuid={associacao.uuid}',
+        f'/api/receitas/?associacao__uuid={associacao.uuid}&recurso_uuid={str(recurso_legado.uuid)}',
         content_type='application/json')
     result = json.loads(response.content)
 

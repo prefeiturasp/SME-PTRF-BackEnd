@@ -15,13 +15,13 @@ def receita_admin():
 
 
 @pytest.fixture
-def tipo_receita_repasse():
-    return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
+def tipo_receita_repasse(tipo_receita_factory):
+    return tipo_receita_factory.create(nome='Repasse', e_repasse=True)
 
 
 @pytest.fixture
-def tipo_receita_rendimento():
-    return baker.make('TipoReceita', nome='Rendimento', e_repasse=False)
+def tipo_receita_rendimento(tipo_receita_factory):
+    return tipo_receita_factory.create(nome='Rendimento', e_repasse=False)
 
 
 @pytest.fixture
@@ -154,8 +154,8 @@ def receita_2020_1_role_rendimento_livre_conferida(associacao, conta_associacao_
 
 
 @pytest.fixture
-def tipo_receita_e_estorno():
-    return baker.make('TipoReceita', nome='Estorno', e_estorno=True)
+def tipo_receita_e_estorno(tipo_receita_factory):
+    return tipo_receita_factory.create(nome='Estorno', e_estorno=True)
 
 
 @pytest.fixture
