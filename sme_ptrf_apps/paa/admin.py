@@ -22,7 +22,8 @@ from sme_ptrf_apps.paa.models import (
     OutroRecursoPeriodoPaa,
     ReceitaPrevistaOutroRecursoPeriodo,
     ModeloCargaPaa,
-    ReplicaPaa
+    ReplicaPaa,
+    LogReplicaPaa,
 )
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
@@ -403,6 +404,21 @@ class ReplicaPaaAdmin(admin.ModelAdmin):
     search_fields = ('paa__associacao__nome', 'paa__associacao__unidade__codigo_eol')
     raw_id_fields = ('paa',)
     readonly_fields = ('uuid', 'id', 'paa', 'formatted_json_replica', 'criado_em', 'historico')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(LogReplicaPaa)
+class LogReplicaPaaAdmin(admin.ModelAdmin):
+    list_select_related = ('paa', 'paa__periodo_paa', 'paa__associacao')
+    list_display = ('paa', 'origem', 'numero_versao_documento')
+    search_fields = ('paa__associacao__nome', 'paa__associacao__unidade__codigo_eol')
+    raw_id_fields = ('paa',)
+    readonly_fields = ('uuid', 'id', 'paa', 'formatted_json_replica', 'criado_em', 'replica')
 
     def has_add_permission(self, request):
         return False
