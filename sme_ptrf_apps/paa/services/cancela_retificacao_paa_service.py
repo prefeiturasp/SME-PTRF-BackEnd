@@ -382,15 +382,28 @@ class RetificacaoRollbackService:
 
         def _create_objetivo(uuid: str, dados: dict):
 
-            self.paa.objetivopaa_set.create(
+            objetivo = self.paa.objetivos.create(
                 uuid=uuid,
                 nome=dados['nome'],
             )
+
+            return objetivo
+
+        def _update_objetivo(obj, anterior, uuid=None):
+
+            self.logger.info(
+                f'Restaurando objetivo {uuid}'
+            )
+
+            obj.nome = anterior['nome']
+            obj.save()
+
 
         self._rollback_relacionados(
             alteracoes=alteracoes,
             queryset=self.paa.objetivopaa_set.all(),
             create_callback=_create_objetivo,
+            update_callback=_update_objetivo,
         )
 
     def _rollback_receitas_ptrf(self, alteracoes):
@@ -770,7 +783,7 @@ class CancelaRetificacaoPaaService(
             )
 
         documento_final_retificado = (
-            self.paa.documento_final()
+            self.paa.documento_final
         )
 
         if not documento_final_retificado:
