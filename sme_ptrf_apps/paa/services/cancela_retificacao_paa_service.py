@@ -1,6 +1,6 @@
+from datetime import datetime
 from django.db import transaction
 from waffle import get_waffle_flag_model
-
 from sme_ptrf_apps.logging.loggers import ContextualLogger
 
 from sme_ptrf_apps.paa.enums import PaaStatusEnum
@@ -113,6 +113,12 @@ class RetificacaoRollbackService:
             return None
 
         return model.objects.filter(uuid=uuid).first()
+    
+    def _str_data_para_date(self, data: str):
+        return datetime.strptime(
+            data,
+            '%Y-%m-%d',
+        ).date()
 
     def _log_inicio_secao(self, nome_sessao, alteracoes):
 
@@ -222,10 +228,16 @@ class RetificacaoRollbackService:
         queryset,
         update_callback=None,
         create_callback=None,
+        key_resolver=None,
     ):
 
+        key_resolver = (
+            key_resolver or
+            (lambda obj: str(obj.uuid))
+        )
+         
         objetos = {
-            str(obj.uuid): obj
+            key_resolver(obj): obj
             for obj in queryset
         }
 
@@ -247,7 +259,10 @@ class RetificacaoRollbackService:
 
                 if acao == 'adicionado':
 
-                    queryset.filter(uuid=uuid).delete()
+                    obj = objetos.get(uuid)
+
+                    if obj:
+                        obj.delete()
 
                     self.logger.info(
                         f'Item removido uuid={uuid}'
@@ -318,7 +333,7 @@ class RetificacaoRollbackService:
                     f'erro={str(e)}'
                 )
 
-                raise
+                raise ValidacaoCancelaRetificacao(f'Erro ao executar rollback: {str(e)}')
 
     ###########################################################
     # HANDLERS
@@ -345,7 +360,7 @@ class RetificacaoRollbackService:
 
             atividade.save()
 
-            obj.data = anterior.get('data')
+            obj.data = self._str_data_para_date(anterior.get('data'))
 
             obj.save()
 
@@ -364,11 +379,11 @@ class RetificacaoRollbackService:
                     status=dados['status'],
                     paa_id=self.paa.id,
                 )
-            )
+            )         
 
             self.paa.atividadeestatutariapaa_set.create(
                 atividade_estatutaria=atividade_estatutaria,
-                data=dados['data'],
+                data=self._str_data_para_date(dados['data']),
             )
 
         self._rollback_relacionados(
@@ -376,13 +391,16 @@ class RetificacaoRollbackService:
             queryset=self.paa.atividadeestatutariapaa_set.all(),
             update_callback=_update_atividade_estatutaria,
             create_callback=_create_atividade_estatutaria,
+            key_resolver=lambda obj: str(
+                obj.atividade_estatutaria.uuid
+            )
         )
 
     def _rollback_objetivos_paa(self, alteracoes):
 
         def _create_objetivo(uuid: str, dados: dict):
 
-            objetivo = self.paa.objetivos.create(
+            objetivo = self.paa.objetivopaa_set.create(
                 uuid=uuid,
                 nome=dados['nome'],
             )
@@ -432,8 +450,11 @@ class RetificacaoRollbackService:
 
         self._rollback_relacionados(
             alteracoes=alteracoes,
-            queryset=self.paa.receitaprevistapaa_set.all(),
+            queryset=self.paa.receitaprevistapaa_set.all(),            
             create_callback=_create_receita_ptrf,
+            key_resolver=lambda obj: str(
+                obj.acao_associacao.uuid
+            ),
         )
 
     def _rollback_receitas_pdde(self, alteracoes):
@@ -462,6 +483,9 @@ class RetificacaoRollbackService:
             alteracoes=alteracoes,
             queryset=self.paa.receitaprevistapdde_set.all(),
             create_callback=_create_receita_pdde,
+            key_resolver=lambda obj: str(
+                obj.acao_pdde.uuid
+            )
         )
 
     def _rollback_receitas_recurso_proprio(
@@ -522,7 +546,7 @@ class RetificacaoRollbackService:
             queryset=self.paa.recursopropriopaa_set.all(),
             update_callback=_update_recurso_proprio,
             create_callback=_create_recurso_proprio,
-        )
+        )        
 
     def _rollback_receitas_outros_recursos(
         self,
@@ -599,6 +623,9 @@ class RetificacaoRollbackService:
             queryset=self.paa.receitaprevistaoutrorecursoperiodo_set.all(),
             update_callback=_update_outro_recurso,
             create_callback=_create_outro_recurso,
+            key_resolver=lambda obj: str(
+                obj.outro_recurso_periodo.uuid
+            )
         )
 
     def _rollback_prioridades(self, alteracoes):
