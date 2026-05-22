@@ -197,8 +197,8 @@ def devolucao_ao_tesouro(prestacao_conta, tipo_devolucao_ao_tesouro, despesa):
 
 
 @pytest.fixture
-def tipo_receita_rendimento():
-    return baker.make('TipoReceita', nome='Rendimento', e_rendimento=True)
+def tipo_receita_rendimento(tipo_receita_factory):
+    return tipo_receita_factory.create(nome='Rendimento', e_rendimento=True)
 
 
 @pytest.fixture

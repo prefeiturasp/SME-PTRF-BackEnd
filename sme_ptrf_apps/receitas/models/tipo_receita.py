@@ -25,6 +25,14 @@ class TipoReceita(ModeloIdNome):
     detalhes = models.ManyToManyField(DetalheTipoReceita, blank=True)
     unidades = models.ManyToManyField('core.Unidade', blank=True)
 
+    recurso = models.ForeignKey(
+        "core.Recurso",
+        verbose_name="Recurso",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True
+    )
+
     class Meta:
         verbose_name = 'Tipo de receita'
         verbose_name_plural = 'Tipos de receita'

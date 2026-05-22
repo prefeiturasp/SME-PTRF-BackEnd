@@ -1,6 +1,8 @@
 from factory.django import DjangoModelFactory
+from factory import LazyFunction
 from faker import Faker
 from sme_ptrf_apps.receitas.models import TipoReceita
+from sme_ptrf_apps.core.models import Recurso
 
 fake = Faker("pt_BR")
 
@@ -20,3 +22,4 @@ class TipoReceitaFactory(DjangoModelFactory):
     e_recursos_proprios = False
     mensagem_usuario = ""
     possui_detalhamento = False
+    recurso = LazyFunction(lambda: Recurso.objects.get(legado=True))
