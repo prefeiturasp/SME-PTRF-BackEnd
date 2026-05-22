@@ -134,10 +134,16 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         nome = validated_data.get('nome')
+        recurso = validated_data.get('recurso')
         detalhes_data = validated_data.pop("detalhes", [])
 
-        if TipoReceita.objects.filter(nome=nome).exists():
-            raise serializers.ValidationError({'non_field_errors': 'Este Tipo de Receita já existe.'})
+        # Normaliza o nome: remove espaços em branco extras
+        if nome:
+            nome = ' '.join(nome.split())
+            validated_data['nome'] = nome
+
+        if TipoReceita.objects.filter(nome__iexact=nome, recurso=recurso).exists():
+            raise serializers.ValidationError({'non_field_errors': 'Este Tipo de Receita já existe para esse recurso.'})
 
         instance = super().create(validated_data)
 
@@ -161,9 +167,15 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         nome = validated_data.get('nome')
         detalhes_data = validated_data.pop("detalhes", [])
+        recurso = validated_data.get('recurso')
 
-        if TipoReceita.objects.filter(nome=nome).exclude(pk=self.instance.pk).exists():
-            raise serializers.ValidationError({'non_field_errors': 'Este Tipo de Receita já existe.'})
+        # Normaliza o nome: remove espaços em branco extras
+        if nome:
+            nome = ' '.join(nome.split())
+            validated_data['nome'] = nome
+
+        if TipoReceita.objects.filter(nome__iexact=nome, recurso=recurso).exclude(pk=self.instance.pk).exists():
+            raise serializers.ValidationError({'non_field_errors': 'Este Tipo de Receita já existe para esse recurso.'})
 
         instance = super().update(instance, validated_data)
 
