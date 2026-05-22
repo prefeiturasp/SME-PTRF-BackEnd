@@ -76,7 +76,8 @@ def monta_result_esperado(transacoes_esperadas, periodo, conta):
                                      'e_devolucao': False,
                                      'e_recursos_proprios': False,
                                      'e_repasse': False,
-                                     'nome': ''},
+                                     'nome': '',
+                                     'recurso': None},
                     'valor': None},
                 "aplicacao_recurso": rateio.aplicacao_recurso,
                 "acao_associacao": {

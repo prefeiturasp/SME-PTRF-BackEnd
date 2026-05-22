@@ -48,9 +48,10 @@ def prestacao_conta(periodo, associacao):
 
 
 @pytest.fixture
-def tipo_receita_devolucao(tipo_conta):
-    return baker.make('TipoReceita', nome='Devolução', e_devolucao=True, aceita_capital=True, aceita_custeio=True,
-                      tipos_conta=[tipo_conta])
+def tipo_receita_devolucao(tipo_receita_factory, tipo_conta):
+    tipo_receita = tipo_receita_factory.create(nome='Devolução', e_devolucao=True, aceita_capital=True, aceita_custeio=True)
+    tipo_receita.tipos_conta.set([tipo_conta])
+    return tipo_receita
 
 
 @pytest.fixture

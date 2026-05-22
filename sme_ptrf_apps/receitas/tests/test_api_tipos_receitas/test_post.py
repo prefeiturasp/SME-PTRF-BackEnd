@@ -11,12 +11,13 @@ from sme_ptrf_apps.receitas.models import TipoReceita, DetalheTipoReceita
 pytestmark = pytest.mark.django_db
 
 
-def test_post_sucesso(jwt_authenticated_client_p, tipo_conta, dre_ipiranga, detalhe_tipo_receita): 
+def test_post_sucesso(jwt_authenticated_client_p, tipo_conta, dre_ipiranga, detalhe_tipo_receita, recurso_legado): 
     payload = {
         "unidades": [str(dre_ipiranga.uuid)],
         "tipos_conta": [str(tipo_conta.uuid)],
         "detalhes": [detalhe_tipo_receita.id],
-        "nome": "Tipo receita 001"
+        "nome": "Tipo receita 001",
+        "recurso": str(recurso_legado.uuid)
     }
     response = jwt_authenticated_client_p.post(f'/api/tipos-receitas/',
                                               content_type='application/json',
@@ -28,11 +29,12 @@ def test_post_sucesso(jwt_authenticated_client_p, tipo_conta, dre_ipiranga, deta
     assert TipoReceita.objects.filter(nome="Tipo receita 001").exists() is True
 
 
-def test_post_sucesso_002_sem_detalhes(jwt_authenticated_client_p, tipo_conta, dre_ipiranga, detalhe_tipo_receita): 
+def test_post_sucesso_002_sem_detalhes(jwt_authenticated_client_p, tipo_conta, dre_ipiranga, recurso_legado, detalhe_tipo_receita): 
     payload = {
         "tipos_conta": [str(tipo_conta.uuid)],
         "unidades": [str(dre_ipiranga.uuid)],
-        "nome": "Tipo receita 001"
+        "nome": "Tipo receita 001",
+        "recurso": str(recurso_legado.uuid)
     }
     response = jwt_authenticated_client_p.post(f'/api/tipos-receitas/',
                                               content_type='application/json',
@@ -43,11 +45,12 @@ def test_post_sucesso_002_sem_detalhes(jwt_authenticated_client_p, tipo_conta, d
     assert TipoReceita.objects.filter(nome="Tipo receita 001").exists() is True
 
 
-def test_post_erro_payload(jwt_authenticated_client_p, tipo_conta, dre_ipiranga, detalhe_tipo_receita): 
+def test_post_erro_payload(jwt_authenticated_client_p, tipo_conta, dre_ipiranga, detalhe_tipo_receita, recurso_legado):
     payload = {
         "unidades": [str(dre_ipiranga.uuid)],
         "detalhes": [detalhe_tipo_receita.id],
-        "nome": "Tipo receita 001"
+        "nome": "Tipo receita 001",
+        "recurso": str(recurso_legado.uuid)
     }
     response = jwt_authenticated_client_p.post(f'/api/tipos-receitas/',
                                               content_type='application/json',
@@ -57,16 +60,17 @@ def test_post_erro_payload(jwt_authenticated_client_p, tipo_conta, dre_ipiranga,
     assert content == {'tipos_conta': ['This field is required.']}
 
 
-def test_post_erro_payload_nome_duplicado(jwt_authenticated_client_p, tipo_conta, dre_ipiranga, detalhe_tipo_receita): 
+def test_post_erro_payload_nome_duplicado(jwt_authenticated_client_p, tipo_conta, dre_ipiranga, detalhe_tipo_receita, recurso_legado): 
     payload = {
         "tipos_conta": [str(tipo_conta.uuid)],
         "unidades": [str(dre_ipiranga.uuid)],
         "detalhes": [detalhe_tipo_receita.id],
-        "nome": "Estorno"
+        "nome": "Estorno",
+        "recurso": str(recurso_legado.uuid)
     }
     response = jwt_authenticated_client_p.post(f'/api/tipos-receitas/',
                                               content_type='application/json',
                                               data=json.dumps(payload))
     content = json.loads(response.content)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert content == {'non_field_errors': 'Este Tipo de Receita já existe.'}
+    assert content == {'non_field_errors': 'Este Tipo de Receita já existe para esse recurso.'}

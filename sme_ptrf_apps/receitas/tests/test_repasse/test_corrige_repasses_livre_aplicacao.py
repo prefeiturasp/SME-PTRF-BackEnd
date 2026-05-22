@@ -9,13 +9,14 @@ from sme_ptrf_apps.receitas.models import Repasse, Receita, TipoReceita
 pytestmark = pytest.mark.django_db
 
 
-def test_corrige_repasses_livre_aplicacao_atualiza_repasses_com_receita():
+def test_corrige_repasses_livre_aplicacao_atualiza_repasses_com_receita(recurso_legado):
     tipo_receita = TipoReceita.objects.create(
         nome='Tipo Receita Teste',
         aceita_capital=True,
         aceita_custeio=True,
         aceita_livre=True,
         e_repasse=True,
+        recurso=recurso_legado
     )
 
     repasse_atualizado_1 = Repasse.objects.create(

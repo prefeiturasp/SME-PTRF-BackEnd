@@ -32,15 +32,33 @@ class TipoReceitaForm(ModelForm):
         return unidades
 
 
+class RecursoFilter(admin.SimpleListFilter):
+    title = 'Recurso'
+    parameter_name = 'recurso'
+
+    def lookups(self, request, model_admin):
+        from sme_ptrf_apps.core.models import Recurso
+        recursos = Recurso.objects.all()
+        return [(recurso.uuid, recurso.nome) for recurso in recursos]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(recurso__uuid=self.value())
+        return queryset
+
+
 @admin.register(TipoReceita)
 class TipoReceitaAdmin(admin.ModelAdmin):
     form = TipoReceitaForm
     list_display = (
-        'nome', 'e_repasse', 'e_rendimento', 'aceita_capital', 'aceita_custeio', 'aceita_livre',
+        'nome', 'recurso', 'e_repasse', 'e_rendimento', 'aceita_capital', 'aceita_custeio', 'aceita_livre',
         'mensagem_usuario', 'possui_detalhamento'
     )
     readonly_fields = ('uuid',)
     autocomplete_fields = ('unidades',)
+    list_filter = (
+        RecursoFilter,
+    )
 
 
 def customTitledFilter(title):

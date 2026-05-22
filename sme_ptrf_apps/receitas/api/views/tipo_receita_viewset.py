@@ -16,8 +16,7 @@ from sme_ptrf_apps.receitas.api.serializers import (
     TipoReceitaCreateSerializer,
     DetalheTipoReceitaSerializer
 )
-from sme_ptrf_apps.core.models import TipoConta
-from sme_ptrf_apps.core.models import Unidade
+from sme_ptrf_apps.core.models import TipoConta, Recurso, Unidade
 from sme_ptrf_apps.receitas.models import TipoReceita, DetalheTipoReceita
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
@@ -61,6 +60,14 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         unidade_filtrada = Unidade.objects.filter(uuid=unidade_uuid)
 
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+        if recurso_uuid:
+            try:
+                recurso = Recurso.objects.get(uuid=recurso_uuid)
+                qs = qs.filter(recurso=recurso)
+            except Recurso.DoesNotExist:
+                return Response({"mensagem": "Recurso não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
         if nome:
             qs = qs.filter(nome__icontains=nome)
 
@@ -90,6 +97,15 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def filtros(self, request, *args, **kwargs):
 
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+        recurso = None
+
+        if recurso_uuid:
+            try:
+                recurso = Recurso.objects.get(uuid=recurso_uuid)
+            except Recurso.DoesNotExist:
+                return Response({"mensagem": "Recurso não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
         tipos = [
             {"field_name": "e_repasse", "name": "Repasse"},
             {"field_name": "e_rendimento", "name": "Rendimento"},
@@ -101,8 +117,13 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             {"field_name": "aceita_custeio", "name": "Custeio"},
             {"field_name": "aceita_livre", "name": "Livre aplicação"}
         ]
+
+        tipos_contas_qs = TipoConta.objects.all()
+        if recurso:
+            tipos_contas_qs = tipos_contas_qs.filter(recurso=recurso)
+
         result = {
-            "tipos_contas": TipoContaSerializer(TipoConta.objects.all(), many=True).data,
+            "tipos_contas": TipoContaSerializer(tipos_contas_qs, many=True).data,
             "tipos": tipos,
             "aceita": aceita,
             "detalhes": DetalheTipoReceitaSerializer(DetalheTipoReceita.objects.order_by('nome'), many=True).data,
@@ -173,14 +194,25 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def unidades_nao_vinculadas(self, request, *args, **kwargs):
         from sme_ptrf_apps.core.models.unidade import Unidade
+        from sme_ptrf_apps.receitas.models import TipoReceita
+        
         uuid_dre = self.request.query_params.get('dre')
         nome_ou_codigo = self.request.query_params.get('nome_ou_codigo')
         tipo_unidade = self.request.query_params.get('tipo_unidade')
+
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
 
         instance = self.get_object()
 
         todas_unidades = Unidade.objects.select_related('dre', 'dre__dre').all()
         unidades_nao_vinculadas = todas_unidades.exclude(uuid__in=instance.unidades.values_list('uuid', flat=True))
+
+        # Filtrar pelo recurso se fornecido
+        if recurso_uuid:
+            try:
+                recurso = Recurso.objects.get(uuid=recurso_uuid)
+            except Recurso.DoesNotExist:
+                return Response({"mensagem": "Recurso não encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
         if uuid_dre:
             unidades_nao_vinculadas = unidades_nao_vinculadas.filter(dre__uuid=uuid_dre)
@@ -191,6 +223,11 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         if nome_ou_codigo:
             unidades_nao_vinculadas = unidades_nao_vinculadas.filter(
                 Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo))
+            
+        if recurso:
+            unidades_nao_vinculadas = unidades_nao_vinculadas.filter(
+                associacoes__periodos_iniciais__recurso=recurso
+            )
 
         serializer = UnidadeLookUpSerializer(unidades_nao_vinculadas, many=True)
 
