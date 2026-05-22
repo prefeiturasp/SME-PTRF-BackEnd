@@ -173,9 +173,55 @@ SCHEMA_TABELAS = extend_schema(
     ],
 )
 
+SCHEMA_VISUALIZAR_DOCUMENTOS_PAA = extend_schema(
+    description=(
+        "Retorna os documentos relacionados a um PAA específico.\n\n"
+        "O UUID informado na URL deve corresponder ao PAA vigente.\n\n"
+        "Caso o PAA não seja encontrado, retorna erro 404."
+    ),
+    tags=["PAA DRE"],
+    responses={
+        200: OpenApiTypes.OBJECT,
+        400: OpenApiResponse(description="Parâmetros inválidos ou UUID não informado."),
+        401: OpenApiResponse(
+            description="Authentication credentials were not provided."
+        ),
+        403: OpenApiResponse(
+            description="You do not have permission to perform this action."
+        ),
+        404: OpenApiResponse(description="PAA não encontrado."),
+    },
+    examples=[
+        OpenApiExample(
+            "Resposta de sucesso",
+            value={
+                "vigente": {
+                    "uuid": "9f7d6a10-1111-2222-3333-abcdef123456",
+                    "documentos": [
+                        {
+                            "tipo": "PLANO_TRABALHO",
+                            "url": "https://exemplo.com/documento.pdf"
+                        }
+                    ]
+                }
+            },
+        ),
+        OpenApiExample(
+            "Erro 404",
+            value={
+                "erro": "Objeto não encontrado.",
+                "mensagem": "O PAA para o uuid informado não foi encontrado na base."
+            },
+            response_only=True,
+            status_codes=["404"],
+        ),
+    ],
+)
 
 DOCS = dict(
     list=SCHEMA_LIST,
     retrieve=SCHEMA_RETRIEVE,
     tabelas=SCHEMA_TABELAS,
+    visualizar_documentos=SCHEMA_VISUALIZAR_DOCUMENTOS_PAA,
 )
+
