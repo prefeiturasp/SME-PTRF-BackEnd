@@ -29,8 +29,6 @@ class TipoReceita(ModeloIdNome):
         "core.Recurso",
         verbose_name="Recurso",
         on_delete=models.PROTECT,
-        null=True,
-        blank=True
     )
 
     class Meta:
