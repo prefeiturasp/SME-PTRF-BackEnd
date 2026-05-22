@@ -46,6 +46,18 @@ from sme_ptrf_apps.paa.models.outros_recursos import (
     OutroRecurso,
 )
 
+from sme_ptrf_apps.paa.models.documento_paa import (
+    DocumentoPaa,
+)
+
+from sme_ptrf_apps.paa.models.ata_paa import (
+    AtaPaa,
+)
+
+from sme_ptrf_apps.paa.models.log_replica_paa import (
+    LogReplicaPaa,
+)
+
 from sme_ptrf_apps.core.models.associacao import (
     Associacao,
 )
@@ -718,9 +730,9 @@ class CancelaRetificacaoPaaService(
 
         self._identifica_operacao_no_logger()
 
-    ###########################################################
+    ###################################################
     # VALIDAÇÕES
-    ###########################################################
+    ###################################################
 
     def valida_pode_cancelar_retificacao(self):
 
@@ -764,8 +776,20 @@ class CancelaRetificacaoPaaService(
         if not documento_final_retificado:
             return
 
+        replica = getattr(self.paa, 'replica', None)
+
+        if not replica:
+
+            self.logger.error(
+                f'PAA {self.paa.id} não possui réplica.'
+            )
+
+            raise ValidacaoCancelaRetificacao(
+                'PAA não possui réplica.'
+            )
+
         replica_doc_retificado = (
-            self.paa.replica.historico.get(
+            replica.historico.get(
                 'documento_retificado'
             ) or {}
         )
@@ -787,9 +811,9 @@ class CancelaRetificacaoPaaService(
                 'Documento Final Retificado Gerado.'
             )
 
-    ###########################################################
+    ###################################################
     # EXECUÇÃO
-    ###########################################################
+    ###################################################
 
     @transaction.atomic
     def iniciar_cancelamento_retificacao(self):
@@ -801,23 +825,130 @@ class CancelaRetificacaoPaaService(
             f'retificação do PAA {self.paa.id}'
         )
 
+        replica = getattr(self.paa, 'replica', None)
+
+        if not replica:
+
+            self.logger.error(
+                f'PAA {self.paa.id} não possui réplica.'
+            )
+
+            raise ValidacaoCancelaRetificacao(
+                'PAA não possui réplica.'
+            )
+
         sessoes_afetadas = (
             self.retificacao_service
             .identificar_alteracoes()
+        )
+
+        self.logger.info(
+            f'Seções afetadas identificadas: '
+            f'{list(sessoes_afetadas.keys())}'
         )
 
         self.executar_rollbacks(
             sessoes_afetadas
         )
 
+        self._remover_documentos_previos()
+
+        self._remover_atas_previas()
+
+        self._restaurar_status_paa()
+
+        self._salvar_log_replica(
+            replica=replica
+        )
+
+        self._remover_replica(
+            replica=replica
+        )
+
         self.logger.info(
-            f'Rollback concluído com sucesso '
+            f'Cancelamento de retificação '
+            f'concluído com sucesso '
             f'para PAA {self.paa.id}'
         )
 
-    ###########################################################
+    ###################################################
+    # AUXILIARES
+    ###################################################
+
+    def _remover_documentos_previos(self):
+
+        removidos, _ = DocumentoPaa.objects.filter(
+            paa=self.paa,
+            versao=DocumentoPaa.VersaoChoices.PREVIA,
+            retificacao=True,
+        ).delete()
+
+        self.logger.info(
+            f'Documentos prévios removidos: '
+            f'{removidos}'
+        )
+
+    def _remover_atas_previas(self):
+
+        removidos, _ = AtaPaa.objects.filter(
+            paa=self.paa,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            previa=True,
+        ).delete()
+
+        self.logger.info(
+            f'Atas prévias removidas: '
+            f'{removidos}'
+        )
+
+    def _restaurar_status_paa(self):
+
+        status_anterior = self.paa.status
+
+        self.paa.set_paa_status_gerado()
+
+        self.logger.info(
+            f'Status restaurado '
+            f'de {status_anterior} '
+            f'para {self.paa.status}'
+        )
+
+    def _salvar_log_replica(self, replica):
+
+        historico = replica.historico or {}
+
+        versao_documento = (
+            historico
+            .get('documento_retificado', {})
+            .get('versao_documento', 1)
+        )
+
+        LogReplicaPaa.objects.create(
+            paa=self.paa,
+            origem=LogReplicaPaa.CANCELAMENTO,
+            replica=historico,
+            numero_versao_documento=versao_documento,
+        )
+
+        self.logger.info(
+            f'Log da réplica salvo '
+            f'com versão={versao_documento}'
+        )
+
+    def _remover_replica(self, replica):
+
+        replica_id = replica.id
+
+        replica.delete()
+
+        self.logger.info(
+            f'Réplica removida '
+            f'id={replica_id}'
+        )
+
+    ###################################################
     # LOGGER
-    ###########################################################
+    ###################################################
 
     def _identifica_operacao_no_logger(self):
 
