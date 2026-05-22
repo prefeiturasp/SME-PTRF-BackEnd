@@ -150,8 +150,8 @@ class RetificacaoPaaService:
                     str(prioridade.especificacao_material.uuid) if prioridade.especificacao_material else None
                 ),
             }
-        return 
-    
+        return result
+
     def _snapshot_documento_original(self):
         documento_original = self.paa.documentopaa_set.filter(
             versao=DocumentoPaa.VersaoChoices.FINAL,
@@ -159,9 +159,9 @@ class RetificacaoPaaService:
         ).only('uuid').first()
 
         return {
-            'uuid': documento_original.uuid if documento_original else None
+            'uuid': str(documento_original.uuid) if documento_original else None
         }
-    
+
     def _snapshot_documento_retificado(self):
         documento_retificado = self.paa.documentopaa_set.filter(
             versao=DocumentoPaa.VersaoChoices.FINAL,
@@ -169,10 +169,10 @@ class RetificacaoPaaService:
         ).only('uuid', 'versao_documento').first()
 
         return {
-            'uuid': documento_retificado.uuid if documento_retificado else None,
+            'uuid': str(documento_retificado.uuid) if documento_retificado else None,
             'versao': documento_retificado.versao_documento if documento_retificado else None
         }
-    
+
     def _snapshot_ata_original(self):
         ata_original = self.paa.atas_da_paa.filter(
             tipo_ata=AtaPaa.ATA_APRESENTACAO,
@@ -180,9 +180,9 @@ class RetificacaoPaaService:
         ).only('uuid').first()
 
         return {
-            'uuid': ata_original.uuid if ata_original else None
+            'uuid': str(ata_original.uuid) if ata_original else None
         }
-    
+
     def _snapshot_ata_retificada(self):
         ata_retificada = self.paa.atas_da_paa.filter(
             tipo_ata=AtaPaa.ATA_RETIFICACAO,
@@ -190,7 +190,7 @@ class RetificacaoPaaService:
         ).only('uuid').first()
 
         return {
-            'uuid': ata_retificada.uuid if ata_retificada else None
+            'uuid': str(ata_retificada.uuid) if ata_retificada else None
         }
 
     def gerar_snapshot(self):
