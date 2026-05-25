@@ -42,6 +42,10 @@ from sme_ptrf_apps.paa.models.acao_pdde import (
     AcaoPdde,
 )
 
+from sme_ptrf_apps.paa.models.objetivo_paa import (
+    ObjetivoPaa,
+)
+
 from sme_ptrf_apps.paa.models.outros_recursos import (
     OutroRecurso,
 )
@@ -83,6 +87,7 @@ from sme_ptrf_apps.paa.services.retificacao_paa_service import (
 )
 
 
+
 class ValidacaoCancelaRetificacao(Exception):
     pass
 
@@ -98,6 +103,10 @@ class RetificacaoRollbackService:
     ###########################################################
 
     def _get_by_uuid_or_none(self, model, uuid):
+
+        if not uuid:
+            return None
+        
         return model.objects.get(uuid=uuid)
     
     def _str_data_para_date(self, data: str):
@@ -137,6 +146,7 @@ class RetificacaoRollbackService:
         SECTION_HANDLERS = {
             'atividades_estatutarias_paa': self._rollback_atividades_estatutarias_paa,
             'objetivos_paa': self._rollback_objetivos_paa,
+            'objetivos_globais': self._rollback_objetivos_globais,
             'receitas_ptrf': self._rollback_receitas_ptrf,
             'receitas_pdde': self._rollback_receitas_pdde,
             'receitas_recurso_proprio': self._rollback_receitas_recurso_proprio,
@@ -212,6 +222,7 @@ class RetificacaoRollbackService:
         queryset,
         update_callback=None,
         create_callback=None,
+        delete_callback=None,
         key_resolver=None,
     ):
 
@@ -245,8 +256,11 @@ class RetificacaoRollbackService:
 
                     obj = objetos.get(uuid)
 
-                    if obj:
-                        obj.delete()
+                    if delete_callback:
+                        delete_callback(uuid)
+                    else:
+                        if obj:
+                            obj.delete()
 
                     self.logger.info(
                         f'Item removido uuid={uuid}'
@@ -406,6 +420,37 @@ class RetificacaoRollbackService:
             queryset=self.paa.objetivopaa_set.all(),
             create_callback=_create_objetivo,
             update_callback=_update_objetivo,
+        )
+    
+    def _rollback_objetivos_globais(self, alteracoes):
+
+        def _create_objetivo(uuid: str, dados: dict):
+
+            objetivo_global = self._get_by_uuid_or_none(
+                ObjetivoPaa,
+                uuid
+            )
+
+            self.paa.objetivos.add(objetivo_global)
+
+        def _update_objetivo(obj, anterior, uuid=None):
+            pass
+
+        def _delete_objetivo(uuid):
+
+            objetivo_global = self._get_by_uuid_or_none(
+                ObjetivoPaa,
+                uuid
+            )
+
+            self.paa.objetivos.remove(objetivo_global)            
+
+        self._rollback_relacionados(
+            alteracoes=alteracoes,
+            queryset=self.paa.objetivos.all(),
+            create_callback=_create_objetivo,
+            update_callback=_update_objetivo,
+            delete_callback=_delete_objetivo,
         )
 
     def _rollback_receitas_ptrf(self, alteracoes):
