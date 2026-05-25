@@ -274,6 +274,17 @@ def test_get_plano_orcamentario(jwt_authenticated_client_sme, flag_paa, paa_fact
     assert isinstance(response.data, dict)
 
 
+def test_get_plano_aplicacao(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory):
+    periodo = periodo_paa_factory.create(
+        referencia="Periodo 2025", data_inicial=date(2025, 1, 1), data_final=date(2025, 12, 31))
+    paa = paa_factory.create(periodo_paa=periodo)
+
+    response = jwt_authenticated_client_sme.get(f"/api/paa/{paa.uuid}/plano-aplicacao/")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert isinstance(response.data, list)
+
+
 def test_get_outros_recursos_periodo(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory):
     periodo = periodo_paa_factory.create(
         referencia="Periodo 2025", data_inicial=date(2025, 1, 1), data_final=date(2025, 12, 31))
