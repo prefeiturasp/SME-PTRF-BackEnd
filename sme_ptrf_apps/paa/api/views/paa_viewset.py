@@ -111,7 +111,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         try:
             receitas_previstas = saldos_por_acao_paa_service.congelar_saldos()
         except Exception as e:
-            logger.error(f'Erro ao congelar saldos do PAA {instance.uuid}: {e}')
+            logger.exception(f'Erro ao congelar saldos do PAA {instance.uuid}: {e}')
             return Response(
                 {'mensagem': f'{e}'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -299,8 +299,24 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
 
             return Response(dados, status=status.HTTP_200_OK)
         except Exception as e:
-            logger.error(f"Erro ao construir plano orçamentário para PAA {paa.uuid}: {str(e)}", exc_info=True)
+            logger.exception(f"Erro ao construir plano orçamentário para PAA {paa.uuid}: {str(e)}", exc_info=True)
             raise ValidationError(f"Erro ao processar plano orçamentário: {str(e)}")
+
+    @action(detail=True, methods=['get'], url_path='plano-aplicacao',
+            permission_classes=[IsAuthenticated])
+    def plano_aplicacao(self, request, uuid=None):
+        """Retorna o plano de aplicação agrupado e estruturado para renderização direta"""
+        from sme_ptrf_apps.paa.services.plano_aplicacao_service import PlanoAplicacaoService
+
+        paa = self.get_object()
+
+        try:
+            service = PlanoAplicacaoService(paa, usuario=request.user)
+            dados = service.construir_plano_aplicacao()
+            return Response(dados, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(f"Erro ao construir plano de aplicação para PAA {paa.uuid}: {str(e)}", exc_info=True)
+            raise ValidationError(f"Erro ao processar plano de aplicação: {str(e)}")
 
     @action(detail=True, methods=['get'], url_path='objetivos',
             permission_classes=[IsAuthenticated])
