@@ -27,8 +27,10 @@ from sme_ptrf_apps.paa.api.serializers.paa_serializer import (
 )
 from sme_ptrf_apps.paa.api.serializers.renderizador_paa_serializer import RenderizadorPaaBuilder
 from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
+from sme_ptrf_apps.logging.loggers import ContextualLogger
 from sme_ptrf_apps.paa.models import Paa, PeriodoPaa
-from sme_ptrf_apps.paa.models.documento_paa import obter_documento_final_por_retificacao
+from sme_ptrf_apps.paa.models.documento_paa import DocumentoPaa, obter_documento_final_por_retificacao
+from sme_ptrf_apps.paa.services.documento_paa_service import DocumentoPaaService
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.paa.services.paa_service import PaaService, ImportacaoConfirmacaoNecessaria
 from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
@@ -407,6 +409,25 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             return Response(
                 {"mensagem": "O documento final já foi gerado e não é mais possível gerar prévias."},
                 status=400)
+
+        documento_previa = paa.documento_previa
+        if documento_previa and documento_previa.status_geracao == DocumentoPaa.StatusChoices.EM_PROCESSAMENTO:
+            return Response(
+                {
+                    "mensagem": (
+                        "A prévia do documento já está sendo gerada. "
+                        "Aguarde a conclusão para solicitar uma nova prévia."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        logger = ContextualLogger.get_logger(
+            __name__,
+            operacao='Plano Anual de Atividades',
+            username=usuario.username,
+        )
+        DocumentoPaaService(paa=paa, usuario=usuario, previa=True, logger=logger).iniciar()
 
         gerar_previa_documento_paa_async.apply_async(
             args=[str(paa.uuid), usuario.username]

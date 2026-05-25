@@ -261,6 +261,41 @@ class TestIniciar:
         service.marcar_em_processamento.assert_called_once()
 
 
+class TestPrepararDocumentoParaTask:
+    def test_reutiliza_previa_em_processamento_sem_chamar_iniciar(self, paa):
+        from model_bakery import baker
+
+        documento_previa = baker.make(
+            DocumentoPaa,
+            paa=paa,
+            versao=DocumentoPaa.VersaoChoices.PREVIA,
+            status_geracao=DocumentoPaa.StatusChoices.EM_PROCESSAMENTO,
+        )
+        service = make_service(paa=paa, previa=True)
+        service.iniciar = MagicMock()
+
+        service.preparar_documento_para_task()
+
+        service.iniciar.assert_not_called()
+        assert service.documento_paa == documento_previa
+
+    def test_chama_iniciar_quando_previa_nao_esta_em_processamento(self, paa):
+        service = make_service(paa=paa, previa=True)
+        service.iniciar = MagicMock()
+
+        service.preparar_documento_para_task()
+
+        service.iniciar.assert_called_once()
+
+    def test_chama_iniciar_para_documento_final(self, paa):
+        service = make_service(paa=paa, previa=False)
+        service.iniciar = MagicMock()
+
+        service.preparar_documento_para_task()
+
+        service.iniciar.assert_called_once()
+
+
 @pytest.mark.django_db
 class TestDocumentoPaaServiceIntegracao:
     def test_criar_novo_documento_persiste_no_banco(self, paa):
