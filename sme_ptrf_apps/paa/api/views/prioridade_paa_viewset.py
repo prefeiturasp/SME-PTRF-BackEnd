@@ -10,12 +10,13 @@ from waffle.mixins import WaffleFlagMixin
 
 from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
-from sme_ptrf_apps.paa.models import PrioridadePaa
+from sme_ptrf_apps.paa.models import PrioridadePaa, Paa
 from sme_ptrf_apps.paa.models.prioridade_paa import SimNaoChoices
 from sme_ptrf_apps.paa.api.serializers import (
     PrioridadePaaCreateUpdateSerializer,
     PrioridadePaaListSerializer
 )
+from sme_ptrf_apps.paa.services import RetificacaoPaaService
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComGravacao
 from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
 from drf_spectacular.utils import extend_schema_view
@@ -63,7 +64,6 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
             permission_classes=[PermissaoApiUe])
     def tabelas(self, request, *args, **kwrgs):
         from sme_ptrf_apps.paa.services import AcoesPaaService
-        from sme_ptrf_apps.paa.models.paa import Paa
         paa_uuid = request.query_params.get('paa__uuid')
 
         try:
@@ -210,6 +210,19 @@ class PrioridadePaaRelatorioViewSet(WaffleFlagMixin, ModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         return queryset_prioridades_paa(qs)
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        paa_uuid = self.request.query_params.get('paa__uuid')
+        if paa_uuid:
+            try:
+                paa = Paa.by_uuid(paa_uuid)
+                context['alteracoes'] = RetificacaoPaaService(
+                    paa=paa, usuario=self.request.user
+                ).identificar_alteracoes()
+            except Paa.DoesNotExist:
+                logger.warning('PAA com uuid %s não encontrado para o relatório de prioridades', paa_uuid)
+        return context
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())

@@ -322,6 +322,44 @@ SCHEMA_PLANO_ORCAMENTARIO = extend_schema(
     },
 )
 
+SCHEMA_PLANO_APLICACAO = extend_schema(
+    description=(
+        "Retorna o plano de aplicação completo agrupado e estruturado para renderização direta, "
+        "para o PAA identificado pelo UUID.\n\n"
+        "A resposta é um objeto com a chave `grupos`, contendo apenas os grupos que possuem itens. "
+        "Cada grupo inclui seus itens serializados — com o campo `acao` já resolvido e o marcador "
+        "`alteracao` quando o item foi modificado em retificação — seguidos de uma linha de total.\n\n"
+        "**Grupos possíveis:** Prioridades PTRF, Prioridades PDDE, Prioridades Outros Recursos, "
+        "Não Prioridades PTRF, Não Prioridades PDDE, Não Prioridades Outros Recursos.\n\n"
+        "**Requer autenticação.**"
+    ),
+    tags=["PAA"],
+    responses={
+        200: OpenApiResponse(
+            response=inline_serializer(
+                name="PlanoAplicacaoResponse",
+                fields={
+                    "grupos": inline_serializer(
+                        name="PlanoAplicacaoGrupo",
+                        many=True,
+                        fields={
+                            "key": serializers.CharField(),
+                            "titulo": serializers.CharField(),
+                            "ehOutrosRecursos": serializers.BooleanField(),
+                            "dados": serializers.ListField(),
+                        },
+                    )
+                },
+            ),
+            description="Plano de aplicação retornado com sucesso.",
+        ),
+        400: OpenApiResponse(description="Erro ao processar plano de aplicação."),
+        401: OpenApiResponse(description="Authentication credentials were not provided."),
+        403: OpenApiResponse(description="You do not have permission to perform this action."),
+        404: OpenApiResponse(description="No Paa matches the given query."),
+    },
+)
+
 SCHEMA_OBJETIVOS_DISPONIVEIS = extend_schema(
     description=(
         "Retorna os objetivos disponíveis para o PAA identificado pelo UUID.\n\n"
@@ -664,6 +702,7 @@ DOCS = dict(
     importar_prioridades=SCHEMA_IMPORTAR_PRIORIDADES,
     receitas_previstas=SCHEMA_RECEITAS_PREVISTAS,
     plano_orcamentario=SCHEMA_PLANO_ORCAMENTARIO,
+    plano_aplicacao=SCHEMA_PLANO_APLICACAO,
     objetivos_disponiveis=SCHEMA_OBJETIVOS_DISPONIVEIS,
     atividades_estatutarias_disponiveis=SCHEMA_ATIVIDADES_ESTATUTARIAS_DISPONIVEIS,
     atividades_estatutarias_previstas=SCHEMA_ATIVIDADES_ESTATUTARIAS_PREVISTAS,
