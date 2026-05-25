@@ -29,6 +29,19 @@ class DocumentoPaaService:
         self.criar_novo_documento()
         self.marcar_em_processamento()
 
+    def preparar_documento_para_task(self):
+        """
+        Na prévia, o registro EM_PROCESSAMENTO é criado na API antes do Celery.
+        """
+        if self.previa:
+            documento_previa = self.paa.documento_previa
+            if documento_previa and documento_previa.status_geracao == DocumentoPaa.StatusChoices.EM_PROCESSAMENTO:
+                self.documento_paa = documento_previa
+                self.logger.info('Documento PAA prévia em processamento reutilizado pela task.')
+                return
+
+        self.iniciar()
+
     def marcar_em_processamento(self):
         self.documento_paa.arquivo_em_processamento()
         self.logger.info('Documento PAA em processamento')
