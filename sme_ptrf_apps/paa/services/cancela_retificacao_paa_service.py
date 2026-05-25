@@ -87,17 +87,7 @@ class ValidacaoCancelaRetificacao(Exception):
     pass
 
 
-class RetificacaoRollbackService:
-
-    SECTION_HANDLERS = {
-        'atividades_estatutarias_paa': '_rollback_atividades_estatutarias_paa',
-        'objetivos_paa': '_rollback_objetivos_paa',
-        'receitas_ptrf': '_rollback_receitas_ptrf',
-        'receitas_pdde': '_rollback_receitas_pdde',
-        'receitas_recurso_proprio': '_rollback_receitas_recurso_proprio',
-        'receitas_outros_recursos': '_rollback_receitas_outros_recursos',
-        'prioridades': '_rollback_prioridades',
-    }
+class RetificacaoRollbackService: 
 
     def __init__(self, paa: Paa, usuario):
         self.paa = paa
@@ -108,11 +98,7 @@ class RetificacaoRollbackService:
     ###########################################################
 
     def _get_by_uuid_or_none(self, model, uuid):
-
-        if not uuid:
-            return None
-
-        return model.objects.filter(uuid=uuid).first()
+        return model.objects.get(uuid=uuid)
     
     def _str_data_para_date(self, data: str):
         return datetime.strptime(
@@ -148,23 +134,21 @@ class RetificacaoRollbackService:
 
         self._rollback_campos_simples(sessoes_afetadas)
 
+        SECTION_HANDLERS = {
+            'atividades_estatutarias_paa': self._rollback_atividades_estatutarias_paa,
+            'objetivos_paa': self._rollback_objetivos_paa,
+            'receitas_ptrf': self._rollback_receitas_ptrf,
+            'receitas_pdde': self._rollback_receitas_pdde,
+            'receitas_recurso_proprio': self._rollback_receitas_recurso_proprio,
+            'receitas_outros_recursos': self._rollback_receitas_outros_recursos,
+            'prioridades': self._rollback_prioridades
+        }
+
         for nome_sessao, alteracoes in sessoes_afetadas.items():
 
-            handler_name = self.SECTION_HANDLERS.get(nome_sessao)
+            exc_func = SECTION_HANDLERS.get(nome_sessao)
 
-            if not handler_name:
-                self.logger.warning(
-                    f'Nenhum handler encontrado para seção: '
-                    f'{nome_sessao}'
-                )
-                continue
-
-            handler = getattr(self, handler_name, None)
-
-            if not handler:
-                self.logger.warning(
-                    f'Handler {handler_name} não encontrado.'
-                )
+            if not exc_func:
                 continue
 
             self._log_inicio_secao(
@@ -172,7 +156,7 @@ class RetificacaoRollbackService:
                 alteracoes,
             )
 
-            handler(alteracoes)
+            exc_func(alteracoes)
 
             self._log_fim_secao(nome_sessao)
 
