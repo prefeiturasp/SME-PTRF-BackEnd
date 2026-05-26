@@ -7,7 +7,7 @@ from unittest.mock import patch, MagicMock
 
 from sme_ptrf_apps.paa.services.paa_service import PaaService
 from sme_ptrf_apps.paa.enums import PaaStatusEnum
-from sme_ptrf_apps.paa.models import PrioridadePaa
+from sme_ptrf_apps.paa.models import PrioridadePaa, DocumentoPaa
 from sme_ptrf_apps.paa.services.resumo_prioridades_service import ResumoPrioridadesService
 
 
@@ -360,6 +360,19 @@ class TestPodeGerarDocumentoFinal:
 
         assert len(erros) == 1
         assert "O documento já está sendo gerado" in erros[0]
+
+    def test_nao_pode_gerar_documento_final_quando_previa_em_processamento(self, paa):
+        baker.make(
+            'DocumentoPaa',
+            paa=paa,
+            versao=DocumentoPaa.VersaoChoices.PREVIA,
+            status_geracao=DocumentoPaa.StatusChoices.EM_PROCESSAMENTO,
+        )
+
+        erros = PaaService.pode_gerar_documento_final(paa)
+
+        assert len(erros) == 1
+        assert "A prévia do documento ainda está sendo gerada" in erros[0]
 
     def test_pode_gerar_prioridades_incompletas(
         self,

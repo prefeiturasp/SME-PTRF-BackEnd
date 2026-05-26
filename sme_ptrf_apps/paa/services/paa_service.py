@@ -277,6 +277,13 @@ class PaaService:
             if paa.documento_final.status_geracao == DocumentoPaa.StatusChoices.EM_PROCESSAMENTO:
                 return ["O documento já está sendo gerado."]
 
+        documento_previa = paa.documento_previa
+        if documento_previa and documento_previa.status_geracao == DocumentoPaa.StatusChoices.EM_PROCESSAMENTO:
+            return [
+                "A prévia do documento ainda está sendo gerada. "
+                "Aguarde a conclusão para gerar o documento final."
+            ]
+
         errors = []
         # Valida se todas as receitas previstas foram totalmente utilizadas nas prioridades
         resumo_service = ResumoPrioridadesService(paa)
