@@ -18,7 +18,8 @@ def test_gerar_previa_documento_paa_async_sucesso(paa, usuario_task):
         result = gerar_previa_documento_paa_async.apply(args=[str(paa.uuid), usuario_task.username])
 
     assert result.successful()
-    mock_service_class.return_value.iniciar.assert_called_once()
+    mock_service_class.return_value.preparar_documento_para_task.assert_called_once()
+    mock_service_class.return_value.iniciar.assert_not_called()
     mock_service_class.return_value.marcar_concluido.assert_called_once()
     mock_service_class.return_value.marcar_erro.assert_not_called()
 
