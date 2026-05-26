@@ -197,7 +197,7 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
         ).filter(tipo_receita=instance)
 
         detalhes_em_uso = detalhes_a_remover.filter(
-            receita__isnull=False
+            receitas__isnull=False
         ).values_list('nome', flat=True).distinct()
 
         if detalhes_em_uso.exists():

@@ -213,10 +213,19 @@ class DetalheTipoReceitaAdmin(admin.ModelAdmin):
 
             def clean(self):
                 cleaned_data = super().clean()
+                nome = cleaned_data.get("nome")
                 tipo_receita = cleaned_data.get("tipo_receita")
 
                 if not tipo_receita:
                     raise ValidationError("O campo Tipo de Receita é obrigatório.")
+
+                # Normaliza o nome: remove espaços em branco extras
+                if nome:
+                    nome = ' '.join(nome.split())
+                    cleaned_data['nome'] = nome
+
+                if DetalheTipoReceita.objects.filter(nome__iexact=nome, tipo_receita=tipo_receita).exists():
+                    raise ValidationError("Este detalhe já existe para esse tipo de receita.")
 
                 if tipo_receita and not tipo_receita.possui_detalhamento:
                     raise ValidationError("Não é possível associar um detalhe a um tipo de receita que não permite detalhamento.")

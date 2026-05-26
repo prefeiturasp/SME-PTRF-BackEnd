@@ -30,7 +30,7 @@ class DetalheTipoReceitaParametrizacaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DetalheTipoReceita
-        fields = ('id', 'nome', 'tipo_receita', 'tipo_receita_nome', 'can_edit_tipo_receita')
+        fields = ('id', 'uuid', 'nome', 'tipo_receita', 'tipo_receita_nome', 'can_edit_tipo_receita')
 
     def create(self, validated_data):
         nome = validated_data.get('nome')
