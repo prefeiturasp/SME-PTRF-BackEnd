@@ -61,7 +61,7 @@ class TipoReceitaLookUpSerializer(serializers.ModelSerializer):
 
 class TipoReceitaListaSerializer(serializers.ModelSerializer):
     uso_associacao = serializers.CharField(read_only=True)
-    detalhes = DetalheTipoReceitaSerializer(many=True)
+    detalhes_tipo_receita = DetalheTipoReceitaSerializer(many=True)
     tipos_conta = TipoContaSerializer(many=True)
     unidades = UnidadeSerializer(many=True)
     todas_unidades_selecionadas = serializers.SerializerMethodField()
@@ -88,7 +88,7 @@ class TipoReceitaListaSerializer(serializers.ModelSerializer):
             'e_estorno',
             'mensagem_usuario',
             'possui_detalhamento',
-            'detalhes',
+            'detalhes_tipo_receita',
             'tipos_conta',
             'unidades',
             'todas_unidades_selecionadas',
@@ -160,7 +160,7 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
 
             detalhes_list.append(detalhe)
 
-        instance.detalhes.set(detalhes_list)
+        instance.detalhes_tipo_receita.set(detalhes_list)
 
         return instance
 
@@ -192,6 +192,24 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
 
             detalhes_list.append(detalhe)
 
-        instance.detalhes.set(detalhes_list)
+        detalhes_a_remover = DetalheTipoReceita.objects.exclude(
+            id__in=[d.id for d in detalhes_list]
+        ).filter(tipo_receita=instance)
+
+        detalhes_em_uso = detalhes_a_remover.filter(
+            receita__isnull=False
+        ).values_list('nome', flat=True).distinct()
+
+        if detalhes_em_uso.exists():
+            nomes = ', '.join(detalhes_em_uso)
+            raise serializers.ValidationError({
+                'non_field_errors': (
+                    f'Não é possível remover os seguintes detalhamentos pois já foram utilizados em receitas: {nomes}.'
+                )
+            })
+
+        detalhes_a_remover.delete()
+
+        instance.detalhes_tipo_receita.set(detalhes_list)
 
         return instance
