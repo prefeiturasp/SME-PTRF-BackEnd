@@ -223,7 +223,6 @@ class PaaDreService:
             .filter(unidade__dre=dre)
             .values(
                 "unidade__uuid",
-                "unidade__codigo_eol",
                 "unidade__nome",
                 "unidade__tipo_unidade",
             )
@@ -236,7 +235,6 @@ class PaaDreService:
                 "uuid": item["unidade__uuid"],
                 "nome": item["unidade__nome"],
                 "tipo_unidade": item["unidade__tipo_unidade"],
-                "codigo_eol": item["unidade__codigo_eol"],
                 "unidade_educacional": f"{item['unidade__tipo_unidade']} {item['unidade__nome']}"
             }
             for item in qs

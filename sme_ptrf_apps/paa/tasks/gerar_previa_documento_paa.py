@@ -32,7 +32,7 @@ def gerar_previa_documento_paa_async(self, paa_uuid, username=""):
     usuario = get_user_model().objects.get(username=username)
 
     service = DocumentoPaaService(paa=paa, usuario=username, previa=True, logger=logger)
-    service.iniciar()
+    service.preparar_documento_para_task()
 
     try:
         documento_paa = service.documento_paa
