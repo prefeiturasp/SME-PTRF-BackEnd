@@ -662,10 +662,6 @@ class RetificacaoRollbackService:
         def _resolve_prioridade_relations(dados):
 
             return {
-                'recurso': Recurso.objects.filter(
-                    nome=dados['recurso']
-                ).first(),
-
                 'acao_associacao': self._get_by_uuid_or_none(
                     AcaoAssociacao,
                     dados.get('acao_associacao_uuid'),
@@ -716,8 +712,8 @@ class RetificacaoRollbackService:
             obj.prioridade = anterior['prioridade']
             obj.tipo_aplicacao = anterior['tipo_aplicacao']
             obj.valor_total = anterior['valor_total']
+            obj.recurso = anterior['recurso']
 
-            obj.recurso = relacoes['recurso']
             obj.acao_associacao = relacoes['acao_associacao']
             obj.programa_pdde = relacoes['programa_pdde']
             obj.acao_pdde = relacoes['acao_pdde']
@@ -747,8 +743,8 @@ class RetificacaoRollbackService:
                 prioridade=dados['prioridade'],
                 tipo_aplicacao=dados['tipo_aplicacao'],
                 valor_total=dados['valor_total'],
-
-                recurso=relacoes['recurso'],
+                recurso=dados['recurso'],
+                
                 acao_associacao=relacoes['acao_associacao'],
                 programa_pdde=relacoes['programa_pdde'],
                 acao_pdde=relacoes['acao_pdde'],
