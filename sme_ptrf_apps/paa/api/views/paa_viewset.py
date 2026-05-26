@@ -43,6 +43,10 @@ from sme_ptrf_apps.paa.services.retificacao_paa_service import (
     RetificacaoPaaService,
     ValidacaoRetificacao,
 )
+from sme_ptrf_apps.paa.services.cancela_retificacao_paa_service import (
+    CancelaRetificacaoPaaService,
+    ValidacaoCancelaRetificacao,
+)
 from drf_spectacular.utils import extend_schema_view
 from .docs.paa_viewset_docs import DOCS as PAA_DOCS
 
@@ -573,6 +577,42 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
                 'paa_uuid': str(paa.uuid),
             },
             status=status.HTTP_201_CREATED
+        )
+    
+    @action(detail=True, methods=['post'], url_path='cancelar-retificacao',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def cancelar_retificacao(self, request, uuid=None):
+        """
+        Inicia o processo de cancelamento da retificação do PAA.      
+
+        Fluxo:
+            1. Faz rollback dos registros para o estado salvo em réplica
+            2. Remove documento de prévia de retificação
+            3. Retorna para o STATUS GERADO, salva Log da réplica e deleta ReplicaPaa corrente.        
+        """
+        paa = self.get_object()       
+
+        service = CancelaRetificacaoPaaService(paa=paa, usuario=request.user)
+
+        try:
+            service.iniciar_cancelamento_retificacao()
+        except ValidacaoCancelaRetificacao as e:
+            return Response(
+                {'erro': 'cancelar_retificacao', 'mensagem': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {'erro': 'erro_cancelamento_retificacao', 'mensagem': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            {
+                'mensagem': 'Retificação cancelada com sucesso.',
+                'paa_uuid': str(paa.uuid),
+            },
+            status=status.HTTP_200_OK
         )
 
     @action(detail=True, methods=['get'], url_path='paa-retificacao',
