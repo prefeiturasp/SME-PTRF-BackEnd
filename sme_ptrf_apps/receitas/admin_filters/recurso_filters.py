@@ -20,7 +20,7 @@ class RecursoListFilter(admin.SimpleListFilter):
 class DetalheTipoReceitaFilter(RecursoListFilter):
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.filter(receita__associacao__periodos_iniciais__recurso_id=self.value()).distinct()
+            return queryset.filter(receitas__associacao__periodos_iniciais__recurso_id=self.value()).distinct()
         return queryset
 
 
