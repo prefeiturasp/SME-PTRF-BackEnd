@@ -55,6 +55,8 @@ class DetalheTipoReceitaParametrizacaoViewSet(mixins.CreateModelMixin,
                 raise NotFound({"mensagem": "Recurso não encontrado."})
             except ValidationError:
                 raise DRFValidationError({"mensagem": "UUID de recurso inválido."})
+            except Exception:
+                raise DRFValidationError({"mensagem": "Erro ao processar a solicitação."})
 
         return qs
 
@@ -66,7 +68,7 @@ class DetalheTipoReceitaParametrizacaoViewSet(mixins.CreateModelMixin,
             content = {
                 'mensagem': (
                     'Essa operação não pode ser realizada. '
-                    'Há receitas associadas a esse detalhe de tipo de receita.'
+                    'Há receitas associadas a esse detalhe de tipo de crédito.'
                 )
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)

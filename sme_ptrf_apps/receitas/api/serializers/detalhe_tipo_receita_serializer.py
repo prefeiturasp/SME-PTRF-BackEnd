@@ -42,13 +42,13 @@ class DetalheTipoReceitaParametrizacaoSerializer(serializers.ModelSerializer):
             validated_data['nome'] = nome
 
         if not tipo_receita:
-            raise serializers.ValidationError({'non_field_errors': 'O campo Tipo de Receita é obrigatório.'})
+            raise serializers.ValidationError({'non_field_errors': 'O campo tipo de crédito é obrigatório.'})
 
         if DetalheTipoReceita.objects.filter(nome__iexact=nome, tipo_receita=tipo_receita).exists():
-            raise serializers.ValidationError({'non_field_errors': 'Este detalhe já existe para esse tipo de receita.'})
+            raise serializers.ValidationError({'non_field_errors': 'Este detalhe já existe para esse tipo de crédito.'})
 
         if not tipo_receita.possui_detalhamento:
-            raise serializers.ValidationError({'non_field_errors': 'Não é possível associar um detalhe a um tipo de receita que não permite detalhamento.'})
+            raise serializers.ValidationError({'non_field_errors': 'Não é possível associar um detalhe a um tipo de crédito que não permite detalhamento.'})
 
         instance = super().create(validated_data)
         return instance
@@ -65,17 +65,17 @@ class DetalheTipoReceitaParametrizacaoSerializer(serializers.ModelSerializer):
 
         if DetalheTipoReceita.objects.filter(nome__iexact=nome, tipo_receita=tipo_receita).exclude(pk=self.instance.pk).exists():
             raise serializers.ValidationError({
-                'non_field_errors': 'Este detalhe já existe para esse tipo de receita.'
+                'non_field_errors': 'Este detalhe já existe para esse tipo de crédito.'
             })
 
         if tipo_receita and instance.tipo_receita and tipo_receita != instance.tipo_receita:
             if instance.receitas.exists():
                 raise serializers.ValidationError({
-                    'non_field_errors': 'Não é possível alterar o Tipo de Receita, pois existem receitas associadas a este detalhe.'
+                    'non_field_errors': 'Não é possível alterar o tipo de crédito, pois existem receitas associadas a este detalhe.'
                 })
 
         if not tipo_receita.possui_detalhamento:
-            raise serializers.ValidationError({'non_field_errors': 'Não é possível associar um detalhe a um tipo de receita que não permite detalhamento.'})
+            raise serializers.ValidationError({'non_field_errors': 'Não é possível associar um detalhe a um tipo de crédito que não permite detalhamento.'})
 
         instance = super().update(instance, validated_data)
         return instance
