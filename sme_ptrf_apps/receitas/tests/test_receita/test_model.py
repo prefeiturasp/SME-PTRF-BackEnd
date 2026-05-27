@@ -1,7 +1,7 @@
 import pytest
 from freezegun import freeze_time
 
-from ...models import Receita
+from ...models import Receita, TipoReceita
 from ...tipos_aplicacao_recurso_receitas import APLICACAO_LIVRE
 from ....core.models import Periodo
 from ....despesas.models import RateioDespesa
@@ -86,3 +86,38 @@ def test_instance_receita_estorno(receita_estorno):
     model = receita_estorno
     assert isinstance(model, Receita)
     assert isinstance(model.rateio_estornado, RateioDespesa)
+
+
+# --- TipoReceita.filter_by_recurso ---
+
+def test_filter_by_recurso_retorna_apenas_tipos_do_recurso_correto(tipo_receita_factory, recurso_factory, recurso_legado):
+    recurso_novo = recurso_factory.create(cor='#3982AC')
+    tipo_a = tipo_receita_factory.create(recurso=recurso_legado)
+    tipo_b = tipo_receita_factory.create(recurso=recurso_novo)
+
+    qs = TipoReceita.objects.all()
+    resultado = TipoReceita.filter_by_recurso(qs, recurso_legado)
+
+    assert tipo_a in resultado
+    assert tipo_b not in resultado
+
+
+def test_filter_by_recurso_retorna_queryset_vazio_quando_nao_ha_correspondencia(tipo_receita_factory, recurso_factory, recurso_legado):
+    recurso_sem_tipos = recurso_factory.create(cor='#0D3B66')
+    tipo_receita_factory.create(recurso=recurso_legado)
+
+    qs = TipoReceita.objects.all()
+    resultado = TipoReceita.filter_by_recurso(qs, recurso_sem_tipos)
+
+    assert not resultado.exists()
+
+
+def test_filter_by_recurso_retorna_todos_quando_todos_pertencem_ao_recurso(tipo_receita_factory, recurso_legado):
+    tipo_a = tipo_receita_factory.create(recurso=recurso_legado)
+    tipo_b = tipo_receita_factory.create(recurso=recurso_legado)
+
+    qs = TipoReceita.objects.all()
+    resultado = TipoReceita.filter_by_recurso(qs, recurso_legado)
+
+    assert tipo_a in resultado
+    assert tipo_b in resultado
