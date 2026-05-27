@@ -37,7 +37,8 @@ class Recurso(ModeloIdNome, TemAtivo):
                                 )
 
     exibe_valores_reprogramados = models.BooleanField(
-        verbose_name="Exibir valores reprogramados?",
+        verbose_name="Exibir valores reprogramados iniciais?",
+        help_text="Os valores reprogramados iniciais, quando necessário, são indicados no período inicial de referência.",
         default=False,
         null=False,
         blank=False
