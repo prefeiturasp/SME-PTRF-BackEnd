@@ -94,7 +94,8 @@ from sme_ptrf_apps.receitas.api.views import (
     ReceitaViewSet,
     RepasseViewSet,
     MotivosEstornoViewSet,
-    TipoReceitaViewSet
+    TipoReceitaViewSet,
+    DetalheTipoReceitaParametrizacaoViewSet,
 )
 from sme_ptrf_apps.paa.api.views import (
     PeriodoPaaViewSet,
@@ -179,6 +180,7 @@ router.register("especificacoes-materiais-servicos", ParametrizacaoEspecificacoe
 router.register("rateios-despesas", RateiosDespesasViewSet, basename="rateios-despesas")
 router.register("receitas", ReceitaViewSet, basename="receitas")
 router.register("tipos-receitas", TipoReceitaViewSet, basename="tipos-receitas")
+router.register("detalhes-tipos-receitas-parametrizacao", DetalheTipoReceitaParametrizacaoViewSet, basename="detalhes-tipos-receitas-parametrizacao")
 router.register("fornecedores", FornecedoresViewSet, basename="fornecedores")
 router.register("associacoes", AssociacoesViewSet, basename="associacoes")
 router.register("parametrizacoes-associacoes", ParametrizacoesAssociacoesViewSet,

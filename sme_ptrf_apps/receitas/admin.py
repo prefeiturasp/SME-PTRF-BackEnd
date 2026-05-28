@@ -1,8 +1,9 @@
-from django.contrib import admin
-from django.forms import ModelForm
+from django.contrib import admin, messages
+from django.forms import ModelForm, ModelChoiceField
 from django.core.exceptions import ValidationError
 from rangefilter.filters import DateRangeFilter
-from sme_ptrf_apps.core.models import Unidade
+from rest_framework import request
+from sme_ptrf_apps.core.models import Unidade, Recurso
 from sme_ptrf_apps.receitas.models import Receita, TipoReceita, Repasse, DetalheTipoReceita, MotivoEstorno
 
 from .admin_filters import (
@@ -11,6 +12,10 @@ from .admin_filters import (
     DetalheTipoReceitaFilter
 )
 
+class DetalheTipoReceitaInline(admin.TabularInline):
+    model = DetalheTipoReceita
+    extra = 0
+    Fields = ['nome',]
 
 class TipoReceitaForm(ModelForm):
     def clean_unidades(self):
@@ -50,6 +55,7 @@ class RecursoFilter(admin.SimpleListFilter):
 @admin.register(TipoReceita)
 class TipoReceitaAdmin(admin.ModelAdmin):
     form = TipoReceitaForm
+    inlines = [DetalheTipoReceitaInline]
     list_display = (
         'nome', 'recurso', 'e_repasse', 'e_rendimento', 'aceita_capital', 'aceita_custeio', 'aceita_livre',
         'mensagem_usuario', 'possui_detalhamento'
@@ -146,10 +152,103 @@ class RepasseAdmin(admin.ModelAdmin):
 
 @admin.register(DetalheTipoReceita)
 class DetalheTipoReceitaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'tipo_receita')
+    list_display = ('nome', 'tipo_receita', 'recurso')
     readonly_fields = ('uuid', 'id')
     search_fields = ('nome',)
     list_filter = ('tipo_receita', DetalheTipoReceitaFilter)
+
+    @admin.display(description='Recurso', ordering='tipo_receita__recurso__nome')
+    def recurso(self, obj):
+        return obj.tipo_receita.recurso if obj.tipo_receita else None
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('tipo_receita__recurso')
+
+    def get_readonly_fields(self, request, obj=None):
+        if obj and obj.pk and obj.receitas.exists():
+            return self.readonly_fields + ('tipo_receita',)
+        return self.readonly_fields
+
+    def change_view(self, request, object_id, form_url='', extra_context=None):
+        if request.method == 'GET':
+            obj = self.get_object(request, object_id)
+            if obj and obj.receitas.exists():
+                message = "Não é possível alterar o Tipo de Receita, pois existem receitas associadas a este detalhe."
+                messages.warning(request, message)
+        return super().change_view(request, object_id, form_url, extra_context=extra_context)
+
+    def get_form(self, request, obj=None, **kwargs):
+        _request = request
+
+        class DetalheTipoReceitaForm(ModelForm):
+            recurso = ModelChoiceField(
+                queryset=Recurso.objects.filter(ativo=True).order_by('nome'),
+                required=False,
+                label='Recurso',
+                empty_label='--- Selecione um recurso ---',
+            )
+
+            def __init__(self, *args, **form_kwargs):
+                super().__init__(*args, **form_kwargs)
+
+                can_write_tipo_receita = self.fields.get('tipo_receita', None)
+
+                if can_write_tipo_receita and self.instance and self.instance.pk and self.instance.receitas.exists():
+                    self.fields['tipo_receita'].disabled = True
+
+                recurso_id = _request.GET.get('recurso')
+
+                if not recurso_id and self.instance and self.instance.pk and self.instance.tipo_receita.recurso:
+                    if self.instance.tipo_receita.recurso_id:
+                        recurso_id = self.instance.tipo_receita.recurso_id
+
+                if recurso_id:
+                    try:
+                        self.fields['recurso'].initial = Recurso.objects.get(pk=recurso_id)
+                    except Recurso.DoesNotExist:
+                        pass
+                    if can_write_tipo_receita:
+                        self.fields['tipo_receita'].queryset = TipoReceita.objects.filter(
+                            recurso_id=recurso_id, possui_detalhamento=True
+                        ).distinct().order_by('nome')
+                elif can_write_tipo_receita:
+                    self.fields['tipo_receita'].queryset = TipoReceita.objects.filter(possui_detalhamento=True).order_by('nome')
+
+            class Meta:
+                model = DetalheTipoReceita
+                fields = ('recurso', 'nome', 'tipo_receita')
+
+            def clean(self):
+                cleaned_data = super().clean()
+                nome = cleaned_data.get("nome")
+                tipo_receita = cleaned_data.get("tipo_receita")
+
+                if not tipo_receita:
+                    raise ValidationError("O campo Tipo de Receita é obrigatório.")
+
+                # Normaliza o nome: remove espaços em branco extras
+                if nome:
+                    nome = ' '.join(nome.split())
+                    cleaned_data['nome'] = nome
+
+                if DetalheTipoReceita.objects.filter(nome__iexact=nome, tipo_receita=tipo_receita).exists():
+                    raise ValidationError("Este detalhe já existe para esse tipo de receita.")
+
+                if tipo_receita and not tipo_receita.possui_detalhamento:
+                    raise ValidationError("Não é possível associar um detalhe a um tipo de receita que não permite detalhamento.")
+
+                if self.instance and self.instance.pk:
+                    if tipo_receita and tipo_receita != self.instance.tipo_receita:
+                        if self.instance.receitas.exists():
+                            raise ValidationError(
+                                "Não é possível alterar o Tipo de Receita, pois existem receitas associadas a este detalhe."
+                            )
+
+            class Media:
+                js = ('admin/js/detalhe_tipo_receita.js',)
+
+        kwargs['form'] = DetalheTipoReceitaForm
+        return super().get_form(request, obj, **kwargs)
 
 
 @admin.register(MotivoEstorno)

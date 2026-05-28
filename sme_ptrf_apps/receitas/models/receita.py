@@ -67,7 +67,7 @@ class Receita(ModeloBase):
     repasse = models.ForeignKey('Repasse', on_delete=models.PROTECT, related_name='receitas',
                                 blank=True, null=True)
 
-    detalhe_tipo_receita = models.ForeignKey('DetalheTipoReceita', on_delete=models.PROTECT, blank=True, null=True)
+    detalhe_tipo_receita = models.ForeignKey('DetalheTipoReceita', on_delete=models.PROTECT, blank=True, null=True, related_name='receitas')
     detalhe_outros = models.CharField('Detalhe da despesa (outros)', max_length=160, blank=True, default='')
 
     referencia_devolucao = models.ForeignKey(Periodo, on_delete=models.PROTECT,

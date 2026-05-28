@@ -12,7 +12,7 @@ def test_detalhe_tipo_receita_list_filter(detalhe_tipo_receita_admin):
 
 
 def test_detalhe_tipo_receita_list_display(detalhe_tipo_receita_admin):
-    assert detalhe_tipo_receita_admin.list_display == ('nome', 'tipo_receita')
+    assert detalhe_tipo_receita_admin.list_display == ('nome', 'tipo_receita', 'recurso')
 
 
 def test_detalhe_tipo_receita_readonly_fields(detalhe_tipo_receita_admin):

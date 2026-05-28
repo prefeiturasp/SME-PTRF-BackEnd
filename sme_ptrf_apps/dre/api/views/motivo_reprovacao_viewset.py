@@ -49,7 +49,7 @@ class MotivoReprovacaoParametrizacaoViewSet(viewsets.ModelViewSet):
             if recurso:
                 filters &= Q(recurso__uuid=recurso_uuid)
 
-        return MotivoReprovacao.objects.filter(filters)
+        return MotivoReprovacao.objects.filter(filters).order_by('motivo')
 
 
     def destroy(self, request, *args, **kwargs):
