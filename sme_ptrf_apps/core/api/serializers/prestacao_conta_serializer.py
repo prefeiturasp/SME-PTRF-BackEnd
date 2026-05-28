@@ -14,7 +14,10 @@ from sme_ptrf_apps.core.services.ajuste_services import possui_apenas_categorias
 from sme_ptrf_apps.dre.api.serializers.motivo_aprovacao_ressalva_serializer import MotivoAprovacaoRessalvaSerializer
 from sme_ptrf_apps.dre.api.serializers.motivo_reprovacao_serializer import MotivoReprovacaoSerializer
 from ....dre.models import ConsolidadoDRE
-
+from sme_ptrf_apps.paa.models import (
+    DocumentoPaa,
+    AtaPaa
+)
 
 class PrestacaoContaLookUpSerializer(serializers.ModelSerializer):
     periodo_uuid = serializers.SerializerMethodField('get_periodo_uuid')
@@ -390,3 +393,35 @@ class PrestacaoContaListRetificaveisSerializer(serializers.ModelSerializer):
             'pode_desfazer_retificacao',
             'tooltip_nao_pode_desfazer_retificacao',
         )
+
+
+class PrestacaoContaObterDocumentoPAASerializer(serializers.Serializer):
+    tipo = serializers.SerializerMethodField()
+    tipo_documento = serializers.SerializerMethodField()
+    nome = serializers.SerializerMethodField()
+    uuid = serializers.UUIDField()
+    mensagem_geracao = serializers.SerializerMethodField()
+
+    def get_tipo(self, obj):
+        return 'PDF'
+
+    def get_tipo_documento(self, obj):
+        if isinstance(obj, DocumentoPaa):
+            return 'documento-paa'
+        if isinstance(obj, AtaPaa):
+            return 'documento-ata'
+        return None
+
+    def get_nome(self, obj):
+        return str(obj)
+
+    def get_mensagem_geracao(self, obj):
+        data = obj.criado_em.strftime('%d/%m/%Y às %Hh%M')
+
+        if isinstance(obj, DocumentoPaa):
+            return f'Documento PAA gerado em {data}' if obj.concluido else 'Documento pendente de geração'
+
+        if isinstance(obj, AtaPaa):
+            return f'Ata PAA gerada em {data}' if obj.documento_gerado else 'Ata pendente de geração'
+
+        return ''

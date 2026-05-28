@@ -40,6 +40,11 @@ from ...models import (
     AnaliseDocumentoPrestacaoConta,
     TaskCelery
 )
+from sme_ptrf_apps.paa.models import (
+    DocumentoPaa,
+    AtaPaa
+)
+
 from ...services import (
     concluir_prestacao_de_contas,
     informacoes_financeiras_para_atas,
@@ -65,11 +70,16 @@ from ..serializers import (
     PrestacaoContaRetrieveSerializer,
     AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer,
     AnaliseDocumentoPrestacaoContaRetrieveSerializer,
-    AnalisePrestacaoContaRetrieveSerializer
+    AnalisePrestacaoContaRetrieveSerializer,
 )
 from ..serializers.conta_associacao_serializer import ContaAssociacaoDadosSerializer
 from sme_ptrf_apps.core.api.serializers.validation_serializers \
     .prestacoes_contas_concluir_validate_serializer import PrestacoesContasConcluirValidateSerializer
+
+from ..serializers.prestacao_conta_serializer import (
+    PrestacaoContaObterDocumentoPAASerializer,
+)
+from sme_ptrf_apps.paa.models.paa import Paa
 
 from sme_ptrf_apps.core.tasks import (
     concluir_prestacao_de_contas_async,
@@ -2595,3 +2605,112 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         )
 
         return Response(lancamentos, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary="Obter Documentos PAA",
+        description="Retorna os documentos do PAA associados a uma Prestação de Contas específica.",
+        responses={200: PrestacaoContaObterDocumentoPAASerializer(many=True)},
+    )
+    @action(
+        detail=True,
+        methods=['get'],
+        url_path='obter-documentos-paa',
+        permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao]
+    )
+    @action(detail=True, methods=['get'], url_path='obter-documentos-paa')
+    def obter_documentos_paa(self, request, uuid):
+        prestacao = self.get_object()
+
+        paa_base = Paa.objects.filter(
+            associacao=prestacao.associacao,
+            periodo_paa__data_inicial__lte=prestacao.periodo.data_inicio_prestacao_contas,
+            periodo_paa__data_final__gte=prestacao.periodo.data_fim_prestacao_contas
+        ).first()
+
+        if not paa_base:
+            return Response([
+                {
+                    "tipo": "PDF",
+                    "tipo_documento": "documento-paa",
+                    "nome": "Plano Anual",
+                    "uuid": None,
+                    "mensagem_geracao": "Nenhum PAA encontrado para o período informado"
+                }
+            ])
+
+        documentos = []
+
+        doc_original = (
+            paa_base.documentopaa_set
+            .filter(
+                versao=DocumentoPaa.VersaoChoices.FINAL,
+                retificacao=False,
+                status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO
+            )
+            .order_by('-criado_em')
+            .first()
+        )
+
+        ata_original = (
+            paa_base.atas_da_paa
+            .filter(
+                tipo_ata=AtaPaa.ATA_APRESENTACAO,
+                status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+                previa=False
+            )
+            .order_by('-criado_em')
+            .first()
+        )
+
+        doc_retificado = (
+            paa_base.documentopaa_set
+            .filter(
+                versao=DocumentoPaa.VersaoChoices.FINAL,
+                retificacao=True,
+                status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO
+            )
+            .order_by('-criado_em')
+            .first()
+        )
+
+        ata_retificacao = (
+            paa_base.atas_da_paa
+            .filter(
+                tipo_ata=AtaPaa.ATA_RETIFICACAO,
+                status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+                previa=False
+            )
+            .order_by('-criado_em')
+            .first()
+        )
+
+        if doc_original:
+            documentos.append(doc_original)
+
+        if ata_original:
+            documentos.append(ata_original)
+
+        if doc_retificado:
+            documentos.append(doc_retificado)
+
+        if ata_retificacao:
+            documentos.append(ata_retificacao)
+
+        if not documentos:
+            return Response([
+                {
+                    "tipo": "PDF",
+                    "tipo_documento": "documento-paa",
+                    "nome": "Plano Anual",
+                    "uuid": str(paa_base.uuid),
+                    "mensagem_geracao": "Documento pendente de geração"
+                }
+            ])
+
+        serializer = PrestacaoContaObterDocumentoPAASerializer(
+            documentos,
+            many=True
+        )
+
+        return Response(serializer.data)
+

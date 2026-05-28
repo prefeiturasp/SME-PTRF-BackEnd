@@ -13,6 +13,7 @@ from .prioridade_paa_viewset import PrioridadePaaViewSet, PrioridadePaaRelatorio
 from .objetivo_paa_viewset import ObjetivoPaaViewSet
 from .atividade_estatutaria_viewset import AtividadeEstatutariaViewSet
 from .ata_paa_viewset import AtaPaaViewSet
+from .documento_paa_viewset import DocumentoPaaViewSet
 from .presentes_ata_paa_viewset import PresentesAtaPaaViewSet
 from .outros_recursos_viewset import OutrosRecursosPaaViewSet
 from .outros_recursos_periodo_paa_viewset import OutrosRecursosPeriodoPaaViewSet
