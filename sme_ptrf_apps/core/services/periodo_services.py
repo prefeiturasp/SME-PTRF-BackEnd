@@ -7,7 +7,20 @@ from ..models import Associacao, Periodo, PrestacaoConta, PeriodoInicialAssociac
 
 
 def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
-    """Retorna o status da prestação de contas de uma associação em um período."""
+    """
+    Status Período	Status Documentos PC	Status PC na DRE	Parte Período	        Parte Prestação de Contas	                    Exibe Cadeado	Cor
+    Em andamento	Não gerados	            N/A	                Período em andamento.	 		                                                        1
+    Em andamento	Gerados	                N/A	                Período em andamento.	Documentos gerados para prestação de contas.	            X	2
+    Encerrado	    Não gerados	            Não Recebida	    Período finalizado.	    Documentos Pendentes de geração.		                        3
+    Encerrado	    Gerados	                Não Recebida	    Período finalizado.	    Prestação de Contas ainda não recebida pela DRE.	        X	2
+    Encerrado	    Gerados	                Recebida	        Período finalizado.	    Prestação de Contas recebida pela DRE.	                    X	4
+    Encerrado	    Gerados	                Em Análise	        Período finalizado.	    Prestação de Contas em análise pela DRE.	                X	4
+    Encerrado	    Gerados	                Devolvida	        Período finalizado.	    Prestação de Contas devolvida para ajustes.		                3
+    Encerrado	    Gerados	                Devolvida Retornada Período finalizado.	    Prestação de Contas apresentada após acertos.		            X   2
+    Encerrado	    Gerados	                Devolvida Recebida  Período finalizado.	    Prestação de Contas recebida após acertos.		            X   4
+    Encerrado	    Gerados	                Aprovada	        Período finalizado.	    Prestação de Contas aprovada pela DRE.	                    X	5
+    Encerrado	    Gerados	                Reprovada	        Período finalizado.	    Prestação de Contas reprovada pela DRE.	                    X	3
+    """
 
     def pc_requer_ata_retificacao(prestacao_conta):
         if not prestacao_conta:
