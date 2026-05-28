@@ -141,6 +141,7 @@ def _payload_despesa_capital(associacao, tipo_documento, tipo_transacao, conta_a
         "nome_fornecedor": "FORNECEDOR TESTE SA",
         "data_transacao": "2020-03-10",
         "valor_total": float(valor_rateio),
+        "valor_original": float(valor_rateio),
         "valor_recursos_proprios": 0,
         "motivos_pagamento_antecipado": [],
         "outros_motivos_pagamento_antecipado": "",
@@ -153,6 +154,7 @@ def _payload_despesa_capital(associacao, tipo_documento, tipo_transacao, conta_a
                 "tipo_custeio": None,
                 "especificacao_material_servico": especificacao_capital.id,
                 "valor_rateio": float(valor_rateio),
+                "valor_original": float(valor_rateio),
                 "quantidade_itens_capital": 2,
                 "valor_item_capital": float(valor_rateio) / 2,
                 "numero_processo_incorporacao_capital": "9876543210",
@@ -525,7 +527,7 @@ class TestPostDespesaCapitalComSaldoNegativo:
             associacao, tipo_documento, tipo_transacao,
             conta_associacao, acao_associacao,
             especificacao_capital,
-            valor_rateio=100,
+            valor_rateio=100,            
         )
 
         response = jwt_authenticated_client_d.post(
