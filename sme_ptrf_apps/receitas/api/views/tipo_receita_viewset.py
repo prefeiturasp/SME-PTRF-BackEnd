@@ -195,7 +195,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
     def unidades_nao_vinculadas(self, request, *args, **kwargs):
         from sme_ptrf_apps.core.models.unidade import Unidade
         from sme_ptrf_apps.receitas.models import TipoReceita
-        
+
         uuid_dre = self.request.query_params.get('dre')
         nome_ou_codigo = self.request.query_params.get('nome_ou_codigo')
         tipo_unidade = self.request.query_params.get('tipo_unidade')
@@ -223,7 +223,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         if nome_ou_codigo:
             unidades_nao_vinculadas = unidades_nao_vinculadas.filter(
                 Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo))
-            
+
         if recurso:
             unidades_nao_vinculadas = unidades_nao_vinculadas.filter(
                 associacoes__periodos_iniciais__recurso=recurso
@@ -324,16 +324,16 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
     @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/vincular',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def vincular_unidade(self, request, unidade_uuid, *args, **kwargs):
-        service = self._get_service_tipo_receita_vinculo_unidade()     
+        service = self._get_service_tipo_receita_vinculo_unidade()
 
         try:
             service.vincular_unidades([unidade_uuid])
-            return Response({"mensagem": "Unidade vinculada com sucesso!"}, status=status.HTTP_200_OK)       
+            return Response({"mensagem": "Unidade vinculada com sucesso!"}, status=status.HTTP_200_OK)
 
-        except UnidadeNaoEncontradaException as e:   
+        except UnidadeNaoEncontradaException as e:
             return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
-        except ValidacaoVinculoException as e:         
+        except ValidacaoVinculoException as e:
             return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
@@ -349,12 +349,12 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         try:
             service.vincular_unidades(unidade_uuids)
-            return Response({"mensagem": "Unidades vinculadas com sucesso!"}, status=status.HTTP_200_OK)       
+            return Response({"mensagem": "Unidades vinculadas com sucesso!"}, status=status.HTTP_200_OK)
 
-        except UnidadeNaoEncontradaException as e:   
+        except UnidadeNaoEncontradaException as e:
             return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
-        except ValidacaoVinculoException as e:         
+        except ValidacaoVinculoException as e:
             return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:

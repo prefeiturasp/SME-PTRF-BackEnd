@@ -9,10 +9,13 @@ from sme_ptrf_apps.core.models import PrestacaoConta
 from sme_ptrf_apps.users.models import Grupo
 from datetime import date
 
+from sme_ptrf_apps.receitas.fixtures.factories.detalhe_tipo_receita_factory import DetalheTipoReceitaFactory
+from sme_ptrf_apps.receitas.fixtures.factories.receita_factory import ReceitaFactory
+
 
 @pytest.fixture
 def tipo_receita(tipo_receita_factory, tipo_conta, dre_ipiranga, dre, unidade):
-    tipo_rec = tipo_receita_factory.create(nome='Estorno', e_repasse=False, aceita_capital=False, aceita_custeio=False, 
+    tipo_rec = tipo_receita_factory.create(nome='Estorno', e_repasse=False, aceita_capital=False, aceita_custeio=False,
                                            e_devolucao=False)
     tipo_rec.tipos_conta.set([tipo_conta])
     tipo_rec.unidades.set([dre_ipiranga, dre, unidade])
@@ -793,3 +796,41 @@ def receita_deve_inativar_estorno(
         rateio_estornado=rateio_saida_recurso,
         periodo_conciliacao=periodo_inativar_receita,
     )
+
+"""
+    Detalhes de tipo de receita factory
+"""
+@pytest.fixture
+def tipo_receita_com_detalhamento(tipo_receita_factory):
+    return tipo_receita_factory.create(nome='Tipo com detalhamento', possui_detalhamento=True)
+
+
+@pytest.fixture
+def detalhe_tipo_receita_parametrizacao(tipo_receita_com_detalhamento):
+    return DetalheTipoReceitaFactory.create(
+        nome='Detalhe 01',
+        tipo_receita=tipo_receita_com_detalhamento,
+    )
+
+
+@pytest.fixture
+def detalhe_tipo_receita_parametrizacao_02(tipo_receita_com_detalhamento):
+    return DetalheTipoReceitaFactory.create(
+        nome='Detalhe 02',
+        tipo_receita=tipo_receita_com_detalhamento,
+    )
+
+
+@pytest.fixture
+def detalhe_tipo_receita_parametrizacao_com_receita(tipo_receita_com_detalhamento):
+    detalhe = DetalheTipoReceitaFactory.create(
+        nome='Detalhe com receita',
+        tipo_receita=tipo_receita_com_detalhamento,
+    )
+
+    ReceitaFactory.create(
+        detalhe_tipo_receita=detalhe,
+        tipo_receita=tipo_receita_com_detalhamento,
+    )
+
+    return detalhe
