@@ -7,20 +7,7 @@ from ..models import Associacao, Periodo, PrestacaoConta, PeriodoInicialAssociac
 
 
 def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
-    """
-    Status Período	Status Documentos PC	Status PC na DRE	Parte Período	        Parte Prestação de Contas	                    Exibe Cadeado	Cor
-    Em andamento	Não gerados	            N/A	                Período em andamento.	 		                                                        1
-    Em andamento	Gerados	                N/A	                Período em andamento.	Documentos gerados para prestação de contas.	            X	2
-    Encerrado	    Não gerados	            Não Recebida	    Período finalizado.	    Documentos Pendentes de geração.		                        3
-    Encerrado	    Gerados	                Não Recebida	    Período finalizado.	    Prestação de Contas ainda não recebida pela DRE.	        X	2
-    Encerrado	    Gerados	                Recebida	        Período finalizado.	    Prestação de Contas recebida pela DRE.	                    X	4
-    Encerrado	    Gerados	                Em Análise	        Período finalizado.	    Prestação de Contas em análise pela DRE.	                X	4
-    Encerrado	    Gerados	                Devolvida	        Período finalizado.	    Prestação de Contas devolvida para ajustes.		                3
-    Encerrado	    Gerados	                Devolvida Retornada Período finalizado.	    Prestação de Contas apresentada após acertos.		            X   2
-    Encerrado	    Gerados	                Devolvida Recebida  Período finalizado.	    Prestação de Contas recebida após acertos.		            X   4
-    Encerrado	    Gerados	                Aprovada	        Período finalizado.	    Prestação de Contas aprovada pela DRE.	                    X	5
-    Encerrado	    Gerados	                Reprovada	        Período finalizado.	    Prestação de Contas reprovada pela DRE.	                    X	3
-    """
+    """Retorna o status da prestação de contas de uma associação em um período."""
 
     def pc_requer_ata_retificacao(prestacao_conta):
         if not prestacao_conta:
@@ -28,7 +15,12 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
 
         ultima_analise = prestacao_conta.analises_da_prestacao.filter(status='DEVOLVIDA').last()
 
-        return ultima_analise is not None and (ultima_analise.requer_alteracao_em_lancamentos or ultima_analise.requer_informacao_devolucao_ao_tesouro)
+        return (
+            ultima_analise is not None and (
+                ultima_analise.requer_alteracao_em_lancamentos or
+                ultima_analise.requer_informacao_devolucao_ao_tesouro
+            )
+        )
 
     def pc_requer_geracao_documentos(prestacao_conta):
         # Necessário devido a conflitos no import direto
@@ -117,6 +109,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         'legenda_cor': cor,
         'prestacao_de_contas_uuid': prestacao.uuid if prestacao and prestacao.uuid else None,
         'requer_retificacao': pc_requer_ata_retificacao(prestacao),
+        'possui_ata_retificacao': prestacao.ultima_ata_retificacao() is not None if prestacao else False,
         'tem_acertos_pendentes': pc_tem_solicitacoes_de_acerto_pendentes(prestacao),
         'requer_acertos_em_extrato': pc_requer_acertos_em_extrato(prestacao),
     }
@@ -176,7 +169,10 @@ def valida_datas_periodo(
             )
 
             if existe_periodo_para_recurso:
-                mensagem = "Período anterior não definido só é permitido para o primeiro período cadastrado para o recurso."
+                mensagem = (
+                    "Período anterior não definido só é permitido para o "
+                    "primeiro período cadastrado para o recurso."
+                )
                 valido = False
         else:
             periodos = (
