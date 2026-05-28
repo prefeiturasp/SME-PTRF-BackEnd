@@ -28,7 +28,12 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
 
         ultima_analise = prestacao_conta.analises_da_prestacao.filter(status='DEVOLVIDA').last()
 
-        return ultima_analise is not None and (ultima_analise.requer_alteracao_em_lancamentos or ultima_analise.requer_informacao_devolucao_ao_tesouro)
+        return (
+            ultima_analise is not None and (
+                ultima_analise.requer_alteracao_em_lancamentos or
+                ultima_analise.requer_informacao_devolucao_ao_tesouro
+            )
+        )
 
     def pc_requer_geracao_documentos(prestacao_conta):
         # Necessário devido a conflitos no import direto
@@ -117,6 +122,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         'legenda_cor': cor,
         'prestacao_de_contas_uuid': prestacao.uuid if prestacao and prestacao.uuid else None,
         'requer_retificacao': pc_requer_ata_retificacao(prestacao),
+        'possui_ata_retificacao': prestacao.ultima_ata_retificacao() is not None if prestacao else False,
         'tem_acertos_pendentes': pc_tem_solicitacoes_de_acerto_pendentes(prestacao),
         'requer_acertos_em_extrato': pc_requer_acertos_em_extrato(prestacao),
     }
@@ -176,7 +182,10 @@ def valida_datas_periodo(
             )
 
             if existe_periodo_para_recurso:
-                mensagem = "Período anterior não definido só é permitido para o primeiro período cadastrado para o recurso."
+                mensagem = (
+                    "Período anterior não definido só é permitido para o "
+                    "primeiro período cadastrado para o recurso."
+                )
                 valido = False
         else:
             periodos = (

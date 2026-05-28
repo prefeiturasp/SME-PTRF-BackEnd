@@ -25,6 +25,7 @@ def test_painel_resumo_recursos_retorna_info_conta(
         'status_prestacao': 'NAO_APRESENTADA',
         'texto_status': 'Período em andamento. ',
         'requer_retificacao': False,
+        'possui_ata_retificacao': False,
         'tem_acertos_pendentes': False,
         'requer_acertos_em_extrato': False
 
@@ -101,8 +102,12 @@ def test_painel_resumo_recursos_retorna_info_conta(
         'associacao': prr_associacao.uuid,
         'periodo_referencia': prr_periodo_2020_1.referencia,
         'prestacao_contas_status': status_pc_esperado,
-        'data_inicio_realizacao_despesas': f'{prr_periodo_2020_1.data_inicio_realizacao_despesas if prr_periodo_2020_1 else ""}',
-        'data_fim_realizacao_despesas': f'{prr_periodo_2020_1.data_fim_realizacao_despesas if prr_periodo_2020_1 else ""}',
+        'data_inicio_realizacao_despesas': (
+            f'{prr_periodo_2020_1.data_inicio_realizacao_despesas if prr_periodo_2020_1 else ""}'
+        ),
+        'data_fim_realizacao_despesas': (
+            f'{prr_periodo_2020_1.data_fim_realizacao_despesas if prr_periodo_2020_1 else ""}'
+        ),
         'data_prevista_repasse': f'{prr_periodo_2020_1.data_prevista_repasse if prr_periodo_2020_1 else ""}',
         'ultima_atualizacao': '2020-01-01 10:20:00',
         'info_acoes': info_acoes_esperado,

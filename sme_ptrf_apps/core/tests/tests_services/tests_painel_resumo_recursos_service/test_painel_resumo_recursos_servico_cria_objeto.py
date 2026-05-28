@@ -37,6 +37,7 @@ def test_obtem_painel_resumo_recursos_por_associacao_periodo_conta(
         'status_prestacao': 'NAO_APRESENTADA',
         'texto_status': 'Período em andamento. ',
         'requer_retificacao': False,
+        'possui_ata_retificacao': False,
         'tem_acertos_pendentes': False,
         'requer_acertos_em_extrato': False
 
