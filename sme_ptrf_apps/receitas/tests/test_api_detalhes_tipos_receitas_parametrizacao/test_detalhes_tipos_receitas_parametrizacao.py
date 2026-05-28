@@ -93,7 +93,7 @@ def test_create_erro_tipo_receita_sem_detalhamento(jwt_authenticated_client_p, t
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert content == {
-        'non_field_errors': 'Não é possível associar um detalhe a um tipo de receita que não permite detalhamento.'
+        'non_field_errors': 'Não é possível associar um detalhe a um tipo de crédito que não permite detalhamento.'
     }
 
 
@@ -111,7 +111,7 @@ def test_create_erro_detalhe_duplicado(jwt_authenticated_client_p, detalhe_tipo_
     content = json.loads(response.content)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert content == {'non_field_errors': 'Este detalhe já existe para esse tipo de receita.'}
+    assert content == {'non_field_errors': 'Este detalhe já existe para esse tipo de crédito.'}
 
 
 def test_patch_detalhe_tipo_receita_parametrizacao(
@@ -162,6 +162,6 @@ def test_delete_erro_com_receitas_associadas(
     assert content == {
         'mensagem': (
             'Essa operação não pode ser realizada. '
-            'Há receitas associadas a esse detalhe de tipo de receita.'
+            'Há receitas associadas a esse detalhe de tipo de crédito.'
         )
     }
