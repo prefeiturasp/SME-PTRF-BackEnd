@@ -152,10 +152,17 @@ class RepasseAdmin(admin.ModelAdmin):
 
 @admin.register(DetalheTipoReceita)
 class DetalheTipoReceitaAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'tipo_receita')
+    list_display = ('nome', 'tipo_receita', 'recurso')
     readonly_fields = ('uuid', 'id')
     search_fields = ('nome',)
     list_filter = ('tipo_receita', DetalheTipoReceitaFilter)
+
+    @admin.display(description='Recurso', ordering='tipo_receita__recurso__nome')
+    def recurso(self, obj):
+        return obj.tipo_receita.recurso if obj.tipo_receita else None
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('tipo_receita__recurso')
 
     def get_readonly_fields(self, request, obj=None):
         if obj and obj.pk and obj.receitas.exists():

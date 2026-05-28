@@ -42,7 +42,7 @@ class DetalheTipoReceitaParametrizacaoViewSet(mixins.CreateModelMixin,
         nome = self.request.query_params.get('nome')
         recurso_uuid = self.request.query_params.get('recurso_uuid')
 
-        qs = DetalheTipoReceita.objects.all()
+        qs = DetalheTipoReceita.objects.all().order_by('nome')
 
         if nome:
             qs = qs.filter(nome__icontains=nome)
