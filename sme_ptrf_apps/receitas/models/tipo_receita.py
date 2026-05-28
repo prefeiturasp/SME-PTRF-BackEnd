@@ -76,8 +76,7 @@ class TipoReceita(ModeloIdNome):
 
     @classmethod
     def filter_by_recurso(cls, queryset, recurso):
-        objects = queryset if queryset else cls.objects
+        return queryset.filter(recurso=recurso)
 
-        return objects.filter(recurso=recurso)
 
 auditlog.register(TipoReceita)

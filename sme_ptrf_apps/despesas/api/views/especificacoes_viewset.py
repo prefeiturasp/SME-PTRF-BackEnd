@@ -153,7 +153,7 @@ class ParametrizacaoEspecificacoesMaterialServicoViewSet(mixins.CreateModelMixin
         except ProtectedError:
             raise exceptions.ValidationError({
                 'erro': 'ProtectedError',
-                'mensagem': 'Essa operação não pode ser realizada. Há despesas vinculadas à esta especificação'
+                'mensagem': 'Essa operação não pode ser realizada. Há registros vinculados a esta especificação'
             })
 
         return Response(status=status.HTTP_204_NO_CONTENT)

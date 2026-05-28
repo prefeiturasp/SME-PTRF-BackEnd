@@ -216,6 +216,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, request):
         associacao_uuid = request.query_params.get('associacao_uuid')
+        ignorar_filtro_recurso = request.query_params.get('ignorar_filtro_recurso') == 'true'
 
         if associacao_uuid is None:
             erro = {
@@ -233,6 +234,14 @@ class ReceitaViewSet(mixins.CreateModelMixin,
             )
 
             if self.request.recurso and hasattr(model, "filter_by_recurso"):
+
+                # TODO - Refatorar para não precisar dessa exceção, que foi necessária para não quebrar a
+                # tela de edição de receita, do legado que foi criado com tipos de crédito antes da separação por recurso.
+                if ignorar_filtro_recurso and model == TipoReceitaEDetalhesSerializer.Meta.model:
+                    logger.warning(
+                        "Update informada. Retornando valores sem filtro de recurso.")
+                    return serializer(valores, many=True).data if valores else []
+
                 valores = model.filter_by_recurso(valores, self.request.recurso)
 
             return serializer(valores, many=True).data if valores else []
