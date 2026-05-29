@@ -54,7 +54,7 @@ class DocumentoPaa(ModeloBase):
 
     def label_documento(self):
         versao_label = DocumentoPaa.VersaoChoices(self.versao).label
-        return f"Documento {versao_label} {'retificado' if self.retificacao else ''}"
+        return f"Documento {versao_label}{' retificado' if self.retificacao else ''}"
 
     def status_label_geracao(self):
         if self.status_geracao == DocumentoPaa.StatusChoices.CONCLUIDO:

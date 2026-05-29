@@ -226,8 +226,9 @@ class AtaPaa(ModeloBase):
         return f"Ata de {self.ATA_NOMES[self.tipo_ata]} do PAA"
 
     def status_label_geracao(self):
+        """É utilizado em PC (PrestacaoContaObterDocumentoPAASerializer) e no PAA (vigentes e anteriores)"""
         if self.status_geracao_pdf == self.STATUS_CONCLUIDO:
-            return f'Documento final gerado em {self.criado_em.strftime("%d/%m/%Y às %H:%M")}'
+            return f'Ata PAA gerada em {self.criado_em.strftime("%d/%m/%Y às %H:%M")}'
 
         return 'Documento pendente de geração'
 
