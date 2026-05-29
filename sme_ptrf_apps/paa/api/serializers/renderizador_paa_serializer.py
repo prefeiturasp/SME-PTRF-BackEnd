@@ -196,7 +196,7 @@ class RenderizadorPaaBuilder:
                 return AtaPaa.STATUS_NOMES[AtaPaa.STATUS_EM_PROCESSAMENTO]
             return 'Documento pendente de geração.'
         if ata.status_geracao_pdf == AtaPaa.STATUS_CONCLUIDO and ata.criado_em:
-            return f'Ata PAA gerada dia {ata.alterado_em.strftime("%d/%m/%Y %H:%M")}'
+            return ata.status_label_geracao()
         return ata.nome
 
     def _ata_render(
