@@ -223,10 +223,7 @@ class AtaPaa(ModeloBase):
         return f'{self.label_nome()}-{self.status_label_geracao()}'
 
     def label_nome(self):
-        if self.tipo_ata == self.ATA_RETIFICACAO:
-            return 'Ata de Retificação do PAA'
-
-        return 'Ata de Apresentação do PAA'
+        return f"Ata de {self.ATA_NOMES[self.tipo_ata]} do PAA"
 
     def status_label_geracao(self):
         if self.status_geracao_pdf == self.STATUS_CONCLUIDO:
