@@ -14,7 +14,10 @@ from sme_ptrf_apps.core.services.ajuste_services import possui_apenas_categorias
 from sme_ptrf_apps.dre.api.serializers.motivo_aprovacao_ressalva_serializer import MotivoAprovacaoRessalvaSerializer
 from sme_ptrf_apps.dre.api.serializers.motivo_reprovacao_serializer import MotivoReprovacaoSerializer
 from ....dre.models import ConsolidadoDRE
-
+from sme_ptrf_apps.paa.models import (
+    DocumentoPaa,
+    AtaPaa
+)
 
 class PrestacaoContaLookUpSerializer(serializers.ModelSerializer):
     periodo_uuid = serializers.SerializerMethodField('get_periodo_uuid')
@@ -390,3 +393,29 @@ class PrestacaoContaListRetificaveisSerializer(serializers.ModelSerializer):
             'pode_desfazer_retificacao',
             'tooltip_nao_pode_desfazer_retificacao',
         )
+
+
+class PrestacaoContaObterDocumentoPAASerializer(serializers.Serializer):
+    tipo = serializers.SerializerMethodField()
+    tipo_documento = serializers.SerializerMethodField()
+    nome = serializers.SerializerMethodField()
+    uuid = serializers.UUIDField()
+
+    def get_tipo(self, obj):
+        return 'PDF'
+
+    def get_tipo_documento(self, obj):
+        if isinstance(obj, DocumentoPaa):
+            return 'documento-paa'
+        if isinstance(obj, AtaPaa):
+            return 'documento-ata'
+        return None
+
+    def get_nome(self, obj):
+        if isinstance(obj, DocumentoPaa):
+            return f'{obj.label_nome()}-{obj}'
+
+        if isinstance(obj, AtaPaa):
+            return obj.nome_documento_exibicao()
+
+        return str(obj)
