@@ -65,7 +65,7 @@ def test_sem_documentos(
     )
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data[0]["nome"] == "Plano Anual"
+    assert response.data[0]["nome"] == "Plano Anual-Documento pendente de geração"
 
 
 # =========================
@@ -87,7 +87,7 @@ def test_documento_original(
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data[0]["tipo_documento"] == "documento-paa"
-    assert "Documento PAA final" in response.data[0]["nome"]
+    assert "Documento final gerado em" in response.data[0]["nome"]
 
 
 # =========================

@@ -400,7 +400,6 @@ class PrestacaoContaObterDocumentoPAASerializer(serializers.Serializer):
     tipo_documento = serializers.SerializerMethodField()
     nome = serializers.SerializerMethodField()
     uuid = serializers.UUIDField()
-    mensagem_geracao = serializers.SerializerMethodField()
 
     def get_tipo(self, obj):
         return 'PDF'
@@ -413,15 +412,10 @@ class PrestacaoContaObterDocumentoPAASerializer(serializers.Serializer):
         return None
 
     def get_nome(self, obj):
-        return str(obj)
-
-    def get_mensagem_geracao(self, obj):
-        data = obj.criado_em.strftime('%d/%m/%Y às %Hh%M')
-
         if isinstance(obj, DocumentoPaa):
-            return f'Documento PAA gerado em {data}' if obj.concluido else 'Documento pendente de geração'
+            return f'{obj.label_nome()}-{obj}'
 
         if isinstance(obj, AtaPaa):
-            return f'Ata PAA gerada em {data}' if obj.documento_gerado else 'Ata pendente de geração'
+            return obj.nome_documento_exibicao()
 
-        return ''
+        return str(obj)

@@ -219,6 +219,21 @@ class AtaPaa(ModeloBase):
     def __str__(self):
         return f"Ata PAA {self.paa.periodo_paa.referencia} - {self.ATA_NOMES[self.tipo_ata]} - {self.data_reuniao}"
 
+    def nome_documento_exibicao(self):
+        return f'{self.label_nome()}-{self.status_label_geracao()}'
+
+    def label_nome(self):
+        if self.tipo_ata == self.ATA_RETIFICACAO:
+            return 'Ata de Retificação do PAA'
+
+        return 'Ata de Apresentação do PAA'
+
+    def status_label_geracao(self):
+        if self.status_geracao_pdf == self.STATUS_CONCLUIDO:
+            return f'Documento final gerado em {self.criado_em.strftime("%d/%m/%Y às %H:%M")}'
+
+        return 'Documento pendente de geração'
+
     def arquivo_pdf_iniciar(self):
         self.status_geracao_pdf = self.STATUS_EM_PROCESSAMENTO
         self.save()

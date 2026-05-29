@@ -2632,7 +2632,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 {
                     "tipo": "PDF",
                     "tipo_documento": "documento-paa",
-                    "nome": "Plano Anual",
+                    "nome": "Plano Anual-Documento pendente de geração",
                     "uuid": None,
                     "mensagem_geracao": "Nenhum PAA encontrado para o período informado"
                 }
@@ -2701,7 +2701,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 {
                     "tipo": "PDF",
                     "tipo_documento": "documento-paa",
-                    "nome": "Plano Anual",
+                    "nome": "Plano Anual-Documento pendente de geração",
                     "uuid": str(paa_base.uuid),
                     "mensagem_geracao": "Documento pendente de geração"
                 }
