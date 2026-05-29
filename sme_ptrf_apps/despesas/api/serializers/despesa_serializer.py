@@ -90,6 +90,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         ValidacaoDespesaService.validar_rateios_serializer(
             raw_rateios=self.initial_data.get("rateios", []),
             valor_total=self.initial_data.get("valor_total"),
+            valor_original=self.initial_data.get("valor_original"),
             retem_imposto=self.initial_data.get("retem_imposto", False),
             raw_despesas_impostos=self.initial_data.get("despesas_impostos", []),
             valor_recursos_proprios=self.initial_data.get(
