@@ -221,7 +221,7 @@ class AtaPaa(ModeloBase):
 
     def nome_documento_exibicao(self):
         return f'{self.label_nome()}-{self.status_label_geracao()}'
-
+      
     def label_nome(self) -> str:
         return f"Ata de {self.ATA_NOMES[self.tipo_ata]} do PAA"
 
