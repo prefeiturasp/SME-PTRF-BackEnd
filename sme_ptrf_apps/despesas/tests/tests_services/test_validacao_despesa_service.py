@@ -33,12 +33,14 @@ def test_validar_rateios_serializer_ok():
     rateios = [
         {
             "valor_rateio": 100,
+            "valor_original": 100,
             "aplicacao_recurso": APLICACAO_CUSTEIO,
         }
     ]
 
     ValidacaoDespesaService.validar_rateios_serializer(
         valor_total=100,
+        valor_original=100,
         raw_rateios=rateios,
         raw_despesas_impostos=[],
         retem_imposto=False,
@@ -50,6 +52,7 @@ def test_validar_rateios_serializer_sem_rateios():
     with pytest.raises(serializers.ValidationError) as exc:
         ValidacaoDespesaService.validar_rateios_serializer(
             valor_total=100,
+            valor_original=100,
             raw_rateios=[],
         )
 
@@ -58,22 +61,24 @@ def test_validar_rateios_serializer_sem_rateios():
 
 def test_validar_rateios_serializer_soma_invalida():
     rateios = [
-        {"valor_rateio": 80, "aplicacao_recurso": APLICACAO_CUSTEIO},
+        {"valor_rateio": 80, "valor_original": 80, "aplicacao_recurso": APLICACAO_CUSTEIO},
     ]
 
     with pytest.raises(serializers.ValidationError) as exc:
         ValidacaoDespesaService.validar_rateios_serializer(
             valor_total=100,
+            valor_original=100,
             raw_rateios=rateios,
         )
 
-    assert "soma dos rateios" in str(exc.value)
+    assert "soma dos valores" in str(exc.value)
 
 
 def test_rateio_capital_quantidade_zero():
     rateios = [
         {
             "valor_rateio": 100,
+            "valor_original": 100,
             "aplicacao_recurso": APLICACAO_CAPITAL,
             "quantidade_itens_capital": 0,
             "valor_item_capital": 50,
@@ -83,6 +88,7 @@ def test_rateio_capital_quantidade_zero():
     with pytest.raises(serializers.ValidationError) as exc:
         ValidacaoDespesaService.validar_rateios_serializer(
             valor_total=100,
+            valor_original=100,
             raw_rateios=rateios,
         )
 
@@ -93,6 +99,7 @@ def test_rateio_capital_valor_divergente():
     rateios = [
         {
             "valor_rateio": 100,
+            "valor_original": 100,
             "aplicacao_recurso": APLICACAO_CAPITAL,
             "quantidade_itens_capital": 2,
             "valor_item_capital": 40,
@@ -102,6 +109,7 @@ def test_rateio_capital_valor_divergente():
     with pytest.raises(serializers.ValidationError) as exc:
         ValidacaoDespesaService.validar_rateios_serializer(
             valor_total=100,
+            valor_original=100,
             raw_rateios=rateios,
         )
 
@@ -113,6 +121,7 @@ def test_rateio_capital_valores_float_equivalentes_decimal():
     rateios = [
         {
             "valor_rateio": 1838.7,
+            "valor_original": 1838.7,
             "aplicacao_recurso": APLICACAO_CAPITAL,
             "quantidade_itens_capital": 3,
             "valor_item_capital": 612.9,
@@ -121,6 +130,7 @@ def test_rateio_capital_valores_float_equivalentes_decimal():
 
     ValidacaoDespesaService.validar_rateios_serializer(
         valor_total=1838.7,
+        valor_original=1838.7,
         raw_rateios=rateios,
     )
 
@@ -201,3 +211,87 @@ def test_validar_conta_imposto_inicio_maior(conta_ativa, recurso_legado):
         )
 
     assert "rateios de imposto" in str(exc.value)
+
+def test_validar_rateios_serializer_soma_valor_original_invalida():
+    rateios = [
+        {
+            "valor_rateio": 100,
+            "valor_original": 80,
+            "aplicacao_recurso": APLICACAO_CUSTEIO,
+        }
+    ]
+
+    with pytest.raises(serializers.ValidationError) as exc:
+        ValidacaoDespesaService.validar_rateios_serializer(
+            valor_total=100,
+            valor_original=100,
+            raw_rateios=rateios,
+        )
+
+    assert "valores originais dos rateios" in str(exc.value)
+
+
+def test_rateio_capital_valor_original_divergente():
+    rateios = [
+        {
+            "valor_rateio": 100,
+            "valor_original": 80,
+            "aplicacao_recurso": APLICACAO_CAPITAL,
+            "quantidade_itens_capital": 2,
+            "valor_item_capital": 50,
+        }
+    ]
+
+    with pytest.raises(serializers.ValidationError) as exc:
+        ValidacaoDespesaService.validar_rateios_serializer(
+            valor_total=100,
+            valor_original=80,
+            raw_rateios=rateios,
+        )
+
+    assert (
+        "Valor total do capital diverge do valor calculado"
+        in str(exc.value)
+    )
+
+
+def test_rateio_capital_valor_rateio_divergente():
+    rateios = [
+        {
+            "valor_rateio": 80,
+            "valor_original": 100,
+            "aplicacao_recurso": APLICACAO_CAPITAL,
+            "quantidade_itens_capital": 2,
+            "valor_item_capital": 50,
+        }
+    ]
+
+    with pytest.raises(serializers.ValidationError) as exc:
+        ValidacaoDespesaService.validar_rateios_serializer(
+            valor_total=80,
+            valor_original=100,
+            raw_rateios=rateios,
+        )
+
+    assert (
+        "Valor do rateio capital diverge do valor calculado"
+        in str(exc.value)
+    )
+
+
+def test_rateio_capital_valores_validos():
+    rateios = [
+        {
+            "valor_rateio": 120,
+            "valor_original": 120,
+            "aplicacao_recurso": APLICACAO_CAPITAL,
+            "quantidade_itens_capital": 2,
+            "valor_item_capital": 60,
+        }
+    ]
+
+    ValidacaoDespesaService.validar_rateios_serializer(
+        valor_total=120,
+        valor_original=120,
+        raw_rateios=rateios,
+    )
