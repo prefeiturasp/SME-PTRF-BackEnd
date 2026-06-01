@@ -2621,96 +2621,102 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     def obter_documentos_paa(self, request, uuid):
         prestacao = self.get_object()
 
-        paa_base = Paa.objects.filter(
-            associacao=prestacao.associacao,
-            periodo_paa__data_inicial__lte=prestacao.periodo.data_inicio_prestacao_contas,
-            periodo_paa__data_final__gte=prestacao.periodo.data_fim_prestacao_contas
-        ).first()
+        try:
+            paa_base = Paa.objects.filter(
+                associacao=prestacao.associacao,
+                periodo_paa__data_inicial__lte=prestacao.periodo.data_inicio_prestacao_contas,
+                periodo_paa__data_final__gte=prestacao.periodo.data_fim_prestacao_contas
+            ).first()
 
-        if not paa_base:
-            return Response([
-                {
-                    "tipo": "PDF",
-                    "tipo_documento": "documento-paa",
-                    "nome": "Plano Anual-Documento pendente de geração",
-                    "uuid": None,
-                    "mensagem_geracao": "Nenhum PAA encontrado para o período informado"
-                }
-            ])
+            if not paa_base:
+                return Response([
+                    {
+                        "tipo": "PDF",
+                        "tipo_documento": "documento-paa",
+                        "nome": "Plano Anual-Documento pendente de geração",
+                        "uuid": None,
+                        "mensagem_geracao": "Nenhum PAA encontrado para o período informado"
+                    }
+                ])
 
-        documentos = []
+            documentos = []
 
-        doc_original = (
-            paa_base.documentopaa_set
-            .filter(
-                versao=DocumentoPaa.VersaoChoices.FINAL,
-                retificacao=False,
-                status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO
+            doc_original = (
+                paa_base.documentopaa_set
+                .filter(
+                    versao=DocumentoPaa.VersaoChoices.FINAL,
+                    retificacao=False,
+                    status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO
+                )
+                .order_by('-criado_em')
+                .first()
             )
-            .order_by('-criado_em')
-            .first()
-        )
 
-        ata_original = (
-            paa_base.atas_da_paa
-            .filter(
-                tipo_ata=AtaPaa.ATA_APRESENTACAO,
-                status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
-                previa=False
+            ata_original = (
+                paa_base.atas_da_paa
+                .filter(
+                    tipo_ata=AtaPaa.ATA_APRESENTACAO,
+                    status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+                    previa=False
+                )
+                .order_by('-criado_em')
+                .first()
             )
-            .order_by('-criado_em')
-            .first()
-        )
 
-        doc_retificado = (
-            paa_base.documentopaa_set
-            .filter(
-                versao=DocumentoPaa.VersaoChoices.FINAL,
-                retificacao=True,
-                status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO
+            doc_retificado = (
+                paa_base.documentopaa_set
+                .filter(
+                    versao=DocumentoPaa.VersaoChoices.FINAL,
+                    retificacao=True,
+                    status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO
+                )
+                .order_by('-criado_em')
+                .first()
             )
-            .order_by('-criado_em')
-            .first()
-        )
 
-        ata_retificacao = (
-            paa_base.atas_da_paa
-            .filter(
-                tipo_ata=AtaPaa.ATA_RETIFICACAO,
-                status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
-                previa=False
+            ata_retificacao = (
+                paa_base.atas_da_paa
+                .filter(
+                    tipo_ata=AtaPaa.ATA_RETIFICACAO,
+                    status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+                    previa=False
+                )
+                .order_by('-criado_em')
+                .first()
             )
-            .order_by('-criado_em')
-            .first()
-        )
 
-        if doc_original:
-            documentos.append(doc_original)
+            if doc_original:
+                documentos.append(doc_original)
 
-        if ata_original:
-            documentos.append(ata_original)
+            if ata_original:
+                documentos.append(ata_original)
 
-        if doc_retificado:
-            documentos.append(doc_retificado)
+            if doc_retificado:
+                documentos.append(doc_retificado)
 
-        if ata_retificacao:
-            documentos.append(ata_retificacao)
+            if ata_retificacao:
+                documentos.append(ata_retificacao)
 
-        if not documentos:
-            return Response([
-                {
-                    "tipo": "PDF",
-                    "tipo_documento": "documento-paa",
-                    "nome": "Plano Anual-Documento pendente de geração",
-                    "uuid": str(paa_base.uuid),
-                    "mensagem_geracao": "Documento pendente de geração"
-                }
-            ])
+            if not documentos:
+                return Response([
+                    {
+                        "tipo": "PDF",
+                        "tipo_documento": "documento-paa",
+                        "nome": "Plano Anual-Documento pendente de geração",
+                        "uuid": str(paa_base.uuid),
+                        "mensagem_geracao": "Documento pendente de geração"
+                    }
+                ])
 
-        serializer = PrestacaoContaObterDocumentoPAASerializer(
-            documentos,
-            many=True
-        )
+            serializer = PrestacaoContaObterDocumentoPAASerializer(
+                documentos,
+                many=True
+            )
 
-        return Response(serializer.data)
+            return Response(serializer.data)
+        except ValueError:
+            return Response(
+                {"detail": "Nenhum PAA encontrado para o período informado"},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
