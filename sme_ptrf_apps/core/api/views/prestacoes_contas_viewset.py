@@ -2624,8 +2624,8 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         try:
             paa_base = Paa.objects.filter(
                 associacao=prestacao.associacao,
-                periodo_paa__data_inicial__lte=prestacao.periodo.data_inicio_prestacao_contas,
-                periodo_paa__data_final__gte=prestacao.periodo.data_fim_prestacao_contas
+                periodo_paa__data_inicial__lte=prestacao.periodo.data_inicio_realizacao_despesas,
+                periodo_paa__data_final__gt=prestacao.periodo.data_fim_realizacao_despesas
             ).first()
 
             if not paa_base:
