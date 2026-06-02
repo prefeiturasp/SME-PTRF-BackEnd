@@ -7,7 +7,6 @@ from django.db.utils import IntegrityError
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status, serializers
 from rest_framework.decorators import action
-from sme_ptrf_apps.core.services.ajuste_services import possui_apenas_categorias_que_nao_requerem_ata
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -230,7 +229,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if not pc_service.validar_geracao_pc_periodo_anterior():
             erro = {
                 'erro': 'erro_de_validacao',
-                'mensagem': "Você não pode iniciar uma prestação de contas sem que a PC de período anterior tenha sido gerada antes."
+                'mensagem': "Você não pode iniciar uma prestação de contas sem que a PC de período anterior tenha sido gerada antes."  # noqa
             }
             logger_pc.error('Erro validação PC de período anterior', stack_info=True, exc_info=True)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -610,7 +609,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
 
             return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
-                        status=status.HTTP_200_OK)
+                            status=status.HTTP_200_OK)
         except Exception as error:
             return Response(data={
                 'uuid': f'{uuid}',
@@ -813,7 +812,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                     'erro': 'devolucao_invalida',
                     'operacao': 'concluir-analise',
                     'mensagem': (
-                        'Não é possível devolver esta prestação de contas enquanto houver solicitações de lançar crédito, '
+                        'Não é possível devolver esta prestação de contas enquanto houver solicitações de lançar crédito, '  # noqa
                         'lançar despesa ou exclusão de lançamento sem o respectivo acerto de conciliação bancária. '
                         'Solicite o acerto das contas pendentes antes de prosseguir.'
                     )
@@ -1025,7 +1024,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(dashboard)
 
     @action(detail=False, url_path='tabelas',
-        permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, _):
         recurso = getattr(self.request, 'recurso', None)
         habilita_aprovacao_com_ressalvas = getattr(
@@ -2657,28 +2656,28 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             lista_docs = [
                 {
                     "tipo": "DOC-PAA",
-                    "nome": f"Plano Anual-{doc_original if doc_original else 'Documento pendente de geração'}", # noqa
+                    "nome": f"Plano Anual-{doc_original if doc_original else 'Documento pendente de geração'}",  # noqa
                     "uuid": str(doc_original.uuid) if doc_original else None,
                     "retificacao": False,
                     "tem_doc": bool(doc_original),
                 },
                 {
                     "tipo": "DOC-PAA",
-                    "nome": f"Plano Anual Retificado-{doc_retificado if doc_retificado else 'Documento pendente de geração'}", # noqa
+                    "nome": f"Plano Anual Retificado-{doc_retificado if doc_retificado else 'Documento pendente de geração'}",  # noqa
                     "uuid": str(doc_retificado.uuid) if doc_retificado else None,
                     "retificacao": True,
                     "tem_doc": bool(doc_retificado),
                 },
                 {
                     "tipo": "ATA-PAA",
-                    "nome": f"Ata de Apresentação do PAA-{ata_original.status_label_geracao() if ata_original else 'Documento pendente de geração'}", # noqa
+                    "nome": f"Ata de Apresentação do PAA-{ata_original.status_label_geracao() if ata_original else 'Documento pendente de geração'}",  # noqa
                     "uuid": str(ata_original.uuid) if ata_original else None,
                     "retificacao": False,
                     "tem_doc": bool(ata_original),
                 },
                 {
                     "tipo": "ATA-PAA",
-                    "nome": f"Ata de Retificação do PAA-{ata_retificacao.status_label_geracao() if ata_retificacao else 'Documento pendente de geração'}", # noqa
+                    "nome": f"Ata de Retificação do PAA-{ata_retificacao.status_label_geracao() if ata_retificacao else 'Documento pendente de geração'}",  # noqa
                     "uuid": str(ata_retificacao.uuid) if ata_retificacao else None,
                     "retificacao": True,
                     "tem_doc": bool(ata_retificacao),
@@ -2699,4 +2698,3 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 {"detail": "Nenhum PAA encontrado para o período informado"},
                 status=status.HTTP_404_NOT_FOUND
             )
-
