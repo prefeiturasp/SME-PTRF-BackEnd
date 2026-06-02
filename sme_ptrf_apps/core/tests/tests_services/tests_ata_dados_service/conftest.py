@@ -78,8 +78,8 @@ def ata_conta_associacao_cartao(associacao, ata_tipo_conta_cartao):
 
 
 @pytest.fixture
-def ata_tipo_receita_repasse():
-    return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
+def ata_tipo_receita_repasse(tipo_receita_factory):
+    return tipo_receita_factory.create(nome='Repasse', e_repasse=True)
 
 
 @pytest.fixture

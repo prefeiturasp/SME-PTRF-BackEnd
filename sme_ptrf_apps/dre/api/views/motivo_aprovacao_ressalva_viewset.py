@@ -54,7 +54,7 @@ class MotivoAprovacaoRessalvaParametrizacaoViewSet(viewsets.ModelViewSet):
             if recurso:
                 filters &= Q(recurso=recurso)
 
-        return MotivoAprovacaoRessalva.objects.filter(filters)
+        return MotivoAprovacaoRessalva.objects.filter(filters).order_by('motivo')
 
     @extend_schema(
         parameters=[

@@ -9,11 +9,17 @@ from sme_ptrf_apps.core.models import PrestacaoConta
 from sme_ptrf_apps.users.models import Grupo
 from datetime import date
 
+from sme_ptrf_apps.receitas.fixtures.factories.detalhe_tipo_receita_factory import DetalheTipoReceitaFactory
+from sme_ptrf_apps.receitas.fixtures.factories.receita_factory import ReceitaFactory
+
 
 @pytest.fixture
-def tipo_receita(tipo_conta, dre_ipiranga, dre, unidade):
-    return baker.make('TipoReceita', nome='Estorno', e_repasse=False, aceita_capital=False, aceita_custeio=False,
-                      e_devolucao=False, tipos_conta=[tipo_conta], detalhes=[], unidades=[dre_ipiranga, dre, unidade])
+def tipo_receita(tipo_receita_factory, tipo_conta, dre_ipiranga, dre, unidade):
+    tipo_rec = tipo_receita_factory.create(nome='Estorno', e_repasse=False, aceita_capital=False, aceita_custeio=False,
+                                           e_devolucao=False)
+    tipo_rec.tipos_conta.set([tipo_conta])
+    tipo_rec.unidades.set([dre_ipiranga, dre, unidade])
+    return tipo_rec
 
 
 @pytest.fixture
@@ -22,15 +28,18 @@ def tipo_receita_estorno(tipo_receita):
 
 
 @pytest.fixture
-def tipo_receita_repasse(tipo_conta, dre_ipiranga):
-    return baker.make('TipoReceita', nome='Repasse', e_repasse=True, aceita_capital=True, aceita_custeio=True,
-                      tipos_conta=[tipo_conta], detalhes=[], unidades=[dre_ipiranga])
+def tipo_receita_repasse(tipo_receita_factory, tipo_conta, dre_ipiranga):
+    tipo_rec = tipo_receita_factory.create(nome='Repasse', e_repasse=True, aceita_capital=True, aceita_custeio=True)
+    tipo_rec.tipos_conta.set([tipo_conta])
+    tipo_rec.unidades.set([dre_ipiranga])
+    return tipo_rec
 
 
 @pytest.fixture
-def tipo_receita_devolucao(tipo_conta):
-    return baker.make('TipoReceita', nome='Devolução', e_devolucao=True, aceita_capital=True, aceita_custeio=True,
-                      tipos_conta=[tipo_conta], detalhes=[])
+def tipo_receita_devolucao(tipo_receita_factory, tipo_conta):
+    tipo_rec = tipo_receita_factory.create(nome='Devolução', e_devolucao=True, aceita_capital=True, aceita_custeio=True)
+    tipo_rec.tipos_conta.set([tipo_conta])
+    return tipo_rec
 
 
 @pytest.fixture
@@ -584,28 +593,31 @@ def motivo_estorno_02():
 
 # Inativar ou excluir Receita
 @pytest.fixture
-def tipo_receita_outros():
+def tipo_receita_outros(recurso_legado):
     return baker.make(
         'TipoReceita',
-        nome='Outros'
+        nome='Outros',
+        recurso=recurso_legado
     )
 
 
 @pytest.fixture
-def tipo_receita_e_estorno():
+def tipo_receita_e_estorno(recurso_legado):
     return baker.make(
         'TipoReceita',
         nome='Estorno',
         e_estorno=True,
+        recurso=recurso_legado
     )
 
 
 @pytest.fixture
-def tipo_receita_e_repasse():
+def tipo_receita_e_repasse(recurso_legado):
     return baker.make(
         'TipoReceita',
         nome='Repasse',
         e_repasse=True,
+        recurso=recurso_legado
     )
 
 
@@ -784,3 +796,41 @@ def receita_deve_inativar_estorno(
         rateio_estornado=rateio_saida_recurso,
         periodo_conciliacao=periodo_inativar_receita,
     )
+
+"""
+    Detalhes de tipo de receita factory
+"""
+@pytest.fixture
+def tipo_receita_com_detalhamento(tipo_receita_factory):
+    return tipo_receita_factory.create(nome='Tipo com detalhamento', possui_detalhamento=True)
+
+
+@pytest.fixture
+def detalhe_tipo_receita_parametrizacao(tipo_receita_com_detalhamento):
+    return DetalheTipoReceitaFactory.create(
+        nome='Detalhe 01',
+        tipo_receita=tipo_receita_com_detalhamento,
+    )
+
+
+@pytest.fixture
+def detalhe_tipo_receita_parametrizacao_02(tipo_receita_com_detalhamento):
+    return DetalheTipoReceitaFactory.create(
+        nome='Detalhe 02',
+        tipo_receita=tipo_receita_com_detalhamento,
+    )
+
+
+@pytest.fixture
+def detalhe_tipo_receita_parametrizacao_com_receita(tipo_receita_com_detalhamento):
+    detalhe = DetalheTipoReceitaFactory.create(
+        nome='Detalhe com receita',
+        tipo_receita=tipo_receita_com_detalhamento,
+    )
+
+    ReceitaFactory.create(
+        detalhe_tipo_receita=detalhe,
+        tipo_receita=tipo_receita_com_detalhamento,
+    )
+
+    return detalhe

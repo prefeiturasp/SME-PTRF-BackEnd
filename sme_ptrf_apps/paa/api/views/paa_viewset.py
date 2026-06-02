@@ -43,6 +43,10 @@ from sme_ptrf_apps.paa.services.retificacao_paa_service import (
     RetificacaoPaaService,
     ValidacaoRetificacao,
 )
+from sme_ptrf_apps.paa.services.cancela_retificacao_paa_service import (
+    CancelaRetificacaoPaaService,
+    ValidacaoCancelaRetificacao,
+)
 from drf_spectacular.utils import extend_schema_view
 from .docs.paa_viewset_docs import DOCS as PAA_DOCS
 
@@ -113,7 +117,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         try:
             receitas_previstas = saldos_por_acao_paa_service.congelar_saldos()
         except Exception as e:
-            logger.error(f'Erro ao congelar saldos do PAA {instance.uuid}: {e}')
+            logger.exception(f'Erro ao congelar saldos do PAA {instance.uuid}: {e}')
             return Response(
                 {'mensagem': f'{e}'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -301,8 +305,24 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
 
             return Response(dados, status=status.HTTP_200_OK)
         except Exception as e:
-            logger.error(f"Erro ao construir plano orçamentário para PAA {paa.uuid}: {str(e)}", exc_info=True)
+            logger.exception(f"Erro ao construir plano orçamentário para PAA {paa.uuid}: {str(e)}", exc_info=True)
             raise ValidationError(f"Erro ao processar plano orçamentário: {str(e)}")
+
+    @action(detail=True, methods=['get'], url_path='plano-aplicacao',
+            permission_classes=[IsAuthenticated])
+    def plano_aplicacao(self, request, uuid=None):
+        """Retorna o plano de aplicação agrupado e estruturado para renderização direta"""
+        from sme_ptrf_apps.paa.services.plano_aplicacao_service import PlanoAplicacaoService
+
+        paa = self.get_object()
+
+        try:
+            service = PlanoAplicacaoService(paa, usuario=request.user)
+            dados = service.construir_plano_aplicacao()
+            return Response(dados, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.exception(f"Erro ao construir plano de aplicação para PAA {paa.uuid}: {str(e)}", exc_info=True)
+            raise ValidationError(f"Erro ao processar plano de aplicação: {str(e)}")
 
     @action(detail=True, methods=['get'], url_path='objetivos',
             permission_classes=[IsAuthenticated])
@@ -557,6 +577,42 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
                 'paa_uuid': str(paa.uuid),
             },
             status=status.HTTP_201_CREATED
+        )
+    
+    @action(detail=True, methods=['post'], url_path='cancelar-retificacao',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def cancelar_retificacao(self, request, uuid=None):
+        """
+        Inicia o processo de cancelamento da retificação do PAA.      
+
+        Fluxo:
+            1. Faz rollback dos registros para o estado salvo em réplica
+            2. Remove documento de prévia de retificação
+            3. Retorna para o STATUS GERADO, salva Log da réplica e deleta ReplicaPaa corrente.        
+        """
+        paa = self.get_object()       
+
+        service = CancelaRetificacaoPaaService(paa=paa, usuario=request.user)
+
+        try:
+            service.iniciar_cancelamento_retificacao()
+        except ValidacaoCancelaRetificacao as e:
+            return Response(
+                {'erro': 'cancelar_retificacao', 'mensagem': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {'erro': 'erro_cancelamento_retificacao', 'mensagem': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        return Response(
+            {
+                'mensagem': 'Retificação cancelada com sucesso.',
+                'paa_uuid': str(paa.uuid),
+            },
+            status=status.HTTP_200_OK
         )
 
     @action(detail=True, methods=['get'], url_path='paa-retificacao',

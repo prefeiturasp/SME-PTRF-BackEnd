@@ -11,8 +11,10 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def tipo_receita_estorno_motivos(tipo_conta):
-    return baker.make('TipoReceita', nome='Estorno', e_estorno=True, tipos_conta=[tipo_conta])
+def tipo_receita_estorno_motivos(tipo_receita_factory, tipo_conta):
+    tipo_rec = tipo_receita_factory.create(nome='Estorno', e_estorno=True)
+    tipo_rec.tipos_conta.set([tipo_conta])
+    return tipo_rec
 
 
 @pytest.fixture

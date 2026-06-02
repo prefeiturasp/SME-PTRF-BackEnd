@@ -94,7 +94,8 @@ from sme_ptrf_apps.receitas.api.views import (
     ReceitaViewSet,
     RepasseViewSet,
     MotivosEstornoViewSet,
-    TipoReceitaViewSet
+    TipoReceitaViewSet,
+    DetalheTipoReceitaParametrizacaoViewSet,
 )
 from sme_ptrf_apps.paa.api.views import (
     PeriodoPaaViewSet,
@@ -116,7 +117,8 @@ from sme_ptrf_apps.paa.api.views import (
     PresentesAtaPaaViewSet,
     OutrosRecursosPaaViewSet,
     OutrosRecursosPeriodoPaaViewSet,
-    ModelosCargasPaaViewSet
+    ModelosCargasPaaViewSet,
+    DocumentoPaaViewSet
 )
 from sme_ptrf_apps.users.api.views import (
     EsqueciMinhaSenhaViewSet,
@@ -179,6 +181,7 @@ router.register("especificacoes-materiais-servicos", ParametrizacaoEspecificacoe
 router.register("rateios-despesas", RateiosDespesasViewSet, basename="rateios-despesas")
 router.register("receitas", ReceitaViewSet, basename="receitas")
 router.register("tipos-receitas", TipoReceitaViewSet, basename="tipos-receitas")
+router.register("detalhes-tipos-receitas-parametrizacao", DetalheTipoReceitaParametrizacaoViewSet, basename="detalhes-tipos-receitas-parametrizacao")
 router.register("fornecedores", FornecedoresViewSet, basename="fornecedores")
 router.register("associacoes", AssociacoesViewSet, basename="associacoes")
 router.register("parametrizacoes-associacoes", ParametrizacoesAssociacoesViewSet,
@@ -290,6 +293,7 @@ router.register("prioridades-paa-relatorio", PrioridadePaaRelatorioViewSet, base
 router.register("objetivos-paa", ObjetivoPaaViewSet, basename='objetivos-paa')
 router.register("atividades-estatutarias", AtividadeEstatutariaViewSet, basename='atividades-estatutarias')
 router.register("atas-paa", AtaPaaViewSet, basename='atas-paa')
+router.register("documentos-paa", DocumentoPaaViewSet, basename='documentos-paa')
 router.register("presentes-ata-paa", PresentesAtaPaaViewSet, basename='presentes-ata-paa')
 router.register("outros-recursos-paa", OutrosRecursosPaaViewSet, basename='outros-recursos-paa')
 router.register("modelos-cargas-paa", ModelosCargasPaaViewSet, basename="modelos-cargas-paa")

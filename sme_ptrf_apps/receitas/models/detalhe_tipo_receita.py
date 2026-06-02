@@ -18,5 +18,11 @@ class DetalheTipoReceita(ModeloIdNome):
     def __str__(self):
         return self.nome
 
+    @classmethod
+    def filter_by_recurso(cls, queryset, recurso):
+        objects = queryset if queryset else cls.objects
+
+        return objects.filter(tipo_receita__recurso=recurso)
+
 
 auditlog.register(DetalheTipoReceita)
