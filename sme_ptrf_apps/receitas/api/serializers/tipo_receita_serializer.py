@@ -1,12 +1,19 @@
 from rest_framework import serializers
 
 from sme_ptrf_apps.core.api.serializers import TipoContaSerializer, UnidadeSerializer
+from sme_ptrf_apps.core.api.serializers.recurso_serializer import RecursoSerializer
 from .detalhe_tipo_receita_serializer import DetalheTipoReceitaSerializer
 from sme_ptrf_apps.receitas.models import TipoReceita, DetalheTipoReceita
-from sme_ptrf_apps.core.models import TipoConta
+from sme_ptrf_apps.core.models import TipoConta, Recurso
 
 
 class TipoReceitaSerializer(serializers.ModelSerializer):
+    recurso = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Recurso.objects.all()
+    )
+
     class Meta:
         model = TipoReceita
         fields = (
@@ -17,7 +24,8 @@ class TipoReceitaSerializer(serializers.ModelSerializer):
             'aceita_custeio',
             'aceita_livre',
             'e_devolucao',
-            'e_recursos_proprios'
+            'e_recursos_proprios',
+            'recurso'
         )
 
 
@@ -53,10 +61,16 @@ class TipoReceitaLookUpSerializer(serializers.ModelSerializer):
 
 class TipoReceitaListaSerializer(serializers.ModelSerializer):
     uso_associacao = serializers.CharField(read_only=True)
-    detalhes = DetalheTipoReceitaSerializer(many=True)
+    detalhes_tipo_receita = DetalheTipoReceitaSerializer(many=True)
     tipos_conta = TipoContaSerializer(many=True)
     unidades = UnidadeSerializer(many=True)
     todas_unidades_selecionadas = serializers.SerializerMethodField()
+
+    recurso = RecursoSerializer(
+        read_only=True,
+        required=False,
+        allow_null=True
+    )
 
     class Meta:
         model = TipoReceita
@@ -74,11 +88,12 @@ class TipoReceitaListaSerializer(serializers.ModelSerializer):
             'e_estorno',
             'mensagem_usuario',
             'possui_detalhamento',
-            'detalhes',
+            'detalhes_tipo_receita',
             'tipos_conta',
             'unidades',
             'todas_unidades_selecionadas',
             'uso_associacao',
+            'recurso'
         )
 
     def get_todas_unidades_selecionadas(self, obj):
@@ -90,6 +105,11 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
         child=serializers.CharField(), required=False, write_only=True
     )
     tipos_conta = serializers.SlugRelatedField(many=True, queryset=TipoConta.objects.all(), slug_field='uuid')
+    recurso = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Recurso.objects.all()
+    )
 
     class Meta:
         model = TipoReceita
@@ -109,14 +129,21 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
             'detalhes',
             'possui_detalhamento',
             'tipos_conta',
+            'recurso'
         )
 
     def create(self, validated_data):
         nome = validated_data.get('nome')
+        recurso = validated_data.get('recurso')
         detalhes_data = validated_data.pop("detalhes", [])
 
-        if TipoReceita.objects.filter(nome=nome).exists():
-            raise serializers.ValidationError({'non_field_errors': 'Este Tipo de Receita já existe.'})
+        # Normaliza o nome: remove espaços em branco extras
+        if nome:
+            nome = ' '.join(nome.split())
+            validated_data['nome'] = nome
+
+        if TipoReceita.objects.filter(nome__iexact=nome, recurso=recurso).exists():
+            raise serializers.ValidationError({'non_field_errors': 'Este Tipo de Receita já existe para esse recurso.'})
 
         instance = super().create(validated_data)
 
@@ -133,16 +160,22 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
 
             detalhes_list.append(detalhe)
 
-        instance.detalhes.set(detalhes_list)
+        instance.detalhes_tipo_receita.set(detalhes_list)
 
         return instance
 
     def update(self, instance, validated_data):
         nome = validated_data.get('nome')
         detalhes_data = validated_data.pop("detalhes", [])
+        recurso = validated_data.get('recurso')
 
-        if TipoReceita.objects.filter(nome=nome).exclude(pk=self.instance.pk).exists():
-            raise serializers.ValidationError({'non_field_errors': 'Este Tipo de Receita já existe.'})
+        # Normaliza o nome: remove espaços em branco extras
+        if nome:
+            nome = ' '.join(nome.split())
+            validated_data['nome'] = nome
+
+        if TipoReceita.objects.filter(nome__iexact=nome, recurso=recurso).exclude(pk=self.instance.pk).exists():
+            raise serializers.ValidationError({'non_field_errors': 'Este Tipo de Receita já existe para esse recurso.'})
 
         instance = super().update(instance, validated_data)
 
@@ -159,6 +192,24 @@ class TipoReceitaCreateSerializer(serializers.ModelSerializer):
 
             detalhes_list.append(detalhe)
 
-        instance.detalhes.set(detalhes_list)
+        detalhes_a_remover = DetalheTipoReceita.objects.exclude(
+            id__in=[d.id for d in detalhes_list]
+        ).filter(tipo_receita=instance)
+
+        detalhes_em_uso = detalhes_a_remover.filter(
+            receitas__isnull=False
+        ).values_list('nome', flat=True).distinct()
+
+        if detalhes_em_uso.exists():
+            nomes = ', '.join(detalhes_em_uso)
+            raise serializers.ValidationError({
+                'non_field_errors': (
+                    f'Não é possível remover os seguintes detalhamentos pois já foram utilizados em receitas: {nomes}.'
+                )
+            })
+
+        detalhes_a_remover.delete()
+
+        instance.detalhes_tipo_receita.set(detalhes_list)
 
         return instance

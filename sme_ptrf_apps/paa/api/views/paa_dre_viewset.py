@@ -14,6 +14,8 @@ from sme_ptrf_apps.users.permissoes import (
 from sme_ptrf_apps.paa.models import Paa
 from sme_ptrf_apps.paa.services.paa_dre_service import PaaDreService, ValidacaoPaaDre
 from sme_ptrf_apps.paa.filters import PaaDreFilter
+from sme_ptrf_apps.paa.api.serializers.renderizador_paa_serializer import RenderizadorPaaBuilder
+
 
 from .docs.paa_dre_docs import DOCS
 
@@ -64,7 +66,40 @@ class PaaDreViewSet(WaffleFlagMixin, GenericViewSet):
             return Response(detail, status=status.HTTP_400_BAD_REQUEST)
         except Exception as erro:
             return Response(str(erro), status=status.HTTP_400_BAD_REQUEST)
-    
+
+    @action(detail=True, methods=['get'], url_path='visualizar-documentos-paa')
+    def visualizar_documentos_paa(self, request, pk=None):
+        paa_uuid = pk
+
+        if not paa_uuid:
+            content = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário informar o uuid do PAA.'
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            paa_vigente = Paa.objects.get(uuid=paa_uuid)
+        except (Paa.DoesNotExist, ValueError):
+            content = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O PAA para o uuid {paa_uuid} não foi encontrado na base."
+            }
+            return Response(content, status=status.HTTP_404_NOT_FOUND)
+
+        def montar_render(paa, eh_paa_vigente):
+            return RenderizadorPaaBuilder(
+                paa,
+                request=request,
+                usuario=request.user,
+            ).build(eh_paa_vigente=eh_paa_vigente)
+
+        result = {
+            'vigente': montar_render(paa_vigente, True),
+        }
+
+        return Response(result, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['get'], url_path='tabelas')
     def tabelas(self, request, pk=None):
         """

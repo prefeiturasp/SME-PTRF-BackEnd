@@ -28,6 +28,10 @@ class TestGerarSnapshot:
         assert 'receitas_recurso_proprio' in snapshot
         assert 'receitas_outros_recursos' in snapshot
         assert 'prioridades' in snapshot
+        assert 'documento_original' in snapshot
+        assert 'documento_retificado' in snapshot
+        assert 'ata_original' in snapshot
+        assert 'ata_retificada' in snapshot
 
     def test_snapshot_captura_texto_introducao(self, paa_retificacao):
         snapshot = _service(paa_retificacao).gerar_snapshot()

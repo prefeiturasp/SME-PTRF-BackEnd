@@ -1474,13 +1474,13 @@ def fechamento_periodo(periodo, associacao, conta_associacao, acao_associacao, f
 
 
 @pytest.fixture
-def tipo_receita():
-    return baker.make('TipoReceita', nome='Estorno')
+def tipo_receita(tipo_receita_factory):
+    return tipo_receita_factory.create(nome='Estorno')
 
 
 @pytest.fixture
-def tipo_receita_repasse():
-    return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
+def tipo_receita_repasse(tipo_receita_factory):
+    return tipo_receita_factory.create(nome='Repasse', e_repasse=True)
 
 
 @pytest.fixture

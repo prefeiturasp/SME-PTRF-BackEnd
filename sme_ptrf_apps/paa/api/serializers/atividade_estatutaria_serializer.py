@@ -85,12 +85,16 @@ class AtividadeEstatutariaSerializer(serializers.ModelSerializer):
         return StatusChoices(int(obj.status)).label
 
     def get_ano_label(self, obj):
-        return TipoAnosAtividadeEstatutariaEnum[obj.ano].value if obj.ano else ""
+        if not obj.ano or obj.ano == 'None':
+            return ""
+        return TipoAnosAtividadeEstatutariaEnum[obj.ano].value
 
     def get_mes_label(self, obj):
         return Mes(int(obj.mes)).label if obj.mes else ""
 
     def get_tipo_label(self, obj):
+        if not obj.tipo or obj.tipo == 'None':
+            return ""
         return TipoAtividadeEstatutariaEnum[obj.tipo].value
 
     class Meta:

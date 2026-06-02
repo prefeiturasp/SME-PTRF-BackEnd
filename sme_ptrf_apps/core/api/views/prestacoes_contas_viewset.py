@@ -7,7 +7,6 @@ from django.db.utils import IntegrityError
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status, serializers
 from rest_framework.decorators import action
-from sme_ptrf_apps.core.services.ajuste_services import possui_apenas_categorias_que_nao_requerem_ata
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -40,6 +39,7 @@ from ...models import (
     AnaliseDocumentoPrestacaoConta,
     TaskCelery
 )
+
 from ...services import (
     concluir_prestacao_de_contas,
     informacoes_financeiras_para_atas,
@@ -65,11 +65,13 @@ from ..serializers import (
     PrestacaoContaRetrieveSerializer,
     AnaliseLancamentoPrestacaoContaSolicitacoesNaoAgrupadasRetrieveSerializer,
     AnaliseDocumentoPrestacaoContaRetrieveSerializer,
-    AnalisePrestacaoContaRetrieveSerializer
+    AnalisePrestacaoContaRetrieveSerializer,
 )
 from ..serializers.conta_associacao_serializer import ContaAssociacaoDadosSerializer
 from sme_ptrf_apps.core.api.serializers.validation_serializers \
     .prestacoes_contas_concluir_validate_serializer import PrestacoesContasConcluirValidateSerializer
+
+from sme_ptrf_apps.paa.models.paa import Paa
 
 from sme_ptrf_apps.core.tasks import (
     concluir_prestacao_de_contas_async,
@@ -227,7 +229,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         if not pc_service.validar_geracao_pc_periodo_anterior():
             erro = {
                 'erro': 'erro_de_validacao',
-                'mensagem': "Você não pode iniciar uma prestação de contas sem que a PC de período anterior tenha sido gerada antes."
+                'mensagem': "Você não pode iniciar uma prestação de contas sem que a PC de período anterior tenha sido gerada antes."  # noqa
             }
             logger_pc.error('Erro validação PC de período anterior', stack_info=True, exc_info=True)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -607,7 +609,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 devolucoes_ao_tesouro_da_prestacao=devolucoes_ao_tesouro_da_prestacao)
 
             return Response(PrestacaoContaRetrieveSerializer(prestacao_salva, many=False).data,
-                        status=status.HTTP_200_OK)
+                            status=status.HTTP_200_OK)
         except Exception as error:
             return Response(data={
                 'uuid': f'{uuid}',
@@ -810,7 +812,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                     'erro': 'devolucao_invalida',
                     'operacao': 'concluir-analise',
                     'mensagem': (
-                        'Não é possível devolver esta prestação de contas enquanto houver solicitações de lançar crédito, '
+                        'Não é possível devolver esta prestação de contas enquanto houver solicitações de lançar crédito, '  # noqa
                         'lançar despesa ou exclusão de lançamento sem o respectivo acerto de conciliação bancária. '
                         'Solicite o acerto das contas pendentes antes de prosseguir.'
                     )
@@ -1022,7 +1024,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         return Response(dashboard)
 
     @action(detail=False, url_path='tabelas',
-        permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, _):
         recurso = getattr(self.request, 'recurso', None)
         habilita_aprovacao_com_ressalvas = getattr(
@@ -2595,3 +2597,104 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         )
 
         return Response(lancamentos, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary="Obter Documentos PAA",
+        description="Retorna os documentos do PAA associados a uma Prestação de Contas específica.",
+        responses={
+            200: OpenApiResponse(
+                description="Lista de documentos do PAA."
+            ),
+
+            404: OpenApiResponse(
+                description="Nenhum PAA encontrado para o período informado."
+            ),
+        },
+    )
+    @action(
+        detail=True,
+        methods=['get'],
+        url_path='obter-documentos-paa',
+        permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao]
+    )
+    @action(detail=True, methods=['get'], url_path='obter-documentos-paa')
+    def obter_documentos_paa(self, request, uuid) -> Response:
+        """
+            Obtém os documentos do PAA relacionados à prestação de contas.
+
+            Retorna uma lista contendo:
+            - Documento do PAA original;
+            - Documento do PAA retificado (quando existir);
+            - Ata de apresentação do PAA;
+            - Ata de retificação do PAA (quando existir).
+
+            Documentos de retificação sem arquivo gerado não são retornados.
+        """
+        prestacao = self.get_object()
+
+        try:
+            paa_base = Paa.objects.filter(
+                associacao=prestacao.associacao,
+            ).filter(
+                Q(
+                    periodo_paa__data_inicial__lt=prestacao.periodo.data_fim_realizacao_despesas,
+                    periodo_paa__data_final__gte=prestacao.periodo.data_fim_realizacao_despesas
+                ) | Q(
+                    periodo_paa__data_inicial__lt=prestacao.periodo.data_inicio_realizacao_despesas,
+                    periodo_paa__data_final__gte=prestacao.periodo.data_inicio_realizacao_despesas
+                )
+            ).first()
+
+            if not paa_base:
+                return Response(
+                    {"detail": "Nenhum PAA encontrado para o período informado"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+
+            doc_original, ata_original, doc_retificado, ata_retificacao = paa_base.get_documentos()
+
+            lista_docs = [
+                {
+                    "tipo": "DOC-PAA",
+                    "nome": f"Plano Anual-{doc_original if doc_original else 'Documento pendente de geração'}",  # noqa
+                    "uuid": str(doc_original.uuid) if doc_original else None,
+                    "retificacao": False,
+                    "tem_doc": bool(doc_original),
+                },
+                {
+                    "tipo": "DOC-PAA",
+                    "nome": f"Plano Anual Retificado-{doc_retificado if doc_retificado else 'Documento pendente de geração'}",  # noqa
+                    "uuid": str(doc_retificado.uuid) if doc_retificado else None,
+                    "retificacao": True,
+                    "tem_doc": bool(doc_retificado),
+                },
+                {
+                    "tipo": "ATA-PAA",
+                    "nome": f"Ata de Apresentação do PAA-{ata_original.status_label_geracao() if ata_original else 'Documento pendente de geração'}",  # noqa
+                    "uuid": str(ata_original.uuid) if ata_original else None,
+                    "retificacao": False,
+                    "tem_doc": bool(ata_original),
+                },
+                {
+                    "tipo": "ATA-PAA",
+                    "nome": f"Ata de Retificação do PAA-{ata_retificacao.status_label_geracao() if ata_retificacao else 'Documento pendente de geração'}",  # noqa
+                    "uuid": str(ata_retificacao.uuid) if ata_retificacao else None,
+                    "retificacao": True,
+                    "tem_doc": bool(ata_retificacao),
+                },
+            ]
+
+            def ignora_retificados_sem_documento(x) -> bool:
+                """Filtro para ignorar documentos de retificação sem documento gerado."""
+
+                return not (x.get('retificacao') and not x.get('tem_doc'))
+
+            lista_docs = list(filter(lambda x: ignora_retificados_sem_documento(x), lista_docs))
+
+            return Response(lista_docs, status=status.HTTP_200_OK)
+
+        except ValueError:
+            return Response(
+                {"detail": "Nenhum PAA encontrado para o período informado"},
+                status=status.HTTP_404_NOT_FOUND
+            )

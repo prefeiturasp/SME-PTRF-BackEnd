@@ -16,6 +16,10 @@ HISTORICO_PADRAO = {
     'receitas_pdde': {},
     'receitas_outros_recursos': {},
     'prioridades': {},
+    'documento_original': {'uuid': None},
+    'documento_retificado': {'uuid': None, 'versao': None},
+    'ata_original': {'uuid': None},
+    'ata_retificada': {'uuid': None}
 }
 
 

@@ -47,15 +47,24 @@ class DocumentoPaa(ModeloBase):
     )
 
     def __str__(self):
+        return f"{self.label_documento()} {self.status_label_geracao()}"
+
+    def label_nome(self):
+        return f"Plano Anual{' Retificado' if self.retificacao else ''}"
+
+    def label_documento(self):
         versao_label = DocumentoPaa.VersaoChoices(self.versao).label
+        return f"Documento {versao_label}{' retificado' if self.retificacao else ''}"
+
+    def status_label_geracao(self):
         if self.status_geracao == DocumentoPaa.StatusChoices.CONCLUIDO:
-            return f"Documento PAA {versao_label} gerado dia {self.criado_em.strftime('%d/%m/%Y %H:%M')}"
+            return f"gerado em {self.criado_em.strftime('%d/%m/%Y às %H:%M')}"
         elif self.status_geracao == DocumentoPaa.StatusChoices.EM_PROCESSAMENTO:
-            return f"Documento PAA {versao_label} sendo gerado. Aguarde."
+            return "sendo gerado. Aguarde."
         elif self.status_geracao == DocumentoPaa.StatusChoices.ERRO_PROCESSAMENTO:
-            return f"Documento PAA {versao_label} interrompido com erro no processamento. Tente novamente."
+            return "interrompido com erro no processamento. Tente novamente."
         else:
-            return f"Documento PAA {versao_label} aguardando início da geração."
+            return "aguardando início da geração."
 
     class Meta:
         verbose_name = "Documento PAA"
