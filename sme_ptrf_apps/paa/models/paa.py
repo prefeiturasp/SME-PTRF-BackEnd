@@ -94,6 +94,76 @@ class Paa(ModeloBase):
             self.atas_da_paa.exists()
         )
 
+    def get_documentos(self) -> tuple:
+        """
+            Obtém os documentos e atas vinculados ao PAA.
+
+            Retorna os registros mais recentes com geração concluída,
+            desconsiderando versões prévias, na seguinte ordem:
+
+            1. Documento do PAA original (versão final não retificada);
+            2. Ata de apresentação do PAA;
+            3. Documento do PAA retificado (versão final retificada);
+            4. Ata de retificação do PAA.
+
+            Para cada item, é retornado o registro mais recente com base
+            no campo ``criado_em``. Caso não exista um documento ou ata
+            que atenda aos critérios, o respectivo valor será ``None``.
+        """
+
+        from sme_ptrf_apps.paa.models import (DocumentoPaa, AtaPaa)
+
+        doc_original = (
+            self.documentopaa_set
+            .filter(
+                versao=DocumentoPaa.VersaoChoices.FINAL,
+                retificacao=False,
+                status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO
+            )
+            .order_by('-criado_em')
+            .first()
+        )
+
+        ata_original = (
+            self.atas_da_paa
+            .filter(
+                tipo_ata=AtaPaa.ATA_APRESENTACAO,
+                status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+                previa=False
+            )
+            .order_by('-criado_em')
+            .first()
+        )
+
+        doc_retificado = (
+            self.documentopaa_set
+            .filter(
+                versao=DocumentoPaa.VersaoChoices.FINAL,
+                retificacao=True,
+                status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO
+            )
+            .order_by('-criado_em')
+            .first()
+        )
+
+        ata_retificacao = (
+            self.atas_da_paa
+            .filter(
+                tipo_ata=AtaPaa.ATA_RETIFICACAO,
+                status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+                previa=False
+            )
+            .order_by('-criado_em')
+            .first()
+        )
+
+        return (
+            doc_original,
+            ata_original,
+            doc_retificado,
+            ata_retificacao
+        )
+
     def get_condicao_status_andamento(self) -> str:
         """
         Retorna o status da condição do andamento do PAA.
