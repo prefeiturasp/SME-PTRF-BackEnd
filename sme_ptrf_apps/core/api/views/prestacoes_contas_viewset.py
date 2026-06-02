@@ -2657,32 +2657,28 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             lista_docs = [
                 {
                     "tipo": "DOC-PAA",
-                    "nome": f"Plano Anual-{doc_original if doc_original else
-                                           'Documento pendente de geração'}",
+                    "nome": f"Plano Anual-{doc_original if doc_original else 'Documento pendente de geração'}", # noqa
                     "uuid": str(doc_original.uuid) if doc_original else None,
                     "retificacao": False,
                     "tem_doc": bool(doc_original),
                 },
                 {
                     "tipo": "DOC-PAA",
-                    "nome": f"Plano Anual Retificado-{doc_retificado if doc_retificado else
-                                                      'Documento pendente de geração'}",
+                    "nome": f"Plano Anual Retificado-{doc_retificado if doc_retificado else 'Documento pendente de geração'}", # noqa
                     "uuid": str(doc_retificado.uuid) if doc_retificado else None,
                     "retificacao": True,
                     "tem_doc": bool(doc_retificado),
                 },
                 {
                     "tipo": "ATA-PAA",
-                    "nome": f"Ata de Apresentação do PAA-{ata_original.status_label_geracao() if ata_original else
-                                                          'Documento pendente de geração'}",
+                    "nome": f"Ata de Apresentação do PAA-{ata_original.status_label_geracao() if ata_original else 'Documento pendente de geração'}", # noqa
                     "uuid": str(ata_original.uuid) if ata_original else None,
                     "retificacao": False,
                     "tem_doc": bool(ata_original),
                 },
                 {
                     "tipo": "ATA-PAA",
-                    "nome": f"Ata de Retificação do PAA-{ata_retificacao.status_label_geracao() if ata_retificacao else
-                                                         'Documento pendente de geração'}",
+                    "nome": f"Ata de Retificação do PAA-{ata_retificacao.status_label_geracao() if ata_retificacao else 'Documento pendente de geração'}", # noqa
                     "uuid": str(ata_retificacao.uuid) if ata_retificacao else None,
                     "retificacao": True,
                     "tem_doc": bool(ata_retificacao),
