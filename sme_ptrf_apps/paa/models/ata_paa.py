@@ -230,7 +230,7 @@ class AtaPaa(ModeloBase):
             É utilizado em PC (PrestacaoContaObterDocumentoPAASerializer) e no PAA (vigentes e anteriores)
         """
         if self.status_geracao_pdf == self.STATUS_CONCLUIDO:
-            return f'Documento final gerado em {self.criado_em.strftime("%d/%m/%Y às %H:%M")}'
+            return f'Documento final gerado em {self.alterado_em.strftime("%d/%m/%Y às %H:%M")}'
 
         return 'Documento pendente de geração'
 
