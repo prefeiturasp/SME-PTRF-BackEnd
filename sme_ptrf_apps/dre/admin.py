@@ -1,5 +1,6 @@
 import logging
 
+from django.utils.safestring import mark_safe
 from django.contrib import admin, messages
 from sme_ptrf_apps.core.admin_filters.recurso_filters import (
     PeriodoRecursoListFilter,
@@ -18,6 +19,7 @@ from .models import (
     PresenteAtaDre, ConsolidadoDRE, Lauda, DocumentoAdicional, ComentarioAnaliseConsolidadoDRE, AnaliseConsolidadoDre,
     AnaliseDocumentoConsolidadoDre
 )
+from .forms import ComissaoAdminForm
 
 admin.site.register(ParametroFiqueDeOlhoRelDre)
 admin.site.register(MotivoAprovacaoRessalva)
@@ -264,33 +266,51 @@ class JObsDevolucaoRelatorioConsolidadoDREAdmin(admin.ModelAdmin):
 
 @admin.register(Comissao)
 class ComissaoAdmin(admin.ModelAdmin):
-
-    def get_e_exame_de_contas(self, obj):
-        comissao_exame_contas = ParametrosDre.objects.first().comissao_exame_contas if ParametrosDre.objects.exists() else None
-        return "X" if obj == comissao_exame_contas else ""
-
-    get_e_exame_de_contas.short_description = 'Exame de contas'
-
-    list_display = ['nome', 'get_e_exame_de_contas']
+    form = ComissaoAdminForm
+    list_display = ['nome', 'responsavel_analise_pc', 'listar_recursos']
     search_fields = ['nome', ]
     readonly_fields = ['id', 'uuid', 'criado_em', 'alterado_em']
+    list_filter = ('responsavel_analise_pc', 'recursos',)
 
-    actions = ['define_como_exame_de_contas', ]
+    actions = ['define_como_responsavel_analise_pc', ]
 
-    def define_como_exame_de_contas(self, request, queryset):
+    @admin.display(description="Recursos")
+    def listar_recursos(self, obj):
+        itens = "".join(
+            f"<li>{recurso.nome}</li>"
+            for recurso in obj.recursos.all()
+        )
+
+        lista_recursos = "<ul>{}</ul>".format(itens)
+
+        return mark_safe(lista_recursos)
+
+
+    def define_como_responsavel_analise_pc(self, request, queryset):
         if queryset.count() != 1:
-            self.message_user(request, "Selecione apenas uma comissão para ser a de exame de contas.",
+            self.message_user(request, "Selecione apenas uma comissão para ser responsável pela análise de prestação de contas.",
                               level=messages.ERROR)
             return
 
         comissao = queryset.first()
-        parametros_dre = ParametrosDre.get()
-        parametros_dre.comissao_exame_contas = comissao
-        parametros_dre.save()
+
+        is_valid, error_message = Comissao.is_valid_data(
+            nome=comissao.nome,
+            recursos=list(comissao.recursos.all()),
+            responsavel_analise_pc=True,
+            instance_id=comissao.pk,
+        )
+
+        if not is_valid:
+            self.message_user(request, error_message, level=messages.ERROR)
+            return
+
+        comissao.responsavel_analise_pc = True
+        comissao.save()
 
         self.message_user(
             request,
-            f"Comissão {comissao.nome} definida como exame de contas nos parâmetros da DRE.",
+            f"Comissão {comissao.nome} definida como responsável pela análise de prestação de contas.",
         )
 
 

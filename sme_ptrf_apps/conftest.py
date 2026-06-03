@@ -70,6 +70,7 @@ from sme_ptrf_apps.situacao_patrimonial.fixtures.factories import (
     BemProduzidoRateioFactory,
     BemProduzidoItemFactory
 )
+from sme_ptrf_apps.dre.fixtures.factories import ComissaoFactory
 
 factories_to_register = [
     DreFactory, UnidadeFactory, AssociacaoFactory, AssociacaoFactoryComPeriodoInicial, ContaAssociacaoFactory,
@@ -96,7 +97,7 @@ factories_to_register = [
     PDFFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory, AtaPaaFactory, ParticipanteAtaPaaFactory,
     AtividadeEstatutariaPaaFactory, OutroRecursoFactory, DocumentoPaaFactory, OutroRecursoPeriodoFactory,
     ReceitaPrevistaOutroRecursoPeriodoFactory, RecursoFactory, PeriodoInicialAssociacaoFactory,
-    ModeloCargaPaaFactory, ReplicaPaaFactory,
+    ModeloCargaPaaFactory, ReplicaPaaFactory, ComissaoFactory,
 ]
 
 for factory in factories_to_register:
