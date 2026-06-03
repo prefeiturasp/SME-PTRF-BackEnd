@@ -142,16 +142,22 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
 
         from django.db import DatabaseError
+        from copy import deepcopy
         import time
 
         max_retries = 3
         retry_count = 0
 
+        payload_original = deepcopy(validated_data)
+
         while retry_count < max_retries:
-            try:                
+            try:
+                if retry_count > 0:
+                    instance.refresh_from_db()               
+
                 return DespesaService.update(
                     instance,
-                    validated_data,
+                    deepcopy(payload_original),
                     limpar_prioridades_callback=self._limpar_prioridades_paa
                 )
             except DatabaseError as e:
