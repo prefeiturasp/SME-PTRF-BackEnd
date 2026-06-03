@@ -131,7 +131,7 @@ class Despesa(ModeloBase):
 
         return
 
-    def set_despesa_anterior_ao_uso_do_sistema(self):
+    def set_despesa_anterior_ao_uso_do_sistema(self, salvar=True):
         logger.info(
             "Método set_despesa_anterior_ao_uso_do_sistema. Verificando se a flag "
             "<ajustes-despesas-anteriores> está ativa...")
@@ -164,7 +164,8 @@ class Despesa(ModeloBase):
 
             logger.info(f"Setando despesa {self} como despesa_anterior_ao_uso_do_sistema")
 
-            self.save()
+            if salvar:
+                self.save()
 
         return
 
@@ -411,11 +412,13 @@ class Despesa(ModeloBase):
 
         return completo
 
-    def atualiza_status(self):
+    def atualiza_status(self, salvar=True):
         if self.data_e_hora_de_inativacao:
             if self.status != STATUS_INATIVO:
                 self.status = STATUS_INATIVO
-                self.save()
+
+                if salvar:
+                    self.save()
             return
 
         cadastro_completo = self.cadastro_completo()
@@ -532,6 +535,10 @@ def rateio_post_save(instance, created, **kwargs):
     A existência da tabela de fornecedores é apenas para facilitar o preenchimento da despesa pelas associações
     Alterações feitas por uma associação no nome de um fornecedor não deve alterar diretamente as despesas de outras
     """
+
+    if getattr(instance, "_skip_fornecedor_signal", False):
+        return
+
     if instance and instance.cpf_cnpj_fornecedor and instance.nome_fornecedor:
         Fornecedor.atualiza_ou_cria(cpf_cnpj=instance.cpf_cnpj_fornecedor, nome=instance.nome_fornecedor)
 
