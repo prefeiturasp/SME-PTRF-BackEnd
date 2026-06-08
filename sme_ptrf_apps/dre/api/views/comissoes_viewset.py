@@ -4,6 +4,7 @@ from uuid import UUID
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 
 from rest_framework import viewsets, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ValidationError as DRFValidationError
@@ -26,7 +27,7 @@ class ComissoesViewSet(viewsets.ModelViewSet):
 
 
 class ComissoesParametrizacaoViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated & PermissaoApiDre]
+    permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
     queryset = Comissao.objects.all()
     serializer_class = ComissaoParametrizacaoSerializer
@@ -72,7 +73,6 @@ class ComissoesParametrizacaoViewSet(viewsets.ModelViewSet):
         if obj.membros.exists():
             content = {
                 'mensagem': (
-                    'Essa operação não pode ser realizada.'
                     'Há membros associados a esta comissão. Remova os membros antes de excluir a comissão.'
                 )
             }
@@ -80,3 +80,17 @@ class ComissoesParametrizacaoViewSet(viewsets.ModelViewSet):
 
         self.perform_destroy(obj)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+    @action(detail=False, url_path='filtro-por-nome', methods=['get'],
+            permission_classes=[IsAuthenticated])
+    def filtro_por_nome(self, request):
+        nome = request.query_params.get('nome', '').strip()
+        nome = ' '.join(nome.split())
+
+        if not nome:
+            return Response([])
+
+        comissoes = Comissao.objects.filter(nome__icontains=nome).order_by('nome')
+        serializer = self.get_serializer(comissoes, many=True)
+        return Response(serializer.data)

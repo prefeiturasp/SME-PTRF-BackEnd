@@ -65,7 +65,7 @@ class Comissao(ModeloIdNome):
         already_exists_with_same_name_and_recursos = cls.objects.filter(
             nome=nome,
             recursos__in=recursos
-        ).exclude(id=comissao.id).exists()
+        ).exclude(id=instance_id).exists()
 
         if already_exists_with_same_name_and_recursos:
             return False, "Já existe uma comissão com o mesmo nome no recurso selecionado."
@@ -74,7 +74,7 @@ class Comissao(ModeloIdNome):
             already_exists_responsavel_analise_pc = cls.objects.filter(
                 responsavel_analise_pc=responsavel_analise_pc,
                 recursos__in=recursos
-            ).exclude(id=comissao.id).exists()
+            ).exclude(id=instance_id).exists()
 
             if already_exists_responsavel_analise_pc:
                 return False, "Um ou mais recursos selecionados já estão associados a uma comissão de análise de prestação de contas."
