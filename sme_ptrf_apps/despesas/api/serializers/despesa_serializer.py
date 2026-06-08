@@ -141,11 +141,36 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
 
-        return DespesaService.update(
-            instance,
-            validated_data,
-            limpar_prioridades_callback=self._limpar_prioridades_paa
-        )
+        from django.db import DatabaseError
+        from copy import deepcopy
+        import time
+
+        max_retries = 3
+        retry_count = 0
+
+        payload_original = deepcopy(validated_data)
+
+        while retry_count < max_retries:
+            try:
+                if retry_count > 0:
+                    instance.refresh_from_db()               
+
+                return DespesaService.update(
+                    instance,
+                    deepcopy(payload_original),
+                    limpar_prioridades_callback=self._limpar_prioridades_paa
+                )
+            except DatabaseError as e:
+                if "timeout" in str(e).lower() or "closed" in str(e).lower():
+                    retry_count += 1
+                    if retry_count < max_retries:
+                        log.warning(
+                            f"Timeout detectado ao atualizar despesa #{instance.id},"
+                            f" tentando novamente ({retry_count}/{max_retries})"
+                        )
+                        time.sleep(2 ** retry_count)
+                        continue
+                raise
 
     class Meta:
         model = Despesa
