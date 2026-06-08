@@ -14,6 +14,8 @@ class ComissaoSerializer(serializers.ModelSerializer):
 class SimpleRecursoSerializer(serializers.Serializer):
     uuid = serializers.UUIDField()
     nome = serializers.CharField(max_length=255)
+    nome_exibicao = serializers.CharField(max_length=160)
+
 
 class ComissaoParametrizacaoSerializer(serializers.ModelSerializer):
     recursos = SimpleRecursoSerializer(many=True, read_only=True)
