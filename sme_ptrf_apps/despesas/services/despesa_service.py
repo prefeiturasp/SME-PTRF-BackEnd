@@ -102,28 +102,38 @@ class DespesaService:
     # =====================================================
     @classmethod
     @transaction.atomic
-    def update(cls, instance: Despesa, validated_data, limpar_prioridades_callback=None):
-        logger.info("Iniciando atualização de despesa")
+    def update(cls, instance: Despesa, validated_data, limpar_prioridades_callback=None):        
 
-        rateios = validated_data.pop("rateios")
-        despesas_impostos = validated_data.pop("despesas_impostos", [])
+        logger.info(f"Iniciando atualização de despesa: #{instance.id}")
+        
+        # Desliga signal por questões de performance
+        instance._skip_fornecedor_signal = True
 
-        cls._validar_datas_update(instance, validated_data)
-        motivos, outros = cls._processar_pagamento_antecipado(validated_data)
+        try:
+            rateios = validated_data.pop("rateios")
+            despesas_impostos = validated_data.pop("despesas_impostos", [])
 
-        for attr, value in validated_data.items():
-            setattr(instance, attr, value)
+            cls._validar_datas_update(instance, validated_data)
+            motivos, outros = cls._processar_pagamento_antecipado(validated_data)
 
-        instance.save()
+            # Executa apenas quando há alterações de dados do fornecedor
+            cls._cria_atualiza_fornecedor(instance, validated_data)
 
-        cls._atualizar_rateios(instance, rateios)
-        cls._aplicar_motivos(instance, motivos, outros)
+            # Atualiza instancia
+            for attr, value in validated_data.items():
+                setattr(instance, attr, value)
 
-        cls._processar_impostos_update(instance, despesas_impostos)
+            cls._atualizar_rateios(instance, rateios)
+            cls._aplicar_motivos(instance, motivos, outros)
 
-        cls._finalizar_despesa(instance, rateios, limpar_prioridades_callback)
+            cls._processar_impostos_update(instance, despesas_impostos)            
 
-        return instance
+            cls._finalizar_despesa(instance, rateios, limpar_prioridades_callback)
+
+            return instance
+        finally:
+            instance._skip_fornecedor_signal = False
+
 
     # =====================================================
     # VALIDAÇÕES
@@ -318,9 +328,21 @@ class DespesaService:
                 obj = RateioDespesa.objects.create(**rateio, despesa=despesa)
                 keep.append(obj.uuid)
 
-            obj.save()
-
         RateioDespesa.objects.filter(despesa=despesa).exclude(uuid__in=keep).delete()
+
+    def _cria_atualiza_fornecedor(despesa: Despesa, validated_data: dict):
+        from sme_ptrf_apps.despesas.models.fornecedor import Fornecedor
+
+        doc_fornecedor = validated_data.get('cpf_cnpj_fornecedor')
+        nome_fornecedor = validated_data.get('nome_fornecedor')
+
+        if doc_fornecedor and nome_fornecedor:
+            if despesa.nome_fornecedor != nome_fornecedor or despesa.cpf_cnpj_fornecedor != doc_fornecedor:
+                logger.info(f"Cria/Atualiza fornecedor: {doc_fornecedor}")
+                Fornecedor.atualiza_ou_cria(
+                    cpf_cnpj=despesa.cpf_cnpj_fornecedor, 
+                    nome=despesa.nome_fornecedor
+                )
 
     # =====================================================
     # IMPOSTOS
@@ -409,8 +431,10 @@ class DespesaService:
 
         # Atualiza status dos impostos após vínculo
         for despesa_imposto in despesa.despesas_impostos.all():
+            despesa_imposto._skip_fornecedor_signal = True
             despesa_imposto.verifica_data_documento_vazio()
             despesa_imposto.atualiza_status()
+            despesa_imposto._skip_fornecedor_signal = False
 
     # =====================================================
     # FINALIZAÇÃO
@@ -423,11 +447,12 @@ class DespesaService:
 
     @staticmethod
     def _finalizar_despesa(despesa: Despesa, rateios, limpar_callback):
-        despesa.atualiza_status()
-        despesa.save()
+        despesa.atualiza_status(salvar=False)
 
         if despesa.data_transacao:
-            despesa.set_despesa_anterior_ao_uso_do_sistema()
+            despesa.set_despesa_anterior_ao_uso_do_sistema(salvar=False)
+
+        despesa.save()
 
         if despesa.status == STATUS_COMPLETO and limpar_callback:
             limpar_callback(rateios, despesa)
