@@ -1,14 +1,16 @@
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
-from rest_framework import mixins
+from rest_framework import mixins, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
+from rest_framework.response import Response
 
 from sme_ptrf_apps.core.api.serializers import AcaoAssociacaoRetrieveSerializer
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.core.choices.filtro_informacoes_associacao import FiltroInformacoesAssociacao
 from sme_ptrf_apps.core.models import AcaoAssociacao
+from sme_ptrf_apps.core.models.recurso import Recurso
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
@@ -27,6 +29,8 @@ class ParametrizacoesAcoesAssociacaoViewSet(mixins.ListModelMixin, GenericViewSe
 
         nome = self.request.query_params.get('nome')
         filtro_informacoes = self.request.query_params.get('filtro_informacoes')
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+
         filtro_informacoes_list = filtro_informacoes.split(',') if filtro_informacoes else []
 
         encerradas = FiltroInformacoesAssociacao.FILTRO_INFORMACOES_ENCERRADAS
@@ -45,6 +49,13 @@ class ParametrizacoesAcoesAssociacaoViewSet(mixins.ListModelMixin, GenericViewSe
 
             elif encerradas in filtro_informacoes_list:
                 qs = qs.filter(associacao__data_de_encerramento__isnull=False)
+
+        if recurso_uuid is not None:
+            try:
+                recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
+                qs = qs.filter(acao__recurso=recurso)
+            except Recurso.DoesNotExist:
+                return Response({'detail': 'Recurso não encontrado.'}, status=status.HTTP_400_BAD_REQUEST)
 
         return qs.order_by('associacao__nome', 'acao__nome')
 
