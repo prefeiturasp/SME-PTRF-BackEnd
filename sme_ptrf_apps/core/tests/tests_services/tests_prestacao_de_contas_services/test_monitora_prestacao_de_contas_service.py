@@ -108,7 +108,6 @@ def parametros_monitora_pc():
     return baker.make(
         'Parametros',
         tempo_aguardar_conclusao_pc=1,
-        permite_saldo_conta_negativo=True,
         fique_de_olho='',
         fique_de_olho_relatorio_dre='',
         texto_pagina_suporte_dre='Teste DRE',
