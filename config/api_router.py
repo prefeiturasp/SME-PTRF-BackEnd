@@ -73,6 +73,7 @@ from sme_ptrf_apps.dre.api.views import (
     MotivoReprovacaoViewSet,
     MotivoReprovacaoParametrizacaoViewSet,
     ComissoesViewSet,
+    ComissoesParametrizacaoViewSet,
     MembrosComissoesViewSet,
     AnosAnaliseRegularidadeViewSet,
     AtaParecerTecnicoViewset,
@@ -245,6 +246,7 @@ router.register("analises-lancamento-prestacao-conta", AnaliseLancamentoPrestaca
 router.register("analises-documento-prestacao-conta", AnaliseDocumentoPrestacaoContaViewSet,
                 basename="analises-documento-prestacao-conta")
 router.register("comissoes", ComissoesViewSet, basename="comissoes")
+router.register("comissoes-parametrizacao", ComissoesParametrizacaoViewSet, basename="comissoes-parametrizacao")
 router.register("membros-comissoes", MembrosComissoesViewSet, basename="membros-comissoes")
 router.register("anos-analise-regularidade", AnosAnaliseRegularidadeViewSet, basename="anos-analise-regularidade")
 router.register("ata-parecer-tecnico", AtaParecerTecnicoViewset, basename="ata-parecer-tecnico")
