@@ -11,9 +11,6 @@ from auditlog.registry import auditlog
 
 class Parametros(SingletonModel, ModeloBase):
     history = AuditlogHistoryField()
-    permite_saldo_conta_negativo = models.BooleanField('Permite saldo negativo em contas?', default=True) # TODO: Remover! Este campo foi movido para recurso
-
-    permite_saldo_acoes_negativo = models.BooleanField('Permite saldo negativo em ações?', default=True) # TODO: Remover! Este campo foi movido para recurso
 
     fique_de_olho = RichTextField(null=True)
     fique_de_olho_relatorio_dre = RichTextField(null=True, verbose_name='Fique de olho (Relatório DRE)')
