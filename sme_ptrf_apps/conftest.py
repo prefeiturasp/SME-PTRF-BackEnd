@@ -1948,7 +1948,6 @@ def rateio_fora_periodo_50_custeio(associacao, despesa_fora_periodo, conta_assoc
 def parametros():
     return baker.make(
         'Parametros',
-        permite_saldo_conta_negativo=True,
         fique_de_olho='',
         fique_de_olho_relatorio_dre='',
         tempo_aguardar_conclusao_pc=1,
@@ -1981,7 +1980,6 @@ def parametro_fique_de_olho_pc_texto_abc():
 def parametros_aceita_saldo_negativo_em_conta():
     return baker.make(
         'Parametros',
-        permite_saldo_conta_negativo=True
     )
 
 
@@ -1989,7 +1987,6 @@ def parametros_aceita_saldo_negativo_em_conta():
 def parametros_nao_aceita_saldo_negativo_em_conta():
     return baker.make(
         'Parametros',
-        permite_saldo_conta_negativo=False
     )
 
 
