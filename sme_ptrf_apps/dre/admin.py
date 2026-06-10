@@ -274,6 +274,29 @@ class ComissaoAdmin(admin.ModelAdmin):
 
     actions = ['define_como_responsavel_analise_pc', ]
 
+
+    def delete_view(self, request, object_id, extra_context=None):
+        from django.contrib import messages
+        from django.shortcuts import redirect
+
+        obj = self.get_object(request, object_id)
+
+        if obj and obj.membros.exists():
+            messages.error(
+                request,
+                "Há membros associados a esta comissão. Remova os membros antes de excluir a comissão."
+            )
+            return redirect(
+                f"../../{object_id}/change/"
+            )
+
+        return super().delete_view(
+            request,
+            object_id,
+            extra_context,
+        )
+
+
     @admin.display(description="Recursos")
     def listar_recursos(self, obj):
         itens = "".join(
