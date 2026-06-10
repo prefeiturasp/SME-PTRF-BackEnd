@@ -9,6 +9,7 @@ from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_paa_serializer impo
     AtividadeEstatutariaPaaSerializer,
     AtividadeEstaturariaPaaUpdateSerializer
 )
+from sme_ptrf_apps.paa.api.serializers.ata_paa_serializer import AtaPaaSerializer
 from sme_ptrf_apps.paa.api.serializers import PeriodoPaaSerializer, PeriodoPaaSimplesSerializer
 
 
@@ -75,13 +76,16 @@ class PaaSerializer(serializers.ModelSerializer):
 
 class PaaRetificacaoComparativoSerializer(PaaSerializer):
     alteracoes = serializers.SerializerMethodField()
+    ata_elaboracao = AtaPaaSerializer(source='get_ata_elaboracao', many=False, read_only=True)
+    ata_retificacao = AtaPaaSerializer(source='get_ata_retificacao', many=False, read_only=True)
 
     def get_alteracoes(self, obj):
         return self.context.get('alteracoes', {})
 
     class Meta(PaaSerializer.Meta):
-        fields = PaaSerializer.Meta.fields + ('alteracoes',)
-        read_only_fields = PaaSerializer.Meta.read_only_fields + ('alteracoes',)
+        fields = PaaSerializer.Meta.fields + ('alteracoes', 'ata_elaboracao', 'ata_retificacao')
+        read_only_fields = PaaSerializer.Meta.read_only_fields + ('alteracoes', 'ata_elaboracao',
+                                                                  'ata_retificacao')
 
 
 class PaaUpdateSerializer(serializers.ModelSerializer):
@@ -184,7 +188,7 @@ class PaaUpdateSerializer(serializers.ModelSerializer):
                             if tipo:
                                 atividade.tipo = tipo
                             if mes:
-                                atividade.mes = mes                            
+                                atividade.mes = mes
 
                             if self._atividade_duplicada(
                                 paa=paa,
@@ -219,7 +223,6 @@ class PaaUpdateSerializer(serializers.ModelSerializer):
 
                 if not nome or not tipo or not data:
                     raise serializers.ValidationError({"mensagem": "Nova atividade precisa de nome, tipo e data."})
-
 
                 if self._atividade_duplicada(
                         paa=paa,
@@ -265,6 +268,7 @@ class PaaUpdateSerializer(serializers.ModelSerializer):
 
         return query.exists()
 
+
 class PaaDreSerializer(serializers.ModelSerializer):
     tem_documentos = serializers.SerializerMethodField()
     periodo_paa = PeriodoPaaSimplesSerializer(read_only=True)
@@ -273,7 +277,7 @@ class PaaDreSerializer(serializers.ModelSerializer):
 
     def get_tem_documentos(self, obj):
         return obj.tem_documentos
-    
+
     class Meta:
         model = Paa
         fields = ('uuid', 'periodo_paa', 'unidade', 'saldo_congelado_em',
