@@ -54,6 +54,47 @@ def despesa_com_rateio_capital(
     )
     return despesa
 
+@pytest.fixture
+def despesa_conciliada_com_rateio(
+    despesa_factory,
+    rateio_despesa_factory,
+    associacao,
+    tipo_documento,
+    tipo_transacao,
+    conta_associacao,
+    acao_associacao,
+    prestacao_conta_devolvida,
+):
+
+    despesa = despesa_factory(
+        associacao=prestacao_conta_devolvida.associacao,
+        numero_documento='123456',
+        data_documento=prestacao_conta_devolvida.periodo.data_inicio_realizacao_despesas,
+        tipo_documento=tipo_documento,
+        cpf_cnpj_fornecedor='11.478.276/0001-04',
+        nome_fornecedor='Fornecedor SA',
+        tipo_transacao=tipo_transacao,
+        documento_transacao='',
+        data_transacao=prestacao_conta_devolvida.periodo.data_inicio_realizacao_despesas,
+        valor_total=100.00,
+        retem_imposto=True,
+        valor_recursos_proprios=0,
+        eh_despesa_sem_comprovacao_fiscal=False,
+    )
+
+    rateio_despesa_factory.create(
+        despesa=despesa,
+        associacao=associacao,
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso="CUSTEIO",
+        valor_rateio=25000,
+        valor_original=25000,
+        status="COMPLETO",
+        conferido=True,
+        update_conferido=True,
+    )
+    return despesa
 
 def _validated_data_base(despesa, associacao):
     return {
@@ -617,3 +658,58 @@ def test_update_custeio_para_capital_eh_despesa_sem_comprovacao_fiscal_nao_exige
     result = DespesaService.update(despesa, validated_data)
     rateio_atualizado = result.rateios.first()
     assert rateio_atualizado.aplicacao_recurso == APLICACAO_CAPITAL
+
+
+
+def test_update_imposto_herda_conciliacao_quando_pc_devolvida(
+    tipo_documento,
+    despesa_conciliada_com_rateio,
+):
+    despesa = despesa_conciliada_com_rateio
+
+    rateio_origem = (
+        despesa.rateios
+        .order_by("periodo_conciliacao")
+        .last()
+    )
+
+    validated_data = {
+        "despesas_impostos": [
+            {
+                
+                "tipo_documento": tipo_documento,
+                "valor_total": 10,               
+                "rateios": [
+                    {
+                        "valor_rateio": 10,
+                        "conferido": False,                       
+                    }
+                ],
+            }
+        ]
+    }
+
+    for rateio in despesa.rateios.all():
+        print(
+            rateio.id,
+            rateio.conferido,
+            rateio.periodo_conciliacao_id
+        )
+
+    DespesaService._processar_impostos_update(
+        despesa,
+        validated_data["despesas_impostos"],
+    )
+    
+    despesa.refresh_from_db()
+
+    assert despesa.despesas_impostos.exists()
+    despesa_imposto = despesa.despesas_impostos.first()
+    rateio_imposto = despesa_imposto.rateios.first()
+    assert despesa_imposto is not None
+
+    assert rateio_imposto.conferido is True
+    assert (
+        rateio_imposto.periodo_conciliacao_id
+        == rateio_origem.periodo_conciliacao_id
+    )

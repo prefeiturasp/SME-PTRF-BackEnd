@@ -3,6 +3,7 @@ from django.db import transaction
 from django.db.models import Count
 from rest_framework import serializers
 from sme_ptrf_apps.core.models import Associacao
+from sme_ptrf_apps.core.models import PrestacaoConta
 from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 from sme_ptrf_apps.despesas.models import Despesa, RateioDespesa
@@ -399,6 +400,33 @@ class DespesaService:
 
                 imposto.pop("despesas_impostos", None)
                 imposto.pop("motivos_pagamento_antecipado", None)
+
+                # Despesa de imposto herda o status de conciliação da despesa de origem
+                # caso esteja num contexto de PC devolvida para acertos
+                prestacao_conta = despesa.prestacao_conta
+               
+                if prestacao_conta and prestacao_conta.status == PrestacaoConta.STATUS_DEVOLVIDA:
+                  
+                    if despesa.conferido:                   
+                        periodo_conciliacao = (
+                            despesa.rateios.all()
+                            .order_by("periodo_conciliacao")
+                            .last()
+                        )
+
+                        for rateio in rateios:
+                            rateio.pop('periodo_conciliacao', None)
+
+                            rateio["update_conferido"] = True
+                            rateio["conferido"] = True
+                            rateio["periodo_conciliacao_id"] = (
+                                periodo_conciliacao.periodo_conciliacao_id if periodo_conciliacao else None
+                            )
+                        
+                else:
+                    for rateio in rateios:
+                        rateio["update_conferido"] = False
+
 
                 if "uuid" in imposto:
                     desp = Despesa.by_uuid(imposto["uuid"])
