@@ -77,7 +77,7 @@ class ParametrizacoesAcoesAssociacaoViewSet(mixins.ListModelMixin, GenericViewSe
  
         if obj.valores_reprogramados_da_acao.exists():
             content = {
-                'error': (
+                'mensagem': (
                     'Há valores reprogramados associados a esta ação. Remova os valores antes de excluir a ação.'
                 )
             }
@@ -85,7 +85,7 @@ class ParametrizacoesAcoesAssociacaoViewSet(mixins.ListModelMixin, GenericViewSe
         
         elif obj.receita_prevista_paa_da_associacao.exists():
             content = {
-                'error': (
+                'mensagem': (
                     'Há receitas previstas do PAA associadas a esta ação. Remova as receitas previstas do PAA antes de excluir a ação.'
                 )
             }
@@ -93,7 +93,7 @@ class ParametrizacoesAcoesAssociacaoViewSet(mixins.ListModelMixin, GenericViewSe
         
         elif obj.prioridade_paa_da_associacao.exists():
             content = {
-                'error': (
+                'mensagem': (
                     'Há prioridades do PAA associadas a esta ação. Remova as prioridades do PAA antes de excluir a ação.'
                 )
             }
@@ -101,7 +101,7 @@ class ParametrizacoesAcoesAssociacaoViewSet(mixins.ListModelMixin, GenericViewSe
     
         elif obj.rateios_da_associacao.exists():
             content = {
-                'error': (
+                'mensagem': (
                     'Há rateios associados a esta ação. Remova os rateios antes de excluir a ação.'
                 )
             }
@@ -109,7 +109,7 @@ class ParametrizacoesAcoesAssociacaoViewSet(mixins.ListModelMixin, GenericViewSe
 
         elif obj.repasses_da_associacao.exists():
             content = {
-                'error': (
+                'mensagem': (
                     'Há repasses associados a esta ação. Remova os repasses antes de excluir a ação.'
                 )
             }
@@ -117,7 +117,7 @@ class ParametrizacoesAcoesAssociacaoViewSet(mixins.ListModelMixin, GenericViewSe
 
         elif obj.receitas_da_associacao.exists():
             content = {
-                'error': (
+                'mensagem': (
                     'Há receitas associadas a esta ação. Remova as receitas antes de excluir a ação.'
                 )
             }
@@ -125,7 +125,7 @@ class ParametrizacoesAcoesAssociacaoViewSet(mixins.ListModelMixin, GenericViewSe
     
         elif obj.fechamentos_da_acao.exists():
             content = {
-                'error': (
+                'mensagem': (
                     'Há fechamentos associados a esta ação. Remova os fechamentos antes de excluir a ação.'
                 )
             }

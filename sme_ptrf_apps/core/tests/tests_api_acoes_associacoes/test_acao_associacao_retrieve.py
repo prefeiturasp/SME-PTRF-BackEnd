@@ -8,7 +8,8 @@ pytestmark = pytest.mark.django_db
 
 def test_retrieve_acao_associacao(
     jwt_authenticated_client_a,
-    acao_associacao_charli_bravo_000086_x
+    acao_associacao_charli_bravo_000086_x,
+    recurso_esperado
 ):
     response = jwt_authenticated_client_a.get(
         f'/api/acoes-associacoes/{acao_associacao_charli_bravo_000086_x.uuid}/', content_type='application/json')
@@ -60,7 +61,9 @@ def test_retrieve_acao_associacao(
         },
         'status': acao_associacao.status,
         'criado_em': acao_associacao.criado_em.isoformat("T"),
+        'recurso': recurso_esperado(acao_associacao.acao.recurso)
     }
+
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
 
