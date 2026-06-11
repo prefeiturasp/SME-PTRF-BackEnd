@@ -68,5 +68,68 @@ class ParametrizacoesAcoesAssociacaoViewSet(mixins.ListModelMixin, GenericViewSe
         ],
         responses={200: AcaoAssociacaoRetrieveSerializer(many=True)},
     )
+
     def list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        obj = self.get_object()
+ 
+        if obj.valores_reprogramados_da_acao.exists():
+            content = {
+                'error': (
+                    'Há valores reprogramados associados a esta ação. Remova os valores antes de excluir a ação.'
+                )
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+        
+        elif obj.receita_prevista_paa_da_associacao.exists():
+            content = {
+                'error': (
+                    'Há receitas previstas do PAA associadas a esta ação. Remova as receitas previstas do PAA antes de excluir a ação.'
+                )
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+        
+        elif obj.prioridade_paa_da_associacao.exists():
+            content = {
+                'error': (
+                    'Há prioridades do PAA associadas a esta ação. Remova as prioridades do PAA antes de excluir a ação.'
+                )
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+    
+        elif obj.rateios_da_associacao.exists():
+            content = {
+                'error': (
+                    'Há rateios associados a esta ação. Remova os rateios antes de excluir a ação.'
+                )
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        elif obj.repasses_da_associacao.exists():
+            content = {
+                'error': (
+                    'Há repasses associados a esta ação. Remova os repasses antes de excluir a ação.'
+                )
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        elif obj.receitas_da_associacao.exists():
+            content = {
+                'error': (
+                    'Há receitas associadas a esta ação. Remova as receitas antes de excluir a ação.'
+                )
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+    
+        elif obj.fechamentos_da_acao.exists():
+            content = {
+                'error': (
+                    'Há fechamentos associados a esta ação. Remova os fechamentos antes de excluir a ação.'
+                )
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+        self.perform_destroy(obj)
+        return Response(status=status.HTTP_204_NO_CONTENT)
