@@ -214,16 +214,16 @@ class TestIniciarRetificacaoAction:
             versao=DocumentoPaa.VersaoChoices.FINAL,
             status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
         )
-        justificativa = 'Justificativa específica para o teste.'
+        justificativa_retificacao = 'Justificativa específica para o teste.'
 
         jwt_authenticated_client_sme.post(
             f'/api/paa/{paa.uuid}/iniciar-retificacao/',
             content_type='application/json',
-            data=json.dumps({'justificativa': justificativa}),
+            data=json.dumps({'justificativa': justificativa_retificacao}),
         )
 
         ata = AtaPaa.objects.get(paa=paa, tipo_ata=AtaPaa.ATA_RETIFICACAO)
-        assert ata.justificativa == justificativa
+        assert ata.justificativa_retificacao == justificativa_retificacao
 
     def test_paa_inexistente_retorna_404(
         self, jwt_authenticated_client_sme, flag_paa, flag_paa_retificacao

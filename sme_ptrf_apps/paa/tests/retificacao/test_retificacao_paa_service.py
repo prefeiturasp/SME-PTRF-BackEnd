@@ -122,11 +122,11 @@ class TestCriarAtaRetificacao:
 
         assert ata.tipo_ata == AtaPaa.ATA_RETIFICACAO
 
-    def test_ata_salva_justificativa(self, paa_retificacao):
-        justificativa = 'Justificativa detalhada para a retificação.'
-        ata = _service(paa_retificacao).criar_ata_retificacao(justificativa)
+    def test_ata_salva_justificativa_retificacao(self, paa_retificacao):
+        justificativa_retificacao = 'Justificativa detalhada para a retificação.'
+        ata = _service(paa_retificacao).criar_ata_retificacao(justificativa_retificacao)
 
-        assert ata.justificativa == justificativa
+        assert ata.justificativa_retificacao == justificativa_retificacao
 
     def test_ata_associada_ao_paa(self, paa_retificacao):
         ata = _service(paa_retificacao).criar_ata_retificacao('Justificativa.')
@@ -213,7 +213,7 @@ class TestIniciarRetificacao:
 
         assert AtaPaa.objects.filter(
             paa=paa_retificacao, tipo_ata=AtaPaa.ATA_RETIFICACAO
-        ).first().justificativa == justificativa
+        ).first().justificativa_retificacao == justificativa
 
 
 class TestIdentificarAlteracoes:

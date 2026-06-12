@@ -93,6 +93,7 @@ class AtaPaaSerializer(serializers.ModelSerializer):
             'presentes_na_ata_paa',
             'hora_reuniao',
             'justificativa',
+            'justificativa_retificacao',
             'composicao',
             'completa',
             'precisa_professor_gremio',
