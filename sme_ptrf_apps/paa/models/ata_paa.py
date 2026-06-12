@@ -250,7 +250,7 @@ class AtaPaa(ModeloBase):
 
     @classmethod
     def iniciar(cls, paa):
-        tipo_ata = cls.ATA_RETIFICACAO if paa.status == 'EM_RETIFICACAO' else cls.ATA_APRESENTACAO
+        tipo_ata = cls.ATA_RETIFICACAO if paa.status_em_retificacao else cls.ATA_APRESENTACAO
 
         ata_paa = cls.objects.filter(
             paa=paa,
