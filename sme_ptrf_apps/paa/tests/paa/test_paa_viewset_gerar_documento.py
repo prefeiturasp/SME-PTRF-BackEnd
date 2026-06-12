@@ -17,7 +17,9 @@ def test_nao_pode_gerar_final_quando_previa_em_processamento(
     result = response.json()
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "A prévia do documento ainda está sendo gerada" in result["mensagem"]
+    assert (
+        "Há uma geração de prévia em processamento. Aguarde a conclusão para gerar a versão final."
+    ) in result["mensagem"]
 
 
 def test_nao_pode_gerar_final_quando_documento_final_existe(jwt_authenticated_client_sme, flag_paa,
@@ -29,7 +31,7 @@ def test_nao_pode_gerar_final_quando_documento_final_existe(jwt_authenticated_cl
     result = response.json()
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert result["mensagem"] == 'O documento final já foi gerado.'
+    assert result["mensagem"] == "Não é possível gerar o documento. Já existe uma versão final gerada."
 
 
 def test_retorna_erros_de_validacao_geracao_final(jwt_authenticated_client_sme, flag_paa, paa_factory):
@@ -73,7 +75,7 @@ def test_nao_pode_gerar_previa_quando_documento_final_existe(jwt_authenticated_c
     result = response.json()
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert result["mensagem"] == 'O documento final já foi gerado e não é mais possível gerar prévias.'
+    assert result["mensagem"] == "Não é possível gerar o documento. Já existe uma versão final gerada."
 
 
 def test_iniciar_geracao_previa_com_sucesso(jwt_authenticated_client_sme, flag_paa, paa_factory):
@@ -107,7 +109,9 @@ def test_nao_pode_gerar_previa_quando_previa_em_processamento(jwt_authenticated_
     result = response.json()
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "A prévia do documento já está sendo gerada" in result["mensagem"]
+    assert (
+        "Há uma geração de prévia em processamento. Aguarde a conclusão para gerar a versão final."
+    ) in result["mensagem"]
 
 
 def test_gerar_documento_final_bloqueado_apos_iniciar_previa_na_api(
@@ -131,7 +135,9 @@ def test_gerar_documento_final_bloqueado_apos_iniciar_previa_na_api(
     )
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert "A prévia do documento ainda está sendo gerada" in response.json()["mensagem"]
+    assert (
+        "Há uma geração de prévia em processamento. Aguarde a conclusão para gerar a versão final."
+    ) in response.json()["mensagem"]
 
 
 def test_gerar_documento_sem_confirmacao(jwt_authenticated_client_sme, flag_paa, paa_factory,
