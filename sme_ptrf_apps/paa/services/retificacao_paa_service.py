@@ -240,7 +240,7 @@ class RetificacaoPaaService:
             paa=self.paa,
             tipo_ata=AtaPaa.ATA_RETIFICACAO,
             previa=True,
-            justificativa=justificativa,
+            justificativa_retificacao=justificativa,
         )
         self.logger.info(f'Ata de Retificação criada com sucesso (uuid={ata.uuid}).')
         return ata
