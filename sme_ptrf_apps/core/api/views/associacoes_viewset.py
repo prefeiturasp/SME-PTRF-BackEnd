@@ -679,16 +679,15 @@ class AssociacoesViewSet(ModelViewSet):
     @action(detail=True, url_path='processos', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def processos_da_associacao(self, request, uuid=None):
-        recurso_uuid = request.query_params.get('recurso_uuid')
         associacao = self.get_object()
         processos = associacao.processos.all()
+        recurso_legado = Recurso.objects.filter(legado=True).first()
 
-        # Filtragem por recurso se flag estiver ativa
-        if recurso_uuid and flag_is_active(self.request, "premio-excelencia-processo-sei"):
-            processos = processos.filter(recurso__uuid=recurso_uuid)
+        if flag_is_active(self.request, "premio-excelencia-processo-sei"):
+            recurso = getattr(self.request, 'recurso', None) or recurso_legado
+            processos = processos.filter(recurso=recurso)
         else:
-            recurso_legado = Recurso.objects.filter(legado=True).first()
-            processos = processos.filter(recurso__uuid=recurso_legado.uuid)
+            processos = processos.filter(recurso=recurso_legado)
 
         return Response(ProcessoAssociacaoRetrieveSerializer(processos, many=True).data)
 

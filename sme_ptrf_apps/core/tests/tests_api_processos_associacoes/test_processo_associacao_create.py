@@ -188,3 +188,29 @@ def test_create_processo_associacao_com_mesmo_numero_processo_para_outro_ano_na_
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         result = json.loads(response.content)
         assert result == {'numero_processo': ['Este número de processo já está sendo usado.']}
+
+
+def test_create_processo_associacao_sem_recurso_usa_recurso_do_header(
+    jwt_authenticated_client_a,
+    periodos_de_2019_ate_2023,
+    associacao_factory,
+):
+    periodo = Periodo.objects.get(referencia='2019.1')
+    associacao = associacao_factory.create()
+    recurso_legado = Recurso.objects.get(legado=True)
+
+    payload = {
+        'associacao': str(associacao.uuid),
+        'numero_processo': "6016.2026/0099999-9",
+        'ano': '2019',
+        'periodos': [str(periodo.uuid)],
+    }
+
+    with override_flag('periodos-processo-sei', active=True):
+        response = jwt_authenticated_client_a.post(
+            '/api/processos-associacao/', data=json.dumps(payload), content_type='application/json')
+
+        assert response.status_code == status.HTTP_201_CREATED
+        result = json.loads(response.content)
+        processo = ProcessoAssociacao.objects.get(uuid=result['uuid'])
+        assert processo.recurso == recurso_legado
