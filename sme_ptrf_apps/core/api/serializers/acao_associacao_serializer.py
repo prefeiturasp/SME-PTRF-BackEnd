@@ -85,6 +85,31 @@ class AcaoAssociacaoCreateSerializer(serializers.ModelSerializer):
                 raise error
         return data
 
+    def update(self, instance, validated_data):
+        # Verificar se houve mudanças nos dados (ignorando o campo 'status')
+        dados_para_comparacao = {
+            key: value
+            for key, value in validated_data.items() 
+            if key != 'status'
+        }
+
+        tem_mudancas = any(
+            getattr(instance, key) != value 
+            for key, value in dados_para_comparacao.items()
+        )
+
+        # Se não há mudanças, apenas salvar sem validação
+        if not tem_mudancas:
+            return super().update(instance, validated_data)
+
+        # Se há mudanças, aplicar validação
+        is_valid, error_message = AcaoAssociacao.is_valid_data(instance.uuid)
+
+        if not is_valid:
+            raise serializers.ValidationError({'non_field_errors': error_message})
+
+        return super().update(instance, validated_data)
+
 
 class AcaoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
     associacao = AssociacaoListSerializer()
