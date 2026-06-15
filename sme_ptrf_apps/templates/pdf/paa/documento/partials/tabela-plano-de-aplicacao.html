@@ -26,7 +26,14 @@
             <tbody class="nao-quebra-linha">
               {% for prioridade in grupo.items %}
                 <tr>
-                  <td>{{ prioridade.recurso }}</td>
+                  <td>
+                    <div>
+                      <div>{{ prioridade.recurso }}</div>
+                      {% if prioridade.retificado %}
+                        <div class="tag-retificacao">{{ dados.etiqueta_retificacao }}</div>
+                      {% endif %}
+                    </div>
+                  </td>
                   <td>{{ prioridade.tipo_aplicacao }}</td>
                   <td>{{ prioridade.tipo_despesa_custeio }}</td>
                   <td>{{ prioridade.especificacao_material }}</td>

@@ -187,7 +187,8 @@ def test_paas_afetados_gerado_retificado(base_service, periodo_paa_1, ata_paa_fa
     )
     ata_paa_factory.create(
         paa=paa_retificacao,
-        status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO,
+        tipo_ata=AtaPaa.ATA_RETIFICACAO,
     )
     documento_paa_factory.create(
         paa=paa_retificacao,
@@ -225,7 +226,8 @@ def test_paa_em_elaboracao_false(
 
     ata_paa_factory.create(
         paa=paa,
-        status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO,
+        tipo_ata=AtaPaa.ATA_RETIFICACAO,
     )
     documento_paa_factory.create(
         paa=paa,
@@ -294,7 +296,8 @@ def test_paa_gerado_retificacao_true(
     )
     ata_paa_factory.create(
         paa=paa,
-        status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO,
+        tipo_ata=AtaPaa.ATA_RETIFICACAO,
     )
     replica_paa_factory.create(paa=paa)
     assert base_service._paa_gerado_retificado(paa) is True

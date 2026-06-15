@@ -69,7 +69,7 @@ class TestGerarArquivoDocumentoPaaPdf:
         usuario = 'usuario_teste'
         gerar_arquivo_documento_paa_pdf(paa, documento_paa_sem_pdf, usuario, previa=False)
 
-        mock_gerar_dados.assert_called_once_with(paa, usuario, False)
+        mock_gerar_dados.assert_called_once_with(paa, usuario, False, alteracoes=None)
 
     def test_chama_gerar_dados_documento_paa_com_previa(
         self,
@@ -84,7 +84,25 @@ class TestGerarArquivoDocumentoPaaPdf:
         usuario = 'usuario_teste'
         gerar_arquivo_documento_paa_pdf(paa, documento_paa_sem_pdf, usuario, previa=True)
 
-        mock_gerar_dados.assert_called_once_with(paa, usuario, True)
+        mock_gerar_dados.assert_called_once_with(paa, usuario, True, alteracoes=None)
+
+    def test_chama_gerar_dados_documento_paa_com_alteracoes(
+        self,
+        paa,
+        documento_paa_sem_pdf,
+        mock_gerar_dados,
+        mock_get_template,
+        mock_html_class,
+        mock_css_class,
+        mock_staticfiles_storage,
+    ):
+        usuario = 'usuario_teste'
+        alteracoes = {'prioridades': {'uuid-1': {'acao': 'modificado'}}}
+
+        gerar_arquivo_documento_paa_pdf(paa, documento_paa_sem_pdf, usuario,
+                                        previa=False, alteracoes=alteracoes)
+
+        mock_gerar_dados.assert_called_once_with(paa, usuario, False, alteracoes=alteracoes)
 
     def test_renderiza_template_correto(
         self,

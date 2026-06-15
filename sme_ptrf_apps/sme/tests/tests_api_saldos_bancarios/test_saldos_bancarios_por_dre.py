@@ -9,7 +9,11 @@ from sme_ptrf_apps.core.models.solicitacao_encerramento_conta_associacao import 
 pytestmark = pytest.mark.django_db
 
 
-def test_saldo_bancario_por_dre(jwt_authenticated_client_sme, periodo_factory, associacao_factory, observacao_conciliacao_factory, conta_associacao_factory):
+def test_saldo_bancario_por_dre(jwt_authenticated_client_sme,
+                                periodo_factory,
+                                associacao_factory,
+                                observacao_conciliacao_factory,
+                                conta_associacao_factory):
 
     periodo_anterior_saldos_bancarios = periodo_factory.create(
         referencia="2019.1",
@@ -28,14 +32,18 @@ def test_saldo_bancario_por_dre(jwt_authenticated_client_sme, periodo_factory, a
     conta_associacao = conta_associacao_factory.create(associacao=associacao, data_inicio=date(2019, 2, 20))
 
     observacao = observacao_conciliacao_factory.create(
-        data_extrato=None, saldo_extrato=1000, periodo=periodo_saldos_bancarios, associacao=associacao, conta_associacao=conta_associacao)
+        data_extrato=None,
+        saldo_extrato=1000,
+        periodo=periodo_saldos_bancarios,
+        associacao=associacao,
+        conta_associacao=conta_associacao)
 
     tipo_conta_saldos_bancarios = observacao.conta_associacao.tipo_conta
 
     dre_saldos_bancarios = observacao.associacao.unidade.dre
 
     response = jwt_authenticated_client_sme.get(
-        f'/api/saldos-bancarios-sme/saldo-por-dre/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}',
+        f'/api/saldos-bancarios-sme/saldo-por-dre/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}',  # noqa
         content_type='application/json')
 
     result = json.loads(response.content)
@@ -71,14 +79,18 @@ def test_saldo_bancario_por_dre_com_conta_nao_iniciada(jwt_authenticated_client_
     conta_associacao_nao_iniciada = conta_associacao_factory.create(associacao=associacao, data_inicio=None)
 
     observacao = observacao_conciliacao_factory.create(
-        data_extrato=None, saldo_extrato=1000, periodo=periodo_saldos_bancarios, associacao=associacao, conta_associacao=conta_associacao_nao_iniciada)
+        data_extrato=None,
+        saldo_extrato=1000,
+        periodo=periodo_saldos_bancarios,
+        associacao=associacao,
+        conta_associacao=conta_associacao_nao_iniciada)
 
     tipo_conta_saldos_bancarios = observacao.conta_associacao.tipo_conta
 
     dre_saldos_bancarios = observacao.associacao.unidade.dre
 
     response = jwt_authenticated_client_sme.get(
-        f'/api/saldos-bancarios-sme/saldo-por-dre/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}',
+        f'/api/saldos-bancarios-sme/saldo-por-dre/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}',  # noqa
         content_type='application/json')
 
     result = json.loads(response.content)
@@ -113,21 +125,27 @@ def test_saldo_bancario_por_dre_com_conta_encerrada(jwt_authenticated_client_sme
 
     conta_associacao_encerrada = conta_associacao_factory.create(associacao=associacao, data_inicio=date(2019, 2, 20))
 
-    solicitacao_encerramento_conta_associacao = solicitacao_encerramento_conta_associacao_factory.create(
-        conta_associacao=conta_associacao_encerrada, status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA, data_de_encerramento_na_agencia=date(2019, 5, 1))
+    solicitacao_encerramento_conta_associacao_factory.create(
+        conta_associacao=conta_associacao_encerrada,
+        status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA,
+        data_de_encerramento_na_agencia=date(2019, 5, 1))
 
     observacao = observacao_conciliacao_factory.create(
-        data_extrato=None, saldo_extrato=1000, periodo=periodo_saldos_bancarios, associacao=associacao, conta_associacao=conta_associacao_encerrada)
+        data_extrato=None,
+        saldo_extrato=1000,
+        periodo=periodo_saldos_bancarios,
+        associacao=associacao,
+        conta_associacao=conta_associacao_encerrada)
 
     tipo_conta_saldos_bancarios = observacao.conta_associacao.tipo_conta
 
     dre_saldos_bancarios = observacao.associacao.unidade.dre
 
     response = jwt_authenticated_client_sme.get(
-        f'/api/saldos-bancarios-sme/saldo-por-dre/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}',
+        f'/api/saldos-bancarios-sme/saldo-por-dre/?periodo={periodo_saldos_bancarios.uuid}&conta={tipo_conta_saldos_bancarios.uuid}',  # noqa
         content_type='application/json')
 
-    result = json.loads(response.content)
+    result = response.json()
 
     assert result[0]["nome_dre"] == dre_saldos_bancarios.nome.replace("DIRETORIA REGIONAL DE EDUCACAO", "").strip()
     assert result[0]["qtde_dre_informadas"] == 1

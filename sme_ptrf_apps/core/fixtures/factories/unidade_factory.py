@@ -2,7 +2,8 @@ from factory import SubFactory, Sequence
 from factory.django import DjangoModelFactory
 from faker import Faker
 from sme_ptrf_apps.core.models.unidade import Unidade
-from ..providers.unidade_provider import provider_tipos_de_unidades_desconsiderando_tipo_dre, provider_anos_dre_designacao_ano
+from ..providers.unidade_provider import (
+    provider_tipos_de_unidades_desconsiderando_tipo_dre, provider_anos_dre_designacao_ano)
 import random
 
 fake = Faker("pt_BR")
@@ -17,7 +18,7 @@ class DreFactory(DjangoModelFactory):
     nome = Sequence(lambda n: f"DIRETORIA REGIONAL DE EDUCACAO {fake.unique.name().upper()}")
     tipo_unidade = "DRE"
     codigo_eol = Sequence(lambda n: str(fake.unique.random_int(min=100000, max=999999)))
-    sigla = Sequence(lambda n: f"S{n}")
+    sigla = Sequence(lambda n: f"S{n % 999:03d}")  # campo só permite 4 caracters
     dre_cnpj = Sequence(lambda n: fake.unique.cnpj())
     dre_diretor_regional_rf = Sequence(lambda n: str(fake.unique.random_int(min=1000000, max=9999999)))
     dre_diretor_regional_nome = Sequence(lambda n: fake.unique.name().upper())

@@ -5,6 +5,8 @@ from sme_ptrf_apps.paa.services.documento_paa_pdf_service import gerar_arquivo_d
 from sme_ptrf_apps.logging.loggers import ContextualLogger
 from sme_ptrf_apps.paa.models.paa import Paa
 from sme_ptrf_apps.paa.services.documento_paa_service import DocumentoPaaService
+from sme_ptrf_apps.paa.services.retificacao_paa_service import RetificacaoPaaService
+
 MAX_RETRIES = 3
 
 
@@ -18,16 +20,15 @@ MAX_RETRIES = 3
     time_limit=600,
     soft_time_limit=300
 )
-def gerar_previa_documento_paa_async(self, paa_uuid, username="") -> None:
+def gerar_previa_documento_paa_retificacao_async(self, paa_uuid, username=""):
     logger = ContextualLogger.get_logger(
         __name__,
-        operacao='Plano Anual de Atividades',
+        operacao='Retificação - Plano Anual de Atividades',
         username=username
     )
-
     tentativa = current_task.request.retries + 1
 
-    logger.info(f'Iniciando task gerar_previa_documento_paa_async, tentativa {tentativa}.')
+    logger.info(f'Iniciando task gerar_previa_documento_paa_retificacao_async, tentativa {tentativa}.')
 
     try:
         paa = Paa.objects.get(uuid=paa_uuid)
@@ -45,37 +46,36 @@ def gerar_previa_documento_paa_async(self, paa_uuid, username="") -> None:
     ])
     logger.update_context(operacao_id=partes_operation_id)
 
-    service = DocumentoPaaService(paa=paa, usuario=username, previa=True, logger=logger)
+    service = DocumentoPaaService(paa=paa, usuario=username, previa=True, logger=logger, retificacao=True)
 
     try:
         service.preparar_documento_para_task()
 
+        alteracoes = RetificacaoPaaService(paa=paa, usuario=usuario).identificar_alteracoes()
+        if not alteracoes:
+            raise ValueError('Nenhuma alteração encontrada para gerar prévia de retificação.')
+
         documento_paa = service.documento_paa
 
-        gerar_arquivo_documento_paa_pdf(paa, service.documento_paa, usuario, previa=True)
+        gerar_arquivo_documento_paa_pdf(paa, documento_paa, usuario, previa=True, alteracoes=alteracoes)
 
         service.marcar_concluido()
 
-        logger.info(f'Documento PAA arquivo {documento_paa.uuid}.')
-
-        logger.info('Task gerar_previa_documento_paa_async finalizada.')
+        logger.info(f'Prévia de retificação gerada: {documento_paa.uuid}.')
+        logger.info('Task gerar_previa_documento_paa_retificacao_async finalizada.')
     except Exception as exc:
-        service.marcar_erro()
+        if service.documento_paa:
+            service.marcar_erro()
 
         logger.error(
-            f'A tentativa {tentativa} de gerar o documento PAA falhou.',
+            f'A tentativa {tentativa} de gerar a prévia de retificação falhou.',
             exc_info=True,
             stack_info=True
         )
 
         if tentativa > MAX_RETRIES:
-            mensagem_tentativas_excedidas = 'Tentativas de reprocessamento com falha excedidas para o documento PAA.'
-            logger.error(
-                mensagem_tentativas_excedidas,
-                exc_info=True,
-                stack_info=True
-            )
-
-            raise MaxRetriesExceededError(mensagem_tentativas_excedidas)
+            mensagem = 'Tentativas de reprocessamento com falha excedidas para a prévia de retificação.'
+            logger.error(mensagem, exc_info=True, stack_info=True)
+            raise MaxRetriesExceededError(mensagem)
         else:
             raise exc

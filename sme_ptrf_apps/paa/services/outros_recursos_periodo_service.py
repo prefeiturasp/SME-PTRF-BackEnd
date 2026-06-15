@@ -1,7 +1,7 @@
 import logging
 from django.db import models
 from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa, Paa, ReceitaPrevistaOutroRecursoPeriodo
-from sme_ptrf_apps.paa.enums import PaaStatusEnum, PaaStatusAndamentoEnum
+from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
 
 logger = logging.getLogger(__name__)
 
@@ -85,7 +85,7 @@ class OutroRecursoPeriodoBaseService:
         Returns:
             True se estiver em retificação
         """
-        em_retificacao = paa.status == PaaStatusEnum.EM_RETIFICACAO.name
+        em_retificacao = paa.status_em_retificacao
         return em_retificacao
 
     def _paa_gerado(self, paa: Paa) -> bool:
