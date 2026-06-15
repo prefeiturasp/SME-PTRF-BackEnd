@@ -16,7 +16,7 @@ from rest_framework.decorators import action
 from sme_ptrf_apps.core.api.serializers import (
     AcaoAssociacaoCreateSerializer, AcaoAssociacaoRetrieveSerializer, AcaoAssociacaoListaSimplesSerializer)
 from sme_ptrf_apps.core.choices.filtro_informacoes_associacao import FiltroInformacoesAssociacao
-from sme_ptrf_apps.core.models import AcaoAssociacao, Acao, Associacao
+from sme_ptrf_apps.core.models import AcaoAssociacao, Acao, Associacao, Recurso
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
     PermissaoAPITodosComGravacao,
@@ -45,7 +45,16 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
     pagination_class = AcaoAssociacaoPagination
 
     def get_queryset(self):
-        qs = AcaoAssociacao.objects.filter(acao__recurso=self.request.recurso)
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+    
+        if recurso_uuid:
+            try:
+                recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
+                qs = AcaoAssociacao.objects.filter(acao__recurso=recurso)
+            except Recurso.DoesNotExist:
+                return Response({'detail': 'Recurso não encontrado.'}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            qs = AcaoAssociacao.objects.filter(acao__recurso=self.request.recurso)
 
         nome = self.request.query_params.get('nome')
         filtro_informacoes = self.request.query_params.get('filtro_informacoes')
