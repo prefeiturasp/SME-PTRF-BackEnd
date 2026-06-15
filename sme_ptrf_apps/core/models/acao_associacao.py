@@ -81,6 +81,33 @@ class AcaoAssociacao(ModeloBase):
         return erros
 
     @classmethod
+    def is_valid_data(cls, instance_uuid):
+        try:
+            obj = cls.objects.get(uuid=instance_uuid)
+        except cls.DoesNotExist:
+            return False, 'Objeto não encontrado.'
+        except Exception:
+            return False, 'Ocorreu um erro ao validar os dados.'
+
+        # Lista de relacionamentos a serem verificados que impedem a exclusão
+        campos_vinculados = [
+            'valores_reprogramados_da_acao',
+            'receita_prevista_paa_da_associacao',
+            'prioridade_paa_da_associacao',
+            'rateios_da_associacao',
+            'repasses_da_associacao',
+            'receitas_da_associacao',
+            'fechamentos_da_acao',
+        ]
+
+        # Verificar se algum campo possui dados vinculados
+        for campo in campos_vinculados:
+            if hasattr(obj, campo) and getattr(obj, campo).exists():
+                return False, 'Essa operação não pode ser realizada. Há dados vinculados a essa ação da referida Associação.'
+
+        return True, ''
+
+    @classmethod
     def incluir_em_lote(cls, acao, associacoes):
         erros = []
         for associacao in associacoes:

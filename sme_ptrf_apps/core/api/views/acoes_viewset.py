@@ -13,7 +13,7 @@ from rest_framework.response import Response
 from sme_ptrf_apps.core.choices.filtro_informacoes_associacao import FiltroInformacoesAssociacao
 
 from ..serializers.acao_serializer import AcaoSerializer
-from ...models import Acao
+from ...models import Acao, Recurso
 from ...services import associacoes_nao_vinculadas_a_acao
 from ..serializers.associacao_serializer import AssociacaoListSerializer
 
@@ -33,8 +33,17 @@ class AcoesViewSet(mixins.ListModelMixin,
         qs = Acao.objects.all()
 
         nome = self.request.query_params.get('nome')
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+
         if nome is not None:
             qs = qs.filter(nome__unaccent__icontains=nome)
+
+        if recurso_uuid is not None:
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
+            try:
+                qs = qs.filter(recurso=recurso)
+            except Recurso.DoesNotExist:
+                return Response({'detail': 'Recurso não encontrado.'}, status=status.HTTP_400_BAD_REQUEST)
 
         return qs.order_by('nome')
 
