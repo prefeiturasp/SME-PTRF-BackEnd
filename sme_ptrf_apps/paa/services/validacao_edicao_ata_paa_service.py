@@ -1,4 +1,3 @@
-from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.models import AtaPaa
 
 
@@ -15,7 +14,7 @@ def validar_edicao_ata_paa(ata_paa: AtaPaa) -> dict:
     """
     paa = ata_paa.paa
 
-    if paa.status == PaaStatusEnum.EM_RETIFICACAO.name:
+    if paa.status_em_retificacao:
         if ata_paa.tipo_ata != AtaPaa.ATA_RETIFICACAO:
             return {
                 'is_valid': False,
@@ -26,7 +25,7 @@ def validar_edicao_ata_paa(ata_paa: AtaPaa) -> dict:
             }
         return {'is_valid': True}
 
-    if paa.status == PaaStatusEnum.GERADO.name and ata_paa.documento_gerado:
+    if paa.status_gerado and ata_paa.documento_gerado:
         if ata_paa.tipo_ata == AtaPaa.ATA_APRESENTACAO:
             mensagem = (
                 'O Plano Anual já foi concluído e a ata de apresentação já foi gerada. '

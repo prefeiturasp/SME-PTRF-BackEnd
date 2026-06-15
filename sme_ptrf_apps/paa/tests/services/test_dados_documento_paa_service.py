@@ -67,9 +67,9 @@ def test_gerar_dados_documento_paa(
     mock_cabecalho.assert_called_once_with(paa.periodo_paa)
     mock_identificacao.assert_called_once_with(paa)
     mock_data.assert_called_once_with(usuario, True)
-    mock_grupos.assert_called_once_with(paa)
-    mock_atividades.assert_called_once_with(paa)
-    mock_recursos.assert_called_once_with(paa, None)
+    mock_grupos.assert_called_once_with(paa, alteracoes=None)
+    mock_atividades.assert_called_once_with(paa, alteracoes=None)
+    mock_recursos.assert_called_once_with(paa, None, alteracoes=None)
     mock_presidente.assert_called_once_with(paa.associacao)
 
     assert result["cabecalho"] == "CAB"
@@ -85,6 +85,10 @@ def test_gerar_dados_documento_paa(
     assert result["texto_pos_conclusao"] == "POS_CONC"
     assert result["presidente_diretoria_executiva"] == "PRES"
     assert result["previa"] is True
+    assert result["etiqueta_retificacao"] == "Em retificação"
+    assert result["retificado_introducao"] is False
+    assert result["retificado_conclusao"] is False
+    assert result["retificado_objetivos"] is False
 
 
 @pytest.mark.django_db
@@ -519,3 +523,89 @@ def test_criar_recursos_proprios_sem_outros_recursos_usa_fallback(
     assert resultado["total_receitas"] == Decimal("300")
     assert resultado["total_despesas"] == Decimal("120")
     assert resultado["total_saldo"] == Decimal("180")
+
+
+@pytest.mark.django_db
+def test_criar_grupos_prioridades_marca_retificado_quando_uuid_em_alteracoes(
+    paa, prioridade_paa_factory
+):
+    prioridade = prioridade_paa_factory(paa=paa, prioridade=True, recurso="PTRF", valor_total=100)
+    alteracoes = {'prioridades': {str(prioridade.uuid): {'acao': 'modificado'}}}
+
+    grupos = criar_grupos_prioridades(paa, alteracoes=alteracoes)
+
+    grupo_ptrf = next(g for g in grupos if g["titulo"] == "Prioridades PTRF")
+    assert grupo_ptrf["items"][0]["retificado"] is True
+
+
+@pytest.mark.django_db
+def test_criar_grupos_prioridades_nao_marca_retificado_quando_uuid_ausente(
+    paa, prioridade_paa_factory
+):
+    prioridade_paa_factory(paa=paa, prioridade=True, recurso="PTRF", valor_total=100)
+    alteracoes = {'prioridades': {}}
+
+    grupos = criar_grupos_prioridades(paa, alteracoes=alteracoes)
+
+    grupo_ptrf = next(g for g in grupos if g["titulo"] == "Prioridades PTRF")
+    assert grupo_ptrf["items"][0]["retificado"] is False
+
+
+@pytest.mark.django_db
+def test_criar_grupos_prioridades_retificado_false_sem_alteracoes(paa, prioridade_paa_factory):
+    prioridade_paa_factory(paa=paa, prioridade=True, recurso="PTRF", valor_total=100)
+
+    grupos = criar_grupos_prioridades(paa, alteracoes=None)
+
+    grupo_ptrf = next(g for g in grupos if g["titulo"] == "Prioridades PTRF")
+    assert grupo_ptrf["items"][0]["retificado"] is False
+
+
+@pytest.mark.django_db
+class TestCriarAtividadesEstatutariasRetificacao:
+    def test_marca_retificado_quando_uuid_em_alteracoes_globais(self, paa):
+        atividade = baker.make(
+            "AtividadeEstatutaria", nome="Assembleia", tipo="TIPO_A", mes=3
+        )
+        baker.make("AtividadeEstatutariaPaa", paa=paa, atividade_estatutaria=atividade,
+                   data=date(2025, 3, 10))
+        alteracoes = {'atividades_estatutarias_globais': {str(atividade.uuid): {'acao': 'modificado'}}}
+
+        resultado = criar_atividades_estatutarias(paa, alteracoes=alteracoes)
+
+        assert len(resultado) == 1
+        assert resultado[0]["retificado"] is True
+
+    def test_marca_retificado_quando_uuid_em_alteracoes_paa(self, paa):
+        atividade = baker.make(
+            "AtividadeEstatutaria", nome="Reunião", tipo="TIPO_A", mes=5, paa=paa
+        )
+        baker.make("AtividadeEstatutariaPaa", paa=paa, atividade_estatutaria=atividade,
+                   data=date(2025, 5, 10))
+        alteracoes = {'atividades_estatutarias_paa': {str(atividade.uuid): {'acao': 'adicionado'}}}
+
+        resultado = criar_atividades_estatutarias(paa, alteracoes=alteracoes)
+
+        assert any(item["retificado"] is True for item in resultado)
+
+    def test_nao_marca_retificado_sem_alteracoes(self, paa):
+        atividade = baker.make(
+            "AtividadeEstatutaria", nome="Assembleia", tipo="TIPO_A", mes=3
+        )
+        baker.make("AtividadeEstatutariaPaa", paa=paa, atividade_estatutaria=atividade,
+                   data=date(2025, 3, 10))
+
+        resultado = criar_atividades_estatutarias(paa, alteracoes=None)
+
+        assert all(item["retificado"] is False for item in resultado)
+
+    def test_item_estrutura_contem_campo_retificado(self, paa):
+        atividade = baker.make(
+            "AtividadeEstatutaria", nome="Assembleia", tipo="TIPO_A", mes=3
+        )
+        baker.make("AtividadeEstatutariaPaa", paa=paa, atividade_estatutaria=atividade,
+                   data=date(2025, 3, 10))
+
+        resultado = criar_atividades_estatutarias(paa)
+
+        assert "retificado" in resultado[0]

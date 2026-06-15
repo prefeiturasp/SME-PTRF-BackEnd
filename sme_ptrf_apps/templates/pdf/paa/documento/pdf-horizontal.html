@@ -92,7 +92,12 @@
 
   <section class="section-bloco">
     <article id="bloco-2" class="col mb-3 border p-0">
-      <p class="font-14 pt-1 pb-1 pl-2 border-bottom"><strong>Bloco 2 - Introdução</strong></p>
+      <p class="font-14 pt-1 pb-1 pl-2 border-bottom">
+        <strong>Bloco 2 - Introdução</strong>
+        {% if dados.retificado_introducao %}
+          <span class="tag-retificacao">{{ dados.etiqueta_retificacao }}</span>
+        {% endif %}
+      </p>
       <div class="col-12">
         <p class="pb-2 mb-0">{{ dados.texto_pre_introducao|safe  }}</p>
         <p class="pb-2 mb-0">{{ dados.texto_introducao|safe  }}</p>
@@ -102,7 +107,12 @@
 
   <section class="section-bloco">
     <article id="bloco-3" class="col mb-3 border p-0">
-      <p class="font-14 pt-1 pb-1 pl-2 border-bottom"><strong>Bloco 3 - Objetivos</strong></p>
+      <p class="font-14 pt-1 pb-1 pl-2 border-bottom">
+        <strong>Bloco 3 - Objetivos</strong>
+        {% if dados.retificado_objetivos %}
+          <span class="tag-retificacao">{{ dados.etiqueta_retificacao }}</span>
+        {% endif %}
+      </p>
       <div class="col-12">
         <p class="pb-2 mb-0">Os objetivos desse plano são:</p>
         <ul>
@@ -122,7 +132,12 @@
 
   <section class="section-bloco">
     <article id="bloco-7" class="col mb-3 border p-0">
-      <p class="font-14 pt-1 pb-1 pl-2 border-bottom"><strong>Bloco 7 - Conclusão</strong></p>
+      <p class="font-14 pt-1 pb-1 pl-2 border-bottom">
+        <strong>Bloco 7 - Conclusão</strong>
+        {% if dados.retificado_conclusao %}
+          <span class="tag-retificacao">{{ dados.etiqueta_retificacao }}</span>
+        {% endif %}
+      </p>
       <div class="col-12">
         <p class="pb-2 mb-0">{{ dados.texto_conclusao|safe  }}</p>
         <p class="pb-2 mb-0">{{ dados.texto_pos_conclusao|safe  }}</p>

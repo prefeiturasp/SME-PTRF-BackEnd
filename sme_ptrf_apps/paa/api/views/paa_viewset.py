@@ -36,9 +36,13 @@ from sme_ptrf_apps.paa.services.paa_service import PaaService, ImportacaoConfirm
 from sme_ptrf_apps.paa.services.receitas_previstas_paa_service import SaldosPorAcaoPaaService
 from sme_ptrf_apps.paa.services.resumo_prioridades_service import ResumoPrioridadesService
 from sme_ptrf_apps.paa.services.acoes_paa_service import AcoesReceitasPrevistasPaaService
+from sme_ptrf_apps.paa.services.valida_geracao_documentos_service import (
+    ValidaGeracaoDocumentoPAAService)
 
 from sme_ptrf_apps.paa.tasks.gerar_documento_paa import gerar_documento_paa_async
 from sme_ptrf_apps.paa.tasks.gerar_previa_documento_paa import gerar_previa_documento_paa_async
+from sme_ptrf_apps.paa.tasks.gerar_documento_paa_retificacao import gerar_documento_paa_retificacao_async
+from sme_ptrf_apps.paa.tasks.gerar_previa_documento_paa_retificacao import gerar_previa_documento_paa_retificacao_async
 from sme_ptrf_apps.paa.services.retificacao_paa_service import (
     RetificacaoPaaService,
     ValidacaoRetificacao,
@@ -397,8 +401,16 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
     def gerar_documento(self, request, uuid=None):
         paa = self.get_object()
         usuario = request.user
-        service = PaaService()
 
+        valida_pode_gerar = ValidaGeracaoDocumentoPAAService()
+        try:
+            valida_pode_gerar.valida_gerar_documento_final(paa)
+        except Exception as e:
+            return Response(
+                {"mensagem": str(e), "error": "valida_gerar_documento_final"},
+                status=status.HTTP_400_BAD_REQUEST)
+
+        service = PaaService()
         errors = service.pode_gerar_documento_final(paa)
 
         if errors:
@@ -425,22 +437,11 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         paa = self.get_object()
         usuario = request.user
 
-        if paa.documento_final:
-            return Response(
-                {"mensagem": "O documento final já foi gerado e não é mais possível gerar prévias."},
-                status=400)
-
-        documento_previa = paa.documento_previa
-        if documento_previa and documento_previa.status_geracao == DocumentoPaa.StatusChoices.EM_PROCESSAMENTO:
-            return Response(
-                {
-                    "mensagem": (
-                        "A prévia do documento já está sendo gerada. "
-                        "Aguarde a conclusão para solicitar uma nova prévia."
-                    )
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        valida_pode_gerar = ValidaGeracaoDocumentoPAAService()
+        try:
+            valida_pode_gerar.valida_gerar_documento_previa(paa)
+        except Exception as e:
+            return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         logger = ContextualLogger.get_logger(
             __name__,
@@ -458,6 +459,69 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             status=200
         )
 
+    @action(detail=True, methods=["post"], url_path="gerar-previa-retificacao",
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def gerar_previa_retificacao(self, request, uuid=None):
+        paa = self.get_object()
+        usuario = request.user
+
+        valida_pode_gerar = ValidaGeracaoDocumentoPAAService()
+        try:
+            valida_pode_gerar.valida_gerar_documento_previa_retificacao(paa, usuario)
+        except Exception as e:
+            return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        logger = ContextualLogger.get_logger(
+            __name__,
+            operacao='Retificação - Plano Anual de Atividades',
+            username=usuario.username,
+        )
+        DocumentoPaaService(paa=paa, usuario=usuario, previa=True, logger=logger, retificacao=True).iniciar()
+
+        gerar_previa_documento_paa_retificacao_async.apply_async(
+            args=[str(paa.uuid), usuario.username]
+        )
+
+        return Response({"mensagem": "Geração de prévia de retificação iniciada"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["post"], url_path="gerar-documento-retificacao",
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def gerar_documento_retificacao(self, request, uuid=None):
+        paa = self.get_object()
+        usuario = request.user
+
+        valida_pode_gerar = ValidaGeracaoDocumentoPAAService()
+        try:
+            valida_pode_gerar.valida_gerar_documento_final_retificacao(paa, usuario)
+        except Exception as e:
+            return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        service = PaaService()
+        errors = service.pode_gerar_documento_final(paa)
+
+        if errors:
+            return Response(
+                {"mensagem": "\n".join(errors)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        confirmar = bool(int(self.request.data.get('confirmar', 0)))
+        if not confirmar:
+            return Response({"confirmar": "Geração não foi confirmada"}, status=status.HTTP_400_BAD_REQUEST)
+
+        logger = ContextualLogger.get_logger(
+            __name__,
+            operacao='Retificação - Plano Anual de Atividades',
+            username=usuario.username,
+        )
+        DocumentoPaaService(paa=paa, usuario=usuario, previa=False, logger=logger, retificacao=True).iniciar()
+
+        gerar_documento_paa_retificacao_async.apply_async(
+            args=[str(paa.uuid), usuario.username]
+        )
+
+        return Response({"mensagem": "Geração de documento de retificação iniciada"}, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['get'], url_path='documento-final',
             permission_classes=[IsAuthenticated])
     def documento_final(self, request, uuid=None):
@@ -473,7 +537,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
         if not documento:
             return Response(
                 {"mensagem": "Documento final não gerado"},
-                status=400
+                status=status.HTTP_404_NOT_FOUND
             )
 
         if not documento.concluido:
@@ -495,44 +559,55 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             permission_classes=[IsAuthenticated])
     def documento_previa(self, request, uuid=None):
         paa = self.get_object()
+        eh_retificacao = request.query_params.get('retificacao', 'false') == 'true'
 
-        if not paa.documento_previa:
+        doc = paa.documentopaa_set.filter(
+            versao=DocumentoPaa.VersaoChoices.PREVIA,
+            retificacao=eh_retificacao,
+        ).first()
+
+        if not doc:
             return Response(
                 {"mensagem": "Documento prévia não gerado"},
-                status=400
-            )
+                status=400)
 
-        if not paa.documento_previa.concluido:
+        if not doc.concluido:
             return Response(
                 {"mensagem": "Documento prévia não concluído"},
-                status=400
-            )
+                status=400)
 
         filename = 'documento_previa_paa.pdf'
-        response = HttpResponse(
-            open(paa.documento_previa.arquivo_pdf.path, 'rb'),
-            content_type='application/pdf'
-        )
-        response['Content-Disposition'] = 'attachment; filename=%s' % filename
+        response = HttpResponse(open(doc.arquivo_pdf.path, 'rb'), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename={filename}'
 
         return response
 
     @action(detail=True, methods=['get'], url_path='status-geracao',
             permission_classes=[IsAuthenticated])
-    def satus_geracao(self, request, uuid=None):
+    def status_geracao(self, request, uuid=None):
         paa = self.get_object()
 
         if paa.documento_previa:
+            doc = paa.documento_previa
             return Response(
-                {"mensagem": paa.documento_previa.__str__(), "versao": paa.documento_previa.versao,
-                 "status": paa.documento_previa.status_geracao},
+                {
+                    "mensagem": doc.__str__(),
+                    "versao": doc.versao,
+                    "status": doc.status_geracao,
+                    "retificacao": doc.retificacao,
+                },
                 status=200
             )
 
         if paa.documento_final:
+            doc = paa.documento_final
             return Response(
-                {"mensagem": paa.documento_final.__str__(), "versao": paa.documento_final.versao,
-                 "status": paa.documento_final.status_geracao},
+                {
+                    "mensagem": doc.__str__(),
+                    "versao": doc.versao,
+                    "status": doc.status_geracao,
+                    "retificacao": doc.retificacao,
+                },
                 status=200
             )
 
@@ -578,19 +653,19 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             },
             status=status.HTTP_201_CREATED
         )
-    
+
     @action(detail=True, methods=['post'], url_path='cancelar-retificacao',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def cancelar_retificacao(self, request, uuid=None):
         """
-        Inicia o processo de cancelamento da retificação do PAA.      
+        Inicia o processo de cancelamento da retificação do PAA.
 
         Fluxo:
             1. Faz rollback dos registros para o estado salvo em réplica
             2. Remove documento de prévia de retificação
-            3. Retorna para o STATUS GERADO, salva Log da réplica e deleta ReplicaPaa corrente.        
+            3. Retorna para o STATUS GERADO, salva Log da réplica e deleta ReplicaPaa corrente.
         """
-        paa = self.get_object()       
+        paa = self.get_object()
 
         service = CancelaRetificacaoPaaService(paa=paa, usuario=request.user)
 

@@ -162,10 +162,10 @@ class TestIniciarRetificacao:
             versao=DocumentoPaa.VersaoChoices.FINAL,
             status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
         )
-        assert paa_retificacao.status == PaaStatusEnum.GERADO.name
+        assert paa_retificacao.status_gerado
         _service(paa_retificacao).iniciar_retificacao('Justificativa.')
         paa_retificacao.refresh_from_db()
-        assert paa_retificacao.status == PaaStatusEnum.EM_RETIFICACAO.name
+        assert paa_retificacao.status_em_retificacao
         assert ReplicaPaa.objects.filter(paa=paa_retificacao).exists()
 
     def test_cria_ata_de_retificacao_no_banco(self, paa_factory, flag_paa_retificacao,

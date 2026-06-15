@@ -90,6 +90,7 @@ def _secao_plano_para_documento_receitas(secao):
             "saldo_custeio": s.get("custeio", 0),
             "saldo_capital": s.get("capital", 0),
             "saldo_livre": s.get("livre", 0),
+            "retificado": bool(linha.get("historicos")),
         })
 
     return {
@@ -100,7 +101,7 @@ def _secao_plano_para_documento_receitas(secao):
     }
 
 
-def gerar_dados_documento_paa(paa, usuario, previa=False):
+def gerar_dados_documento_paa(paa, usuario, previa=False, alteracoes=None):
     plano = PlanoOrcamentarioService(paa).construir_plano_orcamentario()
     parametros_paa = ParametroPaa.objects.all().first()
     secoes_por_key = {s["key"]: s for s in plano["secoes"]}
@@ -108,13 +109,25 @@ def gerar_dados_documento_paa(paa, usuario, previa=False):
     cabecalho = cria_cabecalho(paa.periodo_paa)
     identificacao_associacao = criar_identificacao_associacao(paa)
     data_geracao_documento = cria_data_geracao_documento(usuario, previa)
-    grupos_prioridades = criar_grupos_prioridades(paa)
-    atividades_estatutarias = criar_atividades_estatutarias(paa)
-    recursos_proprios = criar_recursos_proprios(paa, secoes_por_key.get("outros_recursos"))
+    grupos_prioridades = criar_grupos_prioridades(paa, alteracoes=alteracoes)
+    atividades_estatutarias = criar_atividades_estatutarias(paa, alteracoes=alteracoes)
+    recursos_proprios = criar_recursos_proprios(paa, secoes_por_key.get("outros_recursos"), alteracoes=alteracoes)
     receitas_previstas = _secao_plano_para_documento_receitas(secoes_por_key.get("ptrf"))
     receitas_previstas_pdde = _secao_plano_para_documento_receitas(secoes_por_key.get("pdde"))
     presidente_diretoria_executiva = cria_presidente_diretoria_executiva(paa.associacao)
 
+    objetivos_alterados = set()
+    if alteracoes:
+        objetivos_alterados.update(alteracoes.get('objetivos_paa', {}).keys())
+        objetivos_alterados.update(alteracoes.get('objetivos_globais', {}).keys())
+
+    retificado_introducao = bool(alteracoes and 'texto_introducao' in alteracoes)
+    retificado_conclusao = bool(alteracoes and 'texto_conclusao' in alteracoes)
+    retificado_objetivos = bool(objetivos_alterados)
+
+    # Exibe data de retificacao apenas se houver alteracoes e a geração não for prévia
+    data_retificacao = datetime.now().strftime("%d/%m/%Y") if alteracoes and not previa else None
+    etiqueta_retificacao = f"Retificado em: {data_retificacao}" if data_retificacao else "Em retificação"
     return {
         "cabecalho": cabecalho,
         "identificacao_associacao": identificacao_associacao,
@@ -130,7 +143,11 @@ def gerar_dados_documento_paa(paa, usuario, previa=False):
         "texto_conclusao": paa.texto_conclusao if paa.texto_conclusao else "",
         "texto_pos_conclusao": parametros_paa.conclusao_do_paa_ue_2 if parametros_paa else "",
         "presidente_diretoria_executiva": presidente_diretoria_executiva,
-        "previa": previa
+        "previa": previa,
+        "etiqueta_retificacao": etiqueta_retificacao,
+        "retificado_introducao": retificado_introducao,
+        "retificado_conclusao": retificado_conclusao,
+        "retificado_objetivos": retificado_objetivos,
     }
 
 
@@ -150,12 +167,14 @@ def cria_presidente_diretoria_executiva(associacao):
     return presidente_diretoria_executiva
 
 
-def criar_recursos_proprios(paa, secao_outros_recursos=None):
+def criar_recursos_proprios(paa, secao_outros_recursos=None, alteracoes=None):
     """
     Monta dados de recursos próprios e outros recursos para o documento PAA.
     Quando secao_outros_recursos é informada (vinda do PlanoOrcamentarioService),
     usa as mesmas regras do plano (saldo, déficit em livre, filtros, etc.).
     """
+    alteracoes_recurso_proprio = (alteracoes or {}).get('receitas_recurso_proprio', {})
+
     recursos = []
     for recurso in paa.recursopropriopaa_set.all():
         recursos.append({
@@ -163,11 +182,12 @@ def criar_recursos_proprios(paa, secao_outros_recursos=None):
             "fonte_recurso": recurso.fonte_recurso.nome,
             "descricao": recurso.descricao,
             "valor": recurso.valor,
+            "retificado": str(recurso.uuid) in alteracoes_recurso_proprio,
         })
 
     if secao_outros_recursos and secao_outros_recursos.get("linhas"):
         linhas = secao_outros_recursos["linhas"]
-        # key_recursos_proprios = RecursoOpcoesEnum.RECURSO_PROPRIO.name
+
         key_total = "outros-recursos-total"
 
         total_recursos_proprios = 0
@@ -237,6 +257,7 @@ def criar_recursos_proprios(paa, secao_outros_recursos=None):
                     "saldo_custeio": s.get("custeio", 0),
                     "saldo_capital": s.get("capital", 0),
                     "saldo_livre": s.get("livre", 0),
+                    "retificado": bool(linha.get("historicos")),
                 })
 
         return {
@@ -272,7 +293,12 @@ def criar_recursos_proprios(paa, secao_outros_recursos=None):
     }
 
 
-def criar_atividades_estatutarias(paa):
+def criar_atividades_estatutarias(paa, alteracoes=None):
+    atividades_alteradas = set()
+    if alteracoes:
+        atividades_alteradas.update(alteracoes.get('atividades_estatutarias_globais', {}).keys())
+        atividades_alteradas.update(alteracoes.get('atividades_estatutarias_paa', {}).keys())
+
     items = []
 
     atividades = AtividadeEstatutaria.disponiveis_ordenadas(paa)
@@ -296,12 +322,14 @@ def criar_atividades_estatutarias(paa):
             "data": atividade_paa.data.strftime("%d/%m/%Y") if atividade_paa else "",
             "atividades_previstas": atividade.nome,
             "mes_ano": mes_ano,
+            "retificado": str(atividade.uuid) in atividades_alteradas,
         })
 
     return items
 
 
-def criar_grupos_prioridades(paa):
+def criar_grupos_prioridades(paa, alteracoes=None):
+    prioridades_alteradas = set(alteracoes.get('prioridades', {}).keys()) if alteracoes else set()
 
     def ordenar_recursos(prioridades):
         def chave(i):
@@ -347,7 +375,8 @@ def criar_grupos_prioridades(paa):
             "tipo_aplicacao": prioridade.get_tipo_aplicacao_display(),
             "tipo_despesa_custeio": prioridade.tipo_despesa_custeio.nome if prioridade.tipo_despesa_custeio else "-",
             "especificacao_material": prioridade.especificacao_material.descricao,
-            "valor_total": prioridade.valor_total
+            "valor_total": prioridade.valor_total,
+            "retificado": str(prioridade.uuid) in prioridades_alteradas,
         })
 
     grupos = [
