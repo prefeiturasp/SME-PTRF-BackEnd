@@ -59,6 +59,21 @@ def format_cnpj(value: str) -> str:
     return f'{cnpj[:2]}.{cnpj[2:5]}.{cnpj[5:8]}/{cnpj[8:12]}-{cnpj[12:14]}'
 
 
+def normalize_cnpj(value: Any) -> str:
+    if value in EMPTY_VALUES:
+        return ''
+    return str(value).upper()
+
+
+def normalize_cpf_cnpj(value: Any) -> str:
+    if value in EMPTY_VALUES:
+        return ''
+    value_str = str(value)
+    if CNPJ_REGEX_COM_MASCARA.match(value_str):
+        return value_str.upper()
+    return value_str
+
+
 def cnpj_validation(value: Any) -> str:
     """
     CNPJ válido no formato XX.XXX.XXX/XXXX-XX (numérico ou alfanumérico).
@@ -67,7 +82,7 @@ def cnpj_validation(value: Any) -> str:
     if value in EMPTY_VALUES:
         return ''
 
-    value = str(value).upper()
+    value = normalize_cnpj(value)
 
     if not CNPJ_REGEX_COM_MASCARA.match(value):
         raise ValidationError("Digite CNPJ no formato XX.XXX.XXX/XXXX-XX.")
