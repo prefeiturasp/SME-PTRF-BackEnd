@@ -194,13 +194,13 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def unidades_nao_vinculadas(self, request, *args, **kwargs):
         from sme_ptrf_apps.core.models.unidade import Unidade
-        from sme_ptrf_apps.receitas.models import TipoReceita
 
         uuid_dre = self.request.query_params.get('dre')
         nome_ou_codigo = self.request.query_params.get('nome_ou_codigo')
         tipo_unidade = self.request.query_params.get('tipo_unidade')
 
         recurso_uuid = self.request.query_params.get('recurso_uuid')
+        recurso = None
 
         instance = self.get_object()
 
@@ -268,12 +268,12 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return Response(resultado, status=status.HTTP_200_OK)
 
         except UnidadeNaoEncontradaException as e:
-            logger.error(str(e), exc_info=True)
+            logger.exception(str(e), exc_info=True)
             return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
         except Exception as e:
             msg_erro = f"Erro inesperado ao desvincular unidade: {unidade_uuid}. {str(e)}"
-            logger.error(msg_erro, exc_info=True)
+            logger.exception(msg_erro, exc_info=True)
             return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
@@ -309,16 +309,16 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return Response(resultado, status=status.HTTP_200_OK)
 
         except UnidadeNaoEncontradaException as e:
-            logger.error(str(e), exc_info=True)
+            logger.exception(str(e), exc_info=True)
             return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
         except ValidacaoVinculoException as e:
-            logger.error(str(e), exc_info=True)
+            logger.exception(str(e), exc_info=True)
             return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             msg_erro = "Erro ao desvincular em lote"
-            logger.error(f'{msg_erro} - {str(e)}', exc_info=True)
+            logger.exception(f'{msg_erro} - {str(e)}', exc_info=True)
             return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/vincular',
@@ -338,7 +338,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         except Exception as e:
             msg_erro = "Erro ao vincular"
-            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            logger.exception(f"{msg_erro} {str(e)}", exc_info=True)
             return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['POST'], url_path='vincular-em-lote',
@@ -359,7 +359,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         except Exception as e:
             msg_erro = "Erro ao vincular"
-            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            logger.exception(f"{msg_erro} {str(e)}", exc_info=True)
             return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
@@ -399,7 +399,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return Response(resultado, status=status.HTTP_200_OK)
         except Exception as e:
             msg_erro = "Erro ao vincular todas as unidades."
-            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            logger.exception(f"{msg_erro} {str(e)}", exc_info=True)
             return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['POST'], url_path='desvincular-todas-unidades',
@@ -413,5 +413,5 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return Response(resultado, status=status.HTTP_200_OK)
         except Exception as e:
             msg_erro = "Erro ao desvincular todas as unidades."
-            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            logger.exception(f"{msg_erro} {str(e)}", exc_info=True)
             return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
