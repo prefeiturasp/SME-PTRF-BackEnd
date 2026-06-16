@@ -5,6 +5,8 @@ from sme_ptrf_apps.core.models.validators import (
     cnpj_validation,
     format_cnpj,
     is_cnpj_valid,
+    normalize_cnpj,
+    normalize_cpf_cnpj,
 )
 from sme_ptrf_apps.despesas.models.validators import cpf_cnpj_validation
 
@@ -51,6 +53,18 @@ def test_format_cnpj_aplica_mascara_e_uppercase() -> None:
     assert format_cnpj('12345678000195') == CNPJ_NUMERICO_VALIDO
 
 
+def test_normalize_cnpj_converte_para_maiusculo() -> None:
+    assert normalize_cnpj('ab.12c.d34/ef56-02') == CNPJ_ALFANUMERICO_VALIDO
+    assert normalize_cnpj('') == ''
+    assert normalize_cnpj(None) == ''
+
+
+def test_normalize_cpf_cnpj_mantem_cpf_e_converte_cnpj() -> None:
+    assert normalize_cpf_cnpj(CPF_VALIDO) == CPF_VALIDO
+    assert normalize_cpf_cnpj('ab.12c.d34/ef56-02') == CNPJ_ALFANUMERICO_VALIDO
+    assert normalize_cpf_cnpj('') == ''
+
+
 def test_cnpj_validation_retorna_valor_em_maiusculo() -> None:
     assert cnpj_validation('ab.12c.d34/ef56-02') == CNPJ_ALFANUMERICO_VALIDO
 
@@ -74,3 +88,10 @@ def test_cpf_cnpj_validation_aceita_cpf_e_cnpj() -> None:
 def test_cpf_cnpj_validation_rejeita_valor_invalido() -> None:
     with pytest.raises(ValidationError):
         cpf_cnpj_validation('valor-invalido')
+
+
+def test_associacao_save_normaliza_cnpj(associacao) -> None:
+    associacao.cnpj = 'ab.12c.d34/ef56-02'
+    associacao.save()
+    associacao.refresh_from_db()
+    assert associacao.cnpj == CNPJ_ALFANUMERICO_VALIDO
