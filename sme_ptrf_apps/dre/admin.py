@@ -24,7 +24,6 @@ from .forms import ComissaoAdminForm
 admin.site.register(ParametroFiqueDeOlhoRelDre)
 admin.site.register(MotivoAprovacaoRessalva)
 admin.site.register(MotivoReprovacao)
-admin.site.register(ParametrosDre)
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +36,11 @@ class ListasVerificacaoInline(admin.TabularInline):
 class ItensVerificacaoInline(admin.TabularInline):
     extra = 1
     model = ItemVerificacaoRegularidade
+
+
+@admin.register(ParametrosDre)
+class ParametrosDreAdmin(admin.ModelAdmin):
+    exclude = ('tipo_conta_um', 'tipo_conta_dois',)
 
 
 @admin.register(Lauda)
