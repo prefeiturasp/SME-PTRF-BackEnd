@@ -19,11 +19,13 @@ class AcoesPaaService:
     - Outros Recursos Período - obter_outros_recursos_periodo() Queryset
     """
 
-    def __init__(self, paa: Paa):
+    def __init__(self, paa: Paa) -> None:
+        """Inicializa o service com a instância do PAA."""
         self.paa = paa
         self.associacao: Associacao = paa.associacao
 
-    def _tem_flag_paa_retificacao(self):
+    def _tem_flag_paa_retificacao(self) -> bool:
+        """Verifica se a flag paa-retificacao está ativa para todos os usuários."""
         flags = get_waffle_flag_model()
         return flags.objects.filter(name='paa-retificacao', everyone=True).exists()
 
@@ -110,10 +112,12 @@ class AcoesReceitasPrevistasPaaService(AcoesPaaService):
         Esta Classe centraliza a lógica de obtenção das Receitas Previstas em
         cada Ação (PTRF, PDDE, Recursos Próprios)
     """
-    def __init__(self, paa: Paa):
+    def __init__(self, paa: Paa) -> None:
+        """Inicializa o service com a instância do PAA."""
         super().__init__(paa)
 
-    def serialized_ptrf_com_receitas_previstas(self):
+    def serialized_ptrf_com_receitas_previstas(self) -> list:
+        """Retorna ações PTRF serializadas com suas receitas previstas vinculadas ao PAA."""
         from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoRetrieveSerializer
         from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
 
@@ -132,7 +136,8 @@ class AcoesReceitasPrevistasPaaService(AcoesPaaService):
                 many=True).data
         return serialized_acoes
 
-    def serialized_pdde_com_receitas_previstas(self, qs=None):
+    def serialized_pdde_com_receitas_previstas(self, qs: QuerySet = None) -> list:
+        """Retorna ações PDDE serializadas com seus valores de receitas previstas."""
         from sme_ptrf_apps.paa.api.serializers.acao_pdde_serializer import (
             AcaoPddeSerializer)
         from sme_ptrf_apps.paa.models import ReceitaPrevistaPdde
@@ -155,7 +160,7 @@ class AcoesReceitasPrevistasPaaService(AcoesPaaService):
 
         return serialized_acoes
 
-    def serialized_outros_recursos_periodo_com_receitas_previstas(self):
+    def serialized_outros_recursos_periodo_com_receitas_previstas(self) -> list:
         """
         Reutiliza o filtro de Outros recursos do Período do PAA, somente, ativos e
         Vinculados e referencia de receitas previstas.
