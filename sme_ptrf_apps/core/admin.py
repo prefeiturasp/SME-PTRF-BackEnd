@@ -298,6 +298,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('uuid', 'id')
     list_display_links = ('nome', 'cnpj')
+    exclude = ('status_valores_reprogramados',)
 
     actions = ['define_status_nao_finalizado_valores_reprogramados', 'migrar_valores_reprogramados']
 
