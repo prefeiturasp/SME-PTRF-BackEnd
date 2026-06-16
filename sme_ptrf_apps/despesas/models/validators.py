@@ -4,7 +4,7 @@ from typing import Any
 from django.core.validators import EMPTY_VALUES
 from django.forms import ValidationError
 
-from sme_ptrf_apps.core.models.validators import is_cnpj_valid
+from sme_ptrf_apps.core.models.validators import is_cnpj_valid, normalize_cpf_cnpj
 
 CPF_REGEX: re.Pattern[str] = re.compile(r'^\d{3}\.\d{3}\.\d{3}-\d{2}$')
 CNPJ_REGEX: re.Pattern[str] = re.compile(
@@ -17,7 +17,7 @@ def cpf_cnpj_validation(value: Any) -> str:
     if value in EMPTY_VALUES:
         return ''
 
-    value = str(value)
+    value = normalize_cpf_cnpj(value)
     value_cnpj = value.upper()
 
     if CPF_REGEX.match(value):

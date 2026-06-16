@@ -8,7 +8,7 @@ from django.dispatch import receiver
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from .fornecedor import Fornecedor
-from .validators import cpf_cnpj_validation
+from .validators import cpf_cnpj_validation, normalize_cpf_cnpj
 from ..status_cadastro_completo import STATUS_CHOICES, STATUS_COMPLETO, STATUS_INCOMPLETO, STATUS_INATIVO
 from ...core.models import Associacao
 from waffle import get_waffle_flag_model
@@ -522,6 +522,8 @@ class Despesa(ModeloBase):
 
 @receiver(pre_save, sender=Despesa)
 def proponente_pre_save(instance, **kwargs):
+    if instance.cpf_cnpj_fornecedor:
+        instance.cpf_cnpj_fornecedor = normalize_cpf_cnpj(instance.cpf_cnpj_fornecedor)
     if instance.data_e_hora_de_inativacao:
         instance.status = STATUS_INATIVO
     else:

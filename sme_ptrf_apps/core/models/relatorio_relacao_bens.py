@@ -6,7 +6,7 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 from django.db import models
-from .validators import cnpj_validation
+from .validators import cnpj_validation, normalize_cnpj
 
 
 class RelatorioRelacaoBens(ModeloBase):
@@ -44,6 +44,11 @@ class RelatorioRelacaoBens(ModeloBase):
 
     def __str__(self):
         return f"Relatório {self.nome_associacao} | {self.periodo_referencia} gerado em {self.data_geracao}"
+
+    def save(self, *args, **kwargs):
+        if self.cnpj_associacao:
+            self.cnpj_associacao = normalize_cnpj(self.cnpj_associacao)
+        return super().save(*args, **kwargs)
 
 
 class ItemRelatorioRelacaoDeBens(ModeloBase):

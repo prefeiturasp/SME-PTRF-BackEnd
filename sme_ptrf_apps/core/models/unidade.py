@@ -1,7 +1,7 @@
 from django.core.validators import MinLengthValidator
 from django.db import models
 
-from .validators import cnpj_validation
+from .validators import cnpj_validation, normalize_cnpj
 from ..models_abstracts import TemNome, ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -55,6 +55,11 @@ class Unidade(ModeloBase, TemNome):
 
     def __str__(self):
         return self.nome
+
+    def save(self, *args, **kwargs):
+        if self.dre_cnpj:
+            self.dre_cnpj = normalize_cnpj(self.dre_cnpj)
+        return super().save(*args, **kwargs)
 
     @property
     def nome_com_tipo(self):
