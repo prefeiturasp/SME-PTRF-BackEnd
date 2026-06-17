@@ -1,5 +1,8 @@
 from datetime import datetime
+from decimal import Decimal, InvalidOperation
 from django.db import transaction
+from django.db.models import DecimalField
+from django.core.exceptions import FieldDoesNotExist
 from waffle import get_waffle_flag_model
 from sme_ptrf_apps.logging.loggers import ContextualLogger
 
@@ -66,11 +69,20 @@ class CancelaRetificacaoPaaServiceBase:
     def _get_by_uuid_or_none(self, model, uuid):
         if not uuid:
             return None
-        
+
         return model.objects.get(uuid=uuid)
-    
+
     def _str_data_para_date(self, data: str):
         return datetime.strptime(data, '%Y-%m-%d').date()
+
+    def _str_cash_para_decimal(self, valor: str):
+        if valor in (None, ""):
+            return Decimal("0.00")
+
+        try:
+            return Decimal(valor)
+        except (InvalidOperation, TypeError):
+            raise ValueError(f"Valor monetário inválido: {valor}")
 
 
 class RollbackEngine(CancelaRetificacaoPaaServiceBase):
@@ -142,6 +154,15 @@ class RollbackEngine(CancelaRetificacaoPaaServiceBase):
                         update_callback(obj, anterior, uuid)
                     else:
                         for campo, valor in anterior.items():
+                            try:
+                                field = obj._meta.get_field(campo)
+
+                                if isinstance(field, DecimalField):
+                                    valor = self._str_cash_para_decimal(valor)
+
+                            except FieldDoesNotExist:
+                                pass
+
                             setattr(obj, campo, valor)
                         obj.save()
                     self.logger.info(f'Item restaurado uuid={uuid}')
@@ -354,12 +375,12 @@ class PaaRollbackHandlers(RollbackEngine):
             acao_associacao = self._get_by_uuid_or_none(AcaoAssociacao, uuid)
             self.paa.receitaprevistapaa_set.create(
                 acao_associacao=acao_associacao,
-                previsao_valor_capital=dados['previsao_valor_capital'],
-                previsao_valor_custeio=dados['previsao_valor_custeio'],
-                previsao_valor_livre=dados['previsao_valor_livre'],
-                saldo_congelado_custeio=dados['saldo_congelado_custeio'],
-                saldo_congelado_capital=dados['saldo_congelado_capital'],
-                saldo_congelado_livre=dados['saldo_congelado_livre'],
+                previsao_valor_capital=self._str_cash_para_decimal(dados['previsao_valor_capital']),
+                previsao_valor_custeio=self._str_cash_para_decimal(dados['previsao_valor_custeio']),
+                previsao_valor_livre=self._str_cash_para_decimal(dados['previsao_valor_livre']),
+                saldo_congelado_custeio=self._str_cash_para_decimal(dados['saldo_congelado_custeio']),
+                saldo_congelado_capital=self._str_cash_para_decimal(dados['saldo_congelado_capital']),
+                saldo_congelado_livre=self._str_cash_para_decimal(dados['saldo_congelado_livre']),
             )
 
         self._rollback_relacionados(
@@ -375,12 +396,12 @@ class PaaRollbackHandlers(RollbackEngine):
             acao_pdde = self._get_by_uuid_or_none(AcaoPdde, uuid)
             self.paa.receitaprevistapdde_set.create(
                 acao_pdde=acao_pdde,
-                previsao_valor_capital=dados['previsao_valor_capital'],
-                previsao_valor_custeio=dados['previsao_valor_custeio'],
-                previsao_valor_livre=dados['previsao_valor_livre'],
-                saldo_custeio=dados['saldo_custeio'],
-                saldo_capital=dados['saldo_capital'],
-                saldo_livre=dados['saldo_livre'],
+                previsao_valor_capital=self._str_cash_para_decimal(dados['previsao_valor_capital']),
+                previsao_valor_custeio=self._str_cash_para_decimal(dados['previsao_valor_custeio']),
+                previsao_valor_livre=self._str_cash_para_decimal(dados['previsao_valor_livre']),
+                saldo_custeio=self._str_cash_para_decimal(dados['saldo_custeio']),
+                saldo_capital=self._str_cash_para_decimal(dados['saldo_capital']),
+                saldo_livre=self._str_cash_para_decimal(dados['saldo_livre']),
             )
 
         self._rollback_relacionados(
@@ -405,7 +426,7 @@ class PaaRollbackHandlers(RollbackEngine):
             obj.associacao = associacao
             obj.data_prevista = self._str_data_para_date(anterior.get('data_prevista'))
             obj.descricao = anterior.get('descricao')
-            obj.valor = anterior.get('valor')
+            obj.valor = self._str_cash_para_decimal(anterior.get('valor'))
             obj.save()
 
         def _create(uuid: str, dados: dict):
@@ -416,7 +437,7 @@ class PaaRollbackHandlers(RollbackEngine):
                 associacao=associacao,
                 data_prevista=dados['data_prevista'],
                 descricao=dados['descricao'],
-                valor=dados['valor'],
+                valor=self._str_cash_para_decimal(dados['valor']),
             )
 
         self._rollback_relacionados(
@@ -430,12 +451,12 @@ class PaaRollbackHandlers(RollbackEngine):
 
         def _update(obj: ReceitaPrevistaOutroRecursoPeriodo, anterior, uuid=None):
             # `outro_recurso_periodo` é a chave de identificação do item — não muda
-            obj.previsao_valor_capital = anterior.get('previsao_valor_capital')
-            obj.previsao_valor_custeio = anterior.get('previsao_valor_custeio')
-            obj.previsao_valor_livre = anterior.get('previsao_valor_livre')
-            obj.saldo_custeio = anterior.get('saldo_custeio')
-            obj.saldo_capital = anterior.get('saldo_capital')
-            obj.saldo_livre = anterior.get('saldo_livre')
+            obj.previsao_valor_capital = self._str_cash_para_decimal(anterior.get('previsao_valor_capital'))
+            obj.previsao_valor_custeio = self._str_cash_para_decimal(anterior.get('previsao_valor_custeio'))
+            obj.previsao_valor_livre = self._str_cash_para_decimal(anterior.get('previsao_valor_livre'))
+            obj.saldo_custeio = self._str_cash_para_decimal(anterior.get('saldo_custeio'))
+            obj.saldo_capital = self._str_cash_para_decimal(anterior.get('saldo_capital'))
+            obj.saldo_livre = self._str_cash_para_decimal(anterior.get('saldo_livre'))
             obj.save()
 
         def _create(uuid: str, dados: dict):
@@ -444,12 +465,12 @@ class PaaRollbackHandlers(RollbackEngine):
             )
             self.paa.receitaprevistaoutrorecursoperiodo_set.create(
                 outro_recurso_periodo=outro_recurso_periodo,
-                previsao_valor_capital=dados['previsao_valor_capital'],
-                previsao_valor_custeio=dados['previsao_valor_custeio'],
-                previsao_valor_livre=dados['previsao_valor_livre'],
-                saldo_custeio=dados['saldo_custeio'],
-                saldo_capital=dados['saldo_capital'],
-                saldo_livre=dados['saldo_livre'],
+                previsao_valor_capital=self._str_cash_para_decimal(dados['previsao_valor_capital']),
+                previsao_valor_custeio=self._str_cash_para_decimal(dados['previsao_valor_custeio']),
+                previsao_valor_livre=self._str_cash_para_decimal(dados['previsao_valor_livre']),
+                saldo_custeio=self._str_cash_para_decimal(dados['saldo_custeio']),
+                saldo_capital=self._str_cash_para_decimal(dados['saldo_capital']),
+                saldo_livre=self._str_cash_para_decimal(dados['saldo_livre']),
             )
 
         self._rollback_relacionados(
@@ -465,7 +486,7 @@ class PaaRollbackHandlers(RollbackEngine):
     def _rollback_prioridades(self, alteracoes):
 
         def _resolve_relacoes(dados):
-            return {                
+            return {
                 'acao_associacao': self._get_by_uuid_or_none(
                     AcaoAssociacao, dados.get('acao_associacao_uuid')
                 ),
@@ -491,7 +512,7 @@ class PaaRollbackHandlers(RollbackEngine):
             rel = _resolve_relacoes(anterior)
             obj.prioridade = anterior['prioridade']
             obj.tipo_aplicacao = anterior['tipo_aplicacao']
-            obj.valor_total = anterior['valor_total']
+            obj.valor_total = self._str_cash_para_decimal(anterior['valor_total'])
             obj.recurso = anterior['recurso']
             obj.acao_associacao = rel['acao_associacao']
             obj.programa_pdde = rel['programa_pdde']
@@ -507,7 +528,7 @@ class PaaRollbackHandlers(RollbackEngine):
                 uuid=uuid,
                 prioridade=dados['prioridade'],
                 tipo_aplicacao=dados['tipo_aplicacao'],
-                valor_total=dados['valor_total'],
+                valor_total=self._str_cash_para_decimal(dados['valor_total']),
                 recurso=dados['recurso'],
                 acao_associacao=rel['acao_associacao'],
                 programa_pdde=rel['programa_pdde'],
