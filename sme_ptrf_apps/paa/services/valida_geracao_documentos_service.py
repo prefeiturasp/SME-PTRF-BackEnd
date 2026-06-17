@@ -1,3 +1,5 @@
+from typing import Any, Optional
+
 from sme_ptrf_apps.paa.models import Paa, DocumentoPaa
 from sme_ptrf_apps.paa.services.retificacao_paa_service import RetificacaoPaaService
 
@@ -19,6 +21,7 @@ class ValidaGeracaoDocumentoPAAService:
                     retificacao: bool,
                     versao: DocumentoPaa.VersaoChoices,
                     status: DocumentoPaa.StatusChoices) -> bool:
+        """Verifica se existe documento do PAA com a versão e status informados."""
         return paa.documentopaa_set.filter(
             retificacao=retificacao, versao=versao, status_geracao=status
         ).exists()
@@ -63,7 +66,7 @@ class ValidaGeracaoDocumentoPAAService:
         cls.valida_gerar_documento_previa(paa)
 
     @classmethod
-    def valida_gerar_documento_previa_retificacao(cls, paa: Paa, usuario=None) -> None:
+    def valida_gerar_documento_previa_retificacao(cls, paa: Paa, usuario: Optional[Any] = None) -> None:
         """
         Validação de geração de documento PAA de retificação previa.
 
@@ -94,7 +97,7 @@ class ValidaGeracaoDocumentoPAAService:
                 "Nenhuma alteração encontrada. Faça alterações antes de gerar a prévia de retificação.")
 
     @classmethod
-    def valida_gerar_documento_final_retificacao(cls, paa: Paa, usuario=None) -> None:
+    def valida_gerar_documento_final_retificacao(cls, paa: Paa, usuario: Optional[Any] = None) -> None:
         """
         Validação de geração de documento PAA de retificação final.
 

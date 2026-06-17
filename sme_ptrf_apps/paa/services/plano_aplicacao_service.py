@@ -1,4 +1,5 @@
 import logging
+from typing import Any, Optional
 
 from sme_ptrf_apps.paa.models import Paa
 
@@ -18,7 +19,8 @@ class PlanoAplicacaoService:
         ('nao-prioridades-outros-recursos', 'Não Prioridades Outros Recursos', False, ('RECURSO_PROPRIO', 'OUTRO_RECURSO'), True),  # noqa
     ]
 
-    def __init__(self, paa: Paa, usuario=None):
+    def __init__(self, paa: Paa, usuario: Optional[Any] = None) -> None:
+        """Inicializa o service com o PAA e o usuário opcional."""
         self.paa = paa
         self.usuario = usuario
 

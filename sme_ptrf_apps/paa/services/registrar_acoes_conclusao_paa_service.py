@@ -1,5 +1,6 @@
 import logging
 
+from sme_ptrf_apps.paa.models import Paa
 from sme_ptrf_apps.paa.services.acoes_paa_service import AcoesPaaService
 
 logger = logging.getLogger(__name__)
@@ -7,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 class RegistrarAcoesPtrfConclusaoPaaService:
     @classmethod
-    def registrar(cls, paa):
+    def registrar(cls, paa: Paa) -> int:
         """
         Registra todas as ações do tipo PTRF (core_acao) com exibir_paa=True
         que estavam disponíveis no momento da conclusão do PAA.
@@ -31,7 +32,7 @@ class RegistrarAcoesPtrfConclusaoPaaService:
 
 class RegistrarAcoesPddeConclusaoPaaService:
     @classmethod
-    def registrar(cls, paa):
+    def registrar(cls, paa: Paa) -> int:
         """
         Registra todas as ações PDDE com status ATIVA
         que estavam disponíveis no momento da conclusão do PAA.
@@ -54,7 +55,7 @@ class RegistrarAcoesPddeConclusaoPaaService:
 
 class RegistrarAcoesOutrosRecursosConclusaoPaaService:
     @classmethod
-    def registrar(cls, paa):
+    def registrar(cls, paa: Paa) -> int:
         """
         Registra todas as ações de outros recursos vinculados à unidade e período do PAA
         que estavam disponíveis no momento da conclusão do PAA.

@@ -12,7 +12,8 @@ class ImportacaoUnidadesOutroRecursoException(Exception):
 class OutroRecursoPeriodoPaaImportacaoService:
 
     @classmethod
-    def importar_unidades(cls, destino: OutroRecursoPeriodoPaa, origem_uuid: str):
+    def importar_unidades(cls, destino: OutroRecursoPeriodoPaa, origem_uuid: str) -> None:
+        """Importa as unidades de um recurso de origem para o recurso de destino."""
         if not origem_uuid:
             raise ImportacaoUnidadesOutroRecursoException(
                 "origem_uuid é obrigatório."
@@ -27,6 +28,7 @@ class OutroRecursoPeriodoPaaImportacaoService:
 
     @classmethod
     def _obter_origem(cls, origem_uuid: str) -> OutroRecursoPeriodoPaa:
+        """Obtém o recurso de período de origem pelo UUID."""
         try:
             return OutroRecursoPeriodoPaa.objects.prefetch_related(
                 'unidades'
@@ -37,14 +39,16 @@ class OutroRecursoPeriodoPaaImportacaoService:
             )
 
     @classmethod
-    def _validar_origem_destino(cls, destino, origem):
+    def _validar_origem_destino(cls, destino: OutroRecursoPeriodoPaa, origem: OutroRecursoPeriodoPaa) -> None:
+        """Valida que origem e destino são recursos distintos."""
         if destino.uuid == origem.uuid:
             raise ImportacaoUnidadesOutroRecursoException(
                 "O recurso de origem não pode ser o mesmo que o destino."
             )
 
     @classmethod
-    def _executar_importacao(cls, destino, origem):
+    def _executar_importacao(cls, destino: OutroRecursoPeriodoPaa, origem: OutroRecursoPeriodoPaa) -> None:
+        """Copia as unidades da origem para o destino."""
         unidades = origem.unidades.all()
 
         if not unidades.exists():
