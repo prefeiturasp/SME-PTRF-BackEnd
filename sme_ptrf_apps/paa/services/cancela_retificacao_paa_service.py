@@ -75,9 +75,15 @@ class CancelaRetificacaoPaaServiceBase:
     def _str_data_para_date(self, data: str):
         return datetime.strptime(data, '%Y-%m-%d').date()
 
-    def _str_cash_para_decimal(self, valor: str):
-        if valor in (None, ""):
-            return Decimal("0.00")
+    def _str_cash_para_decimal(self, valor):
+        if valor is None:
+            return None
+
+        if isinstance(valor, str):
+            valor = valor.strip()
+
+            if valor in ("", "None", "null"):
+                return None
 
         try:
             return Decimal(valor)
