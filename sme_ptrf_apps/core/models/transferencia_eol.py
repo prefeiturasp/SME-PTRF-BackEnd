@@ -11,7 +11,7 @@ from sme_ptrf_apps.core.models.periodo_inicial_associacao import PeriodoInicialA
 
 from ..choices.tipos_unidade import TIPOS_CHOICE
 
-from .validators import cnpj_validation
+from .validators import cnpj_validation, normalize_cnpj
 
 logger = logging.getLogger(__name__)
 
@@ -184,6 +184,11 @@ class TransferenciaEol(ModeloBase):
 
     def __str__(self):
         return f"{self.eol_transferido} -> {self.eol_historico}"
+
+    def save(self, *args, **kwargs):
+        if self.cnpj_nova_associacao:
+            self.cnpj_nova_associacao = normalize_cnpj(self.cnpj_nova_associacao)
+        return super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Transferência de Código EOL"

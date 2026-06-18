@@ -1,6 +1,6 @@
 
 from factory.django import DjangoModelFactory
-from factory import LazyFunction, LazyAttribute
+from factory import LazyFunction, LazyAttribute, Sequence
 from faker import Faker
 from sme_ptrf_apps.paa.models import PeriodoPaa
 from datetime import timedelta
@@ -12,7 +12,7 @@ class PeriodoPaaFactory(DjangoModelFactory):
     class Meta:
         model = PeriodoPaa
 
-    referencia = fake.unique.name()
+    referencia = Sequence(lambda n: f"Periodo PAA {n}")
     # gera uma data inicial aleatória dentro de um intervalo
     data_inicial = LazyFunction(lambda: fake.date_between(start_date="-2y", end_date="today"))
 

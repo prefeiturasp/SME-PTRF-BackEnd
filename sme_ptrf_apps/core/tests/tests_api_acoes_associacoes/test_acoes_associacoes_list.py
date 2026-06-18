@@ -11,7 +11,8 @@ def test_api_list_acoes_associacoes_todas(
     jwt_authenticated_client_a,
     acao_associacao_charli_bravo_000086_x,
     acao_associacao_charli_bravo_000086_y,
-    acao_associacao_eco_delta_000087_x
+    acao_associacao_eco_delta_000087_x,
+    recurso_esperado
 ):
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/', content_type='application/json')
     result = json.loads(response.content)
@@ -66,6 +67,7 @@ def test_api_list_acoes_associacoes_todas(
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
+                'recurso': recurso_esperado(acao_associacao.acao.recurso)
             }
         )
 
@@ -76,7 +78,8 @@ def test_api_list_acoes_associacoes_todas(
 def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
                                                    acao_associacao_charli_bravo_000086_x,
                                                    acao_associacao_charli_bravo_000086_y,
-                                                   acao_associacao_eco_delta_000087_x
+                                                   acao_associacao_eco_delta_000087_x,
+                                                   recurso_esperado
                                                    ):
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/?nome=char', content_type='application/json')
     result = json.loads(response.content)
@@ -130,6 +133,7 @@ def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
+                'recurso': recurso_esperado(acao_associacao.acao.recurso)
             }
         )
     assert response.status_code == status.HTTP_200_OK
@@ -139,7 +143,8 @@ def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
 def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
                                                acao_associacao_charli_bravo_000086_x,
                                                acao_associacao_charli_bravo_000086_y,
-                                               acao_associacao_eco_delta_000087_x
+                                               acao_associacao_eco_delta_000087_x,
+                                               recurso_esperado
                                                ):
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/?nome=brav', content_type='application/json')
     result = json.loads(response.content)
@@ -193,6 +198,7 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
+                'recurso': recurso_esperado(acao_associacao.acao.recurso)
             }
         )
     assert response.status_code == status.HTTP_200_OK
@@ -202,7 +208,8 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
 def test_api_list_associacoes_pelo_eol_escola(jwt_authenticated_client_a,
                                               acao_associacao_charli_bravo_000086_x,
                                               acao_associacao_charli_bravo_000086_y,
-                                              acao_associacao_eco_delta_000087_x
+                                              acao_associacao_eco_delta_000087_x,
+                                              recurso_esperado
                                               ):
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/?nome=86', content_type='application/json')
     result = json.loads(response.content)
@@ -255,6 +262,7 @@ def test_api_list_associacoes_pelo_eol_escola(jwt_authenticated_client_a,
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
+                'recurso': recurso_esperado(acao_associacao.acao.recurso)
             }
         )
     assert response.status_code == status.HTTP_200_OK
@@ -265,7 +273,8 @@ def test_api_list_associacoes_por_acao(jwt_authenticated_client_a,
                                        acao_associacao_charli_bravo_000086_x,
                                        acao_associacao_charli_bravo_000086_y,
                                        acao_associacao_eco_delta_000087_x,
-                                       acao_x
+                                       acao_x,
+                                       recurso_esperado
                                        ):
     response = jwt_authenticated_client_a.get(f'/api/acoes-associacoes/?acao__uuid={acao_x.uuid}',
                                               content_type='application/json')
@@ -319,6 +328,7 @@ def test_api_list_associacoes_por_acao(jwt_authenticated_client_a,
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
+                'recurso': recurso_esperado(acao_associacao.acao.recurso)
             }
         )
     assert response.status_code == status.HTTP_200_OK
@@ -329,7 +339,8 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
                                          acao_associacao_charli_bravo_000086_x,
                                          acao_associacao_charli_bravo_000086_y,
                                          acao_associacao_eco_delta_000087_x,
-                                         acao_associacao_eco_delta_000087_y_inativa
+                                         acao_associacao_eco_delta_000087_y_inativa,
+                                         recurso_esperado
                                          ):
 
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/?status=INATIVA',
@@ -384,6 +395,7 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
+                'recurso': recurso_esperado(acao_associacao.acao.recurso)
             }
         )
     assert response.status_code == status.HTTP_200_OK
@@ -393,7 +405,8 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
 def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_authenticated_client_a,
                                                                           acao_associacao_charli_bravo_000086_x,
                                                                           acao_associacao_charli_bingo_000086_x,
-                                                                          acao_x
+                                                                          acao_x,
+                                                                          recurso_esperado
                                                                           ):
 
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/?filtro_informacoes=ENCERRADAS,NAO_ENCERRADAS',
@@ -444,6 +457,7 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
             },
             'status': acao_associacao_charli_bingo_000086_x.status,
             'criado_em': acao_associacao_charli_bingo_000086_x.criado_em.isoformat("T"),
+            'recurso': recurso_esperado(acao_associacao_charli_bingo_000086_x.acao.recurso)
         },
         {
             'uuid': f'{acao_associacao_charli_bravo_000086_x.uuid}',
@@ -488,6 +502,7 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
             },
             'status': acao_associacao_charli_bravo_000086_x.status,
             'criado_em': acao_associacao_charli_bravo_000086_x.criado_em.isoformat("T"),
+            'recurso': recurso_esperado(acao_associacao_charli_bravo_000086_x.acao.recurso)
         },
     ]
     assert response.status_code == status.HTTP_200_OK
@@ -496,7 +511,8 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
 
 def test_api_list_associacoes_por_associacoes_somente_encerradas(jwt_authenticated_client_a,
                                                                  acao_associacao_charli_bingo_000086_x,
-                                                                 acao_x
+                                                                 acao_x,
+                                                                 recurso_esperado
                                                                  ):
 
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/?filtro_informacoes=ENCERRADAS',
@@ -547,6 +563,7 @@ def test_api_list_associacoes_por_associacoes_somente_encerradas(jwt_authenticat
             },
             'status': acao_associacao_charli_bingo_000086_x.status,
             'criado_em': acao_associacao_charli_bingo_000086_x.criado_em.isoformat("T"),
+            'recurso': recurso_esperado(acao_associacao_charli_bingo_000086_x.acao.recurso)
         }
     ]
     assert response.status_code == status.HTTP_200_OK
@@ -555,7 +572,8 @@ def test_api_list_associacoes_por_associacoes_somente_encerradas(jwt_authenticat
 
 def test_api_list_associacoes_por_associacoes_somente_nao_encerradas(jwt_authenticated_client_a,
                                                                      acao_associacao_charli_bravo_000086_x,
-                                                                     acao_x
+                                                                     acao_x,
+                                                                     recurso_esperado
                                                                      ):
 
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/?filtro_informacoes=NAO_ENCERRADAS',
@@ -606,6 +624,7 @@ def test_api_list_associacoes_por_associacoes_somente_nao_encerradas(jwt_authent
             },
             'status': acao_associacao_charli_bravo_000086_x.status,
             'criado_em': acao_associacao_charli_bravo_000086_x.criado_em.isoformat("T"),
+            'recurso': recurso_esperado(acao_associacao_charli_bravo_000086_x.acao.recurso)
         },
     ]
     assert response.status_code == status.HTTP_200_OK

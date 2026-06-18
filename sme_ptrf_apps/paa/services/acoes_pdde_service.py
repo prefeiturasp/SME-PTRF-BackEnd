@@ -12,21 +12,25 @@ class ExcluirAcaoPDDEException(Exception):
 
 class AcoesPddeService:
 
-    def __init__(self, acao: AcaoPdde):
+    def __init__(self, acao: AcaoPdde) -> None:
+        """Inicializa o service com a instância da ação PDDE."""
         self.acao = acao
 
-    def _periodo_vigente(self):
+    def _periodo_vigente(self) -> PeriodoPaa:
+        """Retorna o período PAA vigente."""
         return PeriodoPaa.periodo_vigente()
 
-    def _paas_gerados_e_parciais(self):
+    def _paas_gerados_e_parciais(self) -> models.QuerySet:
+        """Retorna subquery de PAAs gerados ou gerados parcialmente."""
         return Paa.objects.filter(
             pk=models.OuterRef('paa_id')).paas_gerados_e_parciais()
 
-    def _paas_em_elaboracao(self):
+    def _paas_em_elaboracao(self) -> models.QuerySet:
+        """Retorna subquery de PAAs em elaboração."""
         return Paa.objects.filter(
             pk=models.OuterRef('paa_id')).paas_em_elaboracao()
 
-    def acoes_pdde_receitas_previstas_paas_gerados(self):
+    def acoes_pdde_receitas_previstas_paas_gerados(self) -> models.QuerySet:
         """ Receitas Previstas da Ação PDDE em PAAs Gerados/Gerados Parcialmente """
         paas_andamento = self._paas_gerados_e_parciais()
 
@@ -35,7 +39,7 @@ class AcoesPddeService:
             paa__periodo_paa=self._periodo_vigente()
         )
 
-    def acoes_pdde_prioridades_paas_gerados(self):
+    def acoes_pdde_prioridades_paas_gerados(self) -> models.QuerySet:
         """ Prioridades da Ação PDDE em PAAs Gerados/Gerados Parcialmente """
         paas_andamento = self._paas_gerados_e_parciais()
 
@@ -45,8 +49,8 @@ class AcoesPddeService:
             acao_pdde=self.acao
         )
 
-    def acoes_pdde_receitas_previstas_paas_elaboracao(self):
-        """ Receitas Previstas da Ação PDDE em PAAs Gerados/Gerados Parcialmente """
+    def acoes_pdde_receitas_previstas_paas_elaboracao(self) -> models.QuerySet:
+        """ Receitas Previstas da Ação PDDE em PAAs em Elaboração """
         paas_andamento = self._paas_em_elaboracao()
 
         return self.acao.receitaprevistapdde_set.filter(
@@ -54,8 +58,8 @@ class AcoesPddeService:
             paa__periodo_paa=self._periodo_vigente()
         )
 
-    def acoes_pdde_prioridades_paas_elaboracao(self):
-        """ Prioridades da Ação PDDE em PAAs Gerados/Gerados Parcialmente """
+    def acoes_pdde_prioridades_paas_elaboracao(self) -> models.QuerySet:
+        """ Prioridades da Ação PDDE em PAAs em Elaboração """
         paas_andamento = self._paas_em_elaboracao()
 
         return self.acao.prioridadepaa_set.filter(
@@ -64,7 +68,8 @@ class AcoesPddeService:
             acao_pdde=self.acao
         )
 
-    def excluir_acao_pdde(self):
+    def excluir_acao_pdde(self) -> None:
+        """Remove a ação PDDE limpando receitas e prioridades em PAAs em elaboração."""
         # somente este trecho requer transação atomica. Para gerados, é necessário lançar um raise sem invalidar
         # a transação atomica
         with transaction.atomic():

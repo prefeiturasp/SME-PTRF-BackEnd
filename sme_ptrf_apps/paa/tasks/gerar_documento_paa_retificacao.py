@@ -1,0 +1,80 @@
+from django.contrib.auth import get_user_model
+from celery import shared_task, current_task
+from celery.exceptions import MaxRetriesExceededError
+from sme_ptrf_apps.paa.services.documento_paa_pdf_service import gerar_arquivo_documento_paa_pdf
+from sme_ptrf_apps.logging.loggers import ContextualLogger
+from sme_ptrf_apps.paa.models.paa import Paa
+from sme_ptrf_apps.paa.services.documento_paa_service import DocumentoPaaService
+from sme_ptrf_apps.paa.services.retificacao_paa_service import RetificacaoPaaService
+
+MAX_RETRIES = 3
+
+
+@shared_task(
+    bind=True,
+    autoretry_for=(Exception,),
+    retry_kwargs={'max_retries': MAX_RETRIES},
+    retry_backoff=True,
+    retry_backoff_max=600,
+    retry_jitter=True,
+    time_limit=600,
+    soft_time_limit=300
+)
+def gerar_documento_paa_retificacao_async(self, paa_uuid, username=""):
+    logger = ContextualLogger.get_logger(
+        __name__,
+        operacao='Retificação - Plano Anual de Atividades',
+        username=username
+    )
+    tentativa = current_task.request.retries + 1
+
+    logger.info(f'Iniciando task gerar_documento_paa_retificacao_async, tentativa {tentativa}.')
+
+    try:
+        paa = Paa.objects.get(uuid=paa_uuid)
+    except Paa.DoesNotExist:
+        logger.error(f'PAA uuid={paa_uuid} não encontrado.')
+        raise
+
+    usuario = get_user_model().objects.get(username=username)
+    partes_operation_id = '-'.join([
+        f'UN:{paa.associacao.unidade.codigo_eol}',
+        f'PER:{paa.periodo_paa.referencia}',
+        f'PAA:{paa.id}',
+        f'STATUS:{paa.status}',
+    ])
+    logger.update_context(operacao_id=partes_operation_id)
+
+    service = DocumentoPaaService(paa=paa, usuario=username, previa=False, logger=logger, retificacao=True)
+
+    try:
+        service.preparar_documento_para_task()
+
+        alteracoes = RetificacaoPaaService(paa=paa, usuario=usuario).identificar_alteracoes()
+        if not alteracoes:
+            raise ValueError('Nenhuma alteração encontrada para gerar documento de retificação.')
+
+        documento_paa = service.documento_paa
+
+        gerar_arquivo_documento_paa_pdf(paa, documento_paa, usuario, previa=False, alteracoes=alteracoes)
+
+        service.marcar_concluido()
+
+        logger.info(f'Documento de retificação gerado: {documento_paa.uuid}.')
+        logger.info('Task gerar_documento_paa_retificacao_async finalizada.')
+    except Exception as exc:
+        if service.documento_paa:
+            service.marcar_erro()
+
+        logger.error(
+            f'A tentativa {tentativa} de gerar o documento de retificação falhou.',
+            exc_info=True,
+            stack_info=True
+        )
+
+        if tentativa > MAX_RETRIES:
+            mensagem = 'Tentativas de reprocessamento com falha excedidas para o documento de retificação.'
+            logger.error(mensagem, exc_info=True, stack_info=True)
+            raise MaxRetriesExceededError(mensagem)
+        else:
+            raise exc

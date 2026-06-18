@@ -230,17 +230,31 @@ class RetificacaoPaaService:
             self.logger.info(f'Réplica já existente retornada sem alteração (uuid={replica.uuid}).')
         return replica
 
+    def remove_atas_previas_retificacao(self):
+        from sme_ptrf_apps.paa.models import AtaPaa
+
+        AtaPaa.objects.filter(
+            paa=self.paa,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            previa=True,
+        ).delete()
+
     def criar_ata_retificacao(self, justificativa):
         if not justificativa:
             raise ValidacaoRetificacao('A justificativa para iniciar a retificação deve ser informada!')
         from sme_ptrf_apps.paa.models import AtaPaa
 
         self.logger.info(f'Criando Ata de Retificação para o PAA {self.paa.uuid}...')
+
+        # Situação encontrada quando há manipulação via admin e a ata não é removida, resultando na possibilidade
+        # de criar mais de uma ata de retificação.
+        self.remove_atas_previas_retificacao()
+
         ata = AtaPaa.objects.create(
             paa=self.paa,
             tipo_ata=AtaPaa.ATA_RETIFICACAO,
             previa=True,
-            justificativa=justificativa,
+            justificativa_retificacao=justificativa,
         )
         self.logger.info(f'Ata de Retificação criada com sucesso (uuid={ata.uuid}).')
         return ata
