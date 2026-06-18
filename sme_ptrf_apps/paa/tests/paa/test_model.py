@@ -1,7 +1,6 @@
 import pytest
 import datetime
 from sme_ptrf_apps.paa.models import AtaPaa, DocumentoPaa
-from sme_ptrf_apps.paa.enums import PaaStatusEnum
 
 pytestmark = pytest.mark.django_db
 
@@ -83,9 +82,7 @@ def test_paa_model_propriedade_completa_com_historico_de_membros_desabilitado(
     assert ata_paa.completa
 
 
-# ---------------------------------------------------------------------------
 # Métodos de mutação de estado
-# ---------------------------------------------------------------------------
 
 def test_set_congelar_saldo_define_saldo_congelado_em(paa):
     assert paa.saldo_congelado_em is None
@@ -104,18 +101,16 @@ def test_set_descongelar_saldo_limpa_saldo_congelado_em(paa_factory, periodo_paa
 def test_set_paa_status_em_retificacao(paa):
     paa.set_paa_status_em_retificacao()
     paa.refresh_from_db()
-    assert paa.status == PaaStatusEnum.EM_RETIFICACAO.name
+    assert paa.status_em_retificacao
 
 
 def test_set_paa_status_gerado(paa):
     paa.set_paa_status_gerado()
     paa.refresh_from_db()
-    assert paa.status == PaaStatusEnum.GERADO.name
+    assert paa.status_gerado
 
 
-# ---------------------------------------------------------------------------
 # Propriedades e métodos de leitura
-# ---------------------------------------------------------------------------
 
 def test_get_total_recursos_proprios_sem_recursos(paa):
     assert paa.get_total_recursos_proprios() == 0

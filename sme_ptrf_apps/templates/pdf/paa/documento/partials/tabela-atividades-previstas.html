@@ -21,7 +21,14 @@
         <tbody class="nao-quebra-linha">
           {% for atividade in dados.atividades_estatutarias %}
             <tr>
-              <td>{{ atividade.tipo_atividade }}</td>
+              <td>
+                <div>
+                  <div>{{ atividade.tipo_atividade }}</div>
+                  {% if atividade.retificado %}
+                    <div class="tag-retificacao">{{ dados.etiqueta_retificacao }}</div>
+                  {% endif %}
+                </div>
+              </td>
               <td>{{ atividade.data }}</td>
               <td>{{ atividade.atividades_previstas }}</td>
               <td>{{ atividade.mes_ano }}</td>
@@ -48,7 +55,14 @@
         <tbody class="nao-quebra-linha">
           {% for recurso in dados.recursos_proprios.items %}
             <tr>
-              <td>{{ recurso.fonte_recurso }}</td>
+              <td>
+                <div>
+                  <div>{{ recurso.fonte_recurso }}</div>
+                  {% if recurso.retificado %}
+                    <div class="tag-retificacao">{{ dados.etiqueta_retificacao }}</div>
+                  {% endif %}
+                </div>
+              </td>
               <td>{{ recurso.data_prevista }}</td>
               <td>{{ recurso.descricao }}</td>
               <td class="text-right">{{ recurso.valor|formata_valor }}</td>

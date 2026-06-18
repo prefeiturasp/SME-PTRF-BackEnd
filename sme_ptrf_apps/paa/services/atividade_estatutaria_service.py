@@ -26,6 +26,7 @@ class AtividadeEstatutariaOrdenacaoService:
 
     @classmethod
     def obter_queryset_ordenado(cls) -> QuerySet[AtividadeEstatutaria]:
+        """Retorna as atividades estatutárias globais ordenadas."""
         queryset = AtividadeEstatutaria.objects.filter(
             paa__isnull=True
         )
@@ -39,6 +40,7 @@ class AtividadeEstatutariaOrdenacaoService:
         uuid_origem: str,
         uuid_destino: str,
     ) -> None:
+        """Move uma atividade estatutária para a posição de outra, reordenando as intermediárias."""
         with transaction.atomic():
             origem = AtividadeEstatutaria.objects.select_for_update().get(
                 uuid=uuid_origem
@@ -72,7 +74,8 @@ class AtividadeEstatutariaOrdenacaoService:
             origem.save(update_fields=['ordem'])
 
     @classmethod
-    def create_atividade_estatutaria(cls, validated_data) -> AtividadeEstatutaria:
+    def create_atividade_estatutaria(cls, validated_data: dict) -> AtividadeEstatutaria:
+        """Cria uma atividade estatutária atribuindo a próxima ordem disponível."""
         with transaction.atomic():
             ultima_ordem = (
                 AtividadeEstatutaria.objects
@@ -85,7 +88,8 @@ class AtividadeEstatutariaOrdenacaoService:
             return AtividadeEstatutaria.objects.create(**validated_data)
 
     @classmethod
-    def delete_atividade_estatutaria(cls, atividade: AtividadeEstatutaria):
+    def delete_atividade_estatutaria(cls, atividade: AtividadeEstatutaria) -> None:
+        """Remove uma atividade estatutária e reordena as demais."""
         with transaction.atomic():
             ordem_removida = atividade.ordem
 

@@ -18,23 +18,38 @@ MAX_RETRIES = 3
     time_limit=600,
     soft_time_limit=300
 )
-def gerar_previa_documento_paa_async(self, paa_uuid, username=""):
+def gerar_previa_documento_paa_async(self, paa_uuid, username="") -> None:
     logger = ContextualLogger.get_logger(
         __name__,
         operacao='Plano Anual de Atividades',
         username=username
     )
+
     tentativa = current_task.request.retries + 1
 
     logger.info(f'Iniciando task gerar_previa_documento_paa_async, tentativa {tentativa}.')
 
-    paa = Paa.objects.get(uuid=paa_uuid)
+    try:
+        paa = Paa.objects.get(uuid=paa_uuid)
+    except Paa.DoesNotExist:
+        logger.error(f'PAA uuid={paa_uuid} não encontrado.')
+        raise
+
     usuario = get_user_model().objects.get(username=username)
 
+    partes_operation_id = '-'.join([
+        f'UN:{paa.associacao.unidade.codigo_eol}',
+        f'PER:{paa.periodo_paa.referencia}',
+        f'PAA:{paa.id}',
+        f'STATUS:{paa.status}',
+    ])
+    logger.update_context(operacao_id=partes_operation_id)
+
     service = DocumentoPaaService(paa=paa, usuario=username, previa=True, logger=logger)
-    service.preparar_documento_para_task()
 
     try:
+        service.preparar_documento_para_task()
+
         documento_paa = service.documento_paa
 
         gerar_arquivo_documento_paa_pdf(paa, service.documento_paa, usuario, previa=True)

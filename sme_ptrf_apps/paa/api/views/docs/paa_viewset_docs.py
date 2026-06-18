@@ -712,7 +712,7 @@ DOCS = dict(
     gerar_previa_documento=SCHEMA_GERAR_PREVIA_DOCUMENTO,
     documento_final=SCHEMA_DOCUMENTO_FINAL,
     documento_previa=SCHEMA_DOCUMENTO_PREVIA,
-    satus_geracao=SCHEMA_STATUS_GERACAO,
+    status_geracao=SCHEMA_STATUS_GERACAO,
     iniciar_retificacao=SCHEMA_INICIAR_RETIFICACAO,
     paa_retificacao=SCHEMA_PAA_RETIFICACAO,
 )

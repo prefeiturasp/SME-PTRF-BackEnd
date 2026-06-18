@@ -79,13 +79,14 @@ class Paa(ModeloBase):
 
     @property
     def documento_final(self):
-        if self.status == PaaStatusEnum.EM_RETIFICACAO.name:
+        if self.status_em_retificacao:
             return obter_documento_final_por_retificacao(self, True)
         return obter_documento_final_por_retificacao(self, False)
 
     @property
     def documento_previa(self):
-        return self.documentopaa_set.filter(versao="PREVIA").first()
+        retificacao = self.status_em_retificacao
+        return self.documentopaa_set.filter(versao="PREVIA", retificacao=retificacao).first()
 
     @property
     def tem_documentos(self):
@@ -251,6 +252,38 @@ class Paa(ModeloBase):
 
         # Se é um objeto novo, retorna False
         return False
+
+    def get_ata_elaboracao(self):
+        """
+        Retorna as atas de apresentação (elaboração) do PAA.
+
+        Returns:
+            QuerySet: Atas do tipo ATA_APRESENTACAO
+        """
+        from sme_ptrf_apps.paa.models import AtaPaa
+        return self.atas_da_paa.filter(tipo_ata=AtaPaa.ATA_APRESENTACAO).first()
+
+    def get_ata_retificacao(self):
+        """
+        Retorna as atas de retificação do PAA.
+
+        Returns:
+            QuerySet: Atas do tipo ATA_RETIFICACAO
+        """
+        from sme_ptrf_apps.paa.models import AtaPaa
+        return self.atas_da_paa.filter(tipo_ata=AtaPaa.ATA_RETIFICACAO).first()
+
+    @property
+    def status_em_elaboracao(self):
+        return self.status == PaaStatusEnum.EM_ELABORACAO.name
+
+    @property
+    def status_em_retificacao(self):
+        return self.status == PaaStatusEnum.EM_RETIFICACAO.name
+
+    @property
+    def status_gerado(self):
+        return self.status == PaaStatusEnum.GERADO.name
 
     class Meta:
         verbose_name = 'PAA'

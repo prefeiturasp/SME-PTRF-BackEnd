@@ -165,6 +165,7 @@ class AtaPaa(ModeloBase):
     previa = models.BooleanField("É prévia?", default=False)
 
     justificativa = models.TextField('Justificativa de rejeição', blank=True, default='')
+    justificativa_retificacao = models.TextField('Justificativa de retificação', blank=True, default='')
 
     pdf_gerado_previamente = models.BooleanField(
         "PDF gerado previamente",
@@ -221,7 +222,7 @@ class AtaPaa(ModeloBase):
 
     def nome_documento_exibicao(self):
         return f'{self.label_nome()}-{self.status_label_geracao()}'
-      
+
     def label_nome(self) -> str:
         return f"Ata de {self.ATA_NOMES[self.tipo_ata]} do PAA"
 
@@ -249,9 +250,11 @@ class AtaPaa(ModeloBase):
 
     @classmethod
     def iniciar(cls, paa):
+        tipo_ata = cls.ATA_RETIFICACAO if paa.status_em_retificacao else cls.ATA_APRESENTACAO
+
         ata_paa = cls.objects.filter(
             paa=paa,
-            tipo_ata=cls.ATA_APRESENTACAO
+            tipo_ata=tipo_ata
         ).first()
 
         if ata_paa:
@@ -259,7 +262,7 @@ class AtaPaa(ModeloBase):
 
         return cls.objects.create(
             paa=paa,
-            tipo_ata=cls.ATA_APRESENTACAO
+            tipo_ata=tipo_ata
         )
 
     class Meta:

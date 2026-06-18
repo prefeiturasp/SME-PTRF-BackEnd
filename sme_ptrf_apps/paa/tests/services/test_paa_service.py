@@ -22,7 +22,7 @@ def test_concluir_paa_atualiza_status(
     resultado = PaaService.concluir_paa(paa)
 
     paa.refresh_from_db()
-    assert paa.status == PaaStatusEnum.GERADO.name
+    assert paa.status_gerado
     assert resultado == paa
 
 

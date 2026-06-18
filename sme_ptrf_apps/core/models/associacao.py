@@ -6,7 +6,7 @@ from sme_ptrf_apps.core.models.conta_associacao import ContaAssociacao
 from sme_ptrf_apps.core.models.solicitacao_encerramento_conta_associacao import SolicitacaoEncerramentoContaAssociacao
 
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
-from .validators import cnpj_validation
+from .validators import cnpj_validation, normalize_cnpj
 from ..choices import MembroEnum, FiltroInformacoesAssociacao, FiltroInformacoesAssociacaoDre
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -591,6 +591,8 @@ class Associacao(ModeloIdNome):
                     'data_de_encerramento': "Data de encerramento não pode ser menor que data_fim_realizacao_despesas do período inicial"})
 
     def save(self, *args, **kwargs):
+        if self.cnpj:
+            self.cnpj = normalize_cnpj(self.cnpj)
         self.clean()
         return super().save(*args, **kwargs)
 

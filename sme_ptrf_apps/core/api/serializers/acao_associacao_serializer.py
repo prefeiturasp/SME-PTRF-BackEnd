@@ -2,7 +2,8 @@ from rest_framework import serializers
 
 from ..serializers.acao_serializer import AcaoSerializer
 from ..serializers.associacao_serializer import AssociacaoSerializer, AssociacaoListSerializer
-from ...models import AcaoAssociacao, Associacao, Acao
+from ..serializers.recurso_serializer import RecursoSerializer
+from ...models import AcaoAssociacao, Associacao, Acao, Recurso
 
 
 class AcaoAssociacaoListaSimplesSerializer(serializers.ModelSerializer):
@@ -62,9 +63,15 @@ class AcaoAssociacaoCreateSerializer(serializers.ModelSerializer):
         queryset=Acao.objects.all()
     )
 
+    recurso = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=False,
+        queryset=Recurso.objects.all()
+    )
+
     class Meta:
         model = AcaoAssociacao
-        fields = ('uuid', 'associacao', 'acao', 'status')
+        fields = ('uuid', 'associacao', 'acao', 'status', 'recurso',)
 
     def validate(self, data):
         from sme_ptrf_apps.core.services.acoes_associacoes_service import validate_acao_associacao
@@ -78,6 +85,31 @@ class AcaoAssociacaoCreateSerializer(serializers.ModelSerializer):
                 raise error
         return data
 
+    def update(self, instance, validated_data):
+        # Verificar se houve mudanças nos dados (ignorando o campo 'status')
+        dados_para_comparacao = {
+            key: value
+            for key, value in validated_data.items() 
+            if key != 'status'
+        }
+
+        tem_mudancas = any(
+            getattr(instance, key) != value 
+            for key, value in dados_para_comparacao.items()
+        )
+
+        # Se não há mudanças, apenas salvar sem validação
+        if not tem_mudancas:
+            return super().update(instance, validated_data)
+
+        # Se há mudanças, aplicar validação
+        is_valid, error_message = AcaoAssociacao.is_valid_data(instance.uuid)
+
+        if not is_valid:
+            raise serializers.ValidationError({'non_field_errors': error_message})
+
+        return super().update(instance, validated_data)
+
 
 class AcaoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
     associacao = AssociacaoListSerializer()
@@ -85,6 +117,7 @@ class AcaoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
     data_de_encerramento_associacao = serializers.SerializerMethodField('get_data_de_encerramento_associacao')
     tooltip_associacao_encerrada = serializers.SerializerMethodField('get_tooltip_associacao_encerrada')
     saldos = serializers.SerializerMethodField()
+    recurso = serializers.SerializerMethodField('get_recurso')
 
     def get_data_de_encerramento_associacao(self, obj):
         return obj.associacao.data_de_encerramento
@@ -95,8 +128,13 @@ class AcaoAssociacaoRetrieveSerializer(serializers.ModelSerializer):
     def get_saldos(self, obj):
         return obj.saldo_atual()
 
+    def get_recurso(self, obj):
+        if obj.acao.recurso:
+            return RecursoSerializer(obj.acao.recurso).data
+        return None
+
     class Meta:
         model = AcaoAssociacao
         fields = ('uuid', 'id', 'associacao', 'data_de_encerramento_associacao',
-                  'tooltip_associacao_encerrada', 'acao', 'status', 'criado_em', 'saldos',)
+                  'tooltip_associacao_encerrada', 'acao', 'status', 'criado_em', 'saldos', 'recurso',)
         read_only_fields = ('uuid', 'id', 'criado_em',)

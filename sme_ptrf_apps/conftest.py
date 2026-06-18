@@ -70,6 +70,7 @@ from sme_ptrf_apps.situacao_patrimonial.fixtures.factories import (
     BemProduzidoRateioFactory,
     BemProduzidoItemFactory
 )
+from sme_ptrf_apps.dre.fixtures.factories import ComissaoFactory
 
 factories_to_register = [
     DreFactory, UnidadeFactory, AssociacaoFactory, AssociacaoFactoryComPeriodoInicial, ContaAssociacaoFactory,
@@ -96,7 +97,7 @@ factories_to_register = [
     PDFFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory, AtaPaaFactory, ParticipanteAtaPaaFactory,
     AtividadeEstatutariaPaaFactory, OutroRecursoFactory, DocumentoPaaFactory, OutroRecursoPeriodoFactory,
     ReceitaPrevistaOutroRecursoPeriodoFactory, RecursoFactory, PeriodoInicialAssociacaoFactory,
-    ModeloCargaPaaFactory, ReplicaPaaFactory,
+    ModeloCargaPaaFactory, ReplicaPaaFactory, ComissaoFactory,
 ]
 
 for factory in factories_to_register:
@@ -1947,7 +1948,6 @@ def rateio_fora_periodo_50_custeio(associacao, despesa_fora_periodo, conta_assoc
 def parametros():
     return baker.make(
         'Parametros',
-        permite_saldo_conta_negativo=True,
         fique_de_olho='',
         fique_de_olho_relatorio_dre='',
         tempo_aguardar_conclusao_pc=1,
@@ -1980,7 +1980,6 @@ def parametro_fique_de_olho_pc_texto_abc():
 def parametros_aceita_saldo_negativo_em_conta():
     return baker.make(
         'Parametros',
-        permite_saldo_conta_negativo=True
     )
 
 
@@ -1988,7 +1987,6 @@ def parametros_aceita_saldo_negativo_em_conta():
 def parametros_nao_aceita_saldo_negativo_em_conta():
     return baker.make(
         'Parametros',
-        permite_saldo_conta_negativo=False
     )
 
 

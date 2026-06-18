@@ -4,7 +4,6 @@ from rest_framework import serializers
 
 from sme_ptrf_apps.paa.models import AtaPaa, DocumentoPaa, Paa
 from sme_ptrf_apps.paa.models.documento_paa import obter_documento_final_por_retificacao
-from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.services.retificacao_paa_service import (
     RetificacaoPaaService,
     ValidacaoRetificacao,
@@ -42,6 +41,7 @@ class RenderizadorStatusDocumentoPaaSerializer(serializers.Serializer):
     mensagem = serializers.CharField()
     cor_mensagem = serializers.CharField()
     versao_documento = serializers.IntegerField()
+    versao = serializers.CharField()
     retificacao = serializers.BooleanField()
 
 
@@ -104,6 +104,7 @@ class RenderizadorPaaBuilder:
                     'mensagem': 'Documento pendente de geração.',
                     'cor_mensagem': _cor_status_geracao(DocumentoPaa.StatusChoices.NAO_GERADO),
                     'versao_documento': 1,
+                    'versao': '',
                     'retificacao': eh_retificacao,
                 },
                 'url': '',
@@ -117,6 +118,7 @@ class RenderizadorPaaBuilder:
                 'mensagem': str(documento),
                 'cor_mensagem': _cor_status_geracao(documento.status_geracao),
                 'versao_documento': documento.versao_documento,
+                'versao': documento.versao,
                 'retificacao': documento.retificacao,
             },
             'url': _url_documento_final(self.request, self.paa, eh_retificacao) if existe else '',
@@ -175,15 +177,15 @@ class RenderizadorPaaBuilder:
         """
         if not eh_paa_vigente:
             return False
-        esta_em_retificacao = self.paa.status == PaaStatusEnum.EM_RETIFICACAO.name
+
         esconde = self._estado_ata_esconde_botoes_acao(ata)
 
         if eh_retificacao:
-            if not esta_em_retificacao:
+            if not self.paa.status_em_retificacao:
                 return False
             return not esconde
 
-        if esta_em_retificacao:
+        if self.paa.status_em_retificacao:
             return False
 
         return not esconde
@@ -253,7 +255,7 @@ class RenderizadorPaaBuilder:
         )
 
     def _pode_retificar(self) -> bool:
-        if self.paa.status == PaaStatusEnum.EM_RETIFICACAO.name:
+        if self.paa.status_em_retificacao:
             return False
         try:
             RetificacaoPaaService(paa=self.paa, usuario=self.usuario).valida_pode_retificar()
@@ -278,9 +280,8 @@ class RenderizadorPaaBuilder:
         doc_original = obter_documento_final_por_retificacao(self.paa, False)
         ata_original = self._ata_por_tipo(AtaPaa.ATA_APRESENTACAO)
 
-        esta_em_retificacao = self.paa.status == PaaStatusEnum.EM_RETIFICACAO.name
         bloco_retificacao = None
-        if esta_em_retificacao:
+        if self.paa.status_em_retificacao:
             doc_ret = obter_documento_final_por_retificacao(self.paa, True)
             ata_ret = self._ata_por_tipo(AtaPaa.ATA_RETIFICACAO)
             bloco_retificacao = {
@@ -292,7 +293,7 @@ class RenderizadorPaaBuilder:
             'uuid': str(self.paa.uuid),
             'referencia': self.paa.periodo_paa.referencia if self.paa.periodo_paa else '',
             'pode_retificar': self._pode_retificar(),
-            'esta_em_retificacao': esta_em_retificacao,
+            'esta_em_retificacao': self.paa.status_em_retificacao,
             'unidade': self._unidade(),
             'original': {
                 'documento': self._documento_render(doc_original, False),

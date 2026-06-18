@@ -1,13 +1,14 @@
 import logging
 from django.db import models
 from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa, Paa, ReceitaPrevistaOutroRecursoPeriodo
-from sme_ptrf_apps.paa.enums import PaaStatusEnum, PaaStatusAndamentoEnum
+from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
 
 logger = logging.getLogger(__name__)
 
 
 class OutroRecursoPeriodoBaseService:
-    def __init__(self, outro_recurso_periodo: OutroRecursoPeriodoPaa):
+    def __init__(self, outro_recurso_periodo: OutroRecursoPeriodoPaa) -> None:
+        """Inicializa o service com a instância do recurso de período."""
         self.outro_recurso_periodo = outro_recurso_periodo
 
     def _tinha_todas_unidades(self) -> bool:
@@ -34,9 +35,11 @@ class OutroRecursoPeriodoBaseService:
         return paas
 
     def _paas_afetados_em_elaboracao(self) -> models.QuerySet:
+        """Retorna os PAAs afetados com status em elaboração."""
         return self._obtem_paas_afetados().paas_em_elaboracao()
 
     def _paas_afetados_gerado_retificado(self) -> models.QuerySet:
+        """Retorna os PAAs afetados com status gerado ou gerado parcialmente."""
         paas_andamento_gerados = self._obtem_paas_afetados().filter(
             pk=models.OuterRef('id')).paas_gerados()
 
@@ -85,7 +88,7 @@ class OutroRecursoPeriodoBaseService:
         Returns:
             True se estiver em retificação
         """
-        em_retificacao = paa.status == PaaStatusEnum.EM_RETIFICACAO.name
+        em_retificacao = paa.status_em_retificacao
         return em_retificacao
 
     def _paa_gerado(self, paa: Paa) -> bool:
@@ -101,6 +104,7 @@ class OutroRecursoPeriodoBaseService:
         return paa.get_status_andamento() == PaaStatusAndamentoEnum.GERADO.name
 
     def _receitas_previstas_outro_recurso_periodo_afetadas(self, paa: Paa) -> models.QuerySet:
+        """Retorna as receitas previstas do PAA vinculadas ao recurso de período."""
         logger.info(
             f"Buscando receitas previstas de outros recursos para PAA {paa.id} - {str(paa)} "
             f"e outro recurso período {self.outro_recurso_periodo.id} - {str(self.outro_recurso_periodo)}")
@@ -137,6 +141,7 @@ class OutroRecursoPeriodoBaseService:
             raise Exception(msg_erro)
 
     def _prioridades_afetadas(self, paa: Paa) -> models.QuerySet:
+        """Retorna as prioridades do PAA vinculadas ao recurso de período."""
         logger.info(
             f"Buscando prioridades de outros recursos para PAA {paa.id} - {str(paa)} "
             f"e outro recurso período {self.outro_recurso_periodo.id} - {str(self.outro_recurso_periodo)}")
@@ -162,4 +167,5 @@ class OutroRecursoPeriodoBaseService:
         return count
 
     def _outro_recurso_periodo_ativo(self) -> bool:
+        """Verifica se o recurso de período está ativo."""
         return self.outro_recurso_periodo.ativo
