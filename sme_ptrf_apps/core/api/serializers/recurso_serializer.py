@@ -18,7 +18,8 @@ class RecursoSerializer(serializers.ModelSerializer):
             'ativo',
             'legado',
             'exibe_valores_reprogramados',
-            'habilita_aprovacao_com_ressalvas'
+            'habilita_aprovacao_com_ressalvas',
+            'habilita_exibicao_de_lauda',
         )
         read_only_fields = (
             'id',
@@ -32,5 +33,6 @@ class RecursoSerializer(serializers.ModelSerializer):
             'ativo',
             'legado',
             'exibe_valores_reprogramados',
-            'habilita_aprovacao_com_ressalvas'
+            'habilita_aprovacao_com_ressalvas',
+            'habilita_exibicao_de_lauda',
         )

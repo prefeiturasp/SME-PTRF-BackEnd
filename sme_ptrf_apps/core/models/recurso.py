@@ -72,6 +72,12 @@ class Recurso(ModeloIdNome, TemAtivo):
         default=None,
     )
 
+    habilita_exibicao_de_lauda = models.BooleanField(
+        verbose_name="Habilitar exibição de lauda?",
+        help_text="Define se o recurso segue o fluxo de lauda, caso não esteja marcado, seguirá o fluxo de relatório.",
+        default=False,
+    )
+
     class Meta:
         verbose_name = 'Recurso'
         verbose_name_plural = '20.0) Recursos'
