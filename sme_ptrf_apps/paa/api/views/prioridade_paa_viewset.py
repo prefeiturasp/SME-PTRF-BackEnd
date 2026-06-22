@@ -23,12 +23,19 @@ from drf_spectacular.utils import extend_schema_view
 from sme_ptrf_apps.paa.api.views.docs.prioridade_paa_docs import DOCS
 from sme_ptrf_apps.paa.api.views.docs.prioridade_paa_relatorio_docs import DOCS as DOCS_RELATORIO
 
+from sme_ptrf_apps.paa.mixins.paa_bloqueia_alteracao_mixin import PaaBloqueiaAlteracaoMixin
+from sme_ptrf_apps.paa.services.paa_status_bloqueia_alteracao_service import (
+    PaaStatusBloqueiaAlteracaoService,
+    TipoBloqueioPaa
+)
+
 logger = logging.getLogger(__name__)
 
 
 @extend_schema_view(**DOCS)
-class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
+class PrioridadePaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
     waffle_flag = "paa"
+    tipo_bloqueio_paa = TipoBloqueioPaa.STATUS_GERADO
     permission_classes = [PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = PrioridadePaa.objects.all()
@@ -109,6 +116,17 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
+        prioridades = PrioridadePaa.objects.filter(
+            uuid__in=lista_uuids
+        ).select_related("paa")
+
+        paas = {p.paa for p in prioridades}
+
+        PaaStatusBloqueiaAlteracaoService.validar_lista(
+            paas,
+            tipo_bloqueio=TipoBloqueioPaa.STATUS_GERADO,
+        )
+
         try:
             erros = PrioridadePaa.excluir_em_lote(lista_uuids)
             if len(erros):
@@ -158,6 +176,8 @@ class PrioridadePaaViewSet(WaffleFlagMixin, ModelViewSet):
                 {"mensagem": "Prioridade não encontrada ou já foi removida da base de dados."},
                 status=status.HTTP_404_NOT_FOUND
             )
+
+        self.validar_paa_permite_alteracao(original.paa)
 
         original_data = {
             'paa': str(original.paa.uuid) if original.paa else None,
