@@ -60,11 +60,14 @@ from sme_ptrf_apps.paa.services.cancela_retificacao_paa_service import (
 from drf_spectacular.utils import extend_schema_view
 from .docs.paa_viewset_docs import DOCS as PAA_DOCS
 
+from sme_ptrf_apps.paa.mixins.paa_bloqueia_alteracao_mixin import PaaBloqueiaAlteracaoMixin
+from sme_ptrf_apps.paa.services.paa_status_bloqueia_alteracao_service import TipoBloqueioPaa
+
 logger = logging.getLogger(__name__)
 
 
 @extend_schema_view(**PAA_DOCS)
-class PaaViewSet(WaffleFlagMixin, ModelViewSet):
+class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
     """Conjunto de views para o modelo Paa.
 
     Disponibiliza rotas e ações customizadas para o ciclo de vida do
@@ -72,6 +75,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
     """
 
     waffle_flag = "paa"
+    tipo_bloqueio_paa = TipoBloqueioPaa.STATUS_GERADO
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = Paa.objects.all()
@@ -355,7 +359,7 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
 
             Retorne um dicionário com a mensagem de sucesso e a quantidade de
             prioridades importadas.
-        """
+        """        
         confirmar = bool(int(self.request.query_params.get('confirmar', 0)))
         try:
             paa_atual = self.get_object()
@@ -365,6 +369,8 @@ class PaaViewSet(WaffleFlagMixin, ModelViewSet):
             paa_anterior = Paa.objects.get(uuid=uuid_paa_anterior)
         except (Http404, NotFound, Paa.DoesNotExist):
             return Response({"mensagem": "PAA anterior não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
+        self.validar_paa_permite_alteracao() # não permite importar prioridades se gerado
 
         try:
             importados = PaaService.importar_prioridades_paa_anterior(paa_atual, paa_anterior, confirmar)

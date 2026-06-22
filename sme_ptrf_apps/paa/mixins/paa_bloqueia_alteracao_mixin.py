@@ -26,19 +26,16 @@ class PaaBloqueiaAlteracaoMixin:
             paa_uuid = self.request.data.get("paa")
 
             if not paa_uuid:
-                raise ValidationError({
-                    "mensagem": "PAA não informado no payload."
-                })
+                return None
 
             paa = Paa.objects.filter(uuid=paa_uuid).first()
-
-            if not paa:
-                raise ValidationError({"mensagem": "PAA inválido"})
 
             return paa
 
         # UPDATE / DELETE / DETAIL
-        return self.get_object().paa
+        obj = self.get_object()
+
+        return getattr(obj, "paa", obj)
 
     def validar_paa_permite_alteracao(self):
         if not self.tipo_bloqueio_paa:
@@ -46,11 +43,13 @@ class PaaBloqueiaAlteracaoMixin:
 
         paa = self.get_paa()
 
-        if self.tipo_bloqueio_paa == TipoBloqueioPaa.DOCUMENTO_FINAL:
-            PaaStatusBloqueiaAlteracaoService.checar_documento_final(paa)
-
-        elif self.tipo_bloqueio_paa == TipoBloqueioPaa.STATUS_GERADO:
+        if not paa:
+            return # senão houver paa
+        
+        if self.tipo_bloqueio_paa == TipoBloqueioPaa.STATUS_GERADO:
             PaaStatusBloqueiaAlteracaoService.checar_status_gerado(paa)
+        elif self.tipo_bloqueio_paa == TipoBloqueioPaa.ATA_CONCLUIDA:
+            PaaStatusBloqueiaAlteracaoService.checar_ata_concluida(paa)
 
     def perform_create(self, serializer):
         self.validar_paa_permite_alteracao()

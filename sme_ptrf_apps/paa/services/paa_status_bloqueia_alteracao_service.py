@@ -5,8 +5,8 @@ from rest_framework.exceptions import APIException
 
 
 class TipoBloqueioPaa(Enum):
-    DOCUMENTO_FINAL = "documento_final"
     STATUS_GERADO = "status_gerado"
+    ATA_CONCLUIDA = "ata_concluida"
 
 
 class PaaStatusBloqueiaAlteracaoException(APIException):
@@ -33,22 +33,25 @@ class PaaStatusBloqueiaAlteracaoService:
                 'utilize o fluxo de retificação do PAA.'
             )
 
+    
     @classmethod
-    def checar_documento_final(cls, paa: Paa):
-        if paa.documento_final:
+    def checar_ata_concluida(cls, paa: Paa):        
+        if paa.get_tem_ata_concluida():
             raise PaaStatusBloqueiaAlteracaoException(
-                'O Documento Final do PAA já foi gerado. '
+                'A Ata Final do PAA já foi concluida. '
                 'Para realizar alterações, utilize o fluxo de retificação.'
             )
+    
 
     @classmethod
     def validar_lista(cls, paas: List[Paa], tipo_bloqueio: TipoBloqueioPaa):
         """
         Valida uma lista de Paas dado um tipo bloqueio informado
         """
-        for paa in paas:
-            if tipo_bloqueio == TipoBloqueioPaa.DOCUMENTO_FINAL:
-                cls.checar_documento_final(paa)
+        for paa in paas:           
 
-            elif tipo_bloqueio == TipoBloqueioPaa.STATUS_GERADO:
+            if tipo_bloqueio == TipoBloqueioPaa.STATUS_GERADO:
                 cls.checar_status_gerado(paa)
+
+            elif tipo_bloqueio == TipoBloqueioPaa.ATA_CONCLUIDA:
+                cls.checar_ata_concluida(paa)

@@ -177,7 +177,7 @@ class PrioridadePaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelView
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        self.validar_paa_permite_alteracao(original.paa)
+        self.validar_paa_permite_alteracao()
 
         original_data = {
             'paa': str(original.paa.uuid) if original.paa else None,
