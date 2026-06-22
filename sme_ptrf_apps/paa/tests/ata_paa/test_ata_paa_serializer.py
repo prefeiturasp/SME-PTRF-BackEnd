@@ -435,9 +435,38 @@ def test_update_ata_paa_sem_presentes_com_flag_historico(mock_waffle, ata_paa):
     assert ata_paa_atualizada.comentarios == 'Comentários atualizados'
 
 
-def test_update_ata_paa_adiciona_novos_presentes(ata_paa):
+def test_update_ata_paa_adiciona_novos_presentes(ata_paa, flag_historico_membros):
     """Testa que novos participantes são adicionados"""
     validated_data = {
+        'presentes_na_ata_paa': [
+            {
+                'nome': 'João Silva',
+                'cargo': 'Membro',
+                'identificacao': '12345678900',
+                'membro': True
+            },
+            {
+                'nome': 'Maria Santos',
+                'cargo': 'Membro',
+                'identificacao': '98765432100',
+                'membro': True
+            }
+        ]
+    }
+
+    serializer = AtaPaaCreateSerializer()
+    ata_paa_atualizada = serializer.update(ata_paa, validated_data)
+
+    assert ata_paa_atualizada.presentes_na_ata_paa.count() == 2
+    assert ata_paa_atualizada.presentes_na_ata_paa.filter(nome='João Silva').exists()
+    assert ata_paa_atualizada.presentes_na_ata_paa.filter(nome='Maria Santos').exists()
+
+
+def test_update_ata_paa_adiciona_novos_presentes_sem_flag_historico_membros(ata_paa):
+    """Testa que novos participantes são adicionados"""
+    validated_data = {
+        "presidente_reuniao": "João Silva",
+        "secretario_reuniao": "Maria Santos",
         'presentes_na_ata_paa': [
             {
                 'nome': 'João Silva',
@@ -543,7 +572,7 @@ def test_update_ata_paa_define_novo_presidente_com_flag_historico(mock_waffle, a
     assert ata_paa_atualizada.presidente_da_reuniao.nome == 'João Silva'
 
 
-def test_update_ata_paa_define_novo_secretario(ata_paa):
+def test_update_ata_paa_define_novo_secretario(ata_paa, flag_historico_membros):
     """ Testa definição de novo secretário da reunião """
     validated_data = {
         'presentes_na_ata_paa': [
@@ -552,6 +581,27 @@ def test_update_ata_paa_define_novo_secretario(ata_paa):
                 'cargo': 'Secretária',
                 'identificacao': '98765432100',
                 'secretario_da_reuniao': True
+            }
+        ]
+    }
+
+    serializer = AtaPaaCreateSerializer()
+    ata_paa_atualizada = serializer.update(ata_paa, validated_data)
+
+    assert ata_paa_atualizada.secretario_da_reuniao is not None
+    assert ata_paa_atualizada.secretario_da_reuniao.nome == 'Maria Santos'
+
+
+def test_update_ata_paa_define_novo_secretario_sem_flag_historico_membros(ata_paa):
+    """ Testa definição de novo secretário da reunião """
+    validated_data = {
+        "presidente_reuniao": "João Silva",
+        "secretario_reuniao": "Maria Santos",
+        'presentes_na_ata_paa': [
+            {
+                'nome': 'Maria Santos',
+                'cargo': 'Secretária',
+                'identificacao': '98765432100',
             }
         ]
     }
