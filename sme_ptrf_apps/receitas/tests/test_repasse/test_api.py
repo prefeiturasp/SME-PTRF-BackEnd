@@ -258,9 +258,9 @@ def test_tabelas_por_associacao_sem_uuid_retorna_400(jwt_authenticated_client_p)
     assert result['erro'] == 'parametros_requerido'
 
 
-def test_tabelas_por_associacao_com_uuid_retorna_200(jwt_authenticated_client_p, associacao):
+def test_tabelas_por_associacao_com_uuid_retorna_200(jwt_authenticated_client_p, associacao, recurso_legado):
     response = jwt_authenticated_client_p.get(
-        f'/api/repasses/tabelas-por-associacao/?associacao_uuid={associacao.uuid}',
+        f'/api/repasses/tabelas-por-associacao/?associacao_uuid={associacao.uuid}&recurso_uuid={recurso_legado.uuid}',
         content_type='application/json'
     )
     assert response.status_code == HTTP_200_OK
