@@ -116,6 +116,16 @@ class PrioridadePaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelView
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
+        try:
+            from sme_ptrf_apps.paa.utils import validar_lista_uuids
+            validar_lista_uuids(lista_uuids)
+
+        except Exception as err:
+            return Response({
+                'erro': "Falha ao excluir Prioridades em lote",
+                'mensagem': str(err)
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
         prioridades = PrioridadePaa.objects.filter(
             uuid__in=lista_uuids
         ).select_related("paa")
