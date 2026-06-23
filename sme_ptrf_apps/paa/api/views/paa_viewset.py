@@ -359,7 +359,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
             Retorne um dicionário com a mensagem de sucesso e a quantidade de
             prioridades importadas.
-        """        
+        """
         confirmar = bool(int(self.request.query_params.get('confirmar', 0)))
         try:
             paa_atual = self.get_object()
