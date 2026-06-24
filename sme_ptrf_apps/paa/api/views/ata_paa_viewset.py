@@ -22,16 +22,20 @@ from sme_ptrf_apps.paa.services.ata_paa_service import validar_geracao_ata_paa
 from sme_ptrf_apps.paa.tasks.gerar_ata_paa import gerar_ata_paa_async
 from .docs.ata_paa_docs import DOCS
 
+from sme_ptrf_apps.paa.mixins.paa_bloqueia_alteracao_mixin import PaaBloqueiaAlteracaoMixin
+from sme_ptrf_apps.paa.services.paa_status_bloqueia_alteracao_service import TipoBloqueioPaa
 
 logger = logging.getLogger(__name__)
 
 
 @extend_schema_view(**DOCS)
 class AtaPaaViewSet(WaffleFlagMixin,
+                    PaaBloqueiaAlteracaoMixin,
                     mixins.RetrieveModelMixin,
                     mixins.UpdateModelMixin,
                     GenericViewSet):
     waffle_flag = "paa"
+    tipo_bloqueio_paa = TipoBloqueioPaa.ATA_CONCLUIDA
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = AtaPaa.objects.all()

@@ -9,6 +9,9 @@ from sme_ptrf_apps.paa.api.serializers import ReceitaPrevistaPddeSerializer
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 
+from sme_ptrf_apps.paa.mixins.paa_bloqueia_alteracao_mixin import PaaBloqueiaAlteracaoMixin
+from sme_ptrf_apps.paa.services.paa_status_bloqueia_alteracao_service import TipoBloqueioPaa
+
 
 class ReceitaPrevistaPddeFiltro(django_filters.FilterSet):
     acao_uuid = django_filters.CharFilter(
@@ -33,8 +36,9 @@ class ReceitaPrevistaPddeFiltro(django_filters.FilterSet):
         ]
 
 
-class ReceitaPrevistaPddeViewSet(WaffleFlagMixin, ModelViewSet):
+class ReceitaPrevistaPddeViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
     waffle_flag = "paa"
+    tipo_bloqueio_paa = TipoBloqueioPaa.STATUS_GERADO
     permission_classes = [IsAuthenticated, PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = ReceitaPrevistaPdde.objects.all()
