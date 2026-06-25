@@ -9,6 +9,14 @@ from rest_framework import serializers
 from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
+from sme_ptrf_apps.core.models import (
+    PrestacaoConta,
+    AnaliseLancamentoPrestacaoConta, 
+    TipoAcertoLancamento,
+    SolicitacaoAcertoLancamento
+)
+
+
 pytestmark = pytest.mark.django_db
 
 
@@ -713,3 +721,96 @@ def test_update_imposto_herda_conciliacao_quando_pc_devolvida(
         rateio_imposto.periodo_conciliacao_id
         == rateio_origem.periodo_conciliacao_id
     )
+
+
+def criar_cenario_marcar_lancamento_como_atualizado(
+    prestacao_conta_factory,
+    solicitacao_acerto_lancamento_factory,
+    analise_prestacao_conta_factory,
+    tipo_acerto_lancamento_factory,
+    analise_lancamento_prestacao_conta_factory,
+    despesa_factory,
+    associacao,
+    periodo_2020_2,
+    status_prestacao=PrestacaoConta.STATUS_DEVOLVIDA,
+    lancamento_atualizado=False,
+):
+    prestacao_conta_factory(
+        status=status_prestacao,
+        periodo=periodo_2020_2,
+        associacao=associacao,
+    )
+
+    analise_prestacao = analise_prestacao_conta_factory()
+
+    tipo_acerto = tipo_acerto_lancamento_factory(
+        categoria=TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO
+    )
+
+    despesa = despesa_factory(
+        associacao=associacao,
+        numero_documento="123456",
+        cpf_cnpj_fornecedor="11.478.276/0001-04",
+        data_transacao=periodo_2020_2.data_inicio_realizacao_despesas + datetime.timedelta(days=3),
+        data_documento=periodo_2020_2.data_inicio_realizacao_despesas + datetime.timedelta(days=3),
+        nome_fornecedor="Fornecedor SA",
+        valor_total=50.00,
+        valor_recursos_proprios=0,
+    )
+
+    analise_lancamento = analise_lancamento_prestacao_conta_factory(
+        analise_prestacao_conta=analise_prestacao,
+        despesa=despesa,
+        lancamento_atualizado=lancamento_atualizado,
+        tipo_lancamento=AnaliseLancamentoPrestacaoConta.TIPO_LANCAMENTO_GASTO,
+        status_realizacao=AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE,
+    )
+
+    solicitacao_acerto_lancamento_factory(
+        analise_lancamento=analise_lancamento,
+        tipo_acerto=tipo_acerto,
+        status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE,
+    )
+
+    return despesa, analise_lancamento
+
+
+def test_marca_lancamento_como_atualizado_quando_tudo_ok():
+    despesa, analise_lancamento = criar_cenario_marcar_lancamento_como_atualizado(
+        status_prestacao=PrestacaoConta.STATUS_DEVOLVIDA,
+        lancamento_atualizado=False,
+    )
+
+    assert not analise_lancamento.lancamento_atualizado
+
+    DespesaService._marcar_lancamento_como_atualizado(despesa)
+
+    analise_lancamento.refresh_from_db()
+
+    assert analise_lancamento.lancamento_atualizado
+
+
+def test_marca_lancamento_como_atualizado_quando_lancamento_atualizado():
+    despesa, analise_lancamento = criar_cenario_marcar_lancamento_como_atualizado(
+        status_prestacao=PrestacaoConta.STATUS_DEVOLVIDA,
+        lancamento_atualizado=True,
+    )
+
+    DespesaService._marcar_lancamento_como_atualizado(despesa)
+
+    analise_lancamento.refresh_from_db()
+
+    assert analise_lancamento.lancamento_atualizado
+
+
+def test_nao_marca_lancamento_quando_prestacao_em_analise():
+    despesa, analise_lancamento = criar_cenario_marcar_lancamento_como_atualizado(
+        status_prestacao=PrestacaoConta.STATUS_EM_ANALISE,
+        lancamento_atualizado=False,
+    )
+
+    DespesaService._marcar_lancamento_como_atualizado(despesa)
+
+    analise_lancamento.refresh_from_db()
+
+    assert not analise_lancamento.lancamento_atualizado
