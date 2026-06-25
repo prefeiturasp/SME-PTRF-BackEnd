@@ -9,6 +9,11 @@ from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, AP
 from sme_ptrf_apps.despesas.models import Despesa, RateioDespesa
 from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaCreateSerializer
 
+from sme_ptrf_apps.core.models.solicitacao_acerto_lancamento import SolicitacaoAcertoLancamento
+from sme_ptrf_apps.core.models.tipo_acerto_lancamento import TipoAcertoLancamento
+from sme_ptrf_apps.core.models.analise_lancamento_prestacao_conta import AnaliseLancamentoPrestacaoConta
+from sme_ptrf_apps.core.services.analise_lancamento_prestacao_conta_service import AnaliseLancamentoPrestacaoContaService
+
 logger = logging.getLogger(__name__)
 
 
@@ -131,6 +136,9 @@ class DespesaService:
 
             cls._finalizar_despesa(instance, rateios, limpar_prioridades_callback)
 
+            # Fluxo de PC
+            cls._marcar_lancamento_como_atualizado(instance)
+
             return instance
         finally:
             instance._skip_fornecedor_signal = False
@@ -212,6 +220,21 @@ class DespesaService:
     def _atualizar_rateios(despesa: Despesa, rateios):
         keep = []
 
+        uuids = [
+            rateio["uuid"]
+            for rateio in rateios
+            if "uuid" in rateio
+        ]
+
+        rateios_existentes = {
+            str(rateio.uuid): rateio
+            for rateio in (
+                RateioDespesa.objects
+                .filter(uuid__in=uuids)
+                .order_by("uuid")
+            )
+        }
+
         for rateio in rateios:
 
             rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
@@ -222,9 +245,9 @@ class DespesaService:
                     f"Encontrada chave uuid no rateio {rateio['uuid']} R${rateio['valor_rateio']}. Será atualizado."
                 )
 
-                rateio_para_atualizar = RateioDespesa.objects.filter(
-                    uuid=rateio["uuid"]
-                ).first()
+                rateio_para_atualizar = rateios_existentes.get(
+                    str(rateio["uuid"])
+                )
 
                 if rateio_para_atualizar:
 
@@ -317,9 +340,8 @@ class DespesaService:
                             f"no rateio {rateio['uuid']}"
                         )
 
-                    RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)
-                    obj = RateioDespesa.objects.get(uuid=rateio["uuid"])
-                    keep.append(obj.uuid)
+                    RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)                    
+                    keep.append(rateio_para_atualizar.uuid)
                 else:
                     logger.info(f"Rateio NÃO encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
                     continue
@@ -331,6 +353,7 @@ class DespesaService:
 
         RateioDespesa.objects.filter(despesa=despesa).exclude(uuid__in=keep).delete()
 
+    @staticmethod
     def _cria_atualiza_fornecedor(despesa: Despesa, validated_data: dict):
         from sme_ptrf_apps.despesas.models.fornecedor import Fornecedor
 
@@ -484,3 +507,46 @@ class DespesaService:
 
         if despesa.status == STATUS_COMPLETO and limpar_callback:
             limpar_callback(rateios, despesa)
+
+    @staticmethod
+    def _marcar_lancamento_como_atualizado(despesa: Despesa):
+        """
+        Marca o lançamento como atualizado quando existir uma solicitação
+        pendente de edição de lançamento em uma prestação de contas devolvida.
+        """
+        prestacao_conta = despesa.prestacao_conta
+
+        if not prestacao_conta or prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
+            return
+
+        lancamento_analise = (
+            AnaliseLancamentoPrestacaoConta.objects.filter(
+                despesa=despesa,
+                lancamento_atualizado=False,
+                tipo_lancamento=AnaliseLancamentoPrestacaoConta.TIPO_LANCAMENTO_GASTO,
+                status_realizacao=AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE,
+            )
+            .first()
+        )
+
+        if not lancamento_analise:
+            return
+
+        possui_solicitacao_pendente = (
+            lancamento_analise.solicitacoes_de_ajuste_da_analise.filter(
+                tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
+                status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE,
+            )
+            .exists()
+        )
+
+        if not possui_solicitacao_pendente:
+            return
+
+        AnaliseLancamentoPrestacaoContaService.marcar_lancamento_como_atualizado(
+            lancamento_analise
+        )
+
+        logger.info(
+            f"Despesa {despesa.uuid} com lançamento marcado como atualizado."
+        )
