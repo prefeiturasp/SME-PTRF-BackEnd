@@ -614,7 +614,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     def get_relatorio_referencia(self, obj):
         return obj.consolidado_dre.referencia if obj.consolidado_dre else ""
 
-    get_relatorio_referencia.short_description = 'Publicação'
+    get_relatorio_referencia.short_description = 'Publicação/Relatório'
 
     def get_periodo_referencia(self, obj):
         return obj.periodo.referencia if obj.periodo else ""
