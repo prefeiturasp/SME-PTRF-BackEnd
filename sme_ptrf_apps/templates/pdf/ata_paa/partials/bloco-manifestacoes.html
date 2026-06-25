@@ -12,7 +12,7 @@
         Não houve manifestações.
       </p>
       {% endif %}
-      
+
       {% if dados.dados_da_ata.parecer_conselho == "APROVADA" %}
       <p class="font-12 texto-justificado pb-2 mb-0">
         Os presentes manifestaram que estão de acordo com o PAA apresentado. Sem ressalvas.
@@ -29,7 +29,7 @@
       </p>
       {% endif %}
       <p class="font-12 texto-justificado pb-2 mb-0">
-        Esgotados os assuntos, o (a) senhor (a) presidente ofereceu a palavra a quem dela desejasse fazer uso e, como não houve manifestação, agradeceu a presença de todos e considerou encerrada a reunião, a qual eu, (secretário/a) lavrei a presente ata, que vai por mim assinada
+        Esgotados os assuntos, o (a) senhor (a) presidente ofereceu a palavra a quem dela desejasse fazer uso e, como não houve manifestação, agradeceu a presença de todos e considerou encerrada a reunião, a qual eu, {{ dados.dados_da_ata.secretario_reuniao }} lavrei a presente ata, que vai por mim assinada.
       </p>
     </div>
   </article>
