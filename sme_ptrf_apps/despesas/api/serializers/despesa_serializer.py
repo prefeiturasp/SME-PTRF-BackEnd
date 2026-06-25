@@ -87,6 +87,12 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     )
 
     def validate_rateios(self, value):
+        # [PIPELINE] As validações abaixo (R01, R04a, R04b, R05, R06a, R06b) serão absorvidas
+        # pela pipeline quando substituída. Validators correspondentes:
+        #   RateiosObrigatoriosValidator  → R01
+        #   SomaRateiosValidator          → R04a (valor_rateio), R04b (valor_original)
+        #   RateiosCapitalValidator       → R05, R06a, R06b
+        # Ponto de acionamento futuro: validate() — onde o contexto completo já está disponível.
         ValidacaoDespesaService.validar_rateios_serializer(
             raw_rateios=self.initial_data.get("rateios", []),
             valor_total=self.initial_data.get("valor_total"),
@@ -116,6 +122,48 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             recurso=self.instance.recurso if self.instance else recurso
         )
 
+        # # [PIPELINE] Substituição futura de validate_rateios() + validate():
+        # #
+        # # Quando ativado, remove:
+        # #   - validate_rateios() inteiro (R01, R04, R05, R06 migrados para pipeline)
+        # #   - bloco "if not self.instance: recurso..." acima  (coberto por R02)
+        # #   - chamada ValidacaoDespesaService.validar_periodo_e_contas() acima  (coberto por R07–R16)
+        # #
+        # # Adicionar imports no topo:
+        # from sme_ptrf_apps.despesas.validators import (
+        #     DespesaContextBuilder, DespesaValidationError,
+        #     CREATE_PIPELINE, UPDATE_PIPELINE,
+        #     CREATE_ACERTO_PIPELINE, UPDATE_ACERTO_PIPELINE,
+        # )
+        # #
+        # # Substituir todo o corpo de validate() por:
+        # #
+        # uuid_acerto = self.context.get("uuid_solicitacao_acerto")
+        # #
+        # if self.instance is None:
+        #     pipeline = CREATE_ACERTO_PIPELINE if uuid_acerto else CREATE_PIPELINE
+        # else:
+        #     pipeline = UPDATE_ACERTO_PIPELINE if uuid_acerto else UPDATE_PIPELINE
+        
+        # ctx = DespesaContextBuilder.build(
+        #     validated_data=data,
+        #     instance=self.instance,
+        #     recurso=self.context.get("recurso"),
+        #     initial_data=self.initial_data,
+        #     uuid_solicitacao_acerto=uuid_acerto,
+        # )
+        
+        # try:
+        #     ctx = pipeline.run(ctx)
+        # except DespesaValidationError as exc:
+        #     raise serializers.ValidationError(exc.detail)
+        # #
+        # # # Sincroniza mutações do apply() de volta ao data.
+        # # # ctx.rateios aponta para data["rateios"] — mutações em dicts individuais (R21)
+        # # # propagam automaticamente. Motivos e outros precisam de sync explícito (R15).
+        # data["motivos_pagamento_antecipado"] = ctx.motivos_pagamento_antecipado
+        # data["outros_motivos_pagamento_antecipado"] = ctx.outros_motivos or ""
+
         return data
 
     def _limpar_prioridades_paa(self, rateios, instance_despesa):
@@ -133,6 +181,22 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
         validated_data["recurso"] = self.context["recurso"]
 
+        # [PIPELINE — Fluxo 3] Após criar a despesa, vincular ao SolicitacaoAcertoDocumento
+        # em uma única operação, eliminando o segundo request atualmente feito pelo frontend.
+        # A pipeline já terá sido executada em validate(); aqui é apenas o efeito colateral.
+        #
+        #   despesa = DespesaService.create(validated_data, limpar_prioridades_callback=...)
+        #   uuid_acerto = self.context.get("uuid_solicitacao_acerto")
+        #   if uuid_acerto:
+        #       from sme_ptrf_apps.core.services.solicitacao_acerto_documento_service import (
+        #           SolicitacaoAcertoDocumentoService,
+        #       )
+        #       SolicitacaoAcertoDocumentoService.marcar_como_gasto_incluido(
+        #           uuid_solicitacao_acerto=uuid_acerto,
+        #           uuid_gasto_incluido=str(despesa.uuid),
+        #       )
+        #   return despesa
+        
         return DespesaService.create(
             validated_data,
             limpar_prioridades_callback=self._limpar_prioridades_paa
@@ -144,6 +208,19 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         from django.db import DatabaseError
         from copy import deepcopy
         import time
+
+        # [PIPELINE — Fluxo 4] Edição via Solicitação de Acerto.
+        # A pipeline do fluxo 2/4 já terá sido executada em validate();
+        #
+        #   uuid_acerto = self.context.get("uuid_solicitacao_acerto")
+        #   if uuid_acerto:
+        #       from sme_ptrf_apps.core.services.solicitacao_acerto_documento_service import (
+        #           SolicitacaoAcertoDocumentoService,
+        #       )
+        #       SolicitacaoAcertoDocumentoService.marcar_como_gasto_incluido(
+        #           uuid_solicitacao_acerto=uuid_acerto,
+        #           uuid_gasto_incluido=str(instance.uuid),
+        #       )
 
         max_retries = 3
         retry_count = 0
