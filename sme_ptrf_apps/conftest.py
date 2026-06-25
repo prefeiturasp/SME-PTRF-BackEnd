@@ -3202,6 +3202,7 @@ def recurso_esperado():
             "legado": recurso.legado,
             "exibe_valores_reprogramados": recurso.exibe_valores_reprogramados,
             "habilita_aprovacao_com_ressalvas": recurso.habilita_aprovacao_com_ressalvas,
+            "habilita_exibicao_de_lauda": recurso.habilita_exibicao_de_lauda,
         }
 
     return _recurso_esperado

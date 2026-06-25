@@ -110,6 +110,7 @@ class RecursoAdmin(admin.ModelAdmin):
         'ativo',
         'exibe_valores_reprogramados',
         'habilita_aprovacao_com_ressalvas',
+        'habilita_exibicao_de_lauda',
         'cor_preview'
     )
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
@@ -144,6 +145,11 @@ class RecursoAdmin(admin.ModelAdmin):
         ('Análise de Prestação de Contas', {
             'fields': (
                 'habilita_aprovacao_com_ressalvas',
+            )
+        }),
+        ('Consolidado das PCs', {
+            'fields': (
+                'habilita_exibicao_de_lauda',
             )
         }),
         ('Valores Reprogramados', {
