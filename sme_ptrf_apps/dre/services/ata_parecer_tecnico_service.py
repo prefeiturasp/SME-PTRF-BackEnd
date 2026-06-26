@@ -143,11 +143,17 @@ def gerar_arquivo_ata_parecer_tecnico(
 
 
 def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre(dre, periodo, ata_de_parecer_tecnico=None, usuario=None, parcial=None):
+    from sme_ptrf_apps.dre.services.consolidado_dre_service import TextDocumentConsolidadoPC
+
     lista_contas_aprovadas = []  # PCs aprovadas precisam ser separadas por conta
     lista_contas_aprovadas_ressalva = []  # PCs aprovadas com ressalva precisam ser separadas por conta
     lista_contas_reprovadas = []  # PCs reprovadas precisam ser separadas por conta
     lista_motivos_aprovadas_ressalva = []
     lista_motivos_reprovacao = []
+
+    recurso = periodo.recurso
+    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda if recurso else False
+    text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
 
     titulo_sequencia_publicacao = None
     if parcial:
@@ -156,9 +162,15 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
 
         if eh_parcial == "Parcial":
-            titulo_sequencia_publicacao = f'Publicação Parcial #{sequencia_de_publicacao}'
+            titulo_sequencia_publicacao = text_document_consolidado_pc.text_sequencial(
+                publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL,
+                sequence_number=sequencia_de_publicacao
+            )
         else:
-            titulo_sequencia_publicacao = "Publicação Única"
+            titulo_sequencia_publicacao = text_document_consolidado_pc.text_with_type_document(
+                publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE,
+            )
+
 
     motivo_retificacao = None
     eh_retificacao = False
@@ -168,7 +180,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
             motivo_retificacao = ata_de_parecer_tecnico.consolidado_dre.motivo_retificacao
             publicacao_parcial_que_gerou_a_retificacao = ata_de_parecer_tecnico.consolidado_dre.consolidado_retificado
             data_publicacao = publicacao_parcial_que_gerou_a_retificacao.data_publicacao if publicacao_parcial_que_gerou_a_retificacao and publicacao_parcial_que_gerou_a_retificacao.data_publicacao else ''
-            titulo_sequencia_publicacao = f"Retificação da publicação de {data_publicacao.strftime('%d/%m/%Y')}"
+            titulo_sequencia_publicacao = f"Retificação {text_document_consolidado_pc.possessive(case="lower")} de {data_publicacao.strftime('%d/%m/%Y')}"
 
     cabecalho = {
         "titulo": periodo.recurso.nome,
