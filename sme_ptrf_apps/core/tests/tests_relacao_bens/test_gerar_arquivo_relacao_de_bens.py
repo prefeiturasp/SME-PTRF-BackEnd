@@ -45,4 +45,5 @@ def test_persistir_arquivo_sem_rateios_retorna_none(periodo, conta_associacao):
 
 def test_gerar_arquivo_dados_persistidos_sem_relatorio_nao_falha(relacao_bens_final):
     # Quando não há RelatorioRelacaoBens associado, não deve lançar exceção
-    gerar_arquivo_relacao_de_bens_dados_persistidos(relacao_bens=relacao_bens_final)
+    recurso_nome = relacao_bens_final.conta_associacao.tipo_conta.recurso.nome or None
+    gerar_arquivo_relacao_de_bens_dados_persistidos(relacao_bens=relacao_bens_final, recurso_nome=recurso_nome)
