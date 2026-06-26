@@ -1316,7 +1316,8 @@ class RelacaoBensAdmin(admin.ModelAdmin):
     def gerar_pdf(self, request, queryset):
         from .services.relacao_bens import gerar_arquivo_relacao_de_bens_dados_persistidos
         for item in queryset:
-            gerar_arquivo_relacao_de_bens_dados_persistidos(item)
+            recurso_nome = item.conta_associacao.tipo_conta.recurso.nome
+            gerar_arquivo_relacao_de_bens_dados_persistidos(item, recurso_nome)
 
 
 class ItemRelatorioRelacaoDeBensInline(admin.TabularInline):
