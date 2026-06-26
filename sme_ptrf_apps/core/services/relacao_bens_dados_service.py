@@ -289,7 +289,7 @@ def persistir_dados_relacao_bens(periodo, conta_associacao, rateios, relacao_ben
     LOGGER.info(f'Dados da relação bens persistidos {relatorio} com sucesso.')
 
 
-def formatar_e_retornar_dados_relatorio_relacao_bens(relatorio):
+def formatar_e_retornar_dados_relatorio_relacao_bens(relatorio, recurso_nome):
     linhas = []
 
     for item in relatorio.bens.all():
@@ -307,6 +307,7 @@ def formatar_e_retornar_dados_relatorio_relacao_bens(relatorio):
 
     dados_relacao_de_bens = {
         "cabecalho": {
+            "recurso": recurso_nome,
             "periodo_referencia": relatorio.periodo_referencia,
             "periodo_data_inicio": formata_data(relatorio.periodo_data_inicio),
             "periodo_data_fim": formata_data(relatorio.periodo_data_fim),
