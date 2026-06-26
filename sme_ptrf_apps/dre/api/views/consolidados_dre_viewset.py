@@ -358,7 +358,7 @@ class ConsolidadosDreViewSet(
         if not alterado_em:
             erro = {
                 'erro': 'Ata não preenchida',
-                'mensagem': f"Para fazer a {text_document_consolidado_pc.normal(case="lower")} você precisa preencher as informações da ata.",
+                'mensagem': f"Para fazer a {text_document_consolidado_pc.normal(case='lower')} você precisa preencher as informações da ata.",
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)

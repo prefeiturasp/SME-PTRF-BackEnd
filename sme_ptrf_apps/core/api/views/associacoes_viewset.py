@@ -683,11 +683,16 @@ class AssociacoesViewSet(ModelViewSet):
         processos = associacao.processos.all()
         recurso_legado = Recurso.objects.filter(legado=True).first()
 
-        if flag_is_active(self.request, "premio-excelencia-processo-sei"):
-            recurso = getattr(self.request, 'recurso', None) or recurso_legado
-            processos = processos.filter(recurso=recurso)
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+        if recurso_uuid and flag_is_active(self.request, "premio-excelencia-processo-sei"):
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
+            if recurso is None:
+                return Response({"mensagem": "Recurso não encontrado."}, status=status.HTTP_404_NOT_FOUND)
         else:
-            processos = processos.filter(recurso=recurso_legado)
+            recurso = recurso_legado
+
+        if recurso:
+            processos = processos.filter(recurso=recurso)
 
         return Response(ProcessoAssociacaoRetrieveSerializer(processos, many=True).data)
 
