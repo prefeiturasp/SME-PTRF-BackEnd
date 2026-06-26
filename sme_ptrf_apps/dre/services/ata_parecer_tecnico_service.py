@@ -180,7 +180,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
             motivo_retificacao = ata_de_parecer_tecnico.consolidado_dre.motivo_retificacao
             publicacao_parcial_que_gerou_a_retificacao = ata_de_parecer_tecnico.consolidado_dre.consolidado_retificado
             data_publicacao = publicacao_parcial_que_gerou_a_retificacao.data_publicacao if publicacao_parcial_que_gerou_a_retificacao and publicacao_parcial_que_gerou_a_retificacao.data_publicacao else ''
-            titulo_sequencia_publicacao = f"Retificação {text_document_consolidado_pc.possessive(case="lower")} de {data_publicacao.strftime('%d/%m/%Y')}"
+            titulo_sequencia_publicacao = f"Retificação {text_document_consolidado_pc.possessive(case='lower')} de {data_publicacao.strftime('%d/%m/%Y')}"
 
     cabecalho = {
         "titulo": periodo.recurso.nome,

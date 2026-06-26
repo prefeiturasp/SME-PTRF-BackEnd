@@ -80,9 +80,9 @@ class TextDocumentConsolidadoPC:
 
     def text_with_refer(self):
         if self._is_enable_lauda:
-            return f"na referida {self.normal(case="lower")}"
+            return f"na referida {self.normal(case='lower')}"
 
-        return f"no referido {self.normal(case="lower")}"
+        return f"no referido {self.normal(case='lower')}"
 
 
     def text_complete_erro_mark_as_publicated_consolidado(self):
