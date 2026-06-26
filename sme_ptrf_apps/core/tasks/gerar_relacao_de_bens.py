@@ -53,11 +53,12 @@ def gerar_relacao_bens_async(self, id_task, prestacao_conta_uuid, username=""):
             return
 
         prestacao = pc_service.prestacao
+        recurso_nome = prestacao.periodo.recurso.nome
 
         relacao_bens = prestacao.relacoes_de_bens_da_prestacao.filter(versao=RelacaoBens.VERSAO_FINAL)
 
         for relacao in relacao_bens:
-            dados = _retornar_dados_relatorio_relacao_de_bens(relacao)
+            dados = _retornar_dados_relatorio_relacao_de_bens(relacao, recurso_nome)
 
             if dados:
                 gerar_arquivo_relacao_de_bens_pdf(dados, relacao)
