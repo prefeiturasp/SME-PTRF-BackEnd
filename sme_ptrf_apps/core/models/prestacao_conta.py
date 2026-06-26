@@ -239,11 +239,13 @@ class PrestacaoConta(ModeloBase):
 
         tipo_relatorio = text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE if self.consolidado_dre.sequencia_de_publicacao == 0 \
             else text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL
-
-        mensagem = f"Essa PC consta {text_document_consolidado_pc.text_possessive_with_type_and_sequency(
+        
+        text_consolidado_pc = text_document_consolidado_pc.text_possessive_with_type_and_sequency(
             publication_type=tipo_relatorio,
             sequency_number=self.consolidado_dre.sequencia_de_publicacao
-        )}"
+        )
+
+        mensagem = f"Essa PC consta {text_consolidado_pc}"
 
         return mensagem
 
@@ -258,10 +260,12 @@ class PrestacaoConta(ModeloBase):
             tipo_relatorio = text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE if self.consolidado_dre.consolidado_retificado.sequencia_de_publicacao == 0 \
                 else text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL
 
-            mensagem = f"Essa PC consta {text_document_consolidado_pc.text_possessive_with_type_and_sequency(
+            text_consolidado_pc = text_document_consolidado_pc.text_possessive_with_type_and_sequency(
                 publication_type=tipo_relatorio,
                 sequency_number=self.consolidado_dre.consolidado_retificado.sequencia_de_publicacao
-            )}"
+            )
+
+            mensagem = f"Essa PC consta {text_consolidado_pc}"
 
         elif self.pc_concluida:
             data_publicacao = self.consolidado_dre.get_data_publicacao_do_consolidado_original
