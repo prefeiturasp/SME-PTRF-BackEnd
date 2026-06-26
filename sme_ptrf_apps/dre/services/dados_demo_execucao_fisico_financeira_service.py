@@ -10,7 +10,7 @@ from sme_ptrf_apps.dre.models import ParametrosDre
 from django.db.models import Max, Value, Count
 from django.db.models.functions import Coalesce
 
-from sme_ptrf_apps.dre.services.consolidado_dre_service import verifica_se_eh_relatorio_publicacoes_parciais
+from sme_ptrf_apps.dre.services.consolidado_dre_service import verifica_se_eh_relatorio_publicacoes_parciais, TextDocumentConsolidadoPC
 
 LOGGER = logging.getLogger(__name__)
 
@@ -19,6 +19,7 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
     try:
         LOGGER.info("Gerando relatório consolidado...")
 
+        text_document_consolidado_pc = retorna_dict_text_documento_consolidado_pc(periodo)
         cabecalho = cria_cabecalho(periodo, parcial, previa, consolidado_dre)
         bloco_consolidado_das_publicacoes_parciais = cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo) if eh_consolidado_de_publicacoes_parciais else None
         data_geracao_documento = cria_data_geracao_documento(usuario, dre, parcial, previa)
@@ -52,6 +53,7 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
         """
 
         dados_demonstrativo = {
+            "text_document_consolidado_pc": text_document_consolidado_pc,
             "cabecalho": cabecalho,
             "bloco_consolidado_das_publicacoes_parciais": bloco_consolidado_das_publicacoes_parciais,
             "data_geracao_documento": data_geracao_documento,
@@ -74,6 +76,10 @@ def cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo):
     consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao="FINAL").order_by("sequencia_de_publicacao", "alterado_em")
     consolidado_das_publicacoes_parciais_list = []
 
+    recurso = periodo.recurso
+    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+    text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+
     for consolidado in consolidados_dre:
         numero_sequencia = consolidado.sequencia_de_publicacao if consolidado.sequencia_de_publicacao else ""
 
@@ -83,10 +89,10 @@ def cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo):
 
             if(consolidado_origem_retificacao.count() > 0 and consolidado_origem_retificacao[0].data_publicacao):
                 data_publicacao_consolidado_origem_retificacao = consolidado_origem_retificacao[0].data_publicacao.strftime("%d/%m/%Y")
-                titulo_parcial = f"Retificação da publicação de {data_publicacao_consolidado_origem_retificacao}"
+                titulo_parcial = f"Retificação {text_document_consolidado_pc.possessive(case='lower')} de {data_publicacao_consolidado_origem_retificacao}"
 
         elif(not consolidado.eh_parcial):
-            titulo_parcial = f"Única"
+            titulo_parcial = text_document_consolidado_pc.get_tranform_publication_type(text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE)
 
         else:
             titulo_parcial = f"Parcial #{numero_sequencia}"
@@ -104,8 +110,30 @@ def cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo):
     return consolidado_das_publicacoes_parciais_list
 
 
+def retorna_dict_text_documento_consolidado_pc(periodo):
+    from sme_ptrf_apps.dre.services.consolidado_dre_service import TextDocumentConsolidadoPC
+
+    recurso = periodo.recurso
+    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+    text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+
+    response = {
+        'text_refer': text_document_consolidado_pc.text_with_refer(),
+        'text_in_past_and_plural': text_document_consolidado_pc.text_in_past_and_plural(),
+        'text_in': text_document_consolidado_pc.text_in(),
+        'text_possessive_plural': text_document_consolidado_pc.possessive_plural(),
+        'text_action': text_document_consolidado_pc.text_action(),
+    }
+
+    return response
+
+
 def cria_cabecalho(periodo, parcial, previa, consolidado_dre):
     LOGGER.info("Iniciando cabecalho...")
+
+    recurso = periodo.recurso
+    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+    text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
 
     eh_parcial = parcial['parcial']
     sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
@@ -114,18 +142,30 @@ def cria_cabecalho(periodo, parcial, previa, consolidado_dre):
     if previa and eh_retificacao:
         titulo_sequencia_publicacao = f'{consolidado_dre.referencia} (Prévia)'
     elif previa and eh_parcial:
-        titulo_sequencia_publicacao = f'Publicação Parcial #{sequencia_de_publicacao} (Prévia)'
+        text = text_document_consolidado_pc.text_sequencial(
+            publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL,
+            sequence_number=sequencia_de_publicacao
+        )
+        titulo_sequencia_publicacao = f'{text} (Prévia)'
     elif previa and not eh_parcial:
-        titulo_sequencia_publicacao = f'Publicação Única (Prévia)'
+        text = text_document_consolidado_pc.text_with_type_document(
+            publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE
+        )
+        titulo_sequencia_publicacao = f'{text} (Prévia)'
     elif not previa and eh_retificacao:
         titulo_sequencia_publicacao = f'{consolidado_dre.referencia}'
     elif not previa and eh_parcial:
-        titulo_sequencia_publicacao = f'Publicação Parcial #{sequencia_de_publicacao}'
+        titulo_sequencia_publicacao = text_document_consolidado_pc.text_sequencial(
+            publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL,
+            sequence_number=sequencia_de_publicacao
+        )
     elif not previa and not eh_parcial and sequencia_de_publicacao == 0:
-        titulo_sequencia_publicacao = 'Publicação Única'
+        titulo_sequencia_publicacao = text_document_consolidado_pc.text_with_type_document(
+            publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE
+        )
     else:
         # Nesse caso é o relatório do consolidado de publicações parciais
-        titulo_sequencia_publicacao = f'Relatório Consolidado'
+        titulo_sequencia_publicacao = 'Relatório Consolidado'
 
     cabecalho = {
         "recurso": periodo.recurso.nome,
