@@ -66,10 +66,11 @@ class PaaQuerySet(models.QuerySet):
         )
 
         # Ata de Retificacao iniciada (considera fora de fluxo quando há Retificação sem uma ata iniciada)
+        # Inclui EM_PROCESSAMENTO para não ignorar o PAA enquanto a ata estiver sendo gerada.
         ata_retificacao_iniciada = Exists(
             AtaPaa.objects.filter(
                 paa=OuterRef('pk'),
-                status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO,
+                status_geracao_pdf__in=[AtaPaa.STATUS_NAO_GERADO, AtaPaa.STATUS_EM_PROCESSAMENTO],
                 tipo_ata=AtaPaa.ATA_RETIFICACAO,
             )
         )
@@ -89,6 +90,7 @@ class PaaQuerySet(models.QuerySet):
                 paa=OuterRef('pk'),
                 status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
                 tipo_ata=AtaPaa.ATA_RETIFICACAO,
+                pdf_gerado_previamente=True  # Arquivo gerado
             )
         )
 
@@ -134,7 +136,7 @@ class PaaQuerySet(models.QuerySet):
                     Em elaboração + com Ata gerada
                     Necessário alterar os campos da ata:
                     - Status Pdf: [Não gerado]
-                    - PDF gerado previamente: [desmarcar]
+                    - Documento gerado: [desmarcar]
                 """,
             ),
             # Fora de Fluxo - Réplica existente quando gerado
@@ -178,17 +180,6 @@ class PaaQuerySet(models.QuerySet):
                     - status: [Em elaboração]
                 """,
             ),
-            # Fora de Fluxo - Retificação sem Réplica
-            (
-                {'status': PaaStatusEnum.EM_RETIFICACAO.name, 'replica__isnull': True},
-                PaaStatusAndamentoEnum.FORA_FLUXO.name,
-                """
-                    Em retificação + sem Réplica
-                    Recomendado cancelar a retificação e iniciá-la novamente
-                    Obs: Sem réplica registrada não é possível registrar log ou realizar cancelamento seguro do
-                    que foi alterado no PAA
-                """,
-            ),
             # Fora de Fluxo - Retificação sem Ata iniciada
             (
                 {
@@ -203,6 +194,21 @@ class PaaQuerySet(models.QuerySet):
                     - Paa: [ referencia do PAA]
                     - Tipo Ata: [Ata de Retificação]
                     - justificativa da retificação: [informar a justificativa da retificação]
+                """,
+            ),
+            # Fora de Fluxo - Retificação sem Réplica
+            (
+                {
+                    'status': PaaStatusEnum.EM_RETIFICACAO.name,
+                    'tem_ata_iniciada': True,
+                    'replica__isnull': True
+                },
+                PaaStatusAndamentoEnum.FORA_FLUXO.name,
+                """
+                    Em retificação + sem Réplica
+                    Recomendado cancelar a retificação e iniciá-la novamente
+                    Obs: Sem réplica registrada não é possível registrar log ou realizar cancelamento seguro do
+                    que foi alterado no PAA
                 """,
             ),
             # Gerado completo - é gerado, tem documento e tem ata

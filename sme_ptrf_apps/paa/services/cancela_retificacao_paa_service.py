@@ -597,7 +597,7 @@ class CancelaRetificacaoPaaService(PaaRollbackHandlers):
         replica_doc_retificado = replica.historico.get('documento_retificado') or {}
         uuid_replica = replica_doc_retificado.get('uuid')
 
-        if uuid_replica != documento_final_retificado.uuid:
+        if str(uuid_replica) != str(documento_final_retificado.uuid):
             self.logger.info('Documento retificado divergente do snapshot.')
             raise ValidacaoCancelaRetificacao(
                 'Não é possível cancelar a retificação pois já possui '

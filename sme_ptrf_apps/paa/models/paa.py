@@ -86,7 +86,14 @@ class Paa(ModeloBase):
     @property
     def documento_previa(self):
         retificacao = self.status_em_retificacao
-        return self.documentopaa_set.filter(versao="PREVIA", retificacao=retificacao).first()
+        return (
+            self.documentopaa_set.filter(
+                versao="PREVIA",
+                retificacao=retificacao
+            )
+            .order_by('-pk')
+            .first()
+        )
 
     @property
     def tem_documentos(self):
@@ -152,7 +159,8 @@ class Paa(ModeloBase):
             .filter(
                 tipo_ata=AtaPaa.ATA_RETIFICACAO,
                 status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
-                previa=False
+                previa=False,
+                pdf_gerado_previamente=True  # Documento gerado
             )
             .order_by('-criado_em')
             .first()

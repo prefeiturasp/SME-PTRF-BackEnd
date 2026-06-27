@@ -33,22 +33,26 @@ class PaaStatusBloqueiaAlteracaoService:
                 'utilize o fluxo de retificação do PAA.'
             )
 
-    
     @classmethod
-    def checar_ata_concluida(cls, paa: Paa):        
-        if paa.get_tem_ata_concluida():
+    def checar_ata_concluida(cls, paa: Paa):
+        if paa.status_em_retificacao:
+            from sme_ptrf_apps.paa.services.ciclo_retificacao_service import CicloRetificacaoService
+            tem_ata = CicloRetificacaoService(paa).tem_ata_concluida
+        else:
+            tem_ata = paa.get_tem_ata_concluida()
+
+        if tem_ata:
             raise PaaStatusBloqueiaAlteracaoException(
                 'A Ata Final do PAA já foi concluida. '
                 'Para realizar alterações, utilize o fluxo de retificação.'
             )
-    
 
     @classmethod
     def validar_lista(cls, paas: List[Paa], tipo_bloqueio: TipoBloqueioPaa):
         """
         Valida uma lista de Paas dado um tipo bloqueio informado
         """
-        for paa in paas:           
+        for paa in paas:
 
             if tipo_bloqueio == TipoBloqueioPaa.STATUS_GERADO:
                 cls.checar_status_gerado(paa)

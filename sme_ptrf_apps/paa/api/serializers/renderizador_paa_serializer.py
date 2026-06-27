@@ -8,18 +8,25 @@ from sme_ptrf_apps.paa.services.retificacao_paa_service import (
     RetificacaoPaaService,
     ValidacaoRetificacao,
 )
+from sme_ptrf_apps.paa.services.ciclo_retificacao_service import CicloRetificacaoService
+
+
+_DOCUMENTO_PENDENTE_GERACAO = 'Documento pendente de geração.'
+STATUS_COLORS = {
+    DocumentoPaa.StatusChoices.CONCLUIDO: "green",
+    AtaPaa.STATUS_CONCLUIDO: "green",
+
+    DocumentoPaa.StatusChoices.EM_PROCESSAMENTO: "orange",
+    AtaPaa.STATUS_EM_PROCESSAMENTO: "orange",
+
+    DocumentoPaa.StatusChoices.ERRO_PROCESSAMENTO: "red",
+    DocumentoPaa.StatusChoices.NAO_GERADO: "red",
+    AtaPaa.STATUS_NAO_GERADO: "red",
+}
 
 
 def _cor_status_geracao(status: str) -> str:
-    if status == DocumentoPaa.StatusChoices.CONCLUIDO or status == AtaPaa.STATUS_CONCLUIDO:
-        return 'green'
-    if status == DocumentoPaa.StatusChoices.EM_PROCESSAMENTO or status == AtaPaa.STATUS_EM_PROCESSAMENTO:
-        return 'orange'
-    if status == DocumentoPaa.StatusChoices.ERRO_PROCESSAMENTO:
-        return 'red'
-    if status == DocumentoPaa.StatusChoices.NAO_GERADO or status == AtaPaa.STATUS_NAO_GERADO:
-        return 'red'
-    return 'grey'
+    return STATUS_COLORS.get(status, "grey")
 
 
 def _url_documento_final(request, paa: Paa, eh_retificacao: bool) -> str:
@@ -72,6 +79,7 @@ class RenderizadorAtaPaaSerializer(serializers.Serializer):
 
 
 class RenderizadorBlocoDocumentacaoSerializer(serializers.Serializer):
+    secao_titulo = serializers.CharField(allow_blank=False)
     documento = RenderizadorDocumentoPaaSerializer()
     ata = RenderizadorAtaPaaSerializer()
 
@@ -81,6 +89,7 @@ class RenderizadorPaaSerializer(serializers.Serializer):
     referencia = serializers.CharField(allow_blank=True)
     pode_retificar = serializers.BooleanField()
     esta_em_retificacao = serializers.BooleanField()
+    exibe_dados_retificacao = serializers.BooleanField()
     unidade = serializers.DictField()
     original = RenderizadorBlocoDocumentacaoSerializer()
     retificacao = RenderizadorBlocoDocumentacaoSerializer(allow_null=True)
@@ -96,21 +105,27 @@ class RenderizadorPaaBuilder:
 
     def _documento_render(self, documento: Optional[DocumentoPaa], eh_retificacao: bool) -> dict:
         if not documento:
-            return {
+            dados = {
                 'uuid': None,
                 'existe_arquivo': False,
                 'status': {
                     'status_geracao': DocumentoPaa.StatusChoices.NAO_GERADO,
-                    'mensagem': 'Documento pendente de geração.',
+                    'mensagem': _DOCUMENTO_PENDENTE_GERACAO,
                     'cor_mensagem': _cor_status_geracao(DocumentoPaa.StatusChoices.NAO_GERADO),
                     'versao_documento': 1,
-                    'versao': '',
+                    'versao': '-',
                     'retificacao': eh_retificacao,
                 },
                 'url': '',
             }
+            serialized = RenderizadorDocumentoPaaSerializer(data=dados, many=False)
+            if not serialized.is_valid():
+                raise serializers.ValidationError(
+                    {'mensagem': 'Falha na serialização de dados no renderizador do Documento(inexistente) do PAA.'})
+            return serialized.data
+
         existe = bool(documento.arquivo_pdf)
-        return {
+        dados = {
             'uuid': documento.uuid,
             'existe_arquivo': existe,
             'status': {
@@ -123,6 +138,11 @@ class RenderizadorPaaBuilder:
             },
             'url': _url_documento_final(self.request, self.paa, eh_retificacao) if existe else '',
         }
+        serialized = RenderizadorDocumentoPaaSerializer(data=dados, many=False)
+        if not serialized.is_valid():
+            raise serializers.ValidationError(
+                {'mensagem': 'Falha na serialização de dados no renderizador do Documento do PAA.'})
+        return serialized.data
 
     def _texto_justificativa_ata(self, ata: Optional[AtaPaa], eh_retificacao: bool) -> str:
         if not ata:
@@ -139,7 +159,7 @@ class RenderizadorPaaBuilder:
         e data/hora da assembleia (campos da ata).
         Só é exibido após a ata de apresentação estar gerada (PDF concluído).
         """
-        if eh_retificacao or not ata or not ata.data_reuniao:
+        if not ata or not ata.data_reuniao:
             return ''
         if ata.status_geracao_pdf != AtaPaa.STATUS_CONCLUIDO:
             return ''
@@ -147,9 +167,17 @@ class RenderizadorPaaBuilder:
         if not parecer:
             return ''
         parecer_lc = parecer.lower()
+        if eh_retificacao:
+            # "Retificação reprovada/aprovada em Assembleia Geral em 01/01/2024 às 10h00."(altera última letra para 'a')
+            parecer_lc = parecer_lc[:-1] + 'a'
         data_str = ata.data_reuniao.strftime('%d/%m/%Y')
         hr = ata.hora_reuniao
         hora_str = hr.strftime('%Hh%M') if hr is not None else '00h00'
+
+        if eh_retificacao:
+            return (
+                f'Retificação {parecer_lc} em Assembleia Geral em {data_str} à {hora_str}.'
+            )
         return (
             f'Plano Anual de Atividades {parecer_lc} em Assembleia Geral em {data_str} à {hora_str}.'
         )
@@ -191,12 +219,13 @@ class RenderizadorPaaBuilder:
         return not esconde
 
     def _mensagem_exibicao_ata(self, ata: Optional[AtaPaa], existe_arquivo: bool) -> str:
+        """ Mensagem exibida quanto ao status da Ata """
         if not ata:
-            return 'Documento pendente de geração.'
+            return _DOCUMENTO_PENDENTE_GERACAO
         if not existe_arquivo:
             if ata.status_geracao_pdf == AtaPaa.STATUS_EM_PROCESSAMENTO:
                 return AtaPaa.STATUS_NOMES[AtaPaa.STATUS_EM_PROCESSAMENTO]
-            return 'Documento pendente de geração.'
+            return _DOCUMENTO_PENDENTE_GERACAO
         if ata.status_geracao_pdf == AtaPaa.STATUS_CONCLUIDO and ata.criado_em:
             return ata.status_label_geracao()
         return ata.nome
@@ -207,8 +236,9 @@ class RenderizadorPaaBuilder:
         eh_retificacao: bool,
         eh_paa_vigente: bool,
     ) -> dict:
+        """ DTO de renderização para documento de Ata """
         if not ata:
-            return {
+            dados = {
                 'uuid': None,
                 'existe_arquivo': False,
                 'status': {
@@ -226,11 +256,17 @@ class RenderizadorPaaBuilder:
                 'url': '',
                 'resumo_assembleia': '',
             }
+            serialized = RenderizadorAtaPaaSerializer(data=dados, many=False)
+            if not serialized.is_valid():
+                raise serializers.ValidationError(
+                    {'mensagem': 'Falha na serialização de dados no renderizador da Ata(inexistente) do PAA.'})
+            return serialized.data
+
         existe = bool(ata.arquivo_pdf)
         from sme_ptrf_apps.paa.services.ata_paa_service import validar_geracao_ata_paa
 
-        pode = validar_geracao_ata_paa(ata)['is_valid'] if ata else False
-        return {
+        pode_gerar_ata = validar_geracao_ata_paa(ata).get('is_valid')
+        dados = {
             'uuid': ata.uuid,
             'existe_arquivo': existe,
             'status': {
@@ -241,18 +277,59 @@ class RenderizadorPaaBuilder:
                 'retificacao': eh_retificacao,
             },
             'justificativa': self._texto_justificativa_ata(ata, eh_retificacao),
-            'pode_gerar_ata': pode,
+            'pode_gerar_ata': pode_gerar_ata,
             'apresenta_botoes_acao': self._apresenta_botoes_acao(
                 ata, eh_retificacao, eh_paa_vigente
             ),
             'url': _url_ata_paa(self.request, ata) if existe else '',
             'resumo_assembleia': self._texto_resumo_assembleia(ata, eh_retificacao),
         }
+        serialized = RenderizadorAtaPaaSerializer(data=dados, many=False)
+        if not serialized.is_valid():
+            raise serializers.ValidationError(
+                {'mensagem': 'Falha na serialização de dados no renderizador da Ata do PAA.'})
+        return serialized.data
 
     def _ata_por_tipo(self, tipo_ata: str) -> Optional[AtaPaa]:
         return (
             self.paa.atas_da_paa.filter(tipo_ata=tipo_ata).order_by('-pk').first()
         )
+
+    def _doc_retificacao_ciclo_atual(self) -> Optional[DocumentoPaa]:
+        """Retorna o documento de retificação gerado no ciclo atual.
+
+        Quando o PAA está em retificação, o banco pode conter o documento de
+        uma retificação anterior enquanto o novo ainda não foi gerado. O UUID do
+        documento mais recente é comparado com o UUID registrado no snapshot da
+        réplica: se coincidirem, o documento pertence ao ciclo anterior e o
+        método retorna None, sinalizando ao bloco de renderização que a geração
+        ainda está pendente.
+
+        Returns:
+            Instância de DocumentoPaa do ciclo atual, ou None se ainda não gerado.
+        """
+        return CicloRetificacaoService(self.paa).documento_atual
+
+    def _numero_versao_retificacao(self, doc_retificacao: Optional[DocumentoPaa]) -> str:
+        """Retorna o número da versão de retificação para o título da seção.
+
+        Quando o documento do ciclo atual já existe, usa diretamente seu
+        ``versao_documento``. Quando ainda não foi gerado (ciclo em andamento),
+        infere o número a partir do snapshot da réplica: versao_documento do
+        ciclo anterior + 1. Retorna '' quando o número não é determinável.
+
+        Args:
+            doc_retificacao: Documento de retificação do ciclo atual, ou None
+                quando ainda não gerado.
+
+        Returns:
+            String com o número da versão (ex.: '1', '2'), ou '' como fallback.
+        """
+        if doc_retificacao:
+            return str(doc_retificacao.versao_documento)
+        if not self.paa.status_em_retificacao:
+            return ''
+        return str(CicloRetificacaoService(self.paa).numero_versao)
 
     def _pode_retificar(self) -> bool:
         if self.paa.status_em_retificacao:
@@ -277,27 +354,49 @@ class RenderizadorPaaBuilder:
         }
 
     def build(self, eh_paa_vigente: bool = True) -> dict:
+        """
+            Constrói o DTO de renderização do PAA, com dados do documento final e das atas.
+            Args:
+                eh_paa_vigente: Indica se o PAA é o vigente (True) ou um plano anterior (False).
+        """
         doc_original = obter_documento_final_por_retificacao(self.paa, False)
         ata_original = self._ata_por_tipo(AtaPaa.ATA_APRESENTACAO)
+        ata_retificacao = self._ata_por_tipo(AtaPaa.ATA_RETIFICACAO)
 
-        bloco_retificacao = None
         if self.paa.status_em_retificacao:
-            doc_ret = obter_documento_final_por_retificacao(self.paa, True)
-            ata_ret = self._ata_por_tipo(AtaPaa.ATA_RETIFICACAO)
-            bloco_retificacao = {
-                'documento': self._documento_render(doc_ret, True),
-                'ata': self._ata_render(ata_ret, True, eh_paa_vigente),
-            }
+            ciclo = CicloRetificacaoService(self.paa)
+            doc_retificacao = ciclo.documento_atual
+            versao_retificacao = str(ciclo.numero_versao)
+        else:
+            doc_retificacao = obter_documento_final_por_retificacao(self.paa, True)
+            versao_retificacao = str(doc_retificacao.versao_documento) if doc_retificacao else ''
 
-        return {
+        bloco_docs_originais = {
+            'secao_titulo': 'PAA Original',
+            'documento': self._documento_render(doc_original, False),
+            'ata': self._ata_render(ata_original, False, eh_paa_vigente),
+        }
+
+        exibe_dados_retificacao = bool(
+            self.paa.status_em_retificacao or doc_retificacao or ata_retificacao
+        )
+        bloco_docs_retificacao = {
+            'secao_titulo': f'PAA Retificado #{versao_retificacao}',
+            'documento': self._documento_render(doc_retificacao, True),
+            'ata': self._ata_render(ata_retificacao, True, eh_paa_vigente),
+        } if exibe_dados_retificacao else None
+        dados = {
             'uuid': str(self.paa.uuid),
             'referencia': self.paa.periodo_paa.referencia if self.paa.periodo_paa else '',
             'pode_retificar': self._pode_retificar(),
             'esta_em_retificacao': self.paa.status_em_retificacao,
+            'exibe_dados_retificacao': exibe_dados_retificacao,
             'unidade': self._unidade(),
-            'original': {
-                'documento': self._documento_render(doc_original, False),
-                'ata': self._ata_render(ata_original, False, eh_paa_vigente),
-            },
-            'retificacao': bloco_retificacao,
+            'original': bloco_docs_originais,
+            'retificacao': bloco_docs_retificacao,
         }
+        serializer = RenderizadorPaaSerializer(data=dados)
+        if not serializer.is_valid():
+            raise serializers.ValidationError(
+                {'mensagem': 'Falha na serialização de dados do renderizador do PAA.'})
+        return serializer.data

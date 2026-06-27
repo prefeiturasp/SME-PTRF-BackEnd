@@ -164,4 +164,3 @@ class PresentesAtaPaaViewSet(mixins.CreateModelMixin,
             membros.append(dado)
 
         return Response(membros)
-
