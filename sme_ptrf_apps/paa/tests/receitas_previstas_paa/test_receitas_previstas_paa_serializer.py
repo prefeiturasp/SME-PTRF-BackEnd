@@ -1,5 +1,4 @@
 import pytest
-from rest_framework.exceptions import ValidationError
 
 from sme_ptrf_apps.paa.api.serializers import ReceitaPrevistaPaaSerializer
 from sme_ptrf_apps.paa.fixtures.factories.documento_paa_factory import DocumentoPaaFactory
@@ -25,17 +24,19 @@ def test_receita_prevista_serializer_bloqueia_edicao_com_documento_final_conclui
 ):
     """Testa que não é possível editar receita prevista quando documento final está concluído"""
     DocumentoPaaFactory.create(paa=receita_prevista_paa.paa, versao="FINAL", status_geracao="CONCLUIDO")
-    
+
     payload = {
         "previsao_valor_custeio": "1000.00",
     }
-    
+
     serializer = ReceitaPrevistaPaaSerializer(
         instance=receita_prevista_paa,
         data=payload,
         partial=True
     )
-    
+
     assert not serializer.is_valid()
     assert 'mensagem' in serializer.errors
-    assert 'Não é possível editar receitas previstas após a geração do documento final do PAA.' in serializer.errors['mensagem']
+    assert (
+        'Não é possível editar receitas previstas após a '
+        'geração do documento final do PAA.') in serializer.errors['mensagem']

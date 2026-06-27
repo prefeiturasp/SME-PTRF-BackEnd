@@ -213,4 +213,3 @@ def test_get_padrao_presentes(
         assert result[0]['membro'] is True
         assert result[0]['presente'] is True
         assert result[0]['editavel'] is False
-

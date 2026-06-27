@@ -87,7 +87,7 @@ class TestValidacoesCancelamento:
         documento_paa_factory,
     ):
 
-        documento = documento_paa_factory.create(
+        documento_paa_factory.create(
             paa=paa_retificacao,
             versao=DocumentoPaa.VersaoChoices.FINAL,
             retificacao=True,
@@ -298,10 +298,7 @@ class TestRollbackOutrosRelacionamentos:
 
         prioridade_no_paa.refresh_from_db()
 
-        assert (
-            str(prioridade_no_paa.valor_total)
-            == valor_original
-        )
+        assert str(prioridade_no_paa.valor_total) == valor_original
 
     def test_rollback_restaura_receita_ptrf_modificada(
         self,
@@ -407,7 +404,7 @@ class TestRollbackOutrosRelacionamentos:
         paa_retificacao,
         replica_paa_factory,
         atividade_estatutaria_factory,
-        atividade_estatutaria_paa_factory,        
+        atividade_estatutaria_paa_factory,
     ):
 
         atividade = atividade_estatutaria_factory.create(
@@ -467,7 +464,7 @@ class TestRollbackOutrosRelacionamentos:
         paa_retificacao,
         replica_paa_factory,
         atividade_estatutaria_factory,
-        atividade_estatutaria_paa_factory,        
+        atividade_estatutaria_paa_factory,
     ):
 
         atividade = atividade_estatutaria_factory.create(
@@ -584,7 +581,7 @@ class TestRollbackOutrosRelacionamentos:
         recurso_proprio_paa_factory,
         fonte_recurso_paa_factory,
     ):
-        
+
         fonte = fonte_recurso_paa_factory.create()
 
         recurso_proprio = recurso_proprio_paa_factory.create(
@@ -733,14 +730,14 @@ class TestRollbackOutrosRelacionamentos:
             )
             .exists()
         )
-    
+
     def test_rollback_restaura_prioridade_modificada_2(
         self,
         paa_retificacao,
         replica_paa_factory,
         prioridade_paa_factory,
     ):
-        
+
         prioridade = (
             prioridade_paa_factory.create(
                 paa=paa_retificacao,
@@ -766,7 +763,7 @@ class TestRollbackOutrosRelacionamentos:
         prioridade_original = bool(
             prioridade.prioridade
         )
-    
+
         prioridade.valor_total = False
         prioridade.save()
 
