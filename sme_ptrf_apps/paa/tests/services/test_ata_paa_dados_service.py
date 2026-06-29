@@ -13,7 +13,12 @@ from sme_ptrf_apps.paa.services.ata_paa_dados_service import (
 
 from unittest.mock import patch, MagicMock
 
-from sme_ptrf_apps.paa.services.ata_paa_dados_service import calcular_numeros_blocos, gerar_dados_ata_paa
+from sme_ptrf_apps.paa.services.ata_paa_dados_service import (
+    calcular_numeros_blocos,
+    gerar_dados_ata_paa,
+    _aplicar_filtro_retificacao_no_grupo,
+    _filtrar_itens_atividades_retificadas,
+)
 
 
 @pytest.fixture
@@ -117,6 +122,125 @@ def test_calcular_numeros_blocos_apenas_fixos():
     assert resultado['lista_presenca'] == 4
 
 
+class TestAplicarFiltroRetificacaoNoGrupo:
+    """Testes para _aplicar_filtro_retificacao_no_grupo."""
+
+    def _grupo(self, key, items):
+        total = sum(float(i.get('valor_total', 0)) for i in items)
+        return {'key': key, 'titulo': key, 'items': items, 'total': total}
+
+    def test_retorna_true_quando_ha_item_retificado(self):
+        prioridades = [
+            self._grupo('prioridades_ptrf', [
+                {'valor_total': 100, 'retificado': True},
+                {'valor_total': 200, 'retificado': False},
+            ])
+        ]
+
+        resultado = _aplicar_filtro_retificacao_no_grupo(prioridades, key='prioridades_ptrf')
+
+        assert resultado is True
+
+    def test_retorna_false_quando_nenhum_item_retificado(self):
+        prioridades = [
+            self._grupo('prioridades_ptrf', [
+                {'valor_total': 100, 'retificado': False},
+            ])
+        ]
+
+        resultado = _aplicar_filtro_retificacao_no_grupo(prioridades, key='prioridades_ptrf')
+
+        assert resultado is False
+
+    def test_retorna_false_quando_grupo_nao_encontrado(self):
+        resultado = _aplicar_filtro_retificacao_no_grupo([], key='prioridades_ptrf')
+
+        assert resultado is False
+
+    def test_filtra_items_mantendo_apenas_retificados(self):
+        prioridades = [
+            self._grupo('prioridades_ptrf', [
+                {'valor_total': 100, 'retificado': True},
+                {'valor_total': 200, 'retificado': False},
+                {'valor_total': 50, 'retificado': True},
+            ])
+        ]
+
+        _aplicar_filtro_retificacao_no_grupo(prioridades, key='prioridades_ptrf')
+
+        assert len(prioridades[0]['items']) == 2
+        assert all(i['retificado'] for i in prioridades[0]['items'])
+
+    def test_recalcula_total_com_apenas_itens_retificados(self):
+        prioridades = [
+            self._grupo('prioridades_ptrf', [
+                {'valor_total': 100, 'retificado': True},
+                {'valor_total': 200, 'retificado': False},
+                {'valor_total': 50, 'retificado': True},
+            ])
+        ]
+
+        _aplicar_filtro_retificacao_no_grupo(prioridades, key='prioridades_ptrf')
+
+        assert prioridades[0]['total'] == 150.0
+
+    def test_total_zero_quando_nenhum_item_retificado(self):
+        prioridades = [
+            self._grupo('prioridades_pdde', [
+                {'valor_total': 300, 'retificado': False},
+            ])
+        ]
+
+        _aplicar_filtro_retificacao_no_grupo(prioridades, key='prioridades_pdde')
+
+        assert prioridades[0]['total'] == 0.0
+        assert prioridades[0]['items'] == []
+
+
+class TestFiltrarItensRetificados:
+    """Testes para _filtrar_itens_atividades_retificadas."""
+
+    def test_retorna_apenas_itens_retificados(self):
+        items = [
+            {'nome': 'A', 'retificado': True},
+            {'nome': 'B', 'retificado': False},
+            {'nome': 'C', 'retificado': True},
+        ]
+
+        resultado, _ = _filtrar_itens_atividades_retificadas(items)
+
+        assert len(resultado) == 2
+        assert all(i['retificado'] for i in resultado)
+
+    def test_flag_true_quando_ha_retificado(self):
+        items = [{'retificado': True}, {'retificado': False}]
+
+        _, tem_retificado = _filtrar_itens_atividades_retificadas(items)
+
+        assert tem_retificado is True
+
+    def test_flag_false_quando_nenhum_retificado(self):
+        items = [{'retificado': False}, {'retificado': False}]
+
+        _, tem_retificado = _filtrar_itens_atividades_retificadas(items)
+
+        assert tem_retificado is False
+
+    def test_lista_vazia_retorna_vazia_e_false(self):
+        resultado, tem_retificado = _filtrar_itens_atividades_retificadas([])
+
+        assert resultado == []
+        assert tem_retificado is False
+
+    def test_nao_altera_lista_original(self):
+        items = [{'retificado': True}, {'retificado': False}]
+        original = list(items)
+
+        _filtrar_itens_atividades_retificadas(items)
+
+        assert items == original
+
+
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.dados_texto_ata_paa", autospec=True)
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_atividades_estatutarias", autospec=True)
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_grupos_prioridades", autospec=True)
@@ -132,12 +256,13 @@ def test_gerar_dados_ata_paa_inclui_numeros_blocos(
     mock_dados_texto
 ):
     ata_paa = MagicMock()
+    ata_paa.tipo_retificacao = False
     usuario = MagicMock()
 
     mock_cabecalho.return_value = {"titulo": "Teste"}
     mock_identificacao.return_value = {"nome": "Teste"}
     mock_presentes.return_value = {"presentes": []}
-    mock_grupos.return_value = [{'titulo': 'Prioridades PTRF', 'items': [{'id': 1}]}]
+    mock_grupos.return_value = [{'key': 'prioridades_ptrf', 'titulo': 'Prioridades PTRF', 'items': [{'id': 1}]}]
     mock_atividades.return_value = [{'id': 1}]
     mock_dados_texto.return_value = {"texto": "Teste"}
 
@@ -146,6 +271,130 @@ def test_gerar_dados_ata_paa_inclui_numeros_blocos(
     assert 'numeros_blocos' in resultado
     assert resultado['numeros_blocos']['ptrf'] == 3
     assert resultado['numeros_blocos']['manifestacoes'] == 5
+
+
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.dados_texto_ata_paa", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_atividades_estatutarias", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_grupos_prioridades", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.presentes_ata_paa", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_identificacao_associacao_ata", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.cria_cabecalho", autospec=True)
+def test_gerar_dados_ata_apresentacao_nao_inclui_flags_retificacao(
+    mock_cabecalho,
+    mock_identificacao,
+    mock_presentes,
+    mock_grupos,
+    mock_atividades,
+    mock_dados_texto
+):
+    """Ata de apresentação não deve ter etiqueta de retificação nem flags de seção."""
+    ata_paa = MagicMock()
+    ata_paa.tipo_retificacao = False
+
+    mock_cabecalho.return_value = {}
+    mock_identificacao.return_value = {}
+    mock_presentes.return_value = {}
+    mock_grupos.return_value = []
+    mock_atividades.return_value = []
+    mock_dados_texto.return_value = {}
+
+    resultado = gerar_dados_ata_paa(ata_paa)
+
+    assert resultado['is_retificacao'] is False
+    assert resultado['etiqueta_retificacao'] is None
+    assert resultado['retificado_prioridades_ptrf'] is False
+    assert resultado['retificado_prioridades_pdde'] is False
+    assert resultado['retificado_prioridades_outros'] is False
+    assert resultado['retificado_atividades_estatutarias'] is False
+
+
+@patch("sme_ptrf_apps.paa.services.ciclo_retificacao_service.CicloRetificacaoService")
+@patch("sme_ptrf_apps.paa.services.retificacao_paa_service.RetificacaoPaaService")
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.dados_texto_ata_paa", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_atividades_estatutarias", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_grupos_prioridades", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.presentes_ata_paa", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_identificacao_associacao_ata", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.cria_cabecalho", autospec=True)
+def test_gerar_dados_ata_retificacao_inclui_etiqueta_e_flags(
+    mock_cabecalho,
+    mock_identificacao,
+    mock_presentes,
+    mock_grupos,
+    mock_atividades,
+    mock_dados_texto,
+    mock_retificacao_service_cls,
+    mock_ciclo_service_cls,
+):
+    """Ata de retificação deve preencher etiqueta e flags de seção corretamente."""
+    ata_paa = MagicMock()
+    ata_paa.tipo_retificacao = True
+
+    mock_retificacao_service_cls.return_value.identificar_alteracoes.return_value = {
+        'prioridades': {'uuid-ptrf': {'acao': 'modificado'}},
+    }
+    doc_mock = MagicMock()
+    doc_mock.criado_em = datetime(2025, 6, 10, 10, 0, 0)
+    mock_ciclo_service_cls.return_value.documento_atual = doc_mock
+
+    mock_cabecalho.return_value = {}
+    mock_identificacao.return_value = {}
+    mock_presentes.return_value = {}
+    mock_grupos.return_value = [
+        {'key': 'prioridades_ptrf', 'titulo': 'Prioridades PTRF', 'items': [{'retificado': True}]},
+        {'key': 'prioridades_pdde', 'titulo': 'Prioridades PDDE', 'items': [{'retificado': False}]},
+        {'key': 'prioridades_outros_recursos', 'titulo': 'Prioridades Outros Recursos', 'items': []},
+    ]
+    mock_atividades.return_value = [{'retificado': False}]
+    mock_dados_texto.return_value = {}
+
+    resultado = gerar_dados_ata_paa(ata_paa)
+
+    assert resultado['is_retificacao'] is True
+    assert resultado['etiqueta_retificacao'] == "Retificado em: 10/06/2025"
+    assert resultado['retificado_prioridades_ptrf'] is True
+    assert resultado['retificado_prioridades_pdde'] is False
+    assert resultado['retificado_prioridades_outros'] is False
+    assert resultado['retificado_atividades_estatutarias'] is False
+
+
+@patch("sme_ptrf_apps.paa.services.ciclo_retificacao_service.CicloRetificacaoService")
+@patch("sme_ptrf_apps.paa.services.retificacao_paa_service.RetificacaoPaaService")
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.dados_texto_ata_paa", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_atividades_estatutarias", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_grupos_prioridades", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.presentes_ata_paa", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_identificacao_associacao_ata", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.cria_cabecalho", autospec=True)
+def test_gerar_dados_ata_retificacao_sem_doc_usa_data_atual(
+    mock_cabecalho,
+    mock_identificacao,
+    mock_presentes,
+    mock_grupos,
+    mock_atividades,
+    mock_dados_texto,
+    mock_retificacao_service_cls,
+    mock_ciclo_service_cls,
+):
+    """Quando documento_atual não existe, data_retificacao cai para datetime.now()."""
+    ata_paa = MagicMock()
+    ata_paa.tipo_retificacao = True
+
+    mock_retificacao_service_cls.return_value.identificar_alteracoes.return_value = {}
+    mock_ciclo_service_cls.return_value.documento_atual = None
+
+    mock_cabecalho.return_value = {}
+    mock_identificacao.return_value = {}
+    mock_presentes.return_value = {}
+    mock_grupos.return_value = []
+    mock_atividades.return_value = []
+    mock_dados_texto.return_value = {}
+
+    resultado = gerar_dados_ata_paa(ata_paa)
+
+    assert resultado['is_retificacao'] is True
+    assert resultado['etiqueta_retificacao'] is not None
+    assert resultado['etiqueta_retificacao'].startswith("Retificado em: ")
 
 
 @pytest.mark.django_db
