@@ -14,7 +14,7 @@
   <link href="{{ base_static_url }}/css/bootstrap/bootstrap-4.6.0.min.css" rel="stylesheet">
   <link href="{{ base_static_url }}/css/ata-paa-pdf.css" rel="stylesheet">
 
-  <title>Ata de Apresentação do PAA</title>
+  <title>{{ dados.dados_da_ata.nome }}</title>
 
   <style>
     .border {
@@ -80,42 +80,59 @@
 
   {# Bloco de Prioridades PTRF #}
   {% for grupo in dados.prioridades %}
-    {% if grupo.titulo == "Prioridades PTRF" and grupo.items|length > 0 %}
-      <section class="row mt-4">
-        <article class="col mb-3 border p-0">
-          <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>{{ grupo.titulo }}</strong></p>
-          {% include "./partials/tabela-prioridades.html" %}
-        </article>
-      </section>
+    {% if grupo.key == "prioridades_ptrf" and grupo.items|length > 0 %}
+      {% if not dados.is_retificacao or dados.retificado_prioridades_ptrf %}
+        <section class="row mt-4">
+          <article class="col mb-3 border p-0">
+            <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0">
+              <strong>{{ grupo.titulo }}</strong>
+              {% if dados.is_retificacao and dados.etiqueta_retificacao %}<span class="tag-retificacao">{{ dados.etiqueta_retificacao }}</span>{% endif %}
+            </p>
+            {% include "./partials/tabela-prioridades.html" %}
+          </article>
+        </section>
+      {% endif %}
     {% endif %}
   {% endfor %}
 
   {# Bloco de Prioridades PDDE #}
   {% for grupo in dados.prioridades %}
-    {% if grupo.titulo == "Prioridades PDDE" and grupo.items|length > 0 %}
-      <section class="row mt-4">
-        <article class="col mb-3 border p-0">
-          <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>{{ grupo.titulo }}</strong></p>
-          {% include "./partials/tabela-prioridades.html" %}
-        </article>
-      </section>
+    {% if grupo.key == "prioridades_pdde" and grupo.items|length > 0 %}
+      {% if not dados.is_retificacao or dados.retificado_prioridades_pdde %}
+        <section class="row mt-4">
+          <article class="col mb-3 border p-0">
+            <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0">
+              <strong>{{ grupo.titulo }}</strong>
+              {% if dados.is_retificacao and dados.etiqueta_retificacao %}<span class="tag-retificacao">{{ dados.etiqueta_retificacao }}</span>{% endif %}
+            </p>
+            {% include "./partials/tabela-prioridades.html" %}
+          </article>
+        </section>
+      {% endif %}
     {% endif %}
   {% endfor %}
 
-  {# Bloco de Prioridades Recursos Próprios #}
+  {# Bloco de Prioridades Outros Recursos #}
   {% for grupo in dados.prioridades %}
-    {% if grupo.titulo == "Prioridades Outros Recursos" and grupo.items|length > 0 %}
-      <section class="row mt-4">
-        <article class="col mb-3 border p-0">
-          <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>{{ grupo.titulo }}</strong></p>
-          {% include "./partials/tabela-prioridades.html" %}
-        </article>
-      </section>
+    {% if grupo.key == "prioridades_outros_recursos" and grupo.items|length > 0 %}
+      {% if not dados.is_retificacao or dados.retificado_prioridades_outros %}
+        <section class="row mt-4">
+          <article class="col mb-3 border p-0">
+            <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0">
+              <strong>{{ grupo.titulo }}</strong>
+              {% if dados.is_retificacao and dados.etiqueta_retificacao %}<span class="tag-retificacao">{{ dados.etiqueta_retificacao }}</span>{% endif %}
+            </p>
+            {% include "./partials/tabela-prioridades.html" %}
+          </article>
+        </section>
+      {% endif %}
     {% endif %}
   {% endfor %}
 
   {# Bloco de Atividades Estatutárias #}
-  {% include "./partials/bloco-atividades-estatutarias.html" with numero_bloco=dados.numeros_blocos.atividades_estatutarias %}
+  {% if not dados.is_retificacao or dados.retificado_atividades_estatutarias %}
+    {% include "./partials/bloco-atividades-estatutarias.html" with numero_bloco=dados.numeros_blocos.atividades_estatutarias %}
+  {% endif %}
 
   {# Bloco de Manifestações #}
   {% include "./partials/bloco-manifestacoes.html" with numero_bloco=dados.numeros_blocos.manifestacoes %}

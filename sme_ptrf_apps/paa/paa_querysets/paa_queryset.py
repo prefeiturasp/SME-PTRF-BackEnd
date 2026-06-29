@@ -226,9 +226,20 @@ class PaaQuerySet(models.QuerySet):
                 {
                     'status': PaaStatusEnum.EM_RETIFICACAO.name,
                     'replica__isnull': False,
+                    'tem_documento_final_concluido': True,
                     'tem_ata_iniciada': True
                 },
                 PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name,
+                'Em retificação + com Réplica + Doc Retificação gerado + Ata iniciada',
+            ),
+            # Retificação correta quando há uma Réplica
+            (
+                {
+                    'status': PaaStatusEnum.EM_RETIFICACAO.name,
+                    'replica__isnull': False,
+                    'tem_ata_iniciada': True
+                },
+                PaaStatusAndamentoEnum.EM_RETIFICACAO.name,
                 'Em retificação + com Réplica + Ata iniciada',
             ),
             # Em Elaboração quando tem apenas documento final concluído
