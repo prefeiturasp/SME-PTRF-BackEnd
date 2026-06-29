@@ -8,8 +8,8 @@ class ValidacaoDespesaService:
 
     @staticmethod
     def validar_rateios_serializer(
-        valor_total,
-        valor_original,
+        valor_total, # Valor realizado 
+        valor_original, # Valor total do documento
         raw_rateios=None,
         raw_despesas_impostos=None,
         retem_imposto=False,
@@ -30,11 +30,12 @@ class ValidacaoDespesaService:
         Regras:
 
         - A soma dos `valor_rateio` dos rateios deve ser igual ao
-        valor real (`valor_total`) da despesa + impostos (caso haja)
+        valor REAL (`valor_total`) da despesa + impostos (caso haja)
 
         - A soma dos `valor_original` dos rateios deve ser igual ao
-        `valor_original` informado na despesa + impostos (caso haja)
+        `valor_original` REAL informado na despesa + impostos (caso haja)
 
+        OBS: entende-se real por que deduz o de recursos próprios utilizado.
         Referência: #20303 [Associações] Incluir campos de "valor_realizado" no cadastro de despesa
         """
 
@@ -56,11 +57,15 @@ class ValidacaoDespesaService:
             for rateio in raw_rateios
         )
 
-        valor_real_despesa = Decimal(str(valor_total or 0)) - Decimal(
+        # Valor total real
+        valor_total_real_despesa = Decimal(str(valor_total or 0)) - Decimal(
             str(valor_recursos_proprios or 0)
         )
 
-        valor_original_despesa = Decimal(str(valor_original or 0))
+        # Valor original real
+        valor_original_real_despesa = Decimal(str(valor_original or 0)) - Decimal(
+            str(valor_recursos_proprios or 0)
+        )
 
         total_rateios_com_impostos = total_rateios
         total_rateios_original_com_impostos = total_rateios_original
@@ -79,13 +84,13 @@ class ValidacaoDespesaService:
             total_rateios_com_impostos += total_impostos_valor_total
             total_rateios_original_com_impostos += total_impostos_valor_original
 
-        if total_rateios_com_impostos != valor_real_despesa:
+        if total_rateios_com_impostos != valor_total_real_despesa:
             raise serializers.ValidationError(
                 "A soma dos valores realizados dos rateios deve "
                 "ser igual ao valor real da despesa."
             )
 
-        if total_rateios_original_com_impostos != valor_original_despesa:
+        if total_rateios_original_com_impostos != valor_original_real_despesa:
             raise serializers.ValidationError(
                 "A soma dos valores originais dos rateios deve "
                 "ser igual ao valor original da despesa."
@@ -120,10 +125,6 @@ class ValidacaoDespesaService:
                 * Decimal(str(quantidade_itens_capital))
             )
 
-            valor_rateio = Decimal(
-                str(rateio.get("valor_rateio", 0))
-            )
-
             valor_original_rateio = Decimal(
                 str(rateio.get("valor_original", 0))
             )
@@ -140,14 +141,7 @@ class ValidacaoDespesaService:
                         "calculado pela quantidade de itens"
                     )
                 })
-
-            if valor_total_item_capital != valor_rateio:
-                raise serializers.ValidationError({
-                    "mensagem": (
-                        "Valor do rateio capital diverge do valor "
-                        "calculado pela quantidade de itens"
-                    )
-                })
+        
 
     @staticmethod
     def validar_periodo_e_contas(
