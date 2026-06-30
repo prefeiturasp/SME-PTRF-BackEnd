@@ -312,10 +312,13 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
         paas_andamento_gerados_e_parciais = Paa.objects.filter(
             pk=models.OuterRef('id')).paas_gerados_e_parciais()
 
+        paas_em_retificacao = Paa.objects.filter(
+            pk=models.OuterRef('id')).paas_em_retificacao()
+
         paa_vigente = (
             self.queryset.select_related('periodo_paa', 'associacao__unidade')
             .filter(
-                models.Exists(paas_andamento_gerados_e_parciais),
+                Q(models.Exists(paas_andamento_gerados_e_parciais) | Q(models.Exists(paas_em_retificacao))),
                 periodo_paa=periodo_paa_vigente,
                 associacao=associacao,
             )
