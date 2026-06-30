@@ -55,7 +55,7 @@ class LogReplicaPaa(ModeloBase):
     def formatted_json_replica(self):
         import json
         from django.utils.html import format_html
-        if not self.replica:
+        if self.replica is None:
             return "-"
         formatted = json.dumps(
             self.replica,

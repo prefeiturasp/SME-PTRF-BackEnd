@@ -9,6 +9,7 @@ from sme_ptrf_apps.paa.services.ata_paa_dados_service import (
     formatar_hora_ata,
     criar_identificacao_associacao_ata,
     formatar_datas_periodo,
+    data_por_extenso,
 )
 
 from unittest.mock import patch, MagicMock
@@ -699,3 +700,47 @@ class TestCriarIdentificacaoAssociacaoAta:
 def test_formatar_datas_periodo_padrao(periodo_paa_completo):
     resultado = formatar_datas_periodo(periodo_paa_completo)
     assert resultado == "1º de janeiro de 2024 a 31 de dezembro de 2024"
+
+
+def test_formatar_datas_periodo_com_data_inicial_none():
+    periodo = baker.prepare('PeriodoPaa', referencia='2025', data_inicial=None, data_final=date(2025, 12, 31))
+    resultado = formatar_datas_periodo(periodo)
+    assert resultado.startswith(' a ')
+    assert '31 de dezembro de 2025' in resultado
+
+
+def test_formatar_datas_periodo_com_data_final_none():
+    periodo = baker.prepare('PeriodoPaa', referencia='2025', data_inicial=date(2025, 1, 1), data_final=None)
+    resultado = formatar_datas_periodo(periodo)
+    assert '1º de janeiro de 2025' in resultado
+    assert resultado.endswith(' a ')
+
+
+def test_formatar_datas_periodo_dia_diferente_de_1():
+    periodo = baker.prepare(
+        'PeriodoPaa', referencia='2025', data_inicial=date(2025, 4, 15), data_final=date(2025, 10, 31))
+    resultado = formatar_datas_periodo(periodo)
+    assert '15 de abril de 2025' in resultado
+    assert '31 de outubro de 2025' in resultado
+
+
+class TestDataPorExtenso:
+
+    def test_data_none_retorna_template_vazio(self):
+        resultado = data_por_extenso(None)
+        assert '___ dias' in resultado or '___' in resultado
+
+    def test_dia_1_retorna_no_primeiro_dia(self):
+        resultado = data_por_extenso('2025-01-01')
+        assert 'No primeiro dia' in resultado
+        assert 'janeiro' in resultado
+
+    def test_dia_maior_que_1_retorna_aos_n_dias(self):
+        resultado = data_por_extenso('2025-03-15')
+        assert 'Aos' in resultado
+        assert 'março' in resultado
+
+    def test_dia_31(self):
+        resultado = data_por_extenso('2024-12-31')
+        assert 'dezembro' in resultado
+        assert 'dois mil e vinte e quatro' in resultado

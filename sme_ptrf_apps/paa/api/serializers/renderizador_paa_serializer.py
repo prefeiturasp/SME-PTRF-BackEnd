@@ -167,17 +167,10 @@ class RenderizadorPaaBuilder:
         if not parecer:
             return ''
         parecer_lc = parecer.lower()
-        if eh_retificacao:
-            # "Retificação reprovada/aprovada em Assembleia Geral em 01/01/2024 às 10h00."(altera última letra para 'a')
-            parecer_lc = parecer_lc[:-1] + 'a'
         data_str = ata.data_reuniao.strftime('%d/%m/%Y')
         hr = ata.hora_reuniao
         hora_str = hr.strftime('%Hh%M') if hr is not None else '00h00'
 
-        if eh_retificacao:
-            return (
-                f'Retificação {parecer_lc} em Assembleia Geral em {data_str} à {hora_str}.'
-            )
         return (
             f'Plano Anual de Atividades {parecer_lc} em Assembleia Geral em {data_str} à {hora_str}.'
         )

@@ -2,7 +2,9 @@ import json
 from unittest.mock import patch
 
 import pytest
+from requests import ReadTimeout, ConnectTimeout
 from rest_framework import status
+from sme_ptrf_apps.core.services import TerceirizadasException, SmeIntegracaoApiException
 
 pytestmark = pytest.mark.django_db
 
@@ -213,3 +215,111 @@ def test_get_padrao_presentes(
         assert result[0]['membro'] is True
         assert result[0]['presente'] is True
         assert result[0]['editavel'] is False
+
+
+# buscar_informacao_professor_gremio - cenários de erro/exceção
+
+@patch('sme_ptrf_apps.paa.api.views.presentes_ata_paa_viewset.TerceirizadasService.get_informacao_servidor')
+def test_buscar_informacao_professor_gremio_sem_resultado(mock_get, jwt_authenticated_client_sme, flag_paa):
+    mock_get.return_value = None
+    response = jwt_authenticated_client_sme.get(
+        '/api/presentes-ata-paa/buscar-informacao-professor-gremio/?rf=1234567',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    result = json.loads(response.content)
+    assert result['mensagem'] == 'servidor-nao-encontrado'
+
+
+@patch('sme_ptrf_apps.paa.api.views.presentes_ata_paa_viewset.TerceirizadasService.get_informacao_servidor')
+def test_buscar_informacao_professor_gremio_sme_integracao_exception(mock_get, jwt_authenticated_client_sme, flag_paa):
+    mock_get.side_effect = SmeIntegracaoApiException('erro de integração')
+    response = jwt_authenticated_client_sme.get(
+        '/api/presentes-ata-paa/buscar-informacao-professor-gremio/?rf=1234567',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@patch('sme_ptrf_apps.paa.api.views.presentes_ata_paa_viewset.TerceirizadasService.get_informacao_servidor')
+def test_buscar_informacao_professor_gremio_terceirizadas_exception(mock_get, jwt_authenticated_client_sme, flag_paa):
+    mock_get.side_effect = TerceirizadasException('erro terceirizadas')
+    response = jwt_authenticated_client_sme.get(
+        '/api/presentes-ata-paa/buscar-informacao-professor-gremio/?rf=1234567',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@patch('sme_ptrf_apps.paa.api.views.presentes_ata_paa_viewset.TerceirizadasService.get_informacao_servidor')
+def test_buscar_informacao_professor_gremio_read_timeout(mock_get, jwt_authenticated_client_sme, flag_paa):
+    mock_get.side_effect = ReadTimeout()
+    response = jwt_authenticated_client_sme.get(
+        '/api/presentes-ata-paa/buscar-informacao-professor-gremio/?rf=1234567',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'EOL Timeout' in response.data.get('detail', '')
+
+
+@patch('sme_ptrf_apps.paa.api.views.presentes_ata_paa_viewset.TerceirizadasService.get_informacao_servidor')
+def test_buscar_informacao_professor_gremio_connect_timeout(mock_get, jwt_authenticated_client_sme, flag_paa):
+    mock_get.side_effect = ConnectTimeout()
+    response = jwt_authenticated_client_sme.get(
+        '/api/presentes-ata-paa/buscar-informacao-professor-gremio/?rf=1234567',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'EOL Timeout' in response.data.get('detail', '')
+
+
+def test_buscar_informacao_professor_gremio_rf_menos_de_7_chars(jwt_authenticated_client_sme, flag_paa):
+    response = jwt_authenticated_client_sme.get(
+        '/api/presentes-ata-paa/buscar-informacao-professor-gremio/?rf=123',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    result = json.loads(response.content)
+    assert result['mensagem'] == 'servidor-nao-encontrado'
+
+
+# get_participantes_ordenados_por_cargo - casos de erro
+
+def test_get_participantes_ordenados_sem_ata_paa_uuid(jwt_authenticated_client_sme, flag_paa):
+    response = jwt_authenticated_client_sme.get(
+        '/api/presentes-ata-paa/get-participantes-ordenados-por-cargo/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'erro' in response.data
+
+
+def test_get_participantes_ordenados_ata_nao_existe(jwt_authenticated_client_sme, flag_paa):
+    response = jwt_authenticated_client_sme.get(
+        '/api/presentes-ata-paa/get-participantes-ordenados-por-cargo/?ata_paa_uuid=%s' % (
+            '00000000-0000-0000-0000-000000000000'
+        ),
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert 'erro' in response.data
+
+
+# padrao_presentes - sem ata_paa_uuid
+
+def test_padrao_presentes_sem_ata_paa_uuid(jwt_authenticated_client_sme, flag_paa):
+    response = jwt_authenticated_client_sme.get(
+        '/api/presentes-ata-paa/padrao-de-presentes/',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    result = json.loads(response.content)
+    assert result['erro'] == 'parametros_requeridos'
+
+
+def test_padrao_presentes_uuid_invalido(jwt_authenticated_client_sme, flag_paa):
+    response = jwt_authenticated_client_sme.get(
+        '/api/presentes-ata-paa/padrao-de-presentes/?ata_paa_uuid=uuid-invalido',
+        content_type='application/json'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
