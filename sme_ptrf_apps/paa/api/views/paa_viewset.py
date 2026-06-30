@@ -1,4 +1,5 @@
-"""Módulo de API para gerenciamento do Plano Anual de Atividades (PAA).
+"""
+Módulo de API para gerenciamento do Plano Anual de Atividades (PAA).
 
 Este módulo concentra os endpoints e regras de negócio para criação,
 atualização, exclusão, geração de relatórios em PDF, congelamento de saldos,
@@ -11,6 +12,8 @@ from django.http import Http404
 from django.db.models import Q
 from django.db import models
 from django.db.models.functions import Lower
+from django.db.models import QuerySet
+from rest_framework.serializers import Serializer
 
 from waffle.mixins import WaffleFlagMixin
 from rest_framework.exceptions import NotFound
@@ -68,7 +71,8 @@ logger = logging.getLogger(__name__)
 
 @extend_schema_view(**PAA_DOCS)
 class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
-    """Conjunto de views para o modelo Paa.
+    """
+    ViewSet responsável pelo gerenciamento do PAA.
 
     Disponibiliza rotas e ações customizadas para o ciclo de vida do
     Plano Anual de Atividades, gerenciado por permissões escolares e flags.
@@ -83,8 +87,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
     pagination_class = CustomPagination
     http_method_names = ['get', 'post', 'delete', 'patch']
 
-    def get_serializer_class(self):
-        """Retorne a classe de serializer com base na ação atual da viewset.
+    def get_serializer_class(self) -> type[Serializer]:
+        """
+        Retorne a classe de serializer com base na ação atual da viewset.
 
         Returns:
             A classe do serializer correspondente à requisição.
@@ -94,8 +99,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
         else:
             return PaaSerializer
 
-    def get_queryset(self):
-        """Retorne a lista de PAAs filtrada pelos parâmetros da requisição.
+    def get_queryset(self) -> QuerySet:
+        """
+        Retorne a lista de PAAs filtrada pelos parâmetros da requisição.
 
         Filtra os registros por uma associação específica se o parâmetro
         'associacao_uuid' for fornecido na URL.
@@ -113,8 +119,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='download-pdf-levantamento-prioridades',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def download_levantamento_prioridades_paa(self, request):
-        """Gere e faça o download do PDF de levantamento de prioridades do PAA.
+    def download_levantamento_prioridades_paa(self, request) -> Response:
+        """
+        Gere e faça o download do PDF de levantamento de prioridades do PAA.
 
         Args:
             request: O objeto de requisição HTTP atual.
@@ -150,8 +157,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='desativar-atualizacao-saldo',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def desativar_atualizacao_saldo(self, request, uuid):
-        """Congele os saldos atuais por ação vinculados a este PAA.
+    def desativar_atualizacao_saldo(self, request, uuid) -> Response:
+        """
+        Congele os saldos atuais por ação vinculados a este PAA.
 
         Args:
             request: O objeto de requisição HTTP atual.
@@ -179,7 +187,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='ativar-atualizacao-saldo',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def ativar_atualizacao_saldo(self, request, uuid):
+    def ativar_atualizacao_saldo(self, request, uuid) -> Response:
         """
         Impeça o descongelamento caso o documento final do PAA já tenha sido
         concluído e gerado.
@@ -210,8 +218,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def destroy(self, request, *args, **kwargs):
-        """Exclua um registro de PAA caso não possua restrições de integridade.
+    def destroy(self, request, *args, **kwargs) -> Response:
+        """
+        Exclua um registro de PAA caso não possua restrições de integridade.
 
         Args:
             request: O objeto de requisição HTTP atual.
@@ -238,8 +247,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='resumo-prioridades',
             permission_classes=[PermissaoApiUe])
-    def resumo_prioridades(self, request, uuid=None):
-        """Retorne o resumo das prioridades definidas para o PAA atual.
+    def resumo_prioridades(self, request, uuid=None) -> Response:
+        """
+        Retorne o resumo das prioridades definidas para o PAA atual.
 
         Args:
             request: O objeto de requisição HTTP atual.
@@ -253,8 +263,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='paas-anteriores',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def paa_anteriores(self, request, uuid=None):
-        """Retorne a lista de relatórios de PAAs anteriores da mesma associação.
+    def paa_anteriores(self, request, uuid=None) -> Response:
+        """
+        Retorne a lista de relatórios de PAAs anteriores da mesma associação.
 
         Filtra os registros por períodos cuja data inicial seja inferior ao
         período do PAA referenciado.
@@ -277,8 +288,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='paa-vigente-e-anteriores',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def paa_vigente_e_anteriores(self, request):
-        """Retorne o PAA vigente e o histórico dos anteriores renderizados.
+    def paa_vigente_e_anteriores(self, request) -> Response:
+        """
+        Retorne o PAA vigente e o histórico dos anteriores renderizados.
 
         Args:
             request: O objeto de requisição HTTP atual.
@@ -332,7 +344,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
             .order_by('-periodo_paa__data_inicial')
         )
 
-        def montar_render(paa, eh_paa_vigente):
+        def montar_render(paa, eh_paa_vigente) -> Response:
             return RenderizadorPaaBuilder(
                 paa,
                 request=request,
@@ -348,17 +360,17 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='importar-prioridades/(?P<uuid_paa_anterior>[a-f0-9-]+)',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def importar_prioridades(self, request, uuid=None, uuid_paa_anterior=None):
+    def importar_prioridades(self, request, uuid=None, uuid_paa_anterior=None) -> Response:
         """
-            Importar prioridades de PAA anterior.
+        Importe prioridades de PAA anterior.
 
-            Essa action pode ser usada para importar as prioridades de PAA anterior
-            para o PAA atual.
+        Essa action pode ser usada para importar as prioridades de PAA anterior
+        para o PAA atual.
 
-            - uuid_paa_anterior: uuid do PAA anterior para importar as prioridades.
+        - uuid_paa_anterior: uuid do PAA anterior para importar as prioridades.
 
-            Retorne um dicionário com a mensagem de sucesso e a quantidade de
-            prioridades importadas.
+        Retorne um dicionário com a mensagem de sucesso e a quantidade de
+        prioridades importadas.
         """
         confirmar = bool(int(self.request.query_params.get('confirmar', 0)))
         try:
@@ -388,8 +400,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='receitas-previstas',
             permission_classes=[IsAuthenticated])
-    def receitas_previstas(self, request, uuid=None):
-        """Retorne as ações e associações com as receitas previstas vinculadas.
+    def receitas_previstas(self, request, uuid=None) -> Response:
+        """
+        Retorne as ações e associações com as receitas previstas vinculadas.
 
         Args:
             request: O objeto de requisição HTTP atual.
@@ -405,8 +418,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='plano-orcamentario',
             permission_classes=[IsAuthenticated])
-    def plano_orcamentario(self, request, uuid=None):
-        """Retorne o plano orçamentário completo com dados consolidados.
+    def plano_orcamentario(self, request, uuid=None) -> Response:
+        """
+        Retorne o plano orçamentário completo com dados consolidados.
 
         Args:
             request: O objeto de requisição HTTP atual.
@@ -433,8 +447,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='plano-aplicacao',
             permission_classes=[IsAuthenticated])
-    def plano_aplicacao(self, request, uuid=None):
-        """Retorne o plano de aplicação agrupado e estruturado para renderização direta
+    def plano_aplicacao(self, request, uuid=None) -> Response:
+        """
+        Retorne o plano de aplicação agrupado e estruturado para renderização direta
 
         Args:
             request: O objeto de requisição HTTP atual.
@@ -460,8 +475,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='objetivos',
             permission_classes=[IsAuthenticated])
-    def objetivos_disponiveis(self, request, uuid=None):
-        """Retorne a listagem de objetivos globais ou vinculados a este PAA.
+    def objetivos_disponiveis(self, request, uuid=None) -> Response:
+        """
+        Retorne a listagem de objetivos globais ou vinculados a este PAA.
 
         Args:
             request: O objeto de requisição HTTP atual.
@@ -483,8 +499,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='atividades-estatutarias-disponiveis',
             permission_classes=[IsAuthenticated])
-    def atividades_estatutarias_disponiveis(self, request, uuid=None):
-        """Retorne as atividades estatutárias disponíveis marcando alterações.
+    def atividades_estatutarias_disponiveis(self, request, uuid=None) -> Response:
+        """
+        Retorne as atividades estatutárias disponíveis marcando alterações.
 
         Args:
             request: O objeto de requisição HTTP atual.
@@ -511,8 +528,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='atividades-estatutarias-previstas',
             permission_classes=[IsAuthenticated])
-    def atividades_estatutarias_previstas(self, request, uuid=None):
-        """Retorne as atividades estatutárias associadas e planejadas do PAA.
+    def atividades_estatutarias_previstas(self, request, uuid=None) -> Response:
+        """
+        Retorne as atividades estatutárias associadas e planejadas do PAA.
 
         Args:
             request: O objeto de requisição HTTP atual.
@@ -531,8 +549,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='recursos-proprios-previstos',
             permission_classes=[IsAuthenticated])
-    def recursos_proprios_previstos(self, request, uuid=None):
-        """Retorne a relação de recursos próprios previstos mapeando alterações.
+    def recursos_proprios_previstos(self, request, uuid=None) -> Response:
+        """
+        Retorne a relação de recursos próprios previstos mapeando alterações.
 
         Args:
             request: O objeto de requisição HTTP atual.
@@ -556,8 +575,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='outros-recursos-do-periodo',
             permission_classes=[IsAuthenticated])
-    def outros_recursos_periodo(self, request, uuid=None):
-        """Retorne outros tipos de recursos financeiros mapeados no período do PAA.
+    def outros_recursos_periodo(self, request, uuid=None) -> Response:
+        """
+        Retorne outros tipos de recursos financeiros mapeados no período do PAA.
 
         Args:
             request: O objeto de requisição HTTP atual.
@@ -573,8 +593,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
         return Response(data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"], url_path="gerar-documento")
-    def gerar_documento(self, request, uuid=None):
-        """Dispare o processo assíncrono de geração do arquivo de documento final.
+    def gerar_documento(self, request, uuid=None) -> Response:
+        """
+        Dispare o processo assíncrono de geração do arquivo de documento final.
 
         Valida se as premissas de negócio permitem o fechamento do documento e
         se o payload contém o parâmetro 'confirmar'.
@@ -620,8 +641,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
         )
 
     @action(detail=True, methods=["post"], url_path="gerar-previa-documento")
-    def gerar_previa_documento(self, request, uuid=None):
-        """Inicie a geração em background da prévia do documento em PDF.
+    def gerar_previa_documento(self, request, uuid=None) -> Response:
+        """
+        Inicie a geração em background da prévia do documento em PDF.
 
         Impede a chamada se o documento final já existir ou se houver outra
         solicitação de prévia ativamente sob processamento.
@@ -660,7 +682,16 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="gerar-previa-retificacao",
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def gerar_previa_retificacao(self, request, uuid=None):
+    def gerar_previa_retificacao(self, request, uuid=None) -> Response:
+        """
+        Inicie a geração em background da prévia da retificação do documento em PDF.
+
+        Args:
+            request: O objeto de requisição HTTP atual.
+
+        Returns:
+            Resposta de agendamento da rotina assíncrona ou status 400.
+        """
         paa = self.get_object()
         usuario = request.user
 
@@ -685,7 +716,16 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="gerar-documento-retificacao",
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def gerar_documento_retificacao(self, request, uuid=None):
+    def gerar_documento_retificacao(self, request, uuid=None) -> Response:
+        """
+        Inicie a geração em background do documento de retificação em PDF.
+
+        Args:
+            request: O objeto de requisição HTTP atual.
+
+        Returns:
+            Resposta de agendamento da rotina assíncrona ou status 400.
+        """
         paa = self.get_object()
         usuario = request.user
 
@@ -723,8 +763,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='documento-final',
             permission_classes=[IsAuthenticated])
-    def documento_final(self, request, uuid=None):
-        """Retorne o documento final concluído para download.
+    def documento_final(self, request, uuid=None) -> Response:
+        """
+        Retorne o documento final concluído para download.
 
         Permite buscar arquivos históricos de retificação por parâmetro na URL.
 
@@ -767,8 +808,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='documento-previa',
             permission_classes=[IsAuthenticated])
-    def documento_previa(self, request, uuid=None):
-        """Retorne o arquivo binário da prévia gerada em formato PDF para download.
+    def documento_previa(self, request, uuid=None) -> Response:
+        """
+        Retorne o arquivo binário da prévia gerada em formato PDF para download.
 
         Args:
             request: O objeto de requisição HTTP atual.
@@ -803,8 +845,9 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='status-geracao',
             permission_classes=[IsAuthenticated])
-    def status_geracao(self, request, uuid=None):
-        """Consulte o estado de processamento dos relatórios do PAA atual.
+    def satus_geracao(self, request, uuid=None) -> Response:
+        """
+        Consulte o estado de processamento dos relatórios do PAA atual.
 
         Verifica sequencialmente a situação do documento de prévia e do
         documento final.
@@ -852,7 +895,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='iniciar-retificacao',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def iniciar_retificacao(self, request, uuid=None):
+    def iniciar_retificacao(self, request, uuid=None) -> Response:
         """
         Inicia o processo de retificação do PAA.
 
@@ -891,7 +934,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='cancelar-retificacao',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def cancelar_retificacao(self, request, uuid=None):
+    def cancelar_retificacao(self, request, uuid=None) -> Response:
         """
         Inicia o processo de cancelamento da retificação do PAA.
 
@@ -927,7 +970,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='paa-retificacao',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def paa_retificacao(self, request, uuid=None):
+    def paa_retificacao(self, request, uuid=None) -> Response:
         """
         Retorne os dados do PAA enriquecidos com o comparativo em relação ao snapshot
         armazenado na réplica, permitindo ao frontend identificar registros
