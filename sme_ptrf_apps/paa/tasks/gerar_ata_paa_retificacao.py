@@ -4,7 +4,7 @@ from celery.exceptions import MaxRetriesExceededError
 
 from sme_ptrf_apps.logging.loggers import ContextualLogger
 from sme_ptrf_apps.paa.models import AtaPaa
-from sme_ptrf_apps.paa.services.ata_paa_service import gerar_arquivo_ata_paa
+from sme_ptrf_apps.paa.services.ata_paa_service import gerar_arquivo_ata_paa_retificacao
 
 MAX_RETRIES = 3
 
@@ -19,29 +19,27 @@ MAX_RETRIES = 3
     time_limit=600,
     soft_time_limit=300
 )
-def gerar_ata_paa_async(self, ata_paa_uuid, username=""):
-    """
-    Task assíncrona para gerar o arquivo PDF da ata PAA final
-    """
+def gerar_ata_paa_retificacao_async(self, ata_paa_uuid, username=""):
+    """Task assíncrona para gerar o arquivo PDF da ata PAA de Retificação final."""
     logger = ContextualLogger.get_logger(
         __name__,
-        operacao='Ata de Apresentação do PAA',
+        operacao='Ata de Retificação do PAA',
         username=username
     )
     tentativa = current_task.request.retries + 1
 
-    logger.info(f'Iniciando task gerar_ata_paa_async, tentativa {tentativa}.')
+    logger.info(f'Iniciando task gerar_ata_paa_retificacao_async, tentativa {tentativa}.')
 
     try:
         ata_paa = AtaPaa.objects.get(uuid=ata_paa_uuid)
         usuario = get_user_model().objects.get(username=username) if username else None
 
-        arquivo_ata = gerar_arquivo_ata_paa(ata_paa=ata_paa, usuario=usuario)
+        arquivo_ata = gerar_arquivo_ata_paa_retificacao(ata_paa=ata_paa, usuario=usuario)
 
         if arquivo_ata is not None:
             logger.info(f'Arquivo ata PAA {arquivo_ata.uuid} gerado com sucesso.')
         else:
-            raise RuntimeError("Falha ao gerar arquivo da ata PAA")
+            raise RuntimeError("Falha ao gerar arquivo da ata PAA de retificação")
 
         logger.info('Task gerar_ata_paa_async finalizada.')
     except Exception as exc:

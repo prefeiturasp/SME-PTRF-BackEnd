@@ -35,23 +35,27 @@ class LogReplicaPaa(ModeloBase):
     )
 
     numero_versao_documento = models.IntegerField(
-        'Número da versão do documento gerado', 
-        null=True, 
+        'Número da versão do documento gerado',
+        null=True,
         blank=True
     )
 
     replica = models.JSONField(
-        'Log Réplica do PAA',       
+        'Log Réplica do PAA',
         help_text=("Snapshot serializado do PAA")
     )
 
     def __str__(self):
-        return f"Log Réplica do PAA {self.paa.periodo_paa.referencia} ({self.paa.associacao}) originado por {self.origem}"
+        return "Log Réplica do PAA %s (%s) originado por %s" % (
+            self.paa.periodo_paa.referencia,
+            self.paa.associacao,
+            self.origem
+        )
 
     def formatted_json_replica(self):
         import json
         from django.utils.html import format_html
-        if not self.replica:
+        if self.replica is None:
             return "-"
         formatted = json.dumps(
             self.replica,

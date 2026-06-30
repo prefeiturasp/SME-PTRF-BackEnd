@@ -5,7 +5,10 @@
     <p class="font-12 texto-justificado pb-2 mb-0">
         Foi apresentado o seguinte cronograma para as atividades de {{dados.dados_texto_da_ata.datas_limite_periodo_por_extenso}}
     </p>
-    <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>Atividades estatutárias</strong></p>
+    <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0">
+      <strong>Atividades estatutárias</strong>
+      {% if dados.is_retificacao and dados.etiqueta_retificacao %}<span class="tag-retificacao">{{ dados.etiqueta_retificacao }}</span>{% endif %}
+    </p>
     <table class="table tabela-atividades tabela-zebra">
       <thead>
         <tr class="tr-titulo">

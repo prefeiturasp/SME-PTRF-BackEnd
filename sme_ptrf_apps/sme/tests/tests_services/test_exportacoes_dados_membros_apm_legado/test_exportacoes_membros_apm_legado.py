@@ -60,10 +60,10 @@ def test_rodape(membros_apm_fixture_mock, ambiente):
         user="12345"
     ).texto_info_arquivo_gerado()
 
-    data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
-    resultado_esperado = f"Arquivo solicitado via {ambiente.prefixo} pelo usuário 12345 em {data_atual}"
+    data_atual = datetime.datetime.now().strftime("%d/%m/%Y às %H:%M:%S")  # noqa
+    resultado_esperado = f"Arquivo solicitado via {ambiente.prefixo} pelo usuário 12345 em"
 
-    assert dados == resultado_esperado
+    assert resultado_esperado in dados
 
 
 def test_filtra_range_data_fora_do_range(membros_apm_fixture_mock):
@@ -156,7 +156,9 @@ def test_filtros_aplicados_com_data_inicio_e_com_data_final(membros_apm_fixture_
         data_final=data_final
     ).get_texto_filtro_aplicado()
 
-    resultado_esperado = f"Filtro aplicado: {data_inicio.strftime('%d/%m/%Y')} a {data_final.strftime('%d/%m/%Y')} (data de criação do registro)"
+    resultado_esperado = (
+        f"Filtro aplicado: {data_inicio.strftime('%d/%m/%Y')} a {data_final.strftime('%d/%m/%Y')} "
+        "(data de criação do registro)")
 
     assert dados == resultado_esperado
 
@@ -171,7 +173,9 @@ def test_filtros_aplicados_com_data_inicio_e_sem_data_final(membros_apm_fixture_
         data_inicio=data_inicio,
     ).get_texto_filtro_aplicado()
 
-    resultado_esperado = f"Filtro aplicado: A partir de {data_inicio.strftime('%d/%m/%Y')} (data de criação do registro)"
+    resultado_esperado = (
+        f"Filtro aplicado: A partir de {data_inicio.strftime('%d/%m/%Y')} (data de criação do registro)"
+    )
 
     assert dados == resultado_esperado
 

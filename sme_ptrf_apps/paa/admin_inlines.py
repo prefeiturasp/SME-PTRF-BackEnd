@@ -18,7 +18,7 @@ class PaaTabelasMixin:
     @staticmethod
     def _link(app_label, model_name, pk, label):
         url = reverse(f'admin:{app_label}_{model_name}_change', args=[pk])
-        return format_html('<a href="{}">{}</a>', url, label)
+        return format_html('<a href="{}" target="_blank" title="clique para abrir">{}</a>', url, label)
 
     @staticmethod
     def _check_boolean(b):
@@ -173,7 +173,7 @@ class PaaTabelasMixin:
     def tabela_atas(self, obj):
         if not obj or not obj.pk:
             return self._table([], [])
-        headers = ['UUID', 'Tipo Ata', 'Status Geração PDF', 'Parecer Conselho', 'Prévia', 'Preenchida Em']
+        headers = ['UUID', 'Tipo Ata', 'Status Geração', 'Parecer Conselho', 'Prévia', 'Gerado']
         rows = [
             [
                 self._link('paa', 'atapaa', item.pk, item.uuid),
@@ -181,7 +181,7 @@ class PaaTabelasMixin:
                 item.status_geracao_pdf,
                 item.parecer_conselho,
                 self._check_boolean(item.previa),
-                item.preenchida_em or '-',
+                self._check_boolean(item.pdf_gerado_previamente and bool(item.arquivo_pdf)),
             ]
             for item in AtaPaa.objects.filter(paa=obj)
         ]

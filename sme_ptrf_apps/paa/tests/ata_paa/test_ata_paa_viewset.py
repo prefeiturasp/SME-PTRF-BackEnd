@@ -330,9 +330,10 @@ class TestAtaPaaViewSetGerarAta:
 
     @pytest.fixture
     def paa_mock(self):
-        """Fixture para criar um mock de Paa"""
+        """Fixture para criar um mock de Paa no fluxo de apresentação (não retificação)"""
         paa = MagicMock(spec=Paa)
         paa.uuid = 'paa-uuid-123'
+        paa.status_em_retificacao = False
         return paa
 
     @pytest.fixture
@@ -372,9 +373,9 @@ class TestAtaPaaViewSetGerarAta:
         response = view(request)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
-        mock_logger.error.assert_called_once()
-        call_args = mock_logger.error.call_args[0]
-        assert 'Erro:' in call_args[0]
+        mock_logger.exception.assert_called_once()
+        call_args = mock_logger.exception.call_args[0]
+        assert 'gerar_ata' in call_args[0]
 
     @patch('waffle.mixins.flag_is_active', return_value=True)
     @patch('sme_ptrf_apps.paa.api.views.ata_paa_viewset.AtaPaa')
@@ -383,9 +384,9 @@ class TestAtaPaaViewSetGerarAta:
             self, mock_paa_model, mock_ata_paa_model, mock_waffle, factory, user, paa_mock):
         """Testa quando a ata PAA não existe para o PAA informado"""
         mock_paa_model.objects.get.return_value = paa_mock
-        mock_ata_paa_model.DoesNotExist = AtaPaa.DoesNotExist
-        mock_ata_paa_model.objects.get.side_effect = AtaPaa.DoesNotExist
+        mock_ata_paa_model.objects.filter.return_value.exclude.return_value.order_by.return_value.first.return_value = None  # noqa
         mock_ata_paa_model.ATA_APRESENTACAO = 'APRESENTACAO'
+        mock_ata_paa_model.STATUS_CONCLUIDO = 'CONCLUIDO'
 
         view = AtaPaaViewSet.as_view({'post': 'gerar_ata'})
         request = factory.post('/api/ata-paa/gerar-ata/', {'paa_uuid': 'paa-uuid-123'})
@@ -395,8 +396,7 @@ class TestAtaPaaViewSetGerarAta:
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert response.data['erro'] == 'Objeto não encontrado.'
-        assert 'Ata PAA não encontrada' in response.data['mensagem']
-        assert 'É necessário criar a ata antes de gerar' in response.data['mensagem']
+        assert 'Ata PAA não encontrada. Verifique se a Ata PAA já foi gerada.' in response.data['mensagem']
 
     @patch('waffle.mixins.flag_is_active', return_value=True)
     @patch('sme_ptrf_apps.paa.api.views.ata_paa_viewset.validar_geracao_ata_paa')
@@ -406,8 +406,9 @@ class TestAtaPaaViewSetGerarAta:
             self, mock_paa_model, mock_ata_paa_model, mock_validar, mock_waffle, factory, user, paa_mock, ata_paa_mock):
         """Testa quando o usuário não confirma a geração"""
         mock_paa_model.objects.get.return_value = paa_mock
-        mock_ata_paa_model.objects.get.return_value = ata_paa_mock
+        mock_ata_paa_model.objects.filter.return_value.exclude.return_value.get.return_value = ata_paa_mock
         mock_ata_paa_model.ATA_APRESENTACAO = 'APRESENTACAO'
+        mock_ata_paa_model.STATUS_CONCLUIDO = 'CONCLUIDO'
         mock_validar.return_value = {'is_valid': True}
 
         view = AtaPaaViewSet.as_view({'post': 'gerar_ata'})
@@ -428,8 +429,9 @@ class TestAtaPaaViewSetGerarAta:
             self, mock_paa_model, mock_ata_paa_model, mock_validar, mock_waffle, factory, user, paa_mock, ata_paa_mock):
         """Testa quando a validação da geração falha"""
         mock_paa_model.objects.get.return_value = paa_mock
-        mock_ata_paa_model.objects.get.return_value = ata_paa_mock
+        mock_ata_paa_model.objects.filter.return_value.exclude.return_value.order_by.return_value.first.return_value = ata_paa_mock  # noqa
         mock_ata_paa_model.ATA_APRESENTACAO = 'APRESENTACAO'
+        mock_ata_paa_model.STATUS_CONCLUIDO = 'CONCLUIDO'
         mock_validar.return_value = {
             'is_valid': False,
             'mensagem': 'Ata PAA está incompleta. Preencha todos os campos obrigatórios.'
@@ -457,8 +459,9 @@ class TestAtaPaaViewSetGerarAta:
             factory, user, paa_mock, ata_paa_mock):
         """Testa geração de ata com sucesso"""
         mock_paa_model.objects.get.return_value = paa_mock
-        mock_ata_paa_model.objects.get.return_value = ata_paa_mock
+        mock_ata_paa_model.objects.filter.return_value.exclude.return_value.order_by.return_value.first.return_value = ata_paa_mock  # noqa
         mock_ata_paa_model.ATA_APRESENTACAO = 'APRESENTACAO'
+        mock_ata_paa_model.STATUS_CONCLUIDO = 'CONCLUIDO'
         mock_validar.return_value = {'is_valid': True}
         mock_async_result = MagicMock()
         mock_gerar_async.apply_async.return_value = mock_async_result
@@ -491,8 +494,9 @@ class TestAtaPaaViewSetGerarAta:
             factory, user, paa_mock, ata_paa_mock):
         """Testa quando a task assíncrona falha ao ser iniciada"""
         mock_paa_model.objects.get.return_value = paa_mock
-        mock_ata_paa_model.objects.get.return_value = ata_paa_mock
+        mock_ata_paa_model.objects.filter.return_value.exclude.return_value.get.return_value = ata_paa_mock
         mock_ata_paa_model.ATA_APRESENTACAO = 'APRESENTACAO'
+        mock_ata_paa_model.STATUS_CONCLUIDO = 'CONCLUIDO'
         mock_validar.return_value = {'is_valid': True}
         mock_gerar_async.apply_async.side_effect = Exception('Erro ao conectar com Celery')
 
@@ -508,4 +512,144 @@ class TestAtaPaaViewSetGerarAta:
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
         assert response.data['erro'] == 'erro_ao_iniciar_geracao'
         assert 'Erro ao conectar com Celery' in response.data['mensagem']
-        mock_logger.error.assert_called_once()
+        mock_logger.exception.assert_called_once()
+
+
+@patch('sme_ptrf_apps.paa.api.views.ata_paa_viewset.AtaPaaViewSet.permission_classes', [])
+class TestAtaPaaViewSetGerarAtaRetificacao:
+    """Testes específicos do fluxo de geração de ata de retificação via viewset."""
+
+    @pytest.fixture
+    def factory(self):
+        return APIRequestFactory()
+
+    @pytest.fixture
+    def user(self):
+        return User.objects.create_user(
+            username='test_user_ret',
+            email='ret@example.com',
+            password='testpass123',
+        )
+
+    @pytest.fixture
+    def paa_mock_retificacao(self):
+        """PAA em status EM_RETIFICACAO."""
+        paa = MagicMock(spec=Paa)
+        paa.uuid = 'paa-ret-uuid-123'
+        paa.status_em_retificacao = True
+        return paa
+
+    @pytest.fixture
+    def ata_paa_retificacao_mock(self):
+        """AtaPaa de retificação já gerada anteriormente (CONCLUIDO)."""
+        ata = MagicMock(spec=AtaPaa)
+        ata.uuid = 'ata-ret-uuid-123'
+        return ata
+
+    @patch('waffle.mixins.flag_is_active', return_value=True)
+    @patch('sme_ptrf_apps.paa.api.views.ata_paa_viewset.gerar_ata_paa_retificacao_async')
+    @patch('sme_ptrf_apps.paa.api.views.ata_paa_viewset.validar_geracao_ata_paa')
+    @patch('sme_ptrf_apps.paa.api.views.ata_paa_viewset.AtaPaa')
+    @patch('sme_ptrf_apps.paa.api.views.ata_paa_viewset.Paa')
+    def test_usa_task_retificacao_para_paa_em_retificacao(
+        self,
+        mock_paa_model,
+        mock_ata_paa_model,
+        mock_validar,
+        mock_gerar_retificacao_async,
+        mock_waffle,
+        factory,
+        user,
+        paa_mock_retificacao,
+        ata_paa_retificacao_mock,
+    ):
+        """Quando PAA está em retificação, deve despachar gerar_ata_paa_retificacao_async."""
+        mock_paa_model.objects.get.return_value = paa_mock_retificacao
+        mock_ata_paa_model.objects.filter.return_value.order_by.return_value.first.return_value = ata_paa_retificacao_mock  # noqa
+        mock_ata_paa_model.ATA_RETIFICACAO = 'RETIFICACAO'
+        mock_ata_paa_model.STATUS_CONCLUIDO = 'CONCLUIDO'
+        mock_validar.return_value = {'is_valid': True}
+
+        view = AtaPaaViewSet.as_view({'post': 'gerar_ata'})
+        request = factory.post('/api/ata-paa/gerar-ata/', {
+            'paa_uuid': 'paa-ret-uuid-123',
+            'confirmar': 1,
+        })
+        force_authenticate(request, user=user)
+
+        response = view(request)
+
+        assert response.status_code == status.HTTP_200_OK
+        mock_gerar_retificacao_async.apply_async.assert_called_once_with(
+            args=['ata-ret-uuid-123', 'test_user_ret']
+        )
+
+    @patch('waffle.mixins.flag_is_active', return_value=True)
+    @patch('sme_ptrf_apps.paa.api.views.ata_paa_viewset.gerar_ata_paa_retificacao_async')
+    @patch('sme_ptrf_apps.paa.api.views.ata_paa_viewset.validar_geracao_ata_paa')
+    @patch('sme_ptrf_apps.paa.api.views.ata_paa_viewset.AtaPaa')
+    @patch('sme_ptrf_apps.paa.api.views.ata_paa_viewset.Paa')
+    def test_usa_validacao_para_paa_em_retificacao(
+        self,
+        mock_paa_model,
+        mock_ata_paa_model,
+        mock_validar,
+        mock_gerar_retificacao_async,
+        mock_waffle,
+        factory,
+        user,
+        paa_mock_retificacao,
+        ata_paa_retificacao_mock,
+    ):
+        """Quando PAA está em retificação, deve chamar validar_geracao_ata_paa com a ata de retificação."""
+        mock_paa_model.objects.get.return_value = paa_mock_retificacao
+        mock_ata_paa_model.objects.filter.return_value.order_by.return_value.first.return_value = ata_paa_retificacao_mock  # noqa
+        mock_ata_paa_model.ATA_RETIFICACAO = 'RETIFICACAO'
+        mock_ata_paa_model.STATUS_CONCLUIDO = 'CONCLUIDO'
+        mock_validar.return_value = {'is_valid': True}
+
+        view = AtaPaaViewSet.as_view({'post': 'gerar_ata'})
+        request = factory.post('/api/ata-paa/gerar-ata/', {
+            'paa_uuid': 'paa-ret-uuid-123',
+            'confirmar': 1,
+        })
+        force_authenticate(request, user=user)
+
+        view(request)
+
+        mock_validar.assert_called_once_with(ata_paa_retificacao_mock)
+
+    @patch('waffle.mixins.flag_is_active', return_value=True)
+    @patch('sme_ptrf_apps.paa.api.views.ata_paa_viewset.validar_geracao_ata_paa')
+    @patch('sme_ptrf_apps.paa.api.views.ata_paa_viewset.AtaPaa')
+    @patch('sme_ptrf_apps.paa.api.views.ata_paa_viewset.Paa')
+    def test_retificacao_invalida_retorna_400(
+        self,
+        mock_paa_model,
+        mock_ata_paa_model,
+        mock_validar,
+        mock_waffle,
+        factory,
+        user,
+        paa_mock_retificacao,
+        ata_paa_retificacao_mock,
+    ):
+        """Quando validação de retificação falha, deve retornar 400 com mensagem de erro."""
+        mock_paa_model.objects.get.return_value = paa_mock_retificacao
+        mock_ata_paa_model.objects.filter.return_value.order_by.return_value.first.return_value = ata_paa_retificacao_mock  # noqa
+        mock_ata_paa_model.ATA_RETIFICACAO = 'RETIFICACAO'
+        mock_ata_paa_model.STATUS_CONCLUIDO = 'CONCLUIDO'
+        mock_validar.return_value = {
+            'is_valid': False,
+            'mensagem': 'O documento Plano Anual deve estar gerado',
+        }
+
+        view = AtaPaaViewSet.as_view({'post': 'gerar_ata'})
+        request = factory.post('/api/ata-paa/gerar-ata/', {'paa_uuid': 'paa-ret-uuid-123'})
+        force_authenticate(request, user=user)
+
+        response = view(request)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert 'O documento Plano Anual deve estar gerado' in response.data['mensagem']
+        assert response.data['confirmar'] is False

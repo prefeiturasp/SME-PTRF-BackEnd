@@ -17,15 +17,19 @@ from drf_spectacular.utils import extend_schema_view
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComLeituraOuGravacao
 from sme_ptrf_apps.utils.choices_to_json import choices_to_json
 from sme_ptrf_apps.paa.models import AtaPaa, Paa
-from sme_ptrf_apps.paa.api.serializers.ata_paa_serializer import AtaPaaSerializer, AtaPaaCreateSerializer, AtaPaaLookUpSerializer
+from sme_ptrf_apps.paa.api.serializers.ata_paa_serializer import (
+    AtaPaaSerializer, AtaPaaCreateSerializer, AtaPaaLookUpSerializer)
 from sme_ptrf_apps.paa.services.ata_paa_service import validar_geracao_ata_paa
 from sme_ptrf_apps.paa.tasks.gerar_ata_paa import gerar_ata_paa_async
+from sme_ptrf_apps.paa.tasks.gerar_ata_paa_retificacao import gerar_ata_paa_retificacao_async
 from .docs.ata_paa_docs import DOCS
 
 from sme_ptrf_apps.paa.mixins.paa_bloqueia_alteracao_mixin import PaaBloqueiaAlteracaoMixin
 from sme_ptrf_apps.paa.services.paa_status_bloqueia_alteracao_service import TipoBloqueioPaa
 
 logger = logging.getLogger(__name__)
+
+ERROR_OBJETO_NAO_ENCONTRADO = "Objeto não encontrado."
 
 
 @extend_schema_view(**DOCS)
@@ -51,7 +55,7 @@ class AtaPaaViewSet(WaffleFlagMixin,
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def iniciar_ata(self, request):
         paa_uuid = request.query_params.get('paa_uuid')
-        
+
         if not paa_uuid:
             erro = {
                 'erro': 'parametros_requeridos',
@@ -63,10 +67,10 @@ class AtaPaaViewSet(WaffleFlagMixin,
             paa = Paa.objects.get(uuid=paa_uuid)
         except Paa.DoesNotExist:
             erro = {
-                'erro': 'Objeto não encontrado.',
+                'erro': ERROR_OBJETO_NAO_ENCONTRADO,
                 'mensagem': f"O objeto PAA para o uuid {paa_uuid} não foi encontrado na base."
             }
-            logger.info('Erro: %r', erro)
+            logger.info('Erro iniciar_ata.nao_encontrado: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         ata_paa = AtaPaa.iniciar(paa=paa)
@@ -92,10 +96,10 @@ class AtaPaaViewSet(WaffleFlagMixin,
             ata_paa = AtaPaa.by_uuid(ata_paa_uuid)
         except ValidationError:
             erro = {
-                'erro': 'Objeto não encontrado.',
+                'erro': ERROR_OBJETO_NAO_ENCONTRADO,
                 'mensagem': f"O objeto ata PAA para o uuid {ata_paa_uuid} não foi encontrado na base."
             }
-            logger.info('Erro: %r', erro)
+            logger.info('Erro download_arquivo_ata_paa.nao_encontrado: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         try:
@@ -111,7 +115,7 @@ class AtaPaaViewSet(WaffleFlagMixin,
                 'erro': 'arquivo_nao_gerado',
                 'mensagem': str(err)
             }
-            logger.info("Erro: %s", str(err))
+            logger.info("Erro download_arquivo_ata_paa.arquivo_nao_gerado: %s", str(err))
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
         return response
@@ -136,7 +140,7 @@ class AtaPaaViewSet(WaffleFlagMixin,
         Endpoint para gerar a ata PAA final
         """
         paa_uuid = request.data.get('paa_uuid')
-        
+
         if not paa_uuid:
             erro = {
                 'erro': 'parametros_requeridos',
@@ -148,28 +152,32 @@ class AtaPaaViewSet(WaffleFlagMixin,
             paa = Paa.objects.get(uuid=paa_uuid)
         except Paa.DoesNotExist:
             erro = {
-                'erro': 'Objeto não encontrado.',
+                'erro': ERROR_OBJETO_NAO_ENCONTRADO,
                 'mensagem': f"O objeto PAA para o uuid {paa_uuid} não foi encontrado na base."
             }
-            logger.error('Erro: %r', erro)
+            logger.exception('Erro gerar_ata.paa_nao_encontrado: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            ata_paa = AtaPaa.objects.get(
-                paa=paa,
-                tipo_ata=AtaPaa.ATA_APRESENTACAO
-            )
-        except AtaPaa.DoesNotExist:
+        eh_retificacao = paa.status_em_retificacao
+        tipo_ata = AtaPaa.ATA_RETIFICACAO if eh_retificacao else AtaPaa.ATA_APRESENTACAO
+
+        qs = AtaPaa.objects.filter(paa=paa, tipo_ata=tipo_ata)
+        # Retificação permite regerar — não exclui atas já concluídas.
+        # Usa order_by('-pk').first() pois pode haver múltiplos registros (um por ciclo Rn).
+        if not eh_retificacao:
+            qs = qs.exclude(status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO)
+        ata_paa = qs.order_by('-pk').first()
+        if not ata_paa:
             erro = {
-                'erro': 'Objeto não encontrado.',
-                'mensagem': f"Ata PAA não encontrada para o PAA {paa_uuid}. É necessário criar a ata antes de gerar."
+                'erro': ERROR_OBJETO_NAO_ENCONTRADO,
+                'mensagem': "Ata PAA não encontrada. Verifique se a Ata PAA já foi gerada."
             }
-            logger.error('Erro: %r', erro)
+            logger.exception('Erro gerar_ata.ata_nao_encontrada: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         # Valida se pode gerar
         validacao = validar_geracao_ata_paa(ata_paa)
-        
+
         if not validacao.get('is_valid'):
             return Response(
                 {
@@ -190,14 +198,13 @@ class AtaPaaViewSet(WaffleFlagMixin,
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Inicia a geração assíncrona
+        # Inicia a geração assíncrona com a task correspondente ao tipo
         try:
-            gerar_ata_paa_async.apply_async(
-                args=[str(ata_paa.uuid), request.user.username]
-            )
-            
+            task = gerar_ata_paa_retificacao_async if eh_retificacao else gerar_ata_paa_async
+            task.apply_async(args=[str(ata_paa.uuid), request.user.username])
+
             logger.info(f'Geração da ata PAA {ata_paa.uuid} iniciada pelo usuário {request.user.username}')
-            
+
             return Response(
                 {
                     'mensagem': 'Geração da ata final iniciada. Aguarde o processamento.',
@@ -206,10 +213,9 @@ class AtaPaaViewSet(WaffleFlagMixin,
                 status=status.HTTP_200_OK
             )
         except Exception as e:
-            logger.error(f'Erro ao iniciar geração da ata PAA: {str(e)}', exc_info=True)
+            logger.exception(f'Erro gerar_ata.erro_iniciar_geracao_ata: {str(e)}')
             erro = {
                 'erro': 'erro_ao_iniciar_geracao',
                 'mensagem': f'Erro ao iniciar a geração da ata: {str(e)}'
             }
             return Response(erro, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-

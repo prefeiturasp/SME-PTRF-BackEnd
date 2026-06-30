@@ -2,6 +2,7 @@ from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.models.ata_paa import AtaPaa
 from model_bakery import baker
 from datetime import date
+from unittest.mock import patch
 import pytest
 
 from sme_ptrf_apps.paa.services.paa_status_bloqueia_alteracao_service import (
@@ -10,11 +11,13 @@ from sme_ptrf_apps.paa.services.paa_status_bloqueia_alteracao_service import (
     TipoBloqueioPaa,
 )
 
+
 @pytest.fixture
 def paa_em_elaboracao(paa_factory, periodo_paa_factory):
     periodo_paa = periodo_paa_factory.create()
     paa_gerado = paa_factory.create(periodo_paa=periodo_paa, status=PaaStatusEnum.EM_ELABORACAO.name)
     return paa_gerado
+
 
 @pytest.fixture
 def paa_gerado(paa_factory, periodo_paa_factory):
@@ -22,9 +25,11 @@ def paa_gerado(paa_factory, periodo_paa_factory):
     paa_gerado = paa_factory.create(periodo_paa=periodo_paa, status=PaaStatusEnum.GERADO.name)
     return paa_gerado
 
+
 @pytest.fixture
 def especificacao_material():
     return baker.make('EspecificacaoMaterialServico', descricao='Material teste')
+
 
 @pytest.fixture
 def outro_recurso_periodo(periodo_paa_factory, outro_recurso_factory, outro_recurso_periodo_factory):
@@ -40,12 +45,13 @@ def outro_recurso_periodo(periodo_paa_factory, outro_recurso_factory, outro_recu
         ativo=True
     )
 
+
 class TestChecarStatusGerado:
 
-    def test_nao_deve_lancar_excecao_quando_status_nao_gerado(self, paa_em_elaboracao):        
+    def test_nao_deve_lancar_excecao_quando_status_nao_gerado(self, paa_em_elaboracao):
         PaaStatusBloqueiaAlteracaoService.checar_status_gerado(paa_em_elaboracao)
 
-    def test_deve_lancar_excecao_quando_status_gerado(self, paa_gerado):       
+    def test_deve_lancar_excecao_quando_status_gerado(self, paa_gerado):
 
         with pytest.raises(PaaStatusBloqueiaAlteracaoException) as exc:
             PaaStatusBloqueiaAlteracaoService.checar_status_gerado(paa_gerado)
@@ -56,6 +62,7 @@ class TestChecarStatusGerado:
                 "utilize o fluxo de retificação do PAA."
             )
         }
+
 
 class TestChecarAtaConcluida:
 
@@ -82,6 +89,38 @@ class TestChecarAtaConcluida:
                     "Para realizar alterações, utilize o fluxo de retificação."
                 )
             }
+
+
+class TestChecarAtaConcluidaEmRetificacao:
+
+    def test_nao_levanta_excecao_quando_em_retificacao_sem_ata_concluida(
+        self, paa_factory, periodo_paa_factory
+    ):
+        periodo_paa = periodo_paa_factory.create()
+        paa = paa_factory.create(
+            periodo_paa=periodo_paa, status=PaaStatusEnum.EM_RETIFICACAO.name
+        )
+        with patch(
+            'sme_ptrf_apps.paa.services.ciclo_retificacao_service.CicloRetificacaoService'
+        ) as mock_ciclo:
+            mock_ciclo.return_value.tem_ata_concluida = False
+            PaaStatusBloqueiaAlteracaoService.checar_ata_concluida(paa)
+
+    def test_levanta_excecao_quando_em_retificacao_com_ata_concluida(
+        self, paa_factory, periodo_paa_factory
+    ):
+        periodo_paa = periodo_paa_factory.create()
+        paa = paa_factory.create(
+            periodo_paa=periodo_paa, status=PaaStatusEnum.EM_RETIFICACAO.name
+        )
+        with patch(
+            'sme_ptrf_apps.paa.services.ciclo_retificacao_service.CicloRetificacaoService'
+        ) as mock_ciclo:
+            mock_ciclo.return_value.tem_ata_concluida = True
+            with pytest.raises(PaaStatusBloqueiaAlteracaoException) as exc:
+                PaaStatusBloqueiaAlteracaoService.checar_ata_concluida(paa)
+            assert 'Ata Final' in exc.value.detail['mensagem']
+
 
 class TestValidarLista:
 
@@ -179,7 +218,8 @@ class TestValidarLista:
             )
         }
 
-""" Testes de integração """
+
+# Testes de integração
 class TestPrioridadesMixinBloqueios():
 
     def test_nao_deve_criar_prioridade_quando_paa_status_gerado(
@@ -214,7 +254,7 @@ class TestPrioridadesMixinBloqueios():
                 "utilize o fluxo de retificação do PAA."
             )
         }
-    
+
     def test_nao_deve_atualizar_prioridade_quando_paa_status_gerado(
         self,
         jwt_authenticated_client_sme,
@@ -224,7 +264,7 @@ class TestPrioridadesMixinBloqueios():
         especificacao_material,
         flag_paa,
     ):
-        
+
         prioridade = prioridade_paa_factory.create(
             paa=paa_gerado
         )
@@ -252,7 +292,7 @@ class TestPrioridadesMixinBloqueios():
                 "utilize o fluxo de retificação do PAA."
             )
         }
-    
+
     def test_nao_deve_excluir_prioridade_quando_paa_status_gerado(
         self,
         jwt_authenticated_client_sme,
@@ -260,7 +300,7 @@ class TestPrioridadesMixinBloqueios():
         prioridade_paa_factory,
         flag_paa,
     ):
-      
+
         prioridade = prioridade_paa_factory.create(
             paa=paa_gerado
         )
@@ -286,11 +326,11 @@ class TestPaaMixinBloqueios:
         jwt_authenticated_client_sme,
         paa_gerado,
         flag_paa,
-    ):        
-       
+    ):
+
         payload = {
             "texto_introducao": "<p>teste</p>",
-            "texto_conclusao":"<p>teste</p>",
+            "texto_conclusao": "<p>teste</p>",
             "objetivos": [],
             "atividades_estatutarias_paa": []
         }
@@ -318,7 +358,7 @@ class TestReceitasPrevistasPaaBloqueios:
         acao_associacao,
         paa_gerado,
         flag_paa
-    ):       
+    ):
 
         payload = {
             "paa": str(paa_gerado.uuid),
@@ -350,7 +390,7 @@ class TestReceitasPrevistasPaaBloqueios:
         paa_gerado,
         flag_paa,
     ):
-    
+
         receita = receita_prevista_paa_factory.create(
             paa=paa_gerado
         )
@@ -373,7 +413,7 @@ class TestReceitasPrevistasPaaBloqueios:
             )
         }
 
-   
+
 class TestReceitasPrevistasPddePaaBloqueios:
 
     def test_nao_deve_criar_receita_prevista_pdde_quando_paa_gerado(
@@ -382,10 +422,10 @@ class TestReceitasPrevistasPddePaaBloqueios:
         paa_gerado,
         acao_pdde_factory,
         flag_paa
-    ):       
+    ):
 
         acao_pdde = acao_pdde_factory.create(status='ATIVA')
-        
+
         payload = {
             "paa": str(paa_gerado.uuid),
             "acao_pdde": str(acao_pdde.uuid),
@@ -454,7 +494,7 @@ class TestReceitasRecursosPropriosPaaBloqueios:
     ):
 
         fonte_recurso = fonte_recurso_paa_factory.create(nome="Fonte recurso 1")
-        
+
         payload = {
             "paa": str(paa_gerado.uuid),
             "associacao": str(associacao.uuid),
@@ -488,10 +528,10 @@ class TestReceitasRecursosPropriosPaaBloqueios:
         flag_paa,
     ):
         fonte_recurso = fonte_recurso_paa_factory.create(nome="Fonte recurso 1")
-        
+
         recurso_proprio = recurso_proprio_paa_factory.create(
-            paa=paa_gerado, 
-            fonte_recurso=fonte_recurso, 
+            paa=paa_gerado,
+            fonte_recurso=fonte_recurso,
             associacao=associacao
         )
 
@@ -526,10 +566,10 @@ class TestReceitasRecursosPropriosPaaBloqueios:
         flag_paa,
     ):
         fonte_recurso = fonte_recurso_paa_factory.create(nome="Fonte recurso 1")
-        
+
         recurso_proprio = recurso_proprio_paa_factory.create(
-            paa=paa_gerado, 
-            fonte_recurso=fonte_recurso, 
+            paa=paa_gerado,
+            fonte_recurso=fonte_recurso,
             associacao=associacao
         )
 
@@ -546,6 +586,7 @@ class TestReceitasRecursosPropriosPaaBloqueios:
             )
         }
 
+
 class TestReceitasOutrosRecursosBloqueios:
 
     def test_nao_deve_criar_outros_recursos_quando_paa_gerado(
@@ -554,8 +595,8 @@ class TestReceitasOutrosRecursosBloqueios:
         paa_gerado,
         outro_recurso_periodo,
         flag_paa
-    ):        
-        
+    ):
+
         payload = {
             "paa": str(paa_gerado.uuid),
             "outro_recurso_periodo": str(outro_recurso_periodo.uuid),
@@ -588,7 +629,7 @@ class TestReceitasOutrosRecursosBloqueios:
         receita_prevista_outro_recurso_periodo_factory,
         paa_gerado,
         flag_paa,
-    ):      
+    ):
 
         receita = receita_prevista_outro_recurso_periodo_factory.create(
             paa=paa_gerado,
@@ -603,10 +644,9 @@ class TestReceitasOutrosRecursosBloqueios:
                 "saldo_custeio": 10,
                 "saldo_capital": 10,
                 "saldo_livre": 10,
-                "previsao_valor_custeio":10,
+                "previsao_valor_custeio": 10,
                 "previsao_valor_capital": 10,
                 "previsao_valor_livre": 10
-            
             },
         )
 
@@ -619,6 +659,7 @@ class TestReceitasOutrosRecursosBloqueios:
             )
         }
 
+
 class TestAtaPaaMixinBloqueios:
 
     def test_nao_deve_atualizar_ata_concluida(
@@ -628,16 +669,16 @@ class TestAtaPaaMixinBloqueios:
         ata_paa_factory,
         flag_paa,
     ):
-        
+
         ata_paa_concluida = ata_paa_factory.create(
             paa=paa_gerado,
             status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
-        ) 
-       
+        )
+
         payload = {
             "data_reuniao": "2026-06-02",
             "local_reuniao": "teste",
-            "justificativa": "",            
+            "justificativa": "",
             "presentes_na_ata_paa": [],
             "hora_reuniao": "10:10",
         }

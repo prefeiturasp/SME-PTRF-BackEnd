@@ -370,7 +370,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
         except (Http404, NotFound, Paa.DoesNotExist):
             return Response({"mensagem": "PAA anterior não encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-        self.validar_paa_permite_alteracao() # não permite importar prioridades se gerado
+        self.validar_paa_permite_alteracao()  # não permite importar prioridades se gerado
 
         try:
             importados = PaaService.importar_prioridades_paa_anterior(paa_atual, paa_anterior, confirmar)
@@ -803,7 +803,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='status-geracao',
             permission_classes=[IsAuthenticated])
-    def satus_geracao(self, request, uuid=None):
+    def status_geracao(self, request, uuid=None):
         """Consulte o estado de processamento dos relatórios do PAA atual.
 
         Verifica sequencialmente a situação do documento de prévia e do
@@ -818,26 +818,30 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
         """
         paa = self.get_object()
 
-        if paa.documento_previa:
-            doc = paa.documento_previa
+        doc_previa = paa.documento_previa
+        if doc_previa:
             return Response(
                 {
-                    "mensagem": doc.__str__(),
-                    "versao": doc.versao,
-                    "status": doc.status_geracao,
-                    "retificacao": doc.retificacao,
+                    "mensagem": doc_previa.__str__(),
+                    "versao": doc_previa.versao,
+                    "status": doc_previa.status_geracao,
+                    "retificacao": doc_previa.retificacao,
                 },
                 status=200
             )
+        if paa.status_em_retificacao:
+            from sme_ptrf_apps.paa.services.ciclo_retificacao_service import CicloRetificacaoService
+            doc_final = CicloRetificacaoService(paa).documento_atual  # None se for doc do ciclo anterior
+        else:
+            doc_final = paa.documento_final
 
-        if paa.documento_final:
-            doc = paa.documento_final
+        if doc_final:
             return Response(
                 {
-                    "mensagem": doc.__str__(),
-                    "versao": doc.versao,
-                    "status": doc.status_geracao,
-                    "retificacao": doc.retificacao,
+                    "mensagem": doc_final.__str__(),
+                    "versao": doc_final.versao,
+                    "status": doc_final.status_geracao,
+                    "retificacao": doc_final.retificacao,
                 },
                 status=200
             )

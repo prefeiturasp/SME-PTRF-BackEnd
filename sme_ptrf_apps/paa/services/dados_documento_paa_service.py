@@ -380,14 +380,36 @@ def criar_grupos_prioridades(paa, alteracoes=None):
         })
 
     grupos = [
-        {"titulo": "Prioridades PTRF", "items": filtrar_prioridade(items, True, "PTRF")},
-        {"titulo": "Prioridades PDDE", "items": filtrar_prioridade(items, True, "PDDE")},
-        {"titulo": "Prioridades Outros Recursos",
-            "items": filtrar_prioridade(items, True, ["RECURSO_PROPRIO", "OUTRO_RECURSO"])},
-        {"titulo": "Não Prioridades PTRF", "items": filtrar_prioridade(items, False, "PTRF")},
-        {"titulo": "Não Prioridades PDDE", "items": filtrar_prioridade(items, False, "PDDE")},
-        {"titulo": "Não Prioridades Outros Recursos",
-            "items": filtrar_prioridade(items, False, ["RECURSO_PROPRIO", "OUTRO_RECURSO"])},
+        {
+            "key": "prioridades_ptrf",
+            "titulo": "Prioridades PTRF",
+            "items": filtrar_prioridade(items, True, "PTRF")
+        },
+        {
+            "key": "prioridades_pdde",
+            "titulo": "Prioridades PDDE",
+            "items": filtrar_prioridade(items, True, "PDDE")
+        },
+        {
+            "key": "prioridades_outros_recursos",
+            "titulo": "Prioridades Outros Recursos",
+            "items": filtrar_prioridade(items, True, ["RECURSO_PROPRIO", "OUTRO_RECURSO"])
+        },
+        {
+            "key": "nao_prioridades_ptrf",
+            "titulo": "Não Prioridades PTRF",
+            "items": filtrar_prioridade(items, False, "PTRF")
+        },
+        {
+            "key": "nao_prioridades_pdde",
+            "titulo": "Não Prioridades PDDE",
+            "items": filtrar_prioridade(items, False, "PDDE")
+        },
+        {
+            "key": "nao_prioridades_outros_recursos",
+            "titulo": "Não Prioridades Outros Recursos",
+            "items": filtrar_prioridade(items, False, ["RECURSO_PROPRIO", "OUTRO_RECURSO"])
+        },
     ]
 
     for grupo in grupos:

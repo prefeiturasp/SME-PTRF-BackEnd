@@ -1,7 +1,5 @@
 import pytest
 
-from django.db import IntegrityError, transaction
-
 from sme_ptrf_apps.paa.models import AtividadeEstatutaria
 from sme_ptrf_apps.paa.choices import StatusChoices, Mes
 from sme_ptrf_apps.paa.enums import TipoAtividadeEstatutariaEnum
@@ -148,7 +146,7 @@ def test_nome_mes_tipo_nao_devem_ser_unico(atividade_estatutaria_factory):
         mes=Mes.JANEIRO,
         tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name,
         paa=None)
-    
+
     atividade_estatutaria_factory.create(
         nome="Único",
         mes=Mes.FEVEREIRO,
