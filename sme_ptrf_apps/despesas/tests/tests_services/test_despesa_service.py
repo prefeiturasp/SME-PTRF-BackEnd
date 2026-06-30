@@ -775,8 +775,25 @@ def criar_cenario_marcar_lancamento_como_atualizado(
     return despesa, analise_lancamento
 
 
-def test_marca_lancamento_como_atualizado_quando_tudo_ok():
+def test_marca_lancamento_como_atualizado_quando_tudo_ok(
+        prestacao_conta_factory,
+        solicitacao_acerto_lancamento_factory,
+        analise_prestacao_conta_factory,
+        tipo_acerto_lancamento_factory,
+        analise_lancamento_prestacao_conta_factory,
+        despesa_factory,
+        associacao,
+        periodo_2020_2
+    ):
     despesa, analise_lancamento = criar_cenario_marcar_lancamento_como_atualizado(
+        prestacao_conta_factory,
+        solicitacao_acerto_lancamento_factory,
+        analise_prestacao_conta_factory,
+        tipo_acerto_lancamento_factory,
+        analise_lancamento_prestacao_conta_factory,
+        despesa_factory,
+        associacao,
+        periodo_2020_2,
         status_prestacao=PrestacaoConta.STATUS_DEVOLVIDA,
         lancamento_atualizado=False,
     )
@@ -790,8 +807,25 @@ def test_marca_lancamento_como_atualizado_quando_tudo_ok():
     assert analise_lancamento.lancamento_atualizado
 
 
-def test_marca_lancamento_como_atualizado_quando_lancamento_atualizado():
+def test_marca_lancamento_como_atualizado_quando_lancamento_atualizado(
+    prestacao_conta_factory,
+    solicitacao_acerto_lancamento_factory,
+    analise_prestacao_conta_factory,
+    tipo_acerto_lancamento_factory,
+    analise_lancamento_prestacao_conta_factory,
+    despesa_factory,
+    associacao,
+    periodo_2020_2
+):
     despesa, analise_lancamento = criar_cenario_marcar_lancamento_como_atualizado(
+        prestacao_conta_factory,
+        solicitacao_acerto_lancamento_factory,
+        analise_prestacao_conta_factory,
+        tipo_acerto_lancamento_factory,
+        analise_lancamento_prestacao_conta_factory,
+        despesa_factory,
+        associacao,
+        periodo_2020_2,
         status_prestacao=PrestacaoConta.STATUS_DEVOLVIDA,
         lancamento_atualizado=True,
     )
@@ -803,8 +837,25 @@ def test_marca_lancamento_como_atualizado_quando_lancamento_atualizado():
     assert analise_lancamento.lancamento_atualizado
 
 
-def test_nao_marca_lancamento_quando_prestacao_em_analise():
+def test_nao_marca_lancamento_quando_prestacao_em_analise(
+    prestacao_conta_factory,
+    solicitacao_acerto_lancamento_factory,
+    analise_prestacao_conta_factory,
+    tipo_acerto_lancamento_factory,
+    analise_lancamento_prestacao_conta_factory,
+    despesa_factory,
+    associacao,
+    periodo_2020_2
+):
     despesa, analise_lancamento = criar_cenario_marcar_lancamento_como_atualizado(
+        prestacao_conta_factory,
+        solicitacao_acerto_lancamento_factory,
+        analise_prestacao_conta_factory,
+        tipo_acerto_lancamento_factory,
+        analise_lancamento_prestacao_conta_factory,
+        despesa_factory,
+        associacao,
+        periodo_2020_2,
         status_prestacao=PrestacaoConta.STATUS_EM_ANALISE,
         lancamento_atualizado=False,
     )
