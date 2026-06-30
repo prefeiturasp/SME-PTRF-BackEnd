@@ -162,15 +162,26 @@ class RetificacaoPaaService:
             'uuid': str(documento_original.uuid) if documento_original else None
         }
 
-    def _snapshot_documento_retificado(self):
-        documento_retificado = self.paa.documentopaa_set.filter(
-            versao=DocumentoPaa.VersaoChoices.FINAL,
-            retificacao=True,
-        ).only('uuid', 'versao_documento').first()
+    def _snapshot_documento_retificado(self) -> dict:
+        """Gera o snapshot do documento final retificado mais recente.
+
+        Returns:
+            Dicionário com uuid e versao_documento do documento, ou None quando
+            não há documento retificado.
+        """
+        documento_retificado = (
+            self.paa.documentopaa_set.filter(
+                versao=DocumentoPaa.VersaoChoices.FINAL,
+                retificacao=True,
+            )
+            .order_by('-versao_documento')  # garantir a última versão
+            .only('uuid', 'versao_documento')
+            .first()
+        )
 
         return {
             'uuid': str(documento_retificado.uuid) if documento_retificado else None,
-            'versao': documento_retificado.versao_documento if documento_retificado else None
+            'versao_documento': documento_retificado.versao_documento if documento_retificado else None
         }
 
     def _snapshot_ata_original(self):
@@ -183,11 +194,22 @@ class RetificacaoPaaService:
             'uuid': str(ata_original.uuid) if ata_original else None
         }
 
-    def _snapshot_ata_retificada(self):
-        ata_retificada = self.paa.atas_da_paa.filter(
-            tipo_ata=AtaPaa.ATA_RETIFICACAO,
-            previa=False,
-        ).only('uuid').first()
+    def _snapshot_ata_retificada(self) -> dict:
+        """Gera o snapshot da ata de retificação mais recente.
+
+        Returns:
+            Dicionário com o uuid da ata, ou None quando não há ata de retificação concluída.
+        """
+        ata_retificada = (
+            self.paa.atas_da_paa
+            .filter(
+                tipo_ata=AtaPaa.ATA_RETIFICACAO,
+                previa=False,
+            )
+            .order_by('-pk')
+            .only('uuid')
+            .first()
+        )
 
         return {
             'uuid': str(ata_retificada.uuid) if ata_retificada else None
@@ -342,11 +364,9 @@ class RetificacaoPaaService:
     def valida_pode_retificar(self):
         flags = get_waffle_flag_model()
         if not flags.objects.filter(name='paa-retificacao', everyone=True).exists():
-            self.logger.info('Flag paa-retificacao não habilitada.')
             raise ValidacaoRetificacao('Funcionalidade de retificação não está disponível.')
 
         if self.paa.get_status_andamento() != PaaStatusAndamentoEnum.GERADO.name:
-            self.logger.info(f'Status de andamento do PAA é {self.paa.get_status_andamento()}.')
             raise ValidacaoRetificacao('Apenas PAA`s gerados podem ser retificados.')
 
     @transaction.atomic

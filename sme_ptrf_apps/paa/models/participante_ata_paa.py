@@ -4,6 +4,7 @@ from django.db import models
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+
 class ParticipanteAtaPaa(ModeloBase):
     history = AuditlogHistoryField()
 
@@ -15,7 +16,7 @@ class ParticipanteAtaPaa(ModeloBase):
     conselho_fiscal = models.BooleanField('Pertence ao conselho fiscal ?', default=False)
     presente = models.BooleanField('Presente ?', default=True)
     professor_gremio = models.BooleanField('Professor do grêmio ?', default=False)
-    
+
     def eh_conselho_fiscal(self):
         if "Presidente do conselho fiscal" in self.cargo or "Conselheiro" in self.cargo:
             self.conselho_fiscal = True
@@ -58,7 +59,7 @@ class ParticipanteAtaPaa(ModeloBase):
         }
 
         return result
-    
+
     @staticmethod
     def ordenar_por_cargo(participante):
         cargos = {
@@ -71,11 +72,11 @@ class ParticipanteAtaPaa(ModeloBase):
             'Conselheiro': 7,
         }
         return cargos.get(participante['cargo'], 8)  # 8 para cargos não listados
-    
+
     @classmethod
     def participantes_ordenados_por_cargo(cls, ata_paa, membro):
         presentes_ata_membros = cls.objects.filter(ata_paa=ata_paa, membro=membro).values()
-        
+
         presentes_ata_membros_ordenados = sorted(presentes_ata_membros, key=cls.ordenar_por_cargo)
         return presentes_ata_membros_ordenados
 

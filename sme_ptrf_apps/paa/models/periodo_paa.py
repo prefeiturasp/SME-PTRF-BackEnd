@@ -36,7 +36,6 @@ class PeriodoPaa(ModeloBase):
 
         return f"{self.data_inicial.year}/{self.data_final.year}"
 
-
     @classmethod
     def periodo_vigente(cls):
         """

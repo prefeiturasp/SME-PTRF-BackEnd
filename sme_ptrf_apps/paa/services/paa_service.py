@@ -271,10 +271,16 @@ class PaaService:
 
             return not texto
 
-        if paa.documento_final:
-            if paa.documento_final.concluido:
+        if paa.status_em_retificacao:
+            from sme_ptrf_apps.paa.services.ciclo_retificacao_service import CicloRetificacaoService
+            doc_final = CicloRetificacaoService(paa).documento_atual
+        else:
+            doc_final = paa.documento_final
+
+        if doc_final:
+            if doc_final.concluido:
                 return ["O documento final já foi gerado."]
-            if paa.documento_final.status_geracao == DocumentoPaa.StatusChoices.EM_PROCESSAMENTO:
+            if doc_final.status_geracao == DocumentoPaa.StatusChoices.EM_PROCESSAMENTO:
                 return ["O documento já está sendo gerado."]
 
         documento_previa = paa.documento_previa

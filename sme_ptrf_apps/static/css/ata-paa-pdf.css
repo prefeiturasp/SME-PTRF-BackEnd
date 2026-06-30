@@ -293,3 +293,16 @@ html body .conteudo .nao-quebra-linha tbody tr {
   break-after: avoid !important;
   break-inside: avoid !important;
 }
+
+.tag-retificacao {
+  display: inline-block;
+  background-color: white;
+  color: #01585E;
+  border: 2px solid #01585E;
+  padding: 1px 5px;
+  font-size: 9px;
+  font-weight: bold;
+  border-radius: 2px;
+  margin-top: 2px;
+  white-space: nowrap;
+}

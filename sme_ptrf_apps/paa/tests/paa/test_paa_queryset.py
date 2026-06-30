@@ -96,6 +96,7 @@ class TestAnnotateStatusGeracao:
             paa=paa,
             versao=DocumentoPaa.VersaoChoices.FINAL,
             status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+            retificacao=True,
         )
         ata_paa_factory.create(
             paa=paa,
@@ -303,6 +304,7 @@ class TestFilterPorStatusGeracao:
             paa=paa_retificacao,
             versao=DocumentoPaa.VersaoChoices.FINAL,
             status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+            retificacao=True,
         )
         ata_paa_factory.create(
             paa=paa_retificacao, status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO, tipo_ata=AtaPaa.ATA_RETIFICACAO)

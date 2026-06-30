@@ -49,8 +49,14 @@ class RecursoProprioPaaCreateSerializer(serializers.ModelSerializer):
             except Paa.DoesNotExist:
                 raise serializers.ValidationError({'mensagem': 'PAA não encontrado!'})
 
-        # Bloqueia edição quando o documento final foi gerado
-        if paa.get_tem_documento_final_concluido():
+        # Bloqueia edição quando o documento final do ciclo atual foi gerado
+        if paa.status_em_retificacao:
+            from sme_ptrf_apps.paa.services.ciclo_retificacao_service import CicloRetificacaoService
+            tem_doc_final = CicloRetificacaoService(paa).tem_documento_final_concluido
+        else:
+            tem_doc_final = paa.get_tem_documento_final_concluido()
+
+        if tem_doc_final:
             raise serializers.ValidationError({
                 'mensagem': (
                     'Não é possível editar receitas previstas de Recurso Próprio após a '

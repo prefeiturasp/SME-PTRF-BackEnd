@@ -1,4 +1,5 @@
 import pytest
+from decimal import Decimal
 from datetime import date
 from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.models import (
@@ -9,6 +10,7 @@ from sme_ptrf_apps.paa.models import (
 )
 from sme_ptrf_apps.paa.services.cancela_retificacao_paa_service import (
     CancelaRetificacaoPaaService,
+    CancelaRetificacaoPaaServiceBase,
     ValidacaoCancelaRetificacao,
 )
 
@@ -87,7 +89,7 @@ class TestValidacoesCancelamento:
         documento_paa_factory,
     ):
 
-        documento = documento_paa_factory.create(
+        documento_paa_factory.create(
             paa=paa_retificacao,
             versao=DocumentoPaa.VersaoChoices.FINAL,
             retificacao=True,
@@ -107,6 +109,61 @@ class TestValidacoesCancelamento:
             _service(
                 paa_retificacao
             ).valida_pode_cancelar_retificacao()
+
+
+class TestHelpersCancelaRetificacaoPaaServiceBase:
+
+    def _base_service(self, paa_retificacao):
+        user = type('User', (), {'username': 'tester'})()
+        return CancelaRetificacaoPaaServiceBase(paa=paa_retificacao, usuario=user)
+
+    # _str_cash_para_decimal
+    def test_str_cash_para_decimal_none_retorna_none(self, paa_retificacao):
+        service = self._base_service(paa_retificacao)
+        assert service._str_cash_para_decimal(None) is None
+
+    def test_str_cash_para_decimal_string_vazia_retorna_none(self, paa_retificacao):
+        service = self._base_service(paa_retificacao)
+        assert service._str_cash_para_decimal('') is None
+
+    def test_str_cash_para_decimal_string_none_retorna_none(self, paa_retificacao):
+        service = self._base_service(paa_retificacao)
+        assert service._str_cash_para_decimal('None') is None
+
+    def test_str_cash_para_decimal_string_null_retorna_none(self, paa_retificacao):
+        service = self._base_service(paa_retificacao)
+        assert service._str_cash_para_decimal('null') is None
+
+    def test_str_cash_para_decimal_valor_valido(self, paa_retificacao):
+        service = self._base_service(paa_retificacao)
+        assert service._str_cash_para_decimal('100.50') == Decimal('100.50')
+
+    def test_str_cash_para_decimal_valor_inteiro(self, paa_retificacao):
+        service = self._base_service(paa_retificacao)
+        assert service._str_cash_para_decimal(100) == Decimal('100')
+
+    def test_str_cash_para_decimal_valor_invalido_levanta_erro(self, paa_retificacao):
+        service = self._base_service(paa_retificacao)
+        with pytest.raises(ValueError, match='Valor monetário inválido'):
+            service._str_cash_para_decimal('abc')
+
+    # _get_by_uuid_or_none
+    def test_get_by_uuid_or_none_retorna_none_quando_uuid_none(self, paa_retificacao):
+        service = self._base_service(paa_retificacao)
+        from sme_ptrf_apps.paa.models import ObjetivoPaa
+        resultado = service._get_by_uuid_or_none(ObjetivoPaa, None)
+        assert resultado is None
+
+
+class TestValidacoesCancelamentoSemDocumento:
+
+    def test_sem_documento_final_nao_levanta_erro(
+        self,
+        paa_factory,
+        flag_paa_retificacao,
+    ):
+        paa = paa_factory(status=PaaStatusEnum.EM_RETIFICACAO.name)
+        _service(paa).valida_pode_cancelar_retificacao()
 
 
 class TestRollbackCamposSimples:
@@ -298,10 +355,7 @@ class TestRollbackOutrosRelacionamentos:
 
         prioridade_no_paa.refresh_from_db()
 
-        assert (
-            str(prioridade_no_paa.valor_total)
-            == valor_original
-        )
+        assert str(prioridade_no_paa.valor_total) == valor_original
 
     def test_rollback_restaura_receita_ptrf_modificada(
         self,
@@ -407,7 +461,7 @@ class TestRollbackOutrosRelacionamentos:
         paa_retificacao,
         replica_paa_factory,
         atividade_estatutaria_factory,
-        atividade_estatutaria_paa_factory,        
+        atividade_estatutaria_paa_factory,
     ):
 
         atividade = atividade_estatutaria_factory.create(
@@ -467,7 +521,7 @@ class TestRollbackOutrosRelacionamentos:
         paa_retificacao,
         replica_paa_factory,
         atividade_estatutaria_factory,
-        atividade_estatutaria_paa_factory,        
+        atividade_estatutaria_paa_factory,
     ):
 
         atividade = atividade_estatutaria_factory.create(
@@ -584,7 +638,7 @@ class TestRollbackOutrosRelacionamentos:
         recurso_proprio_paa_factory,
         fonte_recurso_paa_factory,
     ):
-        
+
         fonte = fonte_recurso_paa_factory.create()
 
         recurso_proprio = recurso_proprio_paa_factory.create(
@@ -733,14 +787,14 @@ class TestRollbackOutrosRelacionamentos:
             )
             .exists()
         )
-    
+
     def test_rollback_restaura_prioridade_modificada_2(
         self,
         paa_retificacao,
         replica_paa_factory,
         prioridade_paa_factory,
     ):
-        
+
         prioridade = (
             prioridade_paa_factory.create(
                 paa=paa_retificacao,
@@ -766,7 +820,7 @@ class TestRollbackOutrosRelacionamentos:
         prioridade_original = bool(
             prioridade.prioridade
         )
-    
+
         prioridade.valor_total = False
         prioridade.save()
 
