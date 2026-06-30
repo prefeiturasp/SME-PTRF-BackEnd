@@ -1,3 +1,10 @@
+"""
+Módulo de API para gerenciamento das receitas previstas de outros
+recursos por período.
+
+Este módulo concentra os endpoints de listar, consultar,
+criar e atualizar registros.
+"""
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
@@ -13,6 +20,12 @@ from sme_ptrf_apps.paa.services.paa_status_bloqueia_alteracao_service import Tip
 
 
 class ReceitaPrevistaOutroRecursoPeriodoFiltro(django_filters.FilterSet):
+    """
+    Define os filtros disponíveis para consulta da receita prevista de outros recusos.
+
+    Permite filtrar receita prevista pelo outro_recurso_periodo_uuid, outro_recurso_uuid,
+    periodo_paa_uuid, paa_uuid.
+    """
     outro_recurso_periodo_uuid = django_filters.CharFilter(
         field_name="outro_recurso_periodo__uuid", lookup_expr="exact", label="UUID Outro Recurso Período")
     outro_recurso_uuid = django_filters.CharFilter(
@@ -28,6 +41,13 @@ class ReceitaPrevistaOutroRecursoPeriodoFiltro(django_filters.FilterSet):
 
 
 class ReceitaPrevistaOutroRecursoPeriodoViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
+    """
+    ViewSet responsável pelo gerenciamento das receitas previstas de outros
+    recursos por período.
+
+    Permite listar, consultar, criar e atualizar registros, com suporte à
+    filtragem por meio do filtro configurado e paginação dos resultados.
+    """
     waffle_flag = "paa"
     tipo_bloqueio_paa = TipoBloqueioPaa.STATUS_GERADO
     permission_classes = [IsAuthenticated, PermissaoApiUe]
