@@ -74,7 +74,10 @@ class Recurso(ModeloIdNome, TemAtivo):
 
     habilita_exibicao_de_lauda = models.BooleanField(
         verbose_name="Habilitar exibição de lauda?",
-        help_text="Define se o recurso segue o fluxo de lauda, caso não esteja marcado, seguirá o fluxo de relatório.",
+        help_text=(
+            "Define se o recurso deve exibir o documento de Lauda no Consolidado das PCs. "
+            "Caso não esteja marcado, o documento de Lauda não será exibido e a nomenclatura utilizada é Relatório."
+        ),
         default=False,
     )
 
