@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from typing import Any, Optional
 
 from sme_ptrf_apps.paa.models import AtaPaa, ParticipanteAtaPaa, PeriodoPaa
 from sme_ptrf_apps.paa.services.dados_documento_paa_service import (
@@ -10,21 +11,130 @@ from sme_ptrf_apps.utils.numero_por_extenso import real
 
 LOGGER = logging.getLogger(__name__)
 
+_FORMATO_DATA = "%d/%m/%Y"
 
-def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None):
+
+def _filtrar_itens_atividades_retificadas(items: list[dict]) -> tuple[list[dict], bool]:
+    """Retorna apenas os itens marcados como retificados e um flag de presença.
+
+    Args:
+        items: Lista de itens que contêm a chave ``retificado``.
+
+    Returns:
+        Tupla ``(items_retificados, tem_retificado)`` onde ``items_retificados``
+        é a lista filtrada e ``tem_retificado`` indica se há ao menos um item.
     """
-    Gera os dados necessários para a geração do PDF da ata PAA
+    items_retificados = [item for item in items if item.get('retificado')]
+    return items_retificados, bool(items_retificados)
+
+
+def _aplicar_filtro_retificacao_no_grupo(prioridades: list[dict], key: str) -> bool:
+    """Filtra in-place os itens do grupo de prioridades identificado por ``key``,
+    mantendo apenas os que foram retificados, e recalcula o total do grupo.
+
+    Args:
+        prioridades: Lista de grupos retornada por ``criar_grupos_prioridades``.
+        key: Identificador estável do grupo (ex.: ``"prioridades_ptrf"``).
+
+    Returns:
+        ``True`` se o grupo possui ao menos um item retificado; ``False`` caso
+        contrário ou quando o grupo não for encontrado.
+    """
+    grupo = next((g for g in prioridades if g.get('key') == key), None)
+    if grupo is None:
+        return False
+
+    items_retificados = [item for item in grupo['items'] if item.get('retificado')]
+    grupo['items'] = items_retificados
+    grupo['total'] = sum(float(item.get('valor_total', 0)) for item in items_retificados)
+
+    return bool(items_retificados)
+
+
+def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
+    """Gera os dados necessários para a geração do PDF da ata PAA.
+
+    Para atas de retificação, obtém as alterações do ciclo corrente via
+    RetificacaoPaaService e computa flags de seção para controlar quais
+    blocos serão exibidos no PDF e se a etiqueta de retificação aparece.
+
+    Args:
+        ata_paa: Instância de AtaPaa (apresentação ou retificação).
+        usuario: Usuário que disparou a geração; usado para auditoria.
+
+    Returns:
+        Dicionário com todos os dados necessários para renderizar o template.
+
+    Raises:
+        Exception: Qualquer erro durante a montagem dos dados é logado e
+            re-lançado para ser tratado na camada de serviço.
     """
     try:
         paa = ata_paa.paa
+
+        # Distingue ata de apresentação (False) de ata de retificação (True).
+        # Esse flag controla todo o comportamento diferenciado abaixo.
+        is_retificacao = ata_paa.tipo_retificacao
+
+        alteracoes: Optional[dict] = None
+        etiqueta_retificacao: Optional[str] = None
+        if is_retificacao:
+            # Importando aqui para evitar dependência circular entre serviços de retificação.
+            from sme_ptrf_apps.paa.services.retificacao_paa_service import RetificacaoPaaService
+            from sme_ptrf_apps.paa.services.ciclo_retificacao_service import CicloRetificacaoService
+
+            # Compara o estado atual do PAA com o snapshot da réplica para descobrir
+            # quais seções (prioridades, atividades, textos) foram modificadas.
+            alteracoes = RetificacaoPaaService(paa=paa, usuario=usuario).identificar_alteracoes()
+
+            # A data exibida na etiqueta é a data de criação do documento PAA retificado
+            # do ciclo corrente — não a data de geração da ata. Caso o documento ainda
+            # não exista (situação improvável em produção), usa a data atual como fallback.
+            # Em caso de regra de negócio alterada, basta utilizar a data do bloco else
+            doc_retificacao = CicloRetificacaoService(paa).documento_atual
+            if doc_retificacao and doc_retificacao.criado_em:
+                data_retificacao = doc_retificacao.criado_em.strftime(_FORMATO_DATA)
+            else:
+                data_retificacao = datetime.now().strftime(_FORMATO_DATA)
+            etiqueta_retificacao = f"Retificado em: {data_retificacao}"
+
         cabecalho = cria_cabecalho(ata_paa)
         identificacao_associacao = criar_identificacao_associacao_ata(paa)
         presentes_na_ata = presentes_ata_paa(ata_paa)
-        prioridades = criar_grupos_prioridades(paa)
-        atividades_estatutarias = criar_atividades_estatutarias(paa)
+
+        # Para retificação, `alteracoes` faz com que cada item carregue o flag
+        # `retificado=True/False`; para apresentação, todos ficam como False.
+        prioridades = criar_grupos_prioridades(paa, alteracoes=alteracoes)
+        atividades_estatutarias = criar_atividades_estatutarias(paa, alteracoes=alteracoes)
         dados_texto_ata = dados_texto_ata_paa(ata_paa, usuario)
 
-        # Calcular números dos blocos dinamicamente
+        # Flags(booleanas) indicam ao template quais seções devem ser exibidas na ata de retificação.
+        # Para ata de apresentação permanecem False e são ignorados pelo template.
+        retificado_prioridades_ptrf = False
+        retificado_prioridades_pdde = False
+        retificado_prioridades_outros = False
+        retificado_atividades_estatutarias = False
+
+        if is_retificacao:
+            # Filtra cada grupo de prioridades: mantém apenas os itens
+            # retificados e recalcula o total do grupo. Retorna True se restou
+            # ao menos um item (sinaliza ao template que a seção deve aparecer).
+            retificado_prioridades_ptrf = _aplicar_filtro_retificacao_no_grupo(
+                prioridades, key='prioridades_ptrf'
+            )
+            retificado_prioridades_pdde = _aplicar_filtro_retificacao_no_grupo(
+                prioridades, key='prioridades_pdde'
+            )
+            retificado_prioridades_outros = _aplicar_filtro_retificacao_no_grupo(
+                prioridades, key='prioridades_outros_recursos'
+            )
+
+            # Substitui a lista completa de atividades pela lista filtrada,
+            # garantindo que o template exiba somente as atividades retificadas.
+            atividades_estatutarias, retificado_atividades_estatutarias = (
+                _filtrar_itens_atividades_retificadas(atividades_estatutarias)
+            )
+
         numeros_blocos = calcular_numeros_blocos(prioridades, atividades_estatutarias)
 
         dados_ata = {
@@ -36,12 +146,18 @@ def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None):
             "prioridades": prioridades,
             "atividades_estatutarias": atividades_estatutarias,
             "numeros_blocos": numeros_blocos,
+            "is_retificacao": is_retificacao,
+            "etiqueta_retificacao": etiqueta_retificacao,
+            "retificado_prioridades_ptrf": retificado_prioridades_ptrf,
+            "retificado_prioridades_pdde": retificado_prioridades_pdde,
+            "retificado_prioridades_outros": retificado_prioridades_outros,
+            "retificado_atividades_estatutarias": retificado_atividades_estatutarias,
         }
         LOGGER.info("Dados da ata PAA gerados com sucesso")
         LOGGER.info("Dados da ata PAA %s", dados_ata)
         return dados_ata
     except Exception as e:
-        LOGGER.error(f"Erro ao gerar dados da ata PAA: {str(e)}", exc_info=True)
+        LOGGER.exception(f"Erro ao gerar dados da ata PAA: {str(e)}", exc_info=True)
         raise
 
 
@@ -220,7 +336,7 @@ def formata_data(data):
         except ValueError:
             return "___"
 
-    return data.strftime("%d/%m/%Y")
+    return data.strftime(_FORMATO_DATA)
 
 
 def formatar_hora_ata(hora):

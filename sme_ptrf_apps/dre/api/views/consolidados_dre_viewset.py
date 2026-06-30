@@ -27,6 +27,7 @@ from sme_ptrf_apps.users.permissoes import (
 )
 
 from ...services.lauda_service import campo_arquivo_lauda_para_download
+from ...services.consolidado_dre_service import TextDocumentConsolidadoPC
 
 from ...services import concluir_consolidado_dre, \
     verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao, \
@@ -350,10 +351,14 @@ class ConsolidadosDreViewSet(
 
         alterado_em = ata_parecer_tecnico.preenchida_em
 
+        recurso = periodo.recurso
+        habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+        text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+
         if not alterado_em:
             erro = {
                 'erro': 'Ata não preenchida',
-                'mensagem': "Para fazer a publicação você precisa preencher as informações da ata.",
+                'mensagem': f"Para fazer a {text_document_consolidado_pc.normal(case='lower')} você precisa preencher as informações da ata.",
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -365,7 +370,7 @@ class ConsolidadosDreViewSet(
             erro = {
                 'erro': 'Objeto não encontrado.',
                 'mensagem': (
-                    f"Não foi possível publicar o Consolidado Dre, pois o AnoAnaliseRegularidade "
+                    f"Não foi possível {text_document_consolidado_pc.infinitive()} o Consolidado Dre, pois o AnoAnaliseRegularidade "
                     f"para o ano {ano} não foi encontrado na base."
                 ),
             }
@@ -947,19 +952,16 @@ class ConsolidadosDreViewSet(
     def marcar_como_publicado_no_diario_oficial(self, request):
         dados = request.data
 
-        if not dados or not dados.get('consolidado_dre') or not dados.get('data_publicacao') or not dados.get(
-            'pagina_publicacao'
-        ):
+        if not dados or not dados.get('consolidado_dre') or not dados.get('data_publicacao'):
             erro = {
                 'erro': 'parametros_requeridos',
-                'mensagem': 'É necessário enviar o uuid do Consolidado DRE, a data e a página de publicação'
+                'mensagem': 'É necessário enviar o uuid do Consolidado DRE e a data'
             }
             logger.info('Erro ao gerar Consolidado DRE: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         consolidado_dre_uuid = dados['consolidado_dre']
         data_publicacao = dados['data_publicacao']
-        pagina_publicacao = dados['pagina_publicacao']
 
         try:
             consolidado_dre = ConsolidadoDRE.by_uuid(consolidado_dre_uuid)
@@ -971,6 +973,21 @@ class ConsolidadosDreViewSet(
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+
+        recurso = consolidado_dre.periodo.recurso
+        habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+        text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+
+        if habilita_exibicao_de_lauda and not dados.get('pagina_publicacao'):
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': "É necessário enviar a página de publicação."
+            }
+            logger.info('Erro ao gerar Consolidado DRE: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        pagina_publicacao = dados['pagina_publicacao'] or None
+
         try:
             consolidado_dre = consolidado_dre.marcar_status_sme_como_publicado(
                 data_publicacao=data_publicacao,
@@ -979,7 +996,7 @@ class ConsolidadosDreViewSet(
         except Exception:
             erro = {
                 'erro': 'Erro ao passar o relatório para status_sme_publicado',
-                'mensagem': "Não foi possível passar o relarório para o status de publicado no Diário Oficial",
+                'mensagem': f"Não foi possível passar o relarório para o status de {text_document_consolidado_pc.text_in_past_male_with_where()}",
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1015,9 +1032,13 @@ class ConsolidadosDreViewSet(
         try:
             consolidado_dre = consolidado_dre.marcar_status_sme_como_nao_publicado()
         except Exception:
+            recurso = consolidado_dre.periodo.recurso
+            habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+            text_lower_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+
             erro = {
                 'erro': 'Erro ao passar o relatório para status_sme_nao_publicado',
-                'mensagem': "Não foi possível passar o relarório para o status de Não Publicado no Diário Oficial",
+                'mensagem': f"Não foi possível passar o relarório para o status de {text_lower_document_consolidado_pc.text_complete_erro_mark_as_no_publicated_consolidado()}",
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)

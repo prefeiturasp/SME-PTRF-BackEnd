@@ -158,7 +158,10 @@ def test_participante_ata_paa_admin_readonly_fields(presente_ata_paa_membro):
 def test_participante_ata_paa_admin_get_unidade(presente_ata_paa_membro):
     model_admin = ParticipanteAtaPaaAdmin(ParticipanteAtaPaa, admin.site)
     result = model_admin.get_unidade(presente_ata_paa_membro)
-    expected = f'{presente_ata_paa_membro.ata_paa.paa.associacao.unidade.codigo_eol} - {presente_ata_paa_membro.ata_paa.paa.associacao.unidade.nome}'
+    expected = '%s - %s' % (
+        presente_ata_paa_membro.ata_paa.paa.associacao.unidade.codigo_eol,
+        presente_ata_paa_membro.ata_paa.paa.associacao.unidade.nome
+    )
     assert result == expected
 
 
@@ -167,4 +170,3 @@ def test_participante_ata_paa_admin_get_periodo_paa(presente_ata_paa_membro):
     result = model_admin.get_periodo_paa(presente_ata_paa_membro)
     expected = f'{presente_ata_paa_membro.ata_paa.paa.periodo_paa.referencia}'
     assert result == expected
-

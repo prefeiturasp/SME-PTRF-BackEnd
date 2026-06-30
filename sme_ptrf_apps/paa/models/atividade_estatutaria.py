@@ -23,7 +23,7 @@ class AtividadeEstatutaria(ModeloBase):
 
     class Meta:
         verbose_name = "Atividade Estatutária"
-        verbose_name_plural = "Atividades Estatutárias"        
+        verbose_name_plural = "Atividades Estatutárias"
 
     @classmethod
     def disponiveis_ordenadas(cls, paa):

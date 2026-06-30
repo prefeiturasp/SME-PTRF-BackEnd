@@ -52,9 +52,9 @@ class ModelosCargasPaaViewSet(ModelViewSet):
             }
             return Response(erro, status=status.HTTP_404_NOT_FOUND)
 
-        logger.info("Retornando dados do modelo de carga: %s", modelo.arquivo.path)
         try:
             file_path = modelo.arquivo.path
+            logger.info("Retornando dados do modelo de carga: %s", file_path)
             filename = modelo.arquivo.name
             content_type, _ = mimetypes.guess_type(filename)
             content_type = content_type or 'application/octet-stream'

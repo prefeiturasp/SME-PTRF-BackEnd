@@ -14,7 +14,7 @@ def test_texto_pagina_paa_ue_field(parametro_paa):
     texto_teste = "<p>Texto de teste para página PAA UE</p>"
     parametro_paa.texto_pagina_paa_ue = texto_teste
     parametro_paa.save()
-    
+
     parametro_paa.refresh_from_db()
     assert parametro_paa.texto_pagina_paa_ue == texto_teste
 
@@ -25,7 +25,7 @@ def test_introducao_do_paa_ue_1_field(parametro_paa):
     texto_teste = "<p>Introdução do PAA 1</p>"
     parametro_paa.introducao_do_paa_ue_1 = texto_teste
     parametro_paa.save()
-    
+
     parametro_paa.refresh_from_db()
     assert parametro_paa.introducao_do_paa_ue_1 == texto_teste
 
@@ -36,7 +36,7 @@ def test_introducao_do_paa_ue_2_field(parametro_paa):
     texto_teste = "<p>Introdução do PAA 2</p>"
     parametro_paa.introducao_do_paa_ue_2 = texto_teste
     parametro_paa.save()
-    
+
     parametro_paa.refresh_from_db()
     assert parametro_paa.introducao_do_paa_ue_2 == texto_teste
 
@@ -47,7 +47,7 @@ def test_conclusao_do_paa_ue_1_field(parametro_paa):
     texto_teste = "<p>Conclusão do PAA 1</p>"
     parametro_paa.conclusao_do_paa_ue_1 = texto_teste
     parametro_paa.save()
-    
+
     parametro_paa.refresh_from_db()
     assert parametro_paa.conclusao_do_paa_ue_1 == texto_teste
 
@@ -58,7 +58,7 @@ def test_conclusao_do_paa_ue_2_field(parametro_paa):
     texto_teste = "<p>Conclusão do PAA 2</p>"
     parametro_paa.conclusao_do_paa_ue_2 = texto_teste
     parametro_paa.save()
-    
+
     parametro_paa.refresh_from_db()
     assert parametro_paa.conclusao_do_paa_ue_2 == texto_teste
 
@@ -72,7 +72,7 @@ def test_all_text_fields_can_be_null(parametro_paa):
     parametro_paa.conclusao_do_paa_ue_1 = None
     parametro_paa.conclusao_do_paa_ue_2 = None
     parametro_paa.save()
-    
+
     parametro_paa.refresh_from_db()
     assert parametro_paa.texto_pagina_paa_ue is None
     assert parametro_paa.introducao_do_paa_ue_1 is None

@@ -110,6 +110,7 @@ class RecursoAdmin(admin.ModelAdmin):
         'ativo',
         'exibe_valores_reprogramados',
         'habilita_aprovacao_com_ressalvas',
+        'habilita_exibicao_de_lauda',
         'cor_preview'
     )
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
@@ -144,6 +145,11 @@ class RecursoAdmin(admin.ModelAdmin):
         ('Análise de Prestação de Contas', {
             'fields': (
                 'habilita_aprovacao_com_ressalvas',
+            )
+        }),
+        ('Consolidado das PCs', {
+            'fields': (
+                'habilita_exibicao_de_lauda',
             )
         }),
         ('Valores Reprogramados', {
@@ -608,7 +614,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     def get_relatorio_referencia(self, obj):
         return obj.consolidado_dre.referencia if obj.consolidado_dre else ""
 
-    get_relatorio_referencia.short_description = 'Publicação'
+    get_relatorio_referencia.short_description = 'Publicação/Relatório'
 
     def get_periodo_referencia(self, obj):
         return obj.periodo.referencia if obj.periodo else ""
@@ -1310,7 +1316,9 @@ class RelacaoBensAdmin(admin.ModelAdmin):
     def gerar_pdf(self, request, queryset):
         from .services.relacao_bens import gerar_arquivo_relacao_de_bens_dados_persistidos
         for item in queryset:
-            gerar_arquivo_relacao_de_bens_dados_persistidos(item)
+            recurso_nome = item.conta_associacao.tipo_conta.recurso.nome
+            recurso_nome_exibicao = item.conta_associacao.tipo_conta.recurso.nome_exibicao
+            gerar_arquivo_relacao_de_bens_dados_persistidos(item, recurso_nome, recurso_nome_exibicao)
 
 
 class ItemRelatorioRelacaoDeBensInline(admin.TabularInline):

@@ -72,6 +72,15 @@ class Recurso(ModeloIdNome, TemAtivo):
         default=None,
     )
 
+    habilita_exibicao_de_lauda = models.BooleanField(
+        verbose_name="Habilitar exibição de lauda?",
+        help_text=(
+            "Define se o recurso deve exibir o documento de Lauda no Consolidado das PCs. "
+            "Caso não esteja marcado, o documento de Lauda não será exibido e a nomenclatura utilizada é Relatório."
+        ),
+        default=False,
+    )
+
     class Meta:
         verbose_name = 'Recurso'
         verbose_name_plural = '20.0) Recursos'
@@ -87,6 +96,12 @@ class Recurso(ModeloIdNome, TemAtivo):
     def __str__(self):
         return self.nome
 
+    @property
+    def get_text_valores_reprogramados_ata(self):
+        if self.nome == "Prêmio Excelência Educacional":
+            return "valores estes que serão tratados conforme a legislação vigente"
+
+        return "valores estes que foram reprogramados"
 
 @receiver(models.signals.post_delete, sender=Recurso)
 def auto_delete_file_on_delete(sender, instance, **kwargs):

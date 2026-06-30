@@ -7,7 +7,8 @@ from sme_ptrf_apps.paa.models import Paa, AtividadeEstatutaria, AtividadeEstatut
 pytestmark = pytest.mark.django_db
 
 
-def test_update(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory, parametro_paa_factory, associacao):
+def test_update(
+        jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory, parametro_paa_factory, associacao):
     periodo_paa_1 = periodo_paa_factory.create(referencia="Periodo Teste",
                                                data_inicial=date.today() - timedelta(weeks=5),
                                                data_final=date.today() + timedelta(weeks=5))
@@ -25,7 +26,8 @@ def test_update(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa
     assert paa.texto_introducao == payload["texto_introducao"]
 
 
-def test_update_texto_conclusao(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory, parametro_paa_factory, associacao):
+def test_update_texto_conclusao(
+        jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory, parametro_paa_factory, associacao):
     periodo_paa_1 = periodo_paa_factory.create(referencia="Periodo Teste",
                                                data_inicial=date.today() - timedelta(weeks=5),
                                                data_final=date.today() + timedelta(weeks=5))
@@ -43,7 +45,8 @@ def test_update_texto_conclusao(jwt_authenticated_client_sme, flag_paa, paa_fact
     assert paa.texto_conclusao == payload["texto_conclusao"]
 
 
-def test_update_ambos_textos(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory, parametro_paa_factory, associacao):
+def test_update_ambos_textos(
+        jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory, parametro_paa_factory, associacao):
     periodo_paa_1 = periodo_paa_factory.create(referencia="Periodo Teste",
                                                data_inicial=date.today() - timedelta(weeks=5),
                                                data_final=date.today() + timedelta(weeks=5))
@@ -167,7 +170,8 @@ def test_patch_editar_atividade_do_paa(jwt_authenticated_client_sme, paa_factory
         paa=paa, atividade_estatutaria=atividade, data=date(2025, 5, 10)).exists()
 
 
-def test_patch_excluir_atividade_do_paa(jwt_authenticated_client_sme, paa_factory, atividade_estatutaria_factory, atividade_estatutaria_paa_factory):
+def test_patch_excluir_atividade_do_paa(
+        jwt_authenticated_client_sme, paa_factory, atividade_estatutaria_factory, atividade_estatutaria_paa_factory):
     paa = paa_factory()
     atividade = atividade_estatutaria_factory(paa=paa)
     atividade_estatutaria_paa_factory(atividade_estatutaria=atividade, paa=paa)
@@ -192,7 +196,8 @@ def test_patch_excluir_atividade_do_paa(jwt_authenticated_client_sme, paa_factor
     assert not AtividadeEstatutariaPaa.objects.filter(paa=paa).exists()
 
 
-def test_patch_nao_pode_excluir_atividade_global(jwt_authenticated_client_sme, paa_factory, atividade_estatutaria_factory):
+def test_patch_nao_pode_excluir_atividade_global(
+        jwt_authenticated_client_sme, paa_factory, atividade_estatutaria_factory):
     paa = paa_factory()
     atividade_global = atividade_estatutaria_factory(paa=None)
 
@@ -215,7 +220,8 @@ def test_patch_nao_pode_excluir_atividade_global(jwt_authenticated_client_sme, p
     assert AtividadeEstatutaria.objects.filter(id=atividade_global.id).exists()
 
 
-def test_patch_impedir_duplicidade(jwt_authenticated_client_sme, paa_factory, atividade_estatutaria_factory, atividade_estatutaria_paa_factory):
+def test_patch_impedir_duplicidade(
+        jwt_authenticated_client_sme, paa_factory, atividade_estatutaria_factory, atividade_estatutaria_paa_factory):
     paa = paa_factory()
 
     atividade = atividade_estatutaria_factory(

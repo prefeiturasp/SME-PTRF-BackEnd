@@ -8,6 +8,8 @@ from ...models import ReceitaPrevistaOutroRecursoPeriodo
 from sme_ptrf_apps.paa.api.serializers import ReceitaPrevistaOutroRecursoPeriodoSerializer
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
+from sme_ptrf_apps.paa.mixins.paa_bloqueia_alteracao_mixin import PaaBloqueiaAlteracaoMixin
+from sme_ptrf_apps.paa.services.paa_status_bloqueia_alteracao_service import TipoBloqueioPaa
 
 
 class ReceitaPrevistaOutroRecursoPeriodoFiltro(django_filters.FilterSet):
@@ -25,8 +27,9 @@ class ReceitaPrevistaOutroRecursoPeriodoFiltro(django_filters.FilterSet):
         fields = ['outro_recurso_periodo_uuid', 'outro_recurso_uuid', 'periodo_paa_uuid']
 
 
-class ReceitaPrevistaOutroRecursoPeriodoViewSet(WaffleFlagMixin, ModelViewSet):
+class ReceitaPrevistaOutroRecursoPeriodoViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
     waffle_flag = "paa"
+    tipo_bloqueio_paa = TipoBloqueioPaa.STATUS_GERADO
     permission_classes = [IsAuthenticated, PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = ReceitaPrevistaOutroRecursoPeriodo.objects.all()

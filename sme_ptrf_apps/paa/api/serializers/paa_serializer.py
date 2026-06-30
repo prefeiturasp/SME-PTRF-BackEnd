@@ -11,6 +11,7 @@ from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_paa_serializer impo
 )
 from sme_ptrf_apps.paa.api.serializers.ata_paa_serializer import AtaPaaSerializer
 from sme_ptrf_apps.paa.api.serializers import PeriodoPaaSerializer, PeriodoPaaSimplesSerializer
+from sme_ptrf_apps.paa.services.ciclo_retificacao_service import CicloRetificacaoService
 
 
 class PaaSerializer(serializers.ModelSerializer):
@@ -22,14 +23,18 @@ class PaaSerializer(serializers.ModelSerializer):
     tem_ata_concluida = serializers.SerializerMethodField()
     status_andamento = serializers.SerializerMethodField()
 
-    def get_status_andamento(self, obj):
+    def get_status_andamento(self, obj: Paa) -> str:
         return obj.get_status_andamento()
 
-    def get_tem_documento_final_concluido(self, obj):
-        return obj.get_tem_documento_final_concluido()
+    def get_tem_documento_final_concluido(self, obj: Paa) -> bool:
+        if not obj.status_em_retificacao:
+            return obj.get_tem_documento_final_concluido()
+        return CicloRetificacaoService(obj).tem_documento_final_concluido
 
-    def get_tem_ata_concluida(self, obj):
-        return obj.get_tem_ata_concluida()
+    def get_tem_ata_concluida(self, obj: Paa) -> bool:
+        if not obj.status_em_retificacao:
+            return obj.get_tem_ata_concluida()
+        return CicloRetificacaoService(obj).tem_ata_concluida
 
     class Meta:
         model = Paa
@@ -199,7 +204,8 @@ class PaaUpdateSerializer(serializers.ModelSerializer):
                                 atividade_id=atividade.id
                             ):
                                 raise serializers.ValidationError({
-                                    "mensagem": "Já existe uma atividade com mesmo nome, tipo, mês e data para este PAA."
+                                    "mensagem": (
+                                        "Já existe uma atividade com mesmo nome, tipo, mês e data para este PAA.")
                                 })
 
                             atividade.save()

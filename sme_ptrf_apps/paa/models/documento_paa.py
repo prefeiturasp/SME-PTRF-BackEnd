@@ -74,6 +74,21 @@ class DocumentoPaa(ModeloBase):
     def concluido(self):
         return self.status_geracao == DocumentoPaa.StatusChoices.CONCLUIDO
 
+    @property
+    def status_nao_gerado(self) -> bool:
+        """ Indica se o documento ainda não foi gerado """
+        return self.status_geracao == DocumentoPaa.StatusChoices.NAO_GERADO
+
+    @property
+    def status_em_processamento(self) -> bool:
+        """ Indica se o documento ainda está em processamento """
+        return self.status_geracao == DocumentoPaa.StatusChoices.EM_PROCESSAMENTO
+
+    @property
+    def status_erro_processamento(self) -> bool:
+        """ Indica se o documento gerado apresentou erro no processamento """
+        return self.status_geracao == DocumentoPaa.StatusChoices.ERRO_PROCESSAMENTO
+
     def arquivo_concluido(self):
         self.status_geracao = DocumentoPaa.StatusChoices.CONCLUIDO
         self.save()

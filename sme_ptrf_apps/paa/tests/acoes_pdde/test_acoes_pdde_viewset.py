@@ -257,3 +257,56 @@ def test_destroy_acao_pdde_inexistente(jwt_authenticated_client_sme, flag_paa):
     # Deve retornar erro 404 (Not Found)
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert "Ação PDDE não encontrada." in response.data["detail"]
+
+
+# acoes_pdde_paa action
+
+@pytest.mark.django_db
+def test_acoes_pdde_paa_sem_paa_uuid(jwt_authenticated_client_sme, flag_paa):
+    response = jwt_authenticated_client_sme.get('/api/acoes-pdde/acoes-pdde-paa/')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'non_field_errors' in response.data or 'PAA não foi informado.' in str(response.data)
+
+
+@pytest.mark.django_db
+def test_acoes_pdde_paa_paa_nao_encontrado(jwt_authenticated_client_sme, flag_paa):
+    response = jwt_authenticated_client_sme.get(
+        '/api/acoes-pdde/acoes-pdde-paa/?paa_uuid=00000000-0000-0000-0000-000000000000'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'PAA não encontrado.' in str(response.data)
+
+
+@pytest.mark.django_db
+def test_acoes_pdde_paa_retorna_lista(jwt_authenticated_client_sme, flag_paa, paa):
+    response = jwt_authenticated_client_sme.get(
+        f'/api/acoes-pdde/acoes-pdde-paa/?paa_uuid={paa.uuid}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    assert isinstance(response.data, list)
+
+
+# receitas_previstas_pdde action
+
+@pytest.mark.django_db
+def test_receitas_previstas_pdde_sem_paa_uuid(jwt_authenticated_client_sme, flag_paa):
+    response = jwt_authenticated_client_sme.get('/api/acoes-pdde/receitas-previstas-pdde/')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'non_field_errors' in response.data or 'PAA não foi informado.' in str(response.data)
+
+
+@pytest.mark.django_db
+def test_receitas_previstas_pdde_paa_nao_encontrado(jwt_authenticated_client_sme, flag_paa):
+    response = jwt_authenticated_client_sme.get(
+        '/api/acoes-pdde/receitas-previstas-pdde/?paa_uuid=00000000-0000-0000-0000-000000000000'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'PAA não encontrado.' in str(response.data)
+
+
+@pytest.mark.django_db
+def test_receitas_previstas_pdde_retorna_paginado(jwt_authenticated_client_sme, flag_paa, paa):
+    response = jwt_authenticated_client_sme.get(
+        f'/api/acoes-pdde/receitas-previstas-pdde/?paa_uuid={paa.uuid}'
+    )
+    assert response.status_code == status.HTTP_200_OK

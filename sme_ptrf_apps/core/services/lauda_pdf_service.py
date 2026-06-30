@@ -17,6 +17,7 @@ from sme_ptrf_apps.dre.services.lauda_service import (
     gerar_dados_lauda_agregados_por_unidade,
     separa_status_lauda_pdf,
 )
+from sme_ptrf_apps.dre.services.consolidado_dre_service import TextDocumentConsolidadoPC
 
 logger = logging.getLogger(__name__)
 
@@ -40,15 +41,23 @@ def _montar_titulos_publicacao_lauda(lauda, parcial):
     eh_parcial = "Parcial" if parcial["parcial"] else "Final"
     sequencia_de_publicacao = parcial["sequencia_de_publicacao_atual"]
 
+    recurso = lauda.periodo.recurso
+    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+    text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+    text_possessive_lower_document_consolidado_pc = text_document_consolidado_pc.possessive(case="lower")
+
     if eh_retificacao:
         cons_ret = getattr(lauda.consolidado_dre, "consolidado_retificado", None)
         seq_num = getattr(cons_ret, "sequencia_de_publicacao", None) if cons_ret else None
         if seq_num is not None:
             titulo_sequencia_publicacao = f"Lauda referente à Parcial #{seq_num}"
         else:
-            titulo_sequencia_publicacao = "Lauda referente à retificação da publicação"
+            titulo_sequencia_publicacao = f"Lauda referente à retificação {text_possessive_lower_document_consolidado_pc}"
     elif eh_parcial == "Parcial":
-        titulo_sequencia_publicacao = f"Lauda referente à Publicação Parcial #{sequencia_de_publicacao}"
+        titulo_sequencia_publicacao = f"Lauda referente à {text_document_consolidado_pc.text_sequencial(
+            text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL,
+            sequencia_de_publicacao
+        )}"
     else:
         titulo_sequencia_publicacao = "Lauda final"
 
@@ -58,8 +67,9 @@ def _montar_titulos_publicacao_lauda(lauda, parcial):
         cons_ret = getattr(lauda.consolidado_dre, "consolidado_retificado", None)
         if cons_ret:
             pagina = getattr(cons_ret, "pagina_publicacao", None) or "-"
+            text_possessive_upper_document_consolidado_pc = text_document_consolidado_pc.possessive(case="upper")
             titulo_retificacao = (
-                f"RETIFICAÇÃO DA PUBLICAÇÃO DO DOC {formata_data_publicacao(lauda.consolidado_dre)} "
+                f"RETIFICAÇÃO {text_possessive_upper_document_consolidado_pc} DO DOC {formata_data_publicacao(lauda.consolidado_dre)} "
                 f"- PÁGINA {pagina}"
             )
             subtitulo_retificacao = "LEIA-SE COMO SEGUE E NÃO COMO CONSTOU:"
