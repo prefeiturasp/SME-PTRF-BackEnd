@@ -20,7 +20,7 @@ from waffle import get_waffle_flag_model
 LOGGER = logging.getLogger(__name__)
 
 def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associacao, prestacao, observacao_conciliacao, previa=False):
-    
+
     try:
         LOGGER.info("GERANDO DADOS DEMONSTRATIVO...")
         rateios_conferidos = RateioDespesa.rateios_da_conta_associacao_no_periodo(
@@ -116,6 +116,7 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
 def cria_cabecalho(periodo, conta_associacao, previa):
     cabecalho = {
         "recurso": periodo.recurso.nome,
+        "recurso_nome_exibicao": periodo.recurso.nome_exibicao,
         "titulo": "Demonstrativo Financeiro - PRÉVIA" if previa else "Demonstrativo Financeiro - FINAL",
         "periodo": str(periodo),
         "periodo_referencia": periodo.referencia,
@@ -901,10 +902,10 @@ def tem_movimentacao(resumo_acao):
 
     valor_absoluto_linha_custeio_despesa = abs(resumo_acao["linha_custeio"]["despesa_realizada"]) if \
         resumo_acao["linha_custeio"]["despesa_realizada"] != '' else 0
-    
+
     valor_absoluto_linha_custeio_despesa_nao_realizada = abs(resumo_acao["linha_custeio"]["despesa_nao_realizada"]) if \
         resumo_acao["linha_custeio"]["despesa_nao_realizada"] != '' else 0
-    
+
     valor_absoluto_linha_custeio_despesa_nao_realizada_anterior = abs(resumo_acao["linha_custeio"]["despesa_nao_demostrada_outros_periodos"]) if \
         resumo_acao["linha_custeio"]["despesa_nao_demostrada_outros_periodos"] != '' else 0
 
@@ -921,10 +922,10 @@ def tem_movimentacao(resumo_acao):
 
     valor_absoluto_linha_capital_despesa = abs(resumo_acao["linha_capital"]["despesa_realizada"]) if \
         resumo_acao["linha_capital"]["despesa_realizada"] != '' else 0
-    
+
     valor_absoluto_linha_capital_despesa_nao_realizada = abs(resumo_acao["linha_capital"]["despesa_nao_realizada"]) if \
         resumo_acao["linha_capital"]["despesa_nao_realizada"] != '' else 0
-    
+
     valor_absoluto_linha_capital_despesa_nao_realizada_anterior = abs(resumo_acao["linha_capital"]["despesa_nao_demostrada_outros_periodos"]) if \
         resumo_acao["linha_capital"]["despesa_nao_demostrada_outros_periodos"] != '' else 0
 
