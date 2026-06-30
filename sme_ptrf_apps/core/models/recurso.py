@@ -96,6 +96,12 @@ class Recurso(ModeloIdNome, TemAtivo):
     def __str__(self):
         return self.nome
 
+    @property
+    def get_text_valores_reprogramados_ata(self):
+        if self.nome == "Prêmio Excelência Educacional":
+            return "valores estes que serão tratados conforme a legislação vigente"
+
+        return "valores estes que foram reprogramados"
 
 @receiver(models.signals.post_delete, sender=Recurso)
 def auto_delete_file_on_delete(sender, instance, **kwargs):

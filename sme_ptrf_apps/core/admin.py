@@ -1317,7 +1317,8 @@ class RelacaoBensAdmin(admin.ModelAdmin):
         from .services.relacao_bens import gerar_arquivo_relacao_de_bens_dados_persistidos
         for item in queryset:
             recurso_nome = item.conta_associacao.tipo_conta.recurso.nome
-            gerar_arquivo_relacao_de_bens_dados_persistidos(item, recurso_nome)
+            recurso_nome_exibicao = item.conta_associacao.tipo_conta.recurso.nome_exibicao
+            gerar_arquivo_relacao_de_bens_dados_persistidos(item, recurso_nome, recurso_nome_exibicao)
 
 
 class ItemRelatorioRelacaoDeBensInline(admin.TabularInline):

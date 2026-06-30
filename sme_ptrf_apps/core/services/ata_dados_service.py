@@ -151,9 +151,12 @@ def data_por_extenso(data):
 def cria_cabecalho(ata):
     """ GERA CABECALHO DOCUMENTO EM PDF ATA """
 
+    text_valores_reprogramados_ata = ata.periodo.recurso.get_text_valores_reprogramados_ata
+
     cabecalho = {
         "titulo": ata.periodo.recurso.nome,
         "recurso": ata.periodo.recurso.nome,
+        "text_valores_reprogramados_ata": text_valores_reprogramados_ata,
         "subtitulo": "Prestação de Contas",
         "tipo_ata": 'Apresentação' if ata.tipo_ata == 'APRESENTACAO' else 'Retificação',
         "periodo_referencia": ata.periodo.referencia,
