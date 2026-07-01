@@ -47,7 +47,7 @@ class PaaBloqueiaAlteracaoMixin:
             return # senão houver paa
         
         if self.tipo_bloqueio_paa == TipoBloqueioPaa.STATUS_GERADO:
-            PaaStatusBloqueiaAlteracaoService.checar_status_gerado(paa)
+            PaaStatusBloqueiaAlteracaoService.checar_status_gerado_ou_doc_concluido(paa)
         elif self.tipo_bloqueio_paa == TipoBloqueioPaa.ATA_CONCLUIDA:
             PaaStatusBloqueiaAlteracaoService.checar_ata_concluida(paa)
 

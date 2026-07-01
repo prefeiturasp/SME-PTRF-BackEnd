@@ -1,5 +1,6 @@
 from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.models.ata_paa import AtaPaa
+from sme_ptrf_apps.paa.models.documento_paa import DocumentoPaa
 from model_bakery import baker
 from datetime import date
 from unittest.mock import patch
@@ -15,8 +16,21 @@ from sme_ptrf_apps.paa.services.paa_status_bloqueia_alteracao_service import (
 @pytest.fixture
 def paa_em_elaboracao(paa_factory, periodo_paa_factory):
     periodo_paa = periodo_paa_factory.create()
-    paa_gerado = paa_factory.create(periodo_paa=periodo_paa, status=PaaStatusEnum.EM_ELABORACAO.name)
-    return paa_gerado
+    paa_elaboracao = paa_factory.create(periodo_paa=periodo_paa, status=PaaStatusEnum.EM_ELABORACAO.name)
+    return paa_elaboracao
+
+@pytest.fixture
+def paa_em_elaboracao_com_doc_final(paa_factory, periodo_paa_factory, documento_paa_factory):
+    periodo_paa = periodo_paa_factory.create()
+    paa_elaboracao = paa_factory.create(periodo_paa=periodo_paa, status=PaaStatusEnum.EM_ELABORACAO.name)
+    
+    documento_paa_factory.create(
+        paa=paa_elaboracao,
+        versao=DocumentoPaa.VersaoChoices.FINAL,
+        status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+    )
+
+    return paa_elaboracao
 
 
 @pytest.fixture
@@ -49,12 +63,12 @@ def outro_recurso_periodo(periodo_paa_factory, outro_recurso_factory, outro_recu
 class TestChecarStatusGerado:
 
     def test_nao_deve_lancar_excecao_quando_status_nao_gerado(self, paa_em_elaboracao):
-        PaaStatusBloqueiaAlteracaoService.checar_status_gerado(paa_em_elaboracao)
+        PaaStatusBloqueiaAlteracaoService.checar_status_gerado_ou_doc_concluido(paa_em_elaboracao)
 
     def test_deve_lancar_excecao_quando_status_gerado(self, paa_gerado):
 
         with pytest.raises(PaaStatusBloqueiaAlteracaoException) as exc:
-            PaaStatusBloqueiaAlteracaoService.checar_status_gerado(paa_gerado)
+            PaaStatusBloqueiaAlteracaoService.checar_status_gerado_ou_doc_concluido(paa_gerado)
 
         assert exc.value.detail == {
             "mensagem": (
@@ -349,6 +363,35 @@ class TestPaaMixinBloqueios:
             )
         }
 
+    def test_nao_deve_atualizar_dados_quando_paa_status_elaboracao_com_doc_final(
+        self,
+        jwt_authenticated_client_sme,
+        paa_em_elaboracao_com_doc_final,
+        flag_paa,
+    ):
+
+        payload = {
+            "texto_introducao": "<p>teste</p>",
+            "texto_conclusao": "<p>teste</p>",
+            "objetivos": [],
+            "atividades_estatutarias_paa": []
+        }
+
+        response = jwt_authenticated_client_sme.patch(
+            f"/api/paa/{str(paa_em_elaboracao_com_doc_final.uuid)}/",
+            data=payload
+        )
+
+        assert response.status_code == 400
+
+        assert response.json() == {
+            "mensagem": (
+                'O Documento Final do PAA já foi gerado. Para realizar alterações, '
+                'utilize o fluxo de retificação do PAA.'
+            )
+        }
+
+        
 
 class TestReceitasPrevistasPaaBloqueios:
 

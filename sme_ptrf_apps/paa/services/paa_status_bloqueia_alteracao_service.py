@@ -25,13 +25,19 @@ class PaaStatusBloqueiaAlteracaoService:
     """
 
     @classmethod
-    def checar_status_gerado(cls, paa: Paa):
+    def checar_status_gerado_ou_doc_concluido(cls, paa: Paa):
         """ Bloqueia edições em PAA com documento final. """
         if paa.status_gerado:
             raise PaaStatusBloqueiaAlteracaoException(
                 'O PAA já foi gerado. Para realizar alterações, '
                 'utilize o fluxo de retificação do PAA.'
             )
+        
+        if cls.checar_documento_concluido(paa):
+            raise PaaStatusBloqueiaAlteracaoException((
+                'O Documento Final do PAA já foi gerado. Para realizar alterações, '
+                'utilize o fluxo de retificação do PAA.'
+            ))
 
     @classmethod
     def checar_ata_concluida(cls, paa: Paa):
@@ -46,6 +52,16 @@ class PaaStatusBloqueiaAlteracaoService:
                 'A Ata Final do PAA já foi concluida. '
                 'Para realizar alterações, utilize o fluxo de retificação.'
             )
+    
+    @classmethod
+    def checar_documento_concluido(cls, paa: Paa) -> bool:
+        if paa.status_em_retificacao:
+            from sme_ptrf_apps.paa.services.ciclo_retificacao_service import CicloRetificacaoService
+            tem_doc = CicloRetificacaoService(paa).tem_documento_final_concluido
+        else:
+            tem_doc = paa.get_tem_documento_final_concluido()
+        
+        return tem_doc            
 
     @classmethod
     def validar_lista(cls, paas: List[Paa], tipo_bloqueio: TipoBloqueioPaa):
@@ -55,7 +71,7 @@ class PaaStatusBloqueiaAlteracaoService:
         for paa in paas:
 
             if tipo_bloqueio == TipoBloqueioPaa.STATUS_GERADO:
-                cls.checar_status_gerado(paa)
+                cls.checar_status_gerado_ou_doc_concluido(paa)
 
             elif tipo_bloqueio == TipoBloqueioPaa.ATA_CONCLUIDA:
                 cls.checar_ata_concluida(paa)
