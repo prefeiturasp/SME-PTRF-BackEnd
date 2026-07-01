@@ -7,6 +7,7 @@ e fluxos de retificação do PAA.
 """
 import logging
 from datetime import datetime
+from time import sleep
 from django.http import HttpResponse
 from django.http import Http404
 from django.db.models import Q
@@ -658,6 +659,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
         Returns:
             Resposta de agendamento da rotina assíncrona ou status 400.
         """
+        sleep(2)  # Time sleep para não gerar paralelismo da geração da prévia com a geração do documento final.
         paa = self.get_object()
         usuario = request.user
 
