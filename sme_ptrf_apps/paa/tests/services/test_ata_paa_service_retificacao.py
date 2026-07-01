@@ -11,6 +11,7 @@ from sme_ptrf_apps.paa.services.ata_paa_service import (
     validar_geracao_ata_paa,
     _salvar_log_replica,
     _remover_replica,
+    _apagar_atas_retificacao_anteriores,
 )
 
 pytestmark = pytest.mark.django_db
@@ -493,3 +494,115 @@ class TestGerarArquivoAtaPaaRetificacao:
 
         assert resultado is not None
         assert not LogReplicaPaa.objects.filter(paa=ata_retificacao_nao_gerada.paa).exists()
+
+
+class TestApagarAtasRetificacaoAnteriores:
+    """
+    Verifica que _apagar_atas_retificacao_anteriores remove todas as atas ATA_RETIFICACAO
+    do PAA, exceto a ata atual (ata_paa passada como argumento).
+    Espelha o comportamento de DocumentoPaaService.apagar_documento_anteriores.
+    """
+
+    def test_apaga_atas_anteriores_mantendo_a_atual(self, paa_em_retificacao, ata_paa_factory):
+        """R2: ata R1 deve ser removida ao concluir ata R2."""
+        ata_r1 = ata_paa_factory.create(
+            paa=paa_em_retificacao,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        )
+        ata_r2 = ata_paa_factory.create(
+            paa=paa_em_retificacao,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO,
+        )
+
+        _apagar_atas_retificacao_anteriores(ata_r2)
+
+        assert not AtaPaa.objects.filter(pk=ata_r1.pk).exists()
+        assert AtaPaa.objects.filter(pk=ata_r2.pk).exists()
+
+    def test_sem_atas_anteriores_nao_causa_erro(self, paa_em_retificacao, ata_paa_factory):
+        """Quando só existe a ata atual, nenhum registro é removido e não há erro."""
+        ata_atual = ata_paa_factory.create(
+            paa=paa_em_retificacao,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO,
+        )
+
+        _apagar_atas_retificacao_anteriores(ata_atual)
+
+        assert AtaPaa.objects.filter(pk=ata_atual.pk).exists()
+
+    def test_nao_remove_ata_apresentacao(self, paa_em_retificacao, ata_paa_factory):
+        """Atas do tipo ATA_APRESENTACAO não devem ser removidas."""
+        ata_apresentacao = ata_paa_factory.create(
+            paa=paa_em_retificacao,
+            tipo_ata=AtaPaa.ATA_APRESENTACAO,
+            status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        )
+        ata_retificacao = ata_paa_factory.create(
+            paa=paa_em_retificacao,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO,
+        )
+
+        _apagar_atas_retificacao_anteriores(ata_retificacao)
+
+        assert AtaPaa.objects.filter(pk=ata_apresentacao.pk).exists()
+        assert AtaPaa.objects.filter(pk=ata_retificacao.pk).exists()
+
+    def test_apaga_multiplas_atas_anteriores(self, paa_em_retificacao, ata_paa_factory):
+        """Múltiplas atas anteriores devem ser todas removidas ao concluir a atual."""
+        ata_r1 = ata_paa_factory.create(
+            paa=paa_em_retificacao,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        )
+        ata_r2_antiga = ata_paa_factory.create(
+            paa=paa_em_retificacao,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        )
+        ata_atual = ata_paa_factory.create(
+            paa=paa_em_retificacao,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO,
+        )
+
+        _apagar_atas_retificacao_anteriores(ata_atual)
+
+        assert not AtaPaa.objects.filter(pk=ata_r1.pk).exists()
+        assert not AtaPaa.objects.filter(pk=ata_r2_antiga.pk).exists()
+        assert AtaPaa.objects.filter(pk=ata_atual.pk).exists()
+
+    def test_gerar_ata_retificacao_apaga_atas_anteriores(
+        self,
+        paa_em_retificacao,
+        ata_paa_factory,
+        replica_padrao,
+        usuario,
+    ):
+        """
+        Integração: gerar_arquivo_ata_paa_retificacao deve chamar
+        _apagar_atas_retificacao_anteriores e remover ata de ciclo anterior.
+        """
+        ata_r1_antiga = ata_paa_factory.create(
+            paa=paa_em_retificacao,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        )
+        ata_atual = ata_paa_factory.create(
+            paa=paa_em_retificacao,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO,
+        )
+
+        with (
+            patch('sme_ptrf_apps.paa.services.ata_paa_service.gerar_dados_ata_paa', return_value={'cabecalho': {}}),
+            patch('sme_ptrf_apps.paa.services.ata_paa_service.gerar_arquivo_ata_paa_pdf'),
+            patch('sme_ptrf_apps.paa.services.ata_paa_service.PaaService.concluir_paa'),
+        ):
+            gerar_arquivo_ata_paa_retificacao(ata_paa=ata_atual, usuario=usuario)
+
+        assert not AtaPaa.objects.filter(pk=ata_r1_antiga.pk).exists()
+        assert AtaPaa.objects.filter(pk=ata_atual.pk).exists()

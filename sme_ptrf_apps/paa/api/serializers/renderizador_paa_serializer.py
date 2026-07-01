@@ -90,6 +90,7 @@ class RenderizadorPaaSerializer(serializers.Serializer):
     pode_retificar = serializers.BooleanField()
     esta_em_retificacao = serializers.BooleanField()
     exibe_dados_retificacao = serializers.BooleanField()
+    ciclo_retificacao_sem_documento = serializers.BooleanField()
     unidade = serializers.DictField()
     original = RenderizadorBlocoDocumentacaoSerializer()
     retificacao = RenderizadorBlocoDocumentacaoSerializer(allow_null=True)
@@ -288,41 +289,38 @@ class RenderizadorPaaBuilder:
             self.paa.atas_da_paa.filter(tipo_ata=tipo_ata).order_by('-pk').first()
         )
 
-    def _doc_retificacao_ciclo_atual(self) -> Optional[DocumentoPaa]:
-        """Retorna o documento de retificação gerado no ciclo atual.
+    def _doc_retificacao_concluido(self) -> Optional[DocumentoPaa]:
+        """Documento de retificação FINAL CONCLUIDO mais recente (ciclo anterior ao corrente).
 
-        Quando o PAA está em retificação, o banco pode conter o documento de
-        uma retificação anterior enquanto o novo ainda não foi gerado. O UUID do
-        documento mais recente é comparado com o UUID registrado no snapshot da
-        réplica: se coincidirem, o documento pertence ao ciclo anterior e o
-        método retorna None, sinalizando ao bloco de renderização que a geração
-        ainda está pendente.
-
-        Returns:
-            Instância de DocumentoPaa do ciclo atual, ou None se ainda não gerado.
+        Usado como fallback quando o ciclo atual ainda não gerou seu próprio documento,
+        para manter os dados da retificação anterior visíveis na UI.
         """
-        return CicloRetificacaoService(self.paa).documento_atual
+        return (
+            self.paa.documentopaa_set
+            .filter(
+                retificacao=True,
+                versao=DocumentoPaa.VersaoChoices.FINAL,
+                status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+            )
+            .order_by('-versao_documento')
+            .first()
+        )
 
-    def _numero_versao_retificacao(self, doc_retificacao: Optional[DocumentoPaa]) -> str:
-        """Retorna o número da versão de retificação para o título da seção.
+    def _ata_retificacao_concluida(self) -> Optional[AtaPaa]:
+        """Ata de retificação CONCLUIDA mais recente (ciclo anterior ao corrente).
 
-        Quando o documento do ciclo atual já existe, usa diretamente seu
-        ``versao_documento``. Quando ainda não foi gerado (ciclo em andamento),
-        infere o número a partir do snapshot da réplica: versao_documento do
-        ciclo anterior + 1. Retorna '' quando o número não é determinável.
-
-        Args:
-            doc_retificacao: Documento de retificação do ciclo atual, ou None
-                quando ainda não gerado.
-
-        Returns:
-            String com o número da versão (ex.: '1', '2'), ou '' como fallback.
+        Usada como fallback junto com ``_doc_retificacao_concluido`` quando
+        o ciclo atual ainda não gerou seu próprio documento.
         """
-        if doc_retificacao:
-            return str(doc_retificacao.versao_documento)
-        if not self.paa.status_em_retificacao:
-            return ''
-        return str(CicloRetificacaoService(self.paa).numero_versao)
+        return (
+            self.paa.atas_da_paa
+            .filter(
+                tipo_ata=AtaPaa.ATA_RETIFICACAO,
+                status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+            )
+            .order_by('-pk')
+            .first()
+        )
 
     def _pode_retificar(self) -> bool:
         if self.paa.status_em_retificacao:
@@ -354,15 +352,38 @@ class RenderizadorPaaBuilder:
         """
         doc_original = obter_documento_final_por_retificacao(self.paa, False)
         ata_original = self._ata_por_tipo(AtaPaa.ATA_APRESENTACAO)
-        ata_retificacao = self._ata_por_tipo(AtaPaa.ATA_RETIFICACAO)
 
         if self.paa.status_em_retificacao:
             ciclo = CicloRetificacaoService(self.paa)
-            doc_retificacao = ciclo.documento_atual
-            versao_retificacao = str(ciclo.numero_versao)
+            ciclo_doc_atual = ciclo.documento_atual
+            # True quando o ciclo corrente ainda não gerou seu próprio documento.
+            # Usado pelo frontend para exibir o botão de retificação sem depender
+            # do campo versao do documento exibido (que pode ser fallback do ciclo anterior).
+            ciclo_retificacao_sem_documento = ciclo_doc_atual is None
+
+            if ciclo_doc_atual:
+                # Ciclo atual já gerou seu documento → exibe dados do ciclo corrente.
+                doc_retificacao = ciclo_doc_atual
+                versao_retificacao = str(doc_retificacao.versao_documento)
+                ata_retificacao = self._ata_por_tipo(AtaPaa.ATA_RETIFICACAO)
+            else:
+                doc_anterior = self._doc_retificacao_concluido()
+                if doc_anterior:
+                    # Rn (n≥2): ciclo atual sem doc ainda → exibe dados do ciclo anterior
+                    # concluído até que o ciclo corrente gere o seu próprio documento.
+                    doc_retificacao = doc_anterior
+                    ata_retificacao = self._ata_retificacao_concluida()
+                    versao_retificacao = str(doc_anterior.versao_documento)
+                else:
+                    # R1: não há ciclo anterior → exibe pendente com o número do ciclo atual.
+                    doc_retificacao = None
+                    ata_retificacao = self._ata_por_tipo(AtaPaa.ATA_RETIFICACAO)
+                    versao_retificacao = str(ciclo.numero_versao)
         else:
+            ciclo_retificacao_sem_documento = False
             doc_retificacao = obter_documento_final_por_retificacao(self.paa, True)
             versao_retificacao = str(doc_retificacao.versao_documento) if doc_retificacao else ''
+            ata_retificacao = self._ata_por_tipo(AtaPaa.ATA_RETIFICACAO)
 
         bloco_docs_originais = {
             'secao_titulo': 'PAA Original',
@@ -374,7 +395,7 @@ class RenderizadorPaaBuilder:
             self.paa.status_em_retificacao or doc_retificacao or ata_retificacao
         )
         bloco_docs_retificacao = {
-            'secao_titulo': f'PAA Retificado #{versao_retificacao}',
+            'secao_titulo': f'PAA Retificado #{versao_retificacao}' if versao_retificacao else 'PAA Retificado',
             'documento': self._documento_render(doc_retificacao, True),
             'ata': self._ata_render(ata_retificacao, True, eh_paa_vigente),
         } if exibe_dados_retificacao else None
@@ -384,6 +405,7 @@ class RenderizadorPaaBuilder:
             'pode_retificar': self._pode_retificar(),
             'esta_em_retificacao': self.paa.status_em_retificacao,
             'exibe_dados_retificacao': exibe_dados_retificacao,
+            'ciclo_retificacao_sem_documento': ciclo_retificacao_sem_documento,
             'unidade': self._unidade(),
             'original': bloco_docs_originais,
             'retificacao': bloco_docs_retificacao,

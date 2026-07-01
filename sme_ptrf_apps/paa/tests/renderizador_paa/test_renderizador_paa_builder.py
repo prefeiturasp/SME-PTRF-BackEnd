@@ -28,146 +28,244 @@ def _builder(paa):
     return RenderizadorPaaBuilder(paa)
 
 
-# _doc_retificacao_ciclo_atual
-class TestDocRetificacaoCicloAtual:
+# _doc_retificacao_concluido
+class TestDocRetificacaoConcluido:
     """
-    Verifica que _doc_retificacao_ciclo_atual retorna o documento do ciclo corrente
-    ou None quando o único doc existente pertence ao ciclo anterior.
+    Verifica que _doc_retificacao_concluido retorna o documento de retificação
+    FINAL+CONCLUIDO mais recente (por versao_documento desc), usado como fallback
+    quando o ciclo atual ainda não gerou seu próprio documento (cenário Rn).
     """
 
-    def test_retorna_none_sem_documento(self, paa_factory, replica_paa_factory):
+    def test_retorna_none_sem_documentos_retificacao(self, paa_factory):
         """Sem nenhum doc retificado → None."""
         paa = _paa_em_retificacao(paa_factory)
-        replica_paa_factory(
-            paa=paa,
-            historico={'documento_retificado': {'uuid': None, 'versao_documento': None}},
-        )
-        assert _builder(paa)._doc_retificacao_ciclo_atual() is None
+        assert _builder(paa)._doc_retificacao_concluido() is None
 
-    def test_retorna_none_quando_doc_pertence_ao_ciclo_anterior(
-        self, paa_factory, documento_paa_factory, replica_paa_factory
-    ):
-        """UUID do doc == UUID no snapshot → doc de R1 → None durante R2."""
+    def test_retorna_none_quando_doc_nao_esta_concluido(self, paa_factory, documento_paa_factory):
+        """Doc retificado EM_PROCESSAMENTO não conta como CONCLUIDO → None."""
         paa = _paa_em_retificacao(paa_factory)
-        doc_r1 = documento_paa_factory(
+        documento_paa_factory(paa=paa, retificacao=True, versao=FINAL, status_geracao=EM_PROCESSAMENTO)
+        assert _builder(paa)._doc_retificacao_concluido() is None
+
+    def test_retorna_documento_concluido_unico(self, paa_factory, documento_paa_factory):
+        """Um único doc CONCLUIDO → retornado."""
+        paa = _paa_em_retificacao(paa_factory)
+        doc = documento_paa_factory(
             paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
         )
-        replica_paa_factory(
-            paa=paa,
-            historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': 1}},
-        )
-        assert _builder(paa)._doc_retificacao_ciclo_atual() is None
-
-    def test_retorna_doc_quando_pertence_ao_ciclo_atual_concluido(
-        self, paa_factory, documento_paa_factory, replica_paa_factory
-    ):
-        """UUID do doc ≠ UUID no snapshot → doc de R2 CONCLUIDO retornado."""
-        paa = _paa_em_retificacao(paa_factory)
-        doc_r1 = documento_paa_factory(
-            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
-        )
-        doc_r2 = documento_paa_factory(
-            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=2
-        )
-        replica_paa_factory(
-            paa=paa,
-            historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': 1}},
-        )
-        result = _builder(paa)._doc_retificacao_ciclo_atual()
-        assert result is not None
-        assert result.pk == doc_r2.pk
-
-    def test_retorna_doc_quando_pertence_ao_ciclo_atual_em_processamento(
-        self, paa_factory, documento_paa_factory, replica_paa_factory
-    ):
-        """Doc de R2 EM_PROCESSAMENTO (task em andamento) também é retornado."""
-        paa = _paa_em_retificacao(paa_factory)
-        doc_r1 = documento_paa_factory(
-            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
-        )
-        doc_r2 = documento_paa_factory(
-            paa=paa, retificacao=True, versao=FINAL, status_geracao=EM_PROCESSAMENTO, versao_documento=2
-        )
-        replica_paa_factory(
-            paa=paa,
-            historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': 1}},
-        )
-        result = _builder(paa)._doc_retificacao_ciclo_atual()
-        assert result is not None
-        assert result.pk == doc_r2.pk
-
-    def test_retorna_doc_sem_replica(self, paa_factory, documento_paa_factory):
-        """Sem réplica, qualquer doc existente é retornado (sem referência de snapshot)."""
-        paa = _paa_em_retificacao(paa_factory)
-        doc = documento_paa_factory(paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO)
-        result = _builder(paa)._doc_retificacao_ciclo_atual()
+        result = _builder(paa)._doc_retificacao_concluido()
         assert result is not None
         assert result.pk == doc.pk
 
-
-# _numero_versao_retificacao
-class TestNumeroVersaoRetificacao:
-    """
-    Verifica que _numero_versao_retificacao retorna a string correta com o número
-    da versão de retificação, inferindo do snapshot quando o doc ainda não foi gerado.
-    """
-
-    def test_usa_versao_do_documento_quando_disponivel(self, paa_factory, documento_paa_factory):
-        """Doc passado diretamente → usa doc.versao_documento."""
-        paa = paa_factory()
-        doc = documento_paa_factory(
-            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=3
+    def test_retorna_doc_mais_recente_por_versao_documento(self, paa_factory, documento_paa_factory):
+        """Com dois docs CONCLUIDOS, retorna o de maior versao_documento."""
+        paa = _paa_em_retificacao(paa_factory)
+        documento_paa_factory(
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
         )
-        assert _builder(paa)._numero_versao_retificacao(doc) == '3'
+        doc_r2 = documento_paa_factory(
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=2
+        )
+        result = _builder(paa)._doc_retificacao_concluido()
+        assert result.pk == doc_r2.pk
 
-    def test_retorna_vazio_quando_sem_doc_e_nao_em_retificacao(self, paa_factory):
-        """doc=None e PAA fora de retificação → '' (sem versão determinável)."""
+    def test_ignora_doc_nao_retificacao(self, paa_factory, documento_paa_factory):
+        """Doc original (retificacao=False) não é retornado."""
+        paa = _paa_em_retificacao(paa_factory)
+        documento_paa_factory(paa=paa, retificacao=False, versao=FINAL, status_geracao=CONCLUIDO)
+        assert _builder(paa)._doc_retificacao_concluido() is None
+
+
+# _ata_retificacao_concluida
+class TestAtaRetificacaoConcluida:
+    """
+    Verifica que _ata_retificacao_concluida retorna a ata de retificação CONCLUIDA
+    mais recente (por pk desc), usada como fallback quando o ciclo atual ainda não
+    gerou documento.
+    """
+
+    def test_retorna_none_sem_ata_retificacao(self, paa_factory):
+        """Sem nenhuma ata de retificação → None."""
+        paa = _paa_em_retificacao(paa_factory)
+        assert _builder(paa)._ata_retificacao_concluida() is None
+
+    def test_retorna_none_quando_ata_nao_concluida(self, paa_factory, ata_paa_factory):
+        """Ata STATUS_NAO_GERADO não conta como CONCLUIDA → None."""
+        paa = _paa_em_retificacao(paa_factory)
+        ata_paa_factory(paa=paa, tipo_ata=AtaPaa.ATA_RETIFICACAO, status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO)
+        assert _builder(paa)._ata_retificacao_concluida() is None
+
+    def test_retorna_ata_concluida_unica(self, paa_factory, ata_paa_factory):
+        """Uma única ata CONCLUIDA → retornada."""
+        paa = _paa_em_retificacao(paa_factory)
+        ata = ata_paa_factory(
+            paa=paa, tipo_ata=AtaPaa.ATA_RETIFICACAO, status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO
+        )
+        result = _builder(paa)._ata_retificacao_concluida()
+        assert result is not None
+        assert result.pk == ata.pk
+
+    def test_retorna_ata_mais_recente_por_pk(self, paa_factory, ata_paa_factory):
+        """Com duas atas CONCLUIDAS, retorna a de maior pk."""
+        paa = _paa_em_retificacao(paa_factory)
+        ata_paa_factory(paa=paa, tipo_ata=AtaPaa.ATA_RETIFICACAO, status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO)
+        ata_r2 = ata_paa_factory(
+            paa=paa, tipo_ata=AtaPaa.ATA_RETIFICACAO, status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO
+        )
+        result = _builder(paa)._ata_retificacao_concluida()
+        assert result.pk == ata_r2.pk
+
+    def test_ignora_ata_apresentacao(self, paa_factory, ata_paa_factory):
+        """Ata do tipo ATA_APRESENTACAO não é retornada."""
+        paa = _paa_em_retificacao(paa_factory)
+        ata_paa_factory(paa=paa, tipo_ata=AtaPaa.ATA_APRESENTACAO, status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO)
+        assert _builder(paa)._ata_retificacao_concluida() is None
+
+
+# ciclo_retificacao_sem_documento (campo em build())
+class TestBuildCicloRetificacaoSemDocumento:
+    """
+    Verifica que ciclo_retificacao_sem_documento no resultado de build() é True quando
+    o PAA está em EM_RETIFICACAO e o ciclo corrente ainda não gerou documento, e False
+    em todos os demais casos.
+    """
+
+    def test_falso_quando_paa_nao_em_retificacao(self, paa_factory):
+        """PAA fora de retificação → ciclo_retificacao_sem_documento=False."""
         paa = paa_factory()
-        assert _builder(paa)._numero_versao_retificacao(None) == ''
+        with patch(
+            'sme_ptrf_apps.paa.api.serializers.renderizador_paa_serializer.RetificacaoPaaService'
+        ) as mock:
+            mock.return_value.valida_pode_retificar.side_effect = ValidacaoRetificacao('não pode')
+            result = _builder(paa).build()
+        assert result['ciclo_retificacao_sem_documento'] is False
 
-    def test_infere_versao_1_para_r1_pendente_sem_snapshot_anterior(
-        self, paa_factory, replica_paa_factory
-    ):
-        """R1 em andamento: snapshot sem doc anterior → versao_documento=None → número 1."""
+    def test_verdadeiro_quando_r1_sem_documento(self, paa_factory, replica_paa_factory):
+        """R1: réplica sem snapshot anterior, sem doc gerado → True."""
         paa = _paa_em_retificacao(paa_factory)
         replica_paa_factory(
             paa=paa,
             historico={'documento_retificado': {'uuid': None, 'versao_documento': None}},
         )
-        assert _builder(paa)._numero_versao_retificacao(None) == '1'
+        result = _builder(paa).build()
+        assert result['ciclo_retificacao_sem_documento'] is True
 
-    def test_infere_versao_2_para_r2_pendente_com_snapshot_r1(
-        self, paa_factory, replica_paa_factory
+    def test_falso_quando_r1_tem_documento_gerado(
+        self, paa_factory, replica_paa_factory, documento_paa_factory
     ):
-        """R2 em andamento: snapshot tem versao_documento=1 → número inferido = 2."""
+        """R1 com doc gerado no ciclo atual → False."""
         paa = _paa_em_retificacao(paa_factory)
         replica_paa_factory(
             paa=paa,
-            historico={'documento_retificado': {'uuid': 'qualquer-uuid', 'versao_documento': 1}},
+            historico={'documento_retificado': {'uuid': None, 'versao_documento': None}},
         )
-        assert _builder(paa)._numero_versao_retificacao(None) == '2'
+        documento_paa_factory(
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
+        )
+        result = _builder(paa).build()
+        assert result['ciclo_retificacao_sem_documento'] is False
 
-    def test_infere_versao_1_quando_nao_ha_replica(self, paa_factory):
-        """Sem réplica (DoesNotExist): fallback para '1'."""
-        paa = _paa_em_retificacao(paa_factory)
-        assert _builder(paa)._numero_versao_retificacao(None) == '1'
-
-    def test_r2_com_doc_gerado_retorna_versao_do_doc(
-        self, paa_factory, documento_paa_factory, replica_paa_factory
+    def test_verdadeiro_quando_r2_sem_documento_proprio(
+        self, paa_factory, replica_paa_factory, documento_paa_factory
     ):
-        """R2 com doc já gerado: usa doc.versao_documento=2, não o snapshot."""
+        """R2: snapshot aponta para doc R1 e nenhum doc R2 existe → True."""
         paa = _paa_em_retificacao(paa_factory)
         doc_r1 = documento_paa_factory(
             paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
         )
-        doc_r2 = documento_paa_factory(
+        replica_paa_factory(
+            paa=paa,
+            historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': 1}},
+        )
+        result = _builder(paa).build()
+        assert result['ciclo_retificacao_sem_documento'] is True
+
+    def test_falso_quando_r2_tem_documento_proprio(
+        self, paa_factory, replica_paa_factory, documento_paa_factory
+    ):
+        """R2: snapshot aponta para doc R1 e doc R2 gerado → False."""
+        paa = _paa_em_retificacao(paa_factory)
+        doc_r1 = documento_paa_factory(
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
+        )
+        documento_paa_factory(
             paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=2
         )
         replica_paa_factory(
             paa=paa,
             historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': 1}},
         )
-        assert _builder(paa)._numero_versao_retificacao(doc_r2) == '2'
+        result = _builder(paa).build()
+        assert result['ciclo_retificacao_sem_documento'] is False
+
+
+# build() — Rn fallback: exibe dados do ciclo anterior quando ciclo atual não tem doc
+class TestBuildRnFallback:
+    """
+    Verifica que quando o PAA está em EM_RETIFICACAO e o ciclo atual ainda não gerou
+    documento, o bloco retificacao exibe os dados do ciclo anterior (fallback), e não
+    fica em branco.
+    """
+
+    def test_r2_sem_doc_usa_secao_titulo_com_versao_r1(
+        self, paa_factory, replica_paa_factory, documento_paa_factory
+    ):
+        """R2 sem doc próprio: secao_titulo deve referenciar a versão do doc R1 (fallback)."""
+        paa = _paa_em_retificacao(paa_factory)
+        doc_r1 = documento_paa_factory(
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
+        )
+        replica_paa_factory(
+            paa=paa,
+            historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': 1}},
+        )
+        result = _builder(paa).build()
+        assert result['retificacao'] is not None
+        assert result['retificacao']['secao_titulo'] == 'PAA Retificado #1'
+
+    def test_r2_sem_doc_exibe_dados_retificacao_true(
+        self, paa_factory, replica_paa_factory, documento_paa_factory
+    ):
+        """R2 sem doc próprio: exibe_dados_retificacao deve ser True (bloco não oculto)."""
+        paa = _paa_em_retificacao(paa_factory)
+        doc_r1 = documento_paa_factory(
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
+        )
+        replica_paa_factory(
+            paa=paa,
+            historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': 1}},
+        )
+        result = _builder(paa).build()
+        assert result['exibe_dados_retificacao'] is True
+
+    def test_r1_pendente_usa_secao_titulo_com_versao_1(self, paa_factory, replica_paa_factory):
+        """R1 sem doc (inicial): secao_titulo com número '1' inferido do ciclo."""
+        paa = _paa_em_retificacao(paa_factory)
+        replica_paa_factory(
+            paa=paa,
+            historico={'documento_retificado': {'uuid': None, 'versao_documento': None}},
+        )
+        result = _builder(paa).build()
+        assert result['retificacao'] is not None
+        assert result['retificacao']['secao_titulo'] == 'PAA Retificado #1'
+
+    def test_r2_com_doc_proprio_usa_versao_r2(
+        self, paa_factory, replica_paa_factory, documento_paa_factory
+    ):
+        """R2 com doc R2 gerado: secao_titulo deve referenciar versão 2."""
+        paa = _paa_em_retificacao(paa_factory)
+        doc_r1 = documento_paa_factory(
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
+        )
+        documento_paa_factory(
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=2
+        )
+        replica_paa_factory(
+            paa=paa,
+            historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': 1}},
+        )
+        result = _builder(paa).build()
+        assert result['retificacao']['secao_titulo'] == 'PAA Retificado #2'
 
 
 # _cor_status_geracao
