@@ -14,13 +14,14 @@ from ..services.relacao_bens_pdf_service import gerar_arquivo_relacao_de_bens_pd
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_arquivo_relacao_de_bens_dados_persistidos(relacao_bens, recurso_nome):
+def gerar_arquivo_relacao_de_bens_dados_persistidos(relacao_bens, recurso_nome, recurso_nome_exibicao):
     relatorio_persistido = relacao_bens.relatoriorelacaobens_set.last()
     if relatorio_persistido:
         gerar_arquivo_relacao_de_bens_pdf(
             dados_relacao_de_bens=formatar_e_retornar_dados_relatorio_relacao_bens(
                 relatorio_persistido,
-                recurso_nome
+                recurso_nome,
+                recurso_nome_exibicao,
             ),
             relacao_bens=relacao_bens
         )
@@ -61,10 +62,14 @@ def apagar_previas_relacao_de_bens(periodo, conta_associacao):
         relacao_bens.delete()
 
 
-def _retornar_dados_relatorio_relacao_de_bens(relacao_bens, recurso_nome):
+def _retornar_dados_relatorio_relacao_de_bens(relacao_bens, recurso_nome, recurso_nome_exibicao):
     relatorio_persistido = relacao_bens.relatoriorelacaobens_set.last()
     if relatorio_persistido:
-        return formatar_e_retornar_dados_relatorio_relacao_bens(relatorio_persistido, recurso_nome)
+        return formatar_e_retornar_dados_relatorio_relacao_bens(
+            relatorio_persistido,
+            recurso_nome,
+            recurso_nome_exibicao
+        )
     return None
 
 
