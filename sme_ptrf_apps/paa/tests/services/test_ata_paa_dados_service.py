@@ -242,6 +242,8 @@ class TestFiltrarItensRetificados:
         assert items == original
 
 
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_titulo_introducao", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_paragrafos_introducao_elaboracao", autospec=True)
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.dados_texto_ata_paa", autospec=True)
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_atividades_estatutarias", autospec=True)
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_grupos_prioridades", autospec=True)
@@ -254,7 +256,9 @@ def test_gerar_dados_ata_paa_inclui_numeros_blocos(
     mock_presentes,
     mock_grupos,
     mock_atividades,
-    mock_dados_texto
+    mock_dados_texto,
+    mock_paragrafos_introducao,
+    mock_titulo_introducao,
 ):
     ata_paa = MagicMock()
     ata_paa.tipo_retificacao = False
@@ -266,6 +270,8 @@ def test_gerar_dados_ata_paa_inclui_numeros_blocos(
     mock_grupos.return_value = [{'key': 'prioridades_ptrf', 'titulo': 'Prioridades PTRF', 'items': [{'id': 1}]}]
     mock_atividades.return_value = [{'id': 1}]
     mock_dados_texto.return_value = {"texto": "Teste"}
+    mock_paragrafos_introducao.return_value = ["Parágrafo teste."]
+    mock_titulo_introducao.return_value = "Título teste."
 
     resultado = gerar_dados_ata_paa(ata_paa, usuario)
 
@@ -274,6 +280,8 @@ def test_gerar_dados_ata_paa_inclui_numeros_blocos(
     assert resultado['numeros_blocos']['manifestacoes'] == 5
 
 
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_titulo_introducao", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_paragrafos_introducao_elaboracao", autospec=True)
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.dados_texto_ata_paa", autospec=True)
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_atividades_estatutarias", autospec=True)
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_grupos_prioridades", autospec=True)
@@ -286,7 +294,9 @@ def test_gerar_dados_ata_apresentacao_nao_inclui_flags_retificacao(
     mock_presentes,
     mock_grupos,
     mock_atividades,
-    mock_dados_texto
+    mock_dados_texto,
+    mock_paragrafos_introducao,
+    mock_titulo_introducao,
 ):
     """Ata de apresentação não deve ter etiqueta de retificação nem flags de seção."""
     ata_paa = MagicMock()
@@ -298,6 +308,8 @@ def test_gerar_dados_ata_apresentacao_nao_inclui_flags_retificacao(
     mock_grupos.return_value = []
     mock_atividades.return_value = []
     mock_dados_texto.return_value = {}
+    mock_paragrafos_introducao.return_value = []
+    mock_titulo_introducao.return_value = "Título teste."
 
     resultado = gerar_dados_ata_paa(ata_paa)
 
@@ -309,6 +321,8 @@ def test_gerar_dados_ata_apresentacao_nao_inclui_flags_retificacao(
     assert resultado['retificado_atividades_estatutarias'] is False
 
 
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_titulo_introducao", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_paragrafos_introducao_retificacao", autospec=True)
 @patch("sme_ptrf_apps.paa.services.ciclo_retificacao_service.CicloRetificacaoService")
 @patch("sme_ptrf_apps.paa.services.retificacao_paa_service.RetificacaoPaaService")
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.dados_texto_ata_paa", autospec=True)
@@ -326,6 +340,8 @@ def test_gerar_dados_ata_retificacao_inclui_etiqueta_e_flags(
     mock_dados_texto,
     mock_retificacao_service_cls,
     mock_ciclo_service_cls,
+    mock_paragrafos_introducao_retificacao,
+    mock_titulo_introducao,
 ):
     """Ata de retificação deve preencher etiqueta e flags de seção corretamente."""
     ata_paa = MagicMock()
@@ -348,6 +364,8 @@ def test_gerar_dados_ata_retificacao_inclui_etiqueta_e_flags(
     ]
     mock_atividades.return_value = [{'retificado': False}]
     mock_dados_texto.return_value = {}
+    mock_paragrafos_introducao_retificacao.return_value = []
+    mock_titulo_introducao.return_value = "Título teste."
 
     resultado = gerar_dados_ata_paa(ata_paa)
 
@@ -359,6 +377,8 @@ def test_gerar_dados_ata_retificacao_inclui_etiqueta_e_flags(
     assert resultado['retificado_atividades_estatutarias'] is False
 
 
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_titulo_introducao", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_paragrafos_introducao_retificacao", autospec=True)
 @patch("sme_ptrf_apps.paa.services.ciclo_retificacao_service.CicloRetificacaoService")
 @patch("sme_ptrf_apps.paa.services.retificacao_paa_service.RetificacaoPaaService")
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.dados_texto_ata_paa", autospec=True)
@@ -376,6 +396,8 @@ def test_gerar_dados_ata_retificacao_sem_doc_usa_data_atual(
     mock_dados_texto,
     mock_retificacao_service_cls,
     mock_ciclo_service_cls,
+    mock_paragrafos_introducao_retificacao,
+    mock_titulo_introducao,
 ):
     """Quando documento_atual não existe, data_retificacao cai para datetime.now()."""
     ata_paa = MagicMock()
@@ -390,6 +412,8 @@ def test_gerar_dados_ata_retificacao_sem_doc_usa_data_atual(
     mock_grupos.return_value = []
     mock_atividades.return_value = []
     mock_dados_texto.return_value = {}
+    mock_paragrafos_introducao_retificacao.return_value = []
+    mock_titulo_introducao.return_value = "Título teste."
 
     resultado = gerar_dados_ata_paa(ata_paa)
 
