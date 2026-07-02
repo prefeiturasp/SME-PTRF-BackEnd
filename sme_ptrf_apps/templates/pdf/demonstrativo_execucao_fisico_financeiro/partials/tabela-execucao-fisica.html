@@ -26,7 +26,7 @@
         <th class="th-fundo-branco">14 - Rejeitadas</th>
         <th class="th-fundo-branco">15 - Em análise</th>
         <th class="th-fundo-branco">16 - Não apresentadas</th>
-        <th class="th-fundo-branco">17 - UEs publicadas anteriormente</th>
+        <th class="th-fundo-branco">17 - UEs {{ dados.text_document_consolidado_pc.text_in_past_and_plural }} anteriormente</th>
         <th class="th-fundo-branco">18 - Total</th>
 
         <th class="th-fundo-branco">19 - UEs Retificadas</th>
@@ -65,9 +65,9 @@
             <span class="font-10 pt-2 pb-2">Coluna 18 - É a soma das colunas 12 a 17.</span>
             <br/>
             {% if dados.execucao_fisica.eh_relatorio_consolidado_publicacoes_parciais %}
-              <span class="font-10 pt-2">Coluna 19 - Exibe a quantidade de UEs cuja a PC foi retificada nas publicações parciais.</span>
+              <span class="font-10 pt-2">Coluna 19 - Exibe a quantidade de UEs cuja a PC foi retificada {{ dados.text_document_consolidado_pc.text_in }} parciais.</span>
             {% else %}
-              <span class="font-10 pt-2">Coluna 19 - Exibe a quantidade de UEs cuja a PC foi retificada na referida publicação.</span>
+              <span class="font-10 pt-2">Coluna 19 - Exibe a quantidade de UEs cuja a PC foi retificada {{ dados.text_document_consolidado_pc.text_refer }}.</span>
             {% endif %}
           </div>
         </div>

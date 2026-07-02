@@ -302,3 +302,130 @@ class TestExisteDoc:
             paa_a, retificacao=False, versao=PREVIA, status=EM_PROCESSAMENTO
         )
         assert result is False
+
+
+# _tem_doc_retificacao_novo_neste_ciclo
+class TestTemDocRetificacaoNovoNesteCiclo:
+    """
+    Testa a detecção de documento novo no ciclo de retificação corrente.
+
+    O método compara o UUID do documento mais recente (retificacao=True FINAL CONCLUIDO)
+    com o UUID registrado no snapshot da réplica. UUIDs iguais → doc do ciclo anterior
+    (False). UUIDs diferentes, ou ausência de snapshot, → doc do ciclo atual (True).
+    """
+
+    def test_retorna_false_sem_nenhum_documento(self, paa_factory):
+        """Sem nenhum documento de retificação, retorna False."""
+        paa = paa_factory()
+        result = ValidaGeracaoDocumentoPAAService._tem_doc_retificacao_novo_neste_ciclo(paa)
+        assert result is False
+
+    def test_retorna_false_quando_doc_pertence_ao_ciclo_anterior(
+        self, paa_factory, documento_paa_factory, replica_paa_factory
+    ):
+        """UUID do doc == UUID no snapshot → doc do ciclo anterior → False."""
+        paa = paa_factory()
+        doc_r1 = documento_paa_factory(
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
+        )
+        replica_paa_factory(
+            paa=paa,
+            historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': 1}},
+        )
+        assert ValidaGeracaoDocumentoPAAService._tem_doc_retificacao_novo_neste_ciclo(paa) is False
+
+    def test_retorna_true_quando_doc_pertence_ao_ciclo_atual(
+        self, paa_factory, documento_paa_factory, replica_paa_factory
+    ):
+        """UUID do doc ≠ UUID no snapshot → doc do ciclo atual → True."""
+        paa = paa_factory()
+        doc_r1 = documento_paa_factory(
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
+        )
+        documento_paa_factory(
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=2
+        )
+        replica_paa_factory(
+            paa=paa,
+            historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': 1}},
+        )
+        assert ValidaGeracaoDocumentoPAAService._tem_doc_retificacao_novo_neste_ciclo(paa) is True
+
+    def test_retorna_true_quando_nao_ha_replica(self, paa_factory, documento_paa_factory):
+        """Sem réplica, qualquer doc CONCLUIDO é tratado como do ciclo atual → True."""
+        paa = paa_factory()
+        documento_paa_factory(paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO)
+        assert ValidaGeracaoDocumentoPAAService._tem_doc_retificacao_novo_neste_ciclo(paa) is True
+
+    def test_retorna_true_quando_snapshot_uuid_e_none(
+        self, paa_factory, documento_paa_factory, replica_paa_factory
+    ):
+        """uuid_snapshot=None → primeiro doc do ciclo (nenhum anterior registrado) → True."""
+        paa = paa_factory()
+        documento_paa_factory(paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO)
+        replica_paa_factory(
+            paa=paa,
+            historico={'documento_retificado': {'uuid': None, 'versao_documento': None}},
+        )
+        assert ValidaGeracaoDocumentoPAAService._tem_doc_retificacao_novo_neste_ciclo(paa) is True
+
+    def test_ignora_documento_em_processamento(self, paa_factory, documento_paa_factory):
+        """Documento EM_PROCESSAMENTO não é considerado (filtro exige CONCLUIDO) → False."""
+        paa = paa_factory()
+        documento_paa_factory(paa=paa, retificacao=True, versao=FINAL, status_geracao=EM_PROCESSAMENTO)
+        assert ValidaGeracaoDocumentoPAAService._tem_doc_retificacao_novo_neste_ciclo(paa) is False
+
+
+# Cenários R2 em valida_gerar_documento_previa_retificacao
+class TestValidaGerarDocumentoPreviaRetificacaoR2:
+    """
+    Testa cenários de segunda retificação (R2): o documento de R1 existe no banco
+    mas não deve bloquear o início de R2.
+    """
+
+    def _mock_alteracoes(self, tem_alteracoes: bool):
+        retorno = {"texto_introducao": ["antes", "depois"]} if tem_alteracoes else {}
+        return patch(
+            "sme_ptrf_apps.paa.services.valida_geracao_documentos_service"
+            ".RetificacaoPaaService.identificar_alteracoes",
+            return_value=retorno,
+        )
+
+    def test_doc_ciclo_anterior_nao_bloqueia_inicio_r2(
+        self, paa_factory, documento_paa_factory, replica_paa_factory
+    ):
+        """
+        Cenário R2: PAA em retificação, banco contém doc de R1 (CONCLUIDO), réplica
+        aponta para esse doc. Geração de R2 deve ser liberada.
+        """
+        paa = _paa_em_retificacao(paa_factory)
+        doc_r1 = documento_paa_factory(
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
+        )
+        replica_paa_factory(
+            paa=paa,
+            historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': 1}},
+        )
+        with self._mock_alteracoes(tem_alteracoes=True):
+            ValidaGeracaoDocumentoPAAService.valida_gerar_documento_previa_retificacao(paa)
+
+    def test_doc_ciclo_atual_bloqueia_geracao_duplicada(
+        self, paa_factory, documento_paa_factory, replica_paa_factory
+    ):
+        """
+        Cenário R2: doc de R2 já gerado (UUID ≠ snapshot de R1). Nova geração deve
+        ser bloqueada com 'retificação final gerado'.
+        """
+        paa = _paa_em_retificacao(paa_factory)
+        doc_r1 = documento_paa_factory(
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
+        )
+        documento_paa_factory(
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=2
+        )
+        replica_paa_factory(
+            paa=paa,
+            historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': 1}},
+        )
+        with pytest.raises(ValidaGeracaoDocumentoException, match="retificação final gerado"):
+            ValidaGeracaoDocumentoPAAService.valida_gerar_documento_previa_retificacao(paa)

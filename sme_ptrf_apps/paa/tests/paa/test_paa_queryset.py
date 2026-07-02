@@ -96,6 +96,7 @@ class TestAnnotateStatusGeracao:
             paa=paa,
             versao=DocumentoPaa.VersaoChoices.FINAL,
             status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+            retificacao=True,
         )
         ata_paa_factory.create(
             paa=paa,
@@ -256,6 +257,45 @@ class TestAnnotateStatusGeracao:
         qs = _qs().filter(pk=paa.pk)
         assert qs.first().get_status_andamento() == PaaStatusAndamentoEnum.FORA_FLUXO.name
 
+    def test_status_em_retificacao_com_ata_em_processamento_retorna_gerado_parcialmente(
+        self,
+        paa_factory,
+        periodo_paa_factory,
+        associacao,
+        documento_paa_factory,
+        ata_paa_factory,
+        replica_paa_factory,
+    ):
+        """
+        Réplica + doc retificação concluído + ata EM_PROCESSAMENTO → GERADO_PARCIALMENTE.
+        Durante a geração da ata (task Celery), a ata vai de NAO_GERADO para EM_PROCESSAMENTO.
+        Antes da correção, ata_retificacao_iniciada só considerava NAO_GERADO, fazendo o PAA
+        desaparecer da listagem durante a geração. Com a correção, EM_PROCESSAMENTO também conta
+        como ata iniciada e o PAA permanece em GERADO_PARCIALMENTE.
+        """
+        periodo = periodo_paa_factory.create()
+        paa = paa_factory.create(
+            periodo_paa=periodo,
+            associacao=associacao,
+            status=PaaStatusEnum.EM_RETIFICACAO.name,
+        )
+        documento_paa_factory.create(
+            paa=paa,
+            versao=DocumentoPaa.VersaoChoices.FINAL,
+            status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+            retificacao=True,
+        )
+        ata_paa_factory.create(
+            paa=paa,
+            status_geracao_pdf=AtaPaa.STATUS_EM_PROCESSAMENTO,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+        )
+        replica_paa_factory.create(paa=paa)
+
+        qs = _qs().filter(pk=paa.pk).paas_gerados_e_parciais()
+        assert qs.first() is not None
+        assert qs.first().status_andamento == PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name
+
 
 class TestFilterPorStatusGeracao:
     def test_filtra_somente_gerados(
@@ -303,6 +343,7 @@ class TestFilterPorStatusGeracao:
             paa=paa_retificacao,
             versao=DocumentoPaa.VersaoChoices.FINAL,
             status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+            retificacao=True,
         )
         ata_paa_factory.create(
             paa=paa_retificacao, status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO, tipo_ata=AtaPaa.ATA_RETIFICACAO)

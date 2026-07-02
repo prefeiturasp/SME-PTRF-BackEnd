@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from auditlog.models import AuditlogHistoryField
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from waffle import get_waffle_flag_model
@@ -168,19 +170,30 @@ class AtaPaa(ModeloBase):
     justificativa_retificacao = models.TextField('Justificativa de retificação', blank=True, default='')
 
     pdf_gerado_previamente = models.BooleanField(
-        "PDF gerado previamente",
+        "Documento gerado",
         blank=True,
         default=False,
         help_text="O PDF já foi gerado e precisa ser regerado quando a ata é editada/apagada"
     )
 
     @property
-    def nome(self):
+    def nome(self) -> str:
         return f'Ata de {self.ATA_NOMES[self.tipo_ata]} do PAA'
 
     @property
-    def documento_gerado(self):
+    def documento_gerado(self) -> bool:
+        """ Retorna True se o documento foi gerado (CONCLUIDO) """
         return self.status_geracao_pdf == self.STATUS_CONCLUIDO
+
+    @property
+    def documento_nao_gerado(self) -> bool:
+        """ Retorna True se o documento ainda nao foi gerado (NAO_GERADO) """
+        return self.status_geracao_pdf == self.STATUS_NAO_GERADO
+
+    @property
+    def documento_em_processamento(self) -> bool:
+        """ Retorna True se o documento ainda nao foi gerado (EM_PROCESSAMENTO) """
+        return self.status_geracao_pdf == self.STATUS_EM_PROCESSAMENTO
 
     @property
     def precisa_professor_gremio(self):
@@ -230,8 +243,9 @@ class AtaPaa(ModeloBase):
         """
             É utilizado em PC (PrestacaoContaObterDocumentoPAASerializer) e no PAA (vigentes e anteriores)
         """
+        tipo_documento = 'Documento final %s' % ('retificado ' if self.tipo_retificacao else '')
         if self.status_geracao_pdf == self.STATUS_CONCLUIDO:
-            return f'Documento final gerado em {self.alterado_em.strftime("%d/%m/%Y às %H:%M")}'
+            return f'{tipo_documento} gerado em {self.alterado_em.strftime("%d/%m/%Y às %H:%M")}'
 
         return 'Documento pendente de geração'
 
@@ -240,6 +254,7 @@ class AtaPaa(ModeloBase):
         self.save()
 
     def arquivo_pdf_concluir(self):
+        self.previa = False
         self.pdf_gerado_previamente = True
         self.status_geracao_pdf = self.STATUS_CONCLUIDO
         self.save()
@@ -252,19 +267,42 @@ class AtaPaa(ModeloBase):
     def iniciar(cls, paa):
         tipo_ata = cls.ATA_RETIFICACAO if paa.status_em_retificacao else cls.ATA_APRESENTACAO
 
-        ata_paa = cls.objects.filter(
-            paa=paa,
-            tipo_ata=tipo_ata
-        ).first()
+        ata_paa = (
+            cls.objects.filter(paa=paa, tipo_ata=tipo_ata)
+            .order_by('-pk')
+            .first()
+        )
 
         if ata_paa:
+            # Para retificação: se a ata mais recente já foi gerada (pertence ao ciclo anterior),
+            # cria um novo registro para que cada ciclo tenha UUID próprio e o
+            if paa.status_em_retificacao and ata_paa.pdf_gerado_previamente:
+                return cls.objects.create(paa=paa, tipo_ata=tipo_ata)
             return ata_paa
 
-        return cls.objects.create(
-            paa=paa,
-            tipo_ata=tipo_ata
-        )
+        return cls.objects.create(paa=paa, tipo_ata=tipo_ata)
+
+    @property
+    def tipo_retificacao(self) -> bool:
+        """ Retorna True se o tipo da ata for retificação """
+        return self.tipo_ata == self.ATA_RETIFICACAO
+
+    @property
+    def tipo_apresentacao(self) -> bool:
+        """ Retorna True se o tipo da ata for apresentação """
+        return self.tipo_ata == self.ATA_APRESENTACAO
 
     class Meta:
         verbose_name = "Ata PAA"
         verbose_name_plural = "Atas PAA"
+
+
+@receiver(post_delete, sender=AtaPaa)
+def ata_paa_post_delete(instance, **kwargs):
+    """
+    Remove o arquivo físico do storage ao apagar o registro. Necessário porque
+    o Django não apaga arquivos de FileField automaticamente, nem em
+    instance.delete() nem em queryset.delete().
+    """
+    if instance.arquivo_pdf:
+        instance.arquivo_pdf.delete(save=False)

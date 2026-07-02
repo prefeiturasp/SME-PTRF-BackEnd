@@ -45,6 +45,7 @@ def cria_cabecalho(periodo, conta_associacao):
 
     cabecalho = {
         "recurso": periodo.recurso.nome,
+        "recurso_nome_exibicao": periodo.recurso.nome_exibicao,
         "periodo_referencia": periodo.referencia,
         "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas),
         "periodo_data_fim": formata_data(periodo.data_fim_realizacao_despesas),
@@ -289,7 +290,7 @@ def persistir_dados_relacao_bens(periodo, conta_associacao, rateios, relacao_ben
     LOGGER.info(f'Dados da relação bens persistidos {relatorio} com sucesso.')
 
 
-def formatar_e_retornar_dados_relatorio_relacao_bens(relatorio):
+def formatar_e_retornar_dados_relatorio_relacao_bens(relatorio, recurso_nome, recurso_nome_exibicao):
     linhas = []
 
     for item in relatorio.bens.all():
@@ -307,6 +308,8 @@ def formatar_e_retornar_dados_relatorio_relacao_bens(relatorio):
 
     dados_relacao_de_bens = {
         "cabecalho": {
+            "recurso": recurso_nome,
+            "recurso_nome_exibicao": recurso_nome_exibicao,
             "periodo_referencia": relatorio.periodo_referencia,
             "periodo_data_inicio": formata_data(relatorio.periodo_data_inicio),
             "periodo_data_fim": formata_data(relatorio.periodo_data_fim),

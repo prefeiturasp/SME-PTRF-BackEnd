@@ -15,6 +15,201 @@ from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
+class TextDocumentConsolidadoPC:
+    PUBLICACAO = "Publicação"
+    RELATORIO = "Relatório"
+    PUBLICACOES = "Publicações"
+    RELATORIOS = "Relatórios"
+
+    PUBLICATION_TYPE_PARTIAL = "Parcial"
+    PUBLICATION_TYPE_RECTIFICATION = "Retificação"
+    PUBLICATION_TYPE_UNIQUE = "Única"
+
+    def __init__(self, is_enable_lauda):
+        self._is_enable_lauda = is_enable_lauda
+
+
+    def _get_quantity_test(_, quantity, quantity_name_singular=None, quantity_name_plural=None):
+        if quantity == 1:
+            name_obj = quantity_name_singular if quantity_name_singular else "PC"
+
+            return f"- 1 {name_obj}"
+
+        if quantity > 1:
+            name_obj = quantity_name_plural if quantity_name_plural else "PCs"
+
+            return f"- {quantity} {name_obj}"
+
+        return ""
+
+
+    def get_tranform_publication_type(self, publication_type):
+        if publication_type == self.PUBLICATION_TYPE_UNIQUE and not self._is_enable_lauda:
+            return "Único"
+
+        return publication_type
+
+
+    def infinitive(self):
+        if self._is_enable_lauda:
+            return "publicar"
+
+        return "enviar externamente"
+
+
+    def text_in_past_and_plural(self):
+        if self._is_enable_lauda:
+            return "publicadas"
+
+        return "enviadas"
+
+
+    def text_in_past_male_with_where(self):
+        if self._is_enable_lauda:
+            return "publicado no Diário Oficial"
+
+        return "enviado externamente"
+
+
+    def text_in(self):
+        if self._is_enable_lauda:
+            return "nas publicações"
+
+        return "nos relatórios"
+
+
+    def text_with_refer(self):
+        if self._is_enable_lauda:
+            return f"na referida {self.normal(case='lower')}"
+
+        return f"no referido {self.normal(case='lower')}"
+
+
+    def text_complete_erro_mark_as_publicated_consolidado(self):
+        if self._is_enable_lauda:
+            return ", a data e a página de publicação"
+
+        return " e a data do envio externo da documentação"
+
+
+    def text_complete_erro_mark_as_no_publicated_consolidado(self):
+        if self._is_enable_lauda:
+            return "Não Publicado no Diário Oficial"
+
+        return "Não Enviado Externamente no Diário Oficial"
+
+
+    def normal(self, case=None):
+        text_name = self.RELATORIO
+
+        if self._is_enable_lauda:
+            text_name = self.PUBLICACAO
+
+        if case == "lower":
+            text_name = text_name.lower()
+
+        if case == "upper":
+            text_name = text_name.upper()
+
+        return text_name
+
+
+    def normal_plural(self, case=None):
+        text_name = self.RELATORIOS
+
+        if self._is_enable_lauda:
+            text_name = self.PUBLICACOES
+
+        if case == "lower":
+            text_name = text_name.lower()
+
+        if case == "upper":
+            text_name = text_name.upper()
+
+        return text_name
+
+
+    def possessive(self, case=None):
+        possessive_type = "da" if self._is_enable_lauda else "do"
+
+        text_normal = self.normal()
+
+        if case == "lower":
+            text_normal = text_normal.lower()
+
+        if case == "upper":
+            text_normal = text_normal.upper()
+
+        return f'{possessive_type} {text_normal}'
+
+
+    def possessive_plural(self, case=None):
+        possessive_type = "das" if self._is_enable_lauda else "dos"
+
+        text_normal = self.normal_plural()
+        text_concatenated = f'{possessive_type} {text_normal}'
+
+        if case == "lower":
+            text_concatenated = text_concatenated.lower()
+
+        if case == "upper":
+            text_concatenated = text_concatenated.upper()
+
+        return text_concatenated
+
+
+    def text_other(self, case=None):
+        other_type = "outra" if self._is_enable_lauda else "outro"
+
+        if case == "lower":
+            other_type = other_type.lower()
+
+        if case == "upper":
+            other_type = other_type.upper()
+
+        return f'{other_type} {self.normal(case=case)}'
+
+
+    def text_possessive_with_type_and_sequency(self, publication_type, sequency_number):
+        text_document = self.possessive()
+        text_sequency_number = f'#{sequency_number}' if sequency_number else ''
+
+        return f'{text_document} {self.get_tranform_publication_type(publication_type)} {text_sequency_number}'
+
+
+    def text_with_type_document(self, publication_type):
+        text_document = self.normal()
+
+        return f'{text_document} {self.get_tranform_publication_type(publication_type)}'
+
+
+    def text_sequencial(self, publication_type, sequence_number):
+        return f'{self.normal()} {self.get_tranform_publication_type(publication_type)} #{sequence_number}'
+
+
+    def text_sequencial_with_quantity(self, publication_type, sequency_number, quantity_unities, quantity_name_singular=None, quantity_name_plural=None):
+        return f'{self.text_sequencial(publication_type, sequency_number)} {self._get_quantity_test(quantity_unities, quantity_name_singular, quantity_name_plural)}'
+
+
+    def text_with_quantity(self, publication_type, quantity, quantity_name_singular=None, quantity_name_plural=None):
+        return f'{self.text_with_type_document(publication_type)} {self._get_quantity_test(quantity, quantity_name_singular, quantity_name_plural)}'
+
+
+    def publication_name(self, publication_type, quantity_unities, publication_text, sequency_number, quantity_name_singular=None, quantity_name_plural=None):
+        if publication_type == self.PUBLICATION_TYPE_PARTIAL:
+            return self.text_sequencial_with_quantity(publication_type, sequency_number, quantity_unities)
+
+        if publication_type == self.PUBLICATION_TYPE_RECTIFICATION:
+            return f'{publication_text} {self._get_quantity_test(quantity_unities, quantity_name_singular, quantity_name_plural)}'
+
+        return self.text_with_quantity(publication_type, quantity_unities)
+
+
+    def text_action(self):
+        if self._is_enable_lauda:
+            return self.PUBLICACAO
+
+        return "Envio da Documentação"
 
 def criar_ata_e_atribuir_ao_consolidado_dre(dre=None, periodo=None, consolidado_dre=None, sequencia_de_publicacao=None, eh_retificacao=False):
     if eh_retificacao:
@@ -43,6 +238,12 @@ def criar_ata_e_atribuir_ao_consolidado_dre(dre=None, periodo=None, consolidado_
 def retornar_ja_publicadas(dre, periodo):
     consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao='FINAL').order_by(
         'sequencia_de_publicacao', 'sequencia_de_retificacao')
+
+    recurso = periodo.recurso
+    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+    text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+    text_possessive_document_consolidado_pc = text_document_consolidado_pc.possessive()
+
     # Pegando o valor máximo da sequencia de publicacao para habilitar ou não o botão de remover data de publicação
     valor_maximo_sequencia_de_publicacao = consolidados_dre.aggregate(max_sequencia_de_publicacao=Coalesce(
         Max('sequencia_de_publicacao'), Value(0)))['max_sequencia_de_publicacao']
@@ -50,39 +251,29 @@ def retornar_ja_publicadas(dre, periodo):
     publicacoes_anteriores = []
 
     for consolidado_dre in consolidados_dre:
-
-        tipo_publicacao = "Única"
-
-        if consolidado_dre.eh_parcial:
-            tipo_publicacao = "Parcial"
+        tipo_publicacao = "Parcial" if consolidado_dre.eh_parcial else "Única"
 
         sequencia = consolidado_dre.sequencia_de_publicacao
 
         qtde_unidades = consolidado_dre.pcs_do_consolidado.all().count()
 
-        texto_qtde_unidades = ""
-        if qtde_unidades == 1:
-            texto_qtde_unidades = " - 1 PC"
-        elif qtde_unidades > 1:
-            texto_qtde_unidades = f' - {qtde_unidades} PCs'
+        data_publicacao_retificacao = consolidado_dre.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y') if consolidado_dre.consolidado_retificado and consolidado_dre.consolidado_retificado.data_publicacao else ''
+        tipo_publicacao = f"Retificação {text_possessive_document_consolidado_pc} de {data_publicacao_retificacao}" if consolidado_dre.eh_retificacao else tipo_publicacao
 
-        tipo_publicacao = f"Retificação da Publicação de {consolidado_dre.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y') if consolidado_dre.consolidado_retificado and consolidado_dre.consolidado_retificado.data_publicacao else ''}" if consolidado_dre.eh_retificacao else tipo_publicacao
-        if tipo_publicacao == 'Parcial':
-            nome_publicacao = f'Publicação {tipo_publicacao} #{sequencia}{texto_qtde_unidades}'
-        elif tipo_publicacao.startswith('Retificação'):
-            nome_publicacao = f'{tipo_publicacao} {texto_qtde_unidades}'
-        else:
-            nome_publicacao = f'Publicação Única{texto_qtde_unidades}'
+        publication_type = text_document_consolidado_pc.PUBLICATION_TYPE_RECTIFICATION if tipo_publicacao.startswith('Retificação') else text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL
+        publication_text = tipo_publicacao if tipo_publicacao.startswith('Retificação') else None
+
+        nome_publicacao = text_document_consolidado_pc.publication_name(
+            publication_type=publication_type,
+            quantity_unities=qtde_unidades,
+            publication_text=publication_text,
+            sequency_number=sequencia
+        )
 
         # Rever regra de ja publicado para retificacoes
+        ja_publicado = True
         if consolidado_dre.eh_retificacao:
-            if consolidado_dre.laudas_do_consolidado_dre.all():
-                ja_publicado = True
-            else:
-                ja_publicado = False
-
-        else:
-            ja_publicado = True
+            ja_publicado = True if consolidado_dre.laudas_do_consolidado_dre.all() else False
 
         if consolidado_dre.eh_retificacao:
             total_pcs_retificacao = consolidado_dre.prestacoes_de_conta_do_consolidado_dre.all()
@@ -218,21 +409,26 @@ def retornar_proxima_publicacao(dre, periodo, sequencia_de_publicacao, sequencia
         publicada=False
     ).count()
 
-    texto_qtde_unidades = ""
     proxima_publicacao = None
+
+    recurso = periodo.recurso
+    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+    text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
 
     # Incluindo verificação se não é uma retificacao para nao gerar o bloco
     if qtde_unidades > 0:
-
-        if qtde_unidades == 1:
-            texto_qtde_unidades = " - 1 PC"
-        elif qtde_unidades > 1:
-            texto_qtde_unidades = f' - {qtde_unidades} PCs'
-
         if sequencia_de_publicacao['parcial']:
-            titulo_relatorio = f'Publicação Parcial #{sequencia_de_publicacao_atual}{texto_qtde_unidades}'
+            titulo_relatorio = text_document_consolidado_pc.text_sequencial_with_quantity(
+                publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL,
+                sequency_number=sequencia_de_publicacao_atual,
+                quantity_unities=qtde_unidades
+            )
         else:
-            titulo_relatorio = f'Publicação Única{texto_qtde_unidades}'
+            titulo_relatorio = text_document_consolidado_pc.text_sequencial_with_quantity(
+                publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE,
+                sequency_number=sequencia_de_publicacao_atual,
+                quantity_unities=qtde_unidades
+            )
 
         # verificando se a publicacao anterior foi marcada como publicada no DO, para permitir gerar a próxima publicação
         if sequencia_de_publicacao_atual == 1 or not sequencia_de_publicacao['parcial']:
@@ -1162,12 +1358,12 @@ class ListagemPorStatusComFiltros(AcompanhamentoDeRelatoriosConsolidados):
         return self.__status_sme
 
     @staticmethod
-    def retorna_titulo_por_status(chave):
+    def retorna_titulo_por_status(chave, habilita_exibicao_de_lauda=False):
 
         titulos_por_status = {
             'DRES_SEM_RELATORIOS_GERADOS': "Não gerado",
-            ConsolidadoDRE.STATUS_SME_NAO_PUBLICADO: "Não publicada no D.O.",
-            ConsolidadoDRE.STATUS_SME_PUBLICADO: "Publicada no D.O.",
+            ConsolidadoDRE.STATUS_SME_NAO_PUBLICADO: "Não publicada no D.O." if habilita_exibicao_de_lauda else "Não publicada externamente",
+            ConsolidadoDRE.STATUS_SME_PUBLICADO: "Publicada no D.O." if habilita_exibicao_de_lauda else "Publicada externamente",
             ConsolidadoDRE.STATUS_SME_EM_ANALISE: "Em análise",
             ConsolidadoDRE.STATUS_SME_DEVOLVIDO: "Devolvida para acertos",
             ConsolidadoDRE.STATUS_SME_ANALISADO: "Relatórios analisados",
@@ -1231,13 +1427,16 @@ class ListagemPorStatusComFiltros(AcompanhamentoDeRelatoriosConsolidados):
                             Count('prestacoes_de_conta_do_consolidado_dre'), Value(0)))['total_pcs_retificacoes']
                         total_unidades_no_relatorio += qtde_unidades_retificacoes
 
+                    recurso = self.periodo.recurso if self.periodo else None
+                    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda if recurso else False
+
                     obj = {
                         "nome_da_dre": dre.nome,
                         "tipo_relatorio": tipo_de_relatorio,
                         "total_unidades_no_relatorio": total_unidades_no_relatorio,
                         "data_recebimento": self.formata_data(consolidado.data_de_inicio_da_analise) if consolidado.data_de_inicio_da_analise else None,
                         "status_sme": consolidado.status_sme,
-                        "status_sme_label": self.retorna_titulo_por_status(consolidado.status_sme),
+                        "status_sme_label": self.retorna_titulo_por_status(consolidado.status_sme, habilita_exibicao_de_lauda),
                         "pode_visualizar": True,
                         "uuid_consolidado_dre": f"{consolidado.uuid}",
                         "uuid_dre": f"{dre.uuid}",

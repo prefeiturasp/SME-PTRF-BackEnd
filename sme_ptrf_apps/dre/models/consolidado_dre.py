@@ -233,10 +233,17 @@ class ConsolidadoDRE(ModeloBase):
 
     @property
     def referencia(self):
+        from ..services.consolidado_dre_service import TextDocumentConsolidadoPC
+
+        recurso = self.periodo.recurso
+        habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+        text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+        text_possessive_document_consolidado_pc = text_document_consolidado_pc.possessive()
+
         if self.eh_retificacao:
-            return f"Retificação da publicação de {self.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y') if self.consolidado_retificado.data_publicacao else ''}"
+            return f"Retificação {text_possessive_document_consolidado_pc} de {self.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y') if self.consolidado_retificado.data_publicacao else ''}"
         else:
-            return "Única" if self.sequencia_de_publicacao == 0 else f'Parcial #{self.sequencia_de_publicacao}'
+            return text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE if self.sequencia_de_publicacao == 0 else f'{text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL} #{self.sequencia_de_publicacao}'
 
 
     @property
@@ -295,7 +302,10 @@ class ConsolidadoDRE(ModeloBase):
         self.desfazer_analise_atual()
         self.status_sme = self.STATUS_SME_PUBLICADO
         self.data_publicacao = data_publicacao
-        self.pagina_publicacao = pagina_publicacao
+
+        if pagina_publicacao:
+            self.pagina_publicacao = pagina_publicacao
+
         self.data_de_inicio_da_analise = None
         self.responsavel_pela_analise = None
         self.save()
