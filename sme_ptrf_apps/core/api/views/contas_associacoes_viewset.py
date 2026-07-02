@@ -2,6 +2,7 @@ from django.db.models import Q
 
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
@@ -9,6 +10,7 @@ from django_filters import rest_framework as filters
 
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes, OpenApiExample
 
+from sme_ptrf_apps.core.models.recurso import Recurso
 from sme_ptrf_apps.users.permissoes import PermissaoAPITodosComLeituraOuGravacao
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from ..serializers import ContaAssociacaoCriacaoSerializer, TipoContaSerializer
@@ -26,7 +28,8 @@ class ContasAssociacoesViewSet(ModelViewSet):
     def get_queryset(self):
         associacao_nome = self.request.query_params.get('associacao_nome')
         tipo_conta_uuid = self.request.query_params.get('tipo_conta_uuid')
-        status = self.request.query_params.get('status')
+        status_conta = self.request.query_params.get('status')
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
 
         filters = Q()
         if associacao_nome:
@@ -37,10 +40,16 @@ class ContasAssociacoesViewSet(ModelViewSet):
             )
         if tipo_conta_uuid:
             filters &= Q(tipo_conta__uuid=tipo_conta_uuid)
-        if status:
-            filters &= Q(status=status)
+        if status_conta:
+            filters &= Q(status=status_conta)
 
-        return ContaAssociacao.objects.filter(filters)
+        if recurso_uuid is not None:
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
+            if recurso is None:
+                raise ValidationError({'detail': 'Recurso não encontrado.'})
+            filters &= Q(tipo_conta__recurso=recurso)
+
+        return ContaAssociacao.objects.filter(filters).order_by('id')
 
     @extend_schema(
         parameters=[
@@ -51,6 +60,8 @@ class ContasAssociacoesViewSet(ModelViewSet):
             OpenApiParameter(name='status', description='Status da Conta', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY,
                              enum=[i[0] for i in ContaAssociacao.STATUS_CHOICES]),
+            OpenApiParameter(name='recurso_uuid', description='UUID do Recurso', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
         ],
         responses={200: ContaAssociacaoCriacaoSerializer(many=True)},
     )

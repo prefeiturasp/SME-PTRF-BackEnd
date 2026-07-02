@@ -41,7 +41,7 @@ def gerar_ata_paa_async(self, ata_paa_uuid, username=""):
         if arquivo_ata is not None:
             logger.info(f'Arquivo ata PAA {arquivo_ata.uuid} gerado com sucesso.')
         else:
-            raise Exception("Falha ao gerar arquivo da ata PAA")
+            raise RuntimeError("Falha ao gerar arquivo da ata PAA")
 
         logger.info('Task gerar_ata_paa_async finalizada.')
     except Exception as exc:

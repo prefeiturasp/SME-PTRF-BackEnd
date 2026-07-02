@@ -607,7 +607,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
                 }
             }
         ],
-        'titulo_parcial': 'Publicação Única 1 unidade(s)'
+        'titulo_parcial': 'Publicação Única - 1 unidade'
     }
 
     assert response.status_code == status.HTTP_200_OK

@@ -1,3 +1,9 @@
+"""
+Módulo de API para gerenciamento dos períodos do Plano Anual de Atividades (PAA).
+
+Este módulo concentra os endpoints para listagem, consulta, criação, atualização e
+remoção de períodos PAA.
+"""
 import logging
 
 from waffle.mixins import WaffleFlagMixin
@@ -7,7 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from django.http import Http404
-from django.db.models import Count, Q
+from django.db.models import Count, Q, QuerySet
 from drf_spectacular.utils import extend_schema_view
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
@@ -23,6 +29,13 @@ logger = logging.getLogger(__name__)
 
 @extend_schema_view(**DOCS)
 class PeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
+    """
+    ViewSet responsável pelo gerenciamento dos períodos PAA.
+
+    Disponibiliza operações de listagem, consulta, criação, atualização e
+    remoção de períodos PAA, além de permitir a filtragem por referência e
+    por outro recurso ativo vinculado ao período.
+    """
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao]
     lookup_field = 'uuid'
@@ -30,7 +43,18 @@ class PeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     serializer_class = PeriodoPaaSerializer
     pagination_class = CustomPagination
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
+        """
+        Retorne a queryset de períodos PAA.
+
+        A consulta ordena os períodos por data inicial e referência, adiciona
+        a quantidade de outros recursos ativos vinculados a cada período e
+        permite filtrar pelos parâmetros de consulta `referencia` e
+        `outro_recurso`.
+
+        Returns:
+            QuerySet: Queryset de períodos PAA filtrada e anotada.
+        """
         qs = self.queryset.order_by('-data_inicial', 'referencia')
 
         # Adiciona a contagem de recursos habilitados no período
@@ -55,7 +79,16 @@ class PeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
 
         return qs
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request, *args, **kwargs) -> Response:
+        """
+        Exclua um período PAA que não esteja vincula a algum PAA.
+
+        Args:
+            UUID: uuid do período PAA.
+
+        Returns:
+            204	Período removido com sucesso.
+        """
         try:
             # Obtém o período que será excluído
             periodo = self.get_object()

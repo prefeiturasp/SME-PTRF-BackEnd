@@ -138,12 +138,20 @@ def test_persistir_relatorio_final_relacao_bens_com_relatorios_anteriores(period
     assert relatorio.count() == 1
 
 
-def test_formatar_e_retornar_dados_relatorio_relacao_bens(relacao_bens_factory, item_relatorio_relacao_de_bens_factory, relatorio_relacao_bens_factory):
+def test_formatar_e_retornar_dados_relatorio_relacao_bens(relacao_bens_factory, item_relatorio_relacao_de_bens_factory,
+                                                          relatorio_relacao_bens_factory):
     relacao_bens = relacao_bens_factory.create()
     relatorio_instance = relatorio_relacao_bens_factory.create(relacao_bens=relacao_bens)
     item_relatorio_relacao_de_bens_factory.create(relatorio=relatorio_instance)
 
-    resultado = formatar_e_retornar_dados_relatorio_relacao_bens(relatorio_instance)
+    recurso_nome = relacao_bens.conta_associacao.tipo_conta.recurso.nome
+    recurso_nome_exibicao = relacao_bens.conta_associacao.tipo_conta.recurso.nome_exibicao
+
+    resultado = formatar_e_retornar_dados_relatorio_relacao_bens(
+        relatorio_instance,
+        recurso_nome,
+        recurso_nome_exibicao,
+    )
 
     assert 'cabecalho' in resultado
     assert 'periodo_referencia' in resultado['cabecalho']

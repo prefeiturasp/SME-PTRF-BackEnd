@@ -1,3 +1,9 @@
+"""
+Módulo de API para gerenciamento dos presentes na ATA do PAA.
+
+Este módulo concentra os endpoints de listagem, consulta, criação,
+atualização e remoção de participantes da ATA.
+"""
 import logging
 from rest_framework import mixins
 from django_filters import rest_framework as filters
@@ -5,6 +11,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.serializers import Serializer
 from rest_framework import status
 from django.core.exceptions import ValidationError
 
@@ -32,20 +39,47 @@ class PresentesAtaPaaViewSet(mixins.CreateModelMixin,
                              mixins.DestroyModelMixin,
                              mixins.ListModelMixin,
                              GenericViewSet):
+    """
+    ViewSet responsável pelo gerenciamento dos participantes presentes nas
+    atas do PAA.
+
+    Disponibiliza operações de listagem, consulta, criação, atualização e
+    remoção de participantes, permitindo a filtragem pelo UUID da ata PAA
+    por meio do parâmetro `ata_paa__uuid`.
+    """
+
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     queryset = ParticipanteAtaPaa.objects.all()
     serializer_class = PresentesAtaPaaSerializer
     filterset_fields = ('ata_paa__uuid',)
     filter_backends = (filters.DjangoFilterBackend,)
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> type[Serializer]:
+        """
+        Retorna o serializer apropriado para a ação executada.
+
+        Utiliza o serializer de escrita para as operações de criação e
+        atualização, e o serializer padrão para as demais ações.
+
+        Returns:
+            Serializer: Classe do serializer correspondente à ação atual.
+        """
         if self.action in ['create', 'update', 'partial_update']:
             return PresentesAtaPaaCreateSerializer
         return PresentesAtaPaaSerializer
 
     @action(detail=False, url_path='buscar-informacao-professor-gremio',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def buscar_informacao_professor_gremio(self, request):
+    def buscar_informacao_professor_gremio(self, request) -> Response:
+        """
+        Retorne informações sobre um servidor.
+
+        Params:
+            rf: registro funcional de identificação do servidor.
+
+        Return:
+            Informações sobre o servidor.
+        """
         rf = request.query_params.get('rf')
 
         if not rf:
@@ -86,9 +120,16 @@ class PresentesAtaPaaViewSet(mixins.CreateModelMixin,
 
     @action(detail=False, url_path='get-participantes-ordenados-por-cargo',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def get_participantes_ordenados_por_cargo(self, request):
+    def get_participantes_ordenados_por_cargo(self, request) -> Response:
         """
-        Retorna todos os participantes de uma ata PAA ordenados pelo cargo.
+        Retorne todos os participantes de uma ata PAA ordenados pelo cargo.
+
+        Params:
+            ata_paa_uuid: uuid de identificação da ata do PAA.
+
+        Return:
+            retorna os participantes ordenados por cargos que estão relacionados
+            com a ata do PAA.
         """
         ata_paa_uuid = request.query_params.get('ata_paa_uuid')
 
@@ -125,7 +166,17 @@ class PresentesAtaPaaViewSet(mixins.CreateModelMixin,
         return Response(response_data)
 
     @action(detail=False, url_path='padrao-de-presentes', permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def padrao_presentes(self, request):
+    def padrao_presentes(self, request) -> Response:
+        """
+        Retorne todos os participantes de uma ata PAA.
+
+        Params:
+            ata_paa_uuid: uuid de identificação da ata do PAA.
+
+        Return:
+            retorna os participantes que estão relacionados
+            com a ata do PAA.
+        """
         ata_paa_uuid = request.query_params.get('ata_paa_uuid')
 
         if not ata_paa_uuid:
@@ -164,4 +215,3 @@ class PresentesAtaPaaViewSet(mixins.CreateModelMixin,
             membros.append(dado)
 
         return Response(membros)
-

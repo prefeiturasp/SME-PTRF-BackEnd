@@ -13,6 +13,7 @@ from sme_ptrf_apps.core.models import (
 from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE, \
     JustificativaRelatorioConsolidadoDRE, ConsolidadoDRE
 from sme_ptrf_apps.receitas.models import Receita
+from .consolidado_dre_service import TextDocumentConsolidadoPC
 
 from ..services.dados_demo_execucao_fisico_financeira_service import gerar_dados_demo_execucao_fisico_financeira
 from .demo_execucao_fisico_financeiro_pdf_service import gerar_arquivo_demonstrativo_execucao_fisico_financeiro_pdf
@@ -78,6 +79,11 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
     dre_uuid = dre.uuid
     periodo_uuid = periodo.uuid
 
+    recurso = periodo.recurso
+    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+    text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+    text_possessive_document_consolidado_pc = text_document_consolidado_pc.possessive()
+
     if eh_retificacao:
         eh_parcial = consolidado_dre.eh_parcial
         qtde_unidades = consolidado_dre.pcs_do_consolidado.all().count()
@@ -85,13 +91,15 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
         associacoes_do_consolidado = consolidado_dre.pcs_do_consolidado.values_list("associacao_id", flat=True).distinct()
 
         if consolidado_dre.consolidado_retificado and consolidado_dre.consolidado_retificado.data_publicacao:
-            titulo_parcial = f"Retificação da Publicação de {consolidado_dre.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y')} - {qtde_unidades} unidade(s)"
+            titulo_parcial = f"Retificação {text_possessive_document_consolidado_pc} de {consolidado_dre.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y')} - {qtde_unidades} unidade(s)"
         else:
             titulo_parcial = ""
     else:
         parcial = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid, periodo_uuid)
         eh_parcial = parcial['parcial']
         sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
+
+        publication_type = text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL if eh_parcial else text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE
 
         # TODO Tratativa dos Bugs: 91797, 93549 e 93018 da Sprint 65
         # Gerava divergência em Tela do Relatório Consolidado em Tela
@@ -108,9 +116,22 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
             sequencia_de_publicacao_do_consolidado = consolidado_dre.sequencia_de_publicacao
 
             if sequencia_de_publicacao_do_consolidado > 0:
-                titulo_parcial = f"Publicação Parcial #{sequencia_de_publicacao_do_consolidado} - {qtde_unidades} unidade(s)" if eh_parcial else f"Publicação Única {qtde_unidades} unidade(s)"
+                if publication_type == text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL:
+                    titulo_parcial = text_document_consolidado_pc.text_sequencial_with_quantity(publication_type=publication_type,
+                                                                                           sequency_number=sequencia_de_publicacao_do_consolidado,
+                                                                                           quantity_unities=qtde_unidades,
+                                                                                           quantity_name_singular="unidade",
+                                                                                           quantity_name_plural="unidade(s)")
+
+                if publication_type == text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE:
+                    titulo_parcial = text_document_consolidado_pc.text_with_quantity(
+                        publication_type=publication_type,
+                        quantity=qtde_unidades,
+                        quantity_name_singular="unidade",
+                        quantity_name_plural="unidade(s)"
+                    )
             else:
-                titulo_parcial = "Publicação Única"
+                titulo_parcial = text_document_consolidado_pc.text_with_type_document(publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE)
         else:
             pcs = PrestacaoConta.objects.filter(
                 periodo=periodo,
@@ -124,9 +145,22 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
             associacoes_do_consolidado = pcs.values_list("associacao_id", flat=True).distinct()
 
             if sequencia_de_publicacao > 0:
-                titulo_parcial = f"Publicação Parcial #{sequencia_de_publicacao} - {qtde_unidades} unidade(s)" if eh_parcial else f"Publicação Única {qtde_unidades} unidade(s)"
+                if publication_type == text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL:
+                    titulo_parcial = text_document_consolidado_pc.text_sequencial_with_quantity(publication_type=publication_type,
+                                                                                           sequency_number=sequencia_de_publicacao,
+                                                                                           quantity_unities=qtde_unidades,
+                                                                                           quantity_name_singular="unidade",
+                                                                                           quantity_name_plural="unidade(s)")
+
+                if publication_type == text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE:
+                    titulo_parcial = text_document_consolidado_pc.text_with_quantity(
+                        publication_type=publication_type,
+                        quantity=qtde_unidades,
+                        quantity_name_singular="unidade",
+                        quantity_name_plural="unidade(s)"
+                    )
             else:
-                titulo_parcial = "Publicação Única"
+                titulo_parcial = text_document_consolidado_pc.text_with_type_document(publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE)
 
 
     dados = {
@@ -1128,6 +1162,10 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
             prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
         )
 
+    recurso = periodo.recurso
+    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+    text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+
     for associacao in associacoes_da_dre.all():
 
         prestacao_conta = associacao.prestacoes_de_conta_da_associacao.filter(periodo=periodo).first()
@@ -1140,10 +1178,10 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
 
             if(consolidado_origem_retificacao.count() > 0 and consolidado_origem_retificacao[0].data_publicacao):
                 data_publicacao_consolidado_origem_retificacao = consolidado_origem_retificacao[0].data_publicacao.strftime("%d/%m/%Y")
-                referencia_consolidado = f"Retificação da publicação de {data_publicacao_consolidado_origem_retificacao}"
+                referencia_consolidado = f"Retificação {text_document_consolidado_pc.possessive()} de {data_publicacao_consolidado_origem_retificacao}"
 
         elif(not prestacao_conta.consolidado_dre.eh_parcial):
-            referencia_consolidado = f"Única"
+            referencia_consolidado = text_document_consolidado_pc.get_tranform_publication_type(text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE)
 
         else:
             referencia_consolidado = f"Parcial #{prestacao_conta.consolidado_dre.sequencia_de_publicacao}"
@@ -1152,9 +1190,9 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
         objeto_tipo_de_conta = []
 
         contas_da_associacao = associacao.contas.all()
- 
+
         recurso = periodo.recurso if periodo.recurso else None
- 
+
         if recurso:
             contas_da_associacao = ContaAssociacao.filter_by_recurso(contas_da_associacao, recurso)
 

@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -74,6 +76,21 @@ class DocumentoPaa(ModeloBase):
     def concluido(self):
         return self.status_geracao == DocumentoPaa.StatusChoices.CONCLUIDO
 
+    @property
+    def status_nao_gerado(self) -> bool:
+        """ Indica se o documento ainda não foi gerado """
+        return self.status_geracao == DocumentoPaa.StatusChoices.NAO_GERADO
+
+    @property
+    def status_em_processamento(self) -> bool:
+        """ Indica se o documento ainda está em processamento """
+        return self.status_geracao == DocumentoPaa.StatusChoices.EM_PROCESSAMENTO
+
+    @property
+    def status_erro_processamento(self) -> bool:
+        """ Indica se o documento gerado apresentou erro no processamento """
+        return self.status_geracao == DocumentoPaa.StatusChoices.ERRO_PROCESSAMENTO
+
     def arquivo_concluido(self):
         self.status_geracao = DocumentoPaa.StatusChoices.CONCLUIDO
         self.save()
@@ -99,6 +116,17 @@ def obter_documento_final_por_retificacao(paa, retificacao: bool):
         .order_by('-pk')
         .first()
     )
+
+
+@receiver(post_delete, sender=DocumentoPaa)
+def documento_paa_post_delete(instance, **kwargs):
+    """
+    Remove o arquivo físico do storage ao apagar o registro. Necessário porque
+    o Django não apaga arquivos de FileField automaticamente, nem em
+    instance.delete() nem em queryset.delete().
+    """
+    if instance.arquivo_pdf:
+        instance.arquivo_pdf.delete(save=False)
 
 
 auditlog.register(DocumentoPaa)

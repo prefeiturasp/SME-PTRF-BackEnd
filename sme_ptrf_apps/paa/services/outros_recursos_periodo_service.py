@@ -46,9 +46,14 @@ class OutroRecursoPeriodoBaseService:
         paas_andamento_gerados_parcialmente = self._obtem_paas_afetados().filter(
             pk=models.OuterRef('id')).paas_gerados_parcialmente()
 
+        paas_em_retificacao = self._obtem_paas_afetados().filter(
+            pk=models.OuterRef('id')).paas_em_retificacao()
+
         return self._obtem_paas_afetados().filter(
             # É gerado quando o status andamento é Gerado ou Gerado parcialmente(inclui Retificado)
-            models.Exists(paas_andamento_gerados) | models.Exists(paas_andamento_gerados_parcialmente),
+            models.Exists(paas_andamento_gerados) |
+            models.Exists(paas_andamento_gerados_parcialmente) |
+            models.Exists(paas_em_retificacao),
         )
 
     def _paa_em_elaboracao(self, paa: Paa) -> bool:
@@ -75,7 +80,8 @@ class OutroRecursoPeriodoBaseService:
         """
         return paa.get_status_andamento() in [
             PaaStatusAndamentoEnum.GERADO.name,
-            PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name  # contempla status paa Em Retificação
+            PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name,
+            PaaStatusAndamentoEnum.EM_RETIFICACAO.name
         ]
 
     def _paa_retificado(self, paa: Paa) -> bool:

@@ -121,6 +121,15 @@ class PrestacaoConta(ModeloBase):
         default=None
     )
 
+    def _get_instance_text_document_consolidado_pc(self):
+        from sme_ptrf_apps.dre.services.consolidado_dre_service import TextDocumentConsolidadoPC
+
+        recurso = self.periodo.recurso
+        habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+        text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+
+        return text_document_consolidado_pc
+
     @property
     def devolvida_para_acertos(self):
         return self.status == PrestacaoConta.STATUS_DEVOLVIDA
@@ -172,8 +181,11 @@ class PrestacaoConta(ModeloBase):
 
     @property
     def get_tooltip_nao_pode_retificar(self):
+        text_document_consolidado_pc = self._get_instance_text_document_consolidado_pc()
+        text_other = text_document_consolidado_pc.text_other(case="lower")
+
         if self.em_retificacao:
-            return "Esta PC foi retificada em outra publicação."
+            return f"Esta PC foi retificada em {text_other}."
         else:
             return None
 
@@ -223,10 +235,17 @@ class PrestacaoConta(ModeloBase):
 
     @property
     def get_mensagem_consolidado_tipo_original(self):
-        tipo_relatorio = "Única" if self.consolidado_dre.sequencia_de_publicacao == 0 \
-            else f'Parcial #{self.consolidado_dre.sequencia_de_publicacao}'
+        text_document_consolidado_pc = self._get_instance_text_document_consolidado_pc()
 
-        mensagem = f"Essa PC consta da Publicação {tipo_relatorio}"
+        tipo_relatorio = text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE if self.consolidado_dre.sequencia_de_publicacao == 0 \
+            else text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL
+        
+        text_consolidado_pc = text_document_consolidado_pc.text_possessive_with_type_and_sequency(
+            publication_type=tipo_relatorio,
+            sequency_number=self.consolidado_dre.sequencia_de_publicacao
+        )
+
+        mensagem = f"Essa PC consta {text_consolidado_pc}"
 
         return mensagem
 
@@ -234,20 +253,28 @@ class PrestacaoConta(ModeloBase):
     def get_mensagem_consolidado_tipo_retificacao(self):
         mensagem = ""
 
-        if self.status == self.STATUS_RECEBIDA or self.status == self.STATUS_EM_ANALISE:
-            tipo_relatorio = "Única" if self.consolidado_dre.consolidado_retificado.sequencia_de_publicacao == 0 \
-                else f'Parcial #{self.consolidado_dre.consolidado_retificado.sequencia_de_publicacao}'
+        text_document_consolidado_pc = self._get_instance_text_document_consolidado_pc()
+        text_possessive_document_consolidado_pc = text_document_consolidado_pc.possessive()
 
-            mensagem = f"Essa PC consta da Publicação {tipo_relatorio}"
+        if self.status == self.STATUS_RECEBIDA or self.status == self.STATUS_EM_ANALISE:
+            tipo_relatorio = text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE if self.consolidado_dre.consolidado_retificado.sequencia_de_publicacao == 0 \
+                else text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL
+
+            text_consolidado_pc = text_document_consolidado_pc.text_possessive_with_type_and_sequency(
+                publication_type=tipo_relatorio,
+                sequency_number=self.consolidado_dre.consolidado_retificado.sequencia_de_publicacao
+            )
+
+            mensagem = f"Essa PC consta {text_consolidado_pc}"
 
         elif self.pc_concluida:
             data_publicacao = self.consolidado_dre.get_data_publicacao_do_consolidado_original
             data_publicacao_formatada = data_publicacao.strftime('%d/%m/%Y') if data_publicacao else ""
 
             if self.publicada:
-                mensagem = f"Essa PC consta da Retificação da publicação de {data_publicacao_formatada}"
+                mensagem = f"Essa PC consta da Retificação {text_possessive_document_consolidado_pc} de {data_publicacao_formatada}"
             else:
-                mensagem = f"Essa PC constará da Retificação da publicação de {data_publicacao_formatada}"
+                mensagem = f"Essa PC constará da Retificação {text_possessive_document_consolidado_pc} de {data_publicacao_formatada}"
 
         return mensagem
 
@@ -255,23 +282,26 @@ class PrestacaoConta(ModeloBase):
     def get_mensagem_consolidado_tipo_retificacao_da_retificacao(self):
         mensagem = ""
 
+        text_document_consolidado_pc = self._get_instance_text_document_consolidado_pc()
+        text_possessive_document_consolidado_pc = text_document_consolidado_pc.possessive(case="lower")
+
         if self.status == self.STATUS_RECEBIDA or self.status == self.STATUS_EM_ANALISE:
             data_publicacao = self.consolidado_dre.consolidado_retificado.get_data_publicacao_do_consolidado_original
             data_publicacao_formatada = data_publicacao.strftime('%d/%m/%Y') if data_publicacao else ""
 
-            mensagem = f"Essa PC consta da publicação retificadora de {data_publicacao_formatada}"
+            mensagem = f"Essa PC consta {text_possessive_document_consolidado_pc} retificadora de {data_publicacao_formatada}"
 
         elif self.pc_concluida:
             if self.publicada:
                 data_publicacao = self.consolidado_dre.get_data_publicacao_do_consolidado_original
                 data_publicacao_formatada = data_publicacao.strftime('%d/%m/%Y') if data_publicacao else ""
 
-                mensagem = f"Essa PC consta da publicação retificadora de {data_publicacao_formatada}"
+                mensagem = f"Essa PC consta {text_possessive_document_consolidado_pc} retificadora de {data_publicacao_formatada}"
             else:
                 data_publicacao = self.consolidado_dre.consolidado_retificado.get_data_publicacao_do_consolidado_original
                 data_publicacao_formatada = data_publicacao.strftime('%d/%m/%Y') if data_publicacao else ""
 
-                mensagem = f"Essa PC constará da retificação da publicação retificadora de {data_publicacao_formatada}"
+                mensagem = f"Essa PC constará da retificação {text_possessive_document_consolidado_pc} retificadora de {data_publicacao_formatada}"
 
         return mensagem
 
@@ -609,7 +639,7 @@ class PrestacaoConta(ModeloBase):
     def devolver(self, data_limite_ue):
         from ..services.notificacao_services import notificar_prestacao_de_contas_devolvida_para_acertos
         from ..models import DevolucaoPrestacaoConta, AnalisePrestacaoConta
-        
+
         devolucao = DevolucaoPrestacaoConta.objects.create(
             prestacao_conta=self,
             data=date.today(),

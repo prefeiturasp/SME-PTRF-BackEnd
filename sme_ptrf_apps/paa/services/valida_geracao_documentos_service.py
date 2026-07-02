@@ -2,6 +2,7 @@ from typing import Any, Optional
 
 from sme_ptrf_apps.paa.models import Paa, DocumentoPaa
 from sme_ptrf_apps.paa.services.retificacao_paa_service import RetificacaoPaaService
+from sme_ptrf_apps.paa.services.ciclo_retificacao_service import CicloRetificacaoService
 
 PREVIA = DocumentoPaa.VersaoChoices.PREVIA
 FINAL = DocumentoPaa.VersaoChoices.FINAL
@@ -14,6 +15,22 @@ class ValidaGeracaoDocumentoException(Exception):
 
 
 class ValidaGeracaoDocumentoPAAService:
+    @classmethod
+    def _tem_doc_retificacao_novo_neste_ciclo(cls, paa: Paa) -> bool:
+        """Verifica se foi gerado novo documento de retificação no ciclo de retificação atual.
+
+        Compara o documento retificado mais recente com o UUID capturado no
+        snapshot da réplica ao iniciar a retificação. Retorna True apenas quando
+        existe um documento gerado *neste* ciclo, ou seja, com UUID diferente do
+        que estava registrado no snapshot.
+
+        Args:
+            paa: Instância do PAA em retificação.
+
+        Returns:
+            True se um novo documento foi gerado no ciclo atual; False caso contrário.
+        """
+        return CicloRetificacaoService(paa).tem_documento_final_concluido
 
     @classmethod
     def _existe_doc(cls,
@@ -67,12 +84,16 @@ class ValidaGeracaoDocumentoPAAService:
 
     @classmethod
     def valida_gerar_documento_previa_retificacao(cls, paa: Paa, usuario: Optional[Any] = None) -> None:
-        """
-        Validação de geração de documento PAA de retificação previa.
+        """Valida se é possível gerar a prévia do documento de retificação do PAA.
 
-        Parâmetros:
-        - `paa`: Instancia do PAA
-        - `usuario`: Instancia do Usuário para vínculo em loggers de RetificacaoPaaService
+        Args:
+            paa: Instância do PAA em retificação.
+            usuario: Instância do usuário, vinculado aos loggers de RetificacaoPaaService.
+
+        Raises:
+            ValidaGeracaoDocumentoException: Quando o PAA não está em retificação,
+                há geração em andamento, já existe documento final gerado no ciclo
+                atual, ou não há alterações detectadas em relação ao snapshot.
         """
         if not paa.status_em_retificacao:
             raise ValidaGeracaoDocumentoException("O PAA não está em retificação.")
@@ -87,9 +108,9 @@ class ValidaGeracaoDocumentoPAAService:
             raise ValidaGeracaoDocumentoException(
                 "Já existe uma geração de documento PAA de retificação final em processamento.")
 
-        if cls._existe_doc(paa, retificacao=True, versao=FINAL, status=CONCLUIDO):
+        if cls._tem_doc_retificacao_novo_neste_ciclo(paa):
             raise ValidaGeracaoDocumentoException(
-                "Já existe uma geração de documento PAA de retificação final gerado.")
+                "Já existe uma geração de documento PAA de retificação final gerado para esta retificação.")
 
         alteracoes = RetificacaoPaaService(paa=paa, usuario=usuario).identificar_alteracoes()
         if not alteracoes:
@@ -98,12 +119,15 @@ class ValidaGeracaoDocumentoPAAService:
 
     @classmethod
     def valida_gerar_documento_final_retificacao(cls, paa: Paa, usuario: Optional[Any] = None) -> None:
-        """
-        Validação de geração de documento PAA de retificação final.
+        """Valida se é possível gerar o documento final de retificação do PAA.
 
-        Parâmetros:
-        - `paa`: Instancia do PAA
-        - `usuario`: Instancia do Usuário para vínculo em loggers de RetificacaoPaaService
+        Aplica os mesmos critérios de valida_gerar_documento_previa_retificacao.
+
+        Args:
+            paa: Instância do PAA em retificação.
+            usuario: Instância do usuário, vinculado aos loggers de RetificacaoPaaService.
+
+        Raises:
+            ValidaGeracaoDocumentoException: Quando qualquer critério de prévia falha.
         """
-        # atualmente utilizando os mesmos critérios de validação de Prévia Retificação
         cls.valida_gerar_documento_previa_retificacao(paa, usuario)

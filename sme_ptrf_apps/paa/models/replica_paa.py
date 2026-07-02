@@ -29,7 +29,7 @@ class ReplicaPaa(ModeloBase):
     def formatted_json_replica(self):
         import json
         from django.utils.html import format_html
-        if not self.historico:
+        if self.historico is None:
             return "-"
         formatted = json.dumps(
             self.historico,
