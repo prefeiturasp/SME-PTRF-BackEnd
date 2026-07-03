@@ -3,11 +3,22 @@ from .context import DespesaDtoContext
 
 
 class RecursoObrigatorioValidator(AbstractDespesaValidator):
-    """R02 — Recurso da despesa é obrigatório."""
+    """R02 — Recurso da despesa é obrigatório.
 
-    applies_to_update = False
+    Presente apenas em CREATE_PIPELINE e CREATE_ACERTO_PIPELINE (pipelines.py).
+
+    Legado: despesa_serializer.py:111-117
+    """
 
     def validate(self, ctx: DespesaDtoContext) -> DespesaDtoContext:
+        """Fase 1 — exige que ctx.recurso esteja preenchido.
+
+        Levanta DespesaValidationError com detail="string" quando recurso ausente.
+        """
+        # despesa_serializer.py:111-117
         if not ctx.recurso:
-            raise DespesaValidationError("Recurso da despesa é obrigatório")
+            raise DespesaValidationError({
+                "mensagem": "Recurso da despesa é obrigatório",
+                "validator": self.__class__.__name__
+            })
         return ctx

@@ -1,5 +1,5 @@
 Pontos de impacto para ativar a substituição
-O que precisa ser feito para colocar a pipeline no ar
+O que precisa ser feito para colocar a pipeline no ar (considerar para cada Validação migrada individualmente)
 1. DespesaCreateSerializer.validate() e validate_rateios()
 
 Ao ativar o bloco comentado em validate() (já documentado no serializer):

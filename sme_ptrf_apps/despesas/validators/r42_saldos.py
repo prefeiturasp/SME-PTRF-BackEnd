@@ -7,34 +7,51 @@ from .context import DespesaDtoContext
 class SaldosValidator(AbstractDespesaValidator):
     """R42-R45 — Verifica saldo disponível em contas e ações para cobrir os rateios.
 
-    Utiliza `rateios_raw` (UUID strings) pois `valida_rateios_quanto_aos_saldos` e
-    `saldos_insuficientes_para_rateios` esperam conta_associacao/acao_associacao como UUIDs.
+    Utiliza rateios_raw (UUID strings) pois valida_rateios_quanto_aos_saldos e
+    saldos_insuficientes_para_rateios esperam conta_associacao/acao_associacao como UUIDs.
 
-    Quando aceitar_lancamento=False, o lançamento é bloqueado. Caso contrário, o resultado
-    é armazenado em ctx.saldos para uso posterior (ex: resposta ao frontend).
+    Legado: sem equivalente direto no serializer/service — chamado externamente via viewset.
+    o frontend verifica o saldo em rateios-despesas/verificar-saldos/ pelo service:
+    - .../SME-PTRF-FrontEnd/src/services/escolas/RateiosDespesas.service.js
+    aciona viewset sme_ptrf_apps/despesas/api/views/rateios_despesas_viewset.py::verificar_saldos
+    e realiza uma verificacao se aceitar_lancamento=True
+
+    Mas esta regra pode não ser considerada uma validação de criação/edição de despesa, pois não impede a
+    criação/edição da despesa se houver uma interação de confirmação no frontend, logo, não pode ser um impeditivo.
+
     """
 
     def validate(self, ctx: DespesaDtoContext) -> DespesaDtoContext:
-        if not ctx.data_transacao or not ctx.associacao:
-            return ctx
+        """Fase 1 — verifica saldo disponível em contas/ações para cobrir os rateios.
 
-        recurso = ctx.recurso_efetivo
-        exclude_uuid = str(ctx.despesa_instance.uuid) if ctx.despesa_instance else None
+        Desativado (considerar_na_pipeline=False): esta regra não é impeditiva de criação/edição —
+        o frontend exibe confirmação e o usuário pode aceitar lançamento mesmo sem saldo.
+        Ver docstring da classe para referência do fluxo legado.
+        """
+        considerar_na_pipeline = False  # obs em docstring
+        # if not considerar_na_pipeline:
+        #     return ctx
 
-        rateios_formatados = self._garantir_uuids(ctx.rateios_raw)
+        # if not ctx.data_transacao or not ctx.associacao:
+        #     return ctx
 
-        result = valida_rateios_quanto_aos_saldos(
-            rateios=rateios_formatados,
-            associacao=ctx.associacao,
-            data_documento=ctx.data_transacao,
-            exclude_despesa=exclude_uuid,
-            recurso=recurso,
-        )
+        # recurso = ctx.recurso_efetivo
+        # exclude_uuid = str(ctx.despesa_instance.uuid) if ctx.despesa_instance else None
 
-        ctx.saldos = result
+        # rateios_formatados = self._garantir_uuids(ctx.rateios_raw)
 
-        if not result.get("aceitar_lancamento", True):
-            raise DespesaValidationError(result)
+        # result = valida_rateios_quanto_aos_saldos(
+        #     rateios=rateios_formatados,
+        #     associacao=ctx.associacao,
+        #     data_documento=ctx.data_transacao,
+        #     exclude_despesa=exclude_uuid,
+        #     recurso=recurso,
+        # )
+
+        # ctx.saldos = result
+
+        # if not result.get("aceitar_lancamento", True):
+        #     raise DespesaValidationError(result)
 
         return ctx
 

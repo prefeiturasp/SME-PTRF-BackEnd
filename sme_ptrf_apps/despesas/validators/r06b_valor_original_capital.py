@@ -9,29 +9,45 @@ from .context import DespesaDtoContext
 class ValorOriginalCapitalValidator(AbstractDespesaValidator):
     """R06b — valor_original do rateio CAPITAL deve ser igual a quantidade x valor_item.
 
-    O campo valor_original é o valor exibido no extrato comprobatório; no fluxo de
-    capital ele é calculado (disabled no frontend) e deve coincidir com valor_rateio.
+    O campo valor_original é calculado (disabled no frontend) e deve coincidir com
+    o produto quantidade_itens_capital * valor_item_capital.
 
     Depende de R05 (QuantidadeCapitalValidator) ter passado antes — a quantidade
     já é garantidamente positiva neste ponto.
+
+    Legado: validacao_despesa_service.py:99-143
     """
 
     def validate(self, ctx: DespesaDtoContext) -> DespesaDtoContext:
+        """Fase 1 — valor_original do rateio CAPITAL deve igualar quantidade_itens_capital × valor_item_capital.
+
+        Rateios sem valor_item_capital são ignorados.
+        Levanta DespesaValidationError com detail={"mensagem": "..."} quando há divergência.
+        """
         for rateio in ctx.rateios:
+            # validacao_despesa_service.py:100-101
             if rateio.get("aplicacao_recurso") != APLICACAO_CAPITAL:
                 continue
 
-            valor_item = rateio.get("valor_item_capital")
-            if not valor_item:
+            # validacao_despesa_service.py:104-110
+            quantidade_itens_capital = rateio.get("quantidade_itens_capital") or 0
+            valor_item_capital = rateio.get("valor_item_capital")
+
+            # validacao_despesa_service.py:120-121
+            if not valor_item_capital:
                 continue
 
-            quantidade = rateio.get("quantidade_itens_capital") or 0
+            # validacao_despesa_service.py:123-130
+            valor_total_item_capital = (
+                Decimal(str(valor_item_capital)) * Decimal(str(quantidade_itens_capital))
+            )
             valor_original_rateio = Decimal(str(rateio.get("valor_original", 0)))
-            valor_calculado = Decimal(str(valor_item)) * Decimal(str(quantidade))
 
-            if valor_calculado != valor_original_rateio:
+            # validacao_despesa_service.py:137-143
+            if valor_total_item_capital != valor_original_rateio:
                 raise DespesaValidationError({
-                    "mensagem": "Valor total do capital diverge do valor calculado pela quantidade de itens"
+                    "mensagem": "Valor total do capital diverge do valor calculado pela quantidade de itens",
+                    "validator": self.__class__.__name__
                 })
 
         return ctx

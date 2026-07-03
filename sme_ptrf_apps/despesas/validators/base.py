@@ -32,13 +32,9 @@ class DespesaValidationError(Exception):
 class AbstractDespesaValidator(ABC):
     """Interface base para todos os validators do pipeline de despesa.
 
-    Flags de controle:
-    - `applies_to_create`: se False, o validator é ignorado no pipeline de criação.
-    - `applies_to_update`: se False, o validator é ignorado no pipeline de edição.
+    A separação create/update é feita pela estrutura dos pipelines em pipelines.py
+    (CREATE_PIPELINE, UPDATE_PIPELINE, etc.) — não por flags na classe.
     """
-
-    applies_to_create: bool = True
-    applies_to_update: bool = True
 
     @abstractmethod
     def validate(self, ctx: DespesaDtoContext) -> DespesaDtoContext:

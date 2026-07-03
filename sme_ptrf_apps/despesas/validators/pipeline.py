@@ -15,8 +15,7 @@ class ValidatorPipeline:
         Chama `apply()` nos validators que efetivamente rodaram (mesma ordem).
         Mutações ficam co-localizadas com a regra que as origina, mas isoladas da validação.
 
-    Validators podem declarar `applies_to_create = False` ou `applies_to_update = False`
-    para serem ignorados no fluxo correspondente — o logger registra o motivo do skip.
+    A separação create/update é feita pela composição dos pipelines em pipelines.py.
     """
 
     def __init__(self, validators: list[AbstractDespesaValidator], flow_name: str = ""):
@@ -33,13 +32,6 @@ class ValidatorPipeline:
         for validator in self._validators:
             validator_name = type(validator).__name__
             v_log = log.with_validator(validator_name)
-
-            if ctx.is_create and not validator.applies_to_create:
-                v_log.debug("Ignorado (applies_to_create=False)")
-                continue
-            if not ctx.is_create and not validator.applies_to_update:
-                v_log.debug("Ignorado (applies_to_update=False)")
-                continue
 
             v_log.debug("Fase 1: validate()")
             try:
