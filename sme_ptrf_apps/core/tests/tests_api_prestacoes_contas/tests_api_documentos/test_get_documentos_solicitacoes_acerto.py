@@ -45,7 +45,8 @@ def test_api_get_solicitacoes_acerto_de_um_documento_nao_por_conta(
                     'nome': 'Enviar com assinatura',
                     'pode_alterar_saldo_conciliacao': tipo_acerto_documento_assinatura.pode_alterar_saldo_conciliacao,
                     'uuid': f'{tipo_acerto_documento_assinatura.uuid}',
-                    'tipos_documento_prestacao': [tipo_documento_prestacao_conta_ata.id]
+                    'tipos_documento_prestacao': [tipo_documento_prestacao_conta_ata.id],
+                    'recurso': str(tipo_acerto_documento_assinatura.recurso.uuid)
                 },
                 'esclarecimentos': None,
                 'id': solicitacao_acerto_documento_ata.id,
