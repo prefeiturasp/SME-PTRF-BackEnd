@@ -58,9 +58,13 @@ class TipoAcertoDocumento(ModeloIdNome):
         self.save()
 
     @classmethod
-    def agrupado_por_categoria(cls, tipos_documento_prestacao__uuid=None):
+    def agrupado_por_categoria(cls, tipos_documento_prestacao__uuid=None, recurso=None):
         from sme_ptrf_apps.core.services import TipoAcertoDocumentoService
-        return TipoAcertoDocumentoService.agrupado_por_categoria(cls.CATEGORIA_CHOICES, tipos_documento_prestacao__uuid)
+        return TipoAcertoDocumentoService.agrupado_por_categoria(
+            cls.CATEGORIA_CHOICES,
+            tipos_documento_prestacao__uuid,
+            recurso
+        )
 
     @classmethod
     def categorias(cls):

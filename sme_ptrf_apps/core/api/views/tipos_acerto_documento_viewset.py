@@ -125,10 +125,12 @@ class TiposAcertoDocumentoViewSet(mixins.ListModelMixin,
             permission_classes=[IsAuthenticated & PermissaoApiDre])
     def tabelas(self, request):
         tipos_documento_prestacao__uuid = self.request.query_params.get('tipos_documento_prestacao__uuid', None)
+        recurso_uuid = self.request.query_params.get('recurso_uuid', None)
+        recurso = Recurso.objects.filter(uuid=recurso_uuid).first() if recurso_uuid else None
 
         result = {
             "categorias": TipoAcertoDocumento.categorias(),
-            "agrupado_por_categorias": TipoAcertoDocumento.agrupado_por_categoria(tipos_documento_prestacao__uuid),
+            "agrupado_por_categorias": TipoAcertoDocumento.agrupado_por_categoria(tipos_documento_prestacao__uuid, recurso=recurso),
             "documentos": TipoDocumentoPrestacaoConta.lista_documentos(),
         }
 
