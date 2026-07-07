@@ -114,3 +114,11 @@ class BemProduzidoRascunhoViewSet(WaffleFlagMixin, ModelViewSet):
     serializer_class = BemProduzidoSaveRacunhoSerializer
     http_method_names = ['post', 'patch']
     lookup_field = 'uuid'
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+
+        if self.action == "create":
+            context["recurso"] = self.request.recurso
+
+        return context

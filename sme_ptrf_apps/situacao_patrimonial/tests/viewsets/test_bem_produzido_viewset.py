@@ -298,9 +298,11 @@ def test_post_bem_produzido_com_validacao_itens(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_post_bem_produzido_rascunho(
+def test_post_bem_produzido_rascunho_recurso_ptrf(
     jwt_authenticated_client_sme,
     flag_situacao_patrimonial,
+    recurso_ptrf,
+    recurso_premium,
     associacao_1, despesa_factory,
     rateio_despesa_factory,
     especificacao_material_servico_1
@@ -328,6 +330,7 @@ def test_post_bem_produzido_rascunho(
     }
 
     response = jwt_authenticated_client_sme.post('/api/bens-produzidos-rascunho/', data=json.dumps(payload),
+                                                 HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
                                                  content_type='application/json')
     content = json.loads(response.content)
 
@@ -335,6 +338,58 @@ def test_post_bem_produzido_rascunho(
     assert content['associacao']
     assert content['status'] == BemProduzido.STATUS_INCOMPLETO
     assert response.status_code == status.HTTP_201_CREATED
+
+    bem_produzido_criado = BemProduzido.objects.get(uuid=content['uuid'])
+
+    assert bem_produzido_criado.recurso == recurso_ptrf
+    assert bem_produzido_criado.recurso != recurso_premium
+
+
+def test_post_bem_produzido_rascunho_recurso_premium(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    recurso_ptrf,
+    recurso_premium,
+    associacao_1, despesa_factory,
+    rateio_despesa_factory,
+    especificacao_material_servico_1
+):
+    despesa_2025_1 = despesa_factory(associacao=associacao_1, data_documento='2025-01-01', nome_fornecedor='teste')
+    rateio_1 = rateio_despesa_factory(associacao=associacao_1, despesa=despesa_2025_1, valor_rateio=200)
+
+    payload = {
+        "despesas": [f"{despesa_2025_1.uuid}"],
+        "rateios": [
+            {
+                "uuid": f"{rateio_1.uuid}",
+                "valor_utilizado": 200
+            },
+        ],
+        "itens": [
+            {
+                "num_processo_incorporacao": 985734857456873,
+                "quantidade": 1,
+                "valor_individual": 200,
+                "especificacao_do_bem": f"{especificacao_material_servico_1.uuid}"
+            }
+        ],
+        "associacao": f"{associacao_1.uuid}"
+    }
+
+    response = jwt_authenticated_client_sme.post('/api/bens-produzidos-rascunho/', data=json.dumps(payload),
+                                                 HTTP_X_RECURSO_SELECIONADO=str(recurso_premium.uuid),
+                                                 content_type='application/json')
+    content = json.loads(response.content)
+
+    assert content['uuid']
+    assert content['associacao']
+    assert content['status'] == BemProduzido.STATUS_INCOMPLETO
+    assert response.status_code == status.HTTP_201_CREATED
+
+    bem_produzido_criado = BemProduzido.objects.get(uuid=content['uuid'])
+
+    assert bem_produzido_criado.recurso == recurso_premium
+    assert bem_produzido_criado.recurso != recurso_ptrf
 
 
 def test_post_bem_produzido_rascunho_campos_vazios(

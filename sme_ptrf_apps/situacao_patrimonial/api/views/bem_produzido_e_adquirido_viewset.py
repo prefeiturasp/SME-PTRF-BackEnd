@@ -52,6 +52,7 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
         conta_uuid = request.query_params.get('conta_associacao_uuid')
         periodos_uuid = request.query_params.get('periodos_uuid')
         visao_dre = request.query_params.get('visao_dre', 'false').lower() == 'true'
+        recurso = request.recurso
 
         if periodos_uuid:
             try:
@@ -62,8 +63,8 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
         data_inicio = request.query_params.get('data_inicio')
         data_fim = request.query_params.get('data_fim')
 
-        bens_produzidos = BemProduzidoItem.objects.filter(bem_produzido__associacao__uuid=associacao_uuid)
-
+        bens_produzidos = BemProduzidoItem.objects.filter(bem_produzido__associacao__uuid=associacao_uuid,
+                                                          bem_produzido__recurso=recurso)
         # Na visão DRE, filtrar apenas bens completos
         if visao_dre:
             bens_produzidos = bens_produzidos.filter(bem_produzido__status=BemProduzido.STATUS_COMPLETO)
@@ -76,7 +77,8 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
         bens_produzidos_rascunho = bens_produzidos.exclude(bem_produzido__status=BemProduzido.STATUS_COMPLETO)
         bens_produzidos_completos = bens_produzidos.filter(bem_produzido__status=BemProduzido.STATUS_COMPLETO)
 
-        bens_adquiridos = RateioDespesa.rateios_completos_de_capital().filter(despesa__associacao__uuid=associacao_uuid)
+        bens_adquiridos = RateioDespesa.rateios_completos_de_capital().filter(despesa__associacao__uuid=associacao_uuid,
+                                                                              despesa__recurso=recurso)
         bens_adquiridos = self.filtrar_bens_adquiridos(
             bens_adquiridos, especificacao_bem, fornecedor, acao_uuid, conta_uuid, periodos_uuid, data_inicio, data_fim
         )
@@ -100,6 +102,7 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
         paginator = CustomPagination()
         page = paginator.paginate_queryset(combined, request)
         serializer = BemProduzidoEAdquiridoSerializer(page, many=True)
+
         return paginator.get_paginated_response(serializer.data)
 
     def filtrar_bens_produzidos(self, queryset, especificacao_bem, fornecedor, acao_uuid, conta_uuid, periodos_uuid, data_inicio, data_fim):
@@ -189,8 +192,12 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
         data_inicio = request.query_params.get('data_inicio')
         data_fim = request.query_params.get('data_fim')
         identificacao_usuario = request.user.username
+        recurso = request.recurso
+        recurso_id = recurso.id
 
         filtros = []
+
+        filtros.append(f"por recurso: {recurso}")
 
         if periodos_uuid:
             filtros.append(f"por período: {periodos_uuid}")
@@ -252,6 +259,7 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
             # Chamar task assíncrona de exportação
             task = exportar_bens_produzidos_adquiridos_async.delay(
                 associacao_uuid=associacao_uuid,
+                recurso=recurso_id,
                 especificacao_bem=especificacao_bem,
                 fornecedor=fornecedor,
                 acao_uuid=acao_associacao_uuid,

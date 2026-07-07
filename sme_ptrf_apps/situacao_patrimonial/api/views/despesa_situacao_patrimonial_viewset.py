@@ -44,7 +44,8 @@ class DespesaSituacaoPatrimonialViewSet(WaffleFlagMixin, ModelViewSet):
         return context
 
     def get_queryset(self):
-        qs = Despesa.objects.exclude(status='INATIVO').all()
+        recurso = self.request.recurso
+        qs = Despesa.objects.exclude(status='INATIVO').filter(recurso=recurso)
 
         bem_produzido_uuid = self.request.query_params.get('bem_produzido_uuid')
         if not bem_produzido_uuid:
