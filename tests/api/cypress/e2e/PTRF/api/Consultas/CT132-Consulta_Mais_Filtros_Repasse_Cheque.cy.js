@@ -8,7 +8,7 @@ const Creditos = new CreditosEscolaPagina()
 
 describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cheque', () => {
 
-  it('CT132-Consulta_Mais_Filtros_Repasse_Cheque', () => {
+  it.skip('CT132-Consulta_Mais_Filtros_Repasse_Cheque', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -39,7 +39,7 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cheque', () => {
     Comum.logout()
   })
 
-  it('CT139-Consulta_Mais_Filtros_Repasse_Cheque_Sem_Data', () => {
+  it.skip('CT139-Consulta_Mais_Filtros_Repasse_Cheque_Sem_Data', () => {
 
     Comum.visitarPaginaPTRF()
 

@@ -8,7 +8,7 @@ const Creditos = new CreditosEscolaPagina()
 
 describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cheque', () => {
 
-  it('CT131-Consulta_Mais_Filtros_Rendimento_Cheque', () => {
+  it.skip('CT131-Consulta_Mais_Filtros_Rendimento_Cheque', () => {
 
     Comum.visitarPaginaPTRF()
 

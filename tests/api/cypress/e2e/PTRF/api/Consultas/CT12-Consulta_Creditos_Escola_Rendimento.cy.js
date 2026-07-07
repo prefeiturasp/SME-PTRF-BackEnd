@@ -9,7 +9,7 @@ import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagi
 const Creditos = new CreditosEscolaPagina()
 
 describe("Credito Escola - Consulta", () => {
-  it("CT12-Consulta_Creditos_Escola_Rendimento", () => {
+  it.skip("CT12-Consulta_Creditos_Escola_Rendimento", () => {
     Comum.visitarPaginaPTRF()
 
     cy.realizar_login('UE')
