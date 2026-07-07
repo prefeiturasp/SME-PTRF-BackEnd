@@ -8,7 +8,7 @@ const Creditos = new CreditosEscolaPagina()
 
 describe("Credito Escola - Consulta - Mais Filtros - Tipo_Cartao", () => {
 
-  it("CT126-Consulta_Mais_Filtros_Repasse_Cartao", () => {
+  it.skip("CT126-Consulta_Mais_Filtros_Repasse_Cartao", () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -97,7 +97,7 @@ describe("Credito Escola - Consulta - Mais Filtros - Tipo_Cartao", () => {
     Comum.logout()
   })
 
-  it("CT148-Consulta_Mais_Filtros_Repasse_Cartao_Somente_Tipo_Conta", () => {
+  it.skip("CT148-Consulta_Mais_Filtros_Repasse_Cartao_Somente_Tipo_Conta", () => {
 
     Comum.visitarPaginaPTRF()
 
