@@ -31,7 +31,8 @@ def test_api_list_tipos_acerto_documento_todos(
                     'nome': tipo_documento_prestacao_conta_ata.nome,
                     'uuid': f'{tipo_documento_prestacao_conta_ata.uuid}'
                 }
-            ]
+            ],
+            'recurso': f'{tipo_acerto_documento_assinatura.recurso.uuid}'
         },
         {
             'ativo': tipo_acerto_documento_enviar.ativo,
@@ -53,7 +54,8 @@ def test_api_list_tipos_acerto_documento_todos(
                     'nome': tipo_documento_prestacao_conta_relacao_bens.nome,
                     'uuid': f'{tipo_documento_prestacao_conta_relacao_bens.uuid}'
                 }
-            ]
+            ],
+            'recurso': f'{tipo_acerto_documento_enviar.recurso.uuid}'
         }
     ]
 
@@ -89,7 +91,8 @@ def test_api_list_tipos_acerto_documento_filtro_nome(
                     'nome': tipo_documento_prestacao_conta_relacao_bens.nome,
                     'uuid': f'{tipo_documento_prestacao_conta_relacao_bens.uuid}'
                 }
-            ]
+            ],
+            'recurso': f'{tipo_acerto_documento_01.recurso.uuid}'
         },
         {
             'ativo': tipo_acerto_documento_03.ativo,
@@ -105,7 +108,8 @@ def test_api_list_tipos_acerto_documento_filtro_nome(
                     'nome': tipo_documento_prestacao_conta_ata.nome,
                     'uuid': f'{tipo_documento_prestacao_conta_ata.uuid}'
                 }
-            ]
+            ],
+            'recurso': f'{tipo_acerto_documento_03.recurso.uuid}'
         }
     ]
 
@@ -141,7 +145,8 @@ def test_api_list_tipos_acerto_documento_filtro_categoria(
                     'nome': tipo_documento_prestacao_conta_relacao_bens.nome,
                     'uuid': f'{tipo_documento_prestacao_conta_relacao_bens.uuid}'
                 }
-            ]
+            ],
+            'recurso': f'{tipo_acerto_documento_01.recurso.uuid}'
         },
         {
             'ativo': tipo_acerto_documento_02.ativo,
@@ -157,7 +162,8 @@ def test_api_list_tipos_acerto_documento_filtro_categoria(
                     'nome': tipo_documento_prestacao_conta_relacao_bens.nome,
                     'uuid': f'{tipo_documento_prestacao_conta_relacao_bens.uuid}'
                 }
-            ]
+            ],
+            'recurso': f'{tipo_acerto_documento_02.recurso.uuid}'
         },
         {
             'ativo': tipo_acerto_documento_03.ativo,
@@ -173,7 +179,8 @@ def test_api_list_tipos_acerto_documento_filtro_categoria(
                     'nome': tipo_documento_prestacao_conta_ata.nome,
                     'uuid': f'{tipo_documento_prestacao_conta_ata.uuid}'
                 }
-            ]
+            ],
+            'recurso': f'{tipo_acerto_documento_03.recurso.uuid}'
         }
     ]
 
@@ -209,7 +216,8 @@ def test_api_list_tipos_acerto_documento_filtro_ativo(
                     'nome': tipo_documento_prestacao_conta_ata.nome,
                     'uuid': f'{tipo_documento_prestacao_conta_ata.uuid}'
                 }
-            ]
+            ],
+            'recurso': f'{tipo_acerto_documento_03.recurso.uuid}'
         },
     ]
 
@@ -246,7 +254,8 @@ def test_api_list_tipos_acerto_documento_filtro_documento_relacionado(
                     'nome': tipo_documento_prestacao_conta_relacao_bens.nome,
                     'uuid': f'{tipo_documento_prestacao_conta_relacao_bens.uuid}'
                 }
-            ]
+            ],
+            'recurso': f'{tipo_acerto_documento_01.recurso.uuid}'
         },
         {
             'ativo': tipo_acerto_documento_02.ativo,
@@ -262,7 +271,8 @@ def test_api_list_tipos_acerto_documento_filtro_documento_relacionado(
                     'nome': tipo_documento_prestacao_conta_relacao_bens.nome,
                     'uuid': f'{tipo_documento_prestacao_conta_relacao_bens.uuid}'
                 }
-            ]
+            ],
+            'recurso': f'{tipo_acerto_documento_02.recurso.uuid}'
         }
     ]
 
@@ -303,7 +313,8 @@ def test_api_list_tipos_acerto_documento_por_tipo_documento(
                     'nome': tipo_documento_prestacao_conta_relacao_bens.nome,
                     'uuid': f'{tipo_documento_prestacao_conta_relacao_bens.uuid}'
                 }
-            ]
+            ],
+            'recurso': f'{tipo_acerto_documento_enviar.recurso.uuid}'
         }
     ]
 
@@ -339,7 +350,8 @@ def test_api_list_tipos_acerto_documento_filtro_composto(
                     'nome': tipo_documento_prestacao_conta_ata.nome,
                     'uuid': f'{tipo_documento_prestacao_conta_ata.uuid}'
                 }
-            ]
+            ],
+            'recurso': f'{tipo_acerto_documento_03.recurso.uuid}'
         }
     ]
 

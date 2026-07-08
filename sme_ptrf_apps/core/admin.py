@@ -1745,9 +1745,9 @@ class TipoDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
 
 @admin.register(TipoAcertoDocumento)
 class TipoAcertoDocumentoAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'categoria', 'ativo']
+    list_display = ['nome', 'categoria', 'ativo', 'recurso']
     search_fields = ['nome']
-    list_filter = ['tipos_documento_prestacao', 'categoria', 'ativo']
+    list_filter = ['tipos_documento_prestacao', 'categoria', 'ativo', 'recurso']
     readonly_fields = ('uuid', 'id',)
 
 
