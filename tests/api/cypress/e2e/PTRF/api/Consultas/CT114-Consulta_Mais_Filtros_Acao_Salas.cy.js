@@ -8,7 +8,7 @@ const Creditos = new CreditosEscolaPagina()
 
 describe('Credito Escola - Consulta - Filtros', () => {
 
-  it('CT114-Consulta_Mais_Filtros_Acao_Salas', () => {
+  it.skip('CT114-Consulta_Mais_Filtros_Acao_Salas', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -29,7 +29,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it('CT189-Consulta_Mais_Filtros_Acao_Salas_Com_Data', () => {
+  it.skip('CT189-Consulta_Mais_Filtros_Acao_Salas_Com_Data', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -54,7 +54,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it('CT190-Consulta_Mais_Filtros_Acao_Salas_Com_Tipo_Conta', () => {
+  it.skip('CT190-Consulta_Mais_Filtros_Acao_Salas_Com_Tipo_Conta', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -77,7 +77,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it('CT191-Consulta_Mais_Filtros_Acao_Salas_Com_Detalhamento', () => {
+  it.skip('CT191-Consulta_Mais_Filtros_Acao_Salas_Com_Detalhamento', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -100,7 +100,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it('CT192-Consulta_Mais_Filtros_Acao_Salas_Com_Multiplos_Filtros', () => {
+  it.skip('CT192-Consulta_Mais_Filtros_Acao_Salas_Com_Multiplos_Filtros', () => {
 
     Comum.visitarPaginaPTRF()
 

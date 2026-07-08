@@ -3,6 +3,7 @@ from django.db.models import Sum
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+from sme_ptrf_apps.core.models.recurso import Recurso
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.situacao_patrimonial.models.bem_produzido_rateio import BemProduzidoRateio
 
@@ -31,6 +32,18 @@ class BemProduzido(ModeloBase):
         max_length=15,
         choices=STATUS_CHOICES,
         default=STATUS_INCOMPLETO
+    )
+
+    def get_recurso_padrao():
+        recurso = Recurso.objects.filter(legado=True).first()
+        return recurso.pk
+
+    recurso = models.ForeignKey(
+        "core.Recurso",
+        verbose_name="Recurso",
+        on_delete=models.PROTECT,
+        default=get_recurso_padrao,
+        blank=False,
     )
 
     class Meta:

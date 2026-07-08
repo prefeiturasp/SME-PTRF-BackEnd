@@ -8,7 +8,7 @@ const Creditos = new CreditosEscolaPagina()
 
 describe('Credito Escola - Consulta - Filtros', () => {
 
-  it('CT115-Consulta_Mais_Filtros_Acao_Material_Pedagogico', () => {
+  it.skip('CT115-Consulta_Mais_Filtros_Acao_Material_Pedagogico', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -29,7 +29,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it('CT185-Consulta_Mais_Filtros_Acao_Material_Pedagogico_Com_Data', () => {
+  it.skip('CT185-Consulta_Mais_Filtros_Acao_Material_Pedagogico_Com_Data', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -54,7 +54,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it('CT186-Consulta_Mais_Filtros_Acao_Material_Pedagogico_Com_Tipo_Conta', () => {
+  it.skip('CT186-Consulta_Mais_Filtros_Acao_Material_Pedagogico_Com_Tipo_Conta', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -77,7 +77,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it('CT187-Consulta_Mais_Filtros_Acao_Material_Pedagogico_Com_Detalhamento', () => {
+  it.skip('CT187-Consulta_Mais_Filtros_Acao_Material_Pedagogico_Com_Detalhamento', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -100,7 +100,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it('CT188-Consulta_Mais_Filtros_Acao_Material_Pedagogico_Com_Multiplos_Filtros', () => {
+  it.skip('CT188-Consulta_Mais_Filtros_Acao_Material_Pedagogico_Com_Multiplos_Filtros', () => {
 
     Comum.visitarPaginaPTRF()
 

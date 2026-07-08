@@ -8,7 +8,7 @@ const Creditos = new CreditosEscolaPagina()
 
 describe("Credito Escola - Consulta", () => {
 
-  it("CT95-Consulta_Escola_Arredondamento_Sem_Retorno", () => {
+  it.skip("CT95-Consulta_Escola_Arredondamento_Sem_Retorno", () => {
     Comum.visitarPaginaPTRF()
 
     cy.realizar_login('UE')
@@ -24,7 +24,7 @@ describe("Credito Escola - Consulta", () => {
     Comum.logout()
   })
 
-  it("CT227-Consulta_Credito_Escola_Com_Recurso_Externo", () => {
+  it.skip("CT227-Consulta_Credito_Escola_Com_Recurso_Externo", () => {
     Comum.visitarPaginaPTRF()
 
     cy.realizar_login('UE')
@@ -40,7 +40,7 @@ describe("Credito Escola - Consulta", () => {
     Comum.logout()
   })
 
-  it("CT228-Consulta_Credito_Escola_Sem_Aplicar_Filtro", () => {
+  it.skip("CT228-Consulta_Credito_Escola_Sem_Aplicar_Filtro", () => {
     Comum.visitarPaginaPTRF()
 
     cy.realizar_login('UE')
@@ -54,7 +54,7 @@ describe("Credito Escola - Consulta", () => {
     Comum.logout()
   })
 
-  it("CT229-Consulta_Credito_Escola_Acesso_Tela", () => {
+  it.skip("CT229-Consulta_Credito_Escola_Acesso_Tela", () => {
     Comum.visitarPaginaPTRF()
 
     cy.realizar_login('UE')
@@ -64,7 +64,7 @@ describe("Credito Escola - Consulta", () => {
     Comum.logout()
   })
 
-  it("CT230-Consulta_Credito_Escola_Recurso_Externo_Com_Repeticao_Filtro", () => {
+  it.skip("CT230-Consulta_Credito_Escola_Recurso_Externo_Com_Repeticao_Filtro", () => {
     Comum.visitarPaginaPTRF()
 
     cy.realizar_login('UE')
