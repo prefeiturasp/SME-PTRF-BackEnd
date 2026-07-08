@@ -1808,7 +1808,7 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
         return f'#{obj.analise_documento.analise_prestacao_conta.pk}' if obj and obj.analise_documento.analise_prestacao_conta else ''  # noqa
 
     get_analise_pc.short_description = 'Análise PC'
-    list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_acerto', 'copiado',]
+    list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_acerto', 'tipo_acerto_id', 'copiado',]
     search_fields = [
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
@@ -1818,7 +1818,8 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'tipo_acerto',
-        'copiado'
+        'copiado',
+        'analise_documento__analise_prestacao_conta__prestacao_conta__periodo__recurso',
     ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
 
