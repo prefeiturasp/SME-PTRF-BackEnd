@@ -19,14 +19,15 @@ logger = logging.getLogger(__name__)
     soft_time_limit=300
 )
 def exportar_bens_produzidos_adquiridos_async(
-    associacao_uuid, 
-    especificacao_bem=None, 
-    fornecedor=None, 
-    acao_uuid=None, 
-    conta_uuid=None, 
-    periodos_uuid=None, 
-    data_inicio=None, 
-    data_fim=None, 
+    associacao_uuid,
+    recurso=None,
+    especificacao_bem=None,
+    fornecedor=None,
+    acao_uuid=None,
+    conta_uuid=None,
+    periodos_uuid=None,
+    data_inicio=None,
+    data_fim=None,
     identificacao_usuario=None,
     filtros_str=None
 ):
@@ -47,13 +48,14 @@ def exportar_bens_produzidos_adquiridos_async(
         except Associacao.DoesNotExist:
             logger.error(f"Associação com uuid {associacao_uuid} não encontrada.")
             associacao = None
-        
+
         if associacao is None:
             raise Exception("Associacao nao encontrada")
-        
+
         # Filtrar bens produzidos
-        bens_produzidos = BemProduzidoItem.objects.filter(bem_produzido__associacao__uuid=associacao_uuid)
-        
+        bens_produzidos = BemProduzidoItem.objects.filter(bem_produzido__associacao__uuid=associacao_uuid,
+                                                          bem_produzido__recurso=recurso)
+
         if especificacao_bem:
             bens_produzidos = bens_produzidos.filter(
                 especificacao_do_bem__descricao__unaccent__icontains=especificacao_bem
@@ -91,9 +93,10 @@ def exportar_bens_produzidos_adquiridos_async(
 
         # Filtrar bens adquiridos
         bens_adquiridos = RateioDespesa.rateios_completos_de_capital().filter(
-            despesa__associacao__uuid=associacao_uuid
+            despesa__associacao__uuid=associacao_uuid,
+            despesa__recurso=recurso
         )
-        
+
         if especificacao_bem:
             bens_adquiridos = bens_adquiridos.filter(
                 especificacao_material_servico__descricao__unaccent__icontains=especificacao_bem
