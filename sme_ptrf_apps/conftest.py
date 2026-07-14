@@ -115,7 +115,8 @@ def _garantir_recurso_legado(db):
             "nome_exibicao": "PTRF",
             "cor": "#01585E",
             "permite_saldo_conta_negativo": False,
-            "permite_saldo_acoes_negativo": True
+            "permite_saldo_acoes_negativo": True,
+            "habilita_exibicao_de_lauda": True,
         },
     )
 

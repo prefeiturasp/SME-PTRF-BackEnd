@@ -31,7 +31,7 @@ def test_update_tipo_acerto_lancamento_nome_igual(
 ):
     payload_novo_tipo_acerto = {
         "nome": "Teste nome igual update",
-        "categoria": TipoAcertoLancamento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO
+        "categoria": TipoAcertoLancamento.CATEGORIA_DEVOLUCAO
     }
 
     response = jwt_authenticated_client_a.patch(
@@ -41,10 +41,9 @@ def test_update_tipo_acerto_lancamento_nome_igual(
 
     result = json.loads(response.content)
     resultado_esperado = {
-        'detail': 'Já existe um tipo de acerto de lançamento com esse nome.'
+        'detail': 'Já existe um tipo de acerto de lançamento com esse nome e categoria para esse recurso.'
     }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert len(TipoAcertoLancamento.objects.filter(nome="Teste nome igual update").all()) == 1
     assert resultado_esperado == result
-
