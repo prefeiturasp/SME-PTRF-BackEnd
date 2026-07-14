@@ -399,10 +399,17 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
 
         prestacao_de_contas = PrestacaoConta.by_uuid(uuid)
 
+        recurso = None
+
         if prestacao_de_contas:
             associacao = prestacao_de_contas.associacao
+            recurso = prestacao_de_contas.periodo.recurso
+
             prestacao_de_contas_posteriores = PrestacaoConta.objects.filter(
                 associacao=associacao, id__gt=prestacao_de_contas.id)
+
+            if recurso and prestacao_de_contas_posteriores:
+                prestacao_de_contas_posteriores = prestacao_de_contas_posteriores.filter(periodo__recurso=recurso)
 
             if prestacao_de_contas_posteriores:
                 response = {
