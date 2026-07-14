@@ -1,8 +1,6 @@
 from rest_framework import serializers
 
-from sme_ptrf_apps.receitas.fixtures.factories.tipo_receita_factory import Recurso
-
-from ...models import SolicitacaoAcertoLancamento, TipoAcertoLancamento
+from ...models import SolicitacaoAcertoLancamento, TipoAcertoLancamento, Recurso
 from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
 
 
