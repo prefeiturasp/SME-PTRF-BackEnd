@@ -9,7 +9,7 @@ import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagi
 const Creditos = new CreditosEscolaPagina()
 
 describe("Credito Escola - Consulta", () => {
-  it.skip("CT04-Consulta_Escola_Arredondamento_Sem_Retorno", () => {
+  /*it.skip("CT04-Consulta_Escola_Arredondamento_Sem_Retorno", () => {
     
     Comum.visitarPaginaPTRF()
 
@@ -29,4 +29,4 @@ describe("Credito Escola - Consulta", () => {
 
     Comum.logout()
   })
-})
+*/})

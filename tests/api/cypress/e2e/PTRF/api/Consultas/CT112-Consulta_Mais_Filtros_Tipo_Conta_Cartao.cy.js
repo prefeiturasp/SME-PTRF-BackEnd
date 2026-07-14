@@ -7,7 +7,7 @@ import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagi
 const Creditos = new CreditosEscolaPagina();
 
 describe("Credito Escola - Consulta - Filtros", () => {
-  it.skip("CT112-Consulta_Mais_Filtros_Tipo_Conta_Cartao", () => {
+  /*it.skip("CT112-Consulta_Mais_Filtros_Tipo_Conta_Cartao", () => {
     Comum.visitarPaginaPTRF();
 
     cy.realizar_login("UE");
@@ -25,9 +25,9 @@ describe("Credito Escola - Consulta - Filtros", () => {
     Comum.selecionarPerfil();
 
     Comum.logout();
-  });
+  });*/
 
-  it.skip("CT197-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Data", () => {
+  /*it.skip("CT197-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Data", () => {
     Comum.visitarPaginaPTRF();
 
     cy.realizar_login("UE");
@@ -49,9 +49,9 @@ describe("Credito Escola - Consulta - Filtros", () => {
     Comum.selecionarPerfil();
 
     Comum.logout();
-  });
+  });*/
 
-  it.skip("CT198-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Acao_PTRF", () => {
+  /*it.skip("CT198-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Acao_PTRF", () => {
     Comum.visitarPaginaPTRF();
 
     cy.realizar_login("UE");
@@ -71,9 +71,9 @@ describe("Credito Escola - Consulta - Filtros", () => {
     Comum.selecionarPerfil();
 
     Comum.logout();
-  });
+  });*/
 
-  it.skip("CT199-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Detalhamento", () => {
+  /*it.skip("CT199-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Detalhamento", () => {
     Comum.visitarPaginaPTRF();
 
     cy.realizar_login("UE");
@@ -93,9 +93,9 @@ describe("Credito Escola - Consulta - Filtros", () => {
     Comum.selecionarPerfil();
 
     Comum.logout();
-  });
+  });*/
 
-  it.skip("CT200-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Multiplos_Filtros", () => {
+  /*it.skip("CT200-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Multiplos_Filtros", () => {
     Comum.visitarPaginaPTRF();
 
     cy.realizar_login("UE");
@@ -121,5 +121,5 @@ describe("Credito Escola - Consulta - Filtros", () => {
     Comum.selecionarPerfil();
 
     Comum.logout();
-  });
+  });*/
 });

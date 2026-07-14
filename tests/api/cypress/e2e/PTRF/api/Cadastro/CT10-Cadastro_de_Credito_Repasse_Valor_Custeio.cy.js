@@ -6,7 +6,7 @@ import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagi
 const Creditos = new CreditosEscolaPagina();
 
 describe("Credito Escola - Cadastro", () => {
-  it.skip("CT10-Cadastro_de_Credito_Repasse_Valor_Custeio", () => {
+  /*it.skip("CT10-Cadastro_de_Credito_Repasse_Valor_Custeio", () => {
     Comum.visitarPaginaPTRF()
 
     cy.realizar_login('UE')
@@ -21,4 +21,4 @@ describe("Credito Escola - Cadastro", () => {
 
     Comum.logout()
   })
-})
+*/})

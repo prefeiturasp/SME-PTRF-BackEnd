@@ -7,7 +7,7 @@ import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagi
 const Creditos = new CreditosEscolaPagina();
 
 describe("Credito Escola - Cadastro", () => {
-  it.skip("CT14-Cadastro_de_Credito_Repasse_Valor_Capital", () => {
+  /*it.skip("CT14-Cadastro_de_Credito_Repasse_Valor_Capital", () => {
     Comum.visitarPaginaPTRF();
 
     cy.realizar_login('UE')
@@ -21,5 +21,5 @@ describe("Credito Escola - Cadastro", () => {
     Creditos.selecionarCadastrarCredito();
 
     Comum.logout();
-  });
+  });*/
 });

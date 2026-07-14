@@ -8,7 +8,7 @@ const Gastos = new GastosEscolaPagina()
 
 describe("Credito Escola - Consulta", () => {
 
-  it.skip("CT97-Consulta_Creditos_Escola_Devolucao_Conta", () => {
+  /*it.skip("CT97-Consulta_Creditos_Escola_Devolucao_Conta", () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -23,7 +23,7 @@ describe("Credito Escola - Consulta", () => {
     Comum.logout()
   })
 
-  it.skip("CT223-Consulta_Creditos_Escola_Devolucao_Conta_Sem_Filtros", () => {
+  *//*it.skip("CT223-Consulta_Creditos_Escola_Devolucao_Conta_Sem_Filtros", () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -38,7 +38,7 @@ describe("Credito Escola - Consulta", () => {
     Comum.logout()
   })
 
-  it.skip("CT224-Consulta_Creditos_Escola_Devolucao_Conta_Reconsultar", () => {
+  *//*it.skip("CT224-Consulta_Creditos_Escola_Devolucao_Conta_Reconsultar", () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -53,4 +53,4 @@ describe("Credito Escola - Consulta", () => {
 
     Comum.logout()
   })
-})
+*/})
