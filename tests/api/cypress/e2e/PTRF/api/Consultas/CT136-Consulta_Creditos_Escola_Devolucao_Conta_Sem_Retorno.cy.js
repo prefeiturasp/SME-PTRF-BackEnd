@@ -7,7 +7,7 @@ import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagi
 const Creditos = new CreditosEscolaPagina()
 
 
-it.skip("CT136-Consulta_Creditos_Escola_Devolucao_Conta_Sem_Retorno", () => {
+/*it.skip("CT136-Consulta_Creditos_Escola_Devolucao_Conta_Sem_Retorno", () => {
   Comum.visitarPaginaPTRF()
 
   cy.realizar_login('UE')
@@ -24,3 +24,4 @@ it.skip("CT136-Consulta_Creditos_Escola_Devolucao_Conta_Sem_Retorno", () => {
 
   Comum.logout()
 })
+*/

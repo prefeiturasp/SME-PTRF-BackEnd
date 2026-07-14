@@ -7,7 +7,7 @@ import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagi
 
 const Creditos = new CreditosEscolaPagina()
 
-it.skip("CT133-Cadastro_de_Credito_Campos_Obrigatorios", () => {
+/*it.skip("CT133-Cadastro_de_Credito_Campos_Obrigatorios", () => {
   Comum.visitarPaginaPTRF()
 
   cy.realizar_login('UE')
@@ -22,3 +22,4 @@ it.skip("CT133-Cadastro_de_Credito_Campos_Obrigatorios", () => {
 
   Comum.logout()  
 })
+*/

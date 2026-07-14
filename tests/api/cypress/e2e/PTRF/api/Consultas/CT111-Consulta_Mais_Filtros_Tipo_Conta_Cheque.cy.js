@@ -9,7 +9,7 @@ const Creditos = new CreditosEscolaPagina()
 
 describe('Credito Escola - Consulta - Filtros', () => {
 
-  it.skip('CT111-Consulta_Mais_Filtros_Tipo_Conta_Cheque', () => {
+  /*it.skip('CT111-Consulta_Mais_Filtros_Tipo_Conta_Cheque', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -30,7 +30,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it.skip('CT201-Consulta_Mais_Filtros_Tipo_Conta_Cheque_Com_Data', () => {
+  *//*it.skip('CT201-Consulta_Mais_Filtros_Tipo_Conta_Cheque_Com_Data', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -55,7 +55,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it.skip('CT202-Consulta_Mais_Filtros_Tipo_Conta_Cheque_Com_Acao_PTRF', () => {
+  *//*it.skip('CT202-Consulta_Mais_Filtros_Tipo_Conta_Cheque_Com_Acao_PTRF', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -80,7 +80,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it.skip('CT203-Consulta_Mais_Filtros_Tipo_Conta_Cheque_Com_Detalhamento', () => {
+  *//*it.skip('CT203-Consulta_Mais_Filtros_Tipo_Conta_Cheque_Com_Detalhamento', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -105,7 +105,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it.skip('CT204-Consulta_Mais_Filtros_Tipo_Conta_Cheque_Com_Multiplos_Filtros', () => {
+  *//*it.skip('CT204-Consulta_Mais_Filtros_Tipo_Conta_Cheque_Com_Multiplos_Filtros', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -136,7 +136,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it.skip('CT205-Consulta_Mais_Filtros_Tipo_Conta_Cheque_Limpar_Filtros', () => {
+  *//*it.skip('CT205-Consulta_Mais_Filtros_Tipo_Conta_Cheque_Limpar_Filtros', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -163,7 +163,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it.skip('CT206-Consulta_Mais_Filtros_Tipo_Conta_Cheque_Cancelar_Filtros', () => {
+  *//*it.skip('CT206-Consulta_Mais_Filtros_Tipo_Conta_Cheque_Cancelar_Filtros', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -189,4 +189,4 @@ describe('Credito Escola - Consulta - Filtros', () => {
 
     Comum.logout()
   })
-})
+*/})

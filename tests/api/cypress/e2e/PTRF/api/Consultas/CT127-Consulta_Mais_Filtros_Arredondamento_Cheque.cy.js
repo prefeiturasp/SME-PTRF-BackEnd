@@ -8,7 +8,7 @@ const Creditos = new CreditosEscolaPagina()
 
 describe("Credito Escola - Consulta - Mais Filtros - Tipo_Cheque", () => {
 
-  it.skip("CT127-Consulta_Mais_Filtros_Arredondamento_Cheque", () => {
+  /*it.skip("CT127-Consulta_Mais_Filtros_Arredondamento_Cheque", () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -39,7 +39,7 @@ describe("Credito Escola - Consulta - Mais Filtros - Tipo_Cheque", () => {
     Comum.logout()
   })
 
-  it("CT143-Consulta_Mais_Filtros_Arredondamento_Cheque_Sem_Data", () => {
+  */it("CT143-Consulta_Mais_Filtros_Arredondamento_Cheque_Sem_Data", () => {
 
     Comum.visitarPaginaPTRF()
 
