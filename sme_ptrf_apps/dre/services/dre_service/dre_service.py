@@ -1,7 +1,7 @@
 import logging
 
 from sme_ptrf_apps.core.models import Unidade
-from sme_ptrf_apps.dre.models import ParametrosDre, MembroComissao
+from sme_ptrf_apps.dre.models import ParametrosDre, MembroComissao, Comissao
 
 logger = logging.getLogger(__name__)
 
@@ -17,12 +17,17 @@ class DreService:
 
         self.dre = dre
 
-    def get_comissao_exame_contas(self):
-        comissao_exame_contas = ParametrosDre.get().comissao_exame_contas
-        membros_comissao = MembroComissao.objects.filter(
-            dre=self.dre,
-            comissoes=comissao_exame_contas
-        )
+    def get_comissao_exame_contas(self, recurso):
+        comissao_exame_contas = Comissao.get_comissao_responsavel_analise_pc_por_recurso(recurso)
+
+        membros_comissao = []
+
+        if comissao_exame_contas:
+            membros_comissao = MembroComissao.objects.filter(
+                dre=self.dre,
+                comissoes=comissao_exame_contas
+            )
+
         return membros_comissao
 
     def notificar_devolucao_consolidado(self, consolidado_dre, enviar_email=True):
@@ -30,9 +35,10 @@ class DreService:
         from sme_ptrf_apps.core.models import Notificacao
 
         logger.info(
-            f'Notificando a devolução para acertos do consolidado da DRE  {consolidado_dre.dre.nome} ref {consolidado_dre.periodo.referencia}.')
+            f'Notificando a devolução para acertos do consolidado da DRE {consolidado_dre.dre.nome} ref {consolidado_dre.periodo.referencia}.')
 
-        comissao_contas = self.get_comissao_exame_contas()
+        recurso = consolidado_dre.periodo.recurso
+        comissao_contas = self.get_comissao_exame_contas(recurso)
 
         user_model = get_user_model()
         for membro in comissao_contas:

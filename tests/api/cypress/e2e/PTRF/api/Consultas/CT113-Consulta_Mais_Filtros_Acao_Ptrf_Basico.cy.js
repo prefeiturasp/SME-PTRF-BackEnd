@@ -7,7 +7,7 @@ import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagi
 const Creditos = new CreditosEscolaPagina();
 
 describe("Credito Escola - Consulta - Filtros", () => {
-  it.skip("CT113-Consulta_Mais_Filtros_Acao_Ptrf_Basico", () => {
+  /*it.skip("CT113-Consulta_Mais_Filtros_Acao_Ptrf_Basico", () => {
     Comum.visitarPaginaPTRF();
 
     cy.realizar_login("UE");
@@ -25,9 +25,9 @@ describe("Credito Escola - Consulta - Filtros", () => {
     Comum.selecionarPerfil();
 
     Comum.logout();
-  });
+  });*/
 
-  it.skip("CT193-Consulta_Mais_Filtros_Acao_Ptrf_Basico_Com_Data", () => {
+  /*it.skip("CT193-Consulta_Mais_Filtros_Acao_Ptrf_Basico_Com_Data", () => {
     Comum.visitarPaginaPTRF();
 
     cy.realizar_login("UE");
@@ -49,9 +49,9 @@ describe("Credito Escola - Consulta - Filtros", () => {
     Comum.selecionarPerfil();
 
     Comum.logout();
-  });
+  });*/
 
-  it.skip("CT194-Consulta_Mais_Filtros_Acao_Ptrf_Basico_Com_Tipo_Conta", () => {
+  /*it.skip("CT194-Consulta_Mais_Filtros_Acao_Ptrf_Basico_Com_Tipo_Conta", () => {
     Comum.visitarPaginaPTRF();
 
     cy.realizar_login("UE");
@@ -71,9 +71,9 @@ describe("Credito Escola - Consulta - Filtros", () => {
     Comum.selecionarPerfil();
 
     Comum.logout();
-  });
+  });*/
 
-  it.skip("CT195-Consulta_Mais_Filtros_Acao_Ptrf_Basico_Com_Detalhamento", () => {
+  /*it.skip("CT195-Consulta_Mais_Filtros_Acao_Ptrf_Basico_Com_Detalhamento", () => {
     Comum.visitarPaginaPTRF();
 
     cy.realizar_login("UE");
@@ -93,9 +93,9 @@ describe("Credito Escola - Consulta - Filtros", () => {
     Comum.selecionarPerfil();
 
     Comum.logout();
-  });
+  });*/
 
-  it.skip("CT196-Consulta_Mais_Filtros_Acao_Ptrf_Basico_Com_Multiplos_Filtros", () => {
+  /*it.skip("CT196-Consulta_Mais_Filtros_Acao_Ptrf_Basico_Com_Multiplos_Filtros", () => {
     Comum.visitarPaginaPTRF();
 
     cy.realizar_login("UE");
@@ -121,5 +121,5 @@ describe("Credito Escola - Consulta - Filtros", () => {
     Comum.selecionarPerfil();
 
     Comum.logout();
-  });
+  });*/
 });

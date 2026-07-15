@@ -45,10 +45,14 @@ class MembroComissao(ModeloBase):
         self.comissoes.set(comissoes)
         self.save()
 
-    @property
-    def pertence_a_comissao_exame_contas(self):
-        from sme_ptrf_apps.dre.models import ParametrosDre
-        comissao_exame_contas = ParametrosDre.get().comissao_exame_contas
+    def pertence_a_comissao_exame_contas(self, recurso):
+        from sme_ptrf_apps.dre.models import Comissao
+
+        comissao_exame_contas = Comissao.get_comissao_responsavel_analise_pc_por_recurso(recurso)
+
+        if not comissao_exame_contas:
+            return False
+
         return True if comissao_exame_contas in self.comissoes.all() else False
 
     class Meta:

@@ -10,7 +10,7 @@ const Creditos = new CreditosEscolaPagina()
 
 describe('Credito Escola - Consulta - Filtros', () => {
 
-  it.skip('CT110-Consulta_Mais_Filtros_Detalhamentos_Credito', () => {
+  /*it.skip('CT110-Consulta_Mais_Filtros_Detalhamentos_Credito', () => {
 
     Comum.visitarPaginaPTRF()
     
@@ -31,7 +31,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it.skip('CT207-Consulta_Mais_Filtros_Detalhamentos_Credito_Com_Data', () => {
+  *//*it.skip('CT207-Consulta_Mais_Filtros_Detalhamentos_Credito_Com_Data', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -56,7 +56,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it.skip('CT208-Consulta_Mais_Filtros_Detalhamentos_Credito_Com_Acao_PTRF', () => {
+  *//*it.skip('CT208-Consulta_Mais_Filtros_Detalhamentos_Credito_Com_Acao_PTRF', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -79,7 +79,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it.skip('CT209-Consulta_Mais_Filtros_Detalhamentos_Credito_Com_Multiplos_Filtros', () => {
+  *//*it.skip('CT209-Consulta_Mais_Filtros_Detalhamentos_Credito_Com_Multiplos_Filtros', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -106,7 +106,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it.skip('CT210-Consulta_Mais_Filtros_Detalhamentos_Credito_Limpar_Filtros', () => {
+  *//*it.skip('CT210-Consulta_Mais_Filtros_Detalhamentos_Credito_Limpar_Filtros', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -131,7 +131,7 @@ describe('Credito Escola - Consulta - Filtros', () => {
     Comum.logout()
   })
 
-  it.skip('CT211-Consulta_Mais_Filtros_Detalhamentos_Credito_Cancelar_Filtros', () => {
+  *//*it.skip('CT211-Consulta_Mais_Filtros_Detalhamentos_Credito_Cancelar_Filtros', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -155,4 +155,4 @@ describe('Credito Escola - Consulta - Filtros', () => {
 
     Comum.logout()
   })
-})
+*/})

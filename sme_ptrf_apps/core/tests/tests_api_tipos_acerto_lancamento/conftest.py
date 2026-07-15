@@ -4,18 +4,18 @@ import datetime
 
 
 @pytest.fixture
-def tipo_acerto_lancamento_create():
-    return baker.make('TipoAcertoLancamento', nome='Teste nome igual', categoria='DEVOLUCAO')
+def tipo_acerto_lancamento_create(recurso_legado):
+    return baker.make('TipoAcertoLancamento', nome='Teste nome igual', categoria='DEVOLUCAO', recurso=recurso_legado)
 
 
 @pytest.fixture
-def tipo_acerto_lancamento_delete():
-    return baker.make('TipoAcertoLancamento', nome='Teste', categoria='DEVOLUCAO')
+def tipo_acerto_lancamento_delete(recurso_legado):
+    return baker.make('TipoAcertoLancamento', nome='Teste', categoria='DEVOLUCAO', recurso=recurso_legado)
 
 
 @pytest.fixture
-def tipo_acerto_lancamento_delete_02():
-    return baker.make('TipoAcertoLancamento', nome='Teste 2', categoria='DEVOLUCAO')
+def tipo_acerto_lancamento_delete_02(recurso_legado):
+    return baker.make('TipoAcertoLancamento', nome='Teste 2', categoria='DEVOLUCAO', recurso=recurso_legado)
 
 
 @pytest.fixture
@@ -65,29 +65,51 @@ def prestacao_conta_delete(periodo_2020_1, associacao):
 
 
 @pytest.fixture
-def tipo_acerto_lancamento():
-    return baker.make('TipoAcertoLancamento', nome='Teste lanca', categoria='EXCLUSAO_LANCAMENTO')
+def tipo_acerto_lancamento(recurso_legado):
+    return baker.make(
+        'TipoAcertoLancamento',
+        nome='Teste lanca',
+        categoria='EXCLUSAO_LANCAMENTO',
+        recurso=recurso_legado
+    )
 
 
 @pytest.fixture
-def tipo_acerto_lancamento_02():
-    return baker.make('TipoAcertoLancamento', nome='Teste filtro nome', categoria='EDICAO_LANCAMENTO', ativo=False)
+def tipo_acerto_lancamento_02(recurso_legado):
+    return baker.make(
+        'TipoAcertoLancamento',
+        nome='Teste filtro nome',
+        categoria='EDICAO_LANCAMENTO',
+        ativo=False,
+        recurso=recurso_legado
+    )
 
 
 @pytest.fixture
-def tipo_acerto_lancamento_03():
-    return baker.make('TipoAcertoLancamento', nome='tipo lancamento', categoria='EXCLUSAO_LANCAMENTO', ativo=False)
+def tipo_acerto_lancamento_03(recurso_legado):
+    return baker.make(
+        'TipoAcertoLancamento',
+        nome='tipo lancamento',
+        categoria='EXCLUSAO_LANCAMENTO',
+        ativo=False,
+        recurso=recurso_legado
+    )
 
 @pytest.fixture
-def tipo_acerto_lancamento_retrieve():
-    return baker.make('TipoAcertoLancamento', nome='Teste retrieve', categoria='DEVOLUCAO')
+def tipo_acerto_lancamento_retrieve(recurso_legado):
+    return baker.make('TipoAcertoLancamento', nome='Teste retrieve', categoria='DEVOLUCAO', recurso=recurso_legado)
 
 
 @pytest.fixture
-def tipo_acerto_lancamento_update():
-    return baker.make('TipoAcertoLancamento', nome='Teste update', categoria='DEVOLUCAO')
+def tipo_acerto_lancamento_update(recurso_legado):
+    return baker.make('TipoAcertoLancamento', nome='Teste update', categoria='DEVOLUCAO', recurso=recurso_legado)
 
 
 @pytest.fixture
-def tipo_acerto_lancamento_update_nome_igual():
-    return baker.make('TipoAcertoLancamento', nome='Teste nome igual update', categoria='DEVOLUCAO')
+def tipo_acerto_lancamento_update_nome_igual(recurso_legado):
+    return baker.make(
+        'TipoAcertoLancamento',
+        nome='Teste nome igual update',
+        categoria='DEVOLUCAO',
+        recurso=recurso_legado
+    )

@@ -8,7 +8,7 @@ const Creditos = new CreditosEscolaPagina()
 
 describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
 
-  it.skip('CT124-Consulta_Mais_Filtros_Recurso_Externo_Cartao', () => {
+  /*it.skip('CT124-Consulta_Mais_Filtros_Recurso_Externo_Cartao', () => {
 
     Comum.visitarPaginaPTRF()
     
@@ -39,7 +39,7 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
     Comum.logout()
   })
 
-  it.skip('CT151-Consulta_Mais_Filtros_Recurso_Externo_Cartao_Sem_Data', () => {
+  *//*it.skip('CT151-Consulta_Mais_Filtros_Recurso_Externo_Cartao_Sem_Data', () => {
 
     Comum.visitarPaginaPTRF()
     
@@ -67,7 +67,7 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
     Comum.logout()
   })
 
-  it.skip('CT152-Consulta_Mais_Filtros_Recurso_Externo_Cartao_Sem_Acao', () => {
+  *//*it.skip('CT152-Consulta_Mais_Filtros_Recurso_Externo_Cartao_Sem_Acao', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -97,7 +97,7 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
     Comum.logout()
   })
 
-  it.skip('CT153-Consulta_Mais_Filtros_Recurso_Externo_Cartao_Somente_Tipo_Conta', () => {
+  *//*it.skip('CT153-Consulta_Mais_Filtros_Recurso_Externo_Cartao_Somente_Tipo_Conta', () => {
 
     Comum.visitarPaginaPTRF()
     
@@ -124,4 +124,4 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
 
     Comum.logout()
   })
-})
+*/})

@@ -10,7 +10,7 @@ const Creditos = new CreditosEscolaPagina()
 
 describe("Credito Escola - Consulta", () => {
 
-  it.skip("CT05-Consulta_Creditos_Escola_Devolucao_Conta", () => {
+  /*it.skip("CT05-Consulta_Creditos_Escola_Devolucao_Conta", () => {
 
     Comum.visitarPaginaPTRF()
     
@@ -26,7 +26,7 @@ describe("Credito Escola - Consulta", () => {
     Comum.logout()
   })
 
-  it.skip("CT226-Consulta_Creditos_Escola_Devolucao_Conta_Sem_Filtro", () => {
+  *//*it.skip("CT226-Consulta_Creditos_Escola_Devolucao_Conta_Sem_Filtro", () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -41,7 +41,7 @@ describe("Credito Escola - Consulta", () => {
     Comum.logout()
   })
 
-  it.skip("CT227-Consulta_Creditos_Escola_Devolucao_Conta_Reconsultar", () => {
+  *//*it.skip("CT227-Consulta_Creditos_Escola_Devolucao_Conta_Reconsultar", () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -60,4 +60,4 @@ describe("Credito Escola - Consulta", () => {
 
     Comum.logout()
   })
-})
+*/})

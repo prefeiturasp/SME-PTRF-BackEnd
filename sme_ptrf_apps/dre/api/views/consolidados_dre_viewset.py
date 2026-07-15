@@ -12,6 +12,7 @@ from django.db.utils import IntegrityError
 from drf_spectacular.utils import extend_schema_view
 
 from sme_ptrf_apps.core.models import Unidade, Periodo, Associacao
+from sme_ptrf_apps.dre.models import Comissao
 from ..serializers.ata_parecer_tecnico_serializer import AtaParecerTecnicoLookUpSerializer
 from ...models import ConsolidadoDRE, RelatorioConsolidadoDRE, AnoAnaliseRegularidade, AtaParecerTecnico, Lauda, \
     AnaliseConsolidadoDre
@@ -354,6 +355,17 @@ class ConsolidadosDreViewSet(
         recurso = periodo.recurso
         habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
         text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+
+        comissao = Comissao.get_comissao_responsavel_analise_pc_por_recurso(recurso)
+
+        if not comissao:
+            erro = {
+                'erro': 'Comissão não encontrada',
+                'mensagem': ("Não há comissão indicada como responsável pela análise de prestação de contas. "
+                             "Favor entrar em contato com a SME.")
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         if not alterado_em:
             erro = {

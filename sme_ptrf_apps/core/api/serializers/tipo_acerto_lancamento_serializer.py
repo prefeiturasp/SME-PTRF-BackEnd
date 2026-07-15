@@ -1,18 +1,27 @@
 from rest_framework import serializers
 
-from ...models import TipoAcertoLancamento
+from ...models import SolicitacaoAcertoLancamento, TipoAcertoLancamento, Recurso
 from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
 
 
 class TipoAcertoLancamentoSerializer(serializers.ModelSerializer):
+
+    recurso = serializers.SlugRelatedField(
+        slug_field='uuid',
+        required=True,
+        queryset=Recurso.objects.all()
+    )
+
     def create(self, validated_data):
         nome = validated_data['nome']
+        categoria = validated_data.get('categoria', None)
+        recurso = validated_data.get('recurso', None)
 
-        nome_ja_cadastrado = TipoAcertoLancamento.objects.filter(nome=nome).all()
+        nome_ja_cadastrado = TipoAcertoLancamento.objects.filter(nome=nome, categoria=categoria, recurso=recurso).all()
 
         if nome_ja_cadastrado:
             raise serializers.ValidationError(
-                {"detail": "Já existe um tipo de acerto de lançamento com esse nome."}
+                {"detail": "Já existe um tipo de acerto de lançamento com esse nome e categoria para esse recurso."}
             )
 
         tipo_lancamento_criado = TipoAcertoLancamento.objects.create(**validated_data)
@@ -21,14 +30,23 @@ class TipoAcertoLancamentoSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         nome = validated_data.get("nome", None)
+        categoria = validated_data.get("categoria", instance.categoria)
 
         if nome and instance.nome != nome:
-            nome_ja_cadastrado = TipoAcertoLancamento.objects.filter(nome=nome).all()
+            recurso = validated_data.get("recurso", instance.recurso)
+            nome_ja_cadastrado = TipoAcertoLancamento.objects.filter(nome=nome, categoria=categoria, recurso=recurso).all()
 
             if nome_ja_cadastrado:
                 raise serializers.ValidationError(
-                    {"detail": "Já existe um tipo de acerto de lançamento com esse nome."}
+                    {"detail": "Já existe um tipo de acerto de lançamento com esse nome e categoria para esse recurso."}
                 )
+
+        if categoria != instance.categoria and SolicitacaoAcertoLancamento.objects.filter(
+            tipo_acerto=instance
+        ).exists():
+            raise serializers.ValidationError(
+                {"non_field_errors": "Não é permitido alterar. Pois existem solicitações de acertos vinculadas."}
+            )
 
         update_instance_from_dict(instance, validated_data, save=True)
 
@@ -36,4 +54,4 @@ class TipoAcertoLancamentoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TipoAcertoLancamento
-        fields = ('id', 'nome', 'categoria', 'ativo', 'uuid', 'pode_alterar_saldo_conciliacao')
+        fields = ('id', 'nome', 'categoria', 'ativo', 'uuid', 'pode_alterar_saldo_conciliacao', 'recurso')

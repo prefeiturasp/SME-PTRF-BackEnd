@@ -1663,9 +1663,9 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
 
 @admin.register(TipoAcertoLancamento)
 class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'categoria', 'ativo']
+    list_display = ['nome', 'categoria', 'recurso', 'ativo']
     search_fields = ['nome', 'categoria']
-    list_filter = ['nome', 'categoria', 'ativo']
+    list_filter = ['nome', 'categoria', 'ativo', 'recurso']
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 

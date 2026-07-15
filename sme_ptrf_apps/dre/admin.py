@@ -38,11 +38,6 @@ class ItensVerificacaoInline(admin.TabularInline):
     model = ItemVerificacaoRegularidade
 
 
-@admin.register(ParametrosDre)
-class ParametrosDreAdmin(admin.ModelAdmin):
-    exclude = ('tipo_conta_um', 'tipo_conta_dois',)
-
-
 @admin.register(Lauda)
 class LaudaAdmin(admin.ModelAdmin):
 

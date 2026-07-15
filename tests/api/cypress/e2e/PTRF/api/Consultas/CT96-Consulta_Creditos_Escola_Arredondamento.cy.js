@@ -8,7 +8,7 @@ const Creditos = new CreditosEscolaPagina()
 
 describe("Credito Escola - Consulta", () => {
 
-  it.skip("CT96-Consulta_Creditos_Escola_Arredondamento", () => {
+  /*it.skip("CT96-Consulta_Creditos_Escola_Arredondamento", () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -17,7 +17,7 @@ describe("Credito Escola - Consulta", () => {
     Creditos.selecionarCreditosDaEscola()
   })
 
-  it.skip("CT225-Consulta_Creditos_Escola_Arredondamento_Sem_Filtros", () => {
+  *//*it.skip("CT225-Consulta_Creditos_Escola_Arredondamento_Sem_Filtros", () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -32,7 +32,7 @@ describe("Credito Escola - Consulta", () => {
     Comum.logout()
   })
 
-  it.skip("CT226-Consulta_Creditos_Escola_Arredondamento_Reconsultar", () => {
+  *//*it.skip("CT226-Consulta_Creditos_Escola_Arredondamento_Reconsultar", () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -48,4 +48,4 @@ describe("Credito Escola - Consulta", () => {
 
     Comum.logout()
   })
-})
+*/})
