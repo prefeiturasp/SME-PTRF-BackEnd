@@ -1711,7 +1711,8 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'analise_lancamento__tipo_lancamento',
         'tipo_acerto',
-        'copiado'
+        'copiado',
+        'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo__recurso',
     ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
