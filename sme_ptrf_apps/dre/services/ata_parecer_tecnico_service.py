@@ -144,6 +144,7 @@ def gerar_arquivo_ata_parecer_tecnico(
 
 def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre(dre, periodo, ata_de_parecer_tecnico=None, usuario=None, parcial=None):
     from sme_ptrf_apps.dre.services.consolidado_dre_service import TextDocumentConsolidadoPC
+    from sme_ptrf_apps.dre.models import Comissao
 
     lista_contas_aprovadas = []  # PCs aprovadas precisam ser separadas por conta
     lista_contas_aprovadas_ressalva = []  # PCs aprovadas com ressalva precisam ser separadas por conta
@@ -154,6 +155,9 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
     recurso = periodo.recurso
     habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda if recurso else False
     text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+
+    comissao = Comissao.get_comissao_responsavel_analise_pc_por_recurso(recurso)
+    comissao_nome = comissao.nome if comissao else "-"
 
     titulo_sequencia_publicacao = None
     if parcial:
@@ -170,7 +174,6 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
             titulo_sequencia_publicacao = text_document_consolidado_pc.text_with_type_document(
                 publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE,
             )
-
 
     motivo_retificacao = None
     eh_retificacao = False
@@ -201,7 +204,8 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas),
         "periodo_data_fim": formata_data(periodo.data_fim_realizacao_despesas),
         "comentarios": ata_de_parecer_tecnico.comentarios,
-        "motivo_retificacao": motivo_retificacao
+        "motivo_retificacao": motivo_retificacao,
+        "comissao_responsavel_pc": comissao_nome,
     }
     presentes_na_ata = {
         "presentes": get_presentes_na_ata(ata_de_parecer_tecnico)
