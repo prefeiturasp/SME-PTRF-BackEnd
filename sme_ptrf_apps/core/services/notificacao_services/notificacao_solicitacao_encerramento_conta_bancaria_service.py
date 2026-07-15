@@ -25,7 +25,7 @@ def notificar_solicitacao_encerramento_conta_bancaria(conta_associacao, enviar_e
             logging.info(f"O usuario {usuario} não é membro de nenhuma comissão da DRE {associacao.unidade.dre}")
             continue
 
-        if not membro_comissao.pertence_a_comissao_exame_contas:
+        if not membro_comissao.pertence_a_comissao_exame_contas(recurso):
             logging.info(f"O usuario {usuario} não é membro da comissão de exame de contas")
             continue
 
