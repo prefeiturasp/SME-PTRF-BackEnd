@@ -1,3 +1,8 @@
+"""
+Módulo de modelos do PAA (Plano Anual de Ação).
+
+Este módulo define a entidade responsável por representar o PAA e seus atributos de negócio.
+"""
 from django.db.models import Sum
 from django.db import models
 from datetime import datetime
@@ -13,6 +18,12 @@ from sme_ptrf_apps.paa.paa_querysets.paa_queryset import PaaManager
 
 
 class Paa(ModeloBase):
+    """
+    Representa um Plano Anual de Ação (PAA).
+
+    Essa model registra os dados do PAA, incluindo o período, a associação,
+    o status, os objetivos, as atividades estatutárias e os recursos disponíveis.
+    """
     objects = PaaManager()
 
     history = AuditlogHistoryField()
@@ -54,37 +65,59 @@ class Paa(ModeloBase):
         help_text='Outros Recursos (paa_outrorecurso) vinculados à unidade e período disponíveis na conclusão do PAA'
     )
 
-    def periodo_paa_objeto(self):
+    def periodo_paa_objeto(self) -> PeriodoPaa:
+        """Retorna o objeto período PAA relacionado ao PAA."""
         return self.periodo_paa
 
-    def set_congelar_saldo(self):
+    def set_congelar_saldo(self) -> None:
+        """
+        Congela o saldo do PAA, registrando a data e hora atual.
+        """
         self.saldo_congelado_em = datetime.now()
         self.save()
 
-    def set_paa_status_em_retificacao(self):
+    def set_paa_status_em_retificacao(self) -> None:
+        """
+        Define o status do PAA como "EM_RETIFICACAO".
+        """
         self.status = PaaStatusEnum.EM_RETIFICACAO.name
         self.save()
 
-    def set_paa_status_gerado(self):
+    def set_paa_status_gerado(self) -> None:
+        """
+        Define o status do PAA como "GERADO".
+        """
         self.status = PaaStatusEnum.GERADO.name
         self.save()
 
-    def set_descongelar_saldo(self):
+    def set_descongelar_saldo(self) -> None:
+        """
+        Descongela o saldo do PAA, removendo a data de congelamento.
+        """
         self.saldo_congelado_em = None
         self.save()
 
-    def get_total_recursos_proprios(self):
+    def get_total_recursos_proprios(self) -> float:
+        """
+        Retorna o total de recursos próprios do PAA.
+        """
         total = self.recursopropriopaa_set.aggregate(total=Sum('valor'))['total']
         return total or 0
 
     @property
     def documento_final(self):
+        """
+        Retorna o documento do PAA na versão "FINAL" considerando se o PAA está em retificação ou não.
+        """
         if self.status_em_retificacao:
             return obter_documento_final_por_retificacao(self, True)
         return obter_documento_final_por_retificacao(self, False)
 
     @property
     def documento_previa(self):
+        """
+        Retorna o documento do PAA na versão "PREVIA" considerando se o PAA está em retificação ou não.
+        """
         retificacao = self.status_em_retificacao
         return (
             self.documentopaa_set.filter(
@@ -96,7 +129,10 @@ class Paa(ModeloBase):
         )
 
     @property
-    def tem_documentos(self):
+    def tem_documentos(self) -> bool:
+        """
+        Verifica se o PAA possui documentos ou atas vinculadas.
+        """
         return (
             self.documentopaa_set.exists() or
             self.atas_da_paa.exists()
@@ -282,15 +318,18 @@ class Paa(ModeloBase):
         return self.atas_da_paa.filter(tipo_ata=AtaPaa.ATA_RETIFICACAO).first()
 
     @property
-    def status_em_elaboracao(self):
+    def status_em_elaboracao(self) -> bool:
+        """ Verifica se o PAA está no status 'EM_ELABORACAO'."""
         return self.status == PaaStatusEnum.EM_ELABORACAO.name
 
     @property
-    def status_em_retificacao(self):
+    def status_em_retificacao(self) -> bool:
+        """ Verifica se o PAA está no status 'EM_RETIFICACAO'."""
         return self.status == PaaStatusEnum.EM_RETIFICACAO.name
 
     @property
-    def status_gerado(self):
+    def status_gerado(self) -> bool:
+        """ Verifica se o PAA está no status 'GERADO'."""
         return self.status == PaaStatusEnum.GERADO.name
 
     class Meta:
@@ -298,7 +337,8 @@ class Paa(ModeloBase):
         verbose_name_plural = 'PAA`s'
         unique_together = ('periodo_paa', 'associacao')
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Retorna uma representação textual do PAA com o período e a associação."""
         return f'{self.periodo_paa} - {self.associacao}'
 
 

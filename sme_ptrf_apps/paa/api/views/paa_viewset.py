@@ -21,6 +21,7 @@ from rest_framework.exceptions import NotFound
 from rest_framework.decorators import action
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.exceptions import ValidationError
@@ -120,7 +121,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='download-pdf-levantamento-prioridades',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def download_levantamento_prioridades_paa(self, request) -> Response:
+    def download_levantamento_prioridades_paa(self, request: Request) -> Response:
         """
         Gere e faça o download do PDF de levantamento de prioridades do PAA.
 
@@ -158,7 +159,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='desativar-atualizacao-saldo',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def desativar_atualizacao_saldo(self, request, uuid) -> Response:
+    def desativar_atualizacao_saldo(self, request: Request, uuid: str) -> Response:
         """
         Congele os saldos atuais por ação vinculados a este PAA.
 
@@ -188,7 +189,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='ativar-atualizacao-saldo',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def ativar_atualizacao_saldo(self, request, uuid) -> Response:
+    def ativar_atualizacao_saldo(self, request: Request, uuid: str) -> Response:
         """
         Impeça o descongelamento caso o documento final do PAA já tenha sido
         concluído e gerado.
@@ -219,7 +220,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def destroy(self, request, *args, **kwargs) -> Response:
+    def destroy(self, request: Request, *args, **kwargs) -> Response:
         """
         Exclua um registro de PAA caso não possua restrições de integridade.
 
@@ -248,7 +249,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='resumo-prioridades',
             permission_classes=[PermissaoApiUe])
-    def resumo_prioridades(self, request, uuid=None) -> Response:
+    def resumo_prioridades(self, request: Request, uuid: str | None = None) -> Response:
         """
         Retorne o resumo das prioridades definidas para o PAA atual.
 
@@ -264,7 +265,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='paas-anteriores',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def paa_anteriores(self, request, uuid=None) -> Response:
+    def paa_anteriores(self, request: Request, uuid: str | None = None) -> Response:
         """
         Retorne a lista de relatórios de PAAs anteriores da mesma associação.
 
@@ -289,7 +290,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='paa-vigente-e-anteriores',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def paa_vigente_e_anteriores(self, request) -> Response:
+    def paa_vigente_e_anteriores(self, request: Request) -> Response:
         """
         Retorne o PAA vigente e o histórico dos anteriores renderizados.
 
@@ -364,7 +365,8 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='importar-prioridades/(?P<uuid_paa_anterior>[a-f0-9-]+)',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def importar_prioridades(self, request, uuid=None, uuid_paa_anterior=None) -> Response:
+    def importar_prioridades(self, request: Request, uuid: str | None = None,
+                             uuid_paa_anterior: str | None = None) -> Response:
         """
         Importe prioridades de PAA anterior.
 
@@ -404,7 +406,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='receitas-previstas',
             permission_classes=[IsAuthenticated])
-    def receitas_previstas(self, request, uuid=None) -> Response:
+    def receitas_previstas(self, request: Request, uuid: str | None = None) -> Response:
         """
         Retorne as ações e associações com as receitas previstas vinculadas.
 
@@ -422,7 +424,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='plano-orcamentario',
             permission_classes=[IsAuthenticated])
-    def plano_orcamentario(self, request, uuid=None) -> Response:
+    def plano_orcamentario(self, request: Request, uuid: str | None = None) -> Response:
         """
         Retorne o plano orçamentário completo com dados consolidados.
 
@@ -451,7 +453,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='plano-aplicacao',
             permission_classes=[IsAuthenticated])
-    def plano_aplicacao(self, request, uuid=None) -> Response:
+    def plano_aplicacao(self, request: Request, uuid: str | None = None) -> Response:
         """
         Retorne o plano de aplicação agrupado e estruturado para renderização direta
 
@@ -479,7 +481,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='objetivos',
             permission_classes=[IsAuthenticated])
-    def objetivos_disponiveis(self, request, uuid=None) -> Response:
+    def objetivos_disponiveis(self, request: Request, uuid: str | None = None) -> Response:
         """
         Retorne a listagem de objetivos globais ou vinculados a este PAA.
 
@@ -503,7 +505,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='atividades-estatutarias-disponiveis',
             permission_classes=[IsAuthenticated])
-    def atividades_estatutarias_disponiveis(self, request, uuid=None) -> Response:
+    def atividades_estatutarias_disponiveis(self, request: Request, uuid: str | None = None) -> Response:
         """
         Retorne as atividades estatutárias disponíveis marcando alterações.
 
@@ -532,7 +534,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='atividades-estatutarias-previstas',
             permission_classes=[IsAuthenticated])
-    def atividades_estatutarias_previstas(self, request, uuid=None) -> Response:
+    def atividades_estatutarias_previstas(self, request: Request, uuid: str | None = None) -> Response:
         """
         Retorne as atividades estatutárias associadas e planejadas do PAA.
 
@@ -553,7 +555,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='recursos-proprios-previstos',
             permission_classes=[IsAuthenticated])
-    def recursos_proprios_previstos(self, request, uuid=None) -> Response:
+    def recursos_proprios_previstos(self, request: Request, uuid: str | None = None) -> Response:
         """
         Retorne a relação de recursos próprios previstos mapeando alterações.
 
@@ -579,7 +581,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='outros-recursos-do-periodo',
             permission_classes=[IsAuthenticated])
-    def outros_recursos_periodo(self, request, uuid=None) -> Response:
+    def outros_recursos_periodo(self, request: Request, uuid: str | None = None) -> Response:
         """
         Retorne outros tipos de recursos financeiros mapeados no período do PAA.
 
@@ -597,7 +599,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
         return Response(data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["post"], url_path="gerar-documento")
-    def gerar_documento(self, request, uuid=None) -> Response:
+    def gerar_documento(self, request: Request, uuid: str | None = None) -> Response:
         """
         Dispare o processo assíncrono de geração do arquivo de documento final.
 
@@ -645,7 +647,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
         )
 
     @action(detail=True, methods=["post"], url_path="gerar-previa-documento")
-    def gerar_previa_documento(self, request, uuid=None) -> Response:
+    def gerar_previa_documento(self, request: Request, uuid: str | None = None) -> Response:
         """
         Inicie a geração em background da prévia do documento em PDF.
 
@@ -687,7 +689,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="gerar-previa-retificacao",
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def gerar_previa_retificacao(self, request, uuid=None) -> Response:
+    def gerar_previa_retificacao(self, request: Request, uuid: str | None = None) -> Response:
         """
         Inicie a geração em background da prévia da retificação do documento em PDF.
 
@@ -721,7 +723,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="gerar-documento-retificacao",
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def gerar_documento_retificacao(self, request, uuid=None) -> Response:
+    def gerar_documento_retificacao(self, request: Request, uuid: str | None = None) -> Response:
         """
         Inicie a geração em background do documento de retificação em PDF.
 
@@ -768,7 +770,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='documento-final',
             permission_classes=[IsAuthenticated])
-    def documento_final(self, request, uuid=None) -> Response:
+    def documento_final(self, request: Request, uuid: str | None = None) -> Response:
         """
         Retorne o documento final concluído para download.
 
@@ -813,7 +815,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='documento-previa',
             permission_classes=[IsAuthenticated])
-    def documento_previa(self, request, uuid=None) -> Response:
+    def documento_previa(self, request: Request, uuid: str | None = None) -> Response:
         """
         Retorne o arquivo binário da prévia gerada em formato PDF para download.
 
@@ -850,7 +852,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='status-geracao',
             permission_classes=[IsAuthenticated])
-    def satus_geracao(self, request, uuid=None) -> Response:
+    def satus_geracao(self, request: Request, uuid: str | None = None) -> Response:
         """
         Consulte o estado de processamento dos relatórios do PAA atual.
 
@@ -900,7 +902,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='iniciar-retificacao',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def iniciar_retificacao(self, request, uuid=None) -> Response:
+    def iniciar_retificacao(self, request: Request, uuid: str | None = None) -> Response:
         """
         Inicia o processo de retificação do PAA.
 
@@ -939,7 +941,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='cancelar-retificacao',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def cancelar_retificacao(self, request, uuid=None) -> Response:
+    def cancelar_retificacao(self, request: Request, uuid: str | None = None) -> Response:
         """
         Inicia o processo de cancelamento da retificação do PAA.
 
@@ -975,7 +977,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     @action(detail=True, methods=['get'], url_path='paa-retificacao',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def paa_retificacao(self, request, uuid=None) -> Response:
+    def paa_retificacao(self, request: Request, uuid: str | None = None) -> Response:
         """
         Retorne os dados do PAA enriquecidos com o comparativo em relação ao snapshot
         armazenado na réplica, permitindo ao frontend identificar registros

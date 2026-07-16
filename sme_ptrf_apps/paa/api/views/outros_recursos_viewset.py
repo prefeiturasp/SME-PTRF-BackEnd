@@ -1,5 +1,13 @@
+"""
+Módulo de API paragerenciamento dos outros recursos do PAA.
+
+Este módulo concentra os endpoints de listagem, consulta, criação,
+atualização e exclusão dos outros recursos do PAA.
+Permite a filtragem pelo OutroRecursoFiltro.
+"""
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 import django_filters
@@ -15,6 +23,16 @@ from .docs.outros_recursos_docs import DOCS
 
 
 class OutroRecursoFiltro(django_filters.FilterSet):
+    """
+    FilterSet responsável pela filtragem dos outros recursos.
+
+    Permite filtrar os objetivos pelos seguintes campos:
+
+    - nome
+    - aceita_capital
+    - aceita_custeio
+    - aceita_livre_aplicacao
+    """
     nome = django_filters.CharFilter(lookup_expr='icontains')
     aceita_capital = django_filters.BooleanFilter()
     aceita_custeio = django_filters.BooleanFilter()
@@ -32,6 +50,13 @@ class OutroRecursoFiltro(django_filters.FilterSet):
 
 @extend_schema_view(**DOCS)
 class OutrosRecursosPaaViewSet(WaffleFlagMixin, ModelViewSet):
+    """
+    ViewSet responsável pelo gerenciamento dos outros recursos do PAA.
+
+    Disponibiliza operações de listagem, consulta, criação, atualização
+    e exclusão dos outros recursos do PAA.
+    Permite a filtragem pelo OutroRecursoFiltro.
+    """
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
@@ -41,7 +66,7 @@ class OutrosRecursosPaaViewSet(WaffleFlagMixin, ModelViewSet):
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     filterset_class = OutroRecursoFiltro
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request: Request, *args, **kwargs) -> Response:
         """ Customização de response quando um recurso não for encontrado """
         try:
             self.get_object()

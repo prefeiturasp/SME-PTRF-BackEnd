@@ -1,3 +1,4 @@
+"""Modelo para representar um log de réplica do PAA."""
 from django.db import models
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -5,6 +6,13 @@ from sme_ptrf_apps.core.models_abstracts import ModeloBase
 
 
 class LogReplicaPaa(ModeloBase):
+    """
+    Modelo para representar um log de réplica do PAA.
+
+    Este modelo armazena informações sobre a réplica de um PAA, incluindo
+    a origem da réplica, o número da versão do documento gerado e o snapshot
+    serializado do PAA.
+    """
     history = AuditlogHistoryField()
 
     CANCELAMENTO = 'CANCELAMENTO'
@@ -45,14 +53,16 @@ class LogReplicaPaa(ModeloBase):
         help_text=("Snapshot serializado do PAA")
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Retorna uma representação textual do log de réplica do PAA."""
         return "Log Réplica do PAA %s (%s) originado por %s" % (
             self.paa.periodo_paa.referencia,
             self.paa.associacao,
             self.origem
         )
 
-    def formatted_json_replica(self):
+    def formatted_json_replica(self) -> str:
+        """Retorna a réplica do PAA formatada como JSON para exibição."""
         import json
         from django.utils.html import format_html
         if self.replica is None:

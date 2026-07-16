@@ -10,6 +10,7 @@ from waffle.mixins import WaffleFlagMixin
 from rest_framework.decorators import action
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 from drf_spectacular.utils import extend_schema_view
@@ -39,13 +40,13 @@ class ParametrosPaaViewSet(WaffleFlagMixin, GenericViewSet):
     serializer_class = ParametroPaaSerializer
 
     @action(detail=False, methods=['get'], url_path='mes-elaboracao-paa')
-    def mes_elaboracao_paa(self, request) -> Response:
+    def mes_elaboracao_paa(self, request: Request) -> Response:
         texto = ParametroPaa.get().mes_elaboracao_paa
         return Response({'detail': texto}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='textos-paa-ue',
             permission_classes=[IsAuthenticated, PermissaoAPITodosComLeituraOuGravacao])
-    def texto_paa_ue(self, request) -> Response:
+    def texto_paa_ue(self, request: Request) -> Response:
         """Retorna textos específicos da PAA para UE."""
         obj_paa = ParametroPaa.get()
         serializer = self.get_serializer(obj_paa)
@@ -57,7 +58,7 @@ class ParametrosPaaViewSet(WaffleFlagMixin, GenericViewSet):
 
     @action(detail=False, methods=['patch'], url_path='update-textos-paa-ue',
             permission_classes=[IsAuthenticated, PermissaoAPITodosComLeituraOuGravacao])
-    def update_textos_paa_ue(self, request) -> Response:
+    def update_textos_paa_ue(self, request: Request) -> Response:
         """Atualiza textos específicos da PAA para UE."""
         if not request.data:
             logger.warning(f'Tentativa de atualizar textos PAA sem dados pelo usuário {request.user}')
