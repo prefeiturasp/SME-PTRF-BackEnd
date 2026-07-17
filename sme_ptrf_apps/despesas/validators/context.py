@@ -3,11 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Optional
-
-if TYPE_CHECKING:
-    from sme_ptrf_apps.core.models import Associacao, Periodo
-    from sme_ptrf_apps.despesas.models import Despesa
+from typing import Any, Optional
 
 
 @dataclass
@@ -33,6 +29,8 @@ class DespesaDtoContext:
     data_transacao: Optional[date]
     data_documento: Optional[date]
     retem_imposto: bool
+    eh_despesa_reconhecida_pela_associacao: bool
+    numero_boletim_de_ocorrencia: str
 
     # Rateios validados pelo DRF (FKs são instâncias de model)
     rateios: list
