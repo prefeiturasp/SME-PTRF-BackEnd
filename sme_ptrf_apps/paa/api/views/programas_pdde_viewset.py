@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
+from rest_framework.request import Request
 
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
@@ -59,7 +60,7 @@ class ProgramaPddeViewSet(WaffleFlagMixin, ModelViewSet):
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     filterset_class = ProgramaPddeFiltro
 
-    def validar_campos(self, request) -> str:
+    def validar_campos(self, request: Request) -> str:
         """
         Valide os campos obrigatórios da requisição.
 
@@ -82,7 +83,7 @@ class ProgramaPddeViewSet(WaffleFlagMixin, ModelViewSet):
             )
         return nome
 
-    def create(self, request) -> Response:
+    def create(self, request: Request) -> Response:
         """ Método acionado antes do validate do Serializer para
             validação de constraints da Model (ao Criar)"""
 
@@ -97,7 +98,7 @@ class ProgramaPddeViewSet(WaffleFlagMixin, ModelViewSet):
             )
         return super().create(request)
 
-    def update(self, request, *args, **kwargs) -> Response:
+    def update(self, request: Request, *args, **kwargs) -> Response:
         """ Método acionado antes do validate do Serializer
             para validação de constraints da Model (Ao Atualizar)"""
 
@@ -114,7 +115,7 @@ class ProgramaPddeViewSet(WaffleFlagMixin, ModelViewSet):
 
         return super().update(request, *args, **kwargs)
 
-    def destroy(self, request, *args, **kwargs) -> Response:
+    def destroy(self, request: Request, *args, **kwargs) -> Response:
         """
         Exclua um programa do PDDE.
 
@@ -155,7 +156,7 @@ class ProgramaPddeViewSet(WaffleFlagMixin, ModelViewSet):
     )
     @action(detail=False, methods=['get'], url_path='totais',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def somatorio_total_por_programas(self, request) -> Response:
+    def somatorio_total_por_programas(self, request: Request) -> Response:
         """
         Retorne o somatório dos valores por programa PDDE para um PAA.
 

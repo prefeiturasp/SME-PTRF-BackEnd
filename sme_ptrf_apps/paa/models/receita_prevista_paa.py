@@ -1,3 +1,9 @@
+"""
+Modelo para representar uma receita prevista do PAA.
+
+Este módulo define a entidade responsável por
+representar uma receita prevista do PAA e seus atributos de negócio.
+"""
 from django.db import models
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -7,6 +13,12 @@ from sme_ptrf_apps.paa.models import Paa
 
 
 class ReceitaPrevistaPaa(ModeloBase):
+    """
+    Modelo para representar uma receita prevista do PAA.
+
+    Este modelo armazena informações sobre o PAA, ação da associação e
+    dados necessários da receita prevista.
+    """
     history = AuditlogHistoryField()
     paa = models.ForeignKey(Paa, on_delete=models.PROTECT,
                             verbose_name="PAA", blank=False, null=True)
@@ -26,7 +38,7 @@ class ReceitaPrevistaPaa(ModeloBase):
     previsao_valor_livre = models.DecimalField('Previsão Valor Livre Aplicação',
                                                max_digits=20, decimal_places=2, default=0)
 
-    def acao_associacao_objeto(self):
+    def acao_associacao_objeto(self) -> "ReceitaPrevistaPaa":
         return self.acao_associacao
 
     class Meta:

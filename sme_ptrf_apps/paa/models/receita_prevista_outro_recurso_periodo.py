@@ -1,3 +1,8 @@
+"""Módulo de modelos para receitas previstas de outros recursos para um PAA.
+
+Este módulo define a entidade responsável por registrar o saldo e a previsão
+financeira de um outro recurso associado a um PAA em um período específico.
+"""
 from django.db import models
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -6,6 +11,12 @@ from sme_ptrf_apps.paa.models import Paa, OutroRecursoPeriodoPaa
 
 
 class ReceitaPrevistaOutroRecursoPeriodo(ModeloBase):
+    """
+    Representa a previsão financeira de um outro recurso para um PAA.
+
+    Essa model armazena saldos e valores previstos de custeio, capital e livre
+    aplicação para um recurso de período vinculado a um PAA.
+    """
     history = AuditlogHistoryField()
     paa = models.ForeignKey(Paa, on_delete=models.PROTECT,
                             verbose_name="PAA", blank=False, null=True)
@@ -21,11 +32,13 @@ class ReceitaPrevistaOutroRecursoPeriodo(ModeloBase):
     previsao_valor_livre = models.DecimalField('Previsão Valor Livre Aplicação',
                                                max_digits=20, decimal_places=2, default=0)
 
-    def unidade_nome(self):
+    def unidade_nome(self) -> str:
+        """Retorna o nome da unidade escolar associada ao PAA."""
         return self.paa.associacao.unidade.nome
     unidade_nome.short_description = "Unidade"
 
-    def outro_recurso_objeto(self):
+    def outro_recurso_objeto(self) -> "ReceitaPrevistaOutroRecursoPeriodo":
+        """Retorna o objeto do outro recurso vinculado ao período."""
         return self.outro_recurso_periodo.outro_recurso
 
     class Meta:

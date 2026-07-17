@@ -10,6 +10,7 @@ from rest_framework import status, serializers
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.exceptions import NotFound
 from django.http import Http404
 import logging
@@ -103,7 +104,7 @@ class PrioridadePaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelView
 
     @action(detail=False, methods=['get'], url_path='tabelas',
             permission_classes=[PermissaoApiUe])
-    def tabelas(self, request, *args, **kwrgs) -> Response:
+    def tabelas(self, request: Request, *args, **kwrgs) -> Response:
         """
         Retorne a tabela com informações vinculada ao PAA.
 
@@ -139,7 +140,7 @@ class PrioridadePaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelView
 
     @action(detail=False, methods=['post'], url_path='excluir-lote',
             permission_classes=[PermissaoApiUe & PermissaoAPITodosComGravacao])
-    def excluir_em_lote(self, request, *args, **kwargs) -> Response:
+    def excluir_em_lote(self, request: Request, *args, **kwargs) -> Response:
         """
         Exclua em lote as prioridades de PAA.
 
@@ -198,7 +199,7 @@ class PrioridadePaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelView
             }
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
-    def update(self, request, *args, **kwargs) -> Response:
+    def update(self, request: Request, *args, **kwargs) -> Response:
         """
         Atualize uma PrioridadePaa existente.
 
@@ -218,7 +219,7 @@ class PrioridadePaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelView
             )
 
     @action(detail=True, methods=['post'], url_path='duplicar')
-    def duplicar(self, request, uuid=None) -> Response:
+    def duplicar(self, request: Request, uuid: str | None = None) -> Response:
         """
         Duplique uma PrioridadePaa existente, criando um novo registro com os mesmos dados.
         O campo `valor_total` não informado.
@@ -324,7 +325,7 @@ class PrioridadePaaRelatorioViewSet(WaffleFlagMixin, ModelViewSet):
                 logger.warning('PAA com uuid %s não encontrado para o relatório de prioridades', paa_uuid)
         return context
 
-    def list(self, request, *args, **kwargs) -> Response:
+    def list(self, request: Request, *args, **kwargs) -> Response:
         """
         Retorna a listagem das prioridades.
         """

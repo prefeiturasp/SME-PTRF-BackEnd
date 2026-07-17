@@ -1,3 +1,4 @@
+"""Modelo para representar um modelo de carga do PAA."""
 from django.db import models
 
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
@@ -8,6 +9,12 @@ from sme_ptrf_apps.paa.enums import TipoCargaPaaEnum
 
 
 class ModeloCargaPaa(ModeloBase):
+    """
+    Modelo para representar um modelo de carga do PAA.
+
+    Este modelo armazena informações sobre os tipos de carga disponíveis para o PAA,
+    incluindo o tipo de carga e o arquivo associado.
+    """
     history = AuditlogHistoryField()
 
     tipo_carga = models.CharField(
@@ -23,14 +30,15 @@ class ModeloCargaPaa(ModeloBase):
         verbose_name = "modelo de carga"
         verbose_name_plural = "Modelos de carga"
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Retorna o nome do modelo de carga PAA para representação textual."""
         try:
             return TipoCargaPaaEnum[self.tipo_carga].value if self.tipo_carga else ""
         except Exception:
             return "Modelo desconhecido"
 
     @classmethod
-    def tipos_cargas_to_json(cls):
+    def tipos_cargas_to_json(cls) -> dict:
         return TipoCargaPaaEnum.to_dict()
 
 

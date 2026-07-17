@@ -1,9 +1,16 @@
+"""
+Módulo de API para gerenciamento dos recursos da Ata PAA.
+
+Este módulo concentra os endpoints de iniciar ata do PAA, download do arquivo
+final e da previa, listagem das tabelas e gerar ata final.
+"""
 import logging
 
 from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
+from rest_framework.response import Response, Serializer
+from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
 
@@ -38,6 +45,12 @@ class AtaPaaViewSet(WaffleFlagMixin,
                     mixins.RetrieveModelMixin,
                     mixins.UpdateModelMixin,
                     GenericViewSet):
+    """
+    ViewSet responsável pelo gerenciamento dos recursos da Ata PAA
+
+    Disponibiliza operações de iniciar ata do PAA, download do arquivo
+    final e da previa, listagem das tabelas e gerar ata final.
+    """
     waffle_flag = "paa"
     tipo_bloqueio_paa = TipoBloqueioPaa.ATA_CONCLUIDA
     permission_classes = [IsAuthenticated & PermissaoApiUe]
@@ -45,7 +58,16 @@ class AtaPaaViewSet(WaffleFlagMixin,
     queryset = AtaPaa.objects.all()
     serializer_class = AtaPaaSerializer
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> type[Serializer]:
+        """
+        Retorne o serializer apropriado para a ação executada.
+
+        Utiliza o serializer AtaPaaCreateSerializer para a ação de atualização
+        parcial e o serializer AtaPaaSerializer para as demais ações.
+
+        Returns:
+            Serializer: Classe do serializer correspondente à ação atual.
+        """
         if self.action == 'partial_update':
             return AtaPaaCreateSerializer
         else:
@@ -53,7 +75,17 @@ class AtaPaaViewSet(WaffleFlagMixin,
 
     @action(detail=False, methods=['get', 'post'], url_path='iniciar-ata',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def iniciar_ata(self, request):
+    def iniciar_ata(self, request: Request) -> Response:
+        """
+        Inicie uma nova Ata PAA.
+
+        Args:
+            request: O objeto de requisição HTTP atual.
+            paa_uuid: UUID do PAA.
+
+        Returns:
+            Uma resposta indicando o sucesso ou fracasso da operação.
+        """
         paa_uuid = request.query_params.get('paa_uuid')
 
         if not paa_uuid:
@@ -82,7 +114,17 @@ class AtaPaaViewSet(WaffleFlagMixin,
 
     @action(detail=False, methods=['get'], url_path='download-arquivo-ata-paa',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def download_arquivo_ata_paa(self, request):
+    def download_arquivo_ata_paa(self, request: Request) -> Response:
+        """
+        Baixe o arquivo da Ata PAA.
+
+        Args:
+            request: O objeto de requisição HTTP atual.
+            ata_paa_uuid: UUID da Ata PAA.
+
+        Returns:
+            O arquivo da Ata PAA.
+        """
         ata_paa_uuid = request.query_params.get('ata-paa-uuid')
 
         if not ata_paa_uuid:
@@ -122,8 +164,10 @@ class AtaPaaViewSet(WaffleFlagMixin,
 
     @action(detail=False, url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def tabelas(self, request):
-
+    def tabelas(self, request: Request) -> Response:
+        """
+        Retorne as tabelas de referência para a Ata PAA.
+        """
         result = {
             'tipos_ata': choices_to_json(AtaPaa.ATA_CHOICES),
             'tipos_reuniao': choices_to_json(AtaPaa.REUNIAO_CHOICES),
@@ -135,7 +179,7 @@ class AtaPaaViewSet(WaffleFlagMixin,
 
     @action(detail=False, methods=['post'], url_path='gerar-ata',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def gerar_ata(self, request):
+    def gerar_ata(self, request: Request) -> Response:
         """
         Endpoint para gerar a ata PAA final
         """

@@ -11,6 +11,7 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.serializers import Serializer
 from rest_framework import status
 from django.core.exceptions import ValidationError
@@ -70,7 +71,7 @@ class PresentesAtaPaaViewSet(mixins.CreateModelMixin,
 
     @action(detail=False, url_path='buscar-informacao-professor-gremio',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def buscar_informacao_professor_gremio(self, request) -> Response:
+    def buscar_informacao_professor_gremio(self, request: Request) -> Response:
         """
         Retorne informações sobre um servidor.
 
@@ -120,7 +121,7 @@ class PresentesAtaPaaViewSet(mixins.CreateModelMixin,
 
     @action(detail=False, url_path='get-participantes-ordenados-por-cargo',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def get_participantes_ordenados_por_cargo(self, request) -> Response:
+    def get_participantes_ordenados_por_cargo(self, request: Request) -> Response:
         """
         Retorne todos os participantes de uma ata PAA ordenados pelo cargo.
 
@@ -166,7 +167,7 @@ class PresentesAtaPaaViewSet(mixins.CreateModelMixin,
         return Response(response_data)
 
     @action(detail=False, url_path='padrao-de-presentes', permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def padrao_presentes(self, request) -> Response:
+    def padrao_presentes(self, request: Request) -> Response:
         """
         Retorne todos os participantes de uma ata PAA.
 
