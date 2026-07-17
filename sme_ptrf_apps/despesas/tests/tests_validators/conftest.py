@@ -12,6 +12,8 @@ def make_ctx(**kwargs) -> DespesaDtoContext:
         data_transacao=None,
         data_documento=None,
         retem_imposto=False,
+        eh_despesa_reconhecida_pela_associacao=True,
+        numero_boletim_de_ocorrencia="",
         rateios=[],
         rateios_raw=[],
         despesas_impostos=[],
