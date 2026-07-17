@@ -12,6 +12,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
+from rest_framework.request import Request
 from django.http import Http404
 from django.db.models import Count, Q, QuerySet
 from drf_spectacular.utils import extend_schema_view
@@ -79,7 +80,7 @@ class PeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
 
         return qs
 
-    def destroy(self, request, *args, **kwargs) -> Response:
+    def destroy(self, request: Request, *args, **kwargs) -> Response:
         """
         Exclua um período PAA que não esteja vincula a algum PAA.
 

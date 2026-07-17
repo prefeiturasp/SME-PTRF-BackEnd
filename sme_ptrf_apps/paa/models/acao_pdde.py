@@ -1,3 +1,9 @@
+"""
+Módulo de modelos para as ações PDDE.
+
+Este módulo define a entidade responsável por representar as ações
+vinculadas aos programas PDDE e seus atributos de negócio.
+"""
 from django.db import models
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 from auditlog.models import AuditlogHistoryField
@@ -6,6 +12,12 @@ from sme_ptrf_apps.paa.models.programa_pdde import ProgramaPdde
 
 
 class AcaoPdde(ModeloIdNome):
+    """
+    Representa uma ação PDDE disponível para uso no PAA.
+
+    Armazena o relacionamento com um programa PDDE, os tipos de aplicação
+    aceitos pela ação e o status de ativação da entidade.
+    """
     history = AuditlogHistoryField()
 
     # Status Choice
@@ -32,10 +44,12 @@ class AcaoPdde(ModeloIdNome):
         default=STATUS_ATIVA
     )
 
-    def programa_objeto(self):
+    def programa_objeto(self) -> ProgramaPdde:
+        """Retorna o objeto programa relacionado à ação PDDE."""
         return self.programa
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Retorna o nome da ação PDDE para representação textual."""
         return self.nome
 
     class Meta:

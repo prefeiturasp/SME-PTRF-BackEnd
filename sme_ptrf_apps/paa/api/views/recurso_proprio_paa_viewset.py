@@ -11,6 +11,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.serializers import Serializer
 
 from django.db import transaction
@@ -66,7 +67,7 @@ class RecursoProprioPaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, Model
         else:
             return RecursoProprioPaaCreateSerializer
 
-    def destroy(self, request, *args, **kwargs) -> Response:
+    def destroy(self, request: Request, *args, **kwargs) -> Response:
         """Exclua um recursos próprios do PAA.
 
         Args:
@@ -115,7 +116,7 @@ class RecursoProprioPaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, Model
 
     @action(detail=False, methods=['get'], url_path='total',
             permission_classes=[IsAuthenticated])
-    def total_recursos(self, request, *args, **kwrgs) -> Response:
+    def total_recursos(self, request: Request, *args, **kwrgs) -> Response:
         """Retone o total dos recursos próprios do PAA.
 
         Args:
