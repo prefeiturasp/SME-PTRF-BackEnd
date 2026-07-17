@@ -6,8 +6,8 @@ Funcionalidade: Excluir Tipo de Conta
     E realizo login no sistema PTRF com perfil "SME"
 @ignore
   Esquema do Cenário: Validar exclusâo de tipo conta:<caso>
-    E excluo o tipo conta com o nome 'teste automatizado' do banco de dados
-    E crio o tipo conta com o nome 'teste automatizado' do banco de dados
+    E excluo o tipo conta com o nome 'teste automatizado' via API
+    E crio o tipo conta com o nome 'teste automatizado' via API
     E clico na opcao "<opcao_painel_parametrizacao>"
     E informo dados no campo '<dados_da_pesquisa>' da tela de tipo de conta
     E clico no botao "Pesquisar" da tela tipo de conta

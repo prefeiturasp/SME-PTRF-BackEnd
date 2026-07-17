@@ -14,12 +14,17 @@ import "./commands_ui/commands_motivo_pagamento_antecipado";
 import "./commands_ui/commands_tipo_de_documento";
 import "./commands_ui/commands_commons";
 import "./commands_ui/commands_tipos_de_transacao";
-import "./commands_ui/commands_associacao"; 
+import "./commands_ui/commands_associacao";
 import "./commands_ui/commands_dados_das_contas";
 import "./commands_ui/commands_resumo_dos_recursos";
 import "./commands_ui/commands_creditos_da_escola";
 
 import "./commands_api/commands_login";
+import "./commands_api/commands_tipos_conta";
+import "./commands_api/commands_fornecedores";
+import "./commands_api/commands_motivos_pagamento_antecipado";
+import "./commands_api/commands_tipos_documento";
+import "./commands_api/commands_tipos_transacao";
 import "./commands_api/commands_acoes";
 import "./commands_api/commands_acoes_associacoes";
 import "./commands_api/commands_ambientes";
@@ -63,7 +68,8 @@ if (
 // ================================
 Cypress.on("uncaught:exception", (err) => {
   // Ignora erros conhecidos
-  if (err.message.includes("Bootstrap's JavaScript requires jQuery")) return false;
+  if (err.message.includes("Bootstrap's JavaScript requires jQuery"))
+    return false;
   if (err.message.includes("Request failed with status code 401")) return false;
   if (err.message.includes("Cannot read properties of null")) return false;
 
