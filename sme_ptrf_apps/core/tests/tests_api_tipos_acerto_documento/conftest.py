@@ -2,13 +2,16 @@ import pytest
 from model_bakery import baker
 import datetime
 
+from sme_ptrf_apps.core.models.tipo_acerto_documento import TipoAcertoDocumento
+
 
 @pytest.fixture
-def tipo_acerto_documento_create(tipo_documento_prestacao_conta_relacao_bens):
+def tipo_acerto_documento_create(tipo_documento_prestacao_conta_relacao_bens, recurso_legado):
     tipo_acerto = baker.make(
         'TipoAcertoDocumento',
         nome='Teste nome igual',
-        categoria='INCLUSAO_CREDITO',
+        categoria=TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS,
+        recurso=recurso_legado
     )
     tipo_acerto.tipos_documento_prestacao.add(tipo_documento_prestacao_conta_relacao_bens)
     tipo_acerto.save()

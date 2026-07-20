@@ -7,6 +7,25 @@ from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido, BemProduzido
 
 
 @pytest.fixture
+def recurso_ptrf(recurso_factory):
+    """Gera o recurso específico do PTRF."""
+    return recurso_factory.create(
+        nome="PTRF",
+        nome_exibicao="PTRF",
+    )
+
+
+@pytest.fixture
+def recurso_premium(recurso_factory):
+    """Gera o recurso Prêmio Excelência Educacional."""
+    return recurso_factory.create(
+        nome="Prêmio Excelência Educacional",
+        nome_exibicao="Premium",
+        legado=False,
+    )
+
+
+@pytest.fixture
 def periodo_2024_1(periodo_factory):
     return periodo_factory.create(
         referencia='2024.1',
@@ -135,3 +154,93 @@ def especificacao_material_servico_1(especificacao_material_servico_factory):
 @pytest.fixture
 def bem_produzido_item_1(bem_produzido_item_factory, bem_produzido_1, despesa_1, especificacao_material_servico_1):
     return bem_produzido_item_factory.create(bem_produzido=bem_produzido_1, especificacao_do_bem=especificacao_material_servico_1)
+
+
+def _criar_estrutura_base_patrimonial(
+    associacao, recurso, data_documento, especificacao_material,
+    despesa_factory, bem_produzido_factory, bem_produzido_item_factory
+):
+    """Cria a Despesa, o Bem Produzido e o Item que ambos os cenários de recursos utilizam."""
+
+    despesa = despesa_factory.create(
+        associacao=associacao,
+        recurso=recurso,
+        data_documento=data_documento
+    )
+
+    bem_produzido = bem_produzido_factory.create(
+        associacao=associacao,
+        recurso=recurso,
+        status=BemProduzido.STATUS_COMPLETO,
+    )
+
+    bem_produzido_item_factory.create(
+        bem_produzido=bem_produzido,
+        especificacao_do_bem=especificacao_material,
+    )
+
+    return despesa, bem_produzido
+
+
+@pytest.fixture
+def cenario_recurso_ptrf(
+    associacao_1,
+    recurso_ptrf,
+    despesa_factory,
+    bem_produzido_factory,
+    bem_produzido_item_factory,
+    rateio_despesa_factory,
+    especificacao_material_servico_1,
+    conta_associacao_factory,
+    acao_associacao_factory,
+):
+    """Monta a massa de dados do recurso PTRF reutilizando a estrutura base."""
+    conta_associacao = conta_associacao_factory(associacao=associacao_1)
+    acao_associacao = acao_associacao_factory(associacao=associacao_1)
+
+    despesa_ptrf, bem_ptrf = _criar_estrutura_base_patrimonial(
+        associacao_1, recurso_ptrf, '2025-01-01', especificacao_material_servico_1,
+        despesa_factory, bem_produzido_factory, bem_produzido_item_factory
+    )
+
+    despesa_ptrf.nome_fornecedor = 'teste'
+    despesa_ptrf.save()
+
+    for _ in range(2):
+        rateio_despesa_factory.create(
+            associacao=associacao_1,
+            despesa=despesa_ptrf,
+            aplicacao_recurso="CAPITAL",
+            conta_associacao=conta_associacao,
+            acao_associacao=acao_associacao,
+            especificacao_material_servico=especificacao_material_servico_1,
+        )
+
+    return recurso_ptrf, bem_ptrf, despesa_ptrf
+
+
+@pytest.fixture
+def cenario_recurso_premium(
+    associacao_1,
+    recurso_premium,
+    despesa_factory,
+    bem_produzido_factory,
+    bem_produzido_item_factory,
+    rateio_despesa_factory,
+    especificacao_material_servico_1
+):
+    """Monta a massa de dados do recurso Premium isolado reutilizando a estrutura base."""
+
+    despesa_premium, bem_premium = _criar_estrutura_base_patrimonial(
+        associacao_1, recurso_premium, '2025-01-11', especificacao_material_servico_1,
+        despesa_factory, bem_produzido_factory, bem_produzido_item_factory
+    )
+
+    rateio_despesa_factory.create(
+        associacao=associacao_1,
+        despesa=despesa_premium,
+        aplicacao_recurso="CAPITAL",
+        especificacao_material_servico=especificacao_material_servico_1,
+    )
+
+    return recurso_premium, bem_premium, despesa_premium

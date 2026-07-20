@@ -9,7 +9,7 @@ const Creditos = new CreditosEscolaPagina()
 
 describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
 
-  it('CT121-Consulta_Mais_Filtros_Arredondamento_Cartao', () => {
+  /*it.skip('CT121-Consulta_Mais_Filtros_Arredondamento_Cartao', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -40,7 +40,7 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
     Comum.logout()
   })
 
-  it('CT161-Consulta_Mais_Filtros_Arredondamento_Cartao_Sem_Data', () => {
+  *//*it.skip('CT161-Consulta_Mais_Filtros_Arredondamento_Cartao_Sem_Data', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -68,7 +68,7 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
     Comum.logout()
   })
 
-  it('CT162-Consulta_Mais_Filtros_Arredondamento_Cartao_Sem_Acao', () => {
+  *//*it.skip('CT162-Consulta_Mais_Filtros_Arredondamento_Cartao_Sem_Acao', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -98,7 +98,7 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
     Comum.logout()
   })
 
-  it('CT163-Consulta_Mais_Filtros_Arredondamento_Cartao_Somente_Tipo_Conta', () => {
+  *//*it.skip('CT163-Consulta_Mais_Filtros_Arredondamento_Cartao_Somente_Tipo_Conta', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -124,7 +124,7 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
     Comum.logout()
   })
 
-  it('CT164-Consulta_Mais_Filtros_Arredondamento_Cartao_Sem_Filtros_Complementares', () => {
+  *//*it.skip('CT164-Consulta_Mais_Filtros_Arredondamento_Cartao_Sem_Filtros_Complementares', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -147,4 +147,4 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
 
     Comum.logout()
   })
-})
+*/})

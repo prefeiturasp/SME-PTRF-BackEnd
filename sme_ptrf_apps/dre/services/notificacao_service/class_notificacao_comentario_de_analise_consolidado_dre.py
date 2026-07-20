@@ -1,5 +1,5 @@
 from sme_ptrf_apps.core.models import Notificacao
-from sme_ptrf_apps.dre.models import ComentarioAnaliseConsolidadoDRE, ParametrosDre, MembroComissao
+from sme_ptrf_apps.dre.models import ComentarioAnaliseConsolidadoDRE, Comissao, MembroComissao
 from django.contrib.auth import get_user_model
 from .class_notificacao_service import NotificacaoService
 import logging
@@ -21,12 +21,14 @@ class NotificacaoComentarioDeAnaliseConsolidadoDre(NotificacaoService):
         remetente = Notificacao.REMETENTE_NOTIFICACAO_SME
         titulo = f"Comentário feito em seu relatório consolidado de {self.periodo.referencia}."
 
-        comissao_exame_contas = ParametrosDre.objects.first().comissao_exame_contas if ParametrosDre.objects.exists() else None
+        recurso = self.periodo.recurso
+        comissao_exame_contas = Comissao.get_comissao_responsavel_analise_pc_por_recurso(recurso)
 
         if comissao_exame_contas:
 
             # Criando uma lista de RF's para selecionar o objeto User com cada RF
-            lista_de_rf = [membro.rf for membro in MembroComissao.objects.filter(comissoes=comissao_exame_contas, dre=self.dre)]
+            lista_de_rf = [membro.rf for membro in MembroComissao.objects.filter(comissoes=comissao_exame_contas,
+                                                                                 dre=self.dre)]
 
             # Define destinatários
             usuarios = User.objects.filter(username__in=lista_de_rf)

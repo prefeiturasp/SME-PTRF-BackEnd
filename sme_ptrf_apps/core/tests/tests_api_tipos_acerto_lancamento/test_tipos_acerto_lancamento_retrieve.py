@@ -18,7 +18,8 @@ def test_retrieve_tipo_acerto_lancamento(jwt_authenticated_client_a, tipo_acerto
         'categoria': "DEVOLUCAO",
         'ativo': True,
         'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento_retrieve.pode_alterar_saldo_conciliacao,
-        'uuid': f'{tipo_acerto_lancamento_retrieve.uuid}'
+        'uuid': f'{tipo_acerto_lancamento_retrieve.uuid}',
+        'recurso': f'{tipo_acerto_lancamento_retrieve.recurso.uuid}'
     }
 
     assert response.status_code == status.HTTP_200_OK

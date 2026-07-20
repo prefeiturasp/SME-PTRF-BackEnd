@@ -1,3 +1,10 @@
+"""
+Módulo de modelos para as atas do PAA.
+
+Este módulo define a entidade responsável por representar as atas
+geradas para os Planos Anuais de Atividades, incluindo seus metadados,
+status de geração e informações da reunião.
+"""
 from django.db import models
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
@@ -7,6 +14,13 @@ from waffle import get_waffle_flag_model
 
 
 class AtaPaa(ModeloBase):
+    """
+    Representa uma ata associada a um PAA.
+
+    Armazena os dados da reunião, o tipo de ata, o parecer do conselho,
+    o status de geração do PDF e demais informações necessárias para
+    compor a documentação oficial do PAA.
+    """
     history = AuditlogHistoryField()
 
     ATA_APRESENTACAO = 'APRESENTACAO'
@@ -178,6 +192,7 @@ class AtaPaa(ModeloBase):
 
     @property
     def nome(self) -> str:
+        """Retorna o nome exibido da ata com base no tipo de ata."""
         return f'Ata de {self.ATA_NOMES[self.tipo_ata]} do PAA'
 
     @property
@@ -196,12 +211,14 @@ class AtaPaa(ModeloBase):
         return self.status_geracao_pdf == self.STATUS_EM_PROCESSAMENTO
 
     @property
-    def precisa_professor_gremio(self):
+    def precisa_professor_gremio(self) -> bool:
+        """Retorna True se a ata precisa de professor do grêmio para ser considerada completa."""
         from sme_ptrf_apps.paa.services.ata_paa_service import verifica_precisa_professor_gremio
         return verifica_precisa_professor_gremio(self)
 
     @property
-    def completa(self):
+    def completa(self) -> bool:
+        """Retorna True se a ata está completa."""
         flags = get_waffle_flag_model()
         historico_ativo = flags.objects.filter(name='historico-de-membros', everyone=True).exists()
         consta_pre_e_sec = (
@@ -230,13 +247,16 @@ class AtaPaa(ModeloBase):
 
         return True
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Retorna uma representação textual da ata para uso em logs e admin."""
         return f"Ata PAA {self.paa.periodo_paa.referencia} - {self.ATA_NOMES[self.tipo_ata]} - {self.data_reuniao}"
 
-    def nome_documento_exibicao(self):
+    def nome_documento_exibicao(self) -> str:
+        """Retorna o nome de exibição do documento com seu status de geração."""
         return f'{self.label_nome()}-{self.status_label_geracao()}'
 
     def label_nome(self) -> str:
+        """Retorna o rótulo nominal da ata para exibição em telas e relatórios."""
         return f"Ata de {self.ATA_NOMES[self.tipo_ata]} do PAA"
 
     def status_label_geracao(self) -> str:
@@ -249,22 +269,30 @@ class AtaPaa(ModeloBase):
 
         return 'Documento pendente de geração'
 
-    def arquivo_pdf_iniciar(self):
+    def arquivo_pdf_iniciar(self) -> None:
+        """Atualiza a ata para o status de geração em processamento."""
         self.status_geracao_pdf = self.STATUS_EM_PROCESSAMENTO
         self.save()
 
-    def arquivo_pdf_concluir(self):
+    def arquivo_pdf_concluir(self) -> None:
+        """Marca a ata como com PDF concluído e já gerado previamente."""
         self.previa = False
         self.pdf_gerado_previamente = True
         self.status_geracao_pdf = self.STATUS_CONCLUIDO
         self.save()
 
-    def arquivo_pdf_nao_gerado(self):
+    def arquivo_pdf_nao_gerado(self) -> None:
+        """Reverte a ata para o status de PDF ainda não gerado."""
         self.status_geracao_pdf = self.STATUS_NAO_GERADO
         self.save()
 
     @classmethod
     def iniciar(cls, paa):
+        """Cria ou reutiliza a ata correta para o ciclo atual do PAA.
+
+        Retorna:
+            AtaPaa: a ata existente ou uma nova ata criada para o PAA informado.
+        """
         tipo_ata = cls.ATA_RETIFICACAO if paa.status_em_retificacao else cls.ATA_APRESENTACAO
 
         ata_paa = (
@@ -298,7 +326,7 @@ class AtaPaa(ModeloBase):
 
 
 @receiver(post_delete, sender=AtaPaa)
-def ata_paa_post_delete(instance, **kwargs):
+def ata_paa_post_delete(instance, **kwargs) -> None:
     """
     Remove o arquivo físico do storage ao apagar o registro. Necessário porque
     o Django não apaga arquivos de FileField automaticamente, nem em

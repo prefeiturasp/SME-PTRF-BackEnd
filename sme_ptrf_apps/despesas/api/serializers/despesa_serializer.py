@@ -1,5 +1,6 @@
 import logging
 from rest_framework import serializers
+from waffle import flag_is_active, get_waffle_flag_model
 
 from .rateio_despesa_serializer import RateioDespesaSerializer, RateioDespesaTabelaGastosEscolaSerializer
 from .tipo_documento_serializer import TipoDocumentoSerializer, TipoDocumentoListSerializer
@@ -87,6 +88,19 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     )
 
     def validate_rateios(self, value):
+        flags = get_waffle_flag_model()
+        existe_flag_pipeline = flags.objects.filter(name='despesas-pipeline', everyone=True).exists()
+        if existe_flag_pipeline:
+            # bypass validate_rateios(R01, R04a, R04b, R05, R06b), executa pela pipeline
+            return value
+
+        # [PIPELINE] As validações abaixo (R01, R04a, R04b, R05, R06b) serão absorvidas
+        # pela pipeline quando substituída. Validators correspondentes:
+        #   RateiosObrigatoriosValidator  → R01
+        #   SomaValorRateioValidator      → R04a (valor_rateio)
+        #   SomaValorOriginalValidator     → R04b (valor_original)
+        #   RateiosCapitalValidator       → R05, R06b
+        # Ponto de acionamento futuro: validate() — onde o contexto completo já está disponível.
         ValidacaoDespesaService.validar_rateios_serializer(
             raw_rateios=self.initial_data.get("rateios", []),
             valor_total=self.initial_data.get("valor_total"),
@@ -99,15 +113,61 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         )
         return value
 
+    def executa_pipeline(self, data):
+        # [PIPELINE] Execução paralela ao legado quando a flag 'despesas-pipeline' está ativa.
+        # Validators ativos crescem à medida que cada regra é verificada quanto à paridade.
+        # Quando todos os validators estiverem migrados, o legado acima será removido.
+        from sme_ptrf_apps.despesas.validators import (
+            DespesaContextBuilder,
+            DespesaValidationError,
+            CREATE_PIPELINE,
+            UPDATE_PIPELINE,
+            CREATE_ACERTO_PIPELINE,
+            UPDATE_ACERTO_PIPELINE,
+        )
+
+        uuid_acerto = self.context.get("uuid_solicitacao_acerto")
+        recurso = self.context.get("recurso")
+        if self.instance is None:
+            pipeline = CREATE_ACERTO_PIPELINE if uuid_acerto else CREATE_PIPELINE
+        else:
+            pipeline = UPDATE_ACERTO_PIPELINE if uuid_acerto else UPDATE_PIPELINE
+
+        ctx = DespesaContextBuilder.build(
+            validated_data=data,
+            instance=self.instance,
+            recurso=recurso,
+            initial_data=self.initial_data,
+            uuid_solicitacao_acerto=uuid_acerto,
+        )
+
+        try:
+            ctx = pipeline.run(ctx)
+        except DespesaValidationError as exc:
+            raise serializers.ValidationError(exc.detail)
+
+        # Sincroniza mutações do apply() de volta ao data.
+        # ctx.rateios aponta para data["rateios"] — mutações em dicts individuais (R21)
+        # propagam automaticamente. Motivos e outros precisam de sync explícito (R15).
+        data["motivos_pagamento_antecipado"] = ctx.motivos_pagamento_antecipado
+        data["outros_motivos_pagamento_antecipado"] = ctx.outros_motivos or ""
+
+        return data
+
     def validate(self, data):
-        if not self.instance:
-            recurso = self.context.get("recurso")
+        recurso = self.context.get("recurso")
 
-            if not recurso:
-                raise serializers.ValidationError(
-                    "Recurso da despesa é obrigatório"
-                )
+        flags = get_waffle_flag_model()
+        existe_flag_pipeline = flags.objects.filter(name='despesas-pipeline', everyone=True).exists()
+        if not existe_flag_pipeline:
+            if not self.instance:
 
+                if not recurso:
+                    raise serializers.ValidationError(
+                        "Recurso da despesa é obrigatório"
+                    )
+
+        # ainda não coberto
         ValidacaoDespesaService.validar_periodo_e_contas(
             instance=self.instance,
             data_transacao=data.get("data_transacao"),
@@ -115,6 +175,10 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             despesas_impostos=data.get("despesas_impostos", []),
             recurso=self.instance.recurso if self.instance else recurso
         )
+
+        # Retorno de dados validados e mutados da pipeline
+        if existe_flag_pipeline:
+            data = self.executa_pipeline(data)
 
         return data
 
@@ -133,6 +197,22 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
         validated_data["recurso"] = self.context["recurso"]
 
+        # [PIPELINE — Fluxo 3] Após criar a despesa, vincular ao SolicitacaoAcertoDocumento
+        # em uma única operação, eliminando o segundo request atualmente feito pelo frontend.
+        # A pipeline já terá sido executada em validate(); aqui é apenas o efeito colateral.
+        #
+        #   despesa = DespesaService.create(validated_data, limpar_prioridades_callback=...)
+        #   uuid_acerto = self.context.get("uuid_solicitacao_acerto")
+        #   if uuid_acerto:
+        #       from sme_ptrf_apps.core.services.solicitacao_acerto_documento_service import (
+        #           SolicitacaoAcertoDocumentoService,
+        #       )
+        #       SolicitacaoAcertoDocumentoService.marcar_como_gasto_incluido(
+        #           uuid_solicitacao_acerto=uuid_acerto,
+        #           uuid_gasto_incluido=str(despesa.uuid),
+        #       )
+        #   return despesa
+        
         return DespesaService.create(
             validated_data,
             limpar_prioridades_callback=self._limpar_prioridades_paa
@@ -144,6 +224,19 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         from django.db import DatabaseError
         from copy import deepcopy
         import time
+
+        # [PIPELINE — Fluxo 4] Edição via Solicitação de Acerto.
+        # A pipeline do fluxo 2/4 já terá sido executada em validate();
+        #
+        #   uuid_acerto = self.context.get("uuid_solicitacao_acerto")
+        #   if uuid_acerto:
+        #       from sme_ptrf_apps.core.services.solicitacao_acerto_documento_service import (
+        #           SolicitacaoAcertoDocumentoService,
+        #       )
+        #       SolicitacaoAcertoDocumentoService.marcar_como_gasto_incluido(
+        #           uuid_solicitacao_acerto=uuid_acerto,
+        #           uuid_gasto_incluido=str(instance.uuid),
+        #       )
 
         max_retries = 3
         retry_count = 0

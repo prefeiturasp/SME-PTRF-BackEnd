@@ -5,7 +5,7 @@ from datetime import date
 
 from sme_ptrf_apps.dre.models import JustificativaRelatorioConsolidadoDRE, AnoAnaliseRegularidade, ConsolidadoDRE
 from sme_ptrf_apps.core.models import Associacao, PrestacaoConta, TipoConta, Unidade
-from sme_ptrf_apps.dre.models import ParametrosDre
+from sme_ptrf_apps.dre.models import ParametrosDre, Comissao
 
 from django.db.models import Max, Value, Count
 from django.db.models.functions import Coalesce
@@ -28,7 +28,7 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
         execucao_fisica = cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, eh_consolidado_de_publicacoes_parciais)
         dados_fisicos_financeiros = cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais, consolidado_dre)
 
-        assinatura_dre = cria_assinaturas_dre(dre)
+        assinatura_dre = cria_assinaturas_dre(dre, periodo)
 
         """
             Mapeamento campos x pdf - Campos usados em cada um dos blocos do PDF:
@@ -891,16 +891,18 @@ def cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_conso
     return informacoes
 
 
-def cria_assinaturas_dre(dre):
+def cria_assinaturas_dre(dre, periodo):
     """Bloco 5 - Autenticação: Parte de assinaturas"""
+
+    recurso = periodo.recurso
+    comissao = Comissao.get_comissao_responsavel_analise_pc_por_recurso(recurso)
 
     membros = []
 
-    if ParametrosDre.objects.all():
-        comissoes = ParametrosDre.get().comissao_exame_contas
-        membros = comissoes.membros.filter(dre=dre).values("rf", "nome", "cargo")
+    if comissao:
+        membros = comissao.membros.filter(dre=dre).values("rf", "nome", "cargo")
     else:
-        LOGGER.info(f"Não foi encontrado nenhum Parametro DRE, verificar no admin")
+        LOGGER.info("Não foi encontrado nenhuma comissão responsável pela análise de prestação de contas.")
 
     dados = {
         "membros": membros,

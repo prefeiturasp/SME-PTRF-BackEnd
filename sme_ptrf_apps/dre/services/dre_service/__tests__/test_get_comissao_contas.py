@@ -13,10 +13,11 @@ def test_get_comissao_contas(
     pedro_membro_outra_comissao_da_dre,
     maria_membro_comissao_exame_contas_de_outra_dre,
     parametros_dre_comissoes,
+    recurso_legado,
 ):
     dre_service = DreService(dre_valida)
 
-    comissao = dre_service.get_comissao_exame_contas()
+    comissao = dre_service.get_comissao_exame_contas(recurso_legado)
 
     assert comissao.count() == 2
     assert comissao.filter(nome=jose_membro_comissao_exame_contas_da_dre.nome).exists()

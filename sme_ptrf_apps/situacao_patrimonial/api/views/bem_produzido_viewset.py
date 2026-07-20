@@ -34,13 +34,22 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
     http_method_names = ['get', 'post', 'put', 'patch', 'delete']
 
     def get_queryset(self):
-        qs = self.queryset
+        recurso = self.request.recurso
+        qs = self.queryset.filter(recurso=recurso)
         associacao = self.request.query_params.get('associacao_uuid', None)
 
         if associacao is not None:
             qs = qs.filter(associacao__uuid=associacao)
 
         return qs
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+
+        if self.action == "create":
+            context["recurso"] = self.request.recurso
+
+        return context
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -114,3 +123,11 @@ class BemProduzidoRascunhoViewSet(WaffleFlagMixin, ModelViewSet):
     serializer_class = BemProduzidoSaveRacunhoSerializer
     http_method_names = ['post', 'patch']
     lookup_field = 'uuid'
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+
+        if self.action == "create":
+            context["recurso"] = self.request.recurso
+
+        return context

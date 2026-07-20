@@ -17,7 +17,8 @@ def test_api_list_tipos_acerto_lancamento(jwt_authenticated_client_a, tipo_acert
             'id': tipo_acerto_lancamento.id,
             'nome': 'Teste lanca',
             'categoria': 'EXCLUSAO_LANCAMENTO',
-            'uuid': f'{tipo_acerto_lancamento.uuid}'
+            'uuid': f'{tipo_acerto_lancamento.uuid}',
+            'recurso': f'{tipo_acerto_lancamento.recurso.uuid}'
         }
     ]
 
@@ -43,7 +44,8 @@ def test_api_list_tipos_acerto_lancamento_filtro_nome(
             'categoria': tipo_acerto_lancamento.categoria,
             'ativo': tipo_acerto_lancamento.ativo,
             'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento.pode_alterar_saldo_conciliacao,
-            'uuid': f'{tipo_acerto_lancamento.uuid}'
+            'uuid': f'{tipo_acerto_lancamento.uuid}',
+            'recurso': f'{tipo_acerto_lancamento.recurso.uuid}'
         },
         {
             'id': tipo_acerto_lancamento_02.id,
@@ -51,7 +53,8 @@ def test_api_list_tipos_acerto_lancamento_filtro_nome(
             'categoria': tipo_acerto_lancamento_02.categoria,
             'ativo': tipo_acerto_lancamento_02.ativo,
             'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento_02.pode_alterar_saldo_conciliacao,
-            'uuid': f'{tipo_acerto_lancamento_02.uuid}'
+            'uuid': f'{tipo_acerto_lancamento_02.uuid}',
+            'recurso': f'{tipo_acerto_lancamento_02.recurso.uuid}'
         },
     ]
 
@@ -77,7 +80,8 @@ def test_api_list_tipos_acerto_lancamento_filtro_categoria(
             'categoria': tipo_acerto_lancamento.categoria,
             'ativo': tipo_acerto_lancamento.ativo,
             'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento.pode_alterar_saldo_conciliacao,
-            'uuid': f'{tipo_acerto_lancamento.uuid}'
+            'uuid': f'{tipo_acerto_lancamento.uuid}',
+            'recurso': f'{tipo_acerto_lancamento.recurso.uuid}'
         },
         {
             'id': tipo_acerto_lancamento_02.id,
@@ -85,7 +89,8 @@ def test_api_list_tipos_acerto_lancamento_filtro_categoria(
             'categoria': tipo_acerto_lancamento_02.categoria,
             'ativo': tipo_acerto_lancamento_02.ativo,
             'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento_02.pode_alterar_saldo_conciliacao,
-            'uuid': f'{tipo_acerto_lancamento_02.uuid}'
+            'uuid': f'{tipo_acerto_lancamento_02.uuid}',
+            'recurso': f'{tipo_acerto_lancamento_02.recurso.uuid}'
         },
         {
             'id': tipo_acerto_lancamento_03.id,
@@ -93,7 +98,8 @@ def test_api_list_tipos_acerto_lancamento_filtro_categoria(
             'categoria': tipo_acerto_lancamento_03.categoria,
             'ativo': tipo_acerto_lancamento_03.ativo,
             'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento_03.pode_alterar_saldo_conciliacao,
-            'uuid': f'{tipo_acerto_lancamento_03.uuid}'
+            'uuid': f'{tipo_acerto_lancamento_03.uuid}',
+            'recurso': f'{tipo_acerto_lancamento_03.recurso.uuid}'
         },
     ]
 
@@ -119,7 +125,8 @@ def test_api_list_tipos_acerto_lancamento_filtro_ativo(
             'categoria': tipo_acerto_lancamento_02.categoria,
             'ativo': tipo_acerto_lancamento_02.ativo,
             'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento_02.pode_alterar_saldo_conciliacao,
-            'uuid': f'{tipo_acerto_lancamento_02.uuid}'
+            'uuid': f'{tipo_acerto_lancamento_02.uuid}',
+            'recurso': f'{tipo_acerto_lancamento_02.recurso.uuid}'
         },
         {
             'id': tipo_acerto_lancamento_03.id,
@@ -127,7 +134,8 @@ def test_api_list_tipos_acerto_lancamento_filtro_ativo(
             'categoria': tipo_acerto_lancamento_03.categoria,
             'ativo': tipo_acerto_lancamento_03.ativo,
             'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento_03.pode_alterar_saldo_conciliacao,
-            'uuid': f'{tipo_acerto_lancamento_03.uuid}'
+            'uuid': f'{tipo_acerto_lancamento_03.uuid}',
+            'recurso': f'{tipo_acerto_lancamento_03.recurso.uuid}'
         },
     ]
 
@@ -153,7 +161,8 @@ def test_api_list_tipos_acerto_lancamento_filtro_composto(
             'categoria': tipo_acerto_lancamento.categoria,
             'ativo': tipo_acerto_lancamento.ativo,
             'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento.pode_alterar_saldo_conciliacao,
-            'uuid': f'{tipo_acerto_lancamento.uuid}'
+            'uuid': f'{tipo_acerto_lancamento.uuid}',
+            'recurso': f'{tipo_acerto_lancamento.recurso.uuid}'
         },
         {
             'id': tipo_acerto_lancamento_03.id,
@@ -161,7 +170,8 @@ def test_api_list_tipos_acerto_lancamento_filtro_composto(
             'categoria': tipo_acerto_lancamento_03.categoria,
             'ativo': tipo_acerto_lancamento_03.ativo,
             'pode_alterar_saldo_conciliacao': tipo_acerto_lancamento_03.pode_alterar_saldo_conciliacao,
-            'uuid': f'{tipo_acerto_lancamento_03.uuid}'
+            'uuid': f'{tipo_acerto_lancamento_03.uuid}',
+            'recurso': f'{tipo_acerto_lancamento_03.recurso.uuid}'
         },
     ]
 

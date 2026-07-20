@@ -6,11 +6,11 @@
   <p class="font-12 mb-1">
     {{ dados.dados_texto_da_ata.data_reuniao_por_extenso }},
     à(s) {{ dados.dados_texto_da_ata.hora_reuniao }},
-    reuniu-se a Comissão de Prestação de Contas do PTRF da Diretoria Regional de
+    reuniu-se a {{ dados.dados_texto_da_ata.comissao_responsavel_pc }} da Diretoria Regional de
     Educação {{ dados.cabecalho.nome_dre }}, instituída pela Portaria DRE - {{ dados.cabecalho.nome_dre }}
     nº {{ dados.cabecalho.numero_portaria }}/{{ dados.cabecalho.data_portaria|date:"Y" }}
     de {{ dados.cabecalho.data_portaria|date:"d/m/Y" }}, para
-    análise de prestações de contas RETIFICADAS dos recursos transferidos pelo {{ dados.cabecalho.titulo }}, 
+    análise de prestações de contas RETIFICADAS dos recursos transferidos pelo {{ dados.cabecalho.titulo }},
     período de {{ dados.dados_texto_da_ata.periodo_data_inicio }}
     até {{ dados.dados_texto_da_ata.periodo_data_fim }}, em virtude dos seguintes motivos:
   </p>
@@ -18,7 +18,7 @@
 {% else %}
   <p class="font-12">{{ dados.dados_texto_da_ata.data_reuniao_por_extenso }},
     à(s) {{ dados.dados_texto_da_ata.hora_reuniao }},
-    reuniu-se a Comissão de Prestação de Contas do PTRF da Diretoria Regional de
+    reuniu-se a {{ dados.dados_texto_da_ata.comissao_responsavel_pc }} da Diretoria Regional de
     Educação {{ dados.cabecalho.nome_dre }}, instituída pela Portaria DRE - {{ dados.cabecalho.nome_dre }}
     nº {{ dados.cabecalho.numero_portaria }}/{{ dados.cabecalho.data_portaria|date:"Y" }}
     de {{ dados.cabecalho.data_portaria|date:"d/m/Y" }}, para

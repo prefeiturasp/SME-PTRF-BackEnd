@@ -94,13 +94,15 @@ class BemProduzidoSaveSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
+        recurso = self.context.get("recurso")
         despesas = validated_data.pop("despesas", [])
         rateios = validated_data.pop("rateios", [])
         itens = validated_data.pop("itens", [])
         recursos_proprios = validated_data.pop("recursos_proprios", [])
 
         bem_produzido = BemProduzido.objects.create(
-            associacao=validated_data['associacao']
+            associacao=validated_data['associacao'],
+            recurso=recurso,
         )
 
         self._handle_despesas(bem_produzido, despesas)
@@ -255,13 +257,15 @@ class BemProduzidoSaveRacunhoSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def create(self, validated_data):
+        recurso = self.context.get("recurso")
         despesas = validated_data.pop("despesas", [])
         rateios = validated_data.pop("rateios", [])
         itens = validated_data.pop("itens", [])
         recursos_proprios = validated_data.pop("recursos_proprios", [])
 
         bem_produzido = BemProduzido.objects.create(
-            associacao=validated_data['associacao']
+            associacao=validated_data['associacao'],
+            recurso=recurso,
         )
 
         # Criar item vazio apenas se não houver itens válidos
