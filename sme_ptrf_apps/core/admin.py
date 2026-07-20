@@ -1663,9 +1663,9 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
 
 @admin.register(TipoAcertoLancamento)
 class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'categoria', 'ativo']
+    list_display = ['nome', 'categoria', 'recurso', 'ativo']
     search_fields = ['nome', 'categoria']
-    list_filter = ['nome', 'categoria', 'ativo']
+    list_filter = ['nome', 'categoria', 'ativo', 'recurso']
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 
@@ -1711,7 +1711,8 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'analise_lancamento__tipo_lancamento',
         'tipo_acerto',
-        'copiado'
+        'copiado',
+        'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo__recurso',
     ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
@@ -1745,9 +1746,9 @@ class TipoDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
 
 @admin.register(TipoAcertoDocumento)
 class TipoAcertoDocumentoAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'categoria', 'ativo']
+    list_display = ['nome', 'categoria', 'ativo', 'recurso']
     search_fields = ['nome']
-    list_filter = ['tipos_documento_prestacao', 'categoria', 'ativo']
+    list_filter = ['tipos_documento_prestacao', 'categoria', 'ativo', 'recurso']
     readonly_fields = ('uuid', 'id',)
 
 
@@ -1808,7 +1809,7 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
         return f'#{obj.analise_documento.analise_prestacao_conta.pk}' if obj and obj.analise_documento.analise_prestacao_conta else ''  # noqa
 
     get_analise_pc.short_description = 'Análise PC'
-    list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_acerto', 'copiado',]
+    list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_acerto', 'tipo_acerto_id', 'copiado',]
     search_fields = [
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
@@ -1818,7 +1819,8 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'tipo_acerto',
-        'copiado'
+        'copiado',
+        'analise_documento__analise_prestacao_conta__prestacao_conta__periodo__recurso',
     ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
 

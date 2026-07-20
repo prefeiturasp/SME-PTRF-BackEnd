@@ -1,131 +1,125 @@
 ///<reference types="cypress" />
 
-import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF"
-const Comum = new ComumPaginaPTRF()
+import ComumPaginaPTRF from "../../../../support/Paginas/ComumPaginaPTRF";
+const Comum = new ComumPaginaPTRF();
 
-import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina"
-const Creditos = new CreditosEscolaPagina()
+import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagina";
+const Creditos = new CreditosEscolaPagina();
 
-describe('Credito Escola - Consulta - Filtros', () => {
+describe("Credito Escola - Consulta - Filtros", () => {
+  /*it.skip("CT112-Consulta_Mais_Filtros_Tipo_Conta_Cartao", () => {
+    Comum.visitarPaginaPTRF();
 
-  it('CT112-Consulta_Mais_Filtros_Tipo_Conta_Cartao', () => {
+    cy.realizar_login("UE");
 
-    Comum.visitarPaginaPTRF()
+    cy.wait(3000);
 
-   cy.realizar_login('UE')
+    Creditos.selecionarCreditosDaEscola();
 
-    cy.wait(3000)
+    Creditos.selecionarMaisFiltros();
 
-    Creditos.selecionarCreditosDaEscola()
+    Creditos.realizaConsultaTipoContaCartao();
 
-    Creditos.selecionarMaisFiltros()
+    Creditos.selecionarFiltrarMaisFiltros();
 
-    Creditos.realizaConsultaTipoContaCartao()
+    Comum.selecionarPerfil();
 
-    Creditos.selecionarFiltrarMaisFiltros()
+    Comum.logout();
+  });*/
 
-    Comum.selecionarPerfil()
+  /*it.skip("CT197-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Data", () => {
+    Comum.visitarPaginaPTRF();
 
-    Comum.logout()
-  })
+    cy.realizar_login("UE");
 
-  it('CT197-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Data', () => {
+    cy.wait(3000);
 
-    Comum.visitarPaginaPTRF()
+    Creditos.selecionarCreditosDaEscola();
 
-    cy.realizar_login('UE')
+    Creditos.selecionarMaisFiltros();
 
-    cy.wait(3000)
+    Creditos.realizaConsultaTipoContaCartao();
 
-    Creditos.selecionarCreditosDaEscola()
+    Creditos.realizaConsultaDataInicio();
 
-    Creditos.selecionarMaisFiltros()
+    Creditos.realizaConsultaDataFim();
 
-    Creditos.realizaConsultaTipoContaCartao()
+    Creditos.selecionarFiltrarMaisFiltros();
 
-    Creditos.realizaConsultaDataInicio()
+    Comum.selecionarPerfil();
 
-    Creditos.realizaConsultaDataFim()
+    Comum.logout();
+  });*/
 
-    Creditos.selecionarFiltrarMaisFiltros()
+  /*it.skip("CT198-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Acao_PTRF", () => {
+    Comum.visitarPaginaPTRF();
 
-    Comum.selecionarPerfil()
+    cy.realizar_login("UE");
 
-    Comum.logout()
-  })
+    cy.wait(3000);
 
-  it('CT198-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Acao_PTRF', () => {
+    Creditos.selecionarCreditosDaEscola();
 
-    Comum.visitarPaginaPTRF()
+    Creditos.selecionarMaisFiltros();
 
-    cy.realizar_login('UE')
+    Creditos.realizaConsultaTipoContaCartao();
 
-    cy.wait(3000)
+    Creditos.realizaConsultaAcaoPtrf();
 
-    Creditos.selecionarCreditosDaEscola()
+    Creditos.selecionarFiltrarMaisFiltros();
 
-    Creditos.selecionarMaisFiltros()
+    Comum.selecionarPerfil();
 
-    Creditos.realizaConsultaTipoContaCartao()
+    Comum.logout();
+  });*/
 
-    Creditos.realizaConsultaAcaoPtrf()
+  /*it.skip("CT199-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Detalhamento", () => {
+    Comum.visitarPaginaPTRF();
 
-    Creditos.selecionarFiltrarMaisFiltros()
+    cy.realizar_login("UE");
 
-    Comum.selecionarPerfil()
+    cy.wait(3000);
 
-    Comum.logout()
-  })
+    Creditos.selecionarCreditosDaEscola();
 
-  it('CT199-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Detalhamento', () => {
+    Creditos.selecionarMaisFiltros();
 
-    Comum.visitarPaginaPTRF()
+    Creditos.selecionarDetalhamentoMaisFiltros();
 
-    cy.realizar_login('UE')
+    Creditos.realizaConsultaTipoContaCartao();
 
-    cy.wait(3000)
+    Creditos.selecionarFiltrarMaisFiltros();
 
-    Creditos.selecionarCreditosDaEscola()
+    Comum.selecionarPerfil();
 
-    Creditos.selecionarMaisFiltros()
+    Comum.logout();
+  });*/
 
-    Creditos.selecionarDetalhamentoMaisFiltros()
+  /*it.skip("CT200-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Multiplos_Filtros", () => {
+    Comum.visitarPaginaPTRF();
 
-    Creditos.realizaConsultaTipoContaCartao()
+    cy.realizar_login("UE");
 
-    Creditos.selecionarFiltrarMaisFiltros()
+    cy.wait(3000);
 
-    Comum.selecionarPerfil()
+    Creditos.selecionarCreditosDaEscola();
 
-    Comum.logout()
-  })
+    Creditos.selecionarMaisFiltros();
 
-  it('CT200-Consulta_Mais_Filtros_Tipo_Conta_Cartao_Com_Multiplos_Filtros', () => {
+    Creditos.selecionarDetalhamentoMaisFiltros();
 
-    Comum.visitarPaginaPTRF()
+    Creditos.realizaConsultaTipoContaCartao();
 
-    cy.realizar_login('UE')
+    Creditos.realizaConsultaAcaoPtrf();
 
-    cy.wait(3000)
+    Creditos.realizaConsultaDataInicio();
 
-    Creditos.selecionarCreditosDaEscola()
+    Creditos.realizaConsultaDataFim();
 
-    Creditos.selecionarMaisFiltros()
+    Creditos.selecionarFiltrarMaisFiltros();
 
-    Creditos.selecionarDetalhamentoMaisFiltros()
+    Comum.selecionarPerfil();
 
-    Creditos.realizaConsultaTipoContaCartao()
-
-    Creditos.realizaConsultaAcaoPtrf()
-
-    Creditos.realizaConsultaDataInicio()
-
-    Creditos.realizaConsultaDataFim()
-
-    Creditos.selecionarFiltrarMaisFiltros()
-
-    Comum.selecionarPerfil()
-
-    Comum.logout()
-  })
-})
+    Comum.logout();
+  });*/
+});

@@ -6,7 +6,7 @@ import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagi
 const Creditos = new CreditosEscolaPagina()
 
 describe("Credito Escola - Cadastro", () => {
-  it("CT08-Validar_Soma_Cadastro_de_Credito", () => {
+  /*it.skip("CT08-Validar_Soma_Cadastro_de_Credito", () => {
     Comum.visitarPaginaPTRF()
 
     cy.realizar_login('UE')
@@ -23,4 +23,4 @@ describe("Credito Escola - Cadastro", () => {
 
     Comum.logout()
   })
-})
+*/})

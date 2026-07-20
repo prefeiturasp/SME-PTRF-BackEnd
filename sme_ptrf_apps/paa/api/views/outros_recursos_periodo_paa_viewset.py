@@ -1,7 +1,16 @@
+
+"""
+Módulo de API paragerenciamento dos recursos do período do PAA.
+
+Este módulo concentra os endpoints de listagem, consulta, criação, atualização,
+importação de unidades, vinculação e desvinculação de unidades, bem como a desabilitação do recurso.
+Permite a filtragem pelo OutroRecursoPeriodoPaaFiltro.
+"""
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework import status
 import django_filters
 from waffle.mixins import WaffleFlagMixin
@@ -29,6 +38,16 @@ logger = logging.getLogger(__name__)
 
 
 class OutroRecursoPeriodoPaaFiltro(django_filters.FilterSet):
+    """
+    FilterSet responsável pela filtragem dos outros recursos do período do paa.
+
+    Permite filtrar os objetivos pelos seguintes campos:
+
+    - periodo_paa_uuid
+    - outro_recurso_uuid
+    - outro_recurso_nome
+    - ativo
+    """
     periodo_paa_uuid = django_filters.CharFilter(lookup_expr='exact', field_name='periodo_paa__uuid')
     outro_recurso_uuid = django_filters.CharFilter(lookup_expr='exact', field_name='outro_recurso__uuid')
     outro_recurso_nome = django_filters.CharFilter(lookup_expr='icontains', field_name='outro_recurso__nome')
@@ -40,6 +59,13 @@ class OutroRecursoPeriodoPaaFiltro(django_filters.FilterSet):
 
 
 class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
+    """
+    ViewSet responsável pelo gerenciamento dos recursos do período do PAA.
+
+    Disponibiliza operações de listagem, consulta, criação, atualização,
+    importação de unidades, vinculação e desvinculação de unidades, bem como a desabilitação do recurso.
+    Permite a filtragem pelo OutroRecursoPeriodoPaaFiltro.
+    """
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
@@ -55,7 +81,17 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
         url_path='importar-unidades',
         permission_classes=[IsAuthenticated & PermissaoApiSME]
     )
-    def importar_unidades(self, request, uuid=None):
+    def importar_unidades(self, request: Request, uuid: str | None = None) -> Response:
+        """
+        Importe unidades para um recurso do período do PAA.
+
+        Args:
+            request: O objeto de requisição HTTP atual.
+            origem_uuid: UUID do recurso de origem para importar as unidades.
+
+        Returns:
+            Response: Objeto de resposta HTTP com o status da operação.
+        """
         try:
             OutroRecursoPeriodoPaaImportacaoService.importar_unidades(
                 destino=self.get_object(),
@@ -102,7 +138,21 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     )
     @action(detail=True, url_path='unidades-vinculadas',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def unidades_vinculadas(self, request, *args, **kwargs):
+    def unidades_vinculadas(self, request: Request, *args, **kwargs) -> Response:
+        """
+        Retorne as unidades vinculadas ao recurso do período.
+
+        Args:
+            request: O objeto de requisição HTTP atual.
+            dre: UUID da DRE para filtrar as unidades vinculadas.
+            tipo_unidade: Tipo da unidade para filtrar as unidades vinculadas.
+            nome_ou_codigo: Nome ou código da unidade para filtrar as unidades vinculadas.
+            *args: Argumentos posicionais adicionais.
+            **kwargs: Argumentos nomeados adicionais.
+
+        Returns:
+            Uma resposta paginada contendo as unidades vinculadas ao recurso do período.
+        """
         uuid_dre = self.request.query_params.get('dre')
         nome_ou_codigo = self.request.query_params.get('nome_ou_codigo')
         tipo_unidade = self.request.query_params.get('tipo_unidade')
@@ -140,7 +190,21 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     )
     @action(detail=True, url_path='unidades-nao-vinculadas',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def unidades_nao_vinculadas(self, request, *args, **kwargs):
+    def unidades_nao_vinculadas(self, request: Request, *args, **kwargs) -> Response:
+        """
+        Retorne as unidades não vinculadas ao recurso do período.
+
+        Args:
+            request: O objeto de requisição HTTP atual.
+            dre: UUID da DRE para filtrar as unidades não vinculadas.
+            tipo_unidade: Tipo da unidade para filtrar as unidades não vinculadas.
+            nome_ou_codigo: Nome ou código da unidade para filtrar as unidades não vinculadas.
+            *args: Argumentos posicionais adicionais.
+            **kwargs: Argumentos nomeados adicionais.
+
+        Returns:
+            Uma resposta paginada contendo as unidades não vinculadas ao recurso do período.
+        """
         from sme_ptrf_apps.core.models.unidade import Unidade
         uuid_dre = self.request.query_params.get('dre')
         nome_ou_codigo = self.request.query_params.get('nome_ou_codigo')
@@ -179,7 +243,7 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     )
     @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/desvincular',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def desvincular_unidade(self, request, unidade_uuid, *args, **kwargs):
+    def desvincular_unidade(self, request: Request, unidade_uuid: str, *args, **kwargs) -> Response:
         """Desvincula uma unidade do recurso período."""
         service = self._get_service_vinculo_unidade()
         confirmado = request.data.get('confirmado', False)
@@ -229,7 +293,7 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     )
     @action(detail=True, methods=['POST'], url_path='desvincular-em-lote',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def desvincular_em_lote(self, request, *args, **kwargs):
+    def desvincular_em_lote(self, request: Request, *args, **kwargs) -> Response:
         """Desvincula múltiplas unidades do período em lote."""
         service = self._get_service_vinculo_unidade()
         unidade_uuids = request.data.get('unidade_uuids', [])
@@ -287,7 +351,7 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     )
     @action(detail=True, methods=['POST'], url_path='vincular-todas-unidades',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def vincular_todas_unidades(self, request, *args, **kwargs):
+    def vincular_todas_unidades(self, request: Request, *args, **kwargs) -> Response:
         """Habilita o recurso para todas as unidades."""
         service = self._get_service_vinculo_unidade()
 
@@ -310,7 +374,7 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     )
     @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/vincular',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def vincular_unidade(self, request, unidade_uuid, *args, **kwargs):
+    def vincular_unidade(self, request: Request, unidade_uuid: str, *args, **kwargs) -> Response:
         """Vincula uma unidade ao recurso do período."""
         service = self._get_service_vinculo_unidade()
         confirmado = request.data.get('confirmado', False)
@@ -363,7 +427,7 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
     )
     @action(detail=True, methods=['POST'], url_path='vincular-em-lote',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def vincular_em_lote(self, request, *args, **kwargs):
+    def vincular_em_lote(self, request: Request, *args, **kwargs) -> Response:
         """Vincula múltiplas unidades ao recurso do período em lote."""
         service = self._get_service_vinculo_unidade()
         unidade_uuids = request.data.get('unidade_uuids', [])
@@ -421,7 +485,7 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
         url_path='informacoes-desabilitacao',
         permission_classes=[IsAuthenticated & PermissaoApiUe]
     )
-    def informacoes_desabilitacao(self, request, uuid=None):
+    def informacoes_desabilitacao(self, request: Request, uuid: str | None = None) -> Response:
         """
         Obtém informações sobre os impactos da desabilitação do recurso.
         Usado para exibir na modal de confirmação.
@@ -460,7 +524,7 @@ class OutrosRecursosPeriodoPaaViewSet(WaffleFlagMixin, ModelViewSet):
         url_path='desabilitar',
         permission_classes=[IsAuthenticated & PermissaoApiUe]
     )
-    def desabilitar(self, request, uuid=None):
+    def desabilitar(self, request: Request, uuid: str | None = None) -> Response:
         """
         Desabilita o recurso aplicando as regras de negócio conforme o status dos PAAs.
 

@@ -1,3 +1,9 @@
+"""
+Módulo de modelos para atividades estatutárias.
+
+Este módulo define a entidade responsável por registrar as atividades
+estatutárias.
+"""
 from django.db import models
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -7,6 +13,11 @@ from sme_ptrf_apps.paa.choices import Mes, StatusChoices
 
 
 class AtividadeEstatutaria(ModeloBase):
+    """
+    Representa uma atividade estatutária.
+
+    Essa model registra armazena os dados da atividade estatutária.
+    """
     history = AuditlogHistoryField()
     nome = models.CharField('Atividade Estatutária', max_length=160, blank=False)
     tipo = models.CharField(max_length=20, null=True, blank=True,
@@ -18,7 +29,8 @@ class AtividadeEstatutaria(ModeloBase):
     paa = models.ForeignKey('paa.Paa', on_delete=models.PROTECT, verbose_name="PAA", blank=True, null=True)
     ordem = models.PositiveIntegerField(default=0)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Retorna uma representação textual da atividade com o nome."""
         return self.nome
 
     class Meta:

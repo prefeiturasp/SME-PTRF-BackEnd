@@ -4,7 +4,8 @@ from ...utils.choices_to_json import choices_to_json
 
 class TipoAcertoLancamentoAgrupadoPorCategoria:
 
-    def __init__(self, choices, categorias_a_ignorar):
+    def __init__(self, choices, categorias_a_ignorar, recurso=None):
+        self.recurso = recurso
         self.choices = choices
         self.categorias_a_ignorar = categorias_a_ignorar if categorias_a_ignorar is not None else []
         self.__set_agrupamento()
@@ -21,6 +22,9 @@ class TipoAcertoLancamentoAgrupadoPorCategoria:
 
             tipos_acertos_lancamentos = TipoAcertoLancamento.objects.filter(
                 categoria=categoria_id).filter(ativo=True).values("id", "nome", "categoria", "ativo", "uuid")
+
+            if self.recurso is not None:
+                tipos_acertos_lancamentos = tipos_acertos_lancamentos.filter(recurso=self.recurso)
 
             if not tipos_acertos_lancamentos:
                 continue
@@ -92,9 +96,9 @@ class TipoAcertoLancamentoCategorias:
 
 class TipoAcertoLancamentoService:
     @classmethod
-    def agrupado_por_categoria(cls, choices, categorias_a_ignorar=None):
+    def agrupado_por_categoria(cls, choices, categorias_a_ignorar=None, recurso=None):
         return TipoAcertoLancamentoAgrupadoPorCategoria(
-            choices=choices, categorias_a_ignorar=categorias_a_ignorar).agrupamento
+            choices=choices, categorias_a_ignorar=categorias_a_ignorar, recurso=recurso).agrupamento
 
     @classmethod
     def categorias(cls, choices):

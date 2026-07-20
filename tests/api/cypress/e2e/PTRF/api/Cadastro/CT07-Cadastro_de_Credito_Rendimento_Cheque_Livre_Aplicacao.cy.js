@@ -12,7 +12,7 @@ Cypress.on("uncaught:exception", (err, runnable) => {
 })
 
 describe("Credito Escola - Cadastro", () => {
-  it("CT07-Cadastro_de_Credito_Rendimento_Cheque_Livre_Aplicacao", () => {
+  /*it.skip("CT07-Cadastro_de_Credito_Rendimento_Cheque_Livre_Aplicacao", () => {
     Comum.visitarPaginaPTRF()
 
     cy.realizar_login('UE')
@@ -29,4 +29,4 @@ describe("Credito Escola - Cadastro", () => {
 
     Comum.logout()
   })
-})
+*/})

@@ -1,3 +1,9 @@
+"""
+Módulo de modelos das receitas previstas PDDE do PAA (Plano Anual de Ação).
+
+Este módulo define a entidade responsável por
+representar as receitas previstas PDDE do PAA e seus atributos de negócio.
+"""
 from django.db import models
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -6,6 +12,12 @@ from sme_ptrf_apps.paa.models import Paa, AcaoPdde
 
 
 class ReceitaPrevistaPdde(ModeloBase):
+    """
+    Representa uma Receita prevista PDDE.
+
+    Essa model registra armazena os dados da receita prevista PDDE,
+    do PAA e da Ação PDDE.
+    """
     history = AuditlogHistoryField()
     paa = models.ForeignKey(Paa, on_delete=models.PROTECT, verbose_name="PAA", blank=False, null=True)
 

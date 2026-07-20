@@ -1,3 +1,9 @@
+"""
+Módulo de modelos do PAA (Plano Anual de Ação).
+
+Este módulo define a entidade responsável por
+representar os periodos do PAA e seus atributos de negócio.
+"""
 from datetime import date
 
 from django.db import models
@@ -11,6 +17,12 @@ from sme_ptrf_apps.paa.utils import ajustar_data_inicial_e_final, validar_data_f
 
 
 class PeriodoPaa(ModeloBase):
+    """
+    Representa um período do PAA (Plano Anual de Ação).
+
+    Essa model armazena informações sobre os períodos do PAA, incluindo referência,
+    datas de início e término, e fornece métodos para validação e manipulação desses períodos.
+    """
     history = AuditlogHistoryField()
     referencia = models.CharField('Referência do período', max_length=150)
     data_inicial = models.DateField(verbose_name='Data de início do período')
@@ -21,16 +33,19 @@ class PeriodoPaa(ModeloBase):
         verbose_name_plural = 'Períodos PAA'
         ordering = ('-data_inicial',)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Retorna uma representação textual do período PAA."""
         return self.referencia
 
     @property
-    def editavel(self):
+    def editavel(self) -> bool:
+        """Verifica se o período PAA é editável com base na existência de PAAs gerados no período."""
         from sme_ptrf_apps.paa.services import PeriodoPaaService
         return not PeriodoPaaService(self).existe_paas_gerados_no_periodo()
 
     @property
-    def ano_inicial_final(self):
+    def ano_inicial_final(self) -> str | None:
+        """Retorna uma string representando o ano inicial e final do período PAA."""
         if not self.data_inicial or not self.data_final:
             return None
 
@@ -44,7 +59,8 @@ class PeriodoPaa(ModeloBase):
         hoje = date.today()
         return cls.objects.filter(data_inicial__year=hoje.year).order_by("data_inicial").first()
 
-    def clean(self):
+    def clean(self) -> None:
+        """Valida os campos do período PAA antes de salvar."""
         # Validar se a data final é maior ou igual à data inicial ou se tem o mesmo mês com dias diferentes
         data_final_e_valida, mensagem = validar_data_final(self.data_inicial, self.data_final)
         if not data_final_e_valida:
@@ -61,7 +77,8 @@ class PeriodoPaa(ModeloBase):
             raise ValidationError('Referência do PAA já existe.')
         super().clean()
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
+        """Salva o período PAA após validar e ajustar as datas inicial e final."""
         self.full_clean()
         data_inicial, data_final = ajustar_data_inicial_e_final(self.data_inicial, self.data_final)
         self.data_inicial = data_inicial

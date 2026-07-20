@@ -9,6 +9,8 @@ from model_bakery import baker
 from sme_ptrf_apps.users.models import Grupo
 from sme_ptrf_apps.core.models import STATUS_IMPLANTACAO, SolicitacaoEncerramentoContaAssociacao
 
+from sme_ptrf_apps.dre.fixtures.factories import ComissaoFactory
+
 
 @pytest.fixture
 def unidade_a(dre):
@@ -692,13 +694,13 @@ def parametro_comissao_exame_conta(comissao_a):
 
 
 @pytest.fixture
-def comissao_a():
-    return baker.make('Comissao', nome='A')
+def comissao_a(recurso_legado):
+    return ComissaoFactory(nome="A", responsavel_analise_pc=True, recursos=[recurso_legado])
 
 
 @pytest.fixture
 def comissao_b():
-    return baker.make('Comissao', nome='B')
+    return ComissaoFactory(nome="B")
 
 
 @pytest.fixture

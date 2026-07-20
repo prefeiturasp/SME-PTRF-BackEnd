@@ -3,6 +3,7 @@ import logging
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import status
 
@@ -18,13 +19,19 @@ logger = logging.getLogger(__name__)
 
 @extend_schema_view()
 class DocumentoPaaViewSet(GenericViewSet):
+    """
+    ViewSet responsável pelo gerenciamento do documento PAA.
+
+    Disponibiliza operações de download do arquivo PDF do documento PAA,
+    permitindo a filtragem pelo uuid do documento.
+    """
     permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
     queryset = DocumentoPaa.objects.all()
 
     @action(detail=True, methods=['get'], url_path='download',
             permission_classes=[IsAuthenticated])
-    def download(self, request, uuid=None):
+    def download(self, request: Request, uuid: str | None = None):
         """
         Endpoint para fazer download do arquivo PDF do documento PAA
 

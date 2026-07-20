@@ -6,12 +6,16 @@ from sme_ptrf_apps.core.models import TipoAcertoDocumento
 pytestmark = pytest.mark.django_db
 
 
-def test_create_tipo_acerto_documento(jwt_authenticated_client_a, tipo_documento_prestacao_conta_relacao_bens):
+def test_create_tipo_acerto_documento(
+        jwt_authenticated_client_a, 
+        tipo_documento_prestacao_conta_relacao_bens, 
+        recurso_legado):
     payload_novo_tipo_acerto = {
         "nome": "tipo acerto documento teste",
         "categoria": TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS,
         "tipos_documento_prestacao": [tipo_documento_prestacao_conta_relacao_bens.id],
         "pode_alterar_saldo_conciliacao": False,
+        "recurso": str(recurso_legado.uuid)
     }
 
     response = jwt_authenticated_client_a.post(
@@ -29,12 +33,14 @@ def test_create_tipo_acerto_documento(jwt_authenticated_client_a, tipo_documento
 def test_create_tipo_acerto_documento_nome_igual(
     jwt_authenticated_client_a,
     tipo_acerto_documento_create,
-    tipo_documento_prestacao_conta_relacao_bens
+    tipo_documento_prestacao_conta_relacao_bens,
+    recurso_legado
 ):
     payload_novo_tipo_acerto = {
         "nome": "Teste nome igual",
         "categoria": TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS,
-        "tipos_documento_prestacao": [tipo_documento_prestacao_conta_relacao_bens.id]
+        "tipos_documento_prestacao": [tipo_documento_prestacao_conta_relacao_bens.id],
+        "recurso": str(recurso_legado.uuid)
     }
 
     response = jwt_authenticated_client_a.post(
@@ -44,7 +50,7 @@ def test_create_tipo_acerto_documento_nome_igual(
 
     result = json.loads(response.content)
     resultado_esperado = {
-        'detail': 'Já existe um tipo de acerto de documento com esse nome.'
+        'detail': 'Já existe um tipo de acerto de documento com esse nome e categoria para esse recurso.'
     }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST

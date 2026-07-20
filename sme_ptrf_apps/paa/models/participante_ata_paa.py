@@ -1,3 +1,9 @@
+"""
+Módulo de modelos do PAA (Plano Anual de Ação).
+
+Este módulo define a entidade responsável por representar os
+participantes da ata do PAA e seus atributos de negócio.
+"""
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from django.db import models
 
@@ -6,6 +12,13 @@ from auditlog.registry import auditlog
 
 
 class ParticipanteAtaPaa(ModeloBase):
+    """
+    Representa um participante da ata do PAA (Plano Anual de Ação).
+
+    Essa model armazena informações sobre os participantes presentes na ata do PAA,
+    incluindo identificação, nome, cargo, status de membro, participação no conselho
+    fiscal e presença na reunião.
+    """
     history = AuditlogHistoryField()
 
     ata_paa = models.ForeignKey('AtaPaa', on_delete=models.CASCADE, related_name='presentes_na_ata_paa')
@@ -17,17 +30,20 @@ class ParticipanteAtaPaa(ModeloBase):
     presente = models.BooleanField('Presente ?', default=True)
     professor_gremio = models.BooleanField('Professor do grêmio ?', default=False)
 
-    def eh_conselho_fiscal(self):
+    def eh_conselho_fiscal(self) -> None:
+        """Verifica se o participante pertence ao conselho fiscal com base
+        no cargo e atualiza o campo `conselho_fiscal` da instância."""
         if "Presidente do conselho fiscal" in self.cargo or "Conselheiro" in self.cargo:
             self.conselho_fiscal = True
             self.save()
 
     @property
-    def editavel(self):
+    def editavel(self) -> bool:
         return False
 
     @classmethod
-    def get_informacao_servidor(cls, identificador):
+    def get_informacao_servidor(cls, identificador) -> dict:
+        """Retorna informações do servidor com base no identificador fornecido."""
         from sme_ptrf_apps.core.services import TerceirizadasException, TerceirizadasService, SmeIntegracaoApiException
         from requests import ConnectTimeout, ReadTimeout
 
@@ -61,7 +77,8 @@ class ParticipanteAtaPaa(ModeloBase):
         return result
 
     @staticmethod
-    def ordenar_por_cargo(participante):
+    def ordenar_por_cargo(participante) -> int:
+        """Retorna um valor inteiro para ordenar os participantes pelo cargo."""
         cargos = {
             'Presidente da diretoria executiva': 1,
             'Vice-Presidente da diretoria executiva': 2,
@@ -74,7 +91,8 @@ class ParticipanteAtaPaa(ModeloBase):
         return cargos.get(participante['cargo'], 8)  # 8 para cargos não listados
 
     @classmethod
-    def participantes_ordenados_por_cargo(cls, ata_paa, membro):
+    def participantes_ordenados_por_cargo(cls, ata_paa, membro) -> list:
+        """Retorna os participantes da ata do PAA ordenados pelo cargo."""
         presentes_ata_membros = cls.objects.filter(ata_paa=ata_paa, membro=membro).values()
 
         presentes_ata_membros_ordenados = sorted(presentes_ata_membros, key=cls.ordenar_por_cargo)

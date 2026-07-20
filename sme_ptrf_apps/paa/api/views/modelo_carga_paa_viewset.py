@@ -1,3 +1,8 @@
+"""
+Módulo de API para gerenciamento dos modelos de carga do PAA.
+
+Este módulo concentra os endpoints de download dos modelos de carga do PAA.
+"""
 import logging
 import mimetypes
 from django.http import FileResponse
@@ -7,6 +12,7 @@ from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.viewsets import ModelViewSet
 
 from drf_spectacular.utils import extend_schema, OpenApiTypes
@@ -18,6 +24,12 @@ logger = logging.getLogger(__name__)
 
 
 class ModelosCargasPaaViewSet(ModelViewSet):
+    """
+    ViewSet responsável pelo gerenciamento dos modelos de carga do PAA.
+
+    Disponibiliza operações de download dos modelos de carga do PAA,
+    permitindo a filtragem pelo tipo de carga.
+    """
     permission_classes = [IsAuthenticated]
     lookup_field = "tipo_carga"
     queryset = ModeloCargaPaa.objects.all().order_by('-criado_em')
@@ -33,7 +45,16 @@ class ModelosCargasPaaViewSet(ModelViewSet):
         description="Retorna um arquivo."
     )
     @action(detail=True, methods=['get'], url_path='download')
-    def download(self, request, tipo_carga=None):
+    def download(self, request: Request, tipo_carga: str | None = None) -> Response:
+        """
+        Baixe o arquivo da Modelos Cargas do Paa.
+
+        Args:
+            tipo_carga: O tipo de carga do modelo de arquivo.
+
+        Returns:
+            O arquivo do modelo de carga.
+        """
         logger.info("Download do modelo de arquivo de carga to tipo %s.", tipo_carga)
 
         if not tipo_carga:

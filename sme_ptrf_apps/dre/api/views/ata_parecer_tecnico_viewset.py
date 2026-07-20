@@ -7,9 +7,9 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasDreComLeituraOuGravacao, PermissaoAPITodosComGravacao
 )
 
-from sme_ptrf_apps.dre.models import AtaParecerTecnico
+from sme_ptrf_apps.dre.models import AtaParecerTecnico, Comissao
 from sme_ptrf_apps.dre.models import ParametrosDre
-from sme_ptrf_apps.core.models import Unidade, Periodo
+from sme_ptrf_apps.core.models import Unidade, Periodo, Recurso
 import logging
 from sme_ptrf_apps.dre.api.serializers.ata_parecer_tecnico_serializer import (
     AtaParecerTecnicoSerializer,
@@ -147,6 +147,25 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
     def membros_comissao_exame_contas(self, request):
         dre_uuid = self.request.query_params.get('dre')
         ata_uuid = request.query_params.get('ata')
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+
+        if not recurso_uuid:
+            erro = {
+                'erro': 'falta_de_informacoes',
+                'mensagem': 'Faltou informar o uuid do recurso.'
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            recurso = Recurso.objects.get(uuid=recurso_uuid)
+        except Recurso.DoesNotExist:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': f"O objeto recurso para o uuid {recurso_uuid} não foi encontrado na base."
+            }
+            logger.info('Erro: %r', erro)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         if not dre_uuid:
             erro = {
@@ -183,8 +202,17 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         ata = AtaParecerTecnico.objects.filter(uuid=ata_uuid).first()
-        comissoes = ParametrosDre.get().comissao_exame_contas
-        membros = comissoes.membros.filter(dre=dre).values("uuid", "rf", "nome", "cargo")
+
+        comissao = Comissao.get_comissao_responsavel_analise_pc_por_recurso(recurso)
+
+        if not comissao:
+            erro = {
+                'erro': 'Objeto não encontrado.',
+                'mensagem': "Nenhuma comissão encontrada para o recurso fornecido."
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        membros = comissao.membros.filter(dre=dre).values("uuid", "rf", "nome", "cargo")
 
         lista = []
         for membro in membros:

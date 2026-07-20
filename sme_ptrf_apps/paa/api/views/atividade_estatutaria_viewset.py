@@ -1,12 +1,20 @@
+"""
+Módulo de API para gerenciamento dos recursos das atividades estatutárias.
+
+Este módulo concentra os endpoints de criar, atualizar, ordenar e excluir atividades
+estatutárias.
+"""
 import logging
 
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 import django_filters
 from waffle.mixins import WaffleFlagMixin
+from django.db.models import QuerySet
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.paa.models import AtividadeEstatutaria
@@ -22,6 +30,17 @@ logger = logging.getLogger(__name__)
 
 
 class AtividadeEstatutariaPaaFilterBackend(django_filters.FilterSet):
+    """
+    FilterSet responsável pela filtragem das atividades estatutarias.
+
+    Permite filtrar as ações pelos seguintes campos:
+
+    - nome;
+    - tipo;
+    - ano
+    - mes;
+    - status;
+    """
     nome = django_filters.CharFilter(field_name="nome", lookup_expr='icontains')
     tipo = django_filters.CharFilter(field_name="tipo", lookup_expr='exact')
     ano = django_filters.CharFilter(field_name="ano", lookup_expr="exact")
@@ -35,6 +54,12 @@ class AtividadeEstatutariaPaaFilterBackend(django_filters.FilterSet):
 
 @extend_schema_view(**DOCS)
 class AtividadeEstatutariaViewSet(WaffleFlagMixin, ModelViewSet):
+    """
+    ViewSet responsável pelo gerenciamento das atividades estatutárias.
+
+    Disponibiliza operações de criar, atualizar, ordenar e excluir atividades
+    estatutárias.
+    """
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
@@ -44,21 +69,40 @@ class AtividadeEstatutariaViewSet(WaffleFlagMixin, ModelViewSet):
     filter_backends = (django_filters.rest_framework.DjangoFilterBackend,)
     filterset_class = AtividadeEstatutariaPaaFilterBackend
 
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet[AtividadeEstatutaria]:
+        """
+        Retorne o queryset de atividades estatutarias ordenado.
+        """
         return AtividadeEstatutariaOrdenacaoService.obter_queryset_ordenado()
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer) -> None:
+        """
+        Crie uma nova atividade estatutária utilizando o serviço de ordenação.
+
+        Args:
+            serializer: Serializer contendo os dados validados da nova atividade estatutária.
+
+        """
         instance = AtividadeEstatutariaOrdenacaoService.create_atividade_estatutaria(
             validated_data=serializer.validated_data,
         )
         serializer.instance = instance
 
-    def perform_destroy(self, instance):
+    def perform_destroy(self, instance) -> None:
+        """
+        Remove uma atividade estatutária utilizando o serviço de ordenação.
+
+        Args:
+            instance: Instância da atividade estatutária a ser removida.
+        """
         AtividadeEstatutariaOrdenacaoService.delete_atividade_estatutaria(atividade=instance)
 
     @action(detail=False, methods=['get'], url_path='tabelas',
             permission_classes=[PermissaoApiUe])
-    def tabelas(self, request, *args, **kwrgs):
+    def tabelas(self, request: Request, *args, **kwrgs) -> Response:
+        """
+        Retorne as tabelas de referência para atividades estatutárias.
+        """
         tabelas = dict(
             status=StatusChoices.to_dict(),
             ano=TipoAnosAtividadeEstatutariaEnum.to_dict(),
@@ -68,7 +112,14 @@ class AtividadeEstatutariaViewSet(WaffleFlagMixin, ModelViewSet):
         return Response(tabelas, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['patch'], url_path='ordenar', permission_classes=[PermissaoApiSME])
-    def ordenar(self, request, uuid=None):
+    def ordenar(self, request: Request, uuid: str | None = None) -> Response:
+        """
+        Atualize a ordenação das atividades estatutárias.
+
+        Args:
+            uuid: UUID da atividade estatutária a ser movida.
+            uuid_destino: UUID da atividade estatutária de destino.
+        """
         uuid_destino = request.data.get("destino")
 
         if not uuid_destino:

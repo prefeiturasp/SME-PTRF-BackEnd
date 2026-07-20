@@ -1,8 +1,15 @@
+"""
+Módulo de API para gerenciamento das ações PDDE.
+
+Este módulo concentra os endpoints de listagem, consulta, criação,
+atualização e remoção das ações PDDE.
+"""
 import logging
 from rest_framework import serializers, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
+from rest_framework.request import Request
 from rest_framework.response import Response
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
@@ -25,6 +32,18 @@ logger = logging.getLogger(__name__)
 
 
 class AcaoPddeFiltro(django_filters.FilterSet):
+    """
+    FilterSet responsável pela filtragem das ações do PDDE.
+
+    Permite filtrar as ações pelos seguintes campos:
+
+    - nome (busca parcial, case insensitive);
+    - programa__uuid;
+    - programa__nome (busca parcial, case insensitive);
+    - aceita_capital;
+    - aceita_custeio;
+    - aceita_livre_aplicacao.
+    """
     nome = django_filters.CharFilter(lookup_expr='icontains')
     programa__uuid = django_filters.CharFilter(field_name="programa__uuid", lookup_expr="exact")
     programa__nome = django_filters.CharFilter(field_name="programa__nome", lookup_expr="icontains")
@@ -45,6 +64,13 @@ class AcaoPddeFiltro(django_filters.FilterSet):
 
 
 class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
+    """
+    ViewSet responsável pelo gerenciamento das ações PDDE.
+
+    Disponibiliza operações de listagem, consulta, criação, atualização e
+    remoção das ações PDDE, permitindo a filtragem pelos campos definidos no
+    FilterSet AcaoPddeFiltro.
+    """
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
@@ -64,7 +90,16 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
     )
     @action(detail=False, methods=['get'], url_path='acoes-pdde-paa',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def acoes_pdde_paa(self, request):
+    def acoes_pdde_paa(self, request: Request) -> Response:
+        """
+        Retorne as Ações PDDE disponíveis para um PAA, sem paginação.
+
+        Args:
+            paa_uuid: UUID do PAA.
+
+        Returns:
+            Ações PDDE disponíveis para o PAA informado.
+        """
         paa_uuid = request.query_params.get('paa_uuid')
         if not paa_uuid:
             raise serializers.ValidationError({"non_field_errors": "PAA não foi informado."})
@@ -89,7 +124,16 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
     )
     @action(detail=False, methods=['get'], url_path='receitas-previstas-pdde',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
-    def receitas_previstas_pdde(self, request):
+    def receitas_previstas_pdde(self, request: Request) -> Response:
+        """
+        Retorne ações PDDE com seus valores de receitas previstas.
+
+        Args:
+            paa_uuid: UUID do PAA.
+
+        Returns:
+            Ações PDDE com seus valores de receitas previstas.
+        """
         paa_uuid = self.request.query_params.get('paa_uuid')
         if not paa_uuid:
             raise serializers.ValidationError({"non_field_errors": "PAA não foi informado."})
@@ -110,7 +154,18 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
 
         return Response(serialized_data, status=status.HTTP_200_OK)
 
-    def valida_campos(self, request):
+    def valida_campos(self, request: Request) -> tuple[str, str]:
+        """
+        Valide os campos necessários para criação/atualização de uma Ação PDDE.
+
+        Args:
+            request: O objeto de requisição HTTP atual.
+            nome: Nome da ação PDDE.
+            programa: UUID do Programa PDDE.
+
+        Returns:
+            Tuple[str, str]: O nome e o programa da ação PDDE.
+        """
         nome = request.data.get('nome')
         programa = request.data.get('programa')
         if not nome:
@@ -123,7 +178,7 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
             )
         return nome, programa
 
-    def create(self, request):
+    def create(self, request: Request) -> Response:
         """ Método acionado antes do validate do Serializer para validação de
             constraints da Model (ao Criar)"""
         nome, programa = self.valida_campos(request)
@@ -141,7 +196,7 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
             pass
         return super().create(request)
 
-    def update(self, request, *args, **kwargs):
+    def update(self, request: Request, *args, **kwargs) -> Response:
         """ Método acionado antes do validate do Serializer para validação de
             constraints da Model (Ao Atualizar)"""
         obj = self.get_object()
@@ -160,7 +215,7 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
             pass
         return super().update(request, *args, **kwargs)
 
-    def destroy(self, request, *args, **kwargs):
+    def destroy(self, request: Request, *args, **kwargs) -> Response:
         from sme_ptrf_apps.paa.services import AcoesPddeService
         """ Método para inativar uma Ação PDDE com validações específicas """
         try:

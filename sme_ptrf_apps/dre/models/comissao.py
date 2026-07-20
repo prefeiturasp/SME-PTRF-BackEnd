@@ -25,7 +25,6 @@ class Comissao(ModeloIdNome):
     def get_membros_comissao(comissao_instance):
         return comissao_instance.membros.all()
 
-
     @classmethod
     def verifica_dres_membros_comissao_tem_recursos(cls, comissao_instance, recursos):
         from sme_ptrf_apps.core.services.recursos_service import RecursoService
@@ -41,7 +40,6 @@ class Comissao(ModeloIdNome):
                 return False
 
         return True
-
 
     @classmethod
     def is_valid_data(cls, nome, recursos=None, responsavel_analise_pc=False, instance_id=None):
@@ -85,6 +83,14 @@ class Comissao(ModeloIdNome):
 
         return True, ""
 
+    @classmethod
+    def get_comissao_responsavel_analise_pc_por_recurso(cls, recurso):
+        comissoes = cls.objects.filter(recursos=recurso, responsavel_analise_pc=True)
+
+        if comissoes.exists():
+            return comissoes.first()
+
+        return None
 
     def _recursos_para_validacao(self):
         recursos = getattr(self, '_recursos_validacao', None)
@@ -109,7 +115,6 @@ class Comissao(ModeloIdNome):
 
         if not is_valid:
             raise ValidationError(error_message)
-
 
 
 auditlog.register(Comissao)

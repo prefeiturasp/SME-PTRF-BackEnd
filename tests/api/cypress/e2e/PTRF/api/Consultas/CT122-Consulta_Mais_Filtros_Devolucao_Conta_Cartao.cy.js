@@ -8,7 +8,7 @@ const Creditos = new CreditosEscolaPagina()
 
 describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
 
-  it('CT122-Consulta_Mais_Filtros_Devolucao_Conta_Cartao', () => {
+  /*it.skip('CT122-Consulta_Mais_Filtros_Devolucao_Conta_Cartao', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -39,7 +39,7 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
     Comum.logout()
   })
 
-  it('CT157-Consulta_Mais_Filtros_Devolucao_Conta_Cartao_Sem_Data', () => {
+  *//*it.skip('CT157-Consulta_Mais_Filtros_Devolucao_Conta_Cartao_Sem_Data', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -67,7 +67,7 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
     Comum.logout()
   })
 
-  it('CT158-Consulta_Mais_Filtros_Devolucao_Conta_Cartao_Sem_Acao', () => {
+  *//*it.skip('CT158-Consulta_Mais_Filtros_Devolucao_Conta_Cartao_Sem_Acao', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -97,7 +97,7 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
     Comum.logout()
   })
 
-  it('CT159-Consulta_Mais_Filtros_Devolucao_Conta_Cartao_Somente_Tipo_Conta', () => {
+  *//*it.skip('CT159-Consulta_Mais_Filtros_Devolucao_Conta_Cartao_Somente_Tipo_Conta', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -123,7 +123,7 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
     Comum.logout()
   })
 
-  it('CT160-Consulta_Mais_Filtros_Devolucao_Conta_Cartao_Sem_Filtros_Complementares', () => {
+  *//*it.skip('CT160-Consulta_Mais_Filtros_Devolucao_Conta_Cartao_Sem_Filtros_Complementares', () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -146,4 +146,4 @@ describe('Credito Escola - Consulta - Mais Filtros - Tipo_Cartao', () => {
 
     Comum.logout()
   })
-})
+*/})

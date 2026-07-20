@@ -25,6 +25,25 @@ class ComissoesViewSet(viewsets.ModelViewSet):
     queryset = Comissao.objects.all()
     serializer_class = ComissaoSerializer
 
+    @action(detail=False, url_path='comissao-responsavel-analise-pc-por-recurso', methods=['get'],
+            permission_classes=[IsAuthenticated])
+    def comissao_responsavel_analise_pc_por_recurso(self, request):
+        recurso_uuid = request.query_params.get('recurso_uuid', None)
+        if not recurso_uuid:
+            raise DRFValidationError({
+                "non_field_errors": "O parâmetro recurso_uuid é obrigatório."
+            })
+
+        comissao = self.get_queryset().filter(recursos__uuid=recurso_uuid, responsavel_analise_pc=True).distinct()
+
+        if not comissao.exists():
+            raise DRFValidationError({
+                "non_field_errors": "Nenhuma comissão encontrada para o recurso fornecido."
+            })
+
+        serializer = self.get_serializer(comissao.first(), many=False)
+        return Response(serializer.data)
+
 
 class ComissoesParametrizacaoViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]

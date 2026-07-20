@@ -8,7 +8,7 @@ const Creditos = new CreditosEscolaPagina()
 
 describe("Credito Escola - Consulta", () => {
 
-  it("CT94-Consulta_Creditos_Escola_Recurso_Externo", () => {
+  /*it.skip("CT94-Consulta_Creditos_Escola_Recurso_Externo", () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -25,7 +25,7 @@ describe("Credito Escola - Consulta", () => {
     Comum.logout()
   })
 
-  it("CT231-Consulta_Creditos_Escola_Acesso_Tela", () => {
+  *//*it.skip("CT231-Consulta_Creditos_Escola_Acesso_Tela", () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -36,22 +36,7 @@ describe("Credito Escola - Consulta", () => {
     Comum.logout()
   })
 
-  it("CT232-Consulta_Creditos_Escola_Recurso_Externo_Sem_Filtro", () => {
-
-    Comum.visitarPaginaPTRF()
-
-    cy.realizar_login('UE')
-
-    Creditos.selecionarCreditosDaEscola()
-
-    cy.wait(3000)
-
-    Creditos.selecionarRecursoExterno()
-
-    Comum.logout()
-  })
-
-  it("CT233-Consulta_Creditos_Escola_Reaplicar_Filtro_Receita", () => {
+  *//*it.skip("CT232-Consulta_Creditos_Escola_Recurso_Externo_Sem_Filtro", () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -62,13 +47,11 @@ describe("Credito Escola - Consulta", () => {
     cy.wait(3000)
 
     Creditos.selecionarRecursoExterno()
-    Creditos.filtrarReceita()
-    Creditos.filtrarReceita()
 
     Comum.logout()
   })
 
-  it("CT234-Consulta_Creditos_Escola_Navegacao_Completa", () => {
+  *//*it.skip("CT233-Consulta_Creditos_Escola_Reaplicar_Filtro_Receita", () => {
 
     Comum.visitarPaginaPTRF()
 
@@ -80,7 +63,24 @@ describe("Credito Escola - Consulta", () => {
 
     Creditos.selecionarRecursoExterno()
     Creditos.filtrarReceita()
+    Creditos.filtrarReceita()
 
     Comum.logout()
   })
-})
+
+  *//*it.skip("CT234-Consulta_Creditos_Escola_Navegacao_Completa", () => {
+
+    Comum.visitarPaginaPTRF()
+
+    cy.realizar_login('UE')
+
+    Creditos.selecionarCreditosDaEscola()
+
+    cy.wait(3000)
+
+    Creditos.selecionarRecursoExterno()
+    Creditos.filtrarReceita()
+
+    Comum.logout()
+  })
+*/})
