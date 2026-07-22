@@ -13,11 +13,16 @@ class TipoAcertoLancamentoSerializer(serializers.ModelSerializer):
     )
 
     def create(self, validated_data):
+        validated_data['nome'] = " ".join(validated_data['nome'].split())
         nome = validated_data['nome']
         categoria = validated_data.get('categoria', None)
         recurso = validated_data.get('recurso', None)
 
-        nome_ja_cadastrado = TipoAcertoLancamento.objects.filter(nome=nome, categoria=categoria, recurso=recurso).all()
+        nome_ja_cadastrado = TipoAcertoLancamento.objects.filter(
+            nome__iexact=nome,
+            categoria=categoria,
+            recurso=recurso
+        ).all()
 
         if nome_ja_cadastrado:
             raise serializers.ValidationError(
@@ -29,7 +34,8 @@ class TipoAcertoLancamentoSerializer(serializers.ModelSerializer):
         return tipo_lancamento_criado
 
     def update(self, instance, validated_data):
-        nome = validated_data.get("nome", None)
+        validated_data['nome'] = " ".join(validated_data.get("nome").split())
+        nome = validated_data['nome']
         categoria = validated_data.get("categoria", instance.categoria)
 
         if nome and instance.nome != nome:
