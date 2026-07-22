@@ -3204,6 +3204,13 @@ def recurso_esperado():
             "exibe_valores_reprogramados": recurso.exibe_valores_reprogramados,
             "habilita_aprovacao_com_ressalvas": recurso.habilita_aprovacao_com_ressalvas,
             "habilita_exibicao_de_lauda": recurso.habilita_exibicao_de_lauda,
+            "textos_ata": {
+                "introducao": recurso.texto_ata_introducao,
+                "letra_a": recurso.get_fixed_text_texto_letra("A"),
+                "letra_b": recurso.get_fixed_text_texto_letra("B"),
+                "letra_c": recurso.get_fixed_text_texto_letra("C"),
+                "letra_d": recurso.get_fixed_text_texto_letra("D"),
+            }
         }
 
     return _recurso_esperado

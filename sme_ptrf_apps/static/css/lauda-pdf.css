@@ -230,8 +230,8 @@ header.lauda-doc-header {
 }
 
 .titulo-tabelas {
-  font-size: 12px;
-  color: #42474a;
+  font-size: 12px !important;
+  color: #42474a !important;
 }
 
 .lauda-secao-cabecalho {
