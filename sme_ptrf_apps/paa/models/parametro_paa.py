@@ -43,6 +43,9 @@ class ParametroPaa(SingletonModel, ModeloBase):
     texto_levantamento_prioridades = RichTextField(null=True, verbose_name='Texto do levantamento de prioridades',
                                                    blank=True)
 
+    informe_bloqueio_prioridades = RichTextField(null=True, verbose_name='Informe de bloqueio de prioridades',
+                                                 blank=True)
+
     class Meta:
         verbose_name = 'Parâmetro do PAA'
         verbose_name_plural = 'Parâmetros do PAA'

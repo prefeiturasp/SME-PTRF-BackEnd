@@ -64,6 +64,17 @@ def test_conclusao_do_paa_ue_2_field(parametro_paa):
 
 
 @pytest.mark.django_db
+def test_informe_bloqueio_prioridades_field(parametro_paa):
+    """Testa se o campo informe_bloqueio_prioridades pode ser definido e recuperado"""
+    texto_teste = "<h4><strong>Fique de olho</strong></h4><p>Texto do informe</p>"
+    parametro_paa.informe_bloqueio_prioridades = texto_teste
+    parametro_paa.save()
+
+    parametro_paa.refresh_from_db()
+    assert parametro_paa.informe_bloqueio_prioridades == texto_teste
+
+
+@pytest.mark.django_db
 def test_all_text_fields_can_be_null(parametro_paa):
     """Testa se todos os campos de texto podem ser None"""
     parametro_paa.texto_pagina_paa_ue = None
@@ -71,6 +82,7 @@ def test_all_text_fields_can_be_null(parametro_paa):
     parametro_paa.introducao_do_paa_ue_2 = None
     parametro_paa.conclusao_do_paa_ue_1 = None
     parametro_paa.conclusao_do_paa_ue_2 = None
+    parametro_paa.informe_bloqueio_prioridades = None
     parametro_paa.save()
 
     parametro_paa.refresh_from_db()
@@ -79,3 +91,4 @@ def test_all_text_fields_can_be_null(parametro_paa):
     assert parametro_paa.introducao_do_paa_ue_2 is None
     assert parametro_paa.conclusao_do_paa_ue_1 is None
     assert parametro_paa.conclusao_do_paa_ue_2 is None
+    assert parametro_paa.informe_bloqueio_prioridades is None
