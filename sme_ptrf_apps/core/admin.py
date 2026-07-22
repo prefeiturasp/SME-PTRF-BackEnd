@@ -152,6 +152,19 @@ class RecursoAdmin(admin.ModelAdmin):
                 'habilita_exibicao_de_lauda',
             )
         }),
+        ('', {
+            'description':
+            '<span style="color: black; font-size: 16px;">Ata de apresentação do Parecer Técnico Conclusivo</span>'
+            '<span style="display: block; margin-bottom: 12px;">Permite definir texto parametrizável para cada parte da'
+            ' ata de apresentação do Parecer Técnico Conclusivo.</span>',
+            'fields': (
+                'texto_ata_introducao',
+                'texto_ata_letra_a',
+                'texto_ata_letra_b',
+                'texto_ata_letra_c',
+                'texto_ata_letra_d'
+            )
+        }),
         ('Valores Reprogramados', {
             'fields': (
                 'exibe_valores_reprogramados',
