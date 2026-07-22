@@ -12,6 +12,9 @@ class ParametroPaaSerializer(serializers.ModelSerializer):
     texto_levantamento_prioridades = serializers.CharField(allow_blank=True, error_messages={
         'null': ('O campo Levantamento de Prioridades não foi informado.')})
 
+    informe_bloqueio_prioridades = serializers.CharField(allow_blank=True, error_messages={
+        'null': ('O campo Informe de bloqueio de prioridades não foi informado.')})
+
     introducao_do_paa_ue_1 = serializers.CharField(allow_blank=True, error_messages={
         'null': ('O campo Introdução 1 da aba Relatórios não foi informado.')})
 
@@ -30,7 +33,7 @@ class ParametroPaaSerializer(serializers.ModelSerializer):
     class Meta:
         model = ParametroPaa
         fields = ('texto_pagina_paa_ue', 'texto_atividades_previstas',
-                  'texto_levantamento_prioridades', 'introducao_do_paa_ue_1',
-                  'introducao_do_paa_ue_2', 'conclusao_do_paa_ue_1',
-                  'conclusao_do_paa_ue_2',
+                  'texto_levantamento_prioridades', 'informe_bloqueio_prioridades',
+                  'introducao_do_paa_ue_1', 'introducao_do_paa_ue_2',
+                  'conclusao_do_paa_ue_1', 'conclusao_do_paa_ue_2',
                   )

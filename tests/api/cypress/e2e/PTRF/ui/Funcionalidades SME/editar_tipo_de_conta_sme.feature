@@ -6,8 +6,8 @@ Funcionalidade: Edição Tipo de Conta
     E realizo login no sistema PTRF com perfil "SME"
 @ignore
   Esquema do Cenário: Validar edição de tipo conta:<caso>
-    E excluo o tipo conta com o nome 'teste automatizado' do banco de dados
-    E crio o tipo conta com o nome 'teste automatizado' do banco de dados
+    E excluo o tipo conta com o nome 'teste automatizado' via API
+    E crio o tipo conta com o nome 'teste automatizado' via API
     E clico na opcao "<opcao_painel_parametrizacao>"
     E clico no botao "Adicionar tipo de conta" da tela tipo de conta
     E informo dado nos campos "<nome_do_tipo_de_conta>", "<nome_do_banco>", "<n_da_agencia>", "<n_da_conta>", "<n_do_cartao>", "<exibir_os_dados_da_conta_somente_leitura>" e "<conta_permite_encerramento>"
@@ -18,7 +18,7 @@ Funcionalidade: Edição Tipo de Conta
     E informo dado nos campos "<nome_do_tipo_de_conta>", "<nome_do_banco>", "<n_da_agencia>", "<n_da_conta>", "<n_do_cartao>", "<exibir_os_dados_da_conta_somente_leitura>" e "<conta_permite_encerramento>"
     E clico no botao "Salvar" da tela tipo de conta
     Quando sistema apresenta a '<mensagem>' na tela
-    Entao excluo o tipo conta com o nome 'teste automatizado' do banco de dados
+    Entao excluo o tipo conta com o nome 'teste automatizado' via API
 
 
     Exemplos:
