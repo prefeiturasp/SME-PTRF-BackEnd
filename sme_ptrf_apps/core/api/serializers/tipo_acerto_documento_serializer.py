@@ -27,6 +27,7 @@ class TipoAcertoDocumentoSerializer(serializers.ModelSerializer):
     )
 
     def create(self, validated_data):
+        validated_data['nome'] = " ".join(validated_data['nome'].split())
         nome = validated_data['nome']
         recurso = validated_data.get('recurso', None)
         categoria = validated_data.get('categoria', None)
@@ -64,7 +65,8 @@ class TipoAcertoDocumentoSerializer(serializers.ModelSerializer):
         if not houve_alteracao:
             return instance
 
-        nome = validated_data.get("nome", None)
+        validated_data['nome'] = " ".join(validated_data.get("nome").split())
+        nome = validated_data['nome']
         categoria = validated_data.get("categoria", None)
         recurso = validated_data.get('recurso', None)
 
