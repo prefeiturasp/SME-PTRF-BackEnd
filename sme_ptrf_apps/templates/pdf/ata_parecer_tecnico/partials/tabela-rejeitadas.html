@@ -4,7 +4,7 @@
 {% if dados.reprovadas.contas %}
 
   {% for dados in dados.reprovadas.contas %}
-    <table class="table table-bordered tabela-status-pc">
+    <table class="table table-bordered tabela-status-pc mt-2">
       <thead>
           <tr>
               <th scope="col" style="width: 3%">Ordem</th>
@@ -34,5 +34,5 @@
     </table>
   {% endfor %}
 {% else %}
-  <p class="font-12">Nenhuma prestação de contas reprovada</p>
+  <p class="font-12 mt-2">Nenhuma prestação de contas reprovada</p>
 {% endif %}
