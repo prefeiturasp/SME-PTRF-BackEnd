@@ -20,26 +20,29 @@ def add_text_parameterized_text(parameterized_text):
     return "."
 
 
-def fixed_text_texto_letra(letter="A", parameterized_text=""):
+def fixed_text_texto_letra(letter="A", parameterized_text="", habilita_aprovacao_com_ressalva=False):
     text_letter = "a) <strong style='color: #297805;'>APROVAR</strong>"
 
     if letter == "B":
         text_letter = "b) <strong style='color: #297805;'>APROVAR COM RESSALVAS</strong>"
 
     if letter == "C":
-        text_letter = "c) <strong style='color: #b40c02;'>REJEITAR</strong>"
+        alt_letter = "c" if habilita_aprovacao_com_ressalva else "b"
+        text_letter = f"{alt_letter}) <strong style='color: #b40c02;'>REJEITAR</strong>"
 
     return mark_safe(
         f"<p style='display: inline;'>{text_letter} "
         f"{text_fixed_default_text_a_b_c()}{add_text_parameterized_text(parameterized_text)}</p>")
 
 
-def process_texto_letra_d(text):
+def process_texto_letra_d(text, habilita_aprovacao_com_ressalva=False):
     if not text:
         return ""
 
+    letter = "d" if habilita_aprovacao_com_ressalva else "c"
+
     return mark_safe(
-        f"<p style='display: inline;'>d) {text}</p>")
+        f"<p style='display: inline;'>{letter}) {text}</p>")
 
 
 def process_texto_introducao(text):
