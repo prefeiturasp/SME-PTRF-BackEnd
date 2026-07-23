@@ -150,9 +150,13 @@ class Recurso(ModeloIdNome, TemAtivo):
             return ""
 
         if letter == "D":
-            return process_texto_letra_d(self.texto_ata_letra_d)
+            return process_texto_letra_d(self.texto_ata_letra_d, self.habilita_aprovacao_com_ressalvas)
 
-        return fixed_text_texto_letra(letter, getattr(self, f'texto_ata_letra_{letter.lower()}', ''))
+        return fixed_text_texto_letra(
+            letter,
+            getattr(self, f'texto_ata_letra_{letter.lower()}', ''),
+            self.habilita_aprovacao_com_ressalvas
+        )
 
     def get_parameterized_text_introducao(self):
         return process_texto_introducao(self.texto_ata_introducao)

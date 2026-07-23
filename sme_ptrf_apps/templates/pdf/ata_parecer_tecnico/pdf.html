@@ -63,6 +63,7 @@
       {% include "./partials/talela-aprovadas.html" with dados=dados %}
   </article>
 
+  {% if dados.dados_texto_da_ata.habilita_aprovacao_com_ressalvas %}
   <article class="col-12 pl-0 titulo-tabelas mb-1 mt-4">
     {{ dados.dados_texto_da_ata.letra_b|safe }}
   </article>
@@ -71,6 +72,7 @@
     {# Incluindo tabela de Aprovadas com Ressalvas, passando dados como parametro #}
     {% include "./partials/tabela-aprovada-com-ressalvas.html" with dados=dados %}
   </article>
+  {% endif %}
 
   <article class="col-12 pl-0 titulo-tabelas mb-1 mt-4">
     {{ dados.dados_texto_da_ata.letra_c|safe }}
