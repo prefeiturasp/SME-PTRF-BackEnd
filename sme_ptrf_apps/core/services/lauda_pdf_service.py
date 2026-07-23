@@ -54,10 +54,12 @@ def _montar_titulos_publicacao_lauda(lauda, parcial):
         else:
             titulo_sequencia_publicacao = f"Lauda referente à retificação {text_possessive_lower_document_consolidado_pc}"
     elif eh_parcial == "Parcial":
-        titulo_sequencia_publicacao = f"Lauda referente à {text_document_consolidado_pc.text_sequencial(
-            text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL,
-            sequencia_de_publicacao
-        )}"
+        public_type_param = text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL
+        text_sequencial = text_document_consolidado_pc.text_sequencial(
+            publication_type=public_type_param,
+            sequence_number=sequencia_de_publicacao
+        )
+        titulo_sequencia_publicacao = f"Lauda referente à {text_sequencial}"
     else:
         titulo_sequencia_publicacao = "Lauda final"
 
