@@ -13,12 +13,15 @@ class MotivoEstornoSerializer(serializers.ModelSerializer):
     )
 
     def create(self, validated_data):
-        motivo=validated_data['motivo']
+        motivo = validated_data['motivo']
+        motivo = ' '.join(motivo.split())
         recurso = validated_data.get('recurso', None)
 
-        motivo_ja_cadastrado = MotivoEstorno.objects.filter(motivo=motivo, recurso=recurso).all()
+        motivo_ja_cadastrado = MotivoEstorno.objects.filter(motivo__iexact=motivo, recurso=recurso).all()
         if motivo_ja_cadastrado:
-            raise serializers.ValidationError('Motivo já cadastrado para este recurso.')
+            raise serializers.ValidationError({
+                    'non_field_errors': ["Motivo já cadastrado para este recurso."]
+                })
 
         motivo_estorno_criado = MotivoEstorno.objects.create(**validated_data)
 
@@ -26,12 +29,15 @@ class MotivoEstornoSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         motivo = validated_data.get("motivo", None)
+        motivo = ' '.join(motivo.split())
         recurso = validated_data.get("recurso", instance.recurso)
 
         if motivo and instance.motivo != motivo:
-            motivo_ja_cadastrado = MotivoEstorno.objects.filter(motivo=motivo, recurso=recurso).all()
+            motivo_ja_cadastrado = MotivoEstorno.objects.filter(motivo__iexact=motivo, recurso=recurso).all()
             if motivo_ja_cadastrado:
-                raise serializers.ValidationError('Motivo já cadastrado para este recurso.')
+                raise serializers.ValidationError({
+                    'non_field_errors': ["Motivo já cadastrado para este recurso."]
+                })
 
         update_instance_from_dict(instance, validated_data, save=True)
 
