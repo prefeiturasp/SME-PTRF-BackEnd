@@ -17,19 +17,18 @@
       </tr>
 
       <tr>
-        <th class="th-fundo-branco">09 - UEs da DRE</th>
-        <th class="th-fundo-branco">10 - UEs com Associação</th>
-        <th class="th-fundo-branco">11 - Associações regulares</th>
+        <th class="th-fundo-branco">{{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.ues_da_dre }} - UEs da DRE</th>
+        <th class="th-fundo-branco">{{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.ues_com_associacao }} - UEs com Associação</th>
+        <th class="th-fundo-branco">{{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.associacoes_regulares }} - Associações regulares</th>
+        <th class="th-fundo-branco">{{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.aprovadas }} - Aprovadas</th>
+        <th class="th-fundo-branco">{{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.aprovadas_com_ressalva }} - Aprovadas com ressalva</th>
+        <th class="th-fundo-branco">{{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.rejeitadas }} - Rejeitadas</th>
+        <th class="th-fundo-branco">{{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.em_analise }} - Em análise</th>
+        <th class="th-fundo-branco">{{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.nao_apresentadas }} - Não apresentadas</th>
+        <th class="th-fundo-branco">{{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.ues_publicadas_anteriormente }} - UEs {{ dados.text_document_consolidado_pc.text_in_past_and_plural }} anteriormente</th>
+        <th class="th-fundo-branco">{{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.total }} - Total</th>
 
-        <th class="th-fundo-branco">12 - Aprovadas</th>
-        <th class="th-fundo-branco">13 - Aprovadas com ressalva</th>
-        <th class="th-fundo-branco">14 - Rejeitadas</th>
-        <th class="th-fundo-branco">15 - Em análise</th>
-        <th class="th-fundo-branco">16 - Não apresentadas</th>
-        <th class="th-fundo-branco">17 - UEs {{ dados.text_document_consolidado_pc.text_in_past_and_plural }} anteriormente</th>
-        <th class="th-fundo-branco">18 - Total</th>
-
-        <th class="th-fundo-branco">19 - UEs Retificadas</th>
+        <th class="th-fundo-branco">{{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.ues_retificadas }} - UEs Retificadas</th>
       </tr>
 
   </thead>
@@ -62,12 +61,12 @@
             <span class="font-10 titulo pt-2 pb-2"><strong>Nota explicativa:</strong></span>
           </div>
           <div>
-            <span class="font-10 pt-2 pb-2">Coluna 18 - É a soma das colunas 12 a 17.</span>
+            <span class="font-10 pt-2 pb-2">Coluna {{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.total }} - É a soma das colunas {{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.aprovadas }} a {{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.ues_publicadas_anteriormente }}.</span>
             <br/>
             {% if dados.execucao_fisica.eh_relatorio_consolidado_publicacoes_parciais %}
-              <span class="font-10 pt-2">Coluna 19 - Exibe a quantidade de UEs cuja a PC foi retificada {{ dados.text_document_consolidado_pc.text_in }} parciais.</span>
+              <span class="font-10 pt-2">Coluna {{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.ues_retificadas }} - Exibe a quantidade de UEs cuja a PC foi retificada {{ dados.text_document_consolidado_pc.text_in }} parciais.</span>
             {% else %}
-              <span class="font-10 pt-2">Coluna 19 - Exibe a quantidade de UEs cuja a PC foi retificada {{ dados.text_document_consolidado_pc.text_refer }}.</span>
+              <span class="font-10 pt-2">Coluna {{ dados.ordem_bloco3_execucao_fisica.numeros_colunas.ues_retificadas }} - Exibe a quantidade de UEs cuja a PC foi retificada {{ dados.text_document_consolidado_pc.text_refer }}.</span>
             {% endif %}
           </div>
         </div>

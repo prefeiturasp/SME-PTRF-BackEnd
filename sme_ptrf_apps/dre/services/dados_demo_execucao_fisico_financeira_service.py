@@ -11,8 +11,46 @@ from django.db.models import Max, Value, Count
 from django.db.models.functions import Coalesce
 
 from sme_ptrf_apps.dre.services.consolidado_dre_service import verifica_se_eh_relatorio_publicacoes_parciais, TextDocumentConsolidadoPC
+from sme_ptrf_apps.core.services.tipos_acerto_lancamento_service import TipoAcertoLancamentoService
 
 LOGGER = logging.getLogger(__name__)
+
+
+def retorna_indices_demo_execucao_fisico_financeira(existe_devolucao_ao_tesouro):
+    numero_base_bloco3 = 9 if existe_devolucao_ao_tesouro else 8
+    numero_base_bloco4 = 20 if existe_devolucao_ao_tesouro else 19
+
+    ordem_bloco3_execucao_fisica = {
+        "numeros_colunas": {
+            "ues_da_dre": numero_base_bloco3,
+            "ues_com_associacao": numero_base_bloco3 + 1,
+            "associacoes_regulares": numero_base_bloco3 + 2,
+            "aprovadas": numero_base_bloco3 + 3,
+            "aprovadas_com_ressalva": numero_base_bloco3 + 4,
+            "rejeitadas": numero_base_bloco3 + 5,
+            "em_analise": numero_base_bloco3 + 6,
+            "nao_apresentadas": numero_base_bloco3 + 7,
+            "ues_publicadas_anteriormente": numero_base_bloco3 + 8,
+            "total": numero_base_bloco3 + 9,
+            "ues_retificadas": numero_base_bloco3 + 10
+        }
+    }
+
+    ordem_bloco4_dados_fisico_financeiros = {
+        "numeros_colunas": {
+            "ordem": numero_base_bloco4,
+            "unidade": numero_base_bloco4 + 1,
+            "conta": numero_base_bloco4 + 2,
+            "reprogramado_do_periodo_anterior": numero_base_bloco4 + 3,
+            "transferido_pela_dre": numero_base_bloco4 + 4,
+            "outros_creditos": numero_base_bloco4 + 5,
+            "valor_total_disponivel": numero_base_bloco4 + 6,
+            "despesa_realizada": numero_base_bloco4 + 7,
+            "saldo_reprogramado_para_o_proximo_periodo": numero_base_bloco4 + 8,
+            "situacao_pc": numero_base_bloco4 + 9
+        }
+    }
+    return ordem_bloco3_execucao_fisica, ordem_bloco4_dados_fisico_financeiros
 
 
 def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, previa=False, apenas_nao_publicadas=False, eh_consolidado_de_publicacoes_parciais=False, consolidado_dre=None):
@@ -52,6 +90,16 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
                 assinatura_dre
         """
 
+        existe_devolucao_ao_tesouro = TipoAcertoLancamentoService. \
+            checa_se_existe_lancamento_devolucao_ao_tesouro(
+                periodo=periodo
+            )
+
+        (
+            ordem_bloco3_execucao_fisica,
+            ordem_bloco4_dados_fisico_financeiros
+        ) = retorna_indices_demo_execucao_fisico_financeira(existe_devolucao_ao_tesouro)
+
         dados_demonstrativo = {
             "text_document_consolidado_pc": text_document_consolidado_pc,
             "cabecalho": cabecalho,
@@ -63,7 +111,10 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
             "dados_fisicos_financeiros": dados_fisicos_financeiros,
             "assinatura_dre": assinatura_dre,
             "versao_relatorio": "PARCIAL" if parcial else "FINAL",
-            "previa": previa
+            "previa": previa,
+            "existe_devolucao_ao_tesouro": existe_devolucao_ao_tesouro,
+            "ordem_bloco3_execucao_fisica": ordem_bloco3_execucao_fisica,
+            "ordem_bloco4_dados_fisico_financeiros": ordem_bloco4_dados_fisico_financeiros
         }
 
     finally:
