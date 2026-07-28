@@ -85,7 +85,7 @@ class Recurso(ModeloIdNome, TemAtivo):
     )
 
     texto_ata_introducao = models.CharField(
-        verbose_name='Introdução da ata',
+        verbose_name='Introdução',
         help_text=f'Este texto é exibido antes do texto complementar: {fixed_text_introducao_ata()}',
         max_length=256,
         blank=True,
@@ -93,7 +93,7 @@ class Recurso(ModeloIdNome, TemAtivo):
     )
 
     texto_ata_letra_a = models.CharField(
-        verbose_name='Letra A',
+        verbose_name='Texto PCs aprovadas',
         help_text=f'Este texto é exibido antes do texto complementar: {fixed_text_texto_letra("A")}',
         max_length=256,
         blank=True,
@@ -101,7 +101,7 @@ class Recurso(ModeloIdNome, TemAtivo):
     )
 
     texto_ata_letra_b = models.CharField(
-        verbose_name='Letra B',
+        verbose_name='Texto PCs aprovadas com ressalvas',
         help_text=f'Este texto é exibido antes do texto complementar: {fixed_text_texto_letra("B")}',
         max_length=256,
         blank=True,
@@ -109,7 +109,7 @@ class Recurso(ModeloIdNome, TemAtivo):
     )
 
     texto_ata_letra_c = models.CharField(
-        verbose_name='Letra C',
+        verbose_name='Texto PCs reprovadas',
         help_text=f'Este texto é exibido antes do texto complementar: {fixed_text_texto_letra("C")}',
         max_length=256,
         blank=True,
@@ -117,7 +117,7 @@ class Recurso(ModeloIdNome, TemAtivo):
     )
 
     texto_ata_letra_d = models.CharField(
-        verbose_name='Letra D',
+        verbose_name='Item complementar',
         max_length=256,
         blank=True,
         default=""
