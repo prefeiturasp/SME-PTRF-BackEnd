@@ -14,11 +14,18 @@ def test_deve_notificar_usuarios(prestacao_notifica_pc_reprovada, motivo_reprova
     assert Notificacao.objects.count() == 1
     notificacao = Notificacao.objects.first()
 
+    periodo = prestacao_notifica_pc_reprovada.periodo
+    recurso = periodo.recurso
+
     assert notificacao.tipo == Notificacao.TIPO_NOTIFICACAO_INFORMACAO
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_REPROVACAO_PC
     assert notificacao.remetente == Notificacao.REMETENTE_NOTIFICACAO_SISTEMA
-    assert notificacao.titulo == f"A PC do período {prestacao_notifica_pc_reprovada.periodo.referencia} foi reprovada pela DRE"
-    assert notificacao.descricao == f"A prestação de contas referente ao período {prestacao_notifica_pc_reprovada.periodo.referencia} foi reprovada pelos seguintes motivos: {motivos} {outros_motivos}"
+    assert notificacao.titulo == f"A PC do período {periodo.referencia} foi reprovada pela DRE"
+    assert notificacao.descricao == (
+        f"A prestação de contas referente ao período {periodo.referencia} foi reprovada pelos seguintes "
+        f"motivos: {motivos} {outros_motivos}\n\n"
+        f"Recurso: {recurso.nome}\n"
+    )
     assert notificacao.usuario == usuario_notificavel
 
 
