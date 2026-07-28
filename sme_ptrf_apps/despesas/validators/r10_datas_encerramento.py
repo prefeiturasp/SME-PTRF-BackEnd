@@ -3,7 +3,7 @@ from .context import DespesaDtoContext
 
 
 class DatasEncerramentoValidator(AbstractDespesaValidator):
-    """R13 — Data de documento/transação não pode ser posterior ao encerramento da associação.
+    """REG-010 — Data de documento/transação não pode ser posterior ao encerramento da associação.
 
     Legado: despesa_service.py:165-182 (_validar_datas)
     """

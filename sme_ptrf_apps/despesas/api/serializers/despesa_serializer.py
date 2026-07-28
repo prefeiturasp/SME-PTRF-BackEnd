@@ -1,6 +1,6 @@
 import logging
 from rest_framework import serializers
-from waffle import flag_is_active, get_waffle_flag_model
+from waffle import get_waffle_flag_model
 
 from .rateio_despesa_serializer import RateioDespesaSerializer, RateioDespesaTabelaGastosEscolaSerializer
 from .tipo_documento_serializer import TipoDocumentoSerializer, TipoDocumentoListSerializer
@@ -91,15 +91,15 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         flags = get_waffle_flag_model()
         existe_flag_pipeline = flags.objects.filter(name='despesas-pipeline', everyone=True).exists()
         if existe_flag_pipeline:
-            # bypass validate_rateios(R01, R04a, R04b, R05, R06b), executa pela pipeline
+            # bypass validate_rateios(R01, REG-003, REG-004, R05, REG-006), executa pela pipeline
             return value
 
-        # [PIPELINE] As validações abaixo (R01, R04a, R04b, R05, R06b) serão absorvidas
+        # [PIPELINE] As validações abaixo (R01, REG-003, REG-004, R05, REG-006) serão absorvidas
         # pela pipeline quando substituída. Validators correspondentes:
-        #   RateiosObrigatoriosValidator  → R01
-        #   SomaValorRateioValidator      → R04a (valor_rateio)
-        #   SomaValorOriginalValidator     → R04b (valor_original)
-        #   RateiosCapitalValidator       → R05, R06b
+        #   RateiosObrigatoriosValidator  → REG-002
+        #   SomaValorRateioValidator      → REG-003 (valor_rateio)
+        #   SomaValorOriginalValidator     → REG-004 (valor_original)
+        #   RateiosCapitalValidator       → REG-005, REG-006
         # Ponto de acionamento futuro: validate() — onde o contexto completo já está disponível.
         ValidacaoDespesaService.validar_rateios_serializer(
             raw_rateios=self.initial_data.get("rateios", []),
@@ -147,10 +147,14 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(exc.detail)
 
         # Sincroniza mutações do apply() de volta ao data.
-        # ctx.rateios aponta para data["rateios"] — mutações em dicts individuais (R21)
-        # propagam automaticamente. Motivos e outros precisam de sync explícito (R15).
+        # ctx.rateios / ctx.despesas_impostos apontam para as listas do data —
+        # mutações em dicts individuais propagam automaticamente.
+        # Campos escalares do ctx precisam de sync explícito.
         data["motivos_pagamento_antecipado"] = ctx.motivos_pagamento_antecipado
         data["outros_motivos_pagamento_antecipado"] = ctx.outros_motivos or ""
+        data["data_documento"] = ctx.data_documento
+        data["numero_documento"] = ctx.numero_documento
+        data["cpf_cnpj_fornecedor"] = ctx.cpf_cnpj_fornecedor
 
         return data
 
@@ -212,7 +216,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         #           uuid_gasto_incluido=str(despesa.uuid),
         #       )
         #   return despesa
-        
+
         return DespesaService.create(
             validated_data,
             limpar_prioridades_callback=self._limpar_prioridades_paa
@@ -246,7 +250,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         while retry_count < max_retries:
             try:
                 if retry_count > 0:
-                    instance.refresh_from_db()               
+                    instance.refresh_from_db()
 
                 return DespesaService.update(
                     instance,

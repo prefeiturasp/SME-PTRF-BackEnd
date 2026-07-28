@@ -3,7 +3,7 @@ from types import SimpleNamespace
 import pytest
 
 from sme_ptrf_apps.despesas.validators.base import DespesaValidationError
-from sme_ptrf_apps.despesas.validators.r12_conta_acao_recurso import ContaAcaoRecursoValidator
+from sme_ptrf_apps.despesas.validators.r09_conta_acao_recurso import ContaAcaoRecursoValidator
 
 from .conftest import make_ctx
 

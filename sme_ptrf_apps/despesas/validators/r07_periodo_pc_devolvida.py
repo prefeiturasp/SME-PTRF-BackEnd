@@ -5,7 +5,7 @@ from .context import DespesaDtoContext
 
 
 class PeriodoPcDevolvidaValidator(AbstractDespesaValidator):
-    """R07 — Quando há PC devolvida para acertos, a data da despesa deve estar no período da devolução.
+    """REG-007 — Quando há PC devolvida para acertos, a data da despesa deve estar no período da devolução.
 
     Também resolve e injeta ctx.periodo para uso por validators posteriores (ex: SaldosValidator).
 
@@ -40,11 +40,7 @@ class PeriodoPcDevolvidaValidator(AbstractDespesaValidator):
             return ctx
 
         # validacao_despesa_service.py:157-167
-        if (
-            pc.devolvida_para_acertos
-            and periodo
-            and periodo.referencia != pc.periodo.referencia
-        ):
+        if pc.devolvida_para_acertos and periodo and periodo.referencia != pc.periodo.referencia:
             raise DespesaValidationError({
                 "mensagem": "Permitido apenas datas dentro do período referente à devolução.",
                 "validator": self.__class__.__name__

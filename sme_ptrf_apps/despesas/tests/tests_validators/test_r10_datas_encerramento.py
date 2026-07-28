@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import pytest
 
 from sme_ptrf_apps.despesas.validators.base import DespesaValidationError
-from sme_ptrf_apps.despesas.validators.r13_datas_encerramento import DatasEncerramentoValidator
+from sme_ptrf_apps.despesas.validators.r10_datas_encerramento import DatasEncerramentoValidator
 
 from .conftest import make_ctx
 

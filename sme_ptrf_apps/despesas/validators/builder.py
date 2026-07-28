@@ -49,6 +49,12 @@ class DespesaContextBuilder:
             retem_imposto=bool(get("retem_imposto") or False),
             eh_despesa_reconhecida_pela_associacao=bool(reconhecida),
             numero_boletim_de_ocorrencia=get("numero_boletim_de_ocorrencia") or "",
+            eh_despesa_sem_comprovacao_fiscal=bool(
+                get("eh_despesa_sem_comprovacao_fiscal") or False
+            ),
+            tipo_documento=get("tipo_documento"),
+            numero_documento=get("numero_documento") or "",
+            cpf_cnpj_fornecedor=get("cpf_cnpj_fornecedor") or "",
             rateios=get("rateios") or [],
             rateios_raw=(initial_data or {}).get("rateios", []),
             despesas_impostos=get("despesas_impostos") or [],

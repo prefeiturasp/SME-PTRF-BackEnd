@@ -3,7 +3,7 @@ from .context import DespesaDtoContext
 
 
 class ContaAcaoRecursoValidator(AbstractDespesaValidator):
-    """R12 — Conta e Ação de cada rateio devem pertencer ao mesmo recurso.
+    """REG-009 — Conta e Ação de cada rateio devem pertencer ao mesmo recurso.
 
     Legado: validacao_despesa_service.py:177-183
     """

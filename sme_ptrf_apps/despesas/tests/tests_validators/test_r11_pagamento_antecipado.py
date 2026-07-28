@@ -3,7 +3,7 @@ from datetime import date
 import pytest
 
 from sme_ptrf_apps.despesas.validators.base import DespesaValidationError
-from sme_ptrf_apps.despesas.validators.r14_pagamento_antecipado import PagamentoAntecipadoValidator
+from sme_ptrf_apps.despesas.validators.r11_pagamento_antecipado import PagamentoAntecipadoValidator
 
 from .conftest import make_ctx
 

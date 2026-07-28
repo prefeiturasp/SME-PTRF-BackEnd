@@ -7,12 +7,12 @@ from .context import DespesaDtoContext
 
 
 class ValorOriginalCapitalValidator(AbstractDespesaValidator):
-    """R06b — valor_original do rateio CAPITAL deve ser igual a quantidade x valor_item.
+    """REG-006 — valor_original do rateio CAPITAL deve ser igual a quantidade x valor_item.
 
     O campo valor_original é calculado (disabled no frontend) e deve coincidir com
     o produto quantidade_itens_capital * valor_item_capital.
 
-    Depende de R05 (QuantidadeCapitalValidator) ter passado antes — a quantidade
+    Depende de REG-005 (QuantidadeCapitalValidator) ter passado antes — a quantidade
     já é garantidamente positiva neste ponto.
 
     Legado: validacao_despesa_service.py:99-143

@@ -3,21 +3,21 @@ from decimal import Decimal
 import pytest
 
 from sme_ptrf_apps.despesas.validators.base import DespesaValidationError
-from sme_ptrf_apps.despesas.validators.r04b_soma_valor_original import SomaValorOriginalValidator
+from sme_ptrf_apps.despesas.validators.r03_soma_valor_rateio import SomaValorRateioValidator
 
 from .conftest import make_ctx
 
 
 @pytest.fixture
 def validator():
-    return SomaValorOriginalValidator()
+    return SomaValorRateioValidator()
 
 
 def test_valida_ok_soma_exata(validator):
     ctx = make_ctx(
-        valor_original=Decimal("100.00"),
+        valor_total=Decimal("100.00"),
         valor_recursos_proprios=Decimal("0.00"),
-        rateios=[{"valor_original": 100}],
+        rateios=[{"valor_rateio": 100}],
     )
     result = validator.validate(ctx)
     assert result is ctx
@@ -25,43 +25,52 @@ def test_valida_ok_soma_exata(validator):
 
 def test_valida_ok_com_recursos_proprios(validator):
     ctx = make_ctx(
-        valor_original=Decimal("110.00"),
+        valor_total=Decimal("110.00"),
         valor_recursos_proprios=Decimal("10.00"),
-        rateios=[{"valor_original": 100}],
+        rateios=[{"valor_rateio": 100}],
     )
     result = validator.validate(ctx)
     assert result is ctx
 
 
-def test_valida_ok_valor_original_none_tratado_como_zero(validator):
-    # valor_original=None → 0, recursos=0 → valor_original_real=0; rateio.valor_original=0 → ok
+def test_valida_ok_multiplos_rateios(validator):
     ctx = make_ctx(
-        valor_original=None,
+        valor_total=Decimal("100.00"),
         valor_recursos_proprios=Decimal("0.00"),
-        rateios=[{"valor_original": 0}],
+        rateios=[{"valor_rateio": 60}, {"valor_rateio": 40}],
     )
     result = validator.validate(ctx)
     assert result is ctx
 
 
-def test_valida_erro_soma_incorreta(validator):
+def test_valida_erro_soma_maior_que_valor(validator):
     ctx = make_ctx(
-        valor_original=Decimal("100.00"),
+        valor_total=Decimal("100.00"),
         valor_recursos_proprios=Decimal("0.00"),
-        rateios=[{"valor_original": 80}],
+        rateios=[{"valor_rateio": 150}],
     )
     with pytest.raises(DespesaValidationError) as exc_info:
         validator.validate(ctx)
     assert "rateios" in exc_info.value.detail
 
 
+def test_valida_erro_soma_menor_que_valor(validator):
+    ctx = make_ctx(
+        valor_total=Decimal("100.00"),
+        valor_recursos_proprios=Decimal("0.00"),
+        rateios=[{"valor_rateio": 80}],
+    )
+    with pytest.raises(DespesaValidationError):
+        validator.validate(ctx)
+
+
 def test_valida_ok_com_imposto(validator):
     ctx = make_ctx(
-        valor_original=Decimal("100.00"),
+        valor_total=Decimal("100.00"),
         valor_recursos_proprios=Decimal("0.00"),
         retem_imposto=True,
-        rateios=[{"valor_original": 80}],
-        despesas_impostos=[{"valor_original": 20}],
+        rateios=[{"valor_rateio": 80}],
+        despesas_impostos=[{"valor_total": 20}],
     )
     result = validator.validate(ctx)
     assert result is ctx
@@ -69,11 +78,11 @@ def test_valida_ok_com_imposto(validator):
 
 def test_valida_erro_com_imposto_soma_incorreta(validator):
     ctx = make_ctx(
-        valor_original=Decimal("100.00"),
+        valor_total=Decimal("100.00"),
         valor_recursos_proprios=Decimal("0.00"),
         retem_imposto=True,
-        rateios=[{"valor_original": 80}],
-        despesas_impostos=[{"valor_original": 30}],
+        rateios=[{"valor_rateio": 80}],
+        despesas_impostos=[{"valor_total": 30}],
     )
     with pytest.raises(DespesaValidationError):
         validator.validate(ctx)

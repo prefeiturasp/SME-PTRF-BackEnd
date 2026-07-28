@@ -5,7 +5,7 @@ from .context import DespesaDtoContext
 
 
 class SomaValorOriginalValidator(AbstractDespesaValidator):
-    """R04b — Soma de valor_original dos rateios deve igualar o valor_original real da despesa.
+    """REG-004 — Soma de valor_original dos rateios deve igualar o valor_original real da despesa.
 
     Executa mesmo quando valor_original é None — nesse caso trata como 0, igual ao legado
     (ValidacaoDespesaService.validar_rateios_serializer).

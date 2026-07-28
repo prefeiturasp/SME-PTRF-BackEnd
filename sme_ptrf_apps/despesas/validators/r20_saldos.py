@@ -1,11 +1,9 @@
-from sme_ptrf_apps.core.services import valida_rateios_quanto_aos_saldos
-
-from .base import AbstractDespesaValidator, DespesaValidationError
+from .base import AbstractDespesaValidator
 from .context import DespesaDtoContext
 
 
 class SaldosValidator(AbstractDespesaValidator):
-    """R42-R45 — Verifica saldo disponível em contas e ações para cobrir os rateios.
+    """REG-020 — Verifica saldo disponível em contas e ações para cobrir os rateios.
 
     Utiliza rateios_raw (UUID strings) pois valida_rateios_quanto_aos_saldos e
     saldos_insuficientes_para_rateios esperam conta_associacao/acao_associacao como UUIDs.
@@ -24,22 +22,23 @@ class SaldosValidator(AbstractDespesaValidator):
     def validate(self, ctx: DespesaDtoContext) -> DespesaDtoContext:
         """Fase 1 — verifica saldo disponível em contas/ações para cobrir os rateios.
 
-        Desativado (considerar_na_pipeline=False): esta regra não é impeditiva de criação/edição —
+        Desativado: esta regra não é impeditiva de criação/edição —
         o frontend exibe confirmação e o usuário pode aceitar lançamento mesmo sem saldo.
         Ver docstring da classe para referência do fluxo legado.
         """
-        considerar_na_pipeline = False  # obs em docstring
+        # considerar_na_pipeline = False
         # if not considerar_na_pipeline:
         #     return ctx
-
+        #
+        # from sme_ptrf_apps.core.services import valida_rateios_quanto_aos_saldos
+        # from .base import DespesaValidationError
+        #
         # if not ctx.data_transacao or not ctx.associacao:
         #     return ctx
-
+        #
         # recurso = ctx.recurso_efetivo
         # exclude_uuid = str(ctx.despesa_instance.uuid) if ctx.despesa_instance else None
-
         # rateios_formatados = self._garantir_uuids(ctx.rateios_raw)
-
         # result = valida_rateios_quanto_aos_saldos(
         #     rateios=rateios_formatados,
         #     associacao=ctx.associacao,
@@ -47,9 +46,7 @@ class SaldosValidator(AbstractDespesaValidator):
         #     exclude_despesa=exclude_uuid,
         #     recurso=recurso,
         # )
-
         # ctx.saldos = result
-
         # if not result.get("aceitar_lancamento", True):
         #     raise DespesaValidationError(result)
 

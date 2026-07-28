@@ -1,7 +1,7 @@
 import pytest
 
 from sme_ptrf_apps.despesas.validators.base import DespesaValidationError
-from sme_ptrf_apps.despesas.validators.r01_rateios_obrigatorios import RateiosObrigatoriosValidator
+from sme_ptrf_apps.despesas.validators.r02_rateios_obrigatorios import RateiosObrigatoriosValidator
 
 from .conftest import make_ctx
 

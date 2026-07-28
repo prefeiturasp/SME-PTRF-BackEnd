@@ -1,7 +1,7 @@
 import pytest
 
 from sme_ptrf_apps.despesas.validators.base import DespesaValidationError
-from sme_ptrf_apps.despesas.validators.r16_impostos import ImpostosValidator
+from sme_ptrf_apps.despesas.validators.r12_impostos import ImpostosValidator
 
 from .conftest import make_ctx
 

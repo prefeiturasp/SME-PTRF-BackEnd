@@ -3,7 +3,7 @@ from .context import DespesaDtoContext
 
 
 class RateiosObrigatoriosValidator(AbstractDespesaValidator):
-    """R01 — A despesa deve conter ao menos um rateio.
+    """REG-002 — A despesa deve conter ao menos um rateio.
 
     Legado: validacao_despesa_service.py:45-48
     """

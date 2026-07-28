@@ -1,6 +1,6 @@
 import pytest
 
-from sme_ptrf_apps.despesas.validators.r42_saldos import SaldosValidator
+from sme_ptrf_apps.despesas.validators.r20_saldos import SaldosValidator
 
 from .conftest import make_ctx
 

@@ -3,8 +3,8 @@ from .context import DespesaDtoContext
 
 
 class PagamentoAntecipadoValidator(AbstractDespesaValidator):
-    """R14 — Pagamento antecipado (data_transacao < data_documento) exige motivos informados.
-    R15 — Quando não há antecipação (dt >= dd), os motivos são descartados (fase apply).
+    """REG-011 — Pagamento antecipado (data_transacao < data_documento) exige motivos informados.
+    REG-011 — Quando não há antecipação (dt >= dd), os motivos são descartados (fase apply).
 
     Legado: despesa_service.py:196-215 (_processar_pagamento_antecipado)
     """
@@ -36,7 +36,7 @@ class PagamentoAntecipadoValidator(AbstractDespesaValidator):
         return ctx
 
     def apply(self, ctx: DespesaDtoContext) -> DespesaDtoContext:
-        """Fase 2 — descarta motivos de pagamento antecipado quando não há antecipação (R15).
+        """Fase 2 — descarta motivos de pagamento antecipado quando não há antecipação (REG-011 apply).
 
         Zera ctx.motivos_pagamento_antecipado e ctx.outros_motivos quando data_transacao >= data_documento.
 

@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import pytest
 
 from sme_ptrf_apps.despesas.validators.base import DespesaValidationError
-from sme_ptrf_apps.despesas.validators.r10_contas_impostos import ContasImpostosValidator
+from sme_ptrf_apps.despesas.validators.r08_contas_impostos import ContasImpostosValidator
 
 from .conftest import make_ctx
 

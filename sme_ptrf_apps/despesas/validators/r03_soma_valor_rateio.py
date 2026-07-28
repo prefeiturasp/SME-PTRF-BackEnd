@@ -5,7 +5,7 @@ from .context import DespesaDtoContext
 
 
 class SomaValorRateioValidator(AbstractDespesaValidator):
-    """R04a — Soma de valor_rateio dos rateios deve igualar o valor real da despesa.
+    """REG-003 — Soma de valor_rateio dos rateios deve igualar o valor real da despesa.
 
     valor_total_real_despesa = valor_total - valor_recursos_proprios
     Se retem_imposto=True, inclui a soma de valor_total das despesas de imposto.

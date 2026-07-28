@@ -3,7 +3,7 @@ from .context import DespesaDtoContext
 
 
 class RecursoObrigatorioValidator(AbstractDespesaValidator):
-    """R02 — Recurso da despesa é obrigatório.
+    """REG-001 — Recurso da despesa é obrigatório.
 
     Presente apenas em CREATE_PIPELINE e CREATE_ACERTO_PIPELINE (pipelines.py).
 

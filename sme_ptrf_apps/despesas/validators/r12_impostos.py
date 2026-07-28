@@ -3,7 +3,7 @@ from .context import DespesaDtoContext
 
 
 class ImpostosValidator(AbstractDespesaValidator):
-    """R16 — Cada despesa de imposto deve ter ao menos um rateio associado.
+    """REG-012 — Cada despesa de imposto deve ter ao menos um rateio associado.
 
     Legado: despesa_service.py:399-403 (_processar_impostos)
              despesa_service.py:434-438 (_processar_impostos_update)

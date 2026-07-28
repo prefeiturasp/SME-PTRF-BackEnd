@@ -6,7 +6,7 @@ from .context import DespesaDtoContext
 
 
 class MudancaAplicacaoValidator(AbstractDespesaValidator):
-    """R17-R20 — Validações de mudança de tipo de aplicação (CAPITAL ↔ CUSTEIO) em rateios existentes.
+    """REG-013 — Validações de mudança de tipo de aplicação (CAPITAL ↔ CUSTEIO) em rateios existentes.
     R21 — Reset de campos incompatíveis ao mudar CAPITAL ↔ CUSTEIO (fase apply).
 
     Presente apenas em UPDATE_PIPELINE e UPDATE_ACERTO_PIPELINE (pipelines.py).

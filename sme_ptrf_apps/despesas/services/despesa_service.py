@@ -12,7 +12,9 @@ from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import Rat
 from sme_ptrf_apps.core.models.solicitacao_acerto_lancamento import SolicitacaoAcertoLancamento
 from sme_ptrf_apps.core.models.tipo_acerto_lancamento import TipoAcertoLancamento
 from sme_ptrf_apps.core.models.analise_lancamento_prestacao_conta import AnaliseLancamentoPrestacaoConta
-from sme_ptrf_apps.core.services.analise_lancamento_prestacao_conta_service import AnaliseLancamentoPrestacaoContaService
+from sme_ptrf_apps.core.services.analise_lancamento_prestacao_conta_service import (
+    AnaliseLancamentoPrestacaoContaService,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -83,12 +85,12 @@ class DespesaService:
         rateios = validated_data.pop("rateios")
         despesas_impostos = validated_data.pop("despesas_impostos", None)
 
-        # [PIPELINE] Substituição futura: _validar_datas → DatasEncerramentoValidator (R13)
+        # [PIPELINE] Substituição futura: _validar_datas → DatasEncerramentoValidator (REG-010)
         cls._validar_datas(validated_data)
 
         # [PIPELINE] Substituição futura: _processar_pagamento_antecipado →
-        #   validate: PagamentoAntecipadoValidator (R14)
-        #   apply:    PagamentoAntecipadoValidator.apply() (R15) + sync ctx→data no serializer
+        #   validate: PagamentoAntecipadoValidator (REG-011)
+        #   apply:    PagamentoAntecipadoValidator.apply() (REG-011 apply) + sync ctx→data no serializer
         motivos, outros = cls._processar_pagamento_antecipado(validated_data)
 
         despesa = Despesa.objects.create(**validated_data)
@@ -125,11 +127,11 @@ class DespesaService:
             despesas_impostos = validated_data.pop("despesas_impostos", [])
 
             # [PIPELINE] Substituição futura: _validar_datas_update →
-            #   DatasEncerramentoValidator (R13) + DespesaContextBuilder.build() para defaults
+            #   DatasEncerramentoValidator (REG-010) + DespesaContextBuilder.build() para defaults
             cls._validar_datas_update(instance, validated_data)
             # [PIPELINE] Substituição futura: _processar_pagamento_antecipado →
-            #   validate: PagamentoAntecipadoValidator (R14)
-            #   apply:    PagamentoAntecipadoValidator.apply() (R15) + sync ctx→data no serializer
+            #   validate: PagamentoAntecipadoValidator (REG-011)
+            #   apply:    PagamentoAntecipadoValidator.apply() (REG-011 apply) + sync ctx→data no serializer
             motivos, outros = cls._processar_pagamento_antecipado(validated_data)
 
             # Executa apenas quando há alterações de dados do fornecedor
@@ -140,8 +142,8 @@ class DespesaService:
                 setattr(instance, attr, value)
 
             # [PIPELINE] Substituição futura de _atualizar_rateios:
-            #   validate: MudancaAplicacaoValidator (R17-R20)
-            #   apply:    MudancaAplicacaoValidator.apply() (R21) — reseta campos em ctx.rateios
+            #   validate: MudancaAplicacaoValidator (REG-013)
+            #   apply:    MudancaAplicacaoValidator.apply() (REG-013 apply) — reseta campos em ctx.rateios
             #   service:  persiste apenas (sem validação/mutação)
             cls._atualizar_rateios(instance, rateios)
             cls._aplicar_motivos(instance, motivos, outros)
@@ -156,7 +158,6 @@ class DespesaService:
             return instance
         finally:
             instance._skip_fornecedor_signal = False
-
 
     # =====================================================
     # VALIDAÇÕES
@@ -402,7 +403,7 @@ class DespesaService:
         for imposto in despesas_impostos:
             rateios = imposto.pop("rateios", [])
 
-            # [PIPELINE] Substituição futura: R16 coberto por ImpostosValidator
+            # [PIPELINE] Substituição futura: R16 coberto por ImpostosValidator (REG-012)
             if not rateios:
                 raise serializers.ValidationError({
                     "mensagem": "A despesa de imposto precisa ter rateio associado"
@@ -437,7 +438,7 @@ class DespesaService:
             for imposto in despesas_impostos:
                 rateios = imposto.pop("rateios", [])
 
-                # [PIPELINE] Substituição futura: R16 coberto por ImpostosValidator
+                # [PIPELINE] Substituição futura: R16 coberto por ImpostosValidator (REG-012)
                 if not rateios:
                     raise serializers.ValidationError({
                         "mensagem": "A despesa de imposto precisa ter rateio associado"
@@ -471,7 +472,6 @@ class DespesaService:
                 else:
                     for rateio in rateios:
                         rateio["update_conferido"] = False
-
 
                 if "uuid" in imposto:
                     desp = Despesa.by_uuid(imposto["uuid"])

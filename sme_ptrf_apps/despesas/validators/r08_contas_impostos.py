@@ -5,7 +5,7 @@ from .context import DespesaDtoContext
 
 
 class ContasImpostosValidator(AbstractDespesaValidator):
-    """R10 — data_transacao do imposto >= data_inicio da conta do rateio de imposto.
+    """REG-008 — data_transacao do imposto >= data_inicio da conta do rateio de imposto.
     R11 — data_transacao do imposto <= data_encerramento da conta do rateio de imposto.
 
     Legado: validacao_despesa_service.py:209-239 (_validar_contas_impostos)

@@ -4,7 +4,7 @@ import pytest
 from model_bakery import baker
 
 from sme_ptrf_apps.despesas.validators.base import DespesaValidationError
-from sme_ptrf_apps.despesas.validators.r17_mudanca_aplicacao import MudancaAplicacaoValidator
+from sme_ptrf_apps.despesas.validators.r13_mudanca_aplicacao import MudancaAplicacaoValidator
 
 from .conftest import make_ctx
 
@@ -108,7 +108,9 @@ def test_valida_erro_capital_para_custeio_sem_tipo_custeio(validator, associacao
 
 
 @pytest.mark.django_db
-def test_valida_erro_capital_para_custeio_especificacao_capital(validator, associacao, conta_associacao, acao_associacao):
+def test_valida_erro_capital_para_custeio_especificacao_capital(
+    validator, associacao, conta_associacao, acao_associacao
+):
     # tipo_custeio preenchido mas especificação é CAPITAL (não CUSTEIO)
     tipo_custeio = baker.make("TipoCusteio")
     especificacao_capital = baker.make("EspecificacaoMaterialServico", aplicacao_recurso=CAPITAL)
@@ -157,7 +159,9 @@ def test_valida_erro_custeio_para_capital_sem_especificacao(validator, associaca
 
 
 @pytest.mark.django_db
-def test_valida_erro_custeio_para_capital_especificacao_custeio(validator, associacao, conta_associacao, acao_associacao):
+def test_valida_erro_custeio_para_capital_especificacao_custeio(
+    validator, associacao, conta_associacao, acao_associacao
+):
     especificacao_custeio = baker.make("EspecificacaoMaterialServico", aplicacao_recurso=CUSTEIO)
     rateio_db = baker.make(
         "RateioDespesa",

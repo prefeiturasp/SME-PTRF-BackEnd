@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 
 from sme_ptrf_apps.despesas.validators.base import DespesaValidationError
-from sme_ptrf_apps.despesas.validators.r06b_valor_original_capital import ValorOriginalCapitalValidator
+from sme_ptrf_apps.despesas.validators.r06_valor_original_capital import ValorOriginalCapitalValidator
 
 from .conftest import make_ctx
 
@@ -56,8 +56,18 @@ def test_valida_erro_calculo_incorreto(validator):
 
 def test_valida_ok_multiplos_rateios_todos_corretos(validator):
     ctx = make_ctx(rateios=[
-        {"aplicacao_recurso": CAPITAL, "quantidade_itens_capital": 1, "valor_item_capital": Decimal("200.00"), "valor_original": Decimal("200.00")},
-        {"aplicacao_recurso": CAPITAL, "quantidade_itens_capital": 3, "valor_item_capital": Decimal("10.00"), "valor_original": Decimal("30.00")},
+        {
+            "aplicacao_recurso": CAPITAL,
+            "quantidade_itens_capital": 1,
+            "valor_item_capital": Decimal("200.00"),
+            "valor_original": Decimal("200.00"),
+        },
+        {
+            "aplicacao_recurso": CAPITAL,
+            "quantidade_itens_capital": 3,
+            "valor_item_capital": Decimal("10.00"),
+            "valor_original": Decimal("30.00"),
+        },
     ])
     result = validator.validate(ctx)
     assert result is ctx

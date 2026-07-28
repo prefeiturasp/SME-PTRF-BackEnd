@@ -1,7 +1,7 @@
 import pytest
 
 from sme_ptrf_apps.despesas.validators.base import DespesaValidationError
-from sme_ptrf_apps.despesas.validators.r02_recurso_obrigatorio import RecursoObrigatorioValidator
+from sme_ptrf_apps.despesas.validators.r01_recurso_obrigatorio import RecursoObrigatorioValidator
 
 from .conftest import make_ctx
 
