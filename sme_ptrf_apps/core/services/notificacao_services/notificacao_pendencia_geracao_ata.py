@@ -11,7 +11,23 @@ def notificar_pendencia_geracao_ata_apresentacao(prestacao_de_contas):
 
     usuarios = get_users_by_permission('recebe_notificacao_geracao_ata_apresentacao')
     usuarios = usuarios.filter(
-        visoes__nome="UE", unidades__codigo_eol=prestacao_de_contas.associacao.unidade.codigo_eol)
+        visoes__nome="UE",
+        unidades__codigo_eol=prestacao_de_contas.associacao.unidade.codigo_eol
+    )
+
+    recurso = prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
+
+    if recurso:
+        usuarios = usuarios.filter(
+            unidades__associacoes__periodos_iniciais__recurso=recurso
+        ).distinct()
+
+    descricao_mensagem = (
+        f"A ata de apresentação da PC {prestacao_de_contas.periodo.referencia} não foi gerada e a "
+        f"DRE {prestacao_de_contas.associacao.unidade.formata_nome_dre()} não pode receber a PC. "
+        "Favor efetuar a geração da ata.\n\n"
+        f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
+    )
 
     for usuario in usuarios:
         logger.info(f"Gerando notificação de pendência de geração de ata de apresentação para o usuario: {usuario}")
@@ -20,17 +36,17 @@ def notificar_pendencia_geracao_ata_apresentacao(prestacao_de_contas):
             tipo=Notificacao.TIPO_NOTIFICACAO_AVISO,
             categoria=Notificacao.CATEGORIA_NOTIFICACAO_GERACAO_ATA,
             remetente=Notificacao.REMETENTE_NOTIFICACAO_DRE,
-            titulo=f"Geração da ata de apresentação",
-            descricao=f"A ata de apresentação da PC {prestacao_de_contas.periodo.referencia} não foi gerada e a DRE {prestacao_de_contas.associacao.unidade.formata_nome_dre()} não pode receber a PC. Favor efetuar a geração da ata.",
+            titulo="Geração da ata de apresentação",
+            descricao=descricao_mensagem,
             usuario=usuario,
             renotificar=True,
             unidade=prestacao_de_contas.associacao.unidade,
             prestacao_conta=prestacao_de_contas,
             periodo=prestacao_de_contas.periodo,
-            recurso=prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
+            recurso=recurso
         )
 
-    logger.info(f'Finalizando a geração de notificação de pendência de geração de ata de apresentação.')
+    logger.info('Finalizando a geração de notificação de pendência de geração de ata de apresentação.')
 
 
 def notificar_pendencia_geracao_ata_retificacao(prestacao_de_contas):
@@ -41,6 +57,20 @@ def notificar_pendencia_geracao_ata_retificacao(prestacao_de_contas):
     usuarios = usuarios.filter(
         visoes__nome="UE", unidades__codigo_eol=prestacao_de_contas.associacao.unidade.codigo_eol)
 
+    recurso = prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
+
+    if recurso:
+        usuarios = usuarios.filter(
+            unidades__associacoes__periodos_iniciais__recurso=recurso
+        ).distinct()
+
+    descricao_mensagem = (
+        f"A ata de retificação da PC {prestacao_de_contas.periodo.referencia} não foi gerada e a "
+        f"DRE {prestacao_de_contas.associacao.unidade.formata_nome_dre()} não pode receber a PC apresentada "
+        "após acertos. Favor efetuar a geração da ata.\n\n"
+        f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
+    )
+
     for usuario in usuarios:
         logger.info(f"Gerando notificação de pendência de geração de ata de retificação para o usuario: {usuario}")
 
@@ -48,14 +78,14 @@ def notificar_pendencia_geracao_ata_retificacao(prestacao_de_contas):
             tipo=Notificacao.TIPO_NOTIFICACAO_AVISO,
             categoria=Notificacao.CATEGORIA_NOTIFICACAO_GERACAO_ATA,
             remetente=Notificacao.REMETENTE_NOTIFICACAO_DRE,
-            titulo=f"Geração da ata de retificação",
-            descricao=f"A ata de retificação da PC {prestacao_de_contas.periodo.referencia} não foi gerada e a DRE {prestacao_de_contas.associacao.unidade.formata_nome_dre()} não pode receber a PC apresentada após acertos. Favor efetuar a geração da ata.",
+            titulo="Geração da ata de retificação",
+            descricao=descricao_mensagem,
             usuario=usuario,
             renotificar=True,
             unidade=prestacao_de_contas.associacao.unidade,
             prestacao_conta=prestacao_de_contas,
             periodo=prestacao_de_contas.periodo,
-            recurso=prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
+            recurso=recurso
         )
 
-    logger.info(f'Finalizando a geração de notificação de pendência de geração de ata de retificação.')
+    logger.info('Finalizando a geração de notificação de pendência de geração de ata de retificação.')

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 def notificar_encerramento_conta_bancaria(enviar_email=False):
-    logger.info(f'Iniciando serviço de notificação de encerramento conta bancaria.')
+    logger.info('Iniciando serviço de notificação de encerramento conta bancaria.')
 
     numero_periodos_consecutivos = Parametros.get().numero_periodos_consecutivos
 
@@ -54,7 +54,16 @@ def notificar_encerramento_conta_bancaria(enviar_email=False):
                         é igual ao numero configurado em parametros (Parametros.get().numero_periodos_consecutivos)
                     """
                     recurso = conta_associacao.tipo_conta.recurso
-                    usuarios = users.filter(unidades__codigo_eol=associacao.unidade.codigo_eol)
+                    usuarios = users.filter(
+                        unidades__codigo_eol=associacao.unidade.codigo_eol,
+                        unidades__associacoes__periodos_iniciais__recurso=recurso
+                    ).distinct()
+
+                    descricao_mensagem = (
+                        f"O saldo da conta bancária {conta_associacao.tipo_conta.nome} está zerada, caso deseje, o "
+                        f"encerramento da conta pode ser solicitada. Acesse a página Dados das contas para validar.\n\n"
+                        f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
+                    )
 
                     for usuario in usuarios:
                         logging.info(f"Gerando notificação de encerramento de conta bancária para o usuário: {usuario}")
@@ -63,12 +72,12 @@ def notificar_encerramento_conta_bancaria(enviar_email=False):
                             tipo=Notificacao.TIPO_NOTIFICACAO_AVISO,
                             categoria=Notificacao.CATEGORIA_NOTIFICACAO_ENCERRAMENTO_CONTA_BANCARIA,
                             remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
-                            titulo=f"Encerramento de Conta Bancária",
-                            descricao=f"O saldo da conta bancária {conta_associacao.tipo_conta.nome} está zerada, caso deseje, o encerramento da conta pode ser solicitada. Acesse a página Dados das contas para validar.",
+                            titulo="Encerramento de Conta Bancária",
+                            descricao=descricao_mensagem,
                             usuario=usuario,
                             recurso=recurso,
                             renotificar=True,
                             enviar_email=enviar_email
                         )
 
-    logger.info(f'Finalizando serviço de notificação de encerramento conta bancaria.')
+    logger.info('Finalizando serviço de notificação de encerramento conta bancaria.')

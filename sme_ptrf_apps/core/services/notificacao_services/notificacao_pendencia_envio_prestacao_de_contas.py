@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 def notificar_pendencia_envio_prestacao_de_contas(enviar_email=True):
-    logger.info(f'Notificar pendência envio prestação de contas service')
+    logger.info('Notificar pendência envio prestação de contas service')
 
     data_de_hoje = date.today()
 
@@ -24,6 +24,9 @@ def notificar_pendencia_envio_prestacao_de_contas(enviar_email=True):
     users = users.filter(visoes__nome="UE")
 
     if periodo:
+        users = users.filter(
+            unidades__associacoes__periodos_iniciais__recurso=periodo.recurso
+        ).distinct()
 
         for associacao in associacoes:
 
@@ -39,6 +42,12 @@ def notificar_pendencia_envio_prestacao_de_contas(enviar_email=True):
 
             usuarios = users.filter(unidades__codigo_eol=associacao.unidade.codigo_eol)
 
+            descricao_mensagem = (
+                f"Terminou o período de prestações de contas para a associação {associacao.unidade.codigo_eol} - "
+                f"{associacao.unidade.nome} e você ainda não enviou sua PC.\n\n"
+                f"Recurso: {periodo.recurso.nome if periodo.recurso else 'Não informado'}\n"
+            )
+
             if usuarios:
                 for usuario in usuarios:
                     logger.info(f"Gerando notificação de pendência de envio de PC para o usuario: {usuario} | Período: {periodo.referencia}")
@@ -48,7 +57,7 @@ def notificar_pendencia_envio_prestacao_de_contas(enviar_email=True):
                         categoria=Notificacao.CATEGORIA_NOTIFICACAO_ELABORACAO_PC,
                         remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
                         titulo=f"Pendência de envio de PC {periodo.referencia}",
-                        descricao=f"Terminou o período de prestações de contas para a associação {associacao.unidade.codigo_eol} - {associacao.unidade.nome} e você ainda não enviou sua PC.",
+                        descricao=descricao_mensagem,
                         usuario=usuario,
                         renotificar=True,
                         enviar_email=enviar_email,
@@ -59,7 +68,4 @@ def notificar_pendencia_envio_prestacao_de_contas(enviar_email=True):
                 periodo.notificacao_pendencia_envio_prestacao_de_contas_realizada()
 
     else:
-        logger.info(f"Não foram encontrados períodos a serem notificados sobre pendência de envio de prestação de contas")
-
-
-
+        logger.info("Não foram encontrados períodos a serem notificados sobre pendência de envio de prestação de contas")
