@@ -9,17 +9,21 @@
     </th>
   </tr>
   <tr>
-    <th style="width: 3%">20 - Ordem</th>
-    <th style="width: 15%">21 - Unidade</th>
-    <th style="width: 7%">22 - Conta</th>
-    <th colspan="2">23 - Reprogramado do período anterior</th>
-    <th colspan="2">24 - Transferido pela DRE</th>
-    <th colspan="2">25 - Outros créditos</th>
-    <th colspan="2">26 - Valor total disponível</th>
-    <th colspan="2">27 - Despesa realizada</th>
-    <th colspan="2">28 - Saldo reprogramado para<br/>o próximo período</th>
-    <th colspan="2">29 - Devolução ao Tesouro</th>
-    <th>30 - Situação da PC</th>
+    <th style="width: 3%">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.ordem }} - Ordem</th>
+    <th style="width: 15%">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.unidade }} - Unidade</th>
+    <th style="width: 7%">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.conta }} - Conta</th>
+    <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.reprogramado_do_periodo_anterior }} - Reprogramado do período anterior</th>
+    <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.transferido_pela_dre }} - Transferido pela DRE</th>
+    <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.outros_creditos }} - Outros créditos</th>
+    <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.valor_total_disponivel }} - Valor total disponível</th>
+    <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.despesa_realizada }} - Despesa realizada</th>
+    <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.saldo_reprogramado_para_o_proximo_periodo }} - Saldo reprogramado para<br/>o próximo período</th>
+    {% if dados.existe_devolucao_ao_tesouro %}
+      <th colspan="2">29 - Devolução ao Tesouro</th>
+      <th>30 - Situação da PC</th>
+    {% else %}
+      <th>28 - Situação da PC</th>
+    {% endif %}
   </tr>
   </thead>
 
@@ -73,9 +77,10 @@
         <td rowSpan="2" class="text-right">{{ conta.custeio.saldo_custeio }}</td>
 
         {% if forloop.counter == 1 %}
-          <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>T</strong></td>
-          <td class="text-right" rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>{{ conta.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
-
+          {% if dados.existe_devolucao_ao_tesouro %}
+            <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>T</strong></td>
+            <td class="text-right" rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}"><strong>{{ conta.totais.devolucoes_ao_tesouro_no_periodo_total }}</strong></td>
+          {% endif %}
 
           <td rowspan="{{ info.por_tipo_de_conta|length|retorna_quantidade_rowspan }}">{{ info.situacao_pc }}</td>
         {% endif %}
