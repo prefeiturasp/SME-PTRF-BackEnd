@@ -81,7 +81,7 @@
         <td rowSpan="2" class="text-right">{{ valor.custeio.saldo_reprogramado_proximo_periodo_custeio }}</td>
 
         {# Controlando o layout. Não devem ser exibidas as linhas de contas que tenham valores zerados em todas as colunas. #}
-        {% if dados.execucao_financeira.por_tipo_de_conta|length == 1 %}
+        {% if dados.execucao_financeira.por_tipo_de_conta|length == 1 and dados.existe_devolucao_ao_tesouro %}
           <td rowspan="7" class="separacao-de-colunas-da-tabela"> </td>
 
           <td rowSpan="8" colspan="2" class="text-center" style="width: 2%"><strong>T</strong></td>
