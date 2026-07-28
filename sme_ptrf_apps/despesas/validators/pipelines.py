@@ -25,7 +25,6 @@ _CAPITAL_VALIDATORS = [
 
 
 # Fluxo 1 — Criação de despesa (sem vínculo de Solicitação de Acerto)
-# Contexto: is_create=True, uuid_solicitacao_acerto=None
 CREATE_PIPELINE = ValidatorPipeline(
     flow_name="Fluxo 1 — Criação",
     validators=[
