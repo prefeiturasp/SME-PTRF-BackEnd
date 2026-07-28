@@ -16,7 +16,7 @@ def test_api_get_search_receitas_por_nome_detalhe_outros(jwt_authenticated_clien
                                                          conta_associacao):
     response = jwt_authenticated_client_p.get(f'/api/receitas/?associacao__uuid={associacao.uuid}&search=XXXÇ',
                                             content_type='application/json')
-    result = json.loads(response.content)
+    result = json.loads(response.content).get('results', [])
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 1
@@ -34,7 +34,7 @@ def test_api_get_search_receitas_por_nome_detalhe_tipo_receita(jwt_authenticated
                                                                conta_associacao):
     response = jwt_authenticated_client_p.get(f'/api/receitas/?associacao__uuid={associacao.uuid}&search=yyyÇ',
                                             content_type='application/json')
-    result = json.loads(response.content)
+    result = json.loads(response.content).get('results', [])
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 1
@@ -50,7 +50,7 @@ def test_api_get_search_receitas_por_nome_detalhe_outros_ignora_acentos(jwt_auth
                                                                         conta_associacao):
     response = jwt_authenticated_client_p.get(f'/api/receitas/?associacao__uuid={associacao.uuid}&search=XXXc',
                                             content_type='application/json')
-    result = json.loads(response.content)
+    result = json.loads(response.content).get('results', [])
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 1
@@ -68,7 +68,7 @@ def test_api_get_search_receitas_por_nome_detalhe_tipo_receita_ignora_acento(jwt
                                                                              conta_associacao):
     response = jwt_authenticated_client_p.get(f'/api/receitas/?associacao__uuid={associacao.uuid}&search=yyyc',
                                             content_type='application/json')
-    result = json.loads(response.content)
+    result = json.loads(response.content).get('results', [])
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result) == 1
