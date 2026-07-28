@@ -24,10 +24,9 @@ class SituacaoPatrimonialValidationError(Exception):
             raise serializers.ValidationError(exc.detail)
     """
 
-    def __init__(self, title: str, detail: str):
-        self.title = title
+    def __init__(self, detail: dict):
         self.detail = detail
-        super().__init__(detail)
+        super().__init__(str(detail))
 
 
 class AbstractBemProduzidoValidator(ABC):

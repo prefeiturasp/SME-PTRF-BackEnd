@@ -24,5 +24,3 @@ class BemProduzidoDtoContext:
 
     # Campos opcionais enriquecidos por validators intermediários
     periodos: Optional[list] = field(default=None)
-    saldos: Optional[dict] = field(default=None)
-    observacoes: Optional[str] = field(default=None)

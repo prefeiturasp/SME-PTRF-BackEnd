@@ -50,6 +50,14 @@ class ContextualLogger(logging.LoggerAdapter):
         if recurso is not None:
             extra["recurso_id"] = getattr(recurso, "id", str(recurso))
 
+        if ctx.bem_produzido is not None:
+            extra["bem_produzido_id"] = ctx.bem_produzido.id
+            extra["bem_produzido_uuid"] = str(ctx.bem_produzido.uuid)
+
+        if ctx.associacao is not None:
+            extra["associacao_id"] = ctx.associacao.id
+            extra["associacao_uuid"] = ctx.associacao.uuid
+
         operation_id = " | ".join(f"{k}={v}" for k, v in extra.items())
         extra["operation_id"] = operation_id
         return cls(_logger, extra)

@@ -883,35 +883,12 @@ def test_deve_retornar_status_de_exclusao_quando_bem_produzido_pode_ser_excluido
 ):
     recurso_ptrf, bem_ptrf, _ = cenario_recurso_ptrf
 
-    periodo = periodo_factory.create(
-        referencia='2025.1',
-        data_inicio_realizacao_despesas=date(2025, 1, 1),
-        data_fim_realizacao_despesas=date(2025, 4, 30),
-        recurso=recurso_ptrf
-    )
-
-    print('periodo', periodo)
-    # prestacao_conta_factory.create(periodo=periodo, associacao=associacao_1, status="NAO_RECEBIDA")
-
     response = jwt_authenticated_client_sme.get(
         f'/api/bens-produzidos/{bem_ptrf.uuid}/status-delecao-bem-produzido/',
         HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
     )
 
-    content = json.loads(response.content)
-
-    # --- INSPETOR ---
-    todas_as_contas = PrestacaoConta.objects.all()
-
-    print("\n--- INICIO DA LISTAGEM DE CONTAS ---")
-    print(f"Total encontrado: {todas_as_contas.count()}")
-    for conta in todas_as_contas:
-        print(f"ID: {conta.id} | Status: {conta.status} | Associação: {conta.associacao}")
-    print("-------------------------------------\n")
-
-    assert response.status_code == status.HTTP_200_OK
-    assert content['title'] == 'Bem Produzido'
-    assert content['detail'] == 'O bem produzido pode ser excluído.'
+    assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
 @freeze_time('2025-03-10')
@@ -943,8 +920,40 @@ def test_deve_retornar_status_de_exclusao_quando_bem_produzido_nao_pode_ser_excl
     content = json.loads(response.content)
 
     assert response.status_code == status.HTTP_409_CONFLICT
-    assert content['title'] == 'Período fechado'
-    assert content['detail'] == 'O período está bloqueado para realização de alterações.'
+    assert content['titulo'] == 'Período fechado'
+    assert content['mensagem'] == 'O período está bloqueado para realização de alterações.'
+
+
+@freeze_time("2025-03-10")
+def test_deve_retornar_status_de_exclusao_quando_periodo_encerrado(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    associacao_1,
+    cenario_recurso_ptrf,
+    periodo_factory,
+):
+
+    recurso_ptrf, bem_ptrf, despesa_ptrf = cenario_recurso_ptrf
+
+    periodo_factory.create(
+        referencia="2025.1",
+        data_inicio_realizacao_despesas=date(2025, 1, 1),
+        data_fim_realizacao_despesas=date(2025, 2, 28),  # antes de 10/03/2025
+        recurso=recurso_ptrf,
+    )
+
+    response = jwt_authenticated_client_sme.get(
+        f"/api/bens-produzidos/{bem_ptrf.uuid}/status-delecao-bem-produzido/",
+        HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
+    )
+
+    content = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_409_CONFLICT
+    assert content["titulo"] == "Período fechado"
+    assert (
+        content["mensagem"] == "O período está bloqueado para realização de alterações."
+    )
 
 
 @freeze_time('2025-03-10')
@@ -964,8 +973,8 @@ def test_deve_retornar_bem_produzido_nao_encontrado(
     content = json.loads(response.content)
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
-    assert content['title'] == 'Bem Produzido'
-    assert content['detail'] == 'O bem produzido não foi encontrado.'
+    assert content['titulo'] == 'Bem Produzido'
+    assert content['mensagem'] == 'O bem produzido não foi encontrado.'
 
 
 @freeze_time('2025-03-10')
@@ -986,7 +995,7 @@ def test_deve_excluir_bem_produzido_com_sucesso(
         HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
     )
 
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_204_NO_CONTENT
 
     assert not BemProduzido.objects.filter(uuid=bem_ptrf.uuid).exists()
     assert not BemProduzidoDespesa.objects.filter(bem_produzido=bem_ptrf).exists()

@@ -1,5 +1,3 @@
-from typing import Any
-
 from .context import BemProduzidoDtoContext
 
 
@@ -8,14 +6,9 @@ class BemProduzidoContextBuilder:
 
     @staticmethod
     def build(
-        bem_produzido=None,
+        bem_produzido=None,  # Instancia
         validated_data: dict = None,
-        recurso: str = None,
-        associacao: Any = None,
-        status: str = None,
         periodos: list = [],
-        saldos: dict = None,
-        observacoes: str = None,
     ) -> BemProduzidoDtoContext:
 
         validated_data = validated_data or {}
@@ -30,10 +23,8 @@ class BemProduzidoContextBuilder:
         return BemProduzidoDtoContext(
             is_create=bem_produzido is None,
             bem_produzido=bem_produzido,
-            associacao=associacao or get("associacao"),
-            status=status or get("status"),
-            recurso=bem_produzido.recurso or get("recurso"),
+            associacao=get("associacao"),
+            status=get("status"),
+            recurso=get("recurso"),
             periodos=periodos,
-            saldos=saldos or {},
-            observacoes=observacoes or get("observacoes"),
         )

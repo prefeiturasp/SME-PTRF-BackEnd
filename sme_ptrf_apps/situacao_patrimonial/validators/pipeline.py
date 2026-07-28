@@ -31,7 +31,6 @@ class ValidatorPipeline:
 
         # Fase 1: validações (fail-fast — interrompe ao primeiro erro)
         for validator in self._validators:
-            print('validator', validator)
             validator_name = type(validator).__name__
             v_log = log.with_validator(validator_name)
 

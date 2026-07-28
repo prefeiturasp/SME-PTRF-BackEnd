@@ -141,26 +141,21 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
         except Exception:
             return Response(
                 {
-                    "title": self.BEM_PRODUZIDO_TITLE,
-                    "detail": 'O bem produzido não foi encontrado.',
+                    "titulo": self.BEM_PRODUZIDO_TITLE,
+                    "mensagem": 'O bem produzido não foi encontrado.',
                 }, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            mensagem = BemProduzidoService.verificar_se_pode_excluir_bem_produzido(bem_produzido)
+            BemProduzidoService.verificar_se_pode_excluir_bem_produzido(bem_produzido)
         except SituacaoPatrimonialValidationError as exc:
+            return Response(exc.detail, status=status.HTTP_409_CONFLICT)
+        except Exception as exc:
             return Response(
-                {
-                    "title": exc.title,
-                    "detail": exc.detail,
-                },
-                status=status.HTTP_409_CONFLICT,
+                {"mensagem": str(exc)},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        return Response(
-            {
-                "title": self.BEM_PRODUZIDO_TITLE,
-                "detail": mensagem,
-            }, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def destroy(self, request: Request, *args, **kwargs) -> Response:
         """
@@ -186,36 +181,21 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
         except Exception:
             return Response(
                 {
-                    "title": self.BEM_PRODUZIDO_TITLE,
-                    "detail": 'O bem produzido não foi encontrado.',
+                    "titulo": self.BEM_PRODUZIDO_TITLE,
+                    "mensagem": 'O bem produzido não foi encontrado.',
                 }, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            mensagem = BemProduzidoService.excluir_bem_produzido(bem_produzido)
+            BemProduzidoService.excluir_bem_produzido(bem_produzido)
         except SituacaoPatrimonialValidationError as exc:
-            return Response(
-                {
-                    "title": exc.title,
-                    "detail": exc.detail,
-                },
-                status=status.HTTP_409_CONFLICT,
-            )
+            return Response(exc.detail, status=status.HTTP_409_CONFLICT)
         except Exception as exc:
             return Response(
-                {
-                    "title": "Erro ao excluir bem produzido",
-                    "detail": str(exc),
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {"mensagem": str(exc)},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        return Response(
-            {
-                "title": self.BEM_PRODUZIDO_TITLE,
-                "detail": mensagem,
-            },
-            status=status.HTTP_200_OK,
-        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema_view(**DOCS_BEM_PRODUZIDO_RASCUNHO)
