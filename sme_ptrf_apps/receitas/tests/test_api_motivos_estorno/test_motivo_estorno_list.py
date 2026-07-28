@@ -5,10 +5,10 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_list_motivo_estorno_por_nome(jwt_authenticated_client_p, motivo_estorno_01, motivo_estorno_02):
+def test_list_motivo_estorno_por_nome(jwt_authenticated_client_p, motivo_estorno_01):
     response = jwt_authenticated_client_p.get(
         f'/api/motivos-estorno/?motivo=01',
-        content_type='applicaton/json'
+        content_type='application/json'
     )
 
     result = json.loads(response.content)
@@ -17,7 +17,8 @@ def test_list_motivo_estorno_por_nome(jwt_authenticated_client_p, motivo_estorno
         {
             'id': motivo_estorno_01.id,
             'uuid': f'{motivo_estorno_01.uuid}',
-            'motivo': 'Motivo de estorno 01'
+            'motivo': 'Motivo de estorno 01',
+            'recurso': f'{motivo_estorno_01.recurso.uuid}'
         }
     ]
 
@@ -33,12 +34,14 @@ def test_api_motivos_estorno_list(jwt_authenticated_client_p, motivo_estorno_01,
         {
             'id': motivo_estorno_01.id,
             'uuid': f'{motivo_estorno_01.uuid}',
-            'motivo': 'Motivo de estorno 01'
+            'motivo': 'Motivo de estorno 01',
+            'recurso': f'{motivo_estorno_01.recurso.uuid}'
         },
         {
             'id': motivo_estorno_02.id,
             'uuid': f'{motivo_estorno_02.uuid}',
-            'motivo': 'Motivo de estorno 02'
+            'motivo': 'Motivo de estorno 02',
+            'recurso': f'{motivo_estorno_02.recurso.uuid}'
         }
     ]
 
