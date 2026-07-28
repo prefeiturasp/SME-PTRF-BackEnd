@@ -52,12 +52,11 @@ def test_retrieve_invalid_uuid(usuario_permissao_associacao):
 
 
 @override_flag('premio-excelencia', active=True)
-def test_list_recursos_por_unidade(jwt_authenticated_client_a, recurso, unidade, associacao,
-                                   periodo_inicial_associacao_factory):
-    periodo_inicial_associacao_factory(
-        associacao=associacao,
-        recurso=recurso
-    )
+def test_list_recursos_por_unidade(
+    jwt_authenticated_client_a,
+    periodo_inicial_associacao_explicito,
+    unidade
+):
 
     response = jwt_authenticated_client_a.get(
         '/api/recursos/por-unidade/',
