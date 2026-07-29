@@ -16,7 +16,7 @@ def test_list_receitas_inativas(
     response = jwt_authenticated_client_p.get(
         f'/api/receitas/?associacao__uuid={associacao.uuid}&recurso_uuid={str(recurso_legado.uuid)}',
         content_type='application/json')
-    result = json.loads(response.content)
+    result = json.loads(response.content).get('results', [])
 
     assert response.status_code == status.HTTP_200_OK
 

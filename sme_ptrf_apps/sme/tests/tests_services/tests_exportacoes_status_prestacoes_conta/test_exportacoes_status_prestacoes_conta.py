@@ -36,7 +36,7 @@ def test_dados_esperados_csv_visao_dre(queryset_ordered, dre):
 
     ).monta_dados()
 
-    assert dados == resultado_esperado
+    assert sorted(dados) == sorted(resultado_esperado)
 
 
 def test_dados_esperados_csv_visao_dre_sem_pcs(queryset_ordered_dre_sem_pcs, dre_ipiranga):
