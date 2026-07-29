@@ -12,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from django.core.exceptions import ValidationError
 
+from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
@@ -44,6 +45,7 @@ class ReceitaViewSet(mixins.CreateModelMixin,
     filterset_fields = (
         'associacao__uuid', 'tipo_receita', 'acao_associacao__uuid', 'conta_associacao__uuid', 'conferido')
     permission_classes = [IsAuthenticated & PermissaoApiUe]
+    pagination_class = CustomPagination
 
     def get_serializer_class(self):
         if self.action in ['retrieve', 'list']:
