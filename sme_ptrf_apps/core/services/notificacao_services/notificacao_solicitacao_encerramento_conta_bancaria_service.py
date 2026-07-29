@@ -18,6 +18,18 @@ def notificar_solicitacao_encerramento_conta_bancaria(conta_associacao, enviar_e
     users = get_users_by_permission('recebe_notificacao_encerramento_conta')
     users = users.filter(visoes__nome="DRE")
 
+    if recurso:
+        users = users.filter(
+            unidades__associacoes__periodos_iniciais__recurso=recurso
+        ).distinct()
+
+    descricao = (
+        f"A Associação da {associacao.unidade.nome_com_tipo} solicitou o encerramento da conta bancária "
+        f"{conta_associacao.tipo_conta.nome}. "
+        f"Acesse a página da Associação na Consulta de Associações para validar.\n\n"
+        f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
+    )
+
     for usuario in users:
         membro_comissao = MembroComissao.objects.filter(rf=usuario.username).filter(dre=associacao.unidade.dre).first()
 
@@ -31,15 +43,11 @@ def notificar_solicitacao_encerramento_conta_bancaria(conta_associacao, enviar_e
 
         logging.info(f"Gerando notificação de solicitação de encerramento de conta bancária para o usuário: {usuario}")
 
-        descricao = f"A Associação da {associacao.unidade.nome_com_tipo} solicitou o encerramento da conta bancária " \
-                    f"{conta_associacao.tipo_conta.nome}. " \
-                    f"Acesse a página da Associação na Consulta de Associações para validar."
-
         Notificacao.notificar(
             tipo=Notificacao.TIPO_NOTIFICACAO_AVISO,
             categoria=Notificacao.CATEGORIA_NOTIFICACAO_ENCERRAMENTO_CONTA_BANCARIA,
             remetente=Notificacao.REMETENTE_NOTIFICACAO_ASSOCIACAO,
-            titulo=f"Solicitação de encerramento de conta bancária",
+            titulo="Solicitação de encerramento de conta bancária",
             descricao=descricao,
             usuario=usuario,
             renotificar=True,
@@ -47,5 +55,4 @@ def notificar_solicitacao_encerramento_conta_bancaria(conta_associacao, enviar_e
             recurso=recurso
         )
 
-    logger.info(f'Finalizando serviço de notificação de solicitação de encerramento conta bancaria.')
-
+    logger.info('Finalizando serviço de notificação de solicitação de encerramento conta bancaria.')

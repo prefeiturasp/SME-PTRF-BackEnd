@@ -28,8 +28,13 @@ def notificar_proximidade_fim_periodo_prestacao_conta(enviar_email=True):
         try:
             users = users.filter(visoes__nome="UE")
             users = users.annotate(c=Count('unidades')).filter(c__gt=0)
+
+            if periodo:
+                users = users.filter(
+                    unidades__associacoes__periodos_iniciais__recurso=periodo.recurso
+                ).distinct()
         except Exception:
-            logger.error(f'Erro ao filtrar usuario por visão e ou unidade')
+            logger.error('Erro ao filtrar usuario por visão e ou unidade')
 
     if periodo:
         if users:
@@ -38,12 +43,18 @@ def notificar_proximidade_fim_periodo_prestacao_conta(enviar_email=True):
 
                 dias_para_fim = periodo.data_fim_prestacao_contas - date.today()
 
+                descricao_mensagem = (
+                    f"Faltam apenas {dias_para_fim.days} dia(s) para o término do período de "
+                    "prestações de contas. Envie a sua prestação de contas.\n\n"
+                    f"Recurso: {periodo.recurso.nome if periodo.recurso else 'Não informado'}\n"
+                )
+
                 Notificacao.notificar(
                     tipo=Notificacao.TIPO_NOTIFICACAO_INFORMACAO,
                     categoria=Notificacao.CATEGORIA_NOTIFICACAO_ELABORACAO_PC,
                     remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
                     titulo=f"Últimos dias para enviar a PC {periodo.referencia}",
-                    descricao=f"Faltam apenas {dias_para_fim.days} dia(s) para o término do período de prestações de contas. Envie a sua prestação de contas.",
+                    descricao=descricao_mensagem,
                     usuario=user,
                     enviar_email=enviar_email,
                     periodo=periodo,
@@ -51,6 +62,6 @@ def notificar_proximidade_fim_periodo_prestacao_conta(enviar_email=True):
                 )
                 periodo.notificacao_proximidade_fim_prestacao_de_contas_realizada()
         else:
-            logger.info(f"Não foram encontrados usuários a serem notificados.")
+            logger.info("Não foram encontrados usuários a serem notificados.")
     else:
-        logger.info(f"Não foram encontrados períodos a serem notificados.")
+        logger.info("Não foram encontrados períodos a serem notificados.")

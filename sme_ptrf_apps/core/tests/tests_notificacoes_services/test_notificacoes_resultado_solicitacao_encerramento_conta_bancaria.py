@@ -9,7 +9,8 @@ pytestmark = pytest.mark.django_db
 def test_deve_notificar_usuarios_aprovacao_solicitacao_encerramento_conta(
     conta_associacao_encerramento_conta,
     solicitacao_encerramento_conta_aprovada,
-    usuario_notificavel
+    usuario_notificavel,
+    associacao_a
 ):
     assert not Notificacao.objects.exists()
 
@@ -21,9 +22,14 @@ def test_deve_notificar_usuarios_aprovacao_solicitacao_encerramento_conta(
 
     notificacao = Notificacao.objects.first()
 
-    descricao = f"A {conta_associacao_encerramento_conta.associacao.unidade.nome_dre} " \
-                f"aprovou a sua solicitação de encerramento de sua conta bancária " \
-                f"{conta_associacao_encerramento_conta.tipo_conta.nome}. Sua conta já está encerrada."
+    recurso = conta_associacao_encerramento_conta.tipo_conta.recurso
+
+    descricao = (
+        f"A {conta_associacao_encerramento_conta.associacao.unidade.nome_dre} "
+        f"aprovou a sua solicitação de encerramento de sua conta bancária "
+        f"{conta_associacao_encerramento_conta.tipo_conta.nome}. Sua conta já está encerrada.\n\n"
+        f"Recurso: {recurso.nome}\n"
+    )
 
     assert notificacao.tipo == Notificacao.TIPO_NOTIFICACAO_AVISO
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_ENCERRAMENTO_CONTA_BANCARIA
@@ -36,7 +42,8 @@ def test_deve_notificar_usuarios_aprovacao_solicitacao_encerramento_conta(
 def test_deve_notificar_usuarios_rejeicao_solicitacao_encerramento_conta(
     conta_associacao_encerramento_conta,
     solicitacao_encerramento_conta_rejeitada,
-    usuario_notificavel
+    usuario_notificavel,
+    associacao_a
 ):
     assert not Notificacao.objects.exists()
 
@@ -48,9 +55,14 @@ def test_deve_notificar_usuarios_rejeicao_solicitacao_encerramento_conta(
 
     notificacao = Notificacao.objects.first()
 
-    descricao = f"A {conta_associacao_encerramento_conta.associacao.unidade.nome_dre} " \
-                f"rejeitou a sua solicitação de encerramento de sua conta bancária " \
-                f"{conta_associacao_encerramento_conta.tipo_conta.nome}. Sua conta continua ativa."
+    recurso = conta_associacao_encerramento_conta.tipo_conta.recurso
+
+    descricao = (
+        f"A {conta_associacao_encerramento_conta.associacao.unidade.nome_dre} " \
+        f"rejeitou a sua solicitação de encerramento de sua conta bancária " \
+        f"{conta_associacao_encerramento_conta.tipo_conta.nome}. Sua conta continua ativa.\n\n"
+        f"Recurso: {recurso.nome}\n"
+    )
 
     assert notificacao.tipo == Notificacao.TIPO_NOTIFICACAO_AVISO
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_ENCERRAMENTO_CONTA_BANCARIA

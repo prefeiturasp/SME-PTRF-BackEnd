@@ -12,18 +12,23 @@ pytestmark = pytest.mark.django_db
 @freeze_time("2022-11-22")
 def test_deve_notificar_tecnico_dre_pois_foi_devolvida(usuario_tecnico_notificavel, associacao_a, consolidado_dre_devolucao_apos_acertos_dentro_do_prazo, monkeypatch):
     monkeypatch.setenv('SERVER_NAME', 'sig-escola.sme.prefeitura.sp.gov.br')
-    
+
     assert not Notificacao.objects.exists()
     NotificacaoConsolidadoPrazoAcertoVencimento(
         enviar_email=True
     ).notificar_prazo_para_acerto_antes_vencimento()
     notificacao = Notificacao.objects.first()
+    periodo = consolidado_dre_devolucao_apos_acertos_dentro_do_prazo.periodo
+    recurso = periodo.recurso
     assert Notificacao.objects.count() == 1
     assert notificacao.tipo == Notificacao.TIPO_NOTIFICACAO_ALERTA
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_CONSOLIDADO
     assert notificacao.remetente == Notificacao.REMETENTE_NOTIFICACAO_SISTEMA
-    assert notificacao.titulo == f'Devolução para acertos no relatório consolidado de {consolidado_dre_devolucao_apos_acertos_dentro_do_prazo.periodo.referencia}'
-    assert notificacao.descricao == f"A SME solicitou acertos relativos à Publicação {consolidado_dre_devolucao_apos_acertos_dentro_do_prazo.referencia} {consolidado_dre_devolucao_apos_acertos_dentro_do_prazo.periodo.referencia}. O seu prazo para envio dos acertos é {consolidado_dre_devolucao_apos_acertos_dentro_do_prazo.analise_atual.data_limite.strftime('%d/%m/%Y')}"
+    assert notificacao.titulo == f'Devolução para acertos no relatório consolidado de {periodo.referencia}'
+    assert notificacao.descricao == (
+        f"A SME solicitou acertos relativos à Publicação {consolidado_dre_devolucao_apos_acertos_dentro_do_prazo.referencia} {periodo.referencia}. O seu prazo para envio dos acertos é {consolidado_dre_devolucao_apos_acertos_dentro_do_prazo.analise_atual.data_limite.strftime('%d/%m/%Y')}\n\n"
+        f"Recurso: {recurso.nome}\n"
+    )
     assert notificacao.usuario == usuario_tecnico_notificavel
 
 
