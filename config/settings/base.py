@@ -322,8 +322,8 @@ SPECTACULAR_SETTINGS = {
 # ------------------------------------------------------------------------------
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
-    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=30),
-    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(hours=18),
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(hours=12),
 }
 
 # CORS SETTINGS
