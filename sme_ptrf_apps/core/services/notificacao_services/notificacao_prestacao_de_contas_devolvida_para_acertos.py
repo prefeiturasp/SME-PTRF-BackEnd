@@ -12,10 +12,22 @@ def notificar_prestacao_de_contas_devolvida_para_acertos(prestacao_de_contas, da
     users = get_users_by_permission('recebe_notificacao_prestacao_de_contas_devolvida_para_acertos')
     users = users.filter(visoes__nome="UE")
     associacao = prestacao_de_contas.associacao
-    usuarios = users.filter(unidades__codigo_eol=associacao.unidade.codigo_eol)
+    recurso = prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
+    users = users.filter(unidades__codigo_eol=associacao.unidade.codigo_eol)
 
-    if usuarios:
-        for usuario in usuarios:
+    if recurso:
+        users = users.filter(
+            unidades__associacoes__periodos_iniciais__recurso=recurso
+        ).distinct()
+
+    descricao_mensagem = (
+        f"A DRE solicitou alguns ajustes em sua prestação de contas do período {prestacao_de_contas.periodo.referencia}"
+        f". O seu prazo para envio das mudanças é {formata_data_dd_mm_yyyy(data_limite_ue)}\n\n"
+        f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
+    )
+
+    if users:
+        for usuario in users:
             logger.info(f"Gerando notificação de PC devolvida para acerto para o usuario: {usuario} | Data Limite: {formata_data_dd_mm_yyyy(data_limite_ue)}")
 
             Notificacao.notificar(
@@ -23,17 +35,17 @@ def notificar_prestacao_de_contas_devolvida_para_acertos(prestacao_de_contas, da
                 categoria=Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_PC,
                 remetente=Notificacao.REMETENTE_NOTIFICACAO_DRE,
                 titulo=f"Ajustes necessários na PC | Prazo: {formata_data_dd_mm_yyyy(data_limite_ue)}",
-                descricao=f"A DRE solicitou alguns ajustes em sua prestação de contas do período {prestacao_de_contas.periodo.referencia}. O seu prazo para envio das mudanças é {formata_data_dd_mm_yyyy(data_limite_ue)}",
+                descricao=descricao_mensagem,
                 usuario=usuario,
                 renotificar=True,
                 enviar_email=enviar_email,
                 unidade=associacao.unidade,
                 prestacao_conta=prestacao_de_contas,
                 periodo=prestacao_de_contas.periodo,
-                recurso=prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
+                recurso=recurso
             )
 
-    logger.info(f'Finalizando a geração de notificação prestação de contas devolvida para acertos')
+    logger.info('Finalizando a geração de notificação prestação de contas devolvida para acertos')
 
 
 def marcar_como_lidas_notificacoes_de_devolucao_da_pc(prestacao_de_contas):
@@ -44,4 +56,4 @@ def marcar_como_lidas_notificacoes_de_devolucao_da_pc(prestacao_de_contas):
         prestacao_conta=prestacao_de_contas
     ).update(lido=True)
 
-    logger.info(f'Finalizando a marcação de notificações de devolução da PC como lidas')
+    logger.info('Finalizando a marcação de notificações de devolução da PC como lidas')

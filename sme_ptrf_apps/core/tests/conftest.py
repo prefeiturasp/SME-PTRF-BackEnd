@@ -378,3 +378,60 @@ def parametro_fique_de_olho_rel_dre_abc():
         'ParametroFiqueDeOlhoRelDre',
         fique_de_olho='abc',
     )
+
+
+@pytest.fixture
+def recurso_explicito(recurso_factory):
+    return recurso_factory.create(
+        nome='Recurso Exemplo',
+        nome_exibicao='RE',
+        cor='#0D3B66',
+        ativo=True,
+    )
+
+
+@pytest.fixture
+def periodo_inicial_associacao_explicito(periodo_inicial_associacao_factory, associacao, periodo_factory,
+                                         recurso_explicito):
+    return periodo_inicial_associacao_factory.create(
+        associacao=associacao,
+        periodo_inicial=periodo_factory.create(
+            recurso=recurso_explicito,
+            referencia='2020.1',
+        ),
+        recurso=recurso_explicito,
+    )
+
+
+@pytest.fixture
+def unidade_pendencia_pc(unidade_factory):
+    return unidade_factory.create(nome='Escola Pendencia PC', codigo_eol='271170')
+
+
+@pytest.fixture
+def periodo_pendencia_pc(periodo_factory, recurso_explicito):
+    from datetime import date
+
+    return periodo_factory.create(
+        referencia='2020.1',
+        data_inicio_realizacao_despesas=date(2020, 1, 1),
+        data_fim_realizacao_despesas=date(2020, 6, 30),
+        data_prevista_repasse=date(2020, 1, 1),
+        data_inicio_prestacao_contas=date(2020, 7, 1),
+        data_fim_prestacao_contas=date(2020, 7, 15),
+    )
+
+
+@pytest.fixture
+def associacao_teste_pendencia_envio_pc(unidade_pendencia_pc, usuario_notificavel, periodo_pendencia_pc,
+                                        associacao_factory, periodo_inicial_associacao_factory):
+    usuario_notificavel.unidades.add(unidade_pendencia_pc)
+
+    associacao = associacao_factory.create(unidade=unidade_pendencia_pc, periodo_inicial=periodo_pendencia_pc)
+
+    periodo_inicial_associacao_factory.create(
+        associacao=associacao,
+        periodo_inicial=periodo_pendencia_pc,
+    )
+
+    return associacao

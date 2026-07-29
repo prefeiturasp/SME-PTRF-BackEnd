@@ -10,20 +10,27 @@ pytestmark = pytest.mark.django_db
 
 
 @freeze_time("2022-11-22")
-def test_deve_notificar_tecnico_dre(usuario_tecnico_notificavel, associacao_a, consolidado_dre_devolucao_apos_acertos, monkeypatch):
+def test_deve_notificar_tecnico_dre(usuario_tecnico_notificavel, associacao_a, consolidado_dre_devolucao_apos_acertos,
+                                    monkeypatch):
     monkeypatch.setenv('SERVER_NAME', 'sig-escola.sme.prefeitura.sp.gov.br')
-    
+
     assert not Notificacao.objects.exists()
     NotificacaoConsolidadoPrazoAcertoVencimento(
         enviar_email=True
     ).notificar_prazo_para_acerto_apos_vencimento()
     notificacao = Notificacao.objects.first()
+    periodo = consolidado_dre_devolucao_apos_acertos.periodo
+    recurso = periodo.recurso
     assert Notificacao.objects.count() == 1
     assert notificacao.tipo == Notificacao.TIPO_NOTIFICACAO_ALERTA
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_CONSOLIDADO
     assert notificacao.remetente == Notificacao.REMETENTE_NOTIFICACAO_SISTEMA
-    assert notificacao.titulo == f'Devolução para acertos no relatório consolidado de {consolidado_dre_devolucao_apos_acertos.periodo.referencia}'
-    assert notificacao.descricao == f"O prazo para acerto da Publicação {consolidado_dre_devolucao_apos_acertos.referencia} {consolidado_dre_devolucao_apos_acertos.periodo.referencia} expirou. Favor verificar os acertos solicitados e regularizar a situação."
+    assert notificacao.titulo == f'Devolução para acertos no relatório consolidado de {periodo.referencia}'
+    assert notificacao.descricao == (
+        f"O prazo para acerto da Publicação {consolidado_dre_devolucao_apos_acertos.referencia} "
+        f"{periodo.referencia} expirou. Favor verificar os acertos solicitados e regularizar a situação.\n\n"
+        f"Recurso: {recurso.nome}\n"
+    )
     assert notificacao.usuario == usuario_tecnico_notificavel
 
 

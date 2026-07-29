@@ -27,11 +27,16 @@ def test_deve_notificar_usuarios_5_dias_antes(
 
     notificacao = Notificacao.objects.first()
 
+    recurso = periodo_2021_1_pc_2021_04_1_a_2021_04_15.recurso
+
     assert notificacao.tipo == Notificacao.TIPO_NOTIFICACAO_INFORMACAO
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_ELABORACAO_PC
     assert notificacao.remetente == Notificacao.REMETENTE_NOTIFICACAO_SISTEMA
     assert notificacao.titulo == 'O período de envio da PC de 2021.1 está se aproximando.'
-    assert notificacao.descricao == 'Faltam apenas 5 dias para o início do período de prestações de contas. Finalize o cadastro de crédito e de gastos, a conciliação bancária e gere os documentos da prestação de contas.'
+    assert notificacao.descricao == (
+        'Faltam apenas 5 dias para o início do período de prestações de contas. Finalize o cadastro de crédito e de gastos, a conciliação bancária e gere os documentos da prestação de contas.\n\n'
+        f"Recurso: {recurso.nome}\n"
+    )
     assert notificacao.usuario == usuario_notificavel
 
 

@@ -1,5 +1,4 @@
 import logging
-from datetime import date
 
 from django.contrib.auth import get_user_model
 from sme_ptrf_apps.core.models import (
@@ -32,17 +31,27 @@ def notificar_comentario_pc(dado, enviar_email=True):
     users = get_users_by_permission('recebe_notificacao_comentario_em_pc')
     usuarios = users.filter(unidades__codigo_eol=associacao.unidade.codigo_eol)
 
+    if periodo:
+        usuarios = usuarios.filter(
+            unidades__associacoes__periodos_iniciais__recurso=periodo.recurso
+        ).distinct()
+
     if 'enviar_email' in dado:
         enviar_email = dado['enviar_email']
 
     for usuario in usuarios:
         for comentario in comentarios:
+            descricao_mensagem = (
+                f"{comentario.comentario}\n\n"
+                f"Recurso: {periodo.recurso.nome if periodo.recurso else 'Não informado'}\n"
+            )
+
             Notificacao.notificar(
                 tipo=tipo,
                 categoria=categoria,
                 remetente=remetente,
                 titulo=titulo,
-                descricao=comentario.comentario,
+                descricao=descricao_mensagem,
                 usuario=usuario,
                 renotificar=True,
                 enviar_email=enviar_email,

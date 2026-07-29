@@ -377,7 +377,7 @@ class AssociacoesViewSet(ModelViewSet):
                     'mensagem': f"Não foi encontrado o objeto periodo para o uuid {periodo_uuid}"
                 }
                 return Response(erro, status=status.HTTP_404_NOT_FOUND)
-            
+
             contas = ContaAssociacao.objects.filter(
                 Q(status=ContaAssociacao.STATUS_ATIVA) |
                 (Q(status=ContaAssociacao.STATUS_INATIVA) &
