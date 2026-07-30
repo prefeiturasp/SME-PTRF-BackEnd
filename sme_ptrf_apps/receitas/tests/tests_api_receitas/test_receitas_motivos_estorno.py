@@ -236,7 +236,7 @@ def test_put_receita_com_motivos_estorno_e_outros_motivos_estorno(
 
     result = json.loads(response.content)
 
-    assert result['motivos_estorno'] == [motivo_estorno_01.id, motivo_estorno_02.id]
+    assert sorted(result['motivos_estorno']) == sorted([motivo_estorno_01.id, motivo_estorno_02.id])
     assert result['outros_motivos_estorno'] == "Outros motivos estorno"
 
 
