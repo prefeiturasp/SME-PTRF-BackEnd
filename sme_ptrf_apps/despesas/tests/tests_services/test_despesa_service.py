@@ -7,6 +7,7 @@ import pytest
 from rest_framework import serializers
 
 from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
+from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO, STATUS_INCOMPLETO
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 from sme_ptrf_apps.core.models import (
@@ -469,6 +470,57 @@ def test_update_custeio_para_capital_com_especificacao_capital_sucesso(
     assert rateio_atualizado.quantidade_itens_capital == 2
     assert rateio_atualizado.valor_item_capital == 50.00
     assert rateio_atualizado.numero_processo_incorporacao_capital == "2020/123456"
+
+
+def test_update_recalcula_status_de_rateio_incompleto_ao_preencher_campos_capital(
+    despesa_com_rateio_custeio,
+    associacao,
+    conta_associacao,
+    acao_associacao,
+    especificacao_capital,
+):
+    """
+    Regressão: rateio atualizado por QuerySet.update() mantinha status INCOMPLETO
+    mesmo após preencher todos os campos obrigatórios de CAPITAL.
+    """
+    despesa = despesa_com_rateio_custeio
+    rateio = despesa.rateios.first()
+
+    rateio.__class__.objects.filter(uuid=rateio.uuid).update(status=STATUS_INCOMPLETO)
+    despesa.atualiza_status()
+    rateio.refresh_from_db()
+    despesa.refresh_from_db()
+
+    assert rateio.status == STATUS_INCOMPLETO
+    assert despesa.status == STATUS_INCOMPLETO
+
+    validated_data = {
+        **_validated_data_base(despesa, associacao),
+        "rateios": [
+            {
+                "uuid": str(rateio.uuid),
+                "associacao": associacao,
+                "conta_associacao": conta_associacao,
+                "acao_associacao": acao_associacao,
+                "aplicacao_recurso": APLICACAO_CAPITAL,
+                "tipo_custeio": None,
+                "especificacao_material_servico": especificacao_capital,
+                "valor_rateio": 100.00,
+                "quantidade_itens_capital": 2,
+                "valor_item_capital": 50.00,
+                "numero_processo_incorporacao_capital": "2020/123456",
+            }
+        ],
+    }
+
+    result = DespesaService.update(despesa, validated_data)
+
+    rateio_atualizado = result.rateios.first()
+    rateio_atualizado.refresh_from_db()
+    despesa.refresh_from_db()
+
+    assert rateio_atualizado.status == STATUS_COMPLETO
+    assert despesa.status == STATUS_COMPLETO
 
 
 def test_update_custeio_para_capital_com_especificacao_de_custeio_deve_falhar(
