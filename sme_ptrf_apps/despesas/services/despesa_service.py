@@ -113,10 +113,10 @@ class DespesaService:
     # =====================================================
     @classmethod
     @transaction.atomic
-    def update(cls, instance: Despesa, validated_data, limpar_prioridades_callback=None):        
+    def update(cls, instance: Despesa, validated_data, limpar_prioridades_callback=None):
 
         logger.info(f"Iniciando atualização de despesa: #{instance.id}")
-        
+
         # Desliga signal por questões de performance
         instance._skip_fornecedor_signal = True
 
@@ -146,7 +146,7 @@ class DespesaService:
             cls._atualizar_rateios(instance, rateios)
             cls._aplicar_motivos(instance, motivos, outros)
 
-            cls._processar_impostos_update(instance, despesas_impostos)            
+            cls._processar_impostos_update(instance, despesas_impostos)
 
             cls._finalizar_despesa(instance, rateios, limpar_prioridades_callback)
 
@@ -354,8 +354,14 @@ class DespesaService:
                             f"no rateio {rateio['uuid']}"
                         )
 
-                    RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)                    
+                    # Foi substituido o método update() para que seja executado o save() do model
+                    # Chamando o pre_save e o post_save do Rateio para recalcular o status do Rateio/Despesa
+                    for attr, value in rateio.items():
+                        setattr(rateio_para_atualizar, attr, value)
+
+                    rateio_para_atualizar.save()
                     keep.append(rateio_para_atualizar.uuid)
+
                 else:
                     logger.info(f"Rateio NÃO encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
                     continue
@@ -378,7 +384,7 @@ class DespesaService:
             if despesa.nome_fornecedor != nome_fornecedor or despesa.cpf_cnpj_fornecedor != doc_fornecedor:
                 logger.info(f"Cria/Atualiza fornecedor: {doc_fornecedor}")
                 Fornecedor.atualiza_ou_cria(
-                    cpf_cnpj=despesa.cpf_cnpj_fornecedor, 
+                    cpf_cnpj=despesa.cpf_cnpj_fornecedor,
                     nome=despesa.nome_fornecedor
                 )
 
@@ -443,10 +449,10 @@ class DespesaService:
                 # Despesa de imposto herda o status de conciliação da despesa de origem
                 # caso esteja num contexto de PC devolvida para acertos
                 prestacao_conta = despesa.prestacao_conta
-               
+
                 if prestacao_conta and prestacao_conta.status == PrestacaoConta.STATUS_DEVOLVIDA:
-                  
-                    if despesa.conferido:                   
+
+                    if despesa.conferido:
                         periodo_conciliacao = (
                             despesa.rateios.all()
                             .order_by("periodo_conciliacao")
@@ -461,7 +467,7 @@ class DespesaService:
                             rateio["periodo_conciliacao_id"] = (
                                 periodo_conciliacao.periodo_conciliacao_id if periodo_conciliacao else None
                             )
-                        
+
                 else:
                     for rateio in rateios:
                         rateio["update_conferido"] = False
