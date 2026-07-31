@@ -6,13 +6,13 @@ Funcionalidade: consultar fornecedor
     E realizo login no sistema PTRF com perfil "DRE"
 
   Esquema do Cenário: Validar pesquisa de fornecedor :<caso>
-    E excluo o fornecedor com o nome "teste automatizado" do banco de dados
-    E crio o fornecedor com o nome 'teste automatizado' e "<cpf_cnpj>" no banco de dados
+    E excluo o fornecedor com o nome "teste automatizado" via API
+    E crio o fornecedor com o nome 'teste automatizado' e "<cpf_cnpj>" via API
     E clico na opcao "Fornecedores" com a visao SME
     E informo dado nos campos "<nome_do_fornecedor>" e "<valores_consulta_cpf_cnpj>" para pesquisa na tela de Fornecedores
     E clico no botao "Filtrar" da tela Fornecedores
     Quando sistema retorna dados da consulta com os valores "<valores_consulta_nome_fornecedor>" e "<valores_consulta_cpf_cnpj>" na tela de Fornecedores
-    # Entao excluo o fornecedor com o nome "teste automatizado" do banco de dados
+    # Entao excluo o fornecedor com o nome "teste automatizado" via API
 
     Exemplos:
       | visualizacao | nome_do_fornecedor   | cpf_cnpj              |valores_consulta_nome_fornecedor |valores_consulta_cpf_cnpj| caso                                                       |
