@@ -6,7 +6,12 @@ from sme_ptrf_apps.paa.api.serializers.fonte_recurso_paa_serializer import Fonte
 
 
 class RecursoProprioPaaCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por validar, criar, atualizar e serializar
+    os dados de um RecursoProprioPaaCreateSerializer.
 
+    Além dos campos do modelo, expõe campos calculados para apresentação.
+    """
     paa = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
@@ -36,7 +41,26 @@ class RecursoProprioPaaCreateSerializer(serializers.ModelSerializer):
         fields = ('id', 'paa', 'uuid', 'associacao', 'fonte_recurso', 'data_prevista', 'descricao', 'valor',
                   'confirmar_limpeza_prioridades_paa')
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict) -> dict:
+        """
+        Valida os dados para criação de um RecursoProprioPaa.
+
+        Realiza as seguintes verificações na ordem a seguir:
+
+        1. Verifica se não foi informado o paa, se não, retorna ValidationError;
+        2. Bloqueia edição quando o documento final do ciclo atual já foi gerado;
+        3. Verificar prioridades do paa impactadas.
+
+        Args:
+            attrs (dict): Dados RecursoProprioPaa
+            para realizar as operações.
+
+        Returns:
+            dict: Dados validados.
+
+        Raises:
+            serializers.ValidationError: Caso o alguma validação não passe.
+        """
         if not attrs.get('paa') and not self.instance:
             raise serializers.ValidationError({'paa': 'PAA não informado.'})
 
@@ -67,7 +91,7 @@ class RecursoProprioPaaCreateSerializer(serializers.ModelSerializer):
         self._verificar_prioridades_paa_impactadas(attrs, self.instance)
         return super().validate(attrs)
 
-    def _verificar_prioridades_paa_impactadas(self, attrs, instance) -> list:
+    def _verificar_prioridades_paa_impactadas(self, attrs: dict, instance: RecursoProprioPaa) -> list:
         """
         Verifica se há prioridades do PAA que serão impactadas.
         """
@@ -87,7 +111,7 @@ class RecursoProprioPaaCreateSerializer(serializers.ModelSerializer):
                     "Será necessário revisar as prioridades para atualizar o valor total.")
             })
 
-    def _limpar_prioridades_paa(self, recurso_attrs, instance_despesa):
+    def _limpar_prioridades_paa(self, recurso_attrs: dict, instance_despesa: RecursoProprioPaa) -> None:
         """
         Limpa o valor_total das prioridades do PAA impactadas.
         """
@@ -98,7 +122,21 @@ class RecursoProprioPaaCreateSerializer(serializers.ModelSerializer):
         service.limpar_valor_prioridades_impactadas()
 
     @transaction.atomic
-    def update(self, instance, validated_data):
+    def update(self, instance: RecursoProprioPaa, validated_data: dict) -> RecursoProprioPaa:
+        """
+        Atualiza uma instância de RecursoProprioPaa.
+
+        Verificação:
+            1. Verifica se é para realizar limpeza na prioridade, se sim,
+                limpa prioridades do PAA, com dados e instance antes de salvar.
+
+        Args:
+            instance: (RecursoProprioPaa): Instâcia do RecursoProprioPaa.
+            validated_data: Dados validados para ser feito a atualização.
+
+        Returns:
+            RecursoProprioPaa: Instância do RecursoProprioPaa atualizada.
+        """
         # Remove flag de confirmação do validated_data (não é campo do model)
         confirmar_limpeza_prioridades = validated_data.pop('confirmar_limpeza_prioridades_paa', False)
 
@@ -108,12 +146,30 @@ class RecursoProprioPaaCreateSerializer(serializers.ModelSerializer):
 
         return super().update(instance, validated_data)
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict) -> RecursoProprioPaa:
+        """
+        Cria uma nova instância de RecursoProprioPaa.
+
+        Verificação:
+            1. Retira a confirmação de limpar prioridades do PAA antes de salvar.
+
+        Args:
+            validated_data (dict): Dados validados para criação da RecursoProprioPaa.
+
+        Returns:
+            RecursoProprioPaa: Instância do RecursoProprioPaa criada.
+        """
         validated_data.pop('confirmar_limpeza_prioridades_paa', False)
         return super().create(validated_data)
 
 
 class RecursoProprioPaaListSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por serializar
+    os dados de um RecursoProprioPaaListSerializer.
+
+    Além dos campos do modelo, expõe campos calculados para apresentação.
+    """
     paa = serializers.SlugRelatedField(
         slug_field='uuid',
         required=True,
@@ -124,7 +180,20 @@ class RecursoProprioPaaListSerializer(serializers.ModelSerializer):
     associacao = serializers.SerializerMethodField('get_associacao_uuid')
     alteracao = serializers.SerializerMethodField()
 
-    def get_alteracao(self, obj):
+    def get_alteracao(self, obj: RecursoProprioPaa) -> str:
+        """
+        Retorna a ação de alteração associada ao objeto.
+
+        A ação é obtida a partir do contexto do serializer, considerando a
+        seção correspondente às atividades estatutárias globais ou do PAA.
+
+        Args:
+            obj: Instância da atividade estatutária.
+
+        Returns:
+            str | None: A ação registrada para o objeto ou ``None`` caso não
+            exista.
+        """
         alteracoes = self.context.get('alteracoes', {})
         if not alteracoes:
             return None
@@ -133,7 +202,8 @@ class RecursoProprioPaaListSerializer(serializers.ModelSerializer):
         item = alteracoes.get(secao_key, {}).get(str(obj.uuid))
         return item.get('acao') if item else None
 
-    def get_associacao_uuid(self, obj):
+    def get_associacao_uuid(self, obj) -> str:
+        """retorna o UUID da associação associado ao RecursoProprioPaa"""
         return obj.associacao.uuid
 
     class Meta:
@@ -144,6 +214,11 @@ class RecursoProprioPaaListSerializer(serializers.ModelSerializer):
 
 
 class RecursoProprioPaaListDocumentoPaaSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por serializar os dados de um RecursoProprioPaa.
+
+    Além dos campos do modelo, expõe campos calculados para apresentação.
+    """
     data_prevista = serializers.SerializerMethodField()
     paa = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -154,10 +229,12 @@ class RecursoProprioPaaListDocumentoPaaSerializer(serializers.ModelSerializer):
     valor = serializers.FloatField()
     associacao = serializers.SerializerMethodField('get_associacao_uuid')
 
-    def get_data_prevista(self, obj):
+    def get_data_prevista(self, obj: RecursoProprioPaa) -> str:
+        """Retorna a data prevista no formado DD/MM/YYYY"""
         return obj.data_prevista.strftime("%d/%m/%Y")
 
-    def get_associacao_uuid(self, obj):
+    def get_associacao_uuid(self, obj: RecursoProprioPaa) -> str:
+        """Retorna o UUID da associação"""
         return obj.associacao.uuid
 
     class Meta:

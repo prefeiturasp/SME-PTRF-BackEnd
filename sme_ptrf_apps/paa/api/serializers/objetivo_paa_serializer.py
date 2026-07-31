@@ -4,6 +4,10 @@ from sme_ptrf_apps.paa.models.objetivo_paa import StatusChoices
 
 
 class ObjetivoPaaUpdateSerializer(serializers.Serializer):
+    """
+    Serializer responsável por serializar os dados do objetivo do PAA
+    na operação de atualização.
+    """
     objetivo = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
@@ -14,6 +18,10 @@ class ObjetivoPaaUpdateSerializer(serializers.Serializer):
 
 
 class ObjetivoPaaSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por criar, atualizar e serializar
+    os dados do objetivo do PAA.
+    """
     ERROR_MSG_NOME_JA_CADASTRADO = {"mensagem": "Já existe um objetivo cadastrado com este nome."}
 
     paa = serializers.SlugRelatedField(
@@ -65,5 +73,5 @@ class ObjetivoPaaSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(self.ERROR_MSG_NOME_JA_CADASTRADO)
         return super().update(instance, validated_data)
 
-    def get_status_objeto(self, obj):
+    def get_status_objeto(self, obj: ObjetivoPaa) -> list:
         return list(filter(lambda x: x.get('key') == obj.status, StatusChoices.to_dict()))[0]
