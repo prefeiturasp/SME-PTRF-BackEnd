@@ -3,7 +3,7 @@ from .context import DespesaDtoContext
 
 
 class ContasRateiosValidator(AbstractDespesaValidator):
-    """R08 — data_transacao >= data_inicio da conta de cada rateio.
+    """REG-008 — data_transacao >= data_inicio da conta de cada rateio.
     R09 — data_transacao <= data_encerramento da conta de cada rateio.
 
     Legado: validacao_despesa_service.py:185-207 (_validar_contas_rateios)

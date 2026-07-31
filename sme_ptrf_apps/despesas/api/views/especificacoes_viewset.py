@@ -14,7 +14,11 @@ from ..serializers.especificacao_material_servico_serializer import (
 )
 from ..serializers.tipo_custeio_serializer import TipoCusteioSerializer
 from ...models import EspecificacaoMaterialServico, TipoCusteio
-from ...tipos_aplicacao_recurso import aplicacoes_recurso_to_json
+from ...tipos_aplicacao_recurso import (
+    APLICACAO_CAPITAL,
+    APLICACAO_CUSTEIO,
+    aplicacoes_recurso_to_json,
+)
 from ....core.api.utils.pagination import CustomPagination
 
 
@@ -30,6 +34,47 @@ class EspecificacaoMaterialServicoViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_serializer_class(self):
         return EspecificacaoMaterialServicoLookUpSerializer
+
+    @action(detail=False, methods=['GET'], url_path='por-aplicacao')
+    def por_aplicacao(self, request):
+        """Especificações agrupadas por aplicação de recurso (1 request).
+
+        Usado pelo formulário de despesa com flag despesas-pipeline.
+
+        Formato:
+        {
+          "custeio_por_tipo": { "<tipo_custeio_id>": [lookup...], ... },
+          "capital": [lookup...]
+        }
+        """
+        qs = EspecificacaoMaterialServico.objects.order_by('descricao')
+        custeio_qs = qs.filter(
+            aplicacao_recurso=APLICACAO_CUSTEIO,
+            tipo_custeio__isnull=False,
+        )
+        capital_qs = qs.filter(aplicacao_recurso=APLICACAO_CAPITAL)
+
+        custeio_data = EspecificacaoMaterialServicoLookUpSerializer(
+            custeio_qs, many=True
+        ).data
+        capital_data = EspecificacaoMaterialServicoLookUpSerializer(
+            capital_qs, many=True
+        ).data
+
+        custeio_por_tipo = {}
+        for item in custeio_data:
+            tipo_id = item.get('tipo_custeio')
+            if tipo_id is None:
+                continue
+            custeio_por_tipo.setdefault(str(tipo_id), []).append(item)
+
+        return Response(
+            {
+                'custeio_por_tipo': custeio_por_tipo,
+                'capital': capital_data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 class ParametrizacaoEspecificacoesMaterialServicoViewSet(mixins.CreateModelMixin,

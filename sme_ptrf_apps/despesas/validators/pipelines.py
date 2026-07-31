@@ -1,26 +1,61 @@
 from .pipeline import ValidatorPipeline
-from .r01_rateios_obrigatorios import RateiosObrigatoriosValidator
-from .r02_recurso_obrigatorio import RecursoObrigatorioValidator
-from .r04a_soma_valor_rateio import SomaValorRateioValidator
-from .r04b_soma_valor_original import SomaValorOriginalValidator
+from .r01_recurso_obrigatorio import RecursoObrigatorioValidator
+from .r02_rateios_obrigatorios import RateiosObrigatoriosValidator
+from .r03_soma_valor_rateio import SomaValorRateioValidator
+from .r04_soma_valor_original import SomaValorOriginalValidator
 from .r05_quantidade_capital import QuantidadeCapitalValidator
-from .r06b_valor_original_capital import ValorOriginalCapitalValidator
-from .r16_impostos import ImpostosValidator
-from .r13_datas_encerramento import DatasEncerramentoValidator
-from .r14_pagamento_antecipado import PagamentoAntecipadoValidator
-from .r15_datas_futuras import DatasFuturasValidator
-from .r18_boletim_ocorrencia import BoletimOcorrenciaValidator
+from .r06_valor_original_capital import ValorOriginalCapitalValidator
 from .r07_periodo_pc_devolvida import PeriodoPcDevolvidaValidator
+from .r08_contas_impostos import ContasImpostosValidator
 from .r08_contas_rateios import ContasRateiosValidator
-from .r10_contas_impostos import ContasImpostosValidator
-from .r12_conta_acao_recurso import ContaAcaoRecursoValidator
+from .r09_conta_acao_recurso import ContaAcaoRecursoValidator
+from .r10_datas_encerramento import DatasEncerramentoValidator
+from .r11_pagamento_antecipado import PagamentoAntecipadoValidator
+from .r12_impostos import ImpostosValidator
+from .r13_mudanca_aplicacao import MudancaAplicacaoValidator
+from .r15_datas_futuras import DatasFuturasValidator
+from .r16_numero_documento_digitos import NumeroDocumentoDigitosValidator
+from .r17_cpf_cnpj import CpfCnpjValidator
+from .r18_boletim_ocorrencia import BoletimOcorrenciaValidator
+from .r19_periodo_fechado import PeriodoFechadoValidator
+from .r24_despesa_incompleta_acerto import DespesaIncompletaAcertoValidator
+from .r28_data_documento_vazia import DataDocumentoVaziaValidator
+from .r30_r32_conciliacao_acerto import ConciliacaoAcertoValidator
+from .r35_datas_imposto import DatasImpostoValidator
+from .r61_normaliza_cpf_cnpj import NormalizaCpfCnpjValidator
+from .r64_imposto_recurso import ImpostoRecursoValidator
 from .r68_rateio_associacao import RateioAssociacaoValidator
-from .r00_testes import TesteBlockValidator
+from .r69_contexto_acerto import ContextoAcertoValidator
 
-# R05 deve sempre preceder R06b — a quantidade válida é pré-condição do cálculo.
+
+# REG-005 deve sempre preceder REG-006 — a quantidade válida é pré-condição do cálculo.
 _CAPITAL_VALIDATORS = [
-    QuantidadeCapitalValidator(),       # R05
-    ValorOriginalCapitalValidator(),    # R06b
+    QuantidadeCapitalValidator(),       # REG-005
+    ValorOriginalCapitalValidator(),    # REG-006
+]
+
+# Regras comuns aos quatro fluxos.
+_CORE_VALIDATORS = [
+    RateiosObrigatoriosValidator(),     # REG-002
+    SomaValorRateioValidator(),         # REG-003
+    SomaValorOriginalValidator(),       # REG-004
+    *_CAPITAL_VALIDATORS,               # REG-005, REG-006
+    DatasFuturasValidator(),            # REG-015
+    NumeroDocumentoDigitosValidator(),  # REG-016
+    CpfCnpjValidator(),                 # REG-017
+    BoletimOcorrenciaValidator(),       # REG-018
+    DatasImpostoValidator(),            # REG-035
+    DataDocumentoVaziaValidator(),      # REG-028 (apply)
+    NormalizaCpfCnpjValidator(),        # REG-061 (apply)
+    ImpostoRecursoValidator(),          # REG-064 (apply)
+    RateioAssociacaoValidator(),        # REG-068 (apply)
+    DatasEncerramentoValidator(),       # REG-010
+    PagamentoAntecipadoValidator(),     # REG-011
+    PeriodoPcDevolvidaValidator(),      # REG-007
+    ContasRateiosValidator(),           # REG-008
+    ContasImpostosValidator(),          # REG-008
+    ContaAcaoRecursoValidator(),        # REG-009
+    ImpostosValidator(),                # REG-012
 ]
 
 
@@ -28,105 +63,45 @@ _CAPITAL_VALIDATORS = [
 CREATE_PIPELINE = ValidatorPipeline(
     flow_name="Fluxo 1 — Criação",
     validators=[
-        RecursoObrigatorioValidator(),      # R02  — apenas create
-        RateiosObrigatoriosValidator(),     # R01
-        SomaValorRateioValidator(),         # R04a
-        SomaValorOriginalValidator(),         # R04b
-        *_CAPITAL_VALIDATORS,               # R05, R06b
-        DatasFuturasValidator(),            # REG-015
-        BoletimOcorrenciaValidator(),       # REG-018
-        DatasEncerramentoValidator(),       # R13
-        PagamentoAntecipadoValidator(),     # R14, R15
-        PeriodoPcDevolvidaValidator(),      # R07  — injeta ctx.periodo
-        ContasRateiosValidator(),           # R08, R09
-        ContasImpostosValidator(),          # R10, R11
-        ContaAcaoRecursoValidator(),        # R12
-        ImpostosValidator(),                # R16
-        RateioAssociacaoValidator(),        # REG-068
-        TesteBlockValidator(),                   # R00
-        # R42-R45  (Regra de frontend, chamada externa via viewset)  # SaldosValidator(),
+        RecursoObrigatorioValidator(),      # REG-001
+        PeriodoFechadoValidator(),          # REG-019
+        *_CORE_VALIDATORS,
     ],
 )
 
 
 # Fluxo 2 — Edição de despesa (sem vínculo de Solicitação de Acerto)
 # Contexto: is_create=False, uuid_solicitacao_acerto=None
-# Inclui MudancaAplicacaoValidator (apenas update) e omite RecursoObrigatorio
+# Omite RecursoObrigatorio; MudancaAplicacao (REG-013) ainda comentada.
 UPDATE_PIPELINE = ValidatorPipeline(
     flow_name="Fluxo 2 — Edição",
     validators=[
-        RateiosObrigatoriosValidator(),     # R01
-        SomaValorRateioValidator(),         # R04a
-        SomaValorOriginalValidator(),       # R04b
-        *_CAPITAL_VALIDATORS,               # R05, R06b
-        DatasFuturasValidator(),            # REG-015
-        BoletimOcorrenciaValidator(),       # REG-018
-        RateioAssociacaoValidator(),        # REG-068
-        # DatasEncerramentoValidator(),       # R13
-        # PagamentoAntecipadoValidator(),     # R14, R15
-        # PeriodoPcDevolvidaValidator(),      # R07  — injeta ctx.periodo
-        # ContasRateiosValidator(),           # R08, R09
-        # ContasImpostosValidator(),          # R10, R11
-        # ContaAcaoRecursoValidator(),        # R12
-        # MudancaAplicacaoValidator(),        # R17-R21
-        # ImpostosValidator(),                # R16
-        # R42-R45  (Regra de frontend, chamada externa via viewset)  # SaldosValidator(),
-        TesteBlockValidator(),                   # R00
+        PeriodoFechadoValidator(),          # REG-019
+        *_CORE_VALIDATORS,
+        MudancaAplicacaoValidator(),        # REG-013
     ],
 )
 
 # Fluxo 3 — Criação de despesa com vínculo de Solicitação de Acerto
-# Contexto: is_create=True, uuid_solicitacao_acerto=<uuid>
-# Originado de uma análise DRE que solicitou inclusão de novo gasto.
-# Estrutura idêntica ao Fluxo 1 — instância separada para permitir independência de
-# regras de negócios sem impactar o fluxo normal de criação.
 CREATE_ACERTO_PIPELINE = ValidatorPipeline(
     flow_name="Fluxo 3 — Criação via Acerto",
     validators=[
-        RecursoObrigatorioValidator(),      # R02
-        RateiosObrigatoriosValidator(),     # R01
-        SomaValorRateioValidator(),         # R04a
-        SomaValorOriginalValidator(),       # R04b
-        *_CAPITAL_VALIDATORS,               # R05, R06b
-        DatasFuturasValidator(),            # REG-015
-        BoletimOcorrenciaValidator(),       # REG-018
-        RateioAssociacaoValidator(),        # REG-068
-        # DatasEncerramentoValidator(),       # R13
-        # PagamentoAntecipadoValidator(),     # R14, R15
-        # PeriodoPcDevolvidaValidator(),      # R07  — injeta ctx.periodo
-        # ContasRateiosValidator(),           # R08, R09
-        # ContasImpostosValidator(),          # R10, R11
-        # ContaAcaoRecursoValidator(),        # R12
-        # ImpostosValidator(),                # R16
-        # R42-R45  (Regra de frontend, chamada externa via viewset)  # SaldosValidator(),
-        TesteBlockValidator(),                   # R00
+        ContextoAcertoValidator(),          # REG-069 — PC devolvida + solicitação
+        RecursoObrigatorioValidator(),      # REG-001
+        *_CORE_VALIDATORS,
+        DespesaIncompletaAcertoValidator(),  # REG-024
+        ConciliacaoAcertoValidator(),        # REG-030 (apply)
     ],
 )
 
 # Fluxo 4 — Edição de despesa com vínculo de Solicitação de Acerto
-# Contexto: is_create=False, uuid_solicitacao_acerto=<uuid>
-# Originado de uma análise DRE que solicitou ajuste em gasto existente.
-# Estrutura idêntica ao Fluxo 2 — instância separada para permitir independência de
-# regras de negócios sem impactar o fluxo normal de edição.
 UPDATE_ACERTO_PIPELINE = ValidatorPipeline(
     flow_name="Fluxo 4 — Edição via Acerto",
     validators=[
-        RateiosObrigatoriosValidator(),     # R01
-        SomaValorRateioValidator(),         # R04a
-        SomaValorOriginalValidator(),       # R04b
-        *_CAPITAL_VALIDATORS,               # R05, R06b
-        DatasFuturasValidator(),            # REG-015
-        BoletimOcorrenciaValidator(),       # REG-018
-        RateioAssociacaoValidator(),        # REG-068
-        # DatasEncerramentoValidator(),       # R13
-        # PagamentoAntecipadoValidator(),     # R14, R15
-        # PeriodoPcDevolvidaValidator(),      # R07  — injeta ctx.periodo
-        # ContasRateiosValidator(),           # R08, R09
-        # ContasImpostosValidator(),          # R10, R11
-        # ContaAcaoRecursoValidator(),        # R12
-        # MudancaAplicacaoValidator(),        # R17-R21
-        # ImpostosValidator(),                # R16
-        # R42-R45  (Regra de frontend, chamada externa via viewset)  # SaldosValidator(),
-        TesteBlockValidator(),                   # R00
+        ContextoAcertoValidator(),           # REG-069 — PC devolvida + solicitação
+        *_CORE_VALIDATORS,
+        MudancaAplicacaoValidator(),         # REG-013
+        DespesaIncompletaAcertoValidator(),  # REG-024
+        ConciliacaoAcertoValidator(),        # REG-032 (apply)
     ],
 )
