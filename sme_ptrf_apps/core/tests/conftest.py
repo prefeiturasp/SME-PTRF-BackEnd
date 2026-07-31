@@ -435,3 +435,39 @@ def associacao_teste_pendencia_envio_pc(unidade_pendencia_pc, usuario_notificave
     )
 
     return associacao
+
+
+@pytest.fixture
+def unidade_flagar_periodo_como_notificado(unidade_factory):
+    return unidade_factory.create(nome='Escola Flagar Período Como Notificado', codigo_eol='271170')
+
+
+@pytest.fixture
+def periodo_flagar_periodo_como_notificado(periodo_factory, recurso_explicito):
+    from datetime import date
+
+    return periodo_factory.create(
+        referencia='2026.1',
+        data_inicio_realizacao_despesas=date(2026, 1, 1),
+        data_fim_realizacao_despesas=date(2026, 6, 30),
+        data_prevista_repasse=date(2026, 1, 1),
+        data_inicio_prestacao_contas=date(2026, 7, 1),
+        data_fim_prestacao_contas=date(2026, 7, 15),
+    )
+
+
+@pytest.fixture
+def associacao_teste_flagar_periodo_como_notificado(unidade_flagar_periodo_como_notificado, usuario_notificavel,
+                                                    periodo_flagar_periodo_como_notificado, associacao_factory,
+                                                    periodo_inicial_associacao_factory):
+    usuario_notificavel.unidades.add(unidade_flagar_periodo_como_notificado)
+
+    associacao = associacao_factory.create(unidade=unidade_flagar_periodo_como_notificado,
+                                           periodo_inicial=periodo_flagar_periodo_como_notificado)
+
+    periodo_inicial_associacao_factory.create(
+        associacao=associacao,
+        periodo_inicial=periodo_flagar_periodo_como_notificado,
+    )
+
+    return associacao
