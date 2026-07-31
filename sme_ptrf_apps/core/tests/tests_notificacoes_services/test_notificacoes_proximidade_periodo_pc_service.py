@@ -60,7 +60,7 @@ def test_deve_notificar_usuarios_no_dia(
 
 @freeze_time("2021-04-01")
 def test_deve_flagar_periodo_como_notificado(
-    associacao_a,
+    associacao_teste_flagar_periodo_como_notificado,
     usuario_notificavel,
     usuario_nao_notificavel,
     periodo_2020_4_pc_2021_01_01_a_2021_01_15,
