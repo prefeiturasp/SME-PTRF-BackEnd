@@ -4,6 +4,12 @@ from sme_ptrf_apps.paa.models import ReceitaPrevistaPdde, AcaoPdde, Paa
 
 
 class ReceitaPrevistaPddeSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por validar, criar, atualizar e serializar
+    os dados de uma ReceitaPrevistaPddeSerializer.
+
+    Além dos campos do modelo, expõe campos calculados para apresentação.
+    """
     paa = serializers.SlugRelatedField(queryset=Paa.objects.all(), slug_field='uuid')
     acao_pdde = serializers.SlugRelatedField(queryset=AcaoPdde.objects.all(), slug_field='uuid')
     acao_pdde_objeto = serializers.SerializerMethodField()
@@ -14,7 +20,8 @@ class ReceitaPrevistaPddeSerializer(serializers.ModelSerializer):
         help_text='Se True, confirma a limpeza do valor das prioridades do PAA impactadas.'
     )
 
-    def get_acao_pdde_objeto(self, obj):
+    def get_acao_pdde_objeto(self, obj: ReceitaPrevistaPdde) -> dict | None:
+        """Monta um objeto com as informações da ação PDDE e retorna"""
         if obj.acao_pdde:
             programa = {
                 'uuid': str(obj.acao_pdde.programa.uuid),
@@ -38,7 +45,26 @@ class ReceitaPrevistaPddeSerializer(serializers.ModelSerializer):
                             'confirmar_limpeza_prioridades_paa',
                             )
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict) -> dict:
+        """
+        Valida os dados para criação de uma Receita Prevista Pdde.
+
+        Realiza as seguintes verificações na ordem a seguir:
+
+        1. Verifica se não foi informado a ação PDDE, se não, retorna ValidationError;
+        2. Verifica se não foi informado o paa, se não, retorna ValidationError;
+        2. Bloqueia edição quando o documento final do ciclo atual já foi gerado;
+        3. Verificar prioridades do paa impactadas.
+
+        Args:
+            attrs (dict): Dados ReceitaPrevistaPdde para realizar as operações.
+
+        Returns:
+            dict: Dados validados.
+
+        Raises:
+            serializers.ValidationError: Caso o alguma validação não passe.
+        """
         if not attrs.get('acao_pdde') and not self.instance:
             raise serializers.ValidationError({'acao_pdde': 'O campo Ação PDDE é obrigatório.'})
         if not attrs.get('paa') and not self.instance:
@@ -84,7 +110,7 @@ class ReceitaPrevistaPddeSerializer(serializers.ModelSerializer):
         self._verificar_prioridades_paa_impactadas(attrs, self.instance)
         return super().validate(attrs)
 
-    def _verificar_prioridades_paa_impactadas(self, attrs, instance) -> list:
+    def _verificar_prioridades_paa_impactadas(self, attrs: dict, instance: ReceitaPrevistaPdde) -> list:
         """
         Verifica se há prioridades do PAA que serão impactadas.
         """
@@ -104,7 +130,7 @@ class ReceitaPrevistaPddeSerializer(serializers.ModelSerializer):
                     "Será necessário revisar as prioridades para atualizar o valor total.")
             })
 
-    def _limpar_prioridades_paa(self, receita_prevista_attrs, instance_despesa):
+    def _limpar_prioridades_paa(self, receita_prevista_attrs: dict, instance_despesa: ReceitaPrevistaPdde) -> None:
         """
         Limpa o valor_total das prioridades do PAA impactadas.
         """
@@ -114,7 +140,17 @@ class ReceitaPrevistaPddeSerializer(serializers.ModelSerializer):
         service.limpar_valor_prioridades_impactadas()
 
     @transaction.atomic
-    def update(self, instance, validated_data):
+    def update(self, instance: ReceitaPrevistaPdde, validated_data: dict) -> ReceitaPrevistaPdde:
+        """
+        Atualiza uma instância de ReceitaPrevistaPdde.
+
+        Args:
+            instance: (ReceitaPrevistaPdde): Instâcia do ReceitaPrevistaPdde.
+            validated_data (dict): Dados validados para atualização da ReceitaPrevistaPdde.
+
+        Returns:
+            ReceitaPrevistaPdde: Instância do ReceitaPrevistaPdde atualizada.
+        """
         # Remove flag de confirmação do validated_data (não é campo do model)
         confirmar_limpeza_prioridades = validated_data.pop('confirmar_limpeza_prioridades_paa', False)
 
@@ -124,12 +160,25 @@ class ReceitaPrevistaPddeSerializer(serializers.ModelSerializer):
 
         return super().update(instance, validated_data)
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict) -> ReceitaPrevistaPdde:
+        """
+        Cria uma nova instância de ReceitaPrevistaPdde.
+
+        Args:
+            validated_data (dict): Dados validados para criação da ReceitaPrevistaPdde.
+
+        Returns:
+            ReceitaPrevistaPdde: Instância do ReceitaPrevistaPdde criada.
+        """
         validated_data.pop('confirmar_limpeza_prioridades_paa', False)
         return super().create(validated_data)
 
 
 class ReceitasPrevistasPDDEValoresSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por serializar os dados de uma
+    ReceitasPrevistasPDDEValoresSerializer.
+    """
     previsao_valor_custeio = serializers.FloatField(read_only=True)
     previsao_valor_capital = serializers.FloatField(read_only=True)
     previsao_valor_livre = serializers.FloatField(read_only=True)

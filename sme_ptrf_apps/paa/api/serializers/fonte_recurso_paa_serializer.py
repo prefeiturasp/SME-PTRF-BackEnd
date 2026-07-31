@@ -4,6 +4,9 @@ from sme_ptrf_apps.paa.models import FonteRecursoPaa
 
 
 class FonteRecursoPaaSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por serializar os dados de uma fonte de recurso do PAA.
+    """
     nome = serializers.CharField(error_messages={'required': 'Nome da fonte de recurso paa é obrigatório.'})
 
     class Meta:

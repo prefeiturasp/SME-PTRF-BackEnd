@@ -4,6 +4,12 @@ from sme_ptrf_apps.paa.models import AtaPaa, ParticipanteAtaPaa
 
 
 class PresentesAtaPaaSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por serializar os dados dos presentes
+    na ata do PAA.
+
+    Além dos campos do modelo, expõe campos calculados para apresentação.
+    """
     ata_paa = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
@@ -11,10 +17,28 @@ class PresentesAtaPaaSerializer(serializers.ModelSerializer):
     )
     secretario_da_reuniao = serializers.SerializerMethodField()
 
-    def editavel(self, obj):
+    def editavel(self, obj: ParticipanteAtaPaa) -> bool:
+        """
+        Retorna se o participante da ata do PAA é editavel.
+
+        Args:
+            obj (ParticipanteAtaPaa): Instância do Participante da ata do PAA.
+
+        Returns:
+            bool: se é editavel.
+        """
         return obj.editavel
 
-    def get_secretario_da_reuniao(self, obj):
+    def get_secretario_da_reuniao(self, obj: ParticipanteAtaPaa) -> bool:
+        """
+        Retorna o secretário da reunião.
+
+        Args:
+            obj (ParticipanteAtaPaa): Instância do Participante da ata do PAA.
+
+        Returns:
+            bool: É ou não o secretário da reunião.
+        """
         if obj.ata_paa and obj.ata_paa.secretario_da_reuniao == obj:
             return True
         return False
@@ -26,6 +50,12 @@ class PresentesAtaPaaSerializer(serializers.ModelSerializer):
 
 
 class PresentesAtaPaaCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por validar, criar, atualizar e serializar
+    os dados de um PAA.
+
+    Além dos campos do modelo, expõe campos calculados para apresentação.
+    """
     ata_paa = serializers.SlugRelatedField(
         slug_field='uuid',
         required=False,
@@ -35,10 +65,35 @@ class PresentesAtaPaaCreateSerializer(serializers.ModelSerializer):
     presidente_da_reuniao = serializers.BooleanField(required=False, allow_null=True)
     secretario_da_reuniao = serializers.BooleanField(required=False, allow_null=True)
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict) -> dict:
+        """
+        Valida os dados para criação de um PAA.
+
+        Ainda não possui validações.
+
+        Args:
+            attrs (dict): Dados informados do participante da ata Paa.
+
+        Returns:
+            dict: Dados informados do participante da ata Paa.
+
+        """
         return attrs
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict) -> ParticipanteAtaPaa:
+        """
+        Cria uma nova instância do participante da Ata do Paa.
+
+        Após a criação verifica se presidente ou secretário
+        adiciona a informação
+
+        Args:
+            validated_data (dict): Dados validados para criação do PAA.
+
+        Returns:
+            Paa: Instância do PAA criada.
+
+        """
         with transaction.atomic():
             presidente = validated_data.pop('presidente_da_reuniao', False)
             secretario = validated_data.pop('secretario_da_reuniao', False)
@@ -55,7 +110,22 @@ class PresentesAtaPaaCreateSerializer(serializers.ModelSerializer):
 
             return participante
 
-    def update(self, instance, validated_data):
+    def update(self, instance: ParticipanteAtaPaa, validated_data: dict) -> ParticipanteAtaPaa:
+        """
+        Atualiza uma nova instância do participante da Ata PAA.
+
+        Além de atualizar os dados normais ele verifica se é
+        presidente ou sercretário e salva a informação.
+
+        Args:
+            instance (ParticipanteAtaPaa): instânciaa do modelo ParticipanteAtaPaa
+            validated_data (dict): Dados validados para atualização
+            do participante da ata do PAA.
+
+        Returns:
+            ParticipanteAtaPaa: Instância do participante PAA atualizada.
+
+        """
         with transaction.atomic():
             presidente = validated_data.pop('presidente_da_reuniao', False)
             secretario = validated_data.pop('secretario_da_reuniao', False)
