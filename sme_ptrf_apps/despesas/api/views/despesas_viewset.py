@@ -233,6 +233,29 @@ class DespesasViewSet(mixins.CreateModelMixin,
         if self.action == "create":
             context["recurso"] = self.request.recurso
 
+        # Detecção de fluxo acerto (pipelines 3/4) só com a flag — legado inalterado.
+        from waffle import get_waffle_flag_model
+        flags = get_waffle_flag_model()
+        pipeline_ativa = flags.objects.filter(name='despesas-pipeline', everyone=True).exists()
+        if not pipeline_ativa:
+            return context
+
+        from sme_ptrf_apps.despesas.services.fluxo_acerto import (
+            resolver_uuid_solicitacao_acerto_create,
+            resolver_uuid_solicitacao_acerto_update,
+        )
+
+        if self.action == "create":
+            uuid_acerto = resolver_uuid_solicitacao_acerto_create(self.request)
+            if uuid_acerto:
+                context["uuid_solicitacao_acerto"] = uuid_acerto
+
+        elif self.action in ("update", "partial_update"):
+            despesa = self.get_object()
+            uuid_acerto = resolver_uuid_solicitacao_acerto_update(despesa, self.request)
+            if uuid_acerto:
+                context["uuid_solicitacao_acerto"] = uuid_acerto
+
         return context
 
     def get_serializer_class(self):
@@ -246,6 +269,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
     def destroy(self, request, *args, **kwargs):
         from django.db.models.deletion import ProtectedError
         from ....core.models import DevolucaoAoTesouro, ContaAssociacao
+        from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
         despesa = self.get_object()
 
         if despesa.rateios.filter(conta_associacao__status=ContaAssociacao.STATUS_INATIVA).exists():
@@ -255,6 +279,9 @@ class DespesasViewSet(mixins.CreateModelMixin,
                              f'status {ContaAssociacao.STATUS_INATIVA}')
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        # Acerto exclusão (flag): marca lançamento antes de apagar/inativar a despesa.
+        DespesaService._marcar_lancamento_como_excluido(despesa)
 
         if not despesa.inativar_em_vez_de_excluir:
             # Em caso de inativação, a inativação dos impostos é feita pelo próprio método inativar_despesa.

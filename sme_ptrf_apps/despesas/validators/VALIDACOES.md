@@ -5,7 +5,7 @@ O que precisa ser feito para colocar a pipeline no ar (considerar para cada Vali
 Ao ativar o bloco comentado em validate() (já documentado no serializer):
 
 - Remover a chamada ValidacaoDespesaService.validar_rateios_serializer() de validate_rateios() — a função pode virar um simples return value
-- Remover o bloco de verificação de recurso em validate() — coberto por RecursoObrigatorioValidator (R02)
+- Remover o bloco de verificação de recurso em validate() — coberto por RecursoObrigatorioValidator (REG-001)
 - Remover a chamada ValidacaoDespesaService.validar_periodo_e_contas() — coberta pelos validators R07–R16
 Remover o import de ValidacaoDespesaService se não houver mais usos
 2. DespesaService._validar_datas() e _validar_datas_update()
@@ -26,7 +26,7 @@ Os blocos de validação (R17–R20) e de mutação (R21 — rateio.update({...}
 
 5. DespesaService._processar_impostos() e _processar_impostos_update()
 
-O check if not rateios: raise ValidationError(...) (R16) pode ser removido — ImpostosValidator garante isso antes do service rodar. Marcados com # [PIPELINE].
+O check if not rateios: raise ValidationError(...) (REG-012) pode ser removido — ImpostosValidator garante isso antes do service rodar. Marcados com # [PIPELINE].
 
 Código fora do escopo da pipeline (responsabilidade permanente do service)
 Ponto	Motivo
