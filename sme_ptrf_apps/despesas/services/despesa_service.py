@@ -536,34 +536,47 @@ class DespesaService:
         Marca o lançamento como atualizado quando existir uma solicitação
         pendente de edição de lançamento em uma prestação de contas devolvida.
         """
-        prestacao_conta = despesa.prestacao_conta
+        from waffle import get_waffle_flag_model
 
-        if not prestacao_conta or prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
-            return
+        flags = get_waffle_flag_model()
+        pipeline_ativa = flags.objects.filter(name='despesas-pipeline', everyone=True).exists()
 
-        lancamento_analise = (
-            AnaliseLancamentoPrestacaoConta.objects.filter(
-                despesa=despesa,
-                lancamento_atualizado=False,
-                tipo_lancamento=AnaliseLancamentoPrestacaoConta.TIPO_LANCAMENTO_GASTO,
-                status_realizacao=AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE,
+        if pipeline_ativa:
+            from sme_ptrf_apps.despesas.services.fluxo_acerto import (
+                obter_analise_lancamento_edicao_pendente,
             )
-            .first()
-        )
+            lancamento_analise = obter_analise_lancamento_edicao_pendente(despesa)
+            if not lancamento_analise:
+                return
+        else:
+            prestacao_conta = despesa.prestacao_conta
 
-        if not lancamento_analise:
-            return
+            if not prestacao_conta or prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
+                return
 
-        possui_solicitacao_pendente = (
-            lancamento_analise.solicitacoes_de_ajuste_da_analise.filter(
-                tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
-                status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE,
+            lancamento_analise = (
+                AnaliseLancamentoPrestacaoConta.objects.filter(
+                    despesa=despesa,
+                    lancamento_atualizado=False,
+                    tipo_lancamento=AnaliseLancamentoPrestacaoConta.TIPO_LANCAMENTO_GASTO,
+                    status_realizacao=AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE,
+                )
+                .first()
             )
-            .exists()
-        )
 
-        if not possui_solicitacao_pendente:
-            return
+            if not lancamento_analise:
+                return
+
+            possui_solicitacao_pendente = (
+                lancamento_analise.solicitacoes_de_ajuste_da_analise.filter(
+                    tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
+                    status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE,
+                )
+                .exists()
+            )
+
+            if not possui_solicitacao_pendente:
+                return
 
         AnaliseLancamentoPrestacaoContaService.marcar_lancamento_como_atualizado(
             lancamento_analise
@@ -571,4 +584,33 @@ class DespesaService:
 
         logger.info(
             f"Despesa {despesa.uuid} com lançamento marcado como atualizado."
+        )
+
+    @staticmethod
+    def _marcar_lancamento_como_excluido(despesa: Despesa):
+        """
+        Com flag despesas-pipeline: marca o lançamento como excluído quando
+        existir solicitação pendente de exclusão em PC devolvida.
+        Deve ser chamado antes do destroy/inativação da despesa.
+        """
+        from waffle import get_waffle_flag_model
+
+        flags = get_waffle_flag_model()
+        pipeline_ativa = flags.objects.filter(name='despesas-pipeline', everyone=True).exists()
+        if not pipeline_ativa:
+            return
+
+        from sme_ptrf_apps.despesas.services.fluxo_acerto import (
+            obter_analise_lancamento_exclusao_pendente,
+        )
+        lancamento_analise = obter_analise_lancamento_exclusao_pendente(despesa)
+        if not lancamento_analise:
+            return
+
+        AnaliseLancamentoPrestacaoContaService.marcar_lancamento_como_excluido(
+            lancamento_analise
+        )
+
+        logger.info(
+            f"Despesa {despesa.uuid} com lançamento marcado como excluído."
         )

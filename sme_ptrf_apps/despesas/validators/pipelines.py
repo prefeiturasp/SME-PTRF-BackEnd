@@ -1,5 +1,4 @@
 from .pipeline import ValidatorPipeline
-from .r00_testes import TesteBlockValidator
 from .r01_recurso_obrigatorio import RecursoObrigatorioValidator
 from .r02_rateios_obrigatorios import RateiosObrigatoriosValidator
 from .r03_soma_valor_rateio import SomaValorRateioValidator
@@ -13,15 +12,21 @@ from .r09_conta_acao_recurso import ContaAcaoRecursoValidator
 from .r10_datas_encerramento import DatasEncerramentoValidator
 from .r11_pagamento_antecipado import PagamentoAntecipadoValidator
 from .r12_impostos import ImpostosValidator
+from .r13_mudanca_aplicacao import MudancaAplicacaoValidator
 from .r15_datas_futuras import DatasFuturasValidator
 from .r16_numero_documento_digitos import NumeroDocumentoDigitosValidator
 from .r17_cpf_cnpj import CpfCnpjValidator
 from .r18_boletim_ocorrencia import BoletimOcorrenciaValidator
+from .r19_periodo_fechado import PeriodoFechadoValidator
+from .r24_despesa_incompleta_acerto import DespesaIncompletaAcertoValidator
 from .r28_data_documento_vazia import DataDocumentoVaziaValidator
+from .r30_r32_conciliacao_acerto import ConciliacaoAcertoValidator
 from .r35_datas_imposto import DatasImpostoValidator
 from .r61_normaliza_cpf_cnpj import NormalizaCpfCnpjValidator
 from .r64_imposto_recurso import ImpostoRecursoValidator
 from .r68_rateio_associacao import RateioAssociacaoValidator
+from .r69_contexto_acerto import ContextoAcertoValidator
+
 
 # REG-005 deve sempre preceder REG-006 — a quantidade válida é pré-condição do cálculo.
 _CAPITAL_VALIDATORS = [
@@ -44,6 +49,13 @@ _CORE_VALIDATORS = [
     NormalizaCpfCnpjValidator(),        # REG-061 (apply)
     ImpostoRecursoValidator(),          # REG-064 (apply)
     RateioAssociacaoValidator(),        # REG-068 (apply)
+    DatasEncerramentoValidator(),       # REG-010
+    PagamentoAntecipadoValidator(),     # REG-011
+    PeriodoPcDevolvidaValidator(),      # REG-007
+    ContasRateiosValidator(),           # REG-008
+    ContasImpostosValidator(),          # REG-008
+    ContaAcaoRecursoValidator(),        # REG-009
+    ImpostosValidator(),                # REG-012
 ]
 
 
@@ -51,16 +63,9 @@ _CORE_VALIDATORS = [
 CREATE_PIPELINE = ValidatorPipeline(
     flow_name="Fluxo 1 — Criação",
     validators=[
-        RecursoObrigatorioValidator(),      # REG-001 — apenas create
+        RecursoObrigatorioValidator(),      # REG-001
+        PeriodoFechadoValidator(),          # REG-019
         *_CORE_VALIDATORS,
-        DatasEncerramentoValidator(),       # REG-010
-        PagamentoAntecipadoValidator(),     # REG-011
-        PeriodoPcDevolvidaValidator(),      # REG-007
-        ContasRateiosValidator(),           # REG-008
-        ContasImpostosValidator(),          # REG-008
-        ContaAcaoRecursoValidator(),        # REG-009
-        ImpostosValidator(),                # REG-012
-        TesteBlockValidator(),              # R00
     ],
 )
 
@@ -71,16 +76,9 @@ CREATE_PIPELINE = ValidatorPipeline(
 UPDATE_PIPELINE = ValidatorPipeline(
     flow_name="Fluxo 2 — Edição",
     validators=[
+        PeriodoFechadoValidator(),          # REG-019
         *_CORE_VALIDATORS,
-        # DatasEncerramentoValidator(),       # REG-010
-        # PagamentoAntecipadoValidator(),     # REG-011
-        # PeriodoPcDevolvidaValidator(),      # REG-007
-        # ContasRateiosValidator(),           # REG-008
-        # ContasImpostosValidator(),          # REG-008
-        # ContaAcaoRecursoValidator(),        # REG-009
-        # MudancaAplicacaoValidator(),        # REG-013
-        # ImpostosValidator(),                # REG-012
-        TesteBlockValidator(),              # R00
+        MudancaAplicacaoValidator(),        # REG-013
     ],
 )
 
@@ -88,16 +86,11 @@ UPDATE_PIPELINE = ValidatorPipeline(
 CREATE_ACERTO_PIPELINE = ValidatorPipeline(
     flow_name="Fluxo 3 — Criação via Acerto",
     validators=[
+        ContextoAcertoValidator(),          # REG-069 — PC devolvida + solicitação
         RecursoObrigatorioValidator(),      # REG-001
         *_CORE_VALIDATORS,
-        # DatasEncerramentoValidator(),       # REG-010
-        # PagamentoAntecipadoValidator(),     # REG-011
-        # PeriodoPcDevolvidaValidator(),      # REG-007
-        # ContasRateiosValidator(),           # REG-008
-        # ContasImpostosValidator(),          # REG-008
-        # ContaAcaoRecursoValidator(),        # REG-009
-        # ImpostosValidator(),                # REG-012
-        TesteBlockValidator(),              # R00
+        DespesaIncompletaAcertoValidator(),  # REG-024
+        ConciliacaoAcertoValidator(),        # REG-030 (apply)
     ],
 )
 
@@ -105,15 +98,10 @@ CREATE_ACERTO_PIPELINE = ValidatorPipeline(
 UPDATE_ACERTO_PIPELINE = ValidatorPipeline(
     flow_name="Fluxo 4 — Edição via Acerto",
     validators=[
+        ContextoAcertoValidator(),           # REG-069 — PC devolvida + solicitação
         *_CORE_VALIDATORS,
-        # DatasEncerramentoValidator(),       # REG-010
-        # PagamentoAntecipadoValidator(),     # REG-011
-        # PeriodoPcDevolvidaValidator(),      # REG-007
-        # ContasRateiosValidator(),           # REG-008
-        # ContasImpostosValidator(),          # REG-008
-        # ContaAcaoRecursoValidator(),        # REG-009
-        # MudancaAplicacaoValidator(),        # REG-013
-        # ImpostosValidator(),                # REG-012
-        TesteBlockValidator(),              # R00
+        MudancaAplicacaoValidator(),         # REG-013
+        DespesaIncompletaAcertoValidator(),  # REG-024
+        ConciliacaoAcertoValidator(),        # REG-032 (apply)
     ],
 )

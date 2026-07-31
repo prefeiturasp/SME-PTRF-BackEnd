@@ -198,29 +198,29 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
+        from waffle import get_waffle_flag_model
 
         validated_data["recurso"] = self.context["recurso"]
 
-        # [PIPELINE — Fluxo 3] Após criar a despesa, vincular ao SolicitacaoAcertoDocumento
-        # em uma única operação, eliminando o segundo request atualmente feito pelo frontend.
-        # A pipeline já terá sido executada em validate(); aqui é apenas o efeito colateral.
-        #
-        #   despesa = DespesaService.create(validated_data, limpar_prioridades_callback=...)
-        #   uuid_acerto = self.context.get("uuid_solicitacao_acerto")
-        #   if uuid_acerto:
-        #       from sme_ptrf_apps.core.services.solicitacao_acerto_documento_service import (
-        #           SolicitacaoAcertoDocumentoService,
-        #       )
-        #       SolicitacaoAcertoDocumentoService.marcar_como_gasto_incluido(
-        #           uuid_solicitacao_acerto=uuid_acerto,
-        #           uuid_gasto_incluido=str(despesa.uuid),
-        #       )
-        #   return despesa
-
-        return DespesaService.create(
+        despesa = DespesaService.create(
             validated_data,
             limpar_prioridades_callback=self._limpar_prioridades_paa
         )
+
+        # REG-029 — vincular gasto incluído (só pipeline + uuid de acerto no context)
+        flags = get_waffle_flag_model()
+        pipeline_ativa = flags.objects.filter(name='despesas-pipeline', everyone=True).exists()
+        uuid_acerto = self.context.get("uuid_solicitacao_acerto")
+        if pipeline_ativa and uuid_acerto:
+            from sme_ptrf_apps.core.services.solicitacao_acerto_documento_service import (
+                SolicitacaoAcertoDocumentoService,
+            )
+            SolicitacaoAcertoDocumentoService.marcar_como_gasto_incluido(
+                uuid_solicitacao_acerto=uuid_acerto,
+                uuid_gasto_incluido=str(despesa.uuid),
+            )
+
+        return despesa
 
     def update(self, instance, validated_data):
         from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
@@ -229,18 +229,10 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         from copy import deepcopy
         import time
 
-        # [PIPELINE — Fluxo 4] Edição via Solicitação de Acerto.
-        # A pipeline do fluxo 2/4 já terá sido executada em validate();
-        #
-        #   uuid_acerto = self.context.get("uuid_solicitacao_acerto")
-        #   if uuid_acerto:
-        #       from sme_ptrf_apps.core.services.solicitacao_acerto_documento_service import (
-        #           SolicitacaoAcertoDocumentoService,
-        #       )
-        #       SolicitacaoAcertoDocumentoService.marcar_como_gasto_incluido(
-        #           uuid_solicitacao_acerto=uuid_acerto,
-        #           uuid_gasto_incluido=str(instance.uuid),
-        #       )
+        # [PIPELINE — Fluxo 4] REG-031: DespesaService.update já chama
+        # _marcar_lancamento_como_atualizado (PC devolvida + solicitação pendente).
+        # REG-033: herança de conciliação de impostos também fica no service.
+        # REG-032: ConciliacaoAcertoValidator.apply nos rateios novos (pipeline acerto).
 
         max_retries = 3
         retry_count = 0
