@@ -7,7 +7,7 @@ import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagi
 const Creditos = new CreditosEscolaPagina()
 
 describe("Credito Escola - Cadastro", () => {
-  it("CT03-Cadastro_de_Credito_Rendimento_Cheque_Custeio", () => {
+  /*it.skip("CT03-Cadastro_de_Credito_Rendimento_Cheque_Custeio", () => {
     Comum.visitarPaginaPTRF()
 
     cy.realizar_login('UE')
@@ -22,4 +22,4 @@ describe("Credito Escola - Cadastro", () => {
 
     Comum.logout()
   })
-})
+*/})

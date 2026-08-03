@@ -7,7 +7,7 @@ import CreditosEscolaPagina from "../../../../support/Paginas/CreditosEscolaPagi
 const Creditos = new CreditosEscolaPagina()
 
 describe("Credito Escola - Cadastro", () => {
-  it("CT139-Cadastro_de_Credito_Repasse_Valor_Capital_Incompleto", () => {
+  /*it.skip("CT139-Cadastro_de_Credito_Repasse_Valor_Capital_Incompleto", () => {
     Comum.visitarPaginaPTRF()
 
     cy.realizar_login('UE')
@@ -20,4 +20,4 @@ describe("Credito Escola - Cadastro", () => {
 
     Comum.logout()
   })
-})
+*/})

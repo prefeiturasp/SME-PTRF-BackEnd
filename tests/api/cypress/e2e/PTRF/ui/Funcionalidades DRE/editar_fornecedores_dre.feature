@@ -6,9 +6,9 @@ Funcionalidade: Editar fornecedor
     E realizo login no sistema PTRF com perfil "DRE"
 
   Esquema do Cenário: Validar edição de fornecedor :<caso>
-    E excluo o fornecedor com o nome "teste automatizado editado" do banco de dados
-    E excluo o fornecedor com o nome "teste automatizado" do banco de dados
-    E crio o fornecedor com o nome 'teste automatizado' e "<valores_consulta_cpf_cnpj>" no banco de dados
+    E excluo o fornecedor com o nome "teste automatizado editado" via API
+    E excluo o fornecedor com o nome "teste automatizado" via API
+    E crio o fornecedor com o nome 'teste automatizado' e "<valores_consulta_cpf_cnpj>" via API
     E clico na opcao "Fornecedores" com a visao SME
     E informo dado nos campos "<nome_do_fornecedor>" e "<cpf_cnpj>" para pesquisa na tela de Fornecedores
     E clico no botao "Filtrar" da tela Fornecedores
@@ -16,7 +16,7 @@ Funcionalidade: Editar fornecedor
     E informo dado nos campos "<nome_do_fornecedor_editado>" e "<cpf_cnpj_editado>"
     E clico no botao "Salvar" da tela Fornecedores
     Quando sistema apresenta a '<mensagem>' na tela
-    Entao excluo o fornecedor com o nome "teste automatizado editado" do banco de dados
+    Entao excluo o fornecedor com o nome "teste automatizado editado" via API
 
     Exemplos:
       | visualizacao | nome_do_fornecedor   | cpf_cnpj                  |valores_consulta_cpf_cnpj|nome_do_fornecedor_editado  |cpf_cnpj_editado| mensagem                                                | caso                                   |        
