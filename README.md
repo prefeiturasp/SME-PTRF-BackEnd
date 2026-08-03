@@ -1,3 +1,6 @@
+<!-- BADGES:START -->
+<!-- BADGES:END -->
+
 ## PTRF - Sistema de Gestão de Recursos Educacionais
 
 Este projeto é uma aplicação web desenvolvida com **Django**, baseada em **Cookiecutter Django**, com suporte a execução via **Docker** ou ambiente local.
