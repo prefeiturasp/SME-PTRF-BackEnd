@@ -4,35 +4,42 @@ from .context import BemProduzidoDtoContext
 
 
 class PeriodoFechadoValidator(AbstractBemProduzidoValidator):
-    """Valida se o recurso do bem produzido é obrigatório para o fluxo atual."""
+    """Valida se todos os períodos do bem produzido estão bloqueados."""
 
     def validate(self, bem_produzido_context: BemProduzidoDtoContext) -> BemProduzidoDtoContext:
 
-        status_pc_entregue = [
-            status for status in PrestacaoConta.STATUS_NOMES.keys()
-            if status != PrestacaoConta.STATUS_NAO_APRESENTADA
-        ]
+        if not bem_produzido_context.associacao:
+            raise SituacaoPatrimonialValidationError({
+                "titulo": "Bem produzido sem associação",
+                "mensagem": "O bem produzido deve possuir uma associação.",
+                "validator": self.__class__.__name__
+            })
+
+        todos_periodos_bloqueados = True
 
         for periodo in bem_produzido_context.periodos:
-            if not bem_produzido_context.associacao:
-                raise SituacaoPatrimonialValidationError({
-                    "titulo": "Bem produzido sem associação",
-                    "mensagem": "O período está bloqueado para realização de alterações.",
-                    "validator": self.__class__.__name__
-                })
-
             prestacao_conta = PrestacaoConta.by_periodo(
                 associacao=bem_produzido_context.associacao,
                 periodo=periodo
             )
 
-            prestacao_conta_entregue = prestacao_conta and prestacao_conta.status in status_pc_entregue
+            periodo_bloqueado = (
+                periodo.encerrado and
+                prestacao_conta is not None and
+                prestacao_conta.status != PrestacaoConta.STATUS_NAO_APRESENTADA
+            )
 
-            if prestacao_conta_entregue or periodo.encerrado:
-                raise SituacaoPatrimonialValidationError({
-                    "titulo": "Período fechado",
-                    "mensagem": "O período está bloqueado para realização de alterações.",
-                    "validator": self.__class__.__name__
-                })
+            # Se existir ao menos um período desbloqueado,
+            # já pode permitir a exclusão.
+            if not periodo_bloqueado:
+                todos_periodos_bloqueados = False
+                break
+
+        if todos_periodos_bloqueados:
+            raise SituacaoPatrimonialValidationError({
+                "titulo": "Período fechado",
+                "mensagem": "O período está bloqueado para realização de alterações.",
+                "validator": self.__class__.__name__
+            })
 
         return bem_produzido_context

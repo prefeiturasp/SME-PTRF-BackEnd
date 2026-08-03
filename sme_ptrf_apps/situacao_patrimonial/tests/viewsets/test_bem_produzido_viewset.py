@@ -873,7 +873,7 @@ def test_verificar_se_pode_informar_valores_todos_status_exceto_nao_apresentada_
 
 
 @freeze_time('2025-03-10')
-def test_deve_retornar_status_de_exclusao_quando_bem_produzido_pode_ser_excluido(
+def test_deve_retornar_status_liberado_quando_bem_produzido_pode_ser_excluido(
         jwt_authenticated_client_sme,
         flag_situacao_patrimonial,
         cenario_recurso_ptrf,
@@ -883,62 +883,40 @@ def test_deve_retornar_status_de_exclusao_quando_bem_produzido_pode_ser_excluido
 ):
     recurso_ptrf, bem_ptrf, _ = cenario_recurso_ptrf
 
+    periodo = periodo_factory.create(
+        referencia='2025.1',
+        data_inicio_realizacao_despesas=date(2025, 1, 1),
+        data_fim_realizacao_despesas=date(2025, 2, 28),
+        recurso=recurso_ptrf
+    )
+
+    prestacao_conta_factory.create(
+        associacao=associacao_1,
+        periodo=periodo,
+        status=PrestacaoConta.STATUS_NAO_APRESENTADA,
+    )
+
     response = jwt_authenticated_client_sme.get(
-        f'/api/bens-produzidos/{bem_ptrf.uuid}/status-delecao-bem-produzido/',
+        f"/api/bens-produzidos/{bem_ptrf.uuid}/status-delecao-bem-produzido/",
         HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
     )
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
-@freeze_time('2025-03-10')
-def test_deve_retornar_status_de_exclusao_quando_bem_produzido_nao_pode_ser_excluido(
-        jwt_authenticated_client_sme,
-        flag_situacao_patrimonial,
-        associacao_1,
-        cenario_recurso_ptrf,
-        periodo_factory,
-        prestacao_conta_factory,
-):
-
-    recurso_ptrf, bem_ptrf, despesa_ptrf = cenario_recurso_ptrf
-
-    periodo = periodo_factory.create(
-        referencia='2025.1',
-        data_inicio_realizacao_despesas=date(2025, 1, 1),
-        data_fim_realizacao_despesas=date(2025, 4, 30),
-        recurso=recurso_ptrf
-    )
-
-    prestacao_conta_factory.create(periodo=periodo, associacao=associacao_1, status="APROVADA")
-
-    response = jwt_authenticated_client_sme.get(
-        f'/api/bens-produzidos/{bem_ptrf.uuid}/status-delecao-bem-produzido/',
-        HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
-    )
-
-    content = json.loads(response.content)
-
-    assert response.status_code == status.HTTP_409_CONFLICT
-    assert content['titulo'] == 'Período fechado'
-    assert content['mensagem'] == 'O período está bloqueado para realização de alterações.'
-
-
 @freeze_time("2025-03-10")
-def test_deve_retornar_status_de_exclusao_quando_periodo_encerrado(
+def test_deve_retornar_status_liberado_quando_periodo_nao_estiver_encerrado(
     jwt_authenticated_client_sme,
     flag_situacao_patrimonial,
-    associacao_1,
     cenario_recurso_ptrf,
     periodo_factory,
 ):
-
-    recurso_ptrf, bem_ptrf, despesa_ptrf = cenario_recurso_ptrf
+    recurso_ptrf, bem_ptrf, _ = cenario_recurso_ptrf
 
     periodo_factory.create(
         referencia="2025.1",
         data_inicio_realizacao_despesas=date(2025, 1, 1),
-        data_fim_realizacao_despesas=date(2025, 2, 28),  # antes de 10/03/2025
+        data_fim_realizacao_despesas=date(2025, 12, 31),
         recurso=recurso_ptrf,
     )
 
@@ -947,12 +925,44 @@ def test_deve_retornar_status_de_exclusao_quando_periodo_encerrado(
         HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
     )
 
-    content = json.loads(response.content)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@freeze_time("2025-03-10")
+def test_deve_retornar_status_de_exclusao_quando_bem_produzido_nao_pode_ser_excluido(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    associacao_1,
+    cenario_recurso_ptrf,
+    periodo_factory,
+    prestacao_conta_factory,
+):
+    recurso_ptrf, bem_ptrf, _ = cenario_recurso_ptrf
+
+    periodo = periodo_factory.create(
+        referencia="2025.1",
+        data_inicio_realizacao_despesas=date(2025, 1, 1),
+        data_fim_realizacao_despesas=date(2025, 2, 28),
+        recurso=recurso_ptrf,
+    )
+
+    prestacao_conta_factory.create(
+        associacao=associacao_1,
+        periodo=periodo,
+        status=PrestacaoConta.STATUS_APROVADA,
+    )
+
+    response = jwt_authenticated_client_sme.get(
+        f"/api/bens-produzidos/{bem_ptrf.uuid}/status-delecao-bem-produzido/",
+        HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
+    )
+
+    content = response.json()
 
     assert response.status_code == status.HTTP_409_CONFLICT
     assert content["titulo"] == "Período fechado"
-    assert (
-        content["mensagem"] == "O período está bloqueado para realização de alterações."
+    assert content["mensagem"] == (
+        "O período está bloqueado para realização de alterações."
     )
 
 
@@ -977,14 +987,29 @@ def test_deve_retornar_bem_produzido_nao_encontrado(
     assert content['mensagem'] == 'O bem produzido não foi encontrado.'
 
 
-@freeze_time('2025-03-10')
+@freeze_time("2025-03-10")
 def test_deve_excluir_bem_produzido_com_sucesso(
     jwt_authenticated_client_sme,
     flag_situacao_patrimonial,
     cenario_recurso_ptrf,
+    periodo_factory,
+    associacao_1,
+    prestacao_conta_factory,
 ):
-
     recurso_ptrf, bem_ptrf, _ = cenario_recurso_ptrf
+
+    periodo = periodo_factory.create(
+        referencia="2025.1",
+        data_inicio_realizacao_despesas=date(2025, 1, 1),
+        data_fim_realizacao_despesas=date(2025, 2, 28),
+        recurso=recurso_ptrf,
+    )
+
+    prestacao_conta_factory.create(
+        associacao=associacao_1,
+        periodo=periodo,
+        status=PrestacaoConta.STATUS_NAO_APRESENTADA,
+    )
 
     assert BemProduzido.objects.filter(uuid=bem_ptrf.uuid).exists()
     assert BemProduzidoDespesa.objects.filter(bem_produzido=bem_ptrf).exists()
@@ -1000,3 +1025,84 @@ def test_deve_excluir_bem_produzido_com_sucesso(
     assert not BemProduzido.objects.filter(uuid=bem_ptrf.uuid).exists()
     assert not BemProduzidoDespesa.objects.filter(bem_produzido=bem_ptrf).exists()
     assert not BemProduzidoItem.objects.filter(bem_produzido=bem_ptrf).exists()
+
+
+@freeze_time("2025-03-10")
+def test_deve_permitir_exclusao_quando_houver_uma_despesa_em_periodo_bloqueado_e_outra_em_periodo_liberado(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    associacao_1,
+    recurso_ptrf,
+    bem_produzido_factory,
+    bem_produzido_item_factory,
+    bem_produzido_despesa_factory,
+    despesa_factory,
+    especificacao_material_servico_1,
+    periodo_factory,
+    prestacao_conta_factory,
+):
+    despesa_janeiro = despesa_factory.create(
+        associacao=associacao_1,
+        recurso=recurso_ptrf,
+        data_documento=date(2025, 1, 15),
+    )
+
+    despesa_marco = despesa_factory.create(
+        associacao=associacao_1,
+        recurso=recurso_ptrf,
+        data_documento=date(2025, 3, 5),
+    )
+
+    bem = bem_produzido_factory.create(
+        associacao=associacao_1,
+        recurso=recurso_ptrf,
+        status=BemProduzido.STATUS_COMPLETO,
+    )
+
+    bem_produzido_despesa_factory.create(
+        bem_produzido=bem,
+        despesa=despesa_janeiro,
+    )
+
+    bem_produzido_despesa_factory.create(
+        bem_produzido=bem,
+        despesa=despesa_marco,
+    )
+
+    bem_produzido_item_factory.create(
+        bem_produzido=bem,
+        especificacao_do_bem=especificacao_material_servico_1,
+    )
+
+    periodo_janeiro = periodo_factory.create(
+        referencia="2025.1",
+        data_inicio_realizacao_despesas=date(2025, 1, 1),
+        data_fim_realizacao_despesas=date(2025, 2, 28),
+        recurso=recurso_ptrf,
+    )
+
+    periodo_marco = periodo_factory.create(
+        referencia="2025.2",
+        data_inicio_realizacao_despesas=date(2025, 3, 1),
+        data_fim_realizacao_despesas=date(2025, 5, 31),
+        recurso=recurso_ptrf,
+    )
+
+    prestacao_conta_factory.create(
+        associacao=associacao_1,
+        periodo=periodo_janeiro,
+        status=PrestacaoConta.STATUS_APROVADA,
+    )
+
+    prestacao_conta_factory.create(
+        associacao=associacao_1,
+        periodo=periodo_marco,
+        status=PrestacaoConta.STATUS_NAO_APRESENTADA,
+    )
+
+    response = jwt_authenticated_client_sme.get(
+        f"/api/bens-produzidos/{bem.uuid}/status-delecao-bem-produzido/",
+        HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
+    )
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
