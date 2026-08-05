@@ -2,13 +2,47 @@ from django import forms
 from django.contrib import admin
 from django.contrib.auth import admin as auth_admin
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission, Group
+from django.urls import reverse
+from django.utils.html import escape, format_html, mark_safe
 
 from sme_ptrf_apps.users.forms import UserChangeForm, UserCreationForm
 from sme_ptrf_apps.users.models import Visao, Grupo, UnidadeEmSuporte, AcessoConcedidoSme
 from sme_ptrf_apps.core.models import Unidade
 
 User = get_user_model()
+
+
+def _link(app_label, model_name, pk, label):
+    url = reverse(f'admin:{app_label}_{model_name}_change', args=[pk])
+    return format_html('<a href="{}" target="_blank" title="clique para abrir">{}</a>', url, label)
+
+
+def _table(headers, rows):
+    style_th = 'padding:4px 8px;text-align:left;background:#f8f8f8;border-bottom:1px solid #ccc'
+    style_td = 'padding:4px 8px;border-bottom:1px solid #eee;vertical-align:top'
+    ths = ''.join(f'<th style="{style_th}">{escape(h)}</th>' for h in headers)
+    if rows:
+        trs = ''
+        for row in rows:
+            cells = ''.join(
+                f'<td style="{style_td}">'
+                f'{c if hasattr(c, "__html__") else escape(str(c) if c is not None else "-")}'
+                f'</td>'
+                for c in row
+            )
+            trs += f'<tr>{cells}</tr>'
+    else:
+        trs = (
+            f'<tr><td colspan="{len(headers)}" style="{style_td};color:#999">'
+            f'Nenhum registro.</td></tr>'
+        )
+    return mark_safe(
+        f'<div style="overflow-x:auto">'
+        f'<table style="border-collapse:collapse;width:100%">'
+        f'<thead><tr>{ths}</tr></thead><tbody>{trs}</tbody>'
+        f'</table></div>'
+    )
 
 
 def custom_titled_filter(title):
@@ -61,6 +95,7 @@ class UserAdmin(auth_admin.UserAdmin):
 class PermissaoAdmin(admin.ModelAdmin):
     list_display = ["name", "nome_permissao", "nome_plicativo", "nome_modelo"]
     search_fields = ["name", "codename"]
+    readonly_fields = ('grupos',)
 
     def nome_plicativo(self, obj):
         return obj.content_type.app_label
@@ -70,6 +105,16 @@ class PermissaoAdmin(admin.ModelAdmin):
 
     def nome_permissao(self, obj):
         return obj.codename
+
+    def grupos(self, obj):
+        if not obj or not obj.pk:
+            return _table(['Nome'], [])
+        rows = [
+            [_link('auth', 'group', item.pk, item.name)]
+            for item in obj.group_set.all()
+        ]
+        return _table(['Nome'], rows)
+    grupos.short_description = 'Grupos'
 
 
 @admin.register(Grupo)
@@ -123,3 +168,26 @@ class AcessoConcedidoSmeAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id')
     search_fields = ('unidade__nome', 'unidade__codigo_eol', 'user__name', 'user__username')
     autocomplete_fields = ['unidade', 'user',]
+
+
+class GroupAdmin(admin.ModelAdmin):
+    """
+    Versão estendida dos grupos do Auth, que inclui Usuários vinculados para melhor visualização e gerenciamento.
+    """
+    list_display = ("name",)
+    readonly_fields = ('usuarios',)
+    filter_horizontal = ('permissions',)
+
+    def usuarios(self, obj):
+        if not obj or not obj.pk:
+            return _table(['Usuário', 'Nome'], [])
+        rows = [
+            [_link('users', 'user', item.pk, item.name)]
+            for item in obj.user_set.all()
+        ]
+        return _table(['Nome'], rows)
+    usuarios.short_description = 'Usuários'
+
+
+admin.site.unregister(Group)
+admin.site.register(Group, GroupAdmin)

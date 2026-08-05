@@ -1,3 +1,7 @@
+<!-- BADGES:START -->
+![version](https://img.shields.io/badge/version-9.44.0-blue) ![python](https://img.shields.io/badge/python-3.12.9-blue) ![coverage](https://img.shields.io/badge/coverage-77%25-orange)
+<!-- BADGES:END -->
+
 ## PTRF - Sistema de Gestão de Recursos Educacionais
 
 Este projeto é uma aplicação web desenvolvida com **Django**, baseada em **Cookiecutter Django**, com suporte a execução via **Docker** ou ambiente local.

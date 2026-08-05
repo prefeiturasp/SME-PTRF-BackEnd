@@ -143,7 +143,7 @@ MIDDLEWARE = [
     "sme_ptrf_apps.jwt_middleware.JWTAuthenticationMiddleware",
     "auditlog.middleware.AuditlogMiddleware",
     "waffle.middleware.WaffleMiddleware",
-    "allauth.account.middleware.AccountMiddleware",  # Requerido na versão 0.56.1 do django-allauth, necessária para o Django 4
+    "allauth.account.middleware.AccountMiddleware",  # Requerido na versão 0.56.1 do django-allauth, necessária para o Django 4  # noqa
     # Middleware usado para captar e validar o recurso selecionado
     "sme_ptrf_apps.tenant_middleware.TenantFromHeaderMiddleware"
 ]
@@ -322,7 +322,8 @@ SPECTACULAR_SETTINGS = {
 # ------------------------------------------------------------------------------
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
-    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(hours=100),
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(hours=12),
 }
 
 # CORS SETTINGS

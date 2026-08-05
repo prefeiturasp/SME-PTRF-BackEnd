@@ -158,7 +158,8 @@ def bem_produzido_item_1(bem_produzido_item_factory, bem_produzido_1, despesa_1,
 
 def _criar_estrutura_base_patrimonial(
     associacao, recurso, data_documento, especificacao_material,
-    despesa_factory, bem_produzido_factory, bem_produzido_item_factory
+    despesa_factory, bem_produzido_factory, bem_produzido_item_factory,
+    bem_produzido_despesa_factory
 ):
     """Cria a Despesa, o Bem Produzido e o Item que ambos os cenários de recursos utilizam."""
 
@@ -172,6 +173,11 @@ def _criar_estrutura_base_patrimonial(
         associacao=associacao,
         recurso=recurso,
         status=BemProduzido.STATUS_COMPLETO,
+    )
+
+    bem_produzido_despesa_factory.create(
+        bem_produzido=bem_produzido,
+        despesa=despesa
     )
 
     bem_produzido_item_factory.create(
@@ -193,14 +199,16 @@ def cenario_recurso_ptrf(
     especificacao_material_servico_1,
     conta_associacao_factory,
     acao_associacao_factory,
+    bem_produzido_despesa_factory,
 ):
     """Monta a massa de dados do recurso PTRF reutilizando a estrutura base."""
     conta_associacao = conta_associacao_factory(associacao=associacao_1)
     acao_associacao = acao_associacao_factory(associacao=associacao_1)
 
     despesa_ptrf, bem_ptrf = _criar_estrutura_base_patrimonial(
-        associacao_1, recurso_ptrf, '2025-01-01', especificacao_material_servico_1,
-        despesa_factory, bem_produzido_factory, bem_produzido_item_factory
+        associacao_1, recurso_ptrf, '2025-01-11', especificacao_material_servico_1,
+        despesa_factory, bem_produzido_factory, bem_produzido_item_factory,
+        bem_produzido_despesa_factory
     )
 
     despesa_ptrf.nome_fornecedor = 'teste'
@@ -227,13 +235,15 @@ def cenario_recurso_premium(
     bem_produzido_factory,
     bem_produzido_item_factory,
     rateio_despesa_factory,
-    especificacao_material_servico_1
+    especificacao_material_servico_1,
+    bem_produzido_despesa_factory
 ):
     """Monta a massa de dados do recurso Premium isolado reutilizando a estrutura base."""
 
     despesa_premium, bem_premium = _criar_estrutura_base_patrimonial(
         associacao_1, recurso_premium, '2025-01-11', especificacao_material_servico_1,
-        despesa_factory, bem_produzido_factory, bem_produzido_item_factory
+        despesa_factory, bem_produzido_factory, bem_produzido_item_factory,
+        bem_produzido_despesa_factory
     )
 
     rateio_despesa_factory.create(

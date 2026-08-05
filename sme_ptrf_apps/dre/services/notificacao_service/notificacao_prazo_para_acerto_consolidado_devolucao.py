@@ -15,7 +15,7 @@ class NotificacaoConsolidadoPrazoAcertoVencimento():
         self.enviar_email = enviar_email
 
     def notificar_prazo_para_acerto_apos_vencimento(self):
-        logger.info(f'Notificar prazo para acerto apos vencimento service')
+        logger.info('Notificar prazo para acerto apos vencimento service')
 
         data_de_hoje = date.today()
         consolidados_devolvida_para_acerto_prazo = ConsolidadoDRE.objects.filter(
@@ -27,22 +27,31 @@ class NotificacaoConsolidadoPrazoAcertoVencimento():
         for consolidado in consolidados_devolvida_para_acerto_prazo:
             for tecnico in consolidado.dre.tecnicos_da_dre.all():
                 user = User.objects.filter(username=tecnico.rf).first()
+
+                recurso = consolidado.periodo.recurso if consolidado.periodo else None
+
+                descricao_mensagem = (
+                    f"O prazo para acerto da Publicação {consolidado.referencia} {consolidado.periodo.referencia} "
+                    "expirou. Favor verificar os acertos solicitados e regularizar a situação.\n\n"
+                    f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
+                )
+
                 if user:
                     Notificacao.notificar(
                         tipo=Notificacao.TIPO_NOTIFICACAO_ALERTA,
                         categoria=Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_CONSOLIDADO,
                         remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
                         titulo=f"Devolução para acertos no relatório consolidado de {consolidado.periodo.referencia}",
-                        descricao=f"O prazo para acerto da Publicação {consolidado.referencia} {consolidado.periodo.referencia} expirou. Favor verificar os acertos solicitados e regularizar a situação.",
+                        descricao=descricao_mensagem,
                         usuario=user,
                         renotificar=False,
                         enviar_email=self.enviar_email,
                     )
 
-        logger.info(f'Notificação para vencimento do prazo realizado com sucesso.')
+        logger.info('Notificação para vencimento do prazo realizado com sucesso.')
 
     def notificar_prazo_para_acerto_antes_vencimento(self):
-        logger.info(f'Notificar prazo para acerto antes vencimento service')
+        logger.info('Notificar prazo para acerto antes vencimento service')
         data_de_hoje = date.today()
         consolidados_devolvida_para_acerto_prazo = ConsolidadoDRE.objects.filter(
             status_sme='DEVOLVIDO',
@@ -53,16 +62,26 @@ class NotificacaoConsolidadoPrazoAcertoVencimento():
         for consolidado in consolidados_devolvida_para_acerto_prazo:
             for tecnico in consolidado.dre.tecnicos_da_dre.all():
                 user = User.objects.filter(username=tecnico.rf).first()
-                if user:
-                    Notificacao.notificar(
-                    tipo=Notificacao.TIPO_NOTIFICACAO_ALERTA,
-                    categoria=Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_CONSOLIDADO,
-                    remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
-                    titulo=f"Devolução para acertos no relatório consolidado de {consolidado.periodo.referencia}",
-                    descricao=f"A SME solicitou acertos relativos à Publicação {consolidado.referencia} {consolidado.periodo.referencia}. O seu prazo para envio dos acertos é {formata_data_dd_mm_yyyy(consolidado.analise_atual.data_limite)}",
-                    usuario=user,
-                    renotificar=False,
-                    enviar_email=self.enviar_email,
+
+                recurso = consolidado.periodo.recurso if consolidado.periodo else None
+
+                descricao_mensagem = (
+                    f"A SME solicitou acertos relativos à Publicação {consolidado.referencia} "
+                    f"{consolidado.periodo.referencia}. O seu prazo para envio dos "
+                    f"acertos é {formata_data_dd_mm_yyyy(consolidado.analise_atual.data_limite)}\n\n"
+                    f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
                 )
 
-        logger.info(f'Notificação para vencimento do prazo realizado com sucesso.')
+                if user:
+                    Notificacao.notificar(
+                        tipo=Notificacao.TIPO_NOTIFICACAO_ALERTA,
+                        categoria=Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_CONSOLIDADO,
+                        remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
+                        titulo=f"Devolução para acertos no relatório consolidado de {consolidado.periodo.referencia}",
+                        descricao=descricao_mensagem,
+                        usuario=user,
+                        renotificar=False,
+                        enviar_email=self.enviar_email,
+                    )
+
+        logger.info('Notificação para vencimento do prazo realizado com sucesso.')

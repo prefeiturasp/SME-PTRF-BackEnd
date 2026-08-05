@@ -103,3 +103,16 @@ class TipoAcertoLancamentoService:
     @classmethod
     def categorias(cls, choices):
         return TipoAcertoLancamentoCategorias(choices=choices).choices_json
+
+    @classmethod
+    def checa_se_existe_lancamento_devolucao_ao_tesouro(cls, periodo):
+        tipos_acertos_lancamentos = TipoAcertoLancamento.objects.filter(
+            ativo=True,
+            recurso=periodo.recurso,
+            categoria="DEVOLUCAO"
+        )
+
+        if not tipos_acertos_lancamentos.exists():
+            return False
+
+        return True

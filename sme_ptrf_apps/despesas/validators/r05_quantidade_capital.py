@@ -5,9 +5,9 @@ from .context import DespesaDtoContext
 
 
 class QuantidadeCapitalValidator(AbstractDespesaValidator):
-    """R05 — Rateio CAPITAL deve ter quantidade_itens_capital > 0.
+    """REG-005 — Rateio CAPITAL deve ter quantidade_itens_capital > 0.
 
-    Pré-condição obrigatória para R06b: deve sempre preceder
+    Pré-condição obrigatória para REG-006: deve sempre preceder
     ValorOriginalCapitalValidator no pipeline.
 
     Legado: validacao_despesa_service.py:99-118

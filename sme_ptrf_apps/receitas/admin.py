@@ -253,6 +253,9 @@ class DetalheTipoReceitaAdmin(admin.ModelAdmin):
 
 @admin.register(MotivoEstorno)
 class MotivoEstornoAdmin(admin.ModelAdmin):
-    list_display = ('motivo', 'uuid', )
+    list_display = ('motivo', 'uuid', 'recurso')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('motivo', )
+    list_filter = (RecursoFilter,)
+
+

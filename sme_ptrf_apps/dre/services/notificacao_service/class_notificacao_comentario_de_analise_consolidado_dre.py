@@ -33,15 +33,25 @@ class NotificacaoComentarioDeAnaliseConsolidadoDre(NotificacaoService):
             # Define destinatários
             usuarios = User.objects.filter(username__in=lista_de_rf)
 
+            if recurso:
+                usuarios = usuarios.filter(
+                    unidades__associacoes__periodos_iniciais__recurso=recurso
+                ).distinct()
+
             if usuarios:
                 for usuario in usuarios:
                     for comentario in comentarios_list:
+                        descricao_mensagem = (
+                            f"{comentario.comentario}\n\n"
+                            f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
+                        )
+
                         Notificacao.notificar(
                             tipo=tipo,
                             categoria=categoria,
                             remetente=remetente,
                             titulo=titulo,
-                            descricao=comentario.comentario,
+                            descricao=descricao_mensagem,
                             usuario=usuario,
                             renotificar=True,
                             enviar_email=self.enviar_email,

@@ -7,6 +7,9 @@ from sme_ptrf_apps.core.models_abstracts import ModeloIdNome, TemAtivo
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+from sme_ptrf_apps.utils.recurso_texto_ata import fixed_text_introducao_ata, fixed_text_texto_letra, \
+    process_texto_letra_d, process_texto_introducao
+
 
 class Recurso(ModeloIdNome, TemAtivo):
     history = AuditlogHistoryField()
@@ -22,7 +25,8 @@ class Recurso(ModeloIdNome, TemAtivo):
         verbose_name='Nome exibição', help_text='Será usado no seletor de recursos do site.', max_length=160)
 
     icone = models.FileField(
-        verbose_name='Ícone', help_text='Será usado no menu lateral e modal de escolha de recurso.', blank=True, null=True)
+        verbose_name='Ícone', help_text='Será usado no menu lateral e modal de escolha de recurso.',
+        blank=True, null=True)
 
     cor = models.CharField(
         max_length=7,
@@ -33,8 +37,7 @@ class Recurso(ModeloIdNome, TemAtivo):
     legado = models.BooleanField(verbose_name="Legado?",
                                  help_text='Em caso de flag inativa, esse recurso será utilizado nos filtros. '
                                            'No caso da SME/SP, o recurso legado refere-se ao PTRF.',
-                                 default=False
-                                )
+                                 default=False)
 
     exibe_valores_reprogramados = models.BooleanField(
         verbose_name="Exibir valores reprogramados iniciais?",
@@ -81,6 +84,45 @@ class Recurso(ModeloIdNome, TemAtivo):
         default=False,
     )
 
+    texto_ata_introducao = models.CharField(
+        verbose_name='Introdução',
+        help_text=f'Este texto é exibido antes do texto complementar: {fixed_text_introducao_ata()}',
+        max_length=256,
+        blank=True,
+        default=""
+    )
+
+    texto_ata_letra_a = models.CharField(
+        verbose_name='Texto PCs aprovadas',
+        help_text=f'Este texto é exibido antes do texto complementar: {fixed_text_texto_letra("A")}',
+        max_length=256,
+        blank=True,
+        default=""
+    )
+
+    texto_ata_letra_b = models.CharField(
+        verbose_name='Texto PCs aprovadas com ressalvas',
+        help_text=f'Este texto é exibido antes do texto complementar: {fixed_text_texto_letra("B")}',
+        max_length=256,
+        blank=True,
+        default=""
+    )
+
+    texto_ata_letra_c = models.CharField(
+        verbose_name='Texto PCs reprovadas',
+        help_text=f'Este texto é exibido antes do texto complementar: {fixed_text_texto_letra("C")}',
+        max_length=256,
+        blank=True,
+        default=""
+    )
+
+    texto_ata_letra_d = models.CharField(
+        verbose_name='Item complementar',
+        max_length=256,
+        blank=True,
+        default=""
+    )
+
     class Meta:
         verbose_name = 'Recurso'
         verbose_name_plural = '20.0) Recursos'
@@ -102,6 +144,27 @@ class Recurso(ModeloIdNome, TemAtivo):
             return "valores estes que serão tratados conforme a legislação vigente"
 
         return "valores estes que foram reprogramados"
+
+    def get_fixed_text_texto_letra(self, letter="A"):
+        if letter not in ["A", "B", "C", "D"]:
+            return ""
+
+        if letter == "D":
+            return process_texto_letra_d(self.texto_ata_letra_d, self.habilita_aprovacao_com_ressalvas)
+
+        return fixed_text_texto_letra(
+            letter,
+            getattr(self, f'texto_ata_letra_{letter.lower()}', ''),
+            self.habilita_aprovacao_com_ressalvas
+        )
+
+    def get_parameterized_text_introducao(self):
+        return process_texto_introducao(self.texto_ata_introducao)
+
+    @staticmethod
+    def get_fixed_text_introducao_ata():
+        return fixed_text_introducao_ata()
+
 
 @receiver(models.signals.post_delete, sender=Recurso)
 def auto_delete_file_on_delete(sender, instance, **kwargs):

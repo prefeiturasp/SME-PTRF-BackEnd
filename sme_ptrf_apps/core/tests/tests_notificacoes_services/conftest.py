@@ -8,14 +8,15 @@ from model_bakery import baker
 
 from sme_ptrf_apps.users.models import Grupo
 from sme_ptrf_apps.core.models import STATUS_IMPLANTACAO, SolicitacaoEncerramentoContaAssociacao
+from sme_ptrf_apps.core.fixtures.factories import UnidadeFactory, PeriodoFactory, AssociacaoFactory, \
+    PeriodoInicialAssociacaoFactory
 
 from sme_ptrf_apps.dre.fixtures.factories import ComissaoFactory
 
 
 @pytest.fixture
 def unidade_a(dre):
-    return baker.make(
-        'Unidade',
+    return UnidadeFactory(
         nome='Escola A',
         tipo_unidade='EMEI',
         codigo_eol='270001',
@@ -25,13 +26,25 @@ def unidade_a(dre):
 
 
 @pytest.fixture
-def associacao_a(unidade_a):
-    return baker.make(
-        'Associacao',
+def periodo_a():
+    return PeriodoFactory()
+
+
+@pytest.fixture
+def associacao_a(unidade_a, periodo_a):
+    associacao = AssociacaoFactory(
         nome='Associacao 271170',
         cnpj='62.738.735/0001-74',
         unidade=unidade_a,
+        periodo_inicial=periodo_a
     )
+
+    PeriodoInicialAssociacaoFactory(
+        periodo_inicial=periodo_a,
+        associacao=associacao,
+    )
+
+    return associacao
 
 
 @pytest.fixture

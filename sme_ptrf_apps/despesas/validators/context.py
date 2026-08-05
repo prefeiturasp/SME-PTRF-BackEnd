@@ -31,6 +31,13 @@ class DespesaDtoContext:
     retem_imposto: bool
     eh_despesa_reconhecida_pela_associacao: bool
     numero_boletim_de_ocorrencia: str
+    eh_despesa_sem_comprovacao_fiscal: bool
+    tipo_documento: Any  # TipoDocumento | None
+    tipo_transacao: Any  # TipoTransacao | None
+    numero_documento: str
+    documento_transacao: str
+    cpf_cnpj_fornecedor: str
+    nome_fornecedor: str
 
     # Rateios validados pelo DRF (FKs são instâncias de model)
     rateios: list

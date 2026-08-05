@@ -82,6 +82,7 @@ def test_notificar_comentario_de_analise_consolidado_dre(
     periodo_teste_api_comentario_analise_consolidado_dre,
     consolidado_dre_teste_api_comentario_analise_consolidado_dre,
     jwt_authenticated_client_sme_teste_comentarios_de_analise_consolidado_dre,
+    associacao_unidade_a
 ):
     from sme_ptrf_apps.dre.services.notificacao_service.class_notificacao_comentario_de_analise_consolidado_dre import \
         NotificacaoComentarioDeAnaliseConsolidadoDre
@@ -99,6 +100,8 @@ def test_notificar_comentario_de_analise_consolidado_dre(
 
     uuid = retorna_lista_de_uuids_de_comentarios[0]
 
+    recurso = periodo_teste_api_comentario_analise_consolidado_dre.recurso
+
     comentario_notificado = ComentarioAnaliseConsolidadoDRE.by_uuid(uuid)
     assert comentario_notificado.notificado
     assert comentario_notificado.notificado_em
@@ -109,4 +112,7 @@ def test_notificar_comentario_de_analise_consolidado_dre(
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_COMENTARIO_CONSOLIDADO_DRE
     assert notificacao.remetente == Notificacao.REMETENTE_NOTIFICACAO_SME
     assert notificacao.titulo == f"Comentário feito em seu relatório consolidado de {periodo_teste_api_comentario_analise_consolidado_dre.referencia}."
-    assert notificacao.descricao == f"{comentario_notificado.comentario}"
+    assert notificacao.descricao == (
+        f"{comentario_notificado.comentario}\n\n"
+        f"Recurso: {recurso.nome}\n"
+    )

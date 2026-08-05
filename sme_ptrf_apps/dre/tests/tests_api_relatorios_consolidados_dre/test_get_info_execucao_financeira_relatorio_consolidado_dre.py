@@ -385,6 +385,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_parcial(
         'periodo_data_fim_realizacao_despesas': '2019-11-30',
         'periodo_data_inicio_realizacao_despesas': '2019-09-01',
         'periodo_referencia': '2019.2',
+        'existe_lancamentos_devolucao_ao_tesouro': False,
         'por_tipo_de_conta': [
             {
                 'consolidado_dre': None,
@@ -513,6 +514,7 @@ def test_api_get_info_execucao_financeira_relatorio_consolidado_dre_final(
         'periodo_data_fim_realizacao_despesas': '2019-11-30',
         'periodo_data_inicio_realizacao_despesas': '2019-09-01',
         'periodo_referencia': '2019.2',
+        'existe_lancamentos_devolucao_ao_tesouro': False,
         'por_tipo_de_conta': [
             {
                 'consolidado_dre': None,
@@ -641,6 +643,7 @@ def test_api_get_info_execucao_financeira_relatorio(
         'periodo_data_fim_realizacao_despesas': '2019-11-30',
         'periodo_data_inicio_realizacao_despesas': '2019-09-01',
         'periodo_referencia': '2019.2',
+        'existe_lancamentos_devolucao_ao_tesouro': False,
         'por_tipo_de_conta': [
             {
                 'consolidado_dre': None,

@@ -12,7 +12,9 @@ from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import Rat
 from sme_ptrf_apps.core.models.solicitacao_acerto_lancamento import SolicitacaoAcertoLancamento
 from sme_ptrf_apps.core.models.tipo_acerto_lancamento import TipoAcertoLancamento
 from sme_ptrf_apps.core.models.analise_lancamento_prestacao_conta import AnaliseLancamentoPrestacaoConta
-from sme_ptrf_apps.core.services.analise_lancamento_prestacao_conta_service import AnaliseLancamentoPrestacaoContaService
+from sme_ptrf_apps.core.services.analise_lancamento_prestacao_conta_service import (
+    AnaliseLancamentoPrestacaoContaService,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -83,12 +85,12 @@ class DespesaService:
         rateios = validated_data.pop("rateios")
         despesas_impostos = validated_data.pop("despesas_impostos", None)
 
-        # [PIPELINE] Substituição futura: _validar_datas → DatasEncerramentoValidator (R13)
+        # [PIPELINE] Substituição futura: _validar_datas → DatasEncerramentoValidator (REG-010)
         cls._validar_datas(validated_data)
 
         # [PIPELINE] Substituição futura: _processar_pagamento_antecipado →
-        #   validate: PagamentoAntecipadoValidator (R14)
-        #   apply:    PagamentoAntecipadoValidator.apply() (R15) + sync ctx→data no serializer
+        #   validate: PagamentoAntecipadoValidator (REG-011)
+        #   apply:    PagamentoAntecipadoValidator.apply() (REG-011 apply) + sync ctx→data no serializer
         motivos, outros = cls._processar_pagamento_antecipado(validated_data)
 
         despesa = Despesa.objects.create(**validated_data)
@@ -113,10 +115,10 @@ class DespesaService:
     # =====================================================
     @classmethod
     @transaction.atomic
-    def update(cls, instance: Despesa, validated_data, limpar_prioridades_callback=None):        
+    def update(cls, instance: Despesa, validated_data, limpar_prioridades_callback=None):
 
         logger.info(f"Iniciando atualização de despesa: #{instance.id}")
-        
+
         # Desliga signal por questões de performance
         instance._skip_fornecedor_signal = True
 
@@ -125,11 +127,11 @@ class DespesaService:
             despesas_impostos = validated_data.pop("despesas_impostos", [])
 
             # [PIPELINE] Substituição futura: _validar_datas_update →
-            #   DatasEncerramentoValidator (R13) + DespesaContextBuilder.build() para defaults
+            #   DatasEncerramentoValidator (REG-010) + DespesaContextBuilder.build() para defaults
             cls._validar_datas_update(instance, validated_data)
             # [PIPELINE] Substituição futura: _processar_pagamento_antecipado →
-            #   validate: PagamentoAntecipadoValidator (R14)
-            #   apply:    PagamentoAntecipadoValidator.apply() (R15) + sync ctx→data no serializer
+            #   validate: PagamentoAntecipadoValidator (REG-011)
+            #   apply:    PagamentoAntecipadoValidator.apply() (REG-011 apply) + sync ctx→data no serializer
             motivos, outros = cls._processar_pagamento_antecipado(validated_data)
 
             # Executa apenas quando há alterações de dados do fornecedor
@@ -140,13 +142,13 @@ class DespesaService:
                 setattr(instance, attr, value)
 
             # [PIPELINE] Substituição futura de _atualizar_rateios:
-            #   validate: MudancaAplicacaoValidator (R17-R20)
-            #   apply:    MudancaAplicacaoValidator.apply() (R21) — reseta campos em ctx.rateios
+            #   validate: MudancaAplicacaoValidator (REG-013)
+            #   apply:    MudancaAplicacaoValidator.apply() (REG-013 apply) — reseta campos em ctx.rateios
             #   service:  persiste apenas (sem validação/mutação)
             cls._atualizar_rateios(instance, rateios)
             cls._aplicar_motivos(instance, motivos, outros)
 
-            cls._processar_impostos_update(instance, despesas_impostos)            
+            cls._processar_impostos_update(instance, despesas_impostos)
 
             cls._finalizar_despesa(instance, rateios, limpar_prioridades_callback)
 
@@ -156,7 +158,6 @@ class DespesaService:
             return instance
         finally:
             instance._skip_fornecedor_signal = False
-
 
     # =====================================================
     # VALIDAÇÕES
@@ -354,8 +355,14 @@ class DespesaService:
                             f"no rateio {rateio['uuid']}"
                         )
 
-                    RateioDespesa.objects.filter(uuid=rateio["uuid"]).update(**rateio)                    
+                    # Foi substituido o método update() para que seja executado o save() do model
+                    # Chamando o pre_save e o post_save do Rateio para recalcular o status do Rateio/Despesa
+                    for attr, value in rateio.items():
+                        setattr(rateio_para_atualizar, attr, value)
+
+                    rateio_para_atualizar.save()
                     keep.append(rateio_para_atualizar.uuid)
+
                 else:
                     logger.info(f"Rateio NÃO encontrado {rateio['uuid']} R${rateio['valor_rateio']}")
                     continue
@@ -378,7 +385,7 @@ class DespesaService:
             if despesa.nome_fornecedor != nome_fornecedor or despesa.cpf_cnpj_fornecedor != doc_fornecedor:
                 logger.info(f"Cria/Atualiza fornecedor: {doc_fornecedor}")
                 Fornecedor.atualiza_ou_cria(
-                    cpf_cnpj=despesa.cpf_cnpj_fornecedor, 
+                    cpf_cnpj=despesa.cpf_cnpj_fornecedor,
                     nome=despesa.nome_fornecedor
                 )
 
@@ -396,7 +403,7 @@ class DespesaService:
         for imposto in despesas_impostos:
             rateios = imposto.pop("rateios", [])
 
-            # [PIPELINE] Substituição futura: R16 coberto por ImpostosValidator
+            # [PIPELINE] Substituição futura: R16 coberto por ImpostosValidator (REG-012)
             if not rateios:
                 raise serializers.ValidationError({
                     "mensagem": "A despesa de imposto precisa ter rateio associado"
@@ -431,7 +438,7 @@ class DespesaService:
             for imposto in despesas_impostos:
                 rateios = imposto.pop("rateios", [])
 
-                # [PIPELINE] Substituição futura: R16 coberto por ImpostosValidator
+                # [PIPELINE] Substituição futura: R16 coberto por ImpostosValidator (REG-012)
                 if not rateios:
                     raise serializers.ValidationError({
                         "mensagem": "A despesa de imposto precisa ter rateio associado"
@@ -443,10 +450,10 @@ class DespesaService:
                 # Despesa de imposto herda o status de conciliação da despesa de origem
                 # caso esteja num contexto de PC devolvida para acertos
                 prestacao_conta = despesa.prestacao_conta
-               
+
                 if prestacao_conta and prestacao_conta.status == PrestacaoConta.STATUS_DEVOLVIDA:
-                  
-                    if despesa.conferido:                   
+
+                    if despesa.conferido:
                         periodo_conciliacao = (
                             despesa.rateios.all()
                             .order_by("periodo_conciliacao")
@@ -461,11 +468,10 @@ class DespesaService:
                             rateio["periodo_conciliacao_id"] = (
                                 periodo_conciliacao.periodo_conciliacao_id if periodo_conciliacao else None
                             )
-                        
+
                 else:
                     for rateio in rateios:
                         rateio["update_conferido"] = False
-
 
                 if "uuid" in imposto:
                     desp = Despesa.by_uuid(imposto["uuid"])
@@ -530,34 +536,47 @@ class DespesaService:
         Marca o lançamento como atualizado quando existir uma solicitação
         pendente de edição de lançamento em uma prestação de contas devolvida.
         """
-        prestacao_conta = despesa.prestacao_conta
+        from waffle import get_waffle_flag_model
 
-        if not prestacao_conta or prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
-            return
+        flags = get_waffle_flag_model()
+        pipeline_ativa = flags.objects.filter(name='despesas-pipeline', everyone=True).exists()
 
-        lancamento_analise = (
-            AnaliseLancamentoPrestacaoConta.objects.filter(
-                despesa=despesa,
-                lancamento_atualizado=False,
-                tipo_lancamento=AnaliseLancamentoPrestacaoConta.TIPO_LANCAMENTO_GASTO,
-                status_realizacao=AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE,
+        if pipeline_ativa:
+            from sme_ptrf_apps.despesas.services.fluxo_acerto import (
+                obter_analise_lancamento_edicao_pendente,
             )
-            .first()
-        )
+            lancamento_analise = obter_analise_lancamento_edicao_pendente(despesa)
+            if not lancamento_analise:
+                return
+        else:
+            prestacao_conta = despesa.prestacao_conta
 
-        if not lancamento_analise:
-            return
+            if not prestacao_conta or prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
+                return
 
-        possui_solicitacao_pendente = (
-            lancamento_analise.solicitacoes_de_ajuste_da_analise.filter(
-                tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
-                status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE,
+            lancamento_analise = (
+                AnaliseLancamentoPrestacaoConta.objects.filter(
+                    despesa=despesa,
+                    lancamento_atualizado=False,
+                    tipo_lancamento=AnaliseLancamentoPrestacaoConta.TIPO_LANCAMENTO_GASTO,
+                    status_realizacao=AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE,
+                )
+                .first()
             )
-            .exists()
-        )
 
-        if not possui_solicitacao_pendente:
-            return
+            if not lancamento_analise:
+                return
+
+            possui_solicitacao_pendente = (
+                lancamento_analise.solicitacoes_de_ajuste_da_analise.filter(
+                    tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
+                    status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE,
+                )
+                .exists()
+            )
+
+            if not possui_solicitacao_pendente:
+                return
 
         AnaliseLancamentoPrestacaoContaService.marcar_lancamento_como_atualizado(
             lancamento_analise
@@ -565,4 +584,33 @@ class DespesaService:
 
         logger.info(
             f"Despesa {despesa.uuid} com lançamento marcado como atualizado."
+        )
+
+    @staticmethod
+    def _marcar_lancamento_como_excluido(despesa: Despesa):
+        """
+        Com flag despesas-pipeline: marca o lançamento como excluído quando
+        existir solicitação pendente de exclusão em PC devolvida.
+        Deve ser chamado antes do destroy/inativação da despesa.
+        """
+        from waffle import get_waffle_flag_model
+
+        flags = get_waffle_flag_model()
+        pipeline_ativa = flags.objects.filter(name='despesas-pipeline', everyone=True).exists()
+        if not pipeline_ativa:
+            return
+
+        from sme_ptrf_apps.despesas.services.fluxo_acerto import (
+            obter_analise_lancamento_exclusao_pendente,
+        )
+        lancamento_analise = obter_analise_lancamento_exclusao_pendente(despesa)
+        if not lancamento_analise:
+            return
+
+        AnaliseLancamentoPrestacaoContaService.marcar_lancamento_como_excluido(
+            lancamento_analise
+        )
+
+        logger.info(
+            f"Despesa {despesa.uuid} com lançamento marcado como excluído."
         )

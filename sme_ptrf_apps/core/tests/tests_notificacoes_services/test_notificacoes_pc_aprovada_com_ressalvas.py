@@ -14,11 +14,17 @@ def test_deve_notificar_usuarios(prestacao_notifica_pc_aprovada_com_ressalvas, m
     assert Notificacao.objects.count() == 1
     notificacao = Notificacao.objects.first()
 
+    recurso = prestacao_notifica_pc_aprovada_com_ressalvas.periodo.recurso
+
     assert notificacao.tipo == Notificacao.TIPO_NOTIFICACAO_INFORMACAO
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_APROVACAO_RESSALVAS_PC
     assert notificacao.remetente == Notificacao.REMETENTE_NOTIFICACAO_SISTEMA
     assert notificacao.titulo == f"A PC do período {prestacao_notifica_pc_aprovada_com_ressalvas.periodo.referencia} foi aprovada com ressalvas pela DRE"
-    assert notificacao.descricao == f"A prestação de contas referente ao período {prestacao_notifica_pc_aprovada_com_ressalvas.periodo.referencia} foi aprovada com ressalvas pelos seguintes motivos: {motivos} {outros_motivos}"
+    assert notificacao.descricao == (
+        f"A prestação de contas referente ao período {prestacao_notifica_pc_aprovada_com_ressalvas.periodo.referencia} "
+        f"foi aprovada com ressalvas pelos seguintes motivos: {motivos} {outros_motivos}\n\n"
+        f"Recurso: {recurso.nome}\n"
+    )
     assert notificacao.usuario == usuario_notificavel
 
 
@@ -27,4 +33,3 @@ def test_nao_deve_notificar_usuarios_sem_permissao(prestacao_notifica_pc_aprovad
     outros_motivos = 'Esse é o outro motivo de aprovação com ressalvas'
     notificar_prestacao_de_contas_aprovada_com_ressalvas(prestacao_notifica_pc_aprovada_com_ressalvas, motivo_aprovacao_ressalva_x.motivo, outros_motivos)
     assert Notificacao.objects.count() == 0
-

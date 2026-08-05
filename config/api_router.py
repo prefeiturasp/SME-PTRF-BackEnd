@@ -121,9 +121,11 @@ from sme_ptrf_apps.paa.api.views import (
     ModelosCargasPaaViewSet,
     DocumentoPaaViewSet
 )
+from rest_framework_simplejwt.views import TokenRefreshView
 from sme_ptrf_apps.users.api.views import (
     EsqueciMinhaSenhaViewSet,
     LoginView,
+    MeView,
     RedefinirSenhaViewSet,
     UserViewSet,  # TODO - Remover ao fim da implantação da nova gestão de usuários
     UsuariosViewSet,
@@ -182,7 +184,8 @@ router.register("especificacoes-materiais-servicos", ParametrizacaoEspecificacoe
 router.register("rateios-despesas", RateiosDespesasViewSet, basename="rateios-despesas")
 router.register("receitas", ReceitaViewSet, basename="receitas")
 router.register("tipos-receitas", TipoReceitaViewSet, basename="tipos-receitas")
-router.register("detalhes-tipos-receitas-parametrizacao", DetalheTipoReceitaParametrizacaoViewSet, basename="detalhes-tipos-receitas-parametrizacao")
+router.register("detalhes-tipos-receitas-parametrizacao",
+                DetalheTipoReceitaParametrizacaoViewSet, basename="detalhes-tipos-receitas-parametrizacao")
 router.register("fornecedores", FornecedoresViewSet, basename="fornecedores")
 router.register("associacoes", AssociacoesViewSet, basename="associacoes")
 router.register("parametrizacoes-associacoes", ParametrizacoesAssociacoesViewSet,
@@ -218,7 +221,8 @@ router.register("motivos-aprovacao-ressalva", MotivoAprovacaoRessalvaViewSet, ba
 router.register("motivos-aprovacao-ressalva-parametrizacao", MotivoAprovacaoRessalvaParametrizacaoViewSet,
                 basename="motivos-aprovacao-ressalva-parametrizacao")
 router.register("motivos-reprovacao", MotivoReprovacaoViewSet, basename="motivos-reprovacao")
-router.register("motivos-reprovacao-parametrizacao", MotivoReprovacaoParametrizacaoViewSet, basename="motivos-reprovacao-parametrizacao")
+router.register("motivos-reprovacao-parametrizacao",
+                MotivoReprovacaoParametrizacaoViewSet, basename="motivos-reprovacao-parametrizacao")
 router.register("acoes-associacoes", AcaoAssociacaoViewSet, basename="acoes-associacoes")
 router.register("contas-associacoes", ContasAssociacoesViewSet, basename="contas-associacoes")
 router.register("parametrizacoes-acoes-associacoes", ParametrizacoesAcoesAssociacaoViewSet,
@@ -313,6 +317,8 @@ urlpatterns += [
     path("versao", versao),
     path("teste-flag", teste_flag_view),
     path("login", LoginView.as_view()),
+    path("token/refresh", TokenRefreshView.as_view()),
+    path("me", MeView.as_view()),
     path("feature-flags", feature_flags),
     path("simular-logs", SimuladorDeLogsView.as_view()),
     path("simular-logs-sec", SimuladorDeLogsSecudarioView.as_view()),
