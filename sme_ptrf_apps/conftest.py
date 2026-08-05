@@ -401,6 +401,28 @@ def unidade(dre):
 
 
 @pytest.fixture
+def periodo_inicial_associacao_a():
+    return PeriodoFactory()
+
+
+@pytest.fixture
+def associacao_unidade_a(unidade, periodo_inicial_associacao_a):
+    associacao = AssociacaoFactory(
+        nome='Associacao 271170',
+        cnpj='62.738.735/0001-74',
+        unidade=unidade,
+        periodo_inicial=periodo_inicial_associacao_a
+    )
+
+    PeriodoInicialAssociacaoFactory(
+        periodo_inicial=periodo_inicial_associacao_a,
+        associacao=associacao,
+    )
+
+    return associacao
+
+
+@pytest.fixture
 def outra_unidade(dre):
     return baker.make(
         'Unidade',
@@ -450,15 +472,33 @@ def associacao_com_data_de_encerramento(unidade, periodo_anterior):
 
 @pytest.fixture
 def associacao(unidade, periodo_anterior):
-    return baker.make(
-        'Associacao',
+    associacao = AssociacaoFactory(
         nome='Escola Teste',
         cnpj='52.302.275/0001-83',
         unidade=unidade,
         periodo_inicial=periodo_anterior,
         ccm='0.000.00-0',
         email="ollyverottoboni@gmail.com",
-        processo_regularidade='123456'
+        processo_regularidade='123456',
+    )
+
+    PeriodoInicialAssociacaoFactory(
+        periodo_inicial=periodo_anterior,
+        associacao=associacao,
+    )
+
+    return associacao
+
+
+@pytest.fixture
+def associacao_d(unidade):
+    return AssociacaoFactory(
+        nome='Escola Teste',
+        cnpj='52.302.275/0001-83',
+        unidade=unidade,
+        ccm='0.000.00-0',
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456',
     )
 
 
@@ -3204,6 +3244,13 @@ def recurso_esperado():
             "exibe_valores_reprogramados": recurso.exibe_valores_reprogramados,
             "habilita_aprovacao_com_ressalvas": recurso.habilita_aprovacao_com_ressalvas,
             "habilita_exibicao_de_lauda": recurso.habilita_exibicao_de_lauda,
+            "textos_ata": {
+                "introducao": recurso.texto_ata_introducao,
+                "letra_a": recurso.get_fixed_text_texto_letra("A"),
+                "letra_b": recurso.get_fixed_text_texto_letra("B"),
+                "letra_c": recurso.get_fixed_text_texto_letra("C"),
+                "letra_d": recurso.get_fixed_text_texto_letra("D"),
+            }
         }
 
     return _recurso_esperado

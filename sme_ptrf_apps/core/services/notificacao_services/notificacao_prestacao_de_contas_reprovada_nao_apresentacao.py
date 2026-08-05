@@ -15,25 +15,36 @@ def notificar_prestacao_de_contas_reprovada_nao_apresentacao(prestacao_de_contas
     users = get_users_by_permission('recebe_notificacao_conclusao_reprovada_pc_nao_apresentada')
     users = users.filter(visoes__nome="UE")
     associacao = prestacao_de_contas.associacao
-    usuarios = users.filter(unidades__codigo_eol=associacao.unidade.codigo_eol)
+    recurso = prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
+    users = users.filter(unidades__codigo_eol=associacao.unidade.codigo_eol)
 
-    if usuarios:
-        for usuario in usuarios:
+    if recurso:
+        users = users.filter(
+            unidades__associacoes__periodos_iniciais__recurso=recurso
+        ).distinct()
+
+    descricao_mensagem = (
+        f"A PC {prestacao_de_contas.periodo.referencia} foi concluída como reprovada pois não foi apresentada.\n\n"
+        f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
+    )
+
+    if users:
+        for usuario in users:
             logger.info(f"Gerando notificação de PC Reprovada Por Não Apreserntação para o usuario: {usuario}")
 
             Notificacao.notificar(
                 tipo=Notificacao.TIPO_NOTIFICACAO_AVISO,
                 categoria=Notificacao.CATEGORIA_NOTIFICACAO_CONCLUSAO_PC,
                 remetente=Notificacao.REMETENTE_NOTIFICACAO_DRE,
-                titulo=f"Conclusão da PC como reprovada por não apresentação",
-                descricao=f"A PC {prestacao_de_contas.periodo.referencia} foi concluída como reprovada pois não foi apresentada.",
+                titulo="Conclusão da PC como reprovada por não apresentação",
+                descricao=descricao_mensagem,
                 usuario=usuario,
                 renotificar=True,
                 enviar_email=enviar_email,
                 unidade=associacao.unidade,
                 prestacao_conta=prestacao_de_contas,
                 periodo=prestacao_de_contas.periodo,
-                recurso=prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
+                recurso=recurso
             )
 
-    logger.info(f'Finalizando a geração de notificação prestação de contas reprovada por não apresentação')
+    logger.info('Finalizando a geração de notificação prestação de contas reprovada por não apresentação')

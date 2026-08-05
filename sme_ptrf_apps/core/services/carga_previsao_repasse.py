@@ -28,6 +28,7 @@ PERIODO = 3
 VALOR_CUSTEIO = 4
 VALOR_CAPITAL = 5
 VALOR_LIVRE = 6
+RECURSO = 7
 
 __DELIMITADORES = {',': DELIMITADOR_VIRGULA, ';': DELIMITADOR_PONTO_VIRGULA}
 
@@ -43,6 +44,25 @@ def get_valor(val):
 
 def get_associacao(eol):
     return Associacao.objects.filter(unidade__codigo_eol=eol).first()
+
+
+def associacao_tem_recurso(associacao, recurso):
+    # Verifica se há alguma conta da associação vinculada ao recurso
+    tem_conta = ContaAssociacao.objects.filter(
+        associacao=associacao,
+        tipo_conta__recurso=recurso
+    ).exists()
+    
+    if tem_conta:
+        return True
+    
+    # Verifica se há alguma ação da associação vinculada ao recurso
+    tem_acao = AcaoAssociacao.objects.filter(
+        associacao=associacao,
+        acao__recurso=recurso
+    ).exists()
+    
+    return tem_acao
 
 
 def get_acao(nome):
@@ -69,13 +89,22 @@ def get_conta_associacao(associacao, nome_tipo_conta):
     return ContaAssociacao.objects.filter(associacao=associacao, tipo_conta__nome=nome_tipo_conta).first()
 
 
-def get_periodo(referencia):
-    if Periodo.objects.filter(referencia=referencia).exists():
-        return Periodo.objects.filter(referencia=referencia).get()
+def get_periodo(referencia, recurso=None):
+    query = Periodo.objects.filter(referencia=referencia)
+    if recurso:
+        query = query.filter(recurso=recurso)
+    if query.exists():
+        return query.get()
     return None
 
+
+def get_recurso(nome):
+    from sme_ptrf_apps.core.models import Recurso
+    return Recurso.objects.filter(nome=nome).first()
+
+
 def agrupar_por_eol_conta_e_periodo(reader):
-    grouped_data= {}
+    grouped_data = {}
     for lin, row in enumerate(reader):
         try:
             if lin != 0:
@@ -87,6 +116,7 @@ def agrupar_por_eol_conta_e_periodo(reader):
                     valor_capital = get_valor(row[VALOR_CAPITAL])
                     valor_custeio = get_valor(row[VALOR_CUSTEIO])
                     valor_livre = get_valor(row[VALOR_LIVRE])
+                    recurso = row[RECURSO]
 
                     chave = (cod_eol, conta, periodo)
 
@@ -99,7 +129,8 @@ def agrupar_por_eol_conta_e_periodo(reader):
                             'Cod_eol': cod_eol,
                             'Conta': conta,
                             'Acao': acao,
-                            'Periodo': periodo
+                            'Periodo': periodo,
+                            'Recurso': recurso
                         }
 
                     grouped_data[chave]['Custeio'] += valor_custeio
@@ -115,6 +146,7 @@ def agrupar_por_eol_conta_e_periodo(reader):
             logger.info(msg_erro)
 
     return grouped_data
+
 
 def processa_previsoes_repasse(reader, arquivo):
     logs = []
@@ -133,25 +165,46 @@ def processa_previsoes_repasse(reader, arquivo):
             valor_custeio = valores['Custeio']
             valor_livre = valores['Livre Aplicacao']
             acao = valores['Acao']
+            recurso = valores['Recurso']
+
+            if not recurso:
+                msg_erro = f'Recurso não informado.'
+                raise Exception(msg_erro)
+
+            recurso_arquivo = get_recurso(str(recurso).strip())
+
+            if not recurso_arquivo:
+                msg_erro = f'Recurso com nome: {recurso} não encontrado.'
+                raise Exception(msg_erro)
 
             associacao = get_associacao(str(cod_eol).strip())
             if not associacao:
                 msg_erro = f'Associação com código eol: {cod_eol} não encontrado.'
                 raise Exception(msg_erro)
+            if not associacao_tem_recurso(associacao, recurso_arquivo):
+                msg_erro = f'Associação com código eol: {cod_eol} não tem vínculo com o recurso.'
+                raise Exception(msg_erro)
 
             conta_associacao = get_conta_associacao(associacao, str(conta).strip())
             if not conta_associacao:
-                msg_erro = f'Conta associação com nome: {conta} não encontrado.'
+                msg_erro = f'Conta de associação com nome: {conta} não encontrado.'
+                raise Exception(msg_erro)
+            if conta_associacao.tipo_conta.recurso != recurso_arquivo:
+                msg_erro = f'Conta de associação com nome {conta} não tem vínculo com o recurso.'
                 raise Exception(msg_erro)
 
             acao_associacao = get_acao_associacao(associacao, str(acao).strip())
             if not acao_associacao:
-                msg_erro = f'Ação associação com nome: {acao} não encontrado.'
+                msg_erro = f'Ação de associação com nome {acao} não encontrado.'
+                raise Exception(msg_erro)
+            if acao_associacao.acao.recurso != recurso_arquivo:
+                msg_erro = f'Ação de associação com nome {acao} não tem vínculo com o recurso.'
                 raise Exception(msg_erro)
 
-            periodo = get_periodo(str(periodo).strip())
+            periodo_ref = str(periodo).strip()
+            periodo = get_periodo(str(periodo).strip(), recurso_arquivo)
             if not periodo:
-                msg_erro = f"Período ({str(periodo)}) não encontrado."
+                msg_erro = f"Período ({str(periodo_ref)}) não tem vínculo com o recurso."
                 raise Exception(msg_erro)
 
             data_referencia = periodo.data_fim_realizacao_despesas if periodo.data_fim_realizacao_despesas else periodo.data_inicio_realizacao_despesas
@@ -215,7 +268,7 @@ def carrega_previsoes_repasses(arquivo):
         with open(arquivo.conteudo.path, 'r', encoding="utf-8") as f:
             sniffer = csv.Sniffer().sniff(f.readline())
             f.seek(0)
-            if  __DELIMITADORES[sniffer.delimiter] != arquivo.tipo_delimitador:
+            if __DELIMITADORES[sniffer.delimiter] != arquivo.tipo_delimitador:
                 msg_erro = f"Formato definido ({arquivo.tipo_delimitador}) é diferente do formato do arquivo csv ({__DELIMITADORES[sniffer.delimiter]})"
                 logger.info(msg_erro)
                 arquivo.status = ERRO

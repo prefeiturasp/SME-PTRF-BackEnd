@@ -11,6 +11,12 @@ from sme_ptrf_apps.despesas.api.serializers import tipo_custeio_serializer
 
 
 class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por validar e serializar
+    os dados de uma prioridade paa nas operações de Create e Update.
+
+    Além dos campos do modelo, expõe campos calculados para apresentação.
+    """
     prioridade = serializers.ChoiceField(
         choices=SimNaoChoices.choices,
         error_messages={
@@ -105,7 +111,51 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
             'uuid', 'paa', 'prioridade', 'recurso', 'acao_associacao', 'outro_recurso', 'programa_pdde', 'acao_pdde',
             'tipo_aplicacao', 'tipo_despesa_custeio', 'especificacao_material', 'valor_total', 'copia_de')
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict) -> dict:
+        """
+        Valida os dados.
+
+        Realiza as seguintes verificações na ordem a seguir:
+
+        1. Verifica se o Paa foi informado, se não, retorna um ValidatorError;
+        2. Verifica se o recurso informado é PTRF, se sim, a ação associação deve
+            ser informada. se a ação associação não foi informada retorna um
+            ValidationError;
+        3. Verifica se Se o recurso não for informado é feito um limpeza na Ação associação;
+        4. Verifica se Se o recurso for PDDE é necessário que o programa e a ação sejam PDDE;
+        5. Verifica se se o recurso não for PDDE a ação PDDE e o Programa PDDE são limpos;
+        6. Verifica se o tipo da aplicação é custeio, se for, o tipo da despesa é requerido;
+        7. Verifica se o tipo da aplicação não é custeio, o tipo da despesa é limpo;
+        8. Verifica se a especificação do material foi informada, o campo é obrigatório;
+        9. Verifica se o recurso é outro, se for, o outro recurso deve ser informado;
+        10. Verifica se o outro recuso não é outro, se não, o outro recurso é limpo;
+        11. Verifica se os dados mínimos para validar a aplicação foram informados:
+            o valor total e o tipo de aplicação devem estar preenchidos e,
+            conforme o recurso selecionado, a ação correspondente deve ser informada
+            (ação da associação para PTRF, ação do PDDE para PDDE).
+            Para Recurso Próprio e Outro Recurso, não é exigida ação específica.
+
+            se passou na verificação, é feito uma verificação se houve alteração em cada
+            campo.
+
+            Caso um desses campos sejam modificados, o valor atual da prioridade não deve
+            ser incrementado, pois não reflete o saldo real para o recurso/ação/tipo
+            aplicação
+
+            É feita uma nova verificão para evita os registros de Cópia com valores = None
+
+            No fim valida o valor da prioridade pelo service
+            ResumoPrioridadesService.validar_valor_prioridade
+
+        Args:
+            attrs (dict): Dados informados para a validação.
+
+        Returns:
+            dict: Dados validados.
+
+        Raises:
+            serializers.ValidationError: Em caso de falhas das validação.
+        """
         if not attrs.get('paa'):
             raise serializers.ValidationError({'paa': 'PAA não informado.'})
 
@@ -236,6 +286,12 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
 
 
 class PrioridadePaaListSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por validar e serializar
+    os dados de uma prioridade paa nas operações de Create e Update.
+
+    Além dos campos do modelo, expõe campos calculados para apresentação.
+    """
     paa = serializers.SlugRelatedField(slug_field='uuid', queryset=Paa.objects.all())
     especificacao_material = serializers.SlugRelatedField(
         slug_field='uuid', queryset=EspecificacaoMaterialServico.objects.all())
@@ -270,40 +326,56 @@ class PrioridadePaaListSerializer(serializers.ModelSerializer):
 
     acao = serializers.SerializerMethodField()
 
-    def get_acao(self, obj):
+    def get_acao(self, obj: PrioridadePaa) -> str:
+        """Retorna o nome da ação de acodo com o recurso"""
         return obj.nome()
 
-    def get_acao_associacao(self, obj):
+    def get_acao_associacao(self, obj: PrioridadePaa) -> str:
+        """Retorna o uuid da ação associação"""
         if obj.acao_associacao:
             return obj.acao_associacao.uuid
 
-    def get_acao_associacao_objeto(self, obj):
+    def get_acao_associacao_objeto(self, obj: PrioridadePaa) -> dict:
+        """Retorna o dicionário mapeando o uuid da ação associação
+        e o nome a ação relacionada da ação associação.
+        """
         if obj.acao_associacao:
             return {
                 'uuid': obj.acao_associacao.uuid,
                 'nome': obj.acao_associacao.acao.nome
             }
 
-    def get_recurso_objeto(self, obj):
+    def get_recurso_objeto(self, obj: PrioridadePaa) -> dict:
+        """Retorna o dicionário mapeando o nome e o valor do recurso
+        confome o RecursoOpcoesEnum.
+        """
         return {
             'name': RecursoOpcoesEnum[obj.recurso].name,
             'value': RecursoOpcoesEnum[obj.recurso].value,
         }
 
-    def get_tipo_aplicacao_objeto(self, obj):
+    def get_tipo_aplicacao_objeto(self, obj: PrioridadePaa) -> dict:
+        """Retorna o dicionário mapeando o nome e o valor do tipo da aplicação
+        confome o TipoAplicacaoOpcoesEnum.
+        """
         return {
             'name': TipoAplicacaoOpcoesEnum[obj.tipo_aplicacao].name,
             'value': TipoAplicacaoOpcoesEnum[obj.tipo_aplicacao].value,
         }
 
-    def get_prioridade_objeto(self, obj):
+    def get_prioridade_objeto(self, obj: PrioridadePaa) -> list:
+        """Retorna o dicionário correspondente à prioridade do objeto, mapeando
+        o nome e o valor da prioridade conforme o SimNaoChoices.
+        """
         return list(filter(lambda x: x.get('key') == obj.prioridade, SimNaoChoices.to_dict()))[0]
 
-    def get_outro_recurso(self, obj):
+    def get_outro_recurso(self, obj: PrioridadePaa) -> str:
+        """Retorna o uuid do outro recurso"""
         if obj.outro_recurso:
             return obj.outro_recurso.uuid
 
-    def get_outro_recurso_objeto(self, obj):
+    def get_outro_recurso_objeto(self, obj: PrioridadePaa) -> dict:
+        """Retorna o dicionário mapeando o uuid e o nome do outro recurso."""
         if obj.outro_recurso:
             return {
                 'uuid': obj.outro_recurso.uuid,
@@ -312,7 +384,8 @@ class PrioridadePaaListSerializer(serializers.ModelSerializer):
 
     alteracao = serializers.SerializerMethodField()
 
-    def get_alteracao(self, obj):
+    def get_alteracao(self, obj: PrioridadePaa) -> dict | None:
+        """ Retorna objeto com as alteração ou None se não houver"""
         alteracoes = self.context.get('alteracoes', {})
         if not alteracoes:
             return None

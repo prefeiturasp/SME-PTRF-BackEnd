@@ -1,6 +1,8 @@
 import logging
+from sme_ptrf_apps.core.models import PrestacaoConta, Periodo
+from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido
+from django.db import transaction
 
-from sme_ptrf_apps.core.models import PrestacaoConta
 
 class BemProduzidoService:
     """
@@ -75,3 +77,92 @@ class BemProduzidoService:
             'mensagem': mensagem
         }
 
+    @staticmethod
+    def validacoes_delecao_bem_produzido(bem_produzido: BemProduzido) -> None:
+        """
+        Executa as validações de negócio para a exclusão de um bem produzido.
+
+        Constrói o contexto de validação a partir do bem produzido e dos
+        períodos relacionados às suas despesas, executando o pipeline de
+        validação de exclusão.
+
+        Args:
+            bem_produzido (BemProduzido): Bem produzido a ser validado.
+
+        Raises:
+            SituacaoPatrimonialValidationError: Se o bem produzido não atender
+                às regras de negócio para exclusão.
+        """
+        from sme_ptrf_apps.situacao_patrimonial.validators import (
+            BemProduzidoContextBuilder,
+            DELETE_PIPELINE,
+        )
+
+        recurso = bem_produzido.recurso
+
+        periodos_despesas = []
+
+        for item in bem_produzido.despesas.all():
+            periodo = Periodo.da_data_por_recurso(
+                item.despesa.data_documento,
+                recurso,
+            )
+
+            if periodo is not None:
+                periodos_despesas.append(periodo)
+
+        context = BemProduzidoContextBuilder.build(
+            bem_produzido=bem_produzido,
+            periodos=periodos_despesas,
+        )
+
+        DELETE_PIPELINE.run(context)
+
+    @staticmethod
+    def verificar_se_pode_excluir_bem_produzido(bem_produzido: BemProduzido) -> str:
+        """
+        Verifica se um bem produzido pode ser excluído.
+
+        Executa as validações de negócio para a exclusão e retorna uma
+        mensagem indicando que a operação é permitida quando nenhuma
+        restrição é encontrada.
+
+        Args:
+            bem_produzido (BemProduzido): Bem produzido a ser verificado.
+
+        Returns:
+            str: Mensagem indicando que o bem produzido pode ser excluído.
+
+        Raises:
+            SituacaoPatrimonialValidationError: Se o bem produzido não atender
+                às regras de negócio para exclusão.
+        """
+
+        BemProduzidoService.validacoes_delecao_bem_produzido(bem_produzido)
+
+        return "O bem produzido pode ser excluído."
+
+    @staticmethod
+    @transaction.atomic
+    def excluir_bem_produzido(bem_produzido) -> str:
+        """
+        Exclui um bem produzido.
+
+        Executa as validações de negócio e, caso todas sejam satisfeitas,
+        realiza a exclusão do bem produzido em uma transação atômica.
+
+        Args:
+            bem_produzido (BemProduzido): Bem produzido a ser excluído.
+
+        Returns:
+            str: Mensagem indicando que a exclusão foi realizada com sucesso.
+
+        Raises:
+            SituacaoPatrimonialValidationError: Se o bem produzido não atender
+                às regras de negócio para exclusão.
+        """
+        BemProduzidoService.validacoes_delecao_bem_produzido(bem_produzido)
+
+        bem_produzido.delete()
+
+        return 'O bem produzido foi excluído com sucesso.'

@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.request import Request
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
@@ -32,6 +33,7 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
     serializer_class = BemProduzidoSerializer
     pagination_class = CustomPagination
     http_method_names = ['get', 'post', 'put', 'patch', 'delete']
+    BEM_PRODUZIDO_TITLE = "Bem Produzido"
 
     def get_queryset(self):
         recurso = self.request.recurso
@@ -113,6 +115,87 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
         resultado = BemProduzidoService.verificar_se_pode_informar_valores(despesas)
 
         return Response(resultado, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['get'], url_path='status-delecao-bem-produzido',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def status_delecao_bem_produzido(self, request: Request, *args, **kwargs) -> Response:
+        """
+        Verifica se um bem produzido pode ser excluído.
+
+        Recupera o bem produzido pelo identificador informado, executa as
+        validações de negócio necessárias para a exclusão e retorna uma mensagem
+        indicando se a operação é permitida.
+
+        Returns:
+            Response: Resposta HTTP contendo o resultado da validação.
+                - 200: O bem produzido pode ser excluído.
+                - 404: O bem produzido não foi encontrado.
+                - 409: O bem produzido não atende às regras de negócio para exclusão.
+        """
+        from sme_ptrf_apps.situacao_patrimonial.validators import (
+            SituacaoPatrimonialValidationError,
+        )
+
+        try:
+            bem_produzido = self.get_object()
+        except Exception:
+            return Response(
+                {
+                    "titulo": self.BEM_PRODUZIDO_TITLE,
+                    "mensagem": 'O bem produzido não foi encontrado.',
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            BemProduzidoService.verificar_se_pode_excluir_bem_produzido(bem_produzido)
+        except SituacaoPatrimonialValidationError as exc:
+            return Response(exc.detail, status=status.HTTP_409_CONFLICT)
+        except Exception as exc:
+            return Response(
+                {"mensagem": str(exc)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def destroy(self, request: Request, *args, **kwargs) -> Response:
+        """
+        Exclui um bem produzido.
+
+        Recupera o bem produzido pelo identificador informado, executa as
+        validações de negócio necessárias e, caso todas sejam satisfeitas,
+        realiza a exclusão do registro.
+
+        Returns:
+            Response: Resposta HTTP contendo o resultado da operação.
+                - 200: Bem produzido excluído com sucesso.
+                - 404: O bem produzido não foi encontrado.
+                - 409: O bem produzido não pode ser excluído devido às regras de negócio.
+                - 500: Ocorreu um erro inesperado durante a exclusão.
+        """
+        from sme_ptrf_apps.situacao_patrimonial.validators import (
+            SituacaoPatrimonialValidationError,
+        )
+
+        try:
+            bem_produzido = self.get_object()
+        except Exception:
+            return Response(
+                {
+                    "titulo": self.BEM_PRODUZIDO_TITLE,
+                    "mensagem": 'O bem produzido não foi encontrado.',
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            BemProduzidoService.excluir_bem_produzido(bem_produzido)
+        except SituacaoPatrimonialValidationError as exc:
+            return Response(exc.detail, status=status.HTTP_409_CONFLICT)
+        except Exception as exc:
+            return Response(
+                {"mensagem": str(exc)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema_view(**DOCS_BEM_PRODUZIDO_RASCUNHO)

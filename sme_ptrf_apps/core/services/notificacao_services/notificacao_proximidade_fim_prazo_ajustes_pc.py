@@ -28,7 +28,13 @@ def notificar_proximidade_fim_prazo_ajustes_prestacao_de_contas(enviar_email=Tru
         for devolucao in devolucoes:
             prestacao_de_contas = devolucao.prestacao_conta
             associacao = prestacao_de_contas.associacao
-            usuarios = users.filter(unidades__codigo_eol=associacao.unidade.codigo_eol)
+            recurso = prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
+            users = users.filter(unidades__codigo_eol=associacao.unidade.codigo_eol)
+
+            if recurso:
+                users = users.filter(
+                    unidades__associacoes__periodos_iniciais__recurso=recurso
+                ).distinct()
 
             devolucao_mais_recente_da_pc = prestacao_de_contas.devolucoes_da_prestacao.order_by('-id').first()
 
@@ -40,11 +46,18 @@ def notificar_proximidade_fim_prazo_ajustes_prestacao_de_contas(enviar_email=Tru
                 logger.info(f"Ignorando devolução {id_atual} por não ser a mais recente. Mais recente:{id_mais_recente}.")
                 continue
 
-            if usuarios:
-                for usuario in usuarios:
+            if users:
+                for usuario in users:
                     logger.info(f"Gerando notificação de proximidade do fim do prazo de ajustes em PC para o usuário: {usuario} Devolução: {id_atual}")
 
                     dias_para_fim = devolucao.data_limite_ue - date.today()
+
+                    descricao_mensagem = (
+                        f"Faltam apenas {dias_para_fim.days} dia(s) para o fim do prazo de envio dos ajustes de sua "
+                        f"prestações de contas de {prestacao_de_contas.periodo.referencia}. "
+                        "Fique atento para não perder o prazo e realize os ajustes solicitados.\n\n"
+                        f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
+                    )
 
                     # Gerando apenas 1 notificação por período e data ordenado decrescente por -data_limite_ue
                     Notificacao.notificar(
@@ -52,14 +65,14 @@ def notificar_proximidade_fim_prazo_ajustes_prestacao_de_contas(enviar_email=Tru
                         categoria=Notificacao.CATEGORIA_NOTIFICACAO_ANALISE_PC,
                         remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
                         titulo=f"O prazo para envio dos ajustes da PC está se aproximando {prestacao_de_contas.periodo.referencia} | Prazo: {dias_para_fim.days} dia(s)",
-                        descricao=f"Faltam apenas {dias_para_fim.days} dia(s) para o fim do prazo de envio dos ajustes de sua prestações de contas de {prestacao_de_contas.periodo.referencia}. Fique atento para não perder o prazo e realize os ajustes solicitados.",
+                        descricao=descricao_mensagem,
                         usuario=usuario,
                         renotificar=False,
                         enviar_email=enviar_email,
                         unidade=associacao.unidade if associacao else None,
                         prestacao_conta=prestacao_de_contas,
                         periodo=prestacao_de_contas.periodo if prestacao_de_contas.periodo else None,
-                        recurso=prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
+                        recurso=recurso
                     )
     else:
-        logger.info(f"Não foram encontrados prestações de contas próximas ao fim do prazo de envio de ajustes.")
+        logger.info("Não foram encontrados prestações de contas próximas ao fim do prazo de envio de ajustes.")

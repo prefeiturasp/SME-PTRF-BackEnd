@@ -26,20 +26,32 @@ def notificar_prestacao_de_contas_reprovada(prestacao_de_contas, motivos_reprova
 
     users = users.filter(visoes__nome="UE")
     associacao = prestacao_de_contas.associacao
-    usuarios = users.filter(unidades__codigo_eol=associacao.unidade.codigo_eol)
+    recurso = prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
+    users = users.filter(unidades__codigo_eol=associacao.unidade.codigo_eol)
+
+    if recurso:
+        users = users.filter(
+            unidades__associacoes__periodos_iniciais__recurso=recurso
+        ).distinct()
 
     motivos_reprovacao_notificacao = ""
     for motivo in motivos_reprovacao:
         motivos_reprovacao_notificacao = f"{motivos_reprovacao_notificacao} {motivo} \n"
 
-    if usuarios:
-        for usuario in usuarios:
+    if users:
+        for usuario in users:
             logger.info(f"Gerando notificação de PC Reprovada para o usuario: {usuario}")
 
             if usuario.has_perm('core.recebe_notificacao_reprovacao_pc_incluindo_motivos'):
-                descricao_notificacao = f"A prestação de contas referente ao período {prestacao_de_contas.periodo.referencia} foi reprovada pelos seguintes motivos: {motivos_reprovacao_notificacao} {outros_motivos_reprovacao}"
+                descricao_notificacao = (
+                    f"A prestação de contas referente ao período {prestacao_de_contas.periodo.referencia} foi reprovada pelos seguintes motivos: {motivos_reprovacao_notificacao} {outros_motivos_reprovacao}\n\n"
+                    f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
+                )
             else:
-                descricao_notificacao = f"A prestação de contas referente ao período {prestacao_de_contas.periodo.referencia} foi reprovada."
+                descricao_notificacao = (
+                    f"A prestação de contas referente ao período {prestacao_de_contas.periodo.referencia} foi reprovada.\n\n"
+                    f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
+                )
 
             Notificacao.notificar(
                 tipo=Notificacao.TIPO_NOTIFICACAO_INFORMACAO,
@@ -53,7 +65,7 @@ def notificar_prestacao_de_contas_reprovada(prestacao_de_contas, motivos_reprova
                 unidade=associacao.unidade,
                 prestacao_conta=prestacao_de_contas,
                 periodo=prestacao_de_contas.periodo,
-                recurso=prestacao_de_contas.periodo.recurso if prestacao_de_contas.periodo.recurso else None
+                recurso=recurso
             )
 
-    logger.info(f'Finalizando a geração de notificação prestação de contas reprovada')
+    logger.info('Finalizando a geração de notificação prestação de contas reprovada')

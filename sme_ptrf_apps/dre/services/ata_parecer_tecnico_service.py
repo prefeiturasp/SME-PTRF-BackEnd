@@ -206,6 +206,12 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         "comentarios": ata_de_parecer_tecnico.comentarios,
         "motivo_retificacao": motivo_retificacao,
         "comissao_responsavel_pc": comissao_nome,
+        "introducao": recurso.get_parameterized_text_introducao(),
+        "habilita_aprovacao_com_ressalvas": recurso.habilita_aprovacao_com_ressalvas,
+        "letra_a": recurso.get_fixed_text_texto_letra("A"),
+        "letra_b": recurso.get_fixed_text_texto_letra("B"),
+        "letra_c": recurso.get_fixed_text_texto_letra("C"),
+        "letra_d": recurso.get_fixed_text_texto_letra("D")
     }
     presentes_na_ata = {
         "presentes": get_presentes_na_ata(ata_de_parecer_tecnico)

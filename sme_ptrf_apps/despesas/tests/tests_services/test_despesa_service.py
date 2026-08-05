@@ -7,13 +7,14 @@ import pytest
 from rest_framework import serializers
 
 from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
+from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO, STATUS_INCOMPLETO
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 from sme_ptrf_apps.core.models import (
     PrestacaoConta,
-    AnaliseLancamentoPrestacaoConta, 
+    AnaliseLancamentoPrestacaoConta,
     TipoAcertoLancamento,
-    SolicitacaoAcertoLancamento
+    SolicitacaoAcertoLancamento,
 )
 
 
@@ -62,6 +63,7 @@ def despesa_com_rateio_capital(
     )
     return despesa
 
+
 @pytest.fixture
 def despesa_conciliada_com_rateio(
     despesa_factory,
@@ -103,6 +105,7 @@ def despesa_conciliada_com_rateio(
         update_conferido=True,
     )
     return despesa
+
 
 def _validated_data_base(despesa, associacao):
     return {
@@ -471,6 +474,57 @@ def test_update_custeio_para_capital_com_especificacao_capital_sucesso(
     assert rateio_atualizado.numero_processo_incorporacao_capital == "2020/123456"
 
 
+def test_update_recalcula_status_de_rateio_incompleto_ao_preencher_campos_capital(
+    despesa_com_rateio_custeio,
+    associacao,
+    conta_associacao,
+    acao_associacao,
+    especificacao_capital,
+):
+    """
+    Regressão: rateio atualizado por QuerySet.update() mantinha status INCOMPLETO
+    mesmo após preencher todos os campos obrigatórios de CAPITAL.
+    """
+    despesa = despesa_com_rateio_custeio
+    rateio = despesa.rateios.first()
+
+    rateio.__class__.objects.filter(uuid=rateio.uuid).update(status=STATUS_INCOMPLETO)
+    despesa.atualiza_status()
+    rateio.refresh_from_db()
+    despesa.refresh_from_db()
+
+    assert rateio.status == STATUS_INCOMPLETO
+    assert despesa.status == STATUS_INCOMPLETO
+
+    validated_data = {
+        **_validated_data_base(despesa, associacao),
+        "rateios": [
+            {
+                "uuid": str(rateio.uuid),
+                "associacao": associacao,
+                "conta_associacao": conta_associacao,
+                "acao_associacao": acao_associacao,
+                "aplicacao_recurso": APLICACAO_CAPITAL,
+                "tipo_custeio": None,
+                "especificacao_material_servico": especificacao_capital,
+                "valor_rateio": 100.00,
+                "quantidade_itens_capital": 2,
+                "valor_item_capital": 50.00,
+                "numero_processo_incorporacao_capital": "2020/123456",
+            }
+        ],
+    }
+
+    result = DespesaService.update(despesa, validated_data)
+
+    rateio_atualizado = result.rateios.first()
+    rateio_atualizado.refresh_from_db()
+    despesa.refresh_from_db()
+
+    assert rateio_atualizado.status == STATUS_COMPLETO
+    assert despesa.status == STATUS_COMPLETO
+
+
 def test_update_custeio_para_capital_com_especificacao_de_custeio_deve_falhar(
     despesa_com_rateio_custeio,
     associacao,
@@ -668,7 +722,6 @@ def test_update_custeio_para_capital_eh_despesa_sem_comprovacao_fiscal_nao_exige
     assert rateio_atualizado.aplicacao_recurso == APLICACAO_CAPITAL
 
 
-
 def test_update_imposto_herda_conciliacao_quando_pc_devolvida(
     tipo_documento,
     despesa_conciliada_com_rateio,
@@ -684,31 +737,23 @@ def test_update_imposto_herda_conciliacao_quando_pc_devolvida(
     validated_data = {
         "despesas_impostos": [
             {
-                
                 "tipo_documento": tipo_documento,
-                "valor_total": 10,               
+                "valor_total": 10,
                 "rateios": [
                     {
                         "valor_rateio": 10,
-                        "conferido": False,                       
+                        "conferido": False,
                     }
                 ],
             }
         ]
     }
 
-    for rateio in despesa.rateios.all():
-        print(
-            rateio.id,
-            rateio.conferido,
-            rateio.periodo_conciliacao_id
-        )
-
     DespesaService._processar_impostos_update(
         despesa,
         validated_data["despesas_impostos"],
     )
-    
+
     despesa.refresh_from_db()
 
     assert despesa.despesas_impostos.exists()
@@ -718,8 +763,8 @@ def test_update_imposto_herda_conciliacao_quando_pc_devolvida(
 
     assert rateio_imposto.conferido is True
     assert (
-        rateio_imposto.periodo_conciliacao_id
-        == rateio_origem.periodo_conciliacao_id
+        rateio_imposto.periodo_conciliacao_id ==
+        rateio_origem.periodo_conciliacao_id
     )
 
 
@@ -776,15 +821,15 @@ def criar_cenario_marcar_lancamento_como_atualizado(
 
 
 def test_marca_lancamento_como_atualizado_quando_tudo_ok(
-        prestacao_conta_factory,
-        solicitacao_acerto_lancamento_factory,
-        analise_prestacao_conta_factory,
-        tipo_acerto_lancamento_factory,
-        analise_lancamento_prestacao_conta_factory,
-        despesa_factory,
-        associacao,
-        periodo_2020_2
-    ):
+    prestacao_conta_factory,
+    solicitacao_acerto_lancamento_factory,
+    analise_prestacao_conta_factory,
+    tipo_acerto_lancamento_factory,
+    analise_lancamento_prestacao_conta_factory,
+    despesa_factory,
+    associacao,
+    periodo_2020_2,
+):
     despesa, analise_lancamento = criar_cenario_marcar_lancamento_como_atualizado(
         prestacao_conta_factory,
         solicitacao_acerto_lancamento_factory,
@@ -865,3 +910,109 @@ def test_nao_marca_lancamento_quando_prestacao_em_analise(
     analise_lancamento.refresh_from_db()
 
     assert not analise_lancamento.lancamento_atualizado
+
+
+def criar_cenario_marcar_lancamento_como_excluido(
+    prestacao_conta_factory,
+    solicitacao_acerto_lancamento_factory,
+    analise_prestacao_conta_factory,
+    tipo_acerto_lancamento_factory,
+    analise_lancamento_prestacao_conta_factory,
+    despesa_factory,
+    associacao,
+    periodo_2020_2,
+    status_prestacao=PrestacaoConta.STATUS_DEVOLVIDA,
+    lancamento_excluido=False,
+):
+    prestacao_conta_factory(
+        status=status_prestacao,
+        periodo=periodo_2020_2,
+        associacao=associacao,
+    )
+
+    analise_prestacao = analise_prestacao_conta_factory()
+    tipo_acerto = tipo_acerto_lancamento_factory(
+        categoria=TipoAcertoLancamento.CATEGORIA_EXCLUSAO_LANCAMENTO
+    )
+    despesa = despesa_factory(
+        associacao=associacao,
+        numero_documento="654321",
+        cpf_cnpj_fornecedor="11.478.276/0001-04",
+        data_transacao=periodo_2020_2.data_inicio_realizacao_despesas + datetime.timedelta(days=3),
+        data_documento=periodo_2020_2.data_inicio_realizacao_despesas + datetime.timedelta(days=3),
+        nome_fornecedor="Fornecedor SA",
+        valor_total=50.00,
+        valor_recursos_proprios=0,
+    )
+    analise_lancamento = analise_lancamento_prestacao_conta_factory(
+        analise_prestacao_conta=analise_prestacao,
+        despesa=despesa,
+        lancamento_excluido=lancamento_excluido,
+        tipo_lancamento=AnaliseLancamentoPrestacaoConta.TIPO_LANCAMENTO_GASTO,
+        status_realizacao=AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE,
+    )
+    solicitacao_acerto_lancamento_factory(
+        analise_lancamento=analise_lancamento,
+        tipo_acerto=tipo_acerto,
+        status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE,
+    )
+    return despesa, analise_lancamento
+
+
+def test_marca_lancamento_como_excluido_com_flag(
+    prestacao_conta_factory,
+    solicitacao_acerto_lancamento_factory,
+    analise_prestacao_conta_factory,
+    tipo_acerto_lancamento_factory,
+    analise_lancamento_prestacao_conta_factory,
+    despesa_factory,
+    associacao,
+    periodo_2020_2,
+    flag_factory,
+):
+    flag_factory.create(name="despesas-pipeline", everyone=True)
+    despesa, analise_lancamento = criar_cenario_marcar_lancamento_como_excluido(
+        prestacao_conta_factory,
+        solicitacao_acerto_lancamento_factory,
+        analise_prestacao_conta_factory,
+        tipo_acerto_lancamento_factory,
+        analise_lancamento_prestacao_conta_factory,
+        despesa_factory,
+        associacao,
+        periodo_2020_2,
+    )
+
+    assert not analise_lancamento.lancamento_excluido
+
+    DespesaService._marcar_lancamento_como_excluido(despesa)
+
+    analise_lancamento.refresh_from_db()
+    assert analise_lancamento.lancamento_excluido
+
+
+def test_nao_marca_lancamento_excluido_sem_flag(
+    prestacao_conta_factory,
+    solicitacao_acerto_lancamento_factory,
+    analise_prestacao_conta_factory,
+    tipo_acerto_lancamento_factory,
+    analise_lancamento_prestacao_conta_factory,
+    despesa_factory,
+    associacao,
+    periodo_2020_2,
+):
+    despesa, analise_lancamento = criar_cenario_marcar_lancamento_como_excluido(
+        prestacao_conta_factory,
+        solicitacao_acerto_lancamento_factory,
+        analise_prestacao_conta_factory,
+        tipo_acerto_lancamento_factory,
+        analise_lancamento_prestacao_conta_factory,
+        despesa_factory,
+        associacao,
+        periodo_2020_2,
+    )
+
+    DespesaService._marcar_lancamento_como_excluido(despesa)
+
+    analise_lancamento.refresh_from_db()
+    assert not analise_lancamento.lancamento_excluido
+

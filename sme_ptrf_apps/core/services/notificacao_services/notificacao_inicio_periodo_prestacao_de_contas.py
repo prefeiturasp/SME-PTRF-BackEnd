@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def notificar_inicio_periodo_prestacao_de_contas(enviar_email=True):
-    logger.info(f'Notificar início período prestação de contas service')
+    logger.info('Notificar início período prestação de contas service')
     data_de_hoje = date.today()
 
     periodo = Periodo.objects.filter(
@@ -23,10 +23,20 @@ def notificar_inicio_periodo_prestacao_de_contas(enviar_email=True):
         try:
             users = users.filter(visoes__nome="UE")
             users = users.annotate(c=Count('unidades')).filter(c__gt=0)
+            if periodo:
+                users = users.filter(
+                    unidades__associacoes__periodos_iniciais__recurso=periodo.recurso
+                ).distinct()
         except Exception:
-            logger.error(f'Erro ao filtrar usuario por visão e ou unidade')
+            logger.error('Erro ao filtrar usuario por visão e ou unidade')
 
     if periodo:
+        descricao_mensagem = (
+            "O período de prestações de contas já foi iniciado. Fique atento para não perder "
+            "o prazo e envie os documentos da prestação de contas\n\n",
+            f"Recurso: {periodo.recurso.nome if periodo.recurso else 'Não informado'}\n"
+        )
+
         if users:
             for user in users:
                 logger.info(f"Gerando notificação início período prestação de contas para o usuario: {user} | Período: {periodo.referencia}")
@@ -36,7 +46,7 @@ def notificar_inicio_periodo_prestacao_de_contas(enviar_email=True):
                     categoria=Notificacao.CATEGORIA_NOTIFICACAO_ELABORACAO_PC,
                     remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
                     titulo=f"O período de envio da PC de {periodo.referencia} começou",
-                    descricao="O período de prestações de contas já foi iniciado. Fique atento para não perder o prazo e envie os documentos da prestação de contas",
+                    descricao=descricao_mensagem,
                     usuario=user,
                     renotificar=False,
                     enviar_email=enviar_email,
@@ -46,6 +56,6 @@ def notificar_inicio_periodo_prestacao_de_contas(enviar_email=True):
 
             periodo.notificacao_inicio_prestacao_de_contas_realizada()
         else:
-            logger.info(f"Não foram encontrados usuários a serem notificados sobre início do período de prestação de contas")
+            logger.info("Não foram encontrados usuários a serem notificados sobre início do período de prestação de contas")
     else:
-        logger.info(f"Não foram encontrados períodos a serem notificados sobre início do período de prestação de contas")
+        logger.info("Não foram encontrados períodos a serem notificados sobre início do período de prestação de contas")

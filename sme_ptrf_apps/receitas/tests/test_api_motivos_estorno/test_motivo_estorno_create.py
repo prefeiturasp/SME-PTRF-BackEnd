@@ -6,9 +6,10 @@ from sme_ptrf_apps.receitas.models import MotivoEstorno
 pytestmark = pytest.mark.django_db
 
 
-def test_create_motivo_estorno(jwt_authenticated_client_p):
+def test_create_motivo_estorno(jwt_authenticated_client_p, recurso_legado):
     payload = {
-        'motivo': 'Motivo teste'
+        'motivo': 'Motivo teste',
+        'recurso': str(recurso_legado.uuid)
     }
 
     response = jwt_authenticated_client_p.post(

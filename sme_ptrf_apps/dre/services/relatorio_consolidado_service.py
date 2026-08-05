@@ -17,6 +17,7 @@ from .consolidado_dre_service import TextDocumentConsolidadoPC
 
 from ..services.dados_demo_execucao_fisico_financeira_service import gerar_dados_demo_execucao_fisico_financeira
 from .demo_execucao_fisico_financeiro_pdf_service import gerar_arquivo_demonstrativo_execucao_fisico_financeiro_pdf
+from ...core.services.tipos_acerto_lancamento_service import TipoAcertoLancamentoService
 
 logger = logging.getLogger(__name__)
 
@@ -162,6 +163,7 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
             else:
                 titulo_parcial = text_document_consolidado_pc.text_with_type_document(publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE)
 
+    existe_lancamentos = TipoAcertoLancamentoService.checa_se_existe_lancamento_devolucao_ao_tesouro(periodo)
 
     dados = {
         "periodo_referencia": periodo.referencia if periodo.referencia else "",
@@ -169,6 +171,7 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
         "periodo_data_fim_realizacao_despesas": periodo.data_fim_realizacao_despesas if periodo.data_fim_realizacao_despesas else "",
         "titulo_parcial": titulo_parcial,
         "eh_parcial": eh_parcial,
+        "existe_lancamentos_devolucao_ao_tesouro": existe_lancamentos
     }
 
     tipos_de_conta = TipoConta.objects.all()

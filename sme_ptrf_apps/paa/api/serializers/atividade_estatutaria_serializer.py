@@ -7,6 +7,14 @@ from rest_framework.validators import UniqueTogetherValidator
 
 
 class AtividadeEstatutariaSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por validar, criar, atualizar e serializar
+    os dados de uma atividade estatutária.
+
+    Além dos campos do modelo, expõe campos calculados para apresentação,
+    como os rótulos de status, tipo, ano, mês e a ação de alteração
+    associada ao registro.
+    """
     ERROR_MSG_JA_CADASTRADO = {"mensagem": "Esta atividade estatutária já existe."}
     MSG_TIPO_NAO_INFORMADO = "Tipo não foi informado."
     MSG_NOME_NAO_INFORMADO = "Atividade Estatutária não foi informada."
@@ -73,7 +81,20 @@ class AtividadeEstatutariaSerializer(serializers.ModelSerializer):
     mes_label = serializers.SerializerMethodField()
     alteracao = serializers.SerializerMethodField()
 
-    def get_alteracao(self, obj):
+    def get_alteracao(self, obj: AtividadeEstatutaria) -> str | None:
+        """
+        Retorna a ação de alteração associada ao objeto.
+
+        A ação é obtida a partir do contexto do serializer, considerando a
+        seção correspondente às atividades estatutárias globais ou do PAA.
+
+        Args:
+            obj: Instância da atividade estatutária.
+
+        Returns:
+            str | None: A ação registrada para o objeto ou ``None`` caso não
+            exista.
+        """
         alteracoes = self.context.get('alteracoes', {})
         if not alteracoes:
             return None
@@ -81,18 +102,57 @@ class AtividadeEstatutariaSerializer(serializers.ModelSerializer):
         item = alteracoes.get(secao_key, {}).get(str(obj.uuid))
         return item.get('acao') if item else None
 
-    def get_status_label(self, obj):
+    def get_status_label(self, obj: AtividadeEstatutaria) -> str:
+        """
+        Retorna o rótulo correspondente ao status da atividade.
+
+        Args:
+            obj: Instância da atividade estatutária.
+
+        Returns:
+            str: Descrição do status da atividade.
+        """
         return StatusChoices(int(obj.status)).label
 
-    def get_ano_label(self, obj):
+    def get_ano_label(self, obj: AtividadeEstatutaria) -> str:
+        """
+        Retorna o rótulo correspondente ao ano da atividade.
+
+        Args:
+            obj: Instância da atividade estatutária.
+
+        Returns:
+            str: Descrição do ano da atividade ou uma string vazia caso o ano
+            não esteja informado.
+        """
         if not obj.ano or obj.ano == 'None':
             return ""
         return TipoAnosAtividadeEstatutariaEnum[obj.ano].value
 
-    def get_mes_label(self, obj):
+    def get_mes_label(self, obj: AtividadeEstatutaria) -> str:
+        """
+        Retorna o rótulo correspondente ao mês da atividade.
+
+        Args:
+            obj: Instância da atividade estatutária.
+
+        Returns:
+            str: Nome do mês ou uma string vazia caso o mês não esteja
+            informado.
+        """
         return Mes(int(obj.mes)).label if obj.mes else ""
 
-    def get_tipo_label(self, obj):
+    def get_tipo_label(self, obj: AtividadeEstatutaria) -> str:
+        """
+        Retorna o rótulo correspondente ao tipo da atividade.
+
+        Args:
+            obj: Instância da atividade estatutária.
+
+        Returns:
+            str: Descrição do tipo da atividade ou uma string vazia caso o tipo
+            não esteja informado.
+        """
         if not obj.tipo or obj.tipo == 'None':
             return ""
         return TipoAtividadeEstatutariaEnum[obj.tipo].value

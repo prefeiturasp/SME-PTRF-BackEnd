@@ -93,10 +93,29 @@ SCHEMA_PARTIAL_UPDATE = extend_schema(
 )
 
 SCHEMA_DESTROY = extend_schema(
-    description="Remove um bem produzido.\n\n**Requer autenticação.**",
+    description=(
+        "Exlui um bem produzido.\n\n"
+        "Executa todas as validações de negócio necessárias antes da exclusão.\n\n"
+        "Possíveis resultados:\n"
+        "- 204: O bem produzido pode ser excluído.\n"
+        "- 404: O bem produzido não foi encontrado.\n"
+        "- 409: O bem produzido não atende às regras de negócio para exclusão.\n\n"
+        "Requer autenticação."
+    ),
     tags=TAG,
     responses={
-        204: OpenApiResponse(description="Removido com sucesso."),
+        204: OpenApiResponse(
+            description="O bem produzido pode ser excluído."
+        ),
+        404: OpenApiResponse(
+            description="O bem produzido não foi encontrado."
+        ),
+        409: OpenApiResponse(
+            description="O bem produzido não pode ser excluído devido às regras de negócio."
+        ),
+        400: OpenApiResponse(
+            description="Erro ao processar a solicitação."
+        ),
     },
 )
 
@@ -153,6 +172,33 @@ SCHEMA_VERIFICAR_VALORES = extend_schema(
     },
 )
 
+SCHEMA_STATUS_DELECAO = extend_schema(
+    description=(
+        "Verifica se um bem produzido pode ser excluído.\n\n"
+        "Executa todas as validações de negócio necessárias antes da exclusão.\n\n"
+        "Possíveis resultados:\n"
+        "- 204: O bem produzido pode ser excluído.\n"
+        "- 404: O bem produzido não foi encontrado.\n"
+        "- 409: O bem produzido não atende às regras de negócio para exclusão.\n\n"
+        "Requer autenticação."
+    ),
+    tags=TAG,
+    responses={
+        204: OpenApiResponse(
+            description="O bem produzido pode ser excluído."
+        ),
+        404: OpenApiResponse(
+            description="O bem produzido não foi encontrado."
+        ),
+        409: OpenApiResponse(
+            description="O bem produzido não pode ser excluído devido às regras de negócio."
+        ),
+        400: OpenApiResponse(
+            description="Erro ao processar a solicitação."
+        ),
+    },
+)
+
 DOCS_BEM_PRODUZIDO = dict(
     list=SCHEMA_LIST,
     retrieve=SCHEMA_RETRIEVE,
@@ -162,4 +208,5 @@ DOCS_BEM_PRODUZIDO = dict(
     destroy=SCHEMA_DESTROY,
     excluir_em_lote=SCHEMA_EXCLUIR_LOTE,
     verificar_se_pode_informar_valores=SCHEMA_VERIFICAR_VALORES,
+    status_delecao_bem_produzido=SCHEMA_STATUS_DELECAO,
 )
