@@ -127,6 +127,38 @@ def test_resumo_prioridades(mock_recursos, mock_pdde, mock_ptrf, resumo_recursos
 
 
 @pytest.mark.django_db
+@patch.object(ResumoPrioridadesService, "calcula_node_ptrf")
+@patch.object(ResumoPrioridadesService, "calcula_node_pdde")
+@patch.object(ResumoPrioridadesService, "calcula_node_outros_recursos")
+def test_resumo_prioridades_e_memoizado_entre_chamadas(mock_recursos, mock_pdde, mock_ptrf, resumo_recursos_paa):
+    """
+    Garante a memoização de `resumo_prioridades()`: em produção, cada uma dessas 3 funções
+    (calcula_node_ptrf/pdde/outros_recursos) dispara dezenas de queries para montar a árvore completa
+    do PAA. `validar_valor_prioridade` chama `resumo_prioridades()` uma vez por prioridade verificada
+    (ex: 13 prioridades impactadas por uma mesma receita prevista); sem cache, isso recalcula a árvore
+    do zero em cada chamada (~103 queries x 13 em um caso real observado).
+
+    Chamar `resumo_prioridades()` múltiplas vezes na mesma instância deve reaproveitar o resultado da
+    1ª chamada: as 3 funções de cálculo devem ser executadas apenas 1 vez, não numa por chamada.
+    """
+    mock_ptrf.return_value = {"key": "PTRF"}
+    mock_pdde.return_value = {"key": "PDDE"}
+    mock_recursos.return_value = {"key": "OUTRO_RECURSO"}
+
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+
+    primeira_chamada = service.resumo_prioridades()
+    segunda_chamada = service.resumo_prioridades()
+    terceira_chamada = service.resumo_prioridades()
+
+    assert primeira_chamada == segunda_chamada == terceira_chamada
+    # Ganho: 2 recomputações completas evitadas (calculadas 1x em vez de 3x)
+    mock_ptrf.assert_called_once()
+    mock_pdde.assert_called_once()
+    mock_recursos.assert_called_once()
+
+
+@pytest.mark.django_db
 @patch.object(ResumoPrioridadesService, "resumo_prioridades")
 def test_recursos_totalmente_utilizados_quando_sem_saldo(mock_resumo, resumo_recursos_paa):
     """Deve retornar True quando não há saldo de recursos."""
