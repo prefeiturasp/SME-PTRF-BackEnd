@@ -1,7 +1,6 @@
 import logging
 
 from django.contrib.auth import get_user_model
-from django.http import HttpRequest
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -310,82 +309,20 @@ class MeView(APIView):
     """
     GET api/me/
 
-    Retorna dados atualizados do usuário autenticado: permissões, visões, unidades e
-    feature flags. Usado pelo frontend no reload da página para sincronizar o
-    localStorage com o estado atual do banco.
+    retorna sempre {} (200 OK, só exige autenticação).
 
-    Herda de APIView (não de TokenObtainPairView), portanto usa o
-    DEFAULT_AUTHENTICATION_CLASSES do settings (JWTAuthentication) sem sobrescritas.
+    Classe disponível para obtenção de dados customizados.
+
+    Em desuso após a inviabilidade de atualizar unidades, permissões e features flags
+    devido ao acoplamento atual no fluxo de Login, em relação às integrações e verificações
+    de unidades do usuário. O fluxo do Service de Gestão de Usuário não é apenas de leitura,
+    mas esse fluxo aplica alterações nos relacionamento de usuários e unidades.
+    Devido a isso, se houver qualquer instabilidade em uma das integrações, pode refletir com falsos
+    negativos (considerando um exemplo em que ocorra alguma falha na requisição de unidades, e, falsamente retornaria
+    como Unidade inexistente no usuário), entre inúmeros outros pontos...
     """
 
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        user = request.user
-        flags = get_waffle_flag_model()
-        novo_suporte_unidades = flags.objects.filter(name='novo-suporte-unidades', everyone=True).exists()
-        suporte = request.query_params.get('suporte', 'false').lower() == 'true'
-
-        try:
-            gestao_usuario = GestaoUsuarioService(usuario=user)
-
-            if novo_suporte_unidades:
-                login_service = LoginUsuarioService(usuario=user, gestao_usuario=gestao_usuario, suporte=suporte)
-            else:
-                login_service = LoginUsuarioService(usuario=user, gestao_usuario=gestao_usuario)
-
-            unidades = login_service.unidades_que_usuario_tem_acesso
-
-            if not unidades:
-                return Response(
-                    {'detail': 'Você não possui mais acesso ao sistema.'},
-                    status=status.HTTP_403_FORBIDDEN
-                )
-
-            associacao = Associacao.objects.filter(unidade__uuid=unidades[0]['uuid']).first()
-            associacao_dict = {
-                'uuid': str(associacao.uuid),
-                'nome': associacao.nome,
-                'nome_escola': associacao.unidade.nome,
-                'tipo_escola': associacao.unidade.tipo_unidade,
-            } if associacao else {'uuid': '', 'nome': '', 'nome_escola': '', 'tipo_escola': ''}
-
-            visoes = list(user.visoes.values_list('nome', flat=True))
-            if novo_suporte_unidades and suporte and 'SME' in visoes:
-                visoes.remove('SME')
-
-            return Response({
-                'login': user.username,
-                'nome': user.name,
-                'email': user.email,
-                'visoes': visoes,
-                'unidades': unidades,
-                'associacao': associacao_dict,
-                'permissoes': self._get_permissoes(user, flags, suporte, novo_suporte_unidades),
-                'feature_flags': self._get_feature_flags(user, request),
-            }, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            logger.exception('Erro ao carregar dados do usuário autenticado: %s', e)
-            return Response(
-                {'detail': f'Erro ao carregar dados do usuário: {e}'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-
-    def _get_permissoes(self, user, flags, suporte, novo_suporte_unidades):
-        perms = []
-        if novo_suporte_unidades:
-            groups = user.groups.filter(grupo__suporte=True) if suporte else user.groups.filter(grupo__suporte=False)
-        else:
-            groups = user.groups.all()
-        for group in groups:
-            for permission in group.permissions.all():
-                perms.append(permission.codename)
-        return perms
-
-    def _get_feature_flags(self, user, request):
-        request_com_user = HttpRequest()
-        request_com_user.META = request.META
-        request_com_user.user = user
-        Flag = get_waffle_flag_model()
-        return [flag.name for flag in Flag.get_all() if flag.is_active(request_com_user)]
+        return Response({}, status=status.HTTP_200_OK)

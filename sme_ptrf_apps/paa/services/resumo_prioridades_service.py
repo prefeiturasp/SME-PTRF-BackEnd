@@ -1,5 +1,5 @@
 from decimal import Decimal
-from django.db.models import Sum
+from django.db.models import Q, Sum
 from rest_framework import serializers
 from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
 from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
@@ -20,6 +20,7 @@ class ValidacaoSaldoIndisponivel(serializers.ValidationError):
 class ResumoPrioridadesService:
     def __init__(self, paa):
         self.paa = paa
+        self._resumo_prioridades_cache = None
 
     def calcula_saldos(self, key, receitas, despesas) -> dict:
         """
@@ -127,14 +128,14 @@ class ResumoPrioridadesService:
 
                 return (saldo_congelado or saldo_atual) + previsao_valor
 
-            def get_valor_custeio(acao_associacao_data) -> Decimal:
+            def get_valor_custeio(acao_associacao_data, receitas_previstas_paa) -> Decimal:
                 """
                     Retorna o cálculo de valor de custeio em uma acao_associacao_data.
                     Procura nas receitas previstas em Acao Associacao, caso nao tenha, pega do saldo atual.
                     :param acao_associacao_data: Dado de uma Acao Associacao serializada
+                    :param receitas_previstas_paa: Receita prevista da ação, já obtida (evita reconsultar)
                     :return: Decimal com o valor de custeio
                 """
-                receitas_previstas_paa = get_receita_prevista_da_acao_associacao(acao_associacao_data)
                 saldos = acao_associacao_data.get('saldos', {})
 
                 previsao_valor = Decimal(receitas_previstas_paa.get('previsao_valor_custeio', None) or 0)
@@ -145,14 +146,14 @@ class ResumoPrioridadesService:
 
                 return valor
 
-            def get_valor_capital(acao_associacao_data) -> Decimal:
+            def get_valor_capital(acao_associacao_data, receitas_previstas_paa) -> Decimal:
                 """
                     Retorna o cálculo de valor de capital em uma acao_associacao_data.
                     Procura nas receitas previstas em Acao Associacao, caso nao tenha, pega do saldo atual.
                     :param acao_associacao_data: Dado de uma Acao Associacao
+                    :param receitas_previstas_paa: Receita prevista da ação, já obtida (evita reconsultar)
                     :return: Decimal com o valor de capital
                 """
-                receitas_previstas_paa = get_receita_prevista_da_acao_associacao(acao_associacao_data)
                 saldos = acao_associacao_data.get('saldos', {})
 
                 previsao_valor = Decimal(receitas_previstas_paa.get('previsao_valor_capital', None) or 0)
@@ -163,14 +164,14 @@ class ResumoPrioridadesService:
 
                 return valor
 
-            def get_valor_livre(acao_associacao_data) -> Decimal:
+            def get_valor_livre(acao_associacao_data, receitas_previstas_paa) -> Decimal:
                 """
                     Retorna o cálculo de valor de livre em uma acao_associacao_data.
                     Procura nas receitas previstas em Acao Associacao, caso nao tenha, pega do saldo atual.
                     :param acao_associacao_data: Dado de uma Acao Associacao
+                    :param receitas_previstas_paa: Receita prevista da ação, já obtida (evita reconsultar)
                     :return: Decimal com o valor de livre
                 """
-                receitas_previstas_paa = get_receita_prevista_da_acao_associacao(acao_associacao_data)
                 saldos = acao_associacao_data.get('saldos', {})
 
                 previsao_valor = Decimal(receitas_previstas_paa.get('previsao_valor_livre', None) or 0)
@@ -182,13 +183,17 @@ class ResumoPrioridadesService:
 
                 return valor
 
+            # Busca a receita prevista da ação uma única vez e reaproveita nos 3 cálculos abaixo
+            # (antes: 1 query + 1 serialização por chamada x 3 chamadas por ação, redundantes entre si)
+            receitas_previstas_paa = get_receita_prevista_da_acao_associacao(item)
+
             # Retorna um Node 3 de Receita
             return {
                 'key': item.get('uuid') + '_' + 'receita',
                 "recurso": LABEL_RECEITAS_PREVISTAS,
-                "custeio": get_valor_custeio(item),
-                "capital": get_valor_capital(item),
-                "livre_aplicacao": get_valor_livre(item),
+                "custeio": get_valor_custeio(item, receitas_previstas_paa),
+                "capital": get_valor_capital(item, receitas_previstas_paa),
+                "livre_aplicacao": get_valor_livre(item, receitas_previstas_paa),
             }
 
         def calcula_despesas(item) -> dict:
@@ -203,21 +208,16 @@ class ResumoPrioridadesService:
                 necessários para utilização em tabela no frontend com expand de 3 níveis
             """
 
-            # Valores relacionados às "Prioridades do PAA" de uma ação associação e tipo CUSTEIO
-            despesa_custeio = prioridades_ptrf_qs.filter(
-                tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+            # Valores relacionados às "Prioridades do PAA" de uma ação associação, CUSTEIO e CAPITAL
+            # numa única query (antes: 2 queries de aggregate separadas)
+            despesas_agregadas = prioridades_ptrf_qs.filter(
                 acao_associacao__uuid=item.get('uuid')
             ).aggregate(
-                total=Sum('valor_total')
-            ).get('total') or 0
-
-            # Valores relacionados às "Prioridades do PAA" de uma ação associação e tipo CAPITAL
-            despesa_capital = prioridades_ptrf_qs.filter(
-                tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name,
-                acao_associacao__uuid=item.get('uuid')
-            ).aggregate(
-                total=Sum('valor_total')
-            ).get('total') or 0
+                total_custeio=Sum('valor_total', filter=Q(tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name)),
+                total_capital=Sum('valor_total', filter=Q(tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name)),
+            )
+            despesa_custeio = despesas_agregadas.get('total_custeio') or 0
+            despesa_capital = despesas_agregadas.get('total_capital') or 0
 
             return {
                 'key': item.get('uuid') + '_' + 'despesa',
@@ -322,21 +322,16 @@ class ResumoPrioridadesService:
                 :return: Dicionário com a estrutura do Node 3 de "Despesas previstas".
             """
 
-            # Valores relacionados às "Prioridades do PAA" de uma ação PDDE e tipo CUSTEIO
-            despesa_custeio = prioridades_pdde_qs.filter(
-                tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+            # Valores relacionados às "Prioridades do PAA" de uma ação PDDE, CUSTEIO e CAPITAL
+            # numa única query (antes: 2 queries de aggregate separadas)
+            despesas_agregadas = prioridades_pdde_qs.filter(
                 acao_pdde__uuid=item.get('uuid')
             ).aggregate(
-                total=Sum('valor_total')
-            ).get('total') or 0
-
-            # Valores relacionados às "Prioridades do PAA" de uma ação PDDE e tipo CAPITAL
-            despesa_capital = prioridades_pdde_qs.filter(
-                tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name,
-                acao_pdde__uuid=item.get('uuid')
-            ).aggregate(
-                total=Sum('valor_total')
-            ).get('total') or 0
+                total_custeio=Sum('valor_total', filter=Q(tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name)),
+                total_capital=Sum('valor_total', filter=Q(tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name)),
+            )
+            despesa_custeio = despesas_agregadas.get('total_custeio') or 0
+            despesa_capital = despesas_agregadas.get('total_capital') or 0
 
             return {
                 'key': item.get('uuid') + '_' + 'despesa',
@@ -502,21 +497,16 @@ class ResumoPrioridadesService:
                 :return: Dicionário com a estrutura do Node 3 de "Despesas previstas".
             """
 
-            despesa_custeio = prioridades_qs.filter(
-                tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+            # CUSTEIO e CAPITAL numa única query (antes: 2 queries de aggregate separadas)
+            despesas_agregadas = prioridades_qs.filter(
                 acao_pdde__isnull=True,
                 acao_associacao__isnull=True,
             ).aggregate(
-                total=Sum('valor_total')
-            ).get('total') or 0
-
-            despesa_capital = prioridades_qs.filter(
-                tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name,
-                acao_pdde__isnull=True,
-                acao_associacao__isnull=True,
-            ).aggregate(
-                total=Sum('valor_total')
-            ).get('total') or 0
+                total_custeio=Sum('valor_total', filter=Q(tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name)),
+                total_capital=Sum('valor_total', filter=Q(tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name)),
+            )
+            despesa_custeio = despesas_agregadas.get('total_custeio') or 0
+            despesa_capital = despesas_agregadas.get('total_capital') or 0
 
             return {
                 'key': item.get('uuid') + '_' + 'despesa',
@@ -535,23 +525,17 @@ class ResumoPrioridadesService:
                 :return: Dicionário com a estrutura do Node 3 de "Despesas previstas".
             """
 
-            despesa_custeio = prioridades_qs.filter(
-                tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+            # CUSTEIO e CAPITAL numa única query (antes: 2 queries de aggregate separadas)
+            despesas_agregadas = prioridades_qs.filter(
                 acao_pdde__isnull=True,
                 acao_associacao__isnull=True,
                 outro_recurso__uuid=item.get('uuid')
             ).aggregate(
-                total=Sum('valor_total')
-            ).get('total') or 0
-
-            despesa_capital = prioridades_qs.filter(
-                tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name,
-                acao_pdde__isnull=True,
-                acao_associacao__isnull=True,
-                outro_recurso__uuid=item.get('uuid')
-            ).aggregate(
-                total=Sum('valor_total')
-            ).get('total') or 0
+                total_custeio=Sum('valor_total', filter=Q(tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name)),
+                total_capital=Sum('valor_total', filter=Q(tipo_aplicacao=TipoAplicacaoOpcoesEnum.CAPITAL.name)),
+            )
+            despesa_custeio = despesas_agregadas.get('total_custeio') or 0
+            despesa_capital = despesas_agregadas.get('total_capital') or 0
 
             return {
                 'key': item.get('uuid') + '_' + 'despesa',
@@ -631,7 +615,15 @@ class ResumoPrioridadesService:
             - children: lista de nodes filhos (receitas, despesas e saldos)
 
             Retorna uma lista com os dados de cada tipo de recurso.
+
+            O resultado é cacheado na instância (memoização): como os dados não mudam durante o ciclo
+            de vida da instância (mesmo request/transação), chamadas subsequentes evitam recalcular e
+            reconsultar toda a árvore de PTRF/PDDE/Outros Recursos do PAA (custoso: dezenas de queries).
+            Usado, por exemplo, por `validar_valor_prioridade`, que pode ser chamado várias vezes em
+            sequência para o mesmo PAA (ex: validação de saldo de várias prioridades impactadas).
         """
+        if self._resumo_prioridades_cache is not None:
+            return self._resumo_prioridades_cache
 
         # Mapa de dados para cada tipo de recurso
         tipo_recurso_map = {
@@ -643,6 +635,7 @@ class ResumoPrioridadesService:
         # Retorna a lista de dados para cada tipo de recurso
         dados = list(tipo_recurso_map.values())
 
+        self._resumo_prioridades_cache = dados
         return dados
 
     def recursos_totalmente_utilizados(self) -> bool:
