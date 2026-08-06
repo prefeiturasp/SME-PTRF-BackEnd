@@ -76,6 +76,7 @@ def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
         # Distingue ata de apresentação (False) de ata de retificação (True).
         # Esse flag controla todo o comportamento diferenciado abaixo.
         is_retificacao = ata_paa.tipo_retificacao
+        versao_retificacao = 1
 
         alteracoes: Optional[dict] = None
         etiqueta_retificacao: Optional[str] = None
@@ -97,6 +98,9 @@ def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
                 data_retificacao = doc_retificacao.criado_em.strftime(_FORMATO_DATA)
             else:
                 data_retificacao = datetime.now().strftime(_FORMATO_DATA)
+
+            if doc_retificacao:
+                versao_retificacao = doc_retificacao.versao_documento
             etiqueta_retificacao = f"Retificado em: {data_retificacao}"
 
         cabecalho = cria_cabecalho(ata_paa)
@@ -161,6 +165,7 @@ def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
             "retificado_prioridades_pdde": retificado_prioridades_pdde,
             "retificado_prioridades_outros": retificado_prioridades_outros,
             "retificado_atividades_estatutarias": retificado_atividades_estatutarias,
+            "versao_retificacao": f"- Versão #{versao_retificacao:02d}",
         }
         LOGGER.info("Dados da ata PAA gerados com sucesso")
         LOGGER.info("Dados da ata PAA %s", dados_ata)
