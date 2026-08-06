@@ -323,7 +323,7 @@ def test_teste_listagem_com_filtros_sem_filtros_retificacao(
             'data_recebimento': None,
             'pode_visualizar': True,
             'status_sme': 'NAO_PUBLICADO',
-            'status_sme_label': 'Não publicada no D.O.',
+            'status_sme_label': 'Não Publicada no D.O',
             "uuid_consolidado_dre": f"{consolidado_teste_listagem_com_filtros_retificacao_01.uuid}",
             "uuid_dre": f"{dre_teste_listagem_com_filtros_01.uuid}"
         },
@@ -333,7 +333,7 @@ def test_teste_listagem_com_filtros_sem_filtros_retificacao(
             "total_unidades_no_relatorio": 1,
             "data_recebimento": None,
             "status_sme": "NAO_PUBLICADO",
-            "status_sme_label": "Não publicada no D.O.",
+            "status_sme_label": "Não Publicada no D.O",
             "pode_visualizar": True,
             "uuid_consolidado_dre": f"{consolidado_teste_listagem_com_filtros_retificado.uuid}",
             "uuid_dre": f"{dre_teste_listagem_com_filtros_01.uuid}"
@@ -423,7 +423,7 @@ def test_teste_listagem_com_filtros__filtro_nao_gerado_publicado_e_nao_publicado
             "total_unidades_no_relatorio": 1,
             "data_recebimento": None,
             "status_sme": "NAO_PUBLICADO",
-            "status_sme_label": "Não publicada no D.O.",
+            "status_sme_label": "Não Publicada no D.O",
             "pode_visualizar": True,
             "uuid_consolidado_dre": f"{consolidado_teste_listagem_com_filtros_04.uuid}",
             "uuid_dre": f"{dre_teste_listagem_com_filtros_01.uuid}"
@@ -459,7 +459,7 @@ def test_teste_listagem_com_filtros__filtro_nao_gerado_publicado_e_nao_publicado
             "total_unidades_no_relatorio": 1,
             "data_recebimento": None,
             "status_sme": "NAO_PUBLICADO",
-            "status_sme_label": "Não publicada no D.O.",
+            "status_sme_label": "Não Publicada no D.O",
             "pode_visualizar": True,
             "uuid_consolidado_dre": f"{consolidado_teste_listagem_com_filtros_03.uuid}",
             "uuid_dre": f"{dre_teste_listagem_com_filtros_01.uuid}"
@@ -470,7 +470,7 @@ def test_teste_listagem_com_filtros__filtro_nao_gerado_publicado_e_nao_publicado
             "total_unidades_no_relatorio": 1,
             "data_recebimento": None,
             "status_sme": "PUBLICADO",
-            "status_sme_label": "Publicada no D.O.",
+            "status_sme_label": "Publicada no D.O",
             "pode_visualizar": True,
             "uuid_consolidado_dre": f"{consolidado_teste_listagem_com_filtros_02.uuid}",
             "uuid_dre": f"{dre_teste_listagem_com_filtros_01.uuid}"
@@ -481,7 +481,7 @@ def test_teste_listagem_com_filtros__filtro_nao_gerado_publicado_e_nao_publicado
             "total_unidades_no_relatorio": 1,
             "data_recebimento": None,
             "status_sme": "NAO_PUBLICADO",
-            "status_sme_label": "Não publicada no D.O.",
+            "status_sme_label": "Não Publicada no D.O",
             "pode_visualizar": True,
             "uuid_consolidado_dre": f"{consolidado_teste_listagem_com_filtros_01.uuid}",
             "uuid_dre": f"{dre_teste_listagem_com_filtros_01.uuid}"
@@ -562,7 +562,7 @@ def test_teste_listagem_com_filtros__filtro_publicado_e_nao_publicado(
             "total_unidades_no_relatorio": 1,
             "data_recebimento": None,
             "status_sme": "NAO_PUBLICADO",
-            "status_sme_label": "Não publicada no D.O.",
+            "status_sme_label": "Não Publicada no D.O",
             "pode_visualizar": True,
             "uuid_consolidado_dre": f"{consolidado_teste_listagem_com_filtros_03.uuid}",
             "uuid_dre": f"{dre_teste_listagem_com_filtros_01.uuid}"
@@ -573,7 +573,7 @@ def test_teste_listagem_com_filtros__filtro_publicado_e_nao_publicado(
             "total_unidades_no_relatorio": 1,
             "data_recebimento": None,
             "status_sme": "PUBLICADO",
-            "status_sme_label": "Publicada no D.O.",
+            "status_sme_label": "Publicada no D.O",
             "pode_visualizar": True,
             "uuid_consolidado_dre": f"{consolidado_teste_listagem_com_filtros_02.uuid}",
             "uuid_dre": f"{dre_teste_listagem_com_filtros_01.uuid}"
@@ -584,7 +584,7 @@ def test_teste_listagem_com_filtros__filtro_publicado_e_nao_publicado(
             "total_unidades_no_relatorio": 1,
             "data_recebimento": None,
             "status_sme": "NAO_PUBLICADO",
-            "status_sme_label": "Não publicada no D.O.",
+            "status_sme_label": "Não Publicada no D.O",
             "pode_visualizar": True,
             "uuid_consolidado_dre": f"{consolidado_teste_listagem_com_filtros_01.uuid}",
             "uuid_dre": f"{dre_teste_listagem_com_filtros_01.uuid}"
@@ -616,7 +616,7 @@ def test_teste_listagem_com_filtros__filtro_publicado(
             "total_unidades_no_relatorio": 1,
             "data_recebimento": None,
             "status_sme": "PUBLICADO",
-            "status_sme_label": "Publicada no D.O.",
+            "status_sme_label": "Publicada no D.O",
             "pode_visualizar": True,
             "uuid_consolidado_dre": f"{consolidado_teste_listagem_com_filtros_02.uuid}",
             "uuid_dre": f"{dre_teste_listagem_com_filtros_01.uuid}"
@@ -647,7 +647,7 @@ def test_teste_listagem_com_filtros__sem_filtros(
             "total_unidades_no_relatorio": 1,
             "data_recebimento": None,
             "status_sme": "NAO_PUBLICADO",
-            "status_sme_label": "Não publicada no D.O.",
+            "status_sme_label": "Não Publicada no D.O",
             "pode_visualizar": True,
             "uuid_consolidado_dre": f"{consolidado_teste_listagem_com_filtros_01.uuid}",
             "uuid_dre": f"{dre_teste_listagem_com_filtros_01.uuid}"
