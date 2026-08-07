@@ -79,6 +79,7 @@ def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
 
         alteracoes: Optional[dict] = None
         etiqueta_retificacao: Optional[str] = None
+        px_versao = None
         if is_retificacao:
             # Importando aqui para evitar dependência circular entre serviços de retificação.
             from sme_ptrf_apps.paa.services.retificacao_paa_service import RetificacaoPaaService
@@ -93,10 +94,12 @@ def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
             # não exista (situação improvável em produção), usa a data atual como fallback.
             # Em caso de regra de negócio alterada, basta utilizar a data do bloco else
             doc_retificacao = CicloRetificacaoService(paa).documento_atual
+            px_versao = CicloRetificacaoService(paa).numero_versao
             if doc_retificacao and doc_retificacao.criado_em:
                 data_retificacao = doc_retificacao.criado_em.strftime(_FORMATO_DATA)
             else:
                 data_retificacao = datetime.now().strftime(_FORMATO_DATA)
+
             etiqueta_retificacao = f"Retificado em: {data_retificacao}"
 
         cabecalho = cria_cabecalho(ata_paa)
@@ -161,6 +164,7 @@ def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
             "retificado_prioridades_pdde": retificado_prioridades_pdde,
             "retificado_prioridades_outros": retificado_prioridades_outros,
             "retificado_atividades_estatutarias": retificado_atividades_estatutarias,
+            "versao_retificacao": f"#{px_versao:02d}" if px_versao is not None else None,
         }
         LOGGER.info("Dados da ata PAA gerados com sucesso")
         LOGGER.info("Dados da ata PAA %s", dados_ata)

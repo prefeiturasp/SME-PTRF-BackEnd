@@ -37,7 +37,14 @@
     <div class="col-5 d-flex align-items-center justify-content-end ml-3">
       <p class="mb-0 bottom-left">
         <span class="titulo font-14"><strong>{{ dados.cabecalho.titulo }}</strong></span><br/>
-        <span class="font-12 mb-0"><strong>{{ dados.cabecalho.subtitulo }}</strong></span>
+        <span class="font-12 mb-0">
+          <strong>
+            {{ dados.cabecalho.subtitulo }}
+            {%if dados.is_retificacao %}
+              / Retificação {% firstof dados.versao_retificacao '' %}
+            {% endif %}
+          </strong>
+        </span>
       </p>
     </div>
 
