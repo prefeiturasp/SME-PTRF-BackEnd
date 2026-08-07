@@ -86,3 +86,4 @@ from .dados_demonstrativo_financeiro import (
 from .prestacao_conta_reprovada_nao_apresentacao import PrestacaoContaReprovadaNaoApresentacao
 from .recurso import Recurso
 from .periodo_inicial_associacao import PeriodoInicialAssociacao
+from .fique_de_olho import FiqueDeOlho, TipoTextoFiqueDeOlhoChoices

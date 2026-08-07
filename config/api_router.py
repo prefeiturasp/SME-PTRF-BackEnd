@@ -48,7 +48,8 @@ from sme_ptrf_apps.core.api.views import (
     SolicitacaoEncerramentoContaAssociacaoViewset,
     MotivoRejeicaoEncerramentoContaAssociacaoViewset,
     RecursoViewSet,
-    feature_flags
+    feature_flags,
+    FiqueDeOlhoViewSet
 )
 from sme_ptrf_apps.core.api.views.prestacoes_contas_reprovadas_nao_apresentacao_viewset import \
     PrestacaoContaReprovadaNaoApresentacaoViewSet
@@ -195,6 +196,7 @@ router.register("periodos", PeriodosViewSet, basename="periodos")
 router.register("prestacoes-contas", PrestacoesContasViewSet, basename="prestacoes-contas")
 router.register("demonstrativo-financeiro", DemonstrativoFinanceiroViewSet, basename="demonstrativo-financeiro")
 router.register("relacao-bens", RelacaoBensViewSet, basename="relacao-bens")
+router.register("fique-de-olho", FiqueDeOlhoViewSet, basename="fique-de-olho")
 router.register("atas-associacao", AtasViewSet, basename="atas-associacao")
 router.register("membros-associacao", MembroAssociacaoViewSet, basename="membros-associacao")
 router.register("esqueci-minha-senha", EsqueciMinhaSenhaViewSet, basename="esqueci-minha-senha")
