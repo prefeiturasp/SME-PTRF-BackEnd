@@ -52,6 +52,10 @@ class PrioridadesPaaImpactadasBaseService(ABC):
         self.receita_prevista = receita_prevista
         self.acao_receita = self.get_acao_receita()
         self.recurso = self.get_recurso()
+        # Cache de ResumoPrioridadesService por paa_id: evita recriar o service (e recalcular o resumo
+        # completo do PAA, custoso) a cada prioridade verificada em `_verifica_saldo`, já que todas as
+        # prioridades avaliadas num mesmo loop pertencem ao mesmo PAA.
+        self._resumo_service_cache = {}
 
     @abstractmethod
     def get_acao_receita(self):
@@ -331,7 +335,13 @@ class PrioridadesPaaImpactadasBaseService(ABC):
 
     def _verifica_saldo(self, prioridade, valor_total):
         # Validar no service de Resumo de Prioridades
-        resumo = ResumoPrioridadesService(prioridade.paa)
+        # Reaproveita a instância (e o resumo memoizado nela) entre prioridades do mesmo PAA,
+        # em vez de recriar o service (e recalcular todo o resumo) a cada iteração do loop.
+        resumo = self._resumo_service_cache.get(prioridade.paa_id)
+        if resumo is None:
+            resumo = ResumoPrioridadesService(prioridade.paa)
+            self._resumo_service_cache[prioridade.paa_id] = resumo
+
         # # considera apenas a diferença entre o valor atual da receita e o novo valor
         # valor_total = valor_custeio_atual - valor_custeio_edicao
         SIMULA_PRIORIDADE_SEM_VALOR = 0
