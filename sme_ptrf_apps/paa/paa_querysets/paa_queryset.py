@@ -34,6 +34,10 @@ class PaaQuerySet(models.QuerySet):
         Returns:
             PaaQuerySet com os campos de status de geração anotados.
         """
+        if 'status_andamento' in self.query.annotations:
+            # Queryset já anotado evita reanotação desnecessária
+            return self
+
         from sme_ptrf_apps.paa.models.documento_paa import DocumentoPaa
         from sme_ptrf_apps.paa.models.ata_paa import AtaPaa
 
