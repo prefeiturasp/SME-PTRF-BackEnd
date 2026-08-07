@@ -95,7 +95,7 @@ def test_cabecalho():
         'Tipo de transação',
         'Número do documento da transação',
         'Data da transação',
-        'Valor (Despeza)',
+        'Valor (Despesa)',
         'Valor realizado (Despesa)',
         'Tipo de aplicação do recurso',
         'Nome do Tipo de Custeio',
