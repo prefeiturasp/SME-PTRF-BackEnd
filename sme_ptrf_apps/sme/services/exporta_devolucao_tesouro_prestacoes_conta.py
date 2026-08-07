@@ -88,7 +88,7 @@ CABECALHO = [
         'solicitacao_acerto_lancamento__analise_lancamento__despesa__data_transacao',
     ),
     (
-        'Valor (Despeza)',
+        'Valor (Despesa)',
         'solicitacao_acerto_lancamento__analise_lancamento__despesa__valor_original',
     ),
     (
