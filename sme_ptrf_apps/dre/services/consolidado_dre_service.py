@@ -207,7 +207,7 @@ class TextDocumentConsolidadoPC:
         letter_s = "s" if is_plural else ""
 
         if self._is_enable_lauda:
-            return f"Publicada{letter_s} no D.O" if is_positive else f"Não Publicada{letter_s} no D.O"
+            return f"Publicado{letter_s} no D.O" if is_positive else f"Não Publicado{letter_s} no D.O"
 
         return f"Enviado{letter_s} (externamente)" if is_positive else f"Gerado{letter_s} e não enviado{letter_s}"
 
