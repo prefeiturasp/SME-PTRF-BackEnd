@@ -23,13 +23,6 @@ HTTP_400_CONTA_NAO_DISPONIVEL = object()
 # BB_API_BASE_URL=https://api.bb.com.br/accountability/v3   # produção
 # ──────────────────────────────────────────────────────────────────────────────
 
-
-BB_OAUTH_URL = settings.BB_OAUTH_URL
-BB_API_BASE_URL = settings.BB_API_BASE_URL
-BB_CLIENT_ID = settings.BB_CLIENT_ID
-BB_CLIENT_SECRET = settings.BB_CLIENT_SECRET
-BB_APP_KEY = settings.BB_APP_KEY
-
 # Rate limiting: 25 TPS com margem de segurança
 _TPS_LIMIT = 25
 _TPS_INTERVAL = 1.0 / _TPS_LIMIT  # ~0.04 s entre chamadas
@@ -56,6 +49,8 @@ class BBTokenManager:
     @staticmethod
     def _basic_credentials() -> str:
         """Retorna o header Basic com as credenciais em Base64."""
+        BB_CLIENT_ID = settings.BB_CLIENT_ID
+        BB_CLIENT_SECRET = settings.BB_CLIENT_SECRET
         raw = f"{BB_CLIENT_ID}:{BB_CLIENT_SECRET}"
         return b64encode(raw.encode()).decode()
 
@@ -71,6 +66,9 @@ class BBTokenManager:
     def _gerar_token(self) -> str:
         """Faz a chamada OAuth e armazena o token retornado."""
         logger.info("[BB] Gerando novo access_token...")
+
+        BB_OAUTH_URL = settings.BB_OAUTH_URL
+
         headers = {
             "Authorization": f"Basic {self._basic_credentials()}",
             "Content-Type": "application/x-www-form-urlencoded",
@@ -183,9 +181,14 @@ class BBAccountabilityClient:
         - Máximo de _MAX_RETRIES tentativas
         - Retorna None após esgotar tentativas (não aborta o fluxo)
         """
+
+        BB_APP_KEY = settings.BB_APP_KEY
+        BB_API_BASE_URL = settings.BB_API_BASE_URL
+
         params = params or {}
         params["gw-app-key"] = BB_APP_KEY
         backoff = _TPS_BACKOFF_INICIAL
+
 
         for tentativa in range(1, _MAX_RETRIES + 1):
             self._aguardar_tps()
