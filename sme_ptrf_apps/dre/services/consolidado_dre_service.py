@@ -201,13 +201,15 @@ class TextDocumentConsolidadoPC:
         if self._is_enable_lauda:
             return "publicados" if is_positive else "não publicados"
 
-        return "enviados (externamente)" if is_positive else "gerado"
+        return "enviados (externamente)" if is_positive else "gerados e não enviados"
 
-    def text_action_female_single_in_past(self, is_positive=True):
+    def text_action_female_single_in_past(self, is_positive=True, is_plural=False):
+        letter_s = "s" if is_plural else ""
+
         if self._is_enable_lauda:
-            return "Publicada no D.O" if is_positive else "Não Publicada no D.O"
+            return f"Publicada{letter_s} no D.O" if is_positive else f"Não Publicada{letter_s} no D.O"
 
-        return "Enviada (externamente)" if is_positive else "Gerado"
+        return f"Enviado{letter_s} (externamente)" if is_positive else f"Gerado{letter_s} e não enviado{letter_s}"
 
 
 def criar_ata_e_atribuir_ao_consolidado_dre(dre=None, periodo=None, consolidado_dre=None, sequencia_de_publicacao=None,
