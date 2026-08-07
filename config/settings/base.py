@@ -424,3 +424,11 @@ CKEDITOR_CONFIGS = {
 # DEFAULT_AUTO_FIELD: Resolve warnings após update para Django 3.2
 # -------------------------------------------------------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+
+# ************* Integração API Accountability Banco do Brasil *************
+BB_CLIENT_ID = env('BB_CLIENT_ID')
+BB_CLIENT_SECRET = env('BB_CLIENT_SECRET')
+BB_APP_KEY = env('BB_APP_KEY')
+BB_OAUTH_URL = env('BB_OAUTH_URL')
+BB_API_BASE_URL = env('BB_API_BASE_URL')
