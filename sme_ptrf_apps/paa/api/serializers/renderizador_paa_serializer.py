@@ -394,8 +394,9 @@ class RenderizadorPaaBuilder:
         exibe_dados_retificacao = bool(
             self.paa.status_em_retificacao or doc_retificacao or ata_retificacao
         )
+        titulo_secao = f'Retificado #{int(versao_retificacao):02d}' if versao_retificacao else 'Retificado'
         bloco_docs_retificacao = {
-            'secao_titulo': f'Retificado #{versao_retificacao}' if versao_retificacao else 'Retificado',
+            'secao_titulo': titulo_secao,
             'documento': self._documento_render(doc_retificacao, True),
             'ata': self._ata_render(ata_retificacao, True, eh_paa_vigente),
         } if exibe_dados_retificacao else None
