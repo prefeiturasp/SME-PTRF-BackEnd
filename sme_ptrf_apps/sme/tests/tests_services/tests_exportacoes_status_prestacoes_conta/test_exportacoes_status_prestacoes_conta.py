@@ -21,9 +21,9 @@ resultado_pcs_nao_apresentadas = [
     ['123456', 'Escola Teste', 'Outra', 'DRE teste', '2020.1', 'NAO_APRESENTADA']]
 
 
-def test_dados_esperados_csv(queryset_ordered):
+def test_dados_esperados_csv(queryset_ordered_status_pc):
     dados = ExportacoesStatusPrestacoesContaService(
-        queryset=queryset_ordered
+        queryset=queryset_ordered_status_pc
     ).monta_dados()
 
     assert dados == resultado_esperado
