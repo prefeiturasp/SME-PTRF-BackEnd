@@ -2289,20 +2289,22 @@ def observacao(acao_associacao, prestacao_conta):
 
 
 @pytest.fixture
-def tag():
+def tag(recurso_legado):
     return baker.make(
         'Tag',
         nome="COVID-19",
-        status=StatusTag.INATIVO.name
+        status=StatusTag.INATIVO.name,
+        recurso=recurso_legado
     )
 
 
 @pytest.fixture
-def tag_ativa():
+def tag_ativa(recurso_legado):
     return baker.make(
         'Tag',
         nome="COVID-19",
-        status=StatusTag.ATIVO.name
+        status=StatusTag.ATIVO.name,
+        recurso=recurso_legado
     )
 
 
