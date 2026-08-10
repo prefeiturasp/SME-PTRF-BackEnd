@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 
 from sme_ptrf_apps.paa.models import Paa, DocumentoPaa, AtaPaa
 from sme_ptrf_apps.paa.enums import PaaStatusEnum, PaaStatusAndamentoEnum
@@ -10,6 +11,57 @@ pytestmark = pytest.mark.django_db
 def _qs():
     """Retorna um queryset de Paa usando o PaaQuerySet."""
     return PaaQuerySet(model=Paa, using=Paa.objects.db)
+
+
+class TestAnnotateStatusGeracaoIdempotente:
+    def test_segunda_chamada_nao_reconstroi_as_anotacoes(self, paa_factory, periodo_paa_factory, associacao):
+        """
+        `paas_em_elaboracao`, `paas_gerados*`, `paas_em_retificacao` e `filter_por_status_geracao`
+        chamam `annotate_status_geracao()` sobre um queryset que, vindo de `Paa.objects` (via
+        `PaaManager`), já foi anotado. Sem a guarda de idempotência, isso reconstrói os 6 `Exists`
+        e as ~24 condições `Case/When` uma segunda vez, à toa, em toda chamada.
+
+        Este teste chama `annotate_status_geracao()` duas vezes seguidas e garante que `_make_when`
+        (usado para montar cada condição `Case/When`) só é invocado na primeira chamada.
+        """
+        periodo = periodo_paa_factory.create()
+        paa_factory.create(periodo_paa=periodo, associacao=associacao, status=PaaStatusEnum.EM_ELABORACAO.name)
+
+        with patch.object(PaaQuerySet, '_make_when', wraps=PaaQuerySet._make_when) as mock_make_when:
+            qs_anotado_1x = _qs().annotate_status_geracao()
+            chamadas_apos_1a_anotacao = mock_make_when.call_count
+            assert chamadas_apos_1a_anotacao > 0
+
+            qs_anotado_2x = qs_anotado_1x.annotate_status_geracao()
+            chamadas_apos_2a_anotacao = mock_make_when.call_count
+
+        # A segunda chamada não deve ter adicionado nenhuma invocação nova de _make_when
+        assert chamadas_apos_2a_anotacao == chamadas_apos_1a_anotacao
+        # E o resultado funcional continua correto
+        assert qs_anotado_2x.first().status_andamento == PaaStatusAndamentoEnum.EM_ELABORACAO.name
+
+    def test_paas_em_elaboracao_chamado_sobre_queryset_ja_anotado_nao_duplica(
+        self, paa_factory, periodo_paa_factory, associacao
+    ):
+        """
+        Reproduz o padrão real: `Paa.objects` (já anotado pelo manager) + `.paas_em_elaboracao()`.
+        O custo de montar as anotações deve ser o mesmo de uma única chamada a
+        `annotate_status_geracao()` — não o dobro.
+        """
+        periodo = periodo_paa_factory.create()
+        paa = paa_factory.create(periodo_paa=periodo, associacao=associacao, status=PaaStatusEnum.EM_ELABORACAO.name)
+
+        with patch.object(PaaQuerySet, '_make_when', wraps=PaaQuerySet._make_when) as mock_make_when:
+            _qs().filter(pk=paa.pk).annotate_status_geracao()
+            custo_de_uma_chamada = mock_make_when.call_count
+
+        with patch.object(PaaQuerySet, '_make_when', wraps=PaaQuerySet._make_when) as mock_make_when:
+            resultado = Paa.objects.filter(pk=paa.pk).paas_em_elaboracao()
+            custo_via_manager_mais_helper = mock_make_when.call_count
+
+        # O manager já anota; paas_em_elaboracao() não deve custar o dobro por reanotar de novo
+        assert custo_via_manager_mais_helper == custo_de_uma_chamada
+        assert resultado.first().status_andamento == PaaStatusAndamentoEnum.EM_ELABORACAO.name
 
 
 class TestAnnotateStatusGeracao:

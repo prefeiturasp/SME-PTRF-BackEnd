@@ -1324,6 +1324,72 @@ class TestValidacaoSaldo:
     @patch('sme_ptrf_apps.paa.services.prioridades_impactadas_receitas_previstas_service.ResumoPrioridadesService')
     @patch('sme_ptrf_apps.paa.models.Paa')
     @patch('sme_ptrf_apps.paa.services.prioridades_impactadas_receitas_previstas_service.PrioridadePaa.objects')
+    def test_verifica_saldo_reaproveita_resumo_service_entre_prioridades_do_mesmo_paa(
+        self,
+        mock_queryset,
+        mock_paa_class,
+        mock_resumo_service,
+        receita_prevista_ptrf_data,
+        mock_acao_associacao,
+        mock_paa
+    ):
+        """
+        Cenário real que motivou a otimização: uma receita prevista com N prioridades vinculadas
+        (mesmo PAA) tendo o valor de custeio reduzido. Antes da correção, `ResumoPrioridadesService`
+        era instanciado (e o resumo completo do PAA recalculado, ~103 queries em produção) uma vez
+        POR PRIORIDADE. Como todas as prioridades verificadas num mesmo loop pertencem ao mesmo PAA,
+        o service deve ser instanciado apenas 1 vez e reaproveitado (cache por paa_id) — ganho de
+        (N - 1) x custo_completo_do_resumo, ou seja (N - 1) x ~103 queries evitadas no caso observado.
+        """
+        instance = Mock(spec=ReceitaPrevistaPaa)
+        instance.acao_associacao = mock_acao_associacao
+        instance.paa = mock_paa
+        instance.previsao_valor_custeio = Decimal('2000.00')
+        instance.previsao_valor_capital = Decimal('2000.00')
+        instance.previsao_valor_livre = Decimal('500.00')
+
+        # Redução de custeio para disparar a verificação de saldo nas prioridades de CUSTEIO
+        receita_prevista_ptrf_data['previsao_valor_custeio'] = '1500.00'
+
+        # N prioridades de CUSTEIO, todas do mesmo PAA (cenário real: 13 prioridades vinculadas)
+        total_prioridades = 5
+        mock_prioridades = []
+        for i in range(total_prioridades):
+            mock_prioridade = Mock()
+            mock_prioridade.uuid = f'prioridade-uuid-{i}'
+            mock_prioridade.tipo_aplicacao = TipoAplicacaoOpcoesEnum.CUSTEIO.name
+            mock_prioridade.paa = mock_paa
+            mock_prioridade.paa_id = mock_paa.uuid
+            mock_prioridades.append(mock_prioridade)
+
+        mock_qs = Mock(spec=models.QuerySet)
+        mock_queryset.filter.return_value = mock_qs
+        mock_qs.filter.return_value = mock_qs
+        mock_qs.exists.return_value = True
+        mock_qs.__iter__ = Mock(return_value=iter(mock_prioridades))
+
+        mock_paa_qs = Mock()
+        mock_paa_class.objects.filter.return_value = mock_paa_qs
+        mock_paa_qs.paas_em_elaboracao.return_value = Mock()
+
+        mock_resumo_instance = Mock()
+        mock_resumo_service.return_value = mock_resumo_instance
+
+        service = PrioridadesPaaImpactadasReceitasPrevistasPTRFService(
+            receita_prevista_ptrf_data,
+            instance
+        )
+
+        service._buscar_prioridades_impactadas()
+
+        # As N prioridades foram de fato verificadas...
+        assert mock_resumo_instance.validar_valor_prioridade.call_count == total_prioridades
+        # ...mas o service (e o cálculo caro do resumo que ele encapsula) foi criado uma única vez
+        mock_resumo_service.assert_called_once_with(mock_paa)
+
+    @patch('sme_ptrf_apps.paa.services.prioridades_impactadas_receitas_previstas_service.ResumoPrioridadesService')
+    @patch('sme_ptrf_apps.paa.models.Paa')
+    @patch('sme_ptrf_apps.paa.services.prioridades_impactadas_receitas_previstas_service.PrioridadePaa.objects')
     def test_buscar_prioridades_com_reducao_capital(
         self,
         mock_queryset,

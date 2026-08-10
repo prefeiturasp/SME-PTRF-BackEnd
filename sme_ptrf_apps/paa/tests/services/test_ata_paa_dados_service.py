@@ -353,6 +353,7 @@ def test_gerar_dados_ata_retificacao_inclui_etiqueta_e_flags(
     doc_mock = MagicMock()
     doc_mock.criado_em = datetime(2025, 6, 10, 10, 0, 0)
     mock_ciclo_service_cls.return_value.documento_atual = doc_mock
+    mock_ciclo_service_cls.return_value.numero_versao = 1
 
     mock_cabecalho.return_value = {}
     mock_identificacao.return_value = {}
@@ -375,6 +376,7 @@ def test_gerar_dados_ata_retificacao_inclui_etiqueta_e_flags(
     assert resultado['retificado_prioridades_pdde'] is False
     assert resultado['retificado_prioridades_outros'] is False
     assert resultado['retificado_atividades_estatutarias'] is False
+    assert resultado['versao_retificacao'] == "#01"
 
 
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_titulo_introducao", autospec=True)
@@ -405,6 +407,7 @@ def test_gerar_dados_ata_retificacao_sem_doc_usa_data_atual(
 
     mock_retificacao_service_cls.return_value.identificar_alteracoes.return_value = {}
     mock_ciclo_service_cls.return_value.documento_atual = None
+    mock_ciclo_service_cls.return_value.numero_versao = 1
 
     mock_cabecalho.return_value = {}
     mock_identificacao.return_value = {}

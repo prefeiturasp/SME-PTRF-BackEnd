@@ -17,7 +17,8 @@ def test_retrieve_tag(jwt_authenticated_client_a, tag_a):
         'criado_em': tag_a.criado_em.isoformat("T"),
         'alterado_em': tag_a.alterado_em.isoformat("T"),
         'uuid': f'{tag_a.uuid}',
-        'status': "Inativo"
+        'status': "Inativo",
+        'recurso': f'{tag_a.recurso.uuid}'
     }
 
     assert response.status_code == status.HTTP_200_OK

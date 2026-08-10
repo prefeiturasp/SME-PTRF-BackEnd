@@ -42,10 +42,10 @@ class DetalheTipoReceitaParametrizacaoViewSet(mixins.CreateModelMixin,
         nome = self.request.query_params.get('nome')
         recurso_uuid = self.request.query_params.get('recurso_uuid')
 
-        qs = DetalheTipoReceita.objects.all().order_by('nome')
+        qs = DetalheTipoReceita.objects.all()
 
-        if nome:
-            qs = qs.filter(nome__icontains=nome)
+        if nome and nome.strip():
+            qs = qs.filter(nome__icontains=nome.strip())
 
         if recurso_uuid:
             try:
@@ -58,7 +58,7 @@ class DetalheTipoReceitaParametrizacaoViewSet(mixins.CreateModelMixin,
             except Exception:
                 raise DRFValidationError({"mensagem": "Erro ao processar a solicitação."})
 
-        return qs
+        return qs.order_by('nome')
 
 
     def destroy(self, request, *args, **kwargs):

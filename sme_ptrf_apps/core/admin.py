@@ -758,9 +758,9 @@ class ArquivoAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'status']
+    list_display = ['nome', 'status', 'recurso']
     search_fields = ['nome', ]
-    list_filter = ['status', ]
+    list_filter = ['status', 'recurso']
     readonly_fields = ('uuid', id)
 
 
