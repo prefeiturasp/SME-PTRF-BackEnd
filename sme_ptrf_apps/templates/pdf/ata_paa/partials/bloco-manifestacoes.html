@@ -1,18 +1,12 @@
 {# Bloco X - Manifestações #}
+{% if dados.dados_texto_da_ata.comentarios %}
 <section class="row mt-4">
   <article class="col mb-3 border p-0">
     <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0"><strong>Manifestações</strong></p>
     <div class="col-12">
-      {% if dados.dados_texto_da_ata.comentarios %}
       <p class="font-12 texto-justificado pt-2 pb-2 mb-0">
         {{ dados.dados_texto_da_ata.comentarios|linebreaks }}
       </p>
-      {% else %}
-      <p class="font-12 texto-justificado pt-2 pb-2 mb-0">
-        Não houve manifestações.
-      </p>
-      {% endif %}
-
       {% if dados.dados_da_ata.parecer_conselho == "APROVADA" %}
       <p class="font-12 texto-justificado pb-2 mb-0">
         Os presentes manifestaram que estão de acordo com o PAA apresentado. Sem ressalvas.
@@ -34,4 +28,4 @@
     </div>
   </article>
 </section>
-
+{% endif %}

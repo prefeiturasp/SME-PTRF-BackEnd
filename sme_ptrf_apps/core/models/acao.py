@@ -6,6 +6,12 @@ from auditlog.registry import auditlog
 
 
 class Acao(ModeloIdNome):
+    class Nome(models.TextChoices):
+        ORCAMENTO_GREMIO_ESTUDANTIL = (
+            "Orçamento Grêmio Estudantil",
+            "Orçamento Grêmio Estudantil",
+        )
+
     history = AuditlogHistoryField()
     posicao_nas_pesquisas = models.CharField(
         'posição nas pesquisas',

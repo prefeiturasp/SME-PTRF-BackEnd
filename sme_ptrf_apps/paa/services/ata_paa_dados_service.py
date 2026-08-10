@@ -16,17 +16,18 @@ _FORMATO_DATA = "%d/%m/%Y"
 
 
 def _filtrar_itens_atividades_retificadas(items: list[dict]) -> tuple[list[dict], bool]:
-    """Retorna apenas os itens marcados como retificados e um flag de presença.
+    """Retorna todos os itens retificados ou não e um flag de presença.
 
     Args:
         items: Lista de itens que contêm a chave ``retificado``.
 
     Returns:
-        Tupla ``(items_retificados, tem_retificado)`` onde ``items_retificados``
-        é a lista filtrada e ``tem_retificado`` indica se há ao menos um item.
+        Tupla ``(items, bool(tem_retificado))`` onde ``items``
+        é a lista completa e ``tem_retificado`` indica se há ao menos um item.
     """
+
     items_retificados = [item for item in items if item.get('retificado')]
-    return items_retificados, bool(items_retificados)
+    return items, bool(items_retificados)
 
 
 def _aplicar_filtro_retificacao_no_grupo(prioridades: list[dict], key: str) -> bool:
@@ -247,8 +248,8 @@ def presentes_ata_paa(ata_paa: AtaPaa):
         presentes_ata_membros_list.append(presente_dict)
 
     presentes_ata_nao_membros = ParticipanteAtaPaa.objects.filter(
-        ata_paa=ata_paa, membro=False, conselho_fiscal=False
-    ).order_by('nome').values('uuid', 'nome', 'cargo', 'presente', 'professor_gremio')
+        ata_paa=ata_paa, membro=False, conselho_fiscal=False,
+    ).exclude(identificacao="").order_by('nome').values('uuid', 'nome', 'cargo', 'presente', 'professor_gremio')
 
     presentes_na_ata = {
         "presentes_ata_membros": presentes_ata_membros_list,
