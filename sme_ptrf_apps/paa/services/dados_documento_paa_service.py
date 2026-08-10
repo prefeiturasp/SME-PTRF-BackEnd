@@ -21,6 +21,8 @@ MESES_PT = [
 
 LOGGER = logging.getLogger(__name__)
 
+DATE_FORMAT = "%d/%m/%Y"
+
 
 def _secao_plano_para_documento_receitas(secao):
     """
@@ -101,10 +103,13 @@ def _secao_plano_para_documento_receitas(secao):
     }
 
 
-def gerar_dados_documento_paa(paa, usuario, previa=False, alteracoes=None):
+def gerar_dados_documento_paa(paa, usuario, previa=False, alteracoes=None, **kwargs):
     plano = PlanoOrcamentarioService(paa).construir_plano_orcamentario()
     parametros_paa = ParametroPaa.objects.all().first()
     secoes_por_key = {s["key"]: s for s in plano["secoes"]}
+    eh_retificacao = kwargs.get("retificacao", False)
+    px_versao_raw = kwargs.get("px_versao", None)
+    px_versao = f"#{px_versao_raw:02d}" if px_versao_raw is not None else None
 
     cabecalho = cria_cabecalho(paa.periodo_paa)
     identificacao_associacao = criar_identificacao_associacao(paa)
@@ -126,7 +131,7 @@ def gerar_dados_documento_paa(paa, usuario, previa=False, alteracoes=None):
     retificado_objetivos = bool(objetivos_alterados)
 
     # Exibe data de retificacao apenas se houver alteracoes e a geração não for prévia
-    data_retificacao = datetime.now().strftime("%d/%m/%Y") if alteracoes and not previa else None
+    data_retificacao = datetime.now().strftime(DATE_FORMAT) if alteracoes and not previa else None
     etiqueta_retificacao = f"Retificado em: {data_retificacao}" if data_retificacao else "Em retificação"
     return {
         "cabecalho": cabecalho,
@@ -148,6 +153,8 @@ def gerar_dados_documento_paa(paa, usuario, previa=False, alteracoes=None):
         "retificado_introducao": retificado_introducao,
         "retificado_conclusao": retificado_conclusao,
         "retificado_objetivos": retificado_objetivos,
+        "eh_retificacao": eh_retificacao,
+        "px_versao": px_versao,
     }
 
 
@@ -178,7 +185,7 @@ def criar_recursos_proprios(paa, secao_outros_recursos=None, alteracoes=None):
     recursos = []
     for recurso in paa.recursopropriopaa_set.all():
         recursos.append({
-            "data_prevista": recurso.data_prevista.strftime("%d/%m/%Y"),
+            "data_prevista": recurso.data_prevista.strftime(DATE_FORMAT),
             "fonte_recurso": recurso.fonte_recurso.nome,
             "descricao": recurso.descricao,
             "valor": recurso.valor,
@@ -319,7 +326,7 @@ def criar_atividades_estatutarias(paa, alteracoes=None):
 
         items.append({
             "tipo_atividade": atividade.get_tipo_display(),
-            "data": atividade_paa.data.strftime("%d/%m/%Y") if atividade_paa else "",
+            "data": atividade_paa.data.strftime(DATE_FORMAT) if atividade_paa else "",
             "atividades_previstas": atividade.nome,
             "mes_ano": mes_ano,
             "retificado": str(atividade.uuid) in atividades_alteradas,

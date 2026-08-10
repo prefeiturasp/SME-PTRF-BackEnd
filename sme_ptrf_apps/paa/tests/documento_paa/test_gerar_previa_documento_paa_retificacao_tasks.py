@@ -68,7 +68,8 @@ def test_gerar_previa_retificacao_async_gerar_pdf_chamado_com_alteracoes(paa, us
 
     mock_service = mock_service_class.return_value
     mock_gerar_pdf.assert_called_once_with(
-        paa, mock_service.documento_paa, usuario_task, previa=True, alteracoes=alteracoes
+        paa, mock_service.documento_paa, usuario_task, previa=True, alteracoes=alteracoes,
+        retificacao=True, px_versao=mock_service._calcular_proxima_versao_retificacao.return_value
     )
 
 
