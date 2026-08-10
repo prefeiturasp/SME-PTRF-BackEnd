@@ -41,6 +41,7 @@ from .models import (
     PrevisaoRepasseSme,
     Censo,
     ParametroFiqueDeOlhoPc,
+    FiqueDeOlho,
     ModeloCarga,
     Ambiente,
     ArquivoDownload,
@@ -2231,3 +2232,17 @@ class LogEntryAdminCustom(LogEntryAdmin):
         fuso_horario_local = get_current_timezone()
         data_hora_aware = make_aware(obj.timestamp, fuso_horario_local)
         return localtime(data_hora_aware)
+
+
+@admin.register(FiqueDeOlho)
+class FiqueDeOlhoAdmin(admin.ModelAdmin):
+    list_display = ('texto_preview', 'tipo_texto', 'recurso')
+    list_filter = (
+        'tipo_texto',
+        'recurso',
+    )
+
+    def texto_preview(self, obj):
+        return obj.get_short_texto()
+
+    texto_preview.short_description = "Texto"
