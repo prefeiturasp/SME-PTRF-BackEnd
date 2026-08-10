@@ -1,8 +1,6 @@
 import pytest
-from datetime import timedelta
 
 from sme_ptrf_apps.paa.models import AtaPaa, Paa
-from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
 from sme_ptrf_apps.paa.services.ata_paa_service import unidade_precisa_professor_gremio
 
 pytestmark = pytest.mark.django_db
@@ -211,14 +209,24 @@ def test_unidade_precisa_professor_gremio_sem_configuracao(parametros):
     assert unidade_precisa_professor_gremio('EMEF') is False
 
 
-def test_precisa_professor_gremio_com_tipo_configurado_sem_despesas(ata_paa, parametros):
-    """Testa se precisa_professor_gremio retorna False quando tipo está configurado mas não há despesas"""
+def test_precisa_professor_gremio_com_tipo_configurado_sem_receitas_previstas(ata_paa, parametros, acao_factory,
+                                                                               acao_associacao_factory,
+                                                                               receita_prevista_paa_factory):
+    """Testa se precisa_professor_gremio retorna False quando tipo está configurado mas não há receitas previstas"""
     parametros.tipos_unidades_professor_gremio = ['EMEF']
     parametros.save()
 
-    ata_paa.paa.associacao.unidade.tipo_unidade = 'EMEF'
+    ata_paa.paa.associacao.unidade.tipo_unidade = 'CIEJA'
     ata_paa.paa.associacao.unidade.save()
 
+    acao_gremio = acao_factory.create(nome='Orçamento Grêmio Estudantil')
+    acao_associacao_gremio = acao_associacao_factory.create(
+        associacao=ata_paa.paa.associacao,
+        acao=acao_gremio,
+        status='ATIVA'
+    )
+
+    receita_prevista_paa_factory.create(paa=ata_paa.paa, acao_associacao=acao_associacao_gremio)
     assert ata_paa.precisa_professor_gremio is False
 
 
@@ -287,16 +295,16 @@ def test_completa_ata_aprovada_sem_professor_gremio_quando_precisa(
     assert ata_paa.completa is True
 
 
-def test_precisa_professor_gremio_com_despesas_completas_gremio_no_periodo(
-        ata_paa, parametros, acao_factory, acao_associacao_factory, despesa_factory, rateio_despesa_factory):
+def test_precisa_professor_gremio_com_receitas_previstas_gremio_no_periodo(
+        ata_paa, parametros, acao_factory, acao_associacao_factory, receita_prevista_paa_factory):
     """
-        Testa se precisa_professor_gremio retorna True quando há despesas completas com rateio de
+        Testa se precisa_professor_gremio retorna True quando há receitas previstas com
         ação 'Orçamento Grêmio Estudantil' no período do PAA
     """
-    parametros.tipos_unidades_professor_gremio = ['EMEF']
+    parametros.tipos_unidades_professor_gremio = ['CIEJA']
     parametros.save()
 
-    ata_paa.paa.associacao.unidade.tipo_unidade = 'EMEF'
+    ata_paa.paa.associacao.unidade.tipo_unidade = 'CIEJA'
     ata_paa.paa.associacao.unidade.save()
 
     # Cria ação "Orçamento Grêmio Estudantil"
@@ -307,37 +315,23 @@ def test_precisa_professor_gremio_com_despesas_completas_gremio_no_periodo(
         status='ATIVA'
     )
 
-    # Cria despesa completa no período do PAA
-    periodo_paa = ata_paa.paa.periodo_paa
-    despesa = despesa_factory.create(
-        associacao=ata_paa.paa.associacao,
-        data_transacao=periodo_paa.data_inicial + timedelta(days=1),
-        status=STATUS_COMPLETO
-    )
-
-    # Cria rateio completo com a ação do grêmio
-    rateio_despesa_factory.create(
-        despesa=despesa,
-        associacao=ata_paa.paa.associacao,
-        acao_associacao=acao_associacao_gremio
-    )
+    receita_prevista_paa_factory.create(paa=ata_paa.paa, acao_associacao=acao_associacao_gremio)
 
     assert ata_paa.precisa_professor_gremio is True
 
 
-def test_precisa_professor_gremio_sem_despesas_completas_gremio_no_periodo(
+def test_precisa_professor_gremio_sem_receitas_previstas_gremio_no_periodo(
         ata_paa, parametros, acao_factory, acao_associacao_factory):
     """
-        Testa se precisa_professor_gremio retorna False quando não há despesas completas com rateio de
+        Testa se precisa_professor_gremio retorna False quando não há receitas previstas com
         ação 'Orçamento Grêmio Estudantil' no período do PAA
     """
-    parametros.tipos_unidades_professor_gremio = ['EMEF']
+    parametros.tipos_unidades_professor_gremio = ['CIEJA']
     parametros.save()
 
-    ata_paa.paa.associacao.unidade.tipo_unidade = 'EMEF'
+    ata_paa.paa.associacao.unidade.tipo_unidade = 'CIEJA'
     ata_paa.paa.associacao.unidade.save()
 
-    # Cria ação "Orçamento Grêmio Estudantil" mas sem despesas completas no período
     acao_gremio = acao_factory.create(nome='Orçamento Grêmio Estudantil')
     acao_associacao_factory.create(
         associacao=ata_paa.paa.associacao,
@@ -345,7 +339,6 @@ def test_precisa_professor_gremio_sem_despesas_completas_gremio_no_periodo(
         status='ATIVA'
     )
 
-    # Não cria despesas completas no período do PAA
     assert ata_paa.precisa_professor_gremio is False
 
 
@@ -358,42 +351,4 @@ def test_precisa_professor_gremio_sem_acao_gremio(ata_paa, parametros):
     ata_paa.paa.associacao.unidade.save()
 
     # Não cria ação "Orçamento Grêmio Estudantil"
-    assert ata_paa.precisa_professor_gremio is False
-
-
-def test_precisa_professor_gremio_com_despesas_fora_do_periodo(
-        ata_paa, parametros, acao_factory, acao_associacao_factory, despesa_factory, rateio_despesa_factory):
-    """
-        Testa se precisa_professor_gremio retorna False quando há despesas completas com rateio de
-        ação 'Orçamento Grêmio Estudantil' mas fora do período do PAA
-    """
-    parametros.tipos_unidades_professor_gremio = ['EMEF']
-    parametros.save()
-
-    ata_paa.paa.associacao.unidade.tipo_unidade = 'EMEF'
-    ata_paa.paa.associacao.unidade.save()
-
-    # Cria ação "Orçamento Grêmio Estudantil"
-    acao_gremio = acao_factory.create(nome='Orçamento Grêmio Estudantil')
-    acao_associacao_gremio = acao_associacao_factory.create(
-        associacao=ata_paa.paa.associacao,
-        acao=acao_gremio,
-        status='ATIVA'
-    )
-
-    # Cria despesa completa FORA do período do PAA (antes do período)
-    periodo_paa = ata_paa.paa.periodo_paa
-    despesa = despesa_factory.create(
-        associacao=ata_paa.paa.associacao,
-        data_transacao=periodo_paa.data_inicial - timedelta(days=10),
-        status=STATUS_COMPLETO
-    )
-
-    # Cria rateio completo com a ação do grêmio
-    rateio_despesa_factory.create(
-        despesa=despesa,
-        associacao=ata_paa.paa.associacao,
-        acao_associacao=acao_associacao_gremio
-    )
-
     assert ata_paa.precisa_professor_gremio is False

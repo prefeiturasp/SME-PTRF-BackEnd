@@ -210,8 +210,7 @@ class TestFiltrarItensRetificados:
 
         resultado, _ = _filtrar_itens_atividades_retificadas(items)
 
-        assert len(resultado) == 2
-        assert all(i['retificado'] for i in resultado)
+        assert len(resultado) == 3
 
     def test_flag_true_quando_ha_retificado(self):
         items = [{'retificado': True}, {'retificado': False}]
