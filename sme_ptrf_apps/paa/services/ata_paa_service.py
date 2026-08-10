@@ -5,8 +5,7 @@ from sme_ptrf_apps.paa.models import AtaPaa, LogReplicaPaa
 from sme_ptrf_apps.paa.models.documento_paa import obter_documento_final_por_retificacao
 from sme_ptrf_apps.paa.services.ata_paa_dados_service import gerar_dados_ata_paa
 from sme_ptrf_apps.paa.services.ata_paa_pdf_service import gerar_arquivo_ata_paa_pdf
-from sme_ptrf_apps.despesas.models import RateioDespesa
-from sme_ptrf_apps.core.models import Parametros
+from sme_ptrf_apps.core.models import Parametros, Acao
 from sme_ptrf_apps.paa.services.paa_service import PaaService
 
 LOGGER = logging.getLogger(__name__)
@@ -241,27 +240,18 @@ def verifica_precisa_professor_gremio(ata_paa: AtaPaa) -> bool:
     if not ata_paa.paa.periodo_paa:
         return False
 
-    periodo_paa = ata_paa.paa.periodo_paa
     associacao = ata_paa.paa.associacao
 
     acao_gremio = associacao.acoes.filter(
-        acao__nome__icontains='Orçamento Grêmio Estudantil',
+        acao__nome__icontains=Acao.Nome.ORCAMENTO_GREMIO_ESTUDANTIL,
         status='ATIVA'
     ).first()
 
     if not acao_gremio:
         return False
 
-    rateios_query = RateioDespesa.completos.filter(
-        acao_associacao=acao_gremio,
-        associacao=associacao
-    ).filter(
-        despesa__data_transacao__gte=periodo_paa.data_inicial
+    receita_prevista_query = ata_paa.paa.receitaprevistapaa_set.filter(
+        acao_associacao__acao=acao_gremio.acao,
     )
 
-    if periodo_paa.data_final:
-        rateios_query = rateios_query.filter(
-            despesa__data_transacao__lte=periodo_paa.data_final
-        )
-
-    return rateios_query.exists()
+    return receita_prevista_query.exists()

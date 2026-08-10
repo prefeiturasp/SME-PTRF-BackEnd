@@ -41,7 +41,7 @@
             </tr>
           </thead>
           {% for info in dados.presentes_na_ata.presentes_ata_nao_membros %}
-            {% if not info.professor_gremio or info.identificacao %}
+            {% if info.professor_gremio or info.identificacao %}
             <tbody>
             <tr>
               <td>
