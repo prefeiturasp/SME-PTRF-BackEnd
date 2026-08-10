@@ -35,7 +35,7 @@ class FiqueDeOlhoSerializer(serializers.ModelSerializer):
 
         if tipo_texto not in TipoTextoFiqueDeOlhoChoices.values:
             raise serializers.ValidationError(
-                {"detail": "O campo tipo_texto deve ser um valor válidos."}
+                {"detail": "O campo tipo de texto deve ser um valor válido."}
             )
 
         ja_cadastrado = FiqueDeOlho.get_first_with_recurso_and_tipo_texto(recurso, tipo_texto)
