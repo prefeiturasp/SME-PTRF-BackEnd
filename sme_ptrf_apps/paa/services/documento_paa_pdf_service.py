@@ -11,9 +11,8 @@ from sme_ptrf_apps.paa.services.dados_documento_paa_service import gerar_dados_d
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_arquivo_documento_paa_pdf(paa, documento_paa, usuario, previa=False, alteracoes=None):
-
-    dados = gerar_dados_documento_paa(paa, usuario, previa, alteracoes=alteracoes)
+def gerar_arquivo_documento_paa_pdf(paa, documento_paa, usuario, previa=False, alteracoes=None, **kwargs):
+    dados = gerar_dados_documento_paa(paa, usuario, previa, alteracoes=alteracoes, **kwargs)
 
     html_template = get_template('pdf/paa/documento/pdf-horizontal.html')
 
