@@ -146,7 +146,13 @@ def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
                 _filtrar_itens_atividades_retificadas(atividades_estatutarias)
             )
 
-        numeros_blocos = calcular_numeros_blocos(prioridades, atividades_estatutarias)
+        dados = {
+            "prioridades": prioridades,
+            "atividades_estatutarias": atividades_estatutarias,
+            "manifestacoes": dados_texto_ata.get("manifestacoes", ""),
+        }
+
+        numeros_blocos = calcular_numeros_blocos(dados, is_retificacao)
 
         dados_ata = {
             "cabecalho": cabecalho,
@@ -175,11 +181,15 @@ def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
         raise
 
 
-def calcular_numeros_blocos(prioridades, atividades_estatutarias):
+def calcular_numeros_blocos(dados, is_retificacao):
     """
     Calcula os números dos blocos dinamicamente baseado nos blocos que existem.
     Similar à função nome_blocos do relatório de acertos.
     """
+    prioridades = dados.get('prioridades', [])
+    atividades_estatutarias = dados.get('atividades_estatutarias', [])
+    manifestacoes = dados.get('manifestacoes', "")
+
     numeros = {}
     numero_bloco = 2  # Começa em 2 porque Bloco 1 e 2 são fixos
 
@@ -217,11 +227,20 @@ def calcular_numeros_blocos(prioridades, atividades_estatutarias):
         numero_bloco += 1
         numeros['atividades_estatutarias'] = numero_bloco
 
-    # Bloco de Manifestações (sempre após Atividades Estatutárias)
-    numero_bloco += 1
-    numeros['manifestacoes'] = numero_bloco
+    if is_retificacao:
+        # Bloco de Justificativa da Retificação (sempre após Atividades Estatutárias)
+        numero_bloco += 1
+        numeros['justificativa_retificacao'] = numero_bloco
 
-    # Bloco de Lista de Presença (sempre após Manifestações)
+    if manifestacoes:
+        # Bloco de Manifestações (sempre após Atividades Estatutárias ou Justificativa da Retificação)
+        numero_bloco += 1
+        numeros['manifestacoes'] = numero_bloco
+
+    numero_bloco += 1
+    numeros['parecer_conselho'] = numero_bloco
+
+    # Bloco de Lista de Presença (sempre após Parecer do Conselho)
     numero_bloco += 1
     numeros['lista_presenca'] = numero_bloco
 
@@ -412,6 +431,7 @@ def dados_texto_ata_paa(ata_paa: AtaPaa, usuario=None):
         "comentarios": ata_paa.comentarios,
         "parecer_conselho": ata_paa.parecer_conselho,
         "justificativa": ata_paa.justificativa if ata_paa.justificativa else "",
+        "justificativa_retificacao": ata_paa.justificativa_retificacao if ata_paa.justificativa_retificacao else "",
         "usuario": usuario.username if usuario else "",
         "hora_reuniao": ata_paa.hora_reuniao.strftime('%H:%M') if ata_paa.hora_reuniao else "00:00",
         "hora_reuniao_formatada": formatar_hora_ata(ata_paa.hora_reuniao) if ata_paa.hora_reuniao else "00h00",

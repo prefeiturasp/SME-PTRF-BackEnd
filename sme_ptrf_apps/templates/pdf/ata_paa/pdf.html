@@ -89,11 +89,13 @@
       {% if not dados.is_retificacao or dados.retificado_prioridades_ptrf %}
         <section class="row mt-4">
           <article class="col mb-3 border p-0">
-            <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0">
-              <strong>{{ grupo.titulo }}</strong>
-              {% if dados.is_retificacao and dados.etiqueta_retificacao %}<span class="tag-retificacao">{{ dados.etiqueta_retificacao }}</span>{% endif %}
-            </p>
-            {% include "./partials/tabela-prioridades.html" %}
+            <div class="col-12">
+              <p class="font-14 pt-1 pb-1 border-bottom mb-0">
+                <strong>{{ grupo.titulo }}</strong>
+                {% if dados.is_retificacao and dados.etiqueta_retificacao %}<span class="tag-retificacao">{{ dados.etiqueta_retificacao }}</span>{% endif %}
+              </p>
+              {% include "./partials/tabela-prioridades.html" %}
+            </div>
           </article>
         </section>
       {% endif %}
@@ -106,11 +108,13 @@
       {% if not dados.is_retificacao or dados.retificado_prioridades_pdde %}
         <section class="row mt-4">
           <article class="col mb-3 border p-0">
-            <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0">
+            <div class="col-12">
+            <p class="font-14 pt-1 pb-1 border-bottom mb-0">
               <strong>{{ grupo.titulo }}</strong>
               {% if dados.is_retificacao and dados.etiqueta_retificacao %}<span class="tag-retificacao">{{ dados.etiqueta_retificacao }}</span>{% endif %}
             </p>
             {% include "./partials/tabela-prioridades.html" %}
+            </div>
           </article>
         </section>
       {% endif %}
@@ -123,11 +127,13 @@
       {% if not dados.is_retificacao or dados.retificado_prioridades_outros %}
         <section class="row mt-4">
           <article class="col mb-3 border p-0">
-            <p class="font-14 pt-1 pb-1 pl-2 border-bottom mb-0">
-              <strong>{{ grupo.titulo }}</strong>
-              {% if dados.is_retificacao and dados.etiqueta_retificacao %}<span class="tag-retificacao">{{ dados.etiqueta_retificacao }}</span>{% endif %}
-            </p>
-            {% include "./partials/tabela-prioridades.html" %}
+            <div class="col-12">
+              <p class="font-14 pt-1 pb-1 border-bottom mb-0">
+                <strong>{{ grupo.titulo }}</strong>
+                {% if dados.is_retificacao and dados.etiqueta_retificacao %}<span class="tag-retificacao">{{ dados.etiqueta_retificacao }}</span>{% endif %}
+              </p>
+              {% include "./partials/tabela-prioridades.html" %}
+            </div>
           </article>
         </section>
       {% endif %}
@@ -139,8 +145,16 @@
     {% include "./partials/bloco-atividades-estatutarias.html" with numero_bloco=dados.numeros_blocos.atividades_estatutarias %}
   {% endif %}
 
+  {# Bloco Justificativa da retificação #}
+  {% if dados.is_retificacao and dados.dados_texto_da_ata.justificativa_retificacao %}
+    {% include "./partials/bloco-justificativa_retificacao.html" with numero_bloco=dados.numeros_blocos.justificativa_retificacao %}
+  {% endif %}
+
   {# Bloco de Manifestações #}
   {% include "./partials/bloco-manifestacoes.html" with numero_bloco=dados.numeros_blocos.manifestacoes %}
+
+  {# Bloco de Parecer do Conselho #}
+  {% include "./partials/bloco-parecer-conselho.html" with numero_bloco=dados.numeros_blocos.parecer_conselho %}
 
   {# Bloco de Lista de Presença #}
   {% include "./partials/bloco-lista-presenca.html" with numero_bloco=dados.numeros_blocos.lista_presenca %}
