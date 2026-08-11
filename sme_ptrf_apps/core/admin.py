@@ -88,7 +88,7 @@ from django.db.models import Count
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html
 
-admin.site.register(ParametroFiqueDeOlhoPc)
+# admin.site.register(ParametroFiqueDeOlhoPc)
 admin.site.register(ModeloCarga)
 admin.site.register(MotivoRejeicaoEncerramentoContaAssociacao)
 
