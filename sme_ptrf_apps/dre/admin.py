@@ -21,7 +21,7 @@ from .models import (
 )
 from .forms import ComissaoAdminForm
 
-admin.site.register(ParametroFiqueDeOlhoRelDre)
+# admin.site.register(ParametroFiqueDeOlhoRelDre)
 admin.site.register(MotivoAprovacaoRessalva)
 admin.site.register(MotivoReprovacao)
 
