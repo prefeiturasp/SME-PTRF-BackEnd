@@ -74,7 +74,7 @@ class ExportacaoDadosContasService:
                     ("Saldo_atual_SIG-Escola", "saldo_atual")
                 )
                 cabecalho_integracao_bb.append(
-                    ("Saldo Atual do Banco", "__bb_saldo_bancario__")
+                    ("Saldo Atual do Banco¹", "__bb_saldo_bancario__")
                 )
                 continue
 
@@ -317,6 +317,10 @@ class ExportacaoDadosContasService:
 
         data_hora_disponibilizado = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
         rodape.append(f"Arquivo disponibilizado em {data_hora_disponibilizado}")
+        write.writerow(rodape)
+        rodape.clear()
+
+        rodape.append("¹ Saldo atual do banco: valor obtido por meio da soma dos campos 'valorDisponibilidade' fornecidos via API de saldo bancário e de saldo das aplicações do BB Ágil.")
         write.writerow(rodape)
         rodape.clear()
 
