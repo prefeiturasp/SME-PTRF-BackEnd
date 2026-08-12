@@ -274,7 +274,8 @@ def test_completa_ata_aprovada_sem_professor_gremio_quando_nao_precisa(
 
 
 def test_completa_ata_aprovada_sem_professor_gremio_quando_precisa(
-        ata_paa, participante_ata_paa_factory, parametros, flag_factory):
+        ata_paa, participante_ata_paa_factory, parametros,
+        flag_factory, acao_factory, acao_associacao_factory):
     """Testa se ata está completa sem professor do grêmio quando unidade precisa (professor não é obrigatório)"""
     flag_factory.create(name='historico-de-membros', everyone=True)
     parametros.tipos_unidades_professor_gremio = ['EMEF']
@@ -282,6 +283,14 @@ def test_completa_ata_aprovada_sem_professor_gremio_quando_precisa(
 
     ata_paa.paa.associacao.unidade.tipo_unidade = 'EMEF'
     ata_paa.paa.associacao.unidade.save()
+
+    # Cria ação "Orçamento Grêmio Estudantil"
+    acao_gremio = acao_factory.create(nome='Orçamento Grêmio Estudantil')
+    acao_associacao_factory.create(
+        associacao=ata_paa.paa.associacao,
+        acao=acao_gremio,
+        status='ATIVA'
+    )
 
     presidente = participante_ata_paa_factory.create(ata_paa=ata_paa, nome="Presidente")
     secretario = participante_ata_paa_factory.create(ata_paa=ata_paa, nome="Secretário")
@@ -295,7 +304,7 @@ def test_completa_ata_aprovada_sem_professor_gremio_quando_precisa(
     assert ata_paa.completa is True
 
 
-def test_precisa_professor_gremio_com_receitas_previstas_gremio_no_periodo(
+def test_precisa_professor_gremio_com_acao_associacao_gremio_no_periodo(
         ata_paa, parametros, acao_factory, acao_associacao_factory, receita_prevista_paa_factory):
     """
         Testa se precisa_professor_gremio retorna True quando há receitas previstas com
@@ -309,18 +318,16 @@ def test_precisa_professor_gremio_com_receitas_previstas_gremio_no_periodo(
 
     # Cria ação "Orçamento Grêmio Estudantil"
     acao_gremio = acao_factory.create(nome='Orçamento Grêmio Estudantil')
-    acao_associacao_gremio = acao_associacao_factory.create(
+    acao_associacao_factory.create(
         associacao=ata_paa.paa.associacao,
         acao=acao_gremio,
         status='ATIVA'
     )
 
-    receita_prevista_paa_factory.create(paa=ata_paa.paa, acao_associacao=acao_associacao_gremio)
-
     assert ata_paa.precisa_professor_gremio is True
 
 
-def test_precisa_professor_gremio_sem_receitas_previstas_gremio_no_periodo(
+def test_precisa_professor_gremio_sem_acao_associacao_gremio_no_periodo(
         ata_paa, parametros, acao_factory, acao_associacao_factory):
     """
         Testa se precisa_professor_gremio retorna False quando não há receitas previstas com
@@ -332,12 +339,7 @@ def test_precisa_professor_gremio_sem_receitas_previstas_gremio_no_periodo(
     ata_paa.paa.associacao.unidade.tipo_unidade = 'CIEJA'
     ata_paa.paa.associacao.unidade.save()
 
-    acao_gremio = acao_factory.create(nome='Orçamento Grêmio Estudantil')
-    acao_associacao_factory.create(
-        associacao=ata_paa.paa.associacao,
-        acao=acao_gremio,
-        status='ATIVA'
-    )
+    acao_factory.create(nome='Orçamento Grêmio Estudantil')
 
     assert ata_paa.precisa_professor_gremio is False
 

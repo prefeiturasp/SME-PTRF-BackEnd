@@ -250,8 +250,4 @@ def verifica_precisa_professor_gremio(ata_paa: AtaPaa) -> bool:
     if not acao_gremio:
         return False
 
-    receita_prevista_query = ata_paa.paa.receitaprevistapaa_set.filter(
-        acao_associacao__acao=acao_gremio.acao,
-    )
-
-    return receita_prevista_query.exists()
+    return True
