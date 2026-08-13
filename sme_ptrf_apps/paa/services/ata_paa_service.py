@@ -1,17 +1,20 @@
 import logging
 from django.db import transaction
+from typing import Optional
+from django.contrib.auth.models import User
 
 from sme_ptrf_apps.paa.models import AtaPaa, LogReplicaPaa
 from sme_ptrf_apps.paa.models.documento_paa import obter_documento_final_por_retificacao
 from sme_ptrf_apps.paa.services.ata_paa_dados_service import gerar_dados_ata_paa
 from sme_ptrf_apps.paa.services.ata_paa_pdf_service import gerar_arquivo_ata_paa_pdf
 from sme_ptrf_apps.core.models import Parametros, Acao
+from sme_ptrf_apps.paa.models import Paa, ReplicaPaa
 from sme_ptrf_apps.paa.services.paa_service import PaaService
 
 LOGGER = logging.getLogger(__name__)
 
 
-def _salvar_log_replica(paa, replica) -> LogReplicaPaa:
+def _salvar_log_replica(paa: Paa, replica: ReplicaPaa) -> LogReplicaPaa:
     """
     Registra snapshot da réplica no log ao concluir a retificação com êxito.
 
@@ -44,7 +47,7 @@ def _salvar_log_replica(paa, replica) -> LogReplicaPaa:
     return log
 
 
-def _remover_replica(replica) -> None:
+def _remover_replica(replica: ReplicaPaa) -> None:
     """
     Remove a réplica do PAA após o log de réplica ter sido salvo com êxito.
 
@@ -77,7 +80,7 @@ def _apagar_atas_retificacao_anteriores(ata_paa: AtaPaa) -> None:
         )
 
 
-def gerar_arquivo_ata_paa_retificacao(ata_paa: AtaPaa, usuario=None) -> AtaPaa | None:
+def gerar_arquivo_ata_paa_retificacao(ata_paa: AtaPaa, usuario: Optional[User] = None) -> AtaPaa | None:
     """
     Gera o arquivo PDF da ata PAA de Retificação.
 
@@ -138,7 +141,7 @@ def gerar_arquivo_ata_paa_retificacao(ata_paa: AtaPaa, usuario=None) -> AtaPaa |
         return None
 
 
-def gerar_arquivo_ata_paa(ata_paa: AtaPaa, usuario=None):
+def gerar_arquivo_ata_paa(ata_paa: AtaPaa, usuario: Optional[User] = None):
     """
     Gera o arquivo PDF da ata PAA final
     """
