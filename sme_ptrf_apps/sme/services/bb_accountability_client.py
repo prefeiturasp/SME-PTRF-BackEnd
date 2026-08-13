@@ -19,8 +19,8 @@ HTTP_400_CONTA_NAO_DISPONIVEL = object()
 # BB_CLIENT_ID=seu_client_id
 # BB_CLIENT_SECRET=seu_client_secret
 # BB_APP_KEY=seu_aap_key
-# BB_OAUTH_URL=https://oauth.bb.com.br/oauth/token          # produção
-# BB_API_BASE_URL=https://api.bb.com.br/accountability/v3   # produção
+# BB_OAUTH_URL=https://api.example.com/oauth/token
+# BB_API_BASE_URL=https://api.example.com
 # ──────────────────────────────────────────────────────────────────────────────
 
 # Rate limiting: 25 TPS com margem de segurança
