@@ -116,6 +116,7 @@ def test_api_list_status_associacoes_dre_1(
                     'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
                 },
                 'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
+                'recursos': '',
             },
             'status_regularidade': 'REGULAR',
             'motivo': '',
@@ -158,6 +159,7 @@ def test_api_list_status_associacoes_pelo_nome_associacao_ignorando_acentos(
                     'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
                 },
                 'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
+                'recursos': '',
             },
             'status_regularidade': 'REGULAR',
             'motivo': ''
@@ -199,6 +201,7 @@ def test_api_list_status_associacoes_pelo_nome_escola(
                     'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
                 },
                 'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
+                'recursos': '',
             },
             'status_regularidade': 'REGULAR',
             'motivo': ''
@@ -223,7 +226,6 @@ def test_api_list_status_associacoes_pelo_tipo_unidade(
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
 
-
     result_esperado = [
         {
             'associacao': {
@@ -242,6 +244,7 @@ def test_api_list_status_associacoes_pelo_tipo_unidade(
                     'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
                 },
                 'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
+                'recursos': '',
             },
             'status_regularidade': 'REGULAR',
             'motivo': ''
@@ -265,7 +268,6 @@ def test_api_list_status_associacoes_pelo_status(
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
 
-
     result_esperado = [
         {
             'associacao': {
@@ -284,6 +286,7 @@ def test_api_list_status_associacoes_pelo_status(
                     'nome_dre': associacao_valenca_ceu_vassouras_dre_1.unidade.nome_dre
                 },
                 'cnpj': associacao_valenca_ceu_vassouras_dre_1.cnpj,
+                'recursos': '',
             },
             'status_regularidade': 'REGULAR',
             'motivo': ''
