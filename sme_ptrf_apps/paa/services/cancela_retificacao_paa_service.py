@@ -396,7 +396,7 @@ class PaaRollbackHandlers(RollbackEngine):
             pass
 
         def _delete(uuid: str) -> None:
-            """Remove o objto pelo UUID"""
+            """Remove o objetivos pelo UUID"""
             objetivo = self._get_by_uuid_or_none(ObjetivoPaa, uuid)
             self.paa.objetivos.remove(objetivo)
 
