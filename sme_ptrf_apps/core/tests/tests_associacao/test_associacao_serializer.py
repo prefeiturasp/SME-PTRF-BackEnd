@@ -77,7 +77,8 @@ def test_associacao_create_serializer_sem_nome_dre():
             'cep': '01001000',
             'tipo_unidade': 'EMEF',
             'observacao': 'Unidade gerada para teste',
-        }
+        },
+        'periodos_iniciais': []
     })
 
     assert serializer.is_valid(), serializer.errors

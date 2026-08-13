@@ -68,3 +68,4 @@ from .motivo_rejeicao_encerramento_conta_associacao_serializer import (
 from .prestacao_conta_reprovada_nao_apresentacao_serializer import PrestacaoContaReprovadaNaoApresentacaoSerializer
 from .acao_serializer import AcaoSerializer
 from .fique_de_olho_serializer import FiqueDeOlhoSerializer
+from .periodo_inicial_associacao_serializer import SimplePeriodoInicialAssociacaoSerializer

@@ -25,6 +25,7 @@ def test_api_valores_reprogramados_filtro_nome_unidade(
     resultado_esperado = [
         {
             'associacao': {
+                'recursos': '',
                 'cnpj': associacao_2.cnpj,
                 'nome': associacao_2.nome,
                 'data_de_encerramento': None,
@@ -83,6 +84,7 @@ def test_api_valores_reprogramados_filtro_nome_associacao(
     resultado_esperado = [
         {
             'associacao': {
+                'recursos': '',
                 'cnpj': associacao_2.cnpj,
                 'nome': associacao_2.nome,
                 'data_de_encerramento': None,
@@ -141,6 +143,7 @@ def test_api_valores_reprogramados_filtro_codigo_eol(
     resultado_esperado = [
         {
             'associacao': {
+                'recursos': '',
                 'cnpj': associacao_2.cnpj,
                 'nome': associacao_2.nome,
                 'data_de_encerramento': None,
@@ -199,6 +202,7 @@ def test_api_valores_reprogramados_filtro_tipo_unidade(
     resultado_esperado = [
         {
             'associacao': {
+                'recursos': '',
                 'cnpj': associacao_2.cnpj,
                 'nome': associacao_2.nome,
                 'data_de_encerramento': None,
