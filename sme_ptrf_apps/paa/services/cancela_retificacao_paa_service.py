@@ -1,11 +1,15 @@
-from datetime import datetime
+from datetime import datetime, date
 from decimal import Decimal, InvalidOperation
 from django.db import transaction
 from django.db.models import DecimalField
 from django.core.exceptions import FieldDoesNotExist
+from typing import Any
+from django.contrib.auth.models import User
+from django.db.models import Model
+from collections.abc import Callable
+from django.db.models import QuerySet
 from waffle import get_waffle_flag_model
 from sme_ptrf_apps.logging.loggers import ContextualLogger
-
 from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.models import (
     Paa,
@@ -39,7 +43,7 @@ class ValidacaoCancelaRetificacao(Exception):
 class CancelaRetificacaoPaaServiceBase:
     """Infraestrutura compartilhada: paa, usuario, logger e helpers."""
 
-    def __init__(self, paa: Paa, usuario):
+    def __init__(self, paa: Paa, usuario: User) -> None:
         self.paa = paa
         self.usuario = usuario
         self.logger = ContextualLogger.get_logger(
@@ -66,16 +70,22 @@ class CancelaRetificacaoPaaServiceBase:
             partes.append(f'PAA:{self.paa.id}')
         self.logger.update_context(operacao_id='-'.join(partes) or None)
 
-    def _get_by_uuid_or_none(self, model, uuid):
+    def _get_by_uuid_or_none(self, model: type[Model], uuid: str) -> Model | None:
+        """Retorna o objeto do model pelo uuid ou None se não encontrado."""
         if not uuid:
             return None
 
         return model.objects.get(uuid=uuid)
 
-    def _str_data_para_date(self, data: str):
+    def _str_data_para_date(self, data: str) -> date | None:
+        """
+        Retorna um objeto date a partir de uma string no formato 'YYYY-MM-DD'
+        ou None se a string for inválida.
+        """
         return datetime.strptime(data, '%Y-%m-%d').date()
 
-    def _str_cash_para_decimal(self, valor):
+    def _str_cash_para_decimal(self, valor: Any) -> Decimal | None:
+        """Retorna um objeto Decimal a partir de uma string monetária ou None se inválida."""
         if valor is None:
             return None
 
@@ -94,19 +104,22 @@ class CancelaRetificacaoPaaServiceBase:
 class RollbackEngine(CancelaRetificacaoPaaServiceBase):
     """Engine genérica: sabe COMO reverter itens, independente de domínio."""
 
-    def _log_inicio_secao(self, nome_sessao, alteracoes):
+    def _log_inicio_secao(self, nome_sessao: str, alteracoes: list) -> None:
+        """Registra o início de uma seção de rollback."""
         self.logger.info(
             f'[ROLLBACK][{nome_sessao}] '
             f'Iniciando rollback. '
             f'Quantidade alterações: {len(alteracoes)}'
         )
 
-    def _log_fim_secao(self, nome_sessao):
+    def _log_fim_secao(self, nome_sessao: str) -> None:
+        """Registra o fim de uma seção de rollback."""
         self.logger.info(
             f'[ROLLBACK][{nome_sessao}] Rollback concluído.'
         )
 
-    def _rollback_campos_simples(self, sessoes_afetadas):
+    def _rollback_campos_simples(self, sessoes_afetadas: dict) -> None:
+        """Restaura os campos simples do PAA a partir das alterações registradas."""
         CAMPOS = ['texto_introducao', 'texto_conclusao']
         campos_alterados = []
 
@@ -123,13 +136,16 @@ class RollbackEngine(CancelaRetificacaoPaaServiceBase):
 
     def _rollback_relacionados(
         self,
-        alteracoes,
-        queryset,
-        update_callback=None,
-        create_callback=None,
-        delete_callback=None,
-        key_resolver=None,
-    ):
+        alteracoes: dict,
+        queryset: QuerySet,
+        update_callback: Callable | None = None,
+        create_callback: Callable | None = None,
+        delete_callback: Callable | None = None,
+        key_resolver: Callable | None = None,
+    ) -> None:
+        """
+        Restaura os objetos relacionados a partir das alterações registradas.
+        """
         key_resolver = key_resolver or (lambda obj: str(obj.uuid))
 
         objetos = {key_resolver(obj): obj for obj in queryset}
@@ -209,7 +225,8 @@ class PaaRollbackHandlers(RollbackEngine):
         'prioridades': '_rollback_prioridades',
     }
 
-    def executar_rollbacks(self, sessoes_afetadas):
+    def executar_rollbacks(self, sessoes_afetadas: dict) -> None:
+        """Executa os rollbacks para todas as seções afetadas do PAA."""
         self.logger.info(
             f'Iniciando execução de rollback. '
             f'Seções afetadas: {list(sessoes_afetadas.keys())}'
@@ -234,8 +251,8 @@ class PaaRollbackHandlers(RollbackEngine):
     # Handlers de seção
     # ----------------------------------------------------------
 
-    def _rollback_atividades_estatutarias_paa(self, alteracoes):
-
+    def _rollback_atividades_estatutarias_paa(self, alteracoes: dict) -> None:
+        """Rollback de atividades estatutárias vinculadas ao PAA (paa_id setado)."""
         def _update(obj: AtividadeEstatutariaPaa, anterior, uuid=None):
             atividade = obj.atividade_estatutaria
             atividade.nome = anterior.get('nome')
@@ -247,7 +264,8 @@ class PaaRollbackHandlers(RollbackEngine):
             obj.data = self._str_data_para_date(anterior.get('data'))
             obj.save()
 
-        def _create(uuid: str, dados: dict):
+        def _create(uuid: str, dados: dict) -> None:
+            """Cria uma nova AtividadeEstatutaria e vincula ao PAA."""
             atividade = AtividadeEstatutaria.objects.create(
                 uuid=uuid,
                 nome=dados['nome'],
@@ -262,7 +280,8 @@ class PaaRollbackHandlers(RollbackEngine):
                 data=self._str_data_para_date(dados['data']),
             )
 
-        def _delete(uuid: str):
+        def _delete(uuid: str) -> None:
+            """Deleta o vínculo AtividadeEstatutariaPaa e a AtividadeEstatutaria pai, se existir."""
             # Atividades PAA têm paa_id setado — ao desfazer 'adicionado',
             # devemos deletar tanto o vínculo quanto a AtividadeEstatutaria pai.
             try:
@@ -291,11 +310,16 @@ class PaaRollbackHandlers(RollbackEngine):
             key_resolver=lambda obj: str(obj.atividade_estatutaria.uuid),
         )
 
-    def _rollback_atividades_estatutarias_globais(self, alteracoes):
+    def _rollback_atividades_estatutarias_globais(self, alteracoes: dict) -> None:
+        """
+        Atividades globais (paa=None): não criamos/deletamos o objeto raiz,
+        apenas gerenciamos o vínculo AtividadeEstatutariaPaa e o campo `data`.
+        """
         # Atividades globais (paa=None): não criamos/deletamos o objeto raiz,
         # apenas gerenciamos o vínculo AtividadeEstatutariaPaa e o campo `data`.
 
-        def _create(uuid: str, dados: dict):
+        def _create(uuid: str, dados: dict) -> None:
+            """restaura o vínculo desfeito durante retificação"""
             # ação 'removido' no diff → restaura o vínculo desfeito durante retificação
             try:
                 atividade = AtividadeEstatutaria.objects.get(uuid=uuid)
@@ -310,12 +334,14 @@ class PaaRollbackHandlers(RollbackEngine):
                     f'AtividadeEstatutaria global não encontrada uuid={uuid}'
                 )
 
-        def _update(obj: AtividadeEstatutariaPaa, anterior, uuid=None):
+        def _update(obj: AtividadeEstatutariaPaa, anterior, uuid=None) -> None:
+            """Atualiza a data com o valor anterior"""
             # apenas o campo `data` pertence ao vínculo — os demais são do objeto global
             obj.data = self._str_data_para_date(anterior.get('data'))
             obj.save()
 
-        def _delete(uuid: str):
+        def _delete(uuid: str) -> None:
+            """Remove o vínculo da atividade estatutária com o paa"""
             # ação 'adicionado' no diff → remove o vínculo sem tocar na AtividadeEstatutaria
             try:
                 self.paa.atividadeestatutariapaa_set.filter(
@@ -337,12 +363,15 @@ class PaaRollbackHandlers(RollbackEngine):
             key_resolver=lambda obj: str(obj.atividade_estatutaria.uuid),
         )
 
-    def _rollback_objetivos_paa(self, alteracoes):
+    def _rollback_objetivos_paa(self, alteracoes: dict) -> None:
+        """Realiza rollback dos objetivos do paa"""
 
-        def _create(uuid: str, dados: dict):
+        def _create(uuid: str, dados: dict) -> None:
+            """Cria o objetivo do paa"""
             self.paa.objetivopaa_set.create(uuid=uuid, nome=dados['nome'])
 
-        def _update(obj, anterior, uuid=None):
+        def _update(obj, anterior: dict, uuid: str = None) -> None:
+            """Atualiza com o nome anterior"""
             self.logger.info(f'Restaurando objetivo {uuid}')
             obj.nome = anterior['nome']
             obj.save()
@@ -354,16 +383,20 @@ class PaaRollbackHandlers(RollbackEngine):
             update_callback=_update,
         )
 
-    def _rollback_objetivos_globais(self, alteracoes):
-
-        def _create(uuid: str, dados: dict):
+    def _rollback_objetivos_globais(self, alteracoes: dict) -> None:
+        """Realiza rollback dos objetivos globais"""
+        def _create(uuid: str, dados: dict) -> None:
+            """
+            Adiciona os objetivos do paa
+            """
             objetivo = self._get_by_uuid_or_none(ObjetivoPaa, uuid)
             self.paa.objetivos.add(objetivo)
 
-        def _update(obj, anterior, uuid=None):
+        def _update(obj, anterior: dict, uuid: str = None) -> None:
             pass
 
-        def _delete(uuid):
+        def _delete(uuid: str) -> None:
+            """Remove o objetivos pelo UUID"""
             objetivo = self._get_by_uuid_or_none(ObjetivoPaa, uuid)
             self.paa.objetivos.remove(objetivo)
 
@@ -375,9 +408,10 @@ class PaaRollbackHandlers(RollbackEngine):
             delete_callback=_delete,
         )
 
-    def _rollback_receitas_ptrf(self, alteracoes):
-
-        def _create(uuid: str, dados: dict):
+    def _rollback_receitas_ptrf(self, alteracoes: dict) -> None:
+        """Realiza o Rollback das receitas PTRF"""
+        def _create(uuid: str, dados: dict) -> None:
+            """Cria as receitas PTRF"""
             acao_associacao = self._get_by_uuid_or_none(AcaoAssociacao, uuid)
             self.paa.receitaprevistapaa_set.create(
                 acao_associacao=acao_associacao,
@@ -396,9 +430,10 @@ class PaaRollbackHandlers(RollbackEngine):
             key_resolver=lambda obj: str(obj.acao_associacao.uuid),
         )
 
-    def _rollback_receitas_pdde(self, alteracoes):
-
-        def _create(uuid: str, dados: dict):
+    def _rollback_receitas_pdde(self, alteracoes: dict) -> None:
+        """Realiza o Rollback das receitas PDDE"""
+        def _create(uuid: str, dados: dict) -> None:
+            """Cria as receitas PDDE"""
             acao_pdde = self._get_by_uuid_or_none(AcaoPdde, uuid)
             self.paa.receitaprevistapdde_set.create(
                 acao_pdde=acao_pdde,
@@ -417,16 +452,19 @@ class PaaRollbackHandlers(RollbackEngine):
             key_resolver=lambda obj: str(obj.acao_pdde.uuid),
         )
 
-    def _rollback_receitas_recurso_proprio(self, alteracoes):
+    def _rollback_receitas_recurso_proprio(self, alteracoes: dict) -> None:
+        """Realiza o Rollback das receitas do recurso próprio"""
 
-        def _resolve(dados):
+        def _resolve(dados: dict) -> tuple[FonteRecursoPaa, Associacao]:
+            """Carrega a fonte do recurso e a associação"""
             fonte_recurso, _ = FonteRecursoPaa.objects.get_or_create(
                 nome=dados['fonte_recurso']
             )
             associacao = Associacao.objects.get(uuid=dados['associacao'])
             return fonte_recurso, associacao
 
-        def _update(obj: RecursoProprioPaa, anterior, uuid=None):
+        def _update(obj: RecursoProprioPaa, anterior: dict, uuid: str = None) -> None:
+            "Atualiza com as informações anteriores"
             fonte_recurso, associacao = _resolve(anterior)
             obj.fonte_recurso = fonte_recurso
             obj.associacao = associacao
@@ -435,7 +473,8 @@ class PaaRollbackHandlers(RollbackEngine):
             obj.valor = self._str_cash_para_decimal(anterior.get('valor'))
             obj.save()
 
-        def _create(uuid: str, dados: dict):
+        def _create(uuid: str, dados: dict) -> None:
+            """Cria um Recurso próprio PAA"""
             fonte_recurso, associacao = _resolve(dados)
             self.paa.recursopropriopaa_set.create(
                 uuid=uuid,
@@ -453,9 +492,11 @@ class PaaRollbackHandlers(RollbackEngine):
             create_callback=_create,
         )
 
-    def _rollback_receitas_outros_recursos(self, alteracoes):
+    def _rollback_receitas_outros_recursos(self, alteracoes: dict) -> None:
+        """Realiza o Rollback das receitas dos outros recursos"""
 
-        def _update(obj: ReceitaPrevistaOutroRecursoPeriodo, anterior, uuid=None):
+        def _update(obj: ReceitaPrevistaOutroRecursoPeriodo, anterior: dict, uuid: str = None) -> None:
+            "Atualiza com as informações anteriores"
             # `outro_recurso_periodo` é a chave de identificação do item — não muda
             obj.previsao_valor_capital = self._str_cash_para_decimal(anterior.get('previsao_valor_capital'))
             obj.previsao_valor_custeio = self._str_cash_para_decimal(anterior.get('previsao_valor_custeio'))
@@ -465,7 +506,8 @@ class PaaRollbackHandlers(RollbackEngine):
             obj.saldo_livre = self._str_cash_para_decimal(anterior.get('saldo_livre'))
             obj.save()
 
-        def _create(uuid: str, dados: dict):
+        def _create(uuid: str, dados: dict) -> None:
+            """Cria uma nova Receita prevista outro recurso"""
             outro_recurso_periodo = self._get_by_uuid_or_none(
                 OutroRecursoPeriodoPaa, uuid
             )
@@ -489,9 +531,13 @@ class PaaRollbackHandlers(RollbackEngine):
             key_resolver=lambda obj: str(obj.outro_recurso_periodo.uuid),
         )
 
-    def _rollback_prioridades(self, alteracoes):
-
-        def _resolve_relacoes(dados):
+    def _rollback_prioridades(self, alteracoes: dict) -> None:
+        """Realiza o Rollback das prioridades"""
+        def _resolve_relacoes(dados: dict) -> dict:
+            """
+            Carrega a acao_associacao, programa_pdde, acao_pdde, outro_recurso,
+            tipo_despesa_custeio tipo_despesa_custeio e especificacao_material
+            """
             return {
                 'acao_associacao': self._get_by_uuid_or_none(
                     AcaoAssociacao, dados.get('acao_associacao_uuid')
@@ -514,7 +560,10 @@ class PaaRollbackHandlers(RollbackEngine):
                 ),
             }
 
-        def _update(obj: PrioridadePaa, anterior, uuid=None):
+        def _update(obj: PrioridadePaa, anterior: dict, uuid: str = None) -> None:
+            """
+            Atualiza com as informações anteriores
+            """
             rel = _resolve_relacoes(anterior)
             obj.prioridade = anterior['prioridade']
             obj.tipo_aplicacao = anterior['tipo_aplicacao']
@@ -529,6 +578,7 @@ class PaaRollbackHandlers(RollbackEngine):
             obj.save()
 
         def _create(uuid: str, dados: dict):
+            """Cria uma Prioridade"""
             rel = _resolve_relacoes(dados)
             self.paa.prioridadepaa_set.create(
                 uuid=uuid,
@@ -562,7 +612,14 @@ class CancelaRetificacaoPaaService(PaaRollbackHandlers):
     def _nome_operacao(self) -> str:
         return 'Cancela Retificação PAA'
 
-    def valida_pode_cancelar_retificacao(self):
+    def valida_pode_cancelar_retificacao(self) -> None:
+        """
+        Realiza as seguintes validações:
+        1. Se a flag paa-retificacao está ativa;
+        2. Se não tem um documento_final_retificado;
+        3. Se possui replica;
+        4. Se já possui Documento Final Retificado Gerado.
+        """
         # Se tem Flag
         flag_habilitada = (
             get_waffle_flag_model()
@@ -605,7 +662,8 @@ class CancelaRetificacaoPaaService(PaaRollbackHandlers):
             )
 
     @transaction.atomic
-    def iniciar_cancelamento_retificacao(self):
+    def iniciar_cancelamento_retificacao(self) -> None:
+        """Orquesta o cancelamento da retificação"""
         self.valida_pode_cancelar_retificacao()
 
         self.logger.info(
@@ -632,7 +690,8 @@ class CancelaRetificacaoPaaService(PaaRollbackHandlers):
         )
 
     # limpeza
-    def _remover_documentos_previos(self):
+    def _remover_documentos_previos(self) -> None:
+        "Remove os documento prévios"
         removidos, _ = DocumentoPaa.objects.filter(
             paa=self.paa,
             versao=DocumentoPaa.VersaoChoices.PREVIA,
@@ -640,7 +699,8 @@ class CancelaRetificacaoPaaService(PaaRollbackHandlers):
         ).delete()
         self.logger.info(f'Documentos prévios removidos: {removidos}')
 
-    def _remover_atas_previas(self):
+    def _remover_atas_previas(self) -> None:
+        """Remove as atas prévias"""
         removidos, _ = AtaPaa.objects.filter(
             paa=self.paa,
             tipo_ata=AtaPaa.ATA_RETIFICACAO,
@@ -648,14 +708,15 @@ class CancelaRetificacaoPaaService(PaaRollbackHandlers):
         ).delete()
         self.logger.info(f'Atas prévias removidas: {removidos}')
 
-    def _restaurar_status_paa(self):
+    def _restaurar_status_paa(self) -> None:
         status_anterior = self.paa.status
         self.paa.set_paa_status_gerado()
         self.logger.info(
             f'Status restaurado de {status_anterior} para {self.paa.status}'
         )
 
-    def _salvar_log_replica(self, replica):
+    def _salvar_log_replica(self, replica: dict) -> None:
+        """Salva os logs da Prévia"""
         historico = replica.historico or {}
         versao_documento = (
             historico
@@ -670,7 +731,8 @@ class CancelaRetificacaoPaaService(PaaRollbackHandlers):
         )
         self.logger.info(f'Log da réplica salvo com versão={versao_documento}')
 
-    def _remover_replica(self, replica):
+    def _remover_replica(self, replica: dict) -> None:
+        """Remove a Réplica"""
         replica_id = replica.id
         replica.delete()
         self.logger.info(f'Réplica removida id={replica_id}')

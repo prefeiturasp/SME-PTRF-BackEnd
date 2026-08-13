@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from typing import Any, Optional
+from django.contrib.auth.models import User
 
 from sme_ptrf_apps.paa.models import AtaPaa, ParticipanteAtaPaa, Paa, PeriodoPaa
 from sme_ptrf_apps.paa.services.dados_documento_paa_service import (
@@ -53,7 +54,7 @@ def _aplicar_filtro_retificacao_no_grupo(prioridades: list[dict], key: str) -> b
     return bool(items_retificados)
 
 
-def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
+def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario: Optional[User] = None) -> dict[str, Any]:
     """Gera os dados necessários para a geração do PDF da ata PAA.
 
     Para atas de retificação, obtém as alterações do ciclo corrente via
@@ -181,7 +182,7 @@ def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
         raise
 
 
-def calcular_numeros_blocos(dados, is_retificacao):
+def calcular_numeros_blocos(dados: dict, is_retificacao: bool) -> dict[str, int]:
     """
     Calcula os números dos blocos dinamicamente baseado nos blocos que existem.
     Similar à função nome_blocos do relatório de acertos.
@@ -247,7 +248,7 @@ def calcular_numeros_blocos(dados, is_retificacao):
     return numeros
 
 
-def presentes_ata_paa(ata_paa: AtaPaa):
+def presentes_ata_paa(ata_paa: AtaPaa) -> dict[str, list[dict]]:
     """
     Retorna os presentes na ata PAA organizados por tipo
     """
@@ -407,7 +408,7 @@ def criar_paragrafos_introducao_retificacao(dados_texto_da_ata: dict, paa: Paa) 
     ]
 
 
-def dados_texto_ata_paa(ata_paa: AtaPaa, usuario=None):
+def dados_texto_ata_paa(ata_paa: AtaPaa, usuario: Optional[User] = None) -> dict[str, Any]:
     """
     Gera os dados de texto da ata PAA
     """
@@ -488,7 +489,7 @@ def cria_cabecalho(ata_paa: AtaPaa):
     return cabecalho
 
 
-def formata_data(data):
+def formata_data(data: Any) -> str:
     """
     Formata data para exibição
     """
@@ -504,7 +505,7 @@ def formata_data(data):
     return data.strftime(_FORMATO_DATA)
 
 
-def formatar_hora_ata(hora):
+def formatar_hora_ata(hora: Any) -> str:
     """
     Formata hora para exibição na ata (formato: 13h00)
     """
@@ -523,7 +524,7 @@ def formatar_hora_ata(hora):
     return hora.strftime('%Hh%M')
 
 
-def _formatar_data_dia_mes_ano(data) -> str:
+def _formatar_data_dia_mes_ano(data: Any) -> str:
     """
     Formata uma data como "1º de agosto de 2026" (dia numérico + mês por extenso).
     """
@@ -548,7 +549,7 @@ def formatar_datas_periodo(periodo_paa: PeriodoPaa) -> str:
     return f"{_formatar_data_dia_mes_ano(periodo_paa.data_inicial)} a {_formatar_data_dia_mes_ano(periodo_paa.data_final)}"  # noqa
 
 
-def criar_identificacao_associacao_ata(paa):
+def criar_identificacao_associacao_ata(paa: Paa) -> dict[str, str]:
     """
     Cria os dados de identificação da associação para a ata PAA
     """
