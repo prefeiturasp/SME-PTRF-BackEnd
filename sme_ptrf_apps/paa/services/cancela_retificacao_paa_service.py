@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from decimal import Decimal, InvalidOperation
 from django.db import transaction
 from django.db.models import DecimalField
@@ -77,7 +77,7 @@ class CancelaRetificacaoPaaServiceBase:
 
         return model.objects.get(uuid=uuid)
 
-    def _str_data_para_date(self, data: str) -> datetime.date | None:
+    def _str_data_para_date(self, data: str) -> date | None:
         """
         Retorna um objeto date a partir de uma string no formato 'YYYY-MM-DD'
         ou None se a string for inválida.
