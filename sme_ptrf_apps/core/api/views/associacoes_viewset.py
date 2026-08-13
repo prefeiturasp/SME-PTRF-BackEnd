@@ -35,7 +35,7 @@ from ....dre.services import (
     atualiza_itens_verificacao,
 )
 from ...models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade, Ata, AnalisePrestacaoConta, \
-    FechamentoPeriodo, Recurso
+    FechamentoPeriodo, Recurso, PeriodoInicialAssociacao
 from ...services import (
     atualiza_dados_unidade,
     gerar_planilha,
@@ -105,12 +105,16 @@ class AssociacoesViewSet(ModelViewSet):
 
         try:
             self.perform_destroy(obj)
-        except ProtectedError:
-            content = {
-                'erro': 'ProtectedError',
-                'mensagem': 'Não é possível excluir essa associação porque ela já possui movimentação (despesas, receitas, etc.)'
-            }
-            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+        except ProtectedError as e:
+            obj_protected = list(e.protected_objects)[0]
+            isnot_periodo_inicial_associacao = not isinstance(obj_protected, PeriodoInicialAssociacao)
+
+            if len(e.protected_objects) > 1 or isnot_periodo_inicial_associacao:
+                content = {
+                    'erro': 'ProtectedError',
+                    'mensagem': 'Não é possível excluir essa associação porque ela já possui movimentação (despesas, receitas, etc.)'
+                }
+                return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -703,6 +707,33 @@ class AssociacoesViewSet(ModelViewSet):
         result = consulta_unidade(codigo_eol)
         status_code = status.HTTP_400_BAD_REQUEST if 'erro' in result.keys() else status.HTTP_200_OK
         return Response(result, status=status_code)
+
+    @action(detail=False, methods=['get'], url_path='verifica-cnpj-existente',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def verifica_cnpj_existente(self, request):
+        cnpj = self.request.query_params.get('cnpj')
+        associacao = Associacao.objects.filter(cnpj=cnpj).first()
+        result = None
+
+        if associacao:
+            result = {
+                'erro': 'cnpj_existente',
+                'mensagem': f"O CNPJ {cnpj} já está cadastrado na base."
+            }
+
+        status_code = status.HTTP_409_CONFLICT if result else status.HTTP_200_OK
+        return Response(result, status=status_code)
+
+    @action(detail=False, methods=['get'], url_path='opcoes-status-valores-reprogramados',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def opcoes_status_valores_reprogramados(self, request):
+        result = [
+            {'key': key, 'value': value}
+            for key, value
+            in PeriodoInicialAssociacao.STATUS_VALORES_REPROGRAMADOS_CHOICES
+        ]
+
+        return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, url_path='status-presidente', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
