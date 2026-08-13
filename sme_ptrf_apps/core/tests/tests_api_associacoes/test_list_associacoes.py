@@ -80,6 +80,7 @@ def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valen
             'tooltip_encerramento_conta': None,
             'encerrada': False,
             'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
+            'recursos': '',
         },
         {
             'uuid': f'{associacao_pinheiros_emef_mendes_dre_2.uuid}',
@@ -97,6 +98,7 @@ def test_api_list_associacoes_todas(jwt_authenticated_client_a, associacao_valen
             'tooltip_encerramento_conta': None,
             'encerrada': False,
             'informacoes': associacao_pinheiros_emef_mendes_dre_2.tags_de_informacao,
+            'recursos': '',
         },
     ]
 
@@ -128,7 +130,7 @@ def test_api_list_associacoes_de_uma_dre(jwt_authenticated_client_a, associacao_
             'tooltip_encerramento_conta': None,
             'encerrada': False,
             'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
-
+            'recursos': '',
         },
     ]
 
@@ -158,6 +160,7 @@ def test_api_list_associacoes_pelo_nome_associacao_ignorando_acentos(jwt_authent
             'tooltip_encerramento_conta': None,
             'encerrada': False,
             'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
+            'recursos': '',
         },
     ]
 
@@ -187,6 +190,7 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a, assoc
             'tooltip_encerramento_conta': None,
             'encerrada': False,
             'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
+            'recursos': '',
         },
     ]
 
@@ -216,6 +220,7 @@ def test_api_list_associacoes_pelo_tipo_unidade(jwt_authenticated_client_a, asso
             'tooltip_encerramento_conta': None,
             'encerrada': False,
             'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
+            'recursos': '',
         },
     ]
 
@@ -245,6 +250,7 @@ def test_api_list_associacoes_pelo_codigo_eol(jwt_authenticated_client_a, associ
             'tooltip_encerramento_conta': None,
             'encerrada': False,
             'informacoes': associacao_valenca_ceu_vassouras_dre_1.tags_de_informacao,
+            'recursos': '',
         },
     ]
 
@@ -278,6 +284,7 @@ def test_api_list_associacoes_filtro_somente_encerradas(
             'tooltip_encerramento_conta': None,
             'encerrada': True,
             'informacoes': associacao_encerrada_2020_1.tags_de_informacao,
+            'recursos': '',
         },
         {
             'uuid': f'{associacao_encerrada_2020_2.uuid}',
@@ -295,6 +302,7 @@ def test_api_list_associacoes_filtro_somente_encerradas(
             'tooltip_encerramento_conta': None,
             'encerrada': True,
             'informacoes': associacao_encerrada_2020_2.tags_de_informacao,
+            'recursos': '',
         },
     ]
 
