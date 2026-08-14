@@ -36,7 +36,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas(jwt_authenticated_client_a,
                 'nome_dre': associacao_eco_delta_000087.unidade.nome_dre
             },
             'cnpj': associacao_eco_delta_000087.cnpj,
-            'recursos': '',
+            'recursos': [],
         }
     ]
 
@@ -75,7 +75,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_encerradas_e_nao_encerradas(j
                 'nome_dre': associacao_eco_delta_000087.unidade.nome_dre
             },
             'cnpj': associacao_eco_delta_000087.cnpj,
-            'recursos': '',
+            'recursos': [],
         },
         {
             'uuid': f'{associacao_eco_delta_000088.uuid}',
@@ -93,7 +93,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_encerradas_e_nao_encerradas(j
                 'nome_dre': associacao_eco_delta_000088.unidade.nome_dre
             },
             'cnpj': associacao_eco_delta_000088.cnpj,
-            'recursos': '',
+            'recursos': [],
         },
     ]
 
@@ -130,7 +130,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_somente_nao_encerradas(jwt_au
                 'nome_dre': associacao_eco_delta_000087.unidade.nome_dre
             },
             'cnpj': associacao_eco_delta_000087.cnpj,
-            'recursos': '',
+            'recursos': [],
         },
     ]
 
@@ -167,7 +167,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_somente_encerradas(jwt_authen
                 'nome_dre': associacao_eco_delta_000087.unidade.nome_dre
             },
             'cnpj': associacao_eco_delta_000087.cnpj,
-            'recursos': '',
+            'recursos': [],
         },
     ]
 
@@ -203,7 +203,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome(jwt_authenticated_cl
                 'nome_dre': associacao_eco_delta_000087.unidade.nome_dre
             },
             'cnpj': associacao_eco_delta_000087.cnpj,
-            'recursos': '',
+            'recursos': [],
         },
     ]
 
@@ -240,7 +240,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome_e_encerradas_e_nao_e
                 'nome_dre': associacao_eco_delta_000087.unidade.nome_dre
             },
             'cnpj': associacao_eco_delta_000087.cnpj,
-            'recursos': '',
+            'recursos': [],
         },
         {
             'uuid': f'{associacao_eco_delta_000088.uuid}',
@@ -258,7 +258,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome_e_encerradas_e_nao_e
                 'nome_dre': associacao_eco_delta_000088.unidade.nome_dre
             },
             'cnpj': associacao_eco_delta_000088.cnpj,
-            'recursos': '',
+            'recursos': [],
         },
     ]
 
@@ -295,7 +295,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome_e_somente_nao_encerr
                 'nome_dre': associacao_eco_delta_000087.unidade.nome_dre
             },
             'cnpj': associacao_eco_delta_000087.cnpj,
-            'recursos': '',
+            'recursos': [],
         },
     ]
 
@@ -332,7 +332,7 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome_e_somente_encerradas
                 'nome_dre': associacao_eco_delta_000088.unidade.nome_dre
             },
             'cnpj': associacao_eco_delta_000088.cnpj,
-            'recursos': '',
+            'recursos': [],
         },
     ]
 
