@@ -76,7 +76,11 @@ class AssociacaoCreateSerializer(serializers.ModelSerializer):
         associacao = Associacao.objects.create(**validated_data)
         unidade['observacao'] = observacao
 
-        unidade_object = UnidadeCreateSerializer().create(unidade)
+        unidade_object = Unidade.objects.filter(codigo_eol=unidade.get('codigo_eol')).first()
+
+        if not unidade_object:
+            unidade_object = UnidadeCreateSerializer().create(unidade)
+
         associacao.unidade = unidade_object
         associacao.save()
 
@@ -186,10 +190,10 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
         return obj.get_status_valores_reprogramados(recurso=recurso)
 
     def get_recursos_da_associacao(self, obj):
-        recursos = ""
+        recursos = []
 
         for periodo_inicial in obj.periodos_iniciais.all():
-            recursos += f"{periodo_inicial.recurso.nome};"
+            recursos.append(periodo_inicial.recurso.nome)
 
         return recursos
 
