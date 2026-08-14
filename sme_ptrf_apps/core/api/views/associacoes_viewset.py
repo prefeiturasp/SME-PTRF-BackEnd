@@ -702,7 +702,7 @@ class AssociacoesViewSet(ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='eol',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def consulta_unidade(self, request):
+    def consulta_unidade_associacao(self, request):
         codigo_eol = self.request.query_params.get('codigo_eol')
         result = consulta_unidade(codigo_eol)
         status_code = status.HTTP_400_BAD_REQUEST if 'erro' in result.keys() else status.HTTP_200_OK

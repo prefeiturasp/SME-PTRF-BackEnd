@@ -42,7 +42,7 @@ def test_retrieve_acao_associacao(
                 'nome_dre': acao_associacao.associacao.unidade.nome_dre
             },
             'cnpj': acao_associacao.associacao.cnpj,
-            'recursos': '',
+            'recursos': [],
         },
         'data_de_encerramento_associacao': None,
         'tooltip_associacao_encerrada': None,
