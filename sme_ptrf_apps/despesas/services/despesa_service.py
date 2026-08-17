@@ -9,9 +9,6 @@ from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, AP
 from sme_ptrf_apps.despesas.models import Despesa, RateioDespesa
 from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaCreateSerializer
 
-from sme_ptrf_apps.core.models.solicitacao_acerto_lancamento import SolicitacaoAcertoLancamento
-from sme_ptrf_apps.core.models.tipo_acerto_lancamento import TipoAcertoLancamento
-from sme_ptrf_apps.core.models.analise_lancamento_prestacao_conta import AnaliseLancamentoPrestacaoConta
 from sme_ptrf_apps.core.services.analise_lancamento_prestacao_conta_service import (
     AnaliseLancamentoPrestacaoContaService,
 )
@@ -79,19 +76,26 @@ class DespesaService:
 
     @classmethod
     @transaction.atomic
-    def create(cls, validated_data, limpar_prioridades_callback=None):
+    def create(cls, validated_data, limpar_prioridades_callback=None, pipeline_ativa=False):
+        """
+            Este método deve ser exclusivo para execução no Serializer em Despesas
+            validated_data: dict com os dados validados do serializer
+            limpar_prioridades_callback: função que será chamada para limpar as prioridades de rateios
+            pipeline_ativa: bool indicando se a pipeline de despesas está ativa
+        """
         logger.info("Iniciando criação de despesa")
 
         rateios = validated_data.pop("rateios")
         despesas_impostos = validated_data.pop("despesas_impostos", None)
 
         # [PIPELINE] Substituição futura: _validar_datas → DatasEncerramentoValidator (REG-010)
-        cls._validar_datas(validated_data)
+        if not pipeline_ativa:
+            cls._validar_datas(validated_data)
 
         # [PIPELINE] Substituição futura: _processar_pagamento_antecipado →
         #   validate: PagamentoAntecipadoValidator (REG-011)
         #   apply:    PagamentoAntecipadoValidator.apply() (REG-011 apply) + sync ctx→data no serializer
-        motivos, outros = cls._processar_pagamento_antecipado(validated_data)
+        motivos, outros = cls._processar_pagamento_antecipado(validated_data, pipeline_ativa)
 
         despesa = Despesa.objects.create(**validated_data)
 
@@ -102,7 +106,7 @@ class DespesaService:
         cls._criar_rateios(despesa, rateios)
         cls._aplicar_motivos(despesa, motivos, outros)
 
-        cls._processar_impostos(despesa, despesas_impostos)
+        cls._processar_impostos(despesa, despesas_impostos, pipeline_ativa)
 
         cls._finalizar_despesa(despesa, rateios, limpar_prioridades_callback)
 
@@ -115,7 +119,14 @@ class DespesaService:
     # =====================================================
     @classmethod
     @transaction.atomic
-    def update(cls, instance: Despesa, validated_data, limpar_prioridades_callback=None):
+    def update(cls, instance: Despesa, validated_data, limpar_prioridades_callback=None, pipeline_ativa=False):
+        """
+            Este método deve ser exclusivo para execução no Serializer em Despesas
+            instance: Despesa a ser atualizada
+            validated_data: dict com os dados validados do serializer
+            limpar_prioridades_callback: função que será chamada para limpar as prioridades de rateios
+            pipeline_ativa: bool indicando se a pipeline de despesas está ativa
+        """
 
         logger.info(f"Iniciando atualização de despesa: #{instance.id}")
 
@@ -127,12 +138,14 @@ class DespesaService:
             despesas_impostos = validated_data.pop("despesas_impostos", [])
 
             # [PIPELINE] Substituição futura: _validar_datas_update →
-            #   DatasEncerramentoValidator (REG-010) + DespesaContextBuilder.build() para defaults
-            cls._validar_datas_update(instance, validated_data)
+            # DatasEncerramentoValidator (REG-010) + DespesaContextBuilder.build() para defaults
+            if not pipeline_ativa:
+                cls._validar_datas_update(instance, validated_data)
+
             # [PIPELINE] Substituição futura: _processar_pagamento_antecipado →
             #   validate: PagamentoAntecipadoValidator (REG-011)
             #   apply:    PagamentoAntecipadoValidator.apply() (REG-011 apply) + sync ctx→data no serializer
-            motivos, outros = cls._processar_pagamento_antecipado(validated_data)
+            motivos, outros = cls._processar_pagamento_antecipado(validated_data, pipeline_ativa)
 
             # Executa apenas quando há alterações de dados do fornecedor
             cls._cria_atualiza_fornecedor(instance, validated_data)
@@ -145,10 +158,10 @@ class DespesaService:
             #   validate: MudancaAplicacaoValidator (REG-013)
             #   apply:    MudancaAplicacaoValidator.apply() (REG-013 apply) — reseta campos em ctx.rateios
             #   service:  persiste apenas (sem validação/mutação)
-            cls._atualizar_rateios(instance, rateios)
+            cls._atualizar_rateios(instance, rateios, pipeline_ativa)
             cls._aplicar_motivos(instance, motivos, outros)
 
-            cls._processar_impostos_update(instance, despesas_impostos)
+            cls._processar_impostos_update(instance, despesas_impostos, pipeline_ativa)
 
             cls._finalizar_despesa(instance, rateios, limpar_prioridades_callback)
 
@@ -194,9 +207,14 @@ class DespesaService:
     # =====================================================
 
     @staticmethod
-    def _processar_pagamento_antecipado(validated_data):
+    def _processar_pagamento_antecipado(validated_data, pipeline_ativa=False):
         motivos = validated_data.pop("motivos_pagamento_antecipado", [])
         outros = validated_data.get("outros_motivos_pagamento_antecipado")
+
+        if pipeline_ativa:
+            # REG-011 — PagamentoAntecipadoValidator já validou e resetou;
+            # os valores já chegam pelo executa_pipeline() no serializer.
+            return motivos, outros
 
         dt = validated_data.get("data_transacao")
         dd = validated_data.get("data_documento")
@@ -232,7 +250,7 @@ class DespesaService:
         despesa.rateios.set(rateios_lista)
 
     @staticmethod
-    def _atualizar_rateios(despesa: Despesa, rateios):
+    def _atualizar_rateios(despesa: Despesa, rateios, pipeline_ativa=False):
         keep = []
 
         uuids = [
@@ -266,97 +284,101 @@ class DespesaService:
 
                 if rateio_para_atualizar:
 
-                    aplicacao_anterior = rateio_para_atualizar.aplicacao_recurso
-                    nova_aplicacao = rateio.get("aplicacao_recurso")
+                    # REG-013 — MudancaAplicacaoValidator (validate + apply) já cobriu isso
+                    # quando a pipeline está ativa: campos já chegam validados e resetados.
+                    if not pipeline_ativa:
+                        aplicacao_anterior = rateio_para_atualizar.aplicacao_recurso
+                        nova_aplicacao = rateio.get("aplicacao_recurso")
 
-                    saida_recurso_externo = rateio.get(
-                        "saida_de_recurso_externo",
-                        rateio_para_atualizar.saida_de_recurso_externo
-                    )
-
-                    despesa_que_nao_precisam_especificacao = despesa.eh_despesa_sem_comprovacao_fiscal or saida_recurso_externo   # noqa
-
-                    # CAPITAL -> CUSTEIO
-                    if aplicacao_anterior == APLICACAO_CAPITAL and nova_aplicacao == APLICACAO_CUSTEIO:
-
-                        if not despesa_que_nao_precisam_especificacao:
-                            tipo_custeio = rateio.get("tipo_custeio")
-                            especificacao = rateio.get("especificacao_material_servico")
-                            if not tipo_custeio or not especificacao:
-                                raise serializers.ValidationError({
-                                    "mensagem": (
-                                        "Ao alterar o tipo de aplicação de Capital para Custeio, "
-                                        "é obrigatório informar o Tipo de Custeio e a Especificação de "
-                                        "Material ou Serviço em cada rateio."
-                                    )
-                                })
-                            if especificacao.aplicacao_recurso != APLICACAO_CUSTEIO:
-                                raise serializers.ValidationError({
-                                    "mensagem": (
-                                        "Ao alterar o tipo de aplicação de Capital para Custeio, "
-                                        "é obrigatório informar uma Especificação de Material ou Serviço "
-                                        "de Custeio. A especificação atual é de Capital."
-                                    )
-                                })
-                            rateio.update({
-                                "numero_processo_incorporacao_capital": "",
-                                "quantidade_itens_capital": 0,
-                                "nao_exibir_em_rel_bens": False,
-                                "valor_item_capital": 0,
-                            })
-                        else:
-                            rateio.update({
-                                "numero_processo_incorporacao_capital": "",
-                                "quantidade_itens_capital": 0,
-                                "especificacao_material_servico": None,
-                                "nao_exibir_em_rel_bens": False,
-                                "valor_item_capital": 0,
-                            })
-
-                        logger.info(
-                            f"Resetando campos de CAPITAL → CUSTEIO "
-                            f"no rateio {rateio['uuid']}"
+                        saida_recurso_externo = rateio.get(
+                            "saida_de_recurso_externo",
+                            rateio_para_atualizar.saida_de_recurso_externo
                         )
 
-                    # CUSTEIO -> CAPITAL
-                    if aplicacao_anterior == APLICACAO_CUSTEIO and nova_aplicacao == APLICACAO_CAPITAL:
-                        if not despesa_que_nao_precisam_especificacao:
-                            especificacao = rateio.get("especificacao_material_servico")
-                            if especificacao is None:
-                                especificacao = rateio_para_atualizar.especificacao_material_servico
-                            if not especificacao:
-                                raise serializers.ValidationError({
-                                    "mensagem": (
-                                        "Ao alterar o tipo de aplicação de Custeio para Capital, "
-                                        "é obrigatório informar a Especificação de Material ou Serviço "
-                                        "de Capital em cada rateio."
-                                    )
+                        despesa_que_nao_precisam_especificacao = despesa.eh_despesa_sem_comprovacao_fiscal or saida_recurso_externo   # noqa
+
+                        # CAPITAL -> CUSTEIO
+                        if aplicacao_anterior == APLICACAO_CAPITAL and nova_aplicacao == APLICACAO_CUSTEIO:
+
+                            if not despesa_que_nao_precisam_especificacao:
+                                tipo_custeio = rateio.get("tipo_custeio")
+                                especificacao = rateio.get("especificacao_material_servico")
+                                if not tipo_custeio or not especificacao:
+                                    raise serializers.ValidationError({
+                                        "mensagem": (
+                                            "Ao alterar o tipo de aplicação de Capital para Custeio, "
+                                            "é obrigatório informar o Tipo de Custeio e a Especificação de "
+                                            "Material ou Serviço em cada rateio."
+                                        )
+                                    })
+                                if especificacao.aplicacao_recurso != APLICACAO_CUSTEIO:
+                                    raise serializers.ValidationError({
+                                        "mensagem": (
+                                            "Ao alterar o tipo de aplicação de Capital para Custeio, "
+                                            "é obrigatório informar uma Especificação de Material ou Serviço "
+                                            "de Custeio. A especificação atual é de Capital."
+                                        )
+                                    })
+                                rateio.update({
+                                    "numero_processo_incorporacao_capital": "",
+                                    "quantidade_itens_capital": 0,
+                                    "nao_exibir_em_rel_bens": False,
+                                    "valor_item_capital": 0,
                                 })
-                            if especificacao.aplicacao_recurso != APLICACAO_CAPITAL:
-                                raise serializers.ValidationError({
-                                    "mensagem": (
-                                        "Ao alterar o tipo de aplicação de Custeio para Capital, "
-                                        "é obrigatório informar uma Especificação de Material ou Serviço "
-                                        "de Capital. A especificação atual é de Custeio."
-                                    )
+                            else:
+                                rateio.update({
+                                    "numero_processo_incorporacao_capital": "",
+                                    "quantidade_itens_capital": 0,
+                                    "especificacao_material_servico": None,
+                                    "nao_exibir_em_rel_bens": False,
+                                    "valor_item_capital": 0,
                                 })
 
-                            rateio.update({
-                                "tipo_custeio": None,
-                            })
-                        else:
-                            rateio.update({
-                                "tipo_custeio": None,
-                                "especificacao_material_servico": None,
-                            })
+                            logger.info(
+                                f"Resetando campos de CAPITAL → CUSTEIO "
+                                f"no rateio {rateio['uuid']}"
+                            )
 
-                        logger.info(
-                            f"Resetando campos de CUSTEIO → CAPITAL "
-                            f"no rateio {rateio['uuid']}"
-                        )
+                        # CUSTEIO -> CAPITAL
+                        if aplicacao_anterior == APLICACAO_CUSTEIO and nova_aplicacao == APLICACAO_CAPITAL:
+                            if not despesa_que_nao_precisam_especificacao:
+                                especificacao = rateio.get("especificacao_material_servico")
+                                if especificacao is None:
+                                    especificacao = rateio_para_atualizar.especificacao_material_servico
+                                if not especificacao:
+                                    raise serializers.ValidationError({
+                                        "mensagem": (
+                                            "Ao alterar o tipo de aplicação de Custeio para Capital, "
+                                            "é obrigatório informar a Especificação de Material ou Serviço "
+                                            "de Capital em cada rateio."
+                                        )
+                                    })
+                                if especificacao.aplicacao_recurso != APLICACAO_CAPITAL:
+                                    raise serializers.ValidationError({
+                                        "mensagem": (
+                                            "Ao alterar o tipo de aplicação de Custeio para Capital, "
+                                            "é obrigatório informar uma Especificação de Material ou Serviço "
+                                            "de Capital. A especificação atual é de Custeio."
+                                        )
+                                    })
+
+                                rateio.update({
+                                    "tipo_custeio": None,
+                                })
+                            else:
+                                rateio.update({
+                                    "tipo_custeio": None,
+                                    "especificacao_material_servico": None,
+                                })
+
+                            logger.info(
+                                f"Resetando campos de CUSTEIO → CAPITAL "
+                                f"no rateio {rateio['uuid']}"
+                            )
 
                     # Foi substituido o método update() para que seja executado o save() do model
                     # Chamando o pre_save e o post_save do Rateio para recalcular o status do Rateio/Despesa
+                    # Mantem Persistência fora da condicional de pipeline, sempre toda. Pipeline só valida
                     for attr, value in rateio.items():
                         setattr(rateio_para_atualizar, attr, value)
 
@@ -394,7 +416,7 @@ class DespesaService:
     # =====================================================
 
     @classmethod
-    def _processar_impostos(cls, despesa: Despesa, despesas_impostos):
+    def _processar_impostos(cls, despesa: Despesa, despesas_impostos, pipeline_ativa=False):
         if not despesa.retem_imposto or not despesas_impostos:
             return
 
@@ -404,18 +426,27 @@ class DespesaService:
             rateios = imposto.pop("rateios", [])
 
             # [PIPELINE] Substituição futura: R16 coberto por ImpostosValidator (REG-012)
-            if not rateios:
+            if not pipeline_ativa and not rateios:
                 raise serializers.ValidationError({
                     "mensagem": "A despesa de imposto precisa ter rateio associado"
                 })
 
             imposto.pop("despesas_impostos", None)
             imposto.pop("motivos_pagamento_antecipado", None)
-            imposto["recurso"] = despesa.recurso
+
+            # [PIPELINE] - Duplicado em REG-064 .apply(). Sem conflito, independente de flag
+            if not pipeline_ativa:
+                imposto["recurso"] = despesa.recurso
 
             desp = Despesa.objects.create(**imposto)
             cls._criar_rateios(desp, rateios)
-            desp.verifica_data_documento_vazio()
+
+            # [PIPELINE] - Duplicado em REG-028 .apply(). Sem conflito, independente de flag
+            # Com uma diferença, na pipeline retorna a data mutada(sem presistencia)
+            # e no código legado, executa um .save() nesta chamada do método .verifica_data_documento_vazio()
+            if not pipeline_ativa:
+                desp.verifica_data_documento_vazio()
+
             desp.atualiza_status()
             lista.append(desp)
 
@@ -426,7 +457,7 @@ class DespesaService:
             despesa_imposto.atualiza_status()
 
     @classmethod
-    def _processar_impostos_update(cls, despesa, despesas_impostos):
+    def _processar_impostos_update(cls, despesa, despesas_impostos, pipeline_ativa=False):
         if despesa.retem_imposto and despesas_impostos:
             logger.info(
                 f"Atualizando despesas de impostos da despesa geradora {despesa.uuid}"
@@ -439,7 +470,7 @@ class DespesaService:
                 rateios = imposto.pop("rateios", [])
 
                 # [PIPELINE] Substituição futura: R16 coberto por ImpostosValidator (REG-012)
-                if not rateios:
+                if not pipeline_ativa and not rateios:
                     raise serializers.ValidationError({
                         "mensagem": "A despesa de imposto precisa ter rateio associado"
                     })
@@ -480,12 +511,16 @@ class DespesaService:
                     desp.save()
                     logger.info(f"Despesa imposto atualizada uuid={desp.uuid}")
                 else:
+                    # [PIPELINE] - Duplicado em REG-064 .apply(). Sem conflito, independente de flag
                     imposto["recurso"] = despesa.recurso
                     desp = Despesa.objects.create(**imposto)
                     logger.info(f"Despesa imposto criada uuid={desp.uuid}")
 
-                cls._atualizar_rateios(desp, rateios)
+                cls._atualizar_rateios(desp, rateios, pipeline_ativa)
 
+                # [PIPELINE] - Duplicado em REG-028 .apply(). Sem conflito, independente de flag
+                # Com uma diferença, na pipeline retorna a data mutada(sem presistencia)
+                # e no código legado, executa um .save() nesta chamada do método .verifica_data_documento_vazio()
                 desp.verifica_data_documento_vazio()
                 desp.atualiza_status()
 
@@ -535,48 +570,21 @@ class DespesaService:
         """
         Marca o lançamento como atualizado quando existir uma solicitação
         pendente de edição de lançamento em uma prestação de contas devolvida.
+
+        Este método realiza mutação no banco de dados:
+        - AnaliseLancamentoPrestacaoContaService.marcar_lancamento_como_atualizado()
+        Portanto, não deve ser incluído como um Validator.
+
+        :param despesa: intancia da Despesa
         """
-        from waffle import get_waffle_flag_model
-
-        flags = get_waffle_flag_model()
-        pipeline_ativa = flags.objects.filter(name='despesas-pipeline', everyone=True).exists()
-
-        if pipeline_ativa:
-            from sme_ptrf_apps.despesas.services.fluxo_acerto import (
-                obter_analise_lancamento_edicao_pendente,
-            )
-            lancamento_analise = obter_analise_lancamento_edicao_pendente(despesa)
-            if not lancamento_analise:
-                return
-        else:
-            prestacao_conta = despesa.prestacao_conta
-
-            if not prestacao_conta or prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
-                return
-
-            lancamento_analise = (
-                AnaliseLancamentoPrestacaoConta.objects.filter(
-                    despesa=despesa,
-                    lancamento_atualizado=False,
-                    tipo_lancamento=AnaliseLancamentoPrestacaoConta.TIPO_LANCAMENTO_GASTO,
-                    status_realizacao=AnaliseLancamentoPrestacaoConta.STATUS_REALIZACAO_PENDENTE,
-                )
-                .first()
-            )
-
-            if not lancamento_analise:
-                return
-
-            possui_solicitacao_pendente = (
-                lancamento_analise.solicitacoes_de_ajuste_da_analise.filter(
-                    tipo_acerto__categoria=TipoAcertoLancamento.CATEGORIA_EDICAO_LANCAMENTO,
-                    status_realizacao=SolicitacaoAcertoLancamento.STATUS_REALIZACAO_PENDENTE,
-                )
-                .exists()
-            )
-
-            if not possui_solicitacao_pendente:
-                return
+        # condicional anterior removida (no if utilizava o metodo obter_analise_lancamento_edicao_pendente, e no
+        # else utilizava o mesmo código [inline])
+        from sme_ptrf_apps.despesas.services.fluxo_acerto import (
+            obter_analise_lancamento_edicao_pendente,
+        )
+        lancamento_analise = obter_analise_lancamento_edicao_pendente(despesa)
+        if not lancamento_analise:
+            return
 
         AnaliseLancamentoPrestacaoContaService.marcar_lancamento_como_atualizado(
             lancamento_analise
@@ -587,16 +595,17 @@ class DespesaService:
         )
 
     @staticmethod
-    def _marcar_lancamento_como_excluido(despesa: Despesa):
+    def _marcar_lancamento_como_excluido(despesa: Despesa, pipeline_ativa=False):
         """
         Com flag despesas-pipeline: marca o lançamento como excluído quando
         existir solicitação pendente de exclusão em PC devolvida.
         Deve ser chamado antes do destroy/inativação da despesa.
-        """
-        from waffle import get_waffle_flag_model
 
-        flags = get_waffle_flag_model()
-        pipeline_ativa = flags.objects.filter(name='despesas-pipeline', everyone=True).exists()
+        legado chama marcar_lancamento_como_excluido() via HTTP no frontend via
+        POST /api/analises-lancamento-prestacao-conta/{uuid}/marcar-lancamento-excluido
+        fora do fluxo. Por isso, quando a flag estiver ativa, o método é chamado aqui no backend,
+        antes do destroy/inativação da despesa.
+        """
         if not pipeline_ativa:
             return
 
