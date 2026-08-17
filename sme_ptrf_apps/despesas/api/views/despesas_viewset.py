@@ -1,3 +1,4 @@
+from django.db import transaction
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status
 from rest_framework.decorators import action
@@ -234,9 +235,8 @@ class DespesasViewSet(mixins.CreateModelMixin,
             context["recurso"] = self.request.recurso
 
         # Detecção de fluxo acerto (pipelines 3/4) só com a flag — legado inalterado.
-        from waffle import get_waffle_flag_model
-        flags = get_waffle_flag_model()
-        pipeline_ativa = flags.objects.filter(name='despesas-pipeline', everyone=True).exists()
+        from sme_ptrf_apps.despesas.feature_flags import despesas_pipeline_ativa
+        pipeline_ativa = despesas_pipeline_ativa(self.request)
         if not pipeline_ativa:
             return context
 
@@ -270,6 +270,8 @@ class DespesasViewSet(mixins.CreateModelMixin,
         from django.db.models.deletion import ProtectedError
         from ....core.models import DevolucaoAoTesouro, ContaAssociacao
         from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
+        from sme_ptrf_apps.despesas.feature_flags import despesas_pipeline_ativa
+        pipeline_ativa = despesas_pipeline_ativa(self.request)
         despesa = self.get_object()
 
         if despesa.rateios.filter(conta_associacao__status=ContaAssociacao.STATUS_INATIVA).exists():
@@ -281,7 +283,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         # Acerto exclusão (flag): marca lançamento antes de apagar/inativar a despesa.
-        DespesaService._marcar_lancamento_como_excluido(despesa)
+        DespesaService._marcar_lancamento_como_excluido(despesa, pipeline_ativa)
 
         if not despesa.inativar_em_vez_de_excluir:
             # Em caso de inativação, a inativação dos impostos é feita pelo próprio método inativar_despesa.
@@ -289,6 +291,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
                 try:
                     self.perform_destroy(despesa_imposto)
                 except Exception as err:
+                    transaction.set_rollback(True)  # rollback para _marcar_lancamento_como_excluido em caso de erro
                     erro = {
                         'erro': 'despesa_do_imposto_nao_deletada',
                         'mensagem': str(err)
@@ -307,6 +310,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
                 self.perform_destroy(despesa)
                 return Response(status=status.HTTP_204_NO_CONTENT)
             except ProtectedError as exception:
+                transaction.set_rollback(True)  # rollback para _marcar_lancamento_como_excluido em caso de erro
                 erros = []
 
                 if exception.args:
