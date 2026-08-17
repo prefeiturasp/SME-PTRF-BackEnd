@@ -314,7 +314,7 @@ def info_acao_associacao_no_periodo(
             info['receitas_devolucao_no_periodo_custeio'] += fechamento_periodo.total_receitas_devolucao_custeio
             info['repasses_no_periodo_custeio'] += fechamento_periodo.total_repasses_custeio
             info['despesas_no_periodo_custeio'] += fechamento_periodo.total_despesas_custeio
-            info['saldo_atual_custeio'] += fechamento_periodo.saldo_reprogramado_custeio
+
             info['receitas_nao_conciliadas_custeio'] += fechamento_periodo.total_receitas_nao_conciliadas_custeio
             info['despesas_nao_conciliadas_custeio'] += fechamento_periodo.total_despesas_nao_conciliadas_custeio
             info['despesas_conciliadas_custeio'] += (fechamento_periodo.total_despesas_custeio -
@@ -329,7 +329,7 @@ def info_acao_associacao_no_periodo(
             info['receitas_devolucao_no_periodo_capital'] += fechamento_periodo.total_receitas_devolucao_capital
             info['repasses_no_periodo_capital'] += fechamento_periodo.total_repasses_capital
             info['despesas_no_periodo_capital'] += fechamento_periodo.total_despesas_capital
-            info['saldo_atual_capital'] += fechamento_periodo.saldo_reprogramado_capital
+            
             info['receitas_nao_conciliadas_capital'] += fechamento_periodo.total_receitas_nao_conciliadas_capital
             info['despesas_nao_conciliadas_capital'] += fechamento_periodo.total_despesas_nao_conciliadas_capital
             info['despesas_conciliadas_capital'] += (fechamento_periodo.total_despesas_capital -
@@ -343,21 +343,32 @@ def info_acao_associacao_no_periodo(
             info['receitas_no_periodo_livre'] += fechamento_periodo.total_receitas_livre
             info['receitas_devolucao_no_periodo_livre'] += fechamento_periodo.total_receitas_devolucao_livre
             info['repasses_no_periodo_livre'] += fechamento_periodo.total_repasses_livre
-            info['saldo_atual_livre'] += fechamento_periodo.saldo_reprogramado_livre
+            
             info['receitas_nao_conciliadas_livre'] += fechamento_periodo.total_receitas_nao_conciliadas_livre
             info['saldo_bancario_livre'] += fechamento_periodo.saldo_reprogramado_livre
 
             if exclude_despesa and considera_exclude_despesa:
-                despesa = Despesa.objects.get(uuid=exclude_despesa)
-                rateios = despesa.rateios.filter(acao_associacao=fechamento_periodo.acao_associacao).filter(
-                    conta_associacao=fechamento_periodo.conta_associacao)
-                for rateio in rateios.all():
-                    if rateio.aplicacao_recurso == APLICACAO_CAPITAL:
-                        info['despesas_no_periodo_capital'] -= rateio.valor_rateio
-                        info['saldo_atual_capital'] += rateio.valor_rateio
-                    elif rateio.aplicacao_recurso == APLICACAO_CUSTEIO:
-                        info['despesas_no_periodo_custeio'] -= rateio.valor_rateio
-                        info['saldo_atual_custeio'] += rateio.valor_rateio
+                info['saldo_atual_custeio'] += fechamento_periodo.saldo_anterior_custeio + fechamento_periodo.total_receitas_custeio
+                info['saldo_atual_capital'] += fechamento_periodo.saldo_anterior_capital + fechamento_periodo.total_receitas_capital
+                info['saldo_atual_livre'] += fechamento_periodo.saldo_anterior_livre + fechamento_periodo.total_receitas_livre
+            else:
+                info['saldo_atual_custeio'] += fechamento_periodo.saldo_reprogramado_custeio
+                info['saldo_atual_capital'] += fechamento_periodo.saldo_reprogramado_capital
+                info['saldo_atual_livre'] += fechamento_periodo.saldo_reprogramado_livre
+
+        if exclude_despesa and considera_exclude_despesa:
+            rateios = RateioDespesa.rateios_da_acao_associacao_no_periodo(
+                acao_associacao=acao_associacao,
+                periodo=periodo,
+                exclude_despesa=exclude_despesa,
+            )
+            for rateio in rateios:
+                if rateio.aplicacao_recurso == APLICACAO_CUSTEIO:
+                    info['despesas_no_periodo_custeio'] += rateio.valor_rateio
+                    info['saldo_atual_custeio'] -= rateio.valor_rateio
+                elif rateio.aplicacao_recurso == APLICACAO_CAPITAL:
+                    info['despesas_no_periodo_capital'] += rateio.valor_rateio
+                    info['saldo_atual_capital'] -= rateio.valor_rateio
 
         return info
 
@@ -725,40 +736,43 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
             'saldo_atual_livre': 0,
         }
 
-    def fechamento_sumarizado_por_conta(fechamentos_periodo, considera_exclude_despesa=False):
+    def fechamento_sumarizado_por_conta(fechamentos_periodo):
         """
-        `considera_exclude_despesa` só deve ser True quando o saldo é obtido
-        exclusivamente do fechamento, sem recálculo de receitas ou despesas.
-        Esse parâmetro é utilizado apenas no cenário de edição de despesa.
+        Executa apenas quando há fechamentos em aberto, ou seja, na edição de despesa
+        via acertos solicitados. Dos fechamentos, obtemos apenas os saldos disponiveis (receitas)
+        e realizamos o recalculo da despesa para obter o valor real da conta.
         """
         info = resultado_vazio()
         for fechamento_periodo in fechamentos_periodo:
             info['saldo_anterior_custeio'] += fechamento_periodo.saldo_anterior_custeio
             info['receitas_no_periodo_custeio'] += fechamento_periodo.total_receitas_custeio
             info['repasses_no_periodo_custeio'] += fechamento_periodo.total_repasses_custeio
-            info['despesas_no_periodo_custeio'] += fechamento_periodo.total_despesas_custeio
-            info['saldo_atual_custeio'] += fechamento_periodo.saldo_reprogramado_custeio
-
+           
             info['saldo_anterior_capital'] += fechamento_periodo.saldo_anterior_capital
             info['receitas_no_periodo_capital'] += fechamento_periodo.total_receitas_capital
             info['repasses_no_periodo_capital'] += fechamento_periodo.total_repasses_capital
-            info['despesas_no_periodo_capital'] += fechamento_periodo.total_despesas_capital
-            info['saldo_atual_capital'] += fechamento_periodo.saldo_reprogramado_capital
-
+           
             info['saldo_anterior_livre'] += fechamento_periodo.saldo_anterior_livre
             info['receitas_no_periodo_livre'] += fechamento_periodo.total_receitas_livre
             info['repasses_no_periodo_livre'] += fechamento_periodo.total_repasses_livre
-            info['saldo_atual_livre'] += fechamento_periodo.saldo_reprogramado_livre
+           
+            info['saldo_atual_custeio'] += fechamento_periodo.saldo_anterior_custeio + fechamento_periodo.total_receitas_custeio
+            info['saldo_atual_capital'] += fechamento_periodo.saldo_anterior_capital + fechamento_periodo.total_receitas_capital
+            info['saldo_atual_livre'] += fechamento_periodo.saldo_anterior_livre + fechamento_periodo.total_receitas_livre
 
-        if exclude_despesa and considera_exclude_despesa:
-            despesa = Despesa.objects.get(uuid=exclude_despesa)
-            for rateio in despesa.rateios.all():
-                if rateio.aplicacao_recurso == APLICACAO_CAPITAL:
-                    info['despesas_no_periodo_capital'] -= rateio.valor_rateio
-                    info['saldo_atual_capital'] += rateio.valor_rateio
-                elif rateio.aplicacao_recurso == APLICACAO_CUSTEIO:
-                    info['despesas_no_periodo_custeio'] -= rateio.valor_rateio
-                    info['saldo_atual_custeio'] += rateio.valor_rateio
+        rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
+            conta_associacao=conta_associacao,
+            periodo=periodo,
+            exclude_despesa=exclude_despesa,
+        )
+
+        for rateio in rateios:
+            if rateio.aplicacao_recurso == APLICACAO_CUSTEIO:
+                info['despesas_no_periodo_custeio'] += rateio.valor_rateio
+                info['saldo_atual_custeio'] -= rateio.valor_rateio
+            elif rateio.aplicacao_recurso == APLICACAO_CAPITAL:
+                info['despesas_no_periodo_capital'] += rateio.valor_rateio
+                info['saldo_atual_capital'] -= rateio.valor_rateio
 
         return info
 
@@ -908,7 +922,7 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
                                                                             periodo=periodo)
     if fechamentos_periodo:
         logger.info(f'Encontrato fechamentos no período {periodo} e conta {conta_associacao}. Usando fechamento.')
-        return fechamento_sumarizado_por_conta(fechamentos_periodo, considera_exclude_despesa=True)
+        return fechamento_sumarizado_por_conta(fechamentos_periodo)
     else:
         logger.info(f'Não encontrato fechamentos no período {periodo} e conta {conta_associacao}. Calculando saldo.')
         return periodo_aberto_sumarizado_por_conta(periodo, conta_associacao)
