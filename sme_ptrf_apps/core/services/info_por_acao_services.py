@@ -736,7 +736,7 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
             'saldo_atual_livre': 0,
         }
 
-    def fechamento_sumarizado_por_conta(fechamentos_periodo, considera_exclude_despesa=True):
+    def fechamento_sumarizado_por_conta(fechamentos_periodo, considera_exclude_despesa=False):
         """
         `considera_exclude_despesa` só deve ser True quando o saldo é obtido
         exclusivamente do fechamento, sem recálculo de receitas ou despesas.
