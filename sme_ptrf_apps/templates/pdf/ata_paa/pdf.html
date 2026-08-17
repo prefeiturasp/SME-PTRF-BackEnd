@@ -30,11 +30,11 @@
 {# ************************* Cabecalho das páginas *************************  #}
 <header>
   <div class="d-flex w-100 mx-auto">
-    <div class="col-3 d-flex align-items-center border-rigth-logo">
+    <div class="d-flex align-items-center border-rigth-logo" style="padding: 0 10px;">
       <img src="{{ base_static_url }}/images/logo_PrefSP_sem_fundo_horizontal_colorida.svg" alt="logo">
     </div>
 
-    <div class="col-5 d-flex align-items-center justify-content-end ml-3">
+    <div class="col d-flex align-items-center justify-content-start ml-3">
       <p class="mb-0 bottom-left">
         <span class="titulo font-14"><strong>{{ dados.cabecalho.titulo }}</strong></span><br/>
         <span class="font-12 mb-0">
@@ -48,7 +48,7 @@
       </p>
     </div>
 
-    <div class="col-4 d-flex align-items-center justify-content-end ml-auto">
+    <div class="d-flex align-items-center justify-content-end">
       <p class="mb-0 font-12 border px-3 py-2 text-right">
         <span>Período de execução:</span><br/>
         <span><strong>{{ dados.cabecalho.periodo_data_inicio }} até {{ dados.cabecalho.periodo_data_fim }}</strong></span><br/>
