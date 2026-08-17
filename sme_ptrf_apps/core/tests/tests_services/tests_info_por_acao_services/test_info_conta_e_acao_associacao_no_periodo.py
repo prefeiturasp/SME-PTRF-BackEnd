@@ -4,7 +4,7 @@ from datetime import date
 from decimal import Decimal
 
 from sme_ptrf_apps.core.services.info_por_acao_services import (
-    info_conta_associacao_no_periodo, 
+    info_conta_associacao_no_periodo,
     info_acao_associacao_no_periodo
 )
 
@@ -105,6 +105,7 @@ def dados_fechamento_conta(
     assert fechamento.saldo_anterior_custeio == Decimal("6000.00")
 
     return associacao, conta, acao_associacao, periodo
+
 
 
 def test_info_conta_associacao_no_periodo_recalcula_saldo_com_rateios_atuais(
@@ -225,3 +226,118 @@ def test_info_acao_associacao_no_periodo_recalcula_saldo_com_rateios_atuais(
 
     assert response["despesas_no_periodo_custeio"] == Decimal("1000.00")
     assert response["saldo_atual_custeio"] == Decimal("5000.00")
+
+
+def test_info_conta_associacao_no_periodo_recalcula_saldo_com_rateios_atuais_sem_exclude(
+    dados_fechamento_conta,
+    despesa_factory,
+    rateio_despesa_factory,
+):
+    (
+        associacao,
+        conta,
+        acao_associacao,
+        periodo
+    ) = dados_fechamento_conta
+
+    # Despesas já cadastradas anteriormente
+    despesa_antiga = despesa_factory.create(
+        associacao=associacao,
+        data_transacao=date(2022, 1, 1),
+        data_documento=date(2022, 1, 1),
+    )
+
+    rateio_despesa_factory.create(
+        despesa=despesa_antiga,
+        associacao=associacao,
+        conta_associacao=conta,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso="CUSTEIO",
+        valor_rateio=Decimal("1000.00"),
+        valor_original=Decimal("1000.00"),
+        status="COMPLETO",
+        conferido=True,
+    )
+
+    despesa = despesa_factory.create(
+        associacao=associacao,
+        data_transacao=date(2022, 1, 2),
+        data_documento=date(2022, 1, 2),
+    )
+    rateio_despesa_factory.create(
+        despesa=despesa,
+        associacao=associacao,
+        conta_associacao=conta,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso="CUSTEIO",
+        valor_rateio=Decimal("1000.00"),
+        valor_original=Decimal("1000.00"),
+        status="COMPLETO",
+        conferido=True,
+    )
+
+    response = info_conta_associacao_no_periodo(
+        conta_associacao=conta,
+        periodo=periodo,
+    )
+
+    assert response["despesas_no_periodo_custeio"] == Decimal("0")
+    assert response["saldo_atual_custeio"] == Decimal("6000.00")
+
+
+def test_info_acao_associacao_no_periodo_recalcula_saldo_com_rateios_atuais_sem_exclude(
+    dados_fechamento_conta,
+    despesa_factory,
+    rateio_despesa_factory,
+):
+    (
+        associacao,
+        conta,
+        acao_associacao,
+        periodo
+    ) = dados_fechamento_conta
+
+    # Despesas já cadastradas anteriormente
+    despesa_antiga = despesa_factory.create(
+        associacao=associacao,
+        data_transacao=date(2022, 1, 1),
+        data_documento=date(2022, 1, 1),
+    )
+
+    rateio_despesa_factory.create(
+        despesa=despesa_antiga,
+        associacao=associacao,
+        conta_associacao=conta,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso="CUSTEIO",
+        valor_rateio=Decimal("1000.00"),
+        valor_original=Decimal("1000.00"),
+        status="COMPLETO",
+        conferido=True,
+    )
+
+    despesa = despesa_factory.create(
+        associacao=associacao,
+        data_transacao=date(2022, 1, 2),
+        data_documento=date(2022, 1, 2),
+    )
+
+    rateio_despesa_factory.create(
+        despesa=despesa,
+        associacao=associacao,
+        conta_associacao=conta,
+        acao_associacao=acao_associacao,
+        aplicacao_recurso="CUSTEIO",
+        valor_rateio=Decimal("1000.00"),
+        valor_original=Decimal("1000.00"),
+        status="COMPLETO",
+        conferido=True,
+    )
+
+    response = info_acao_associacao_no_periodo(
+        acao_associacao=acao_associacao,
+        periodo=periodo,
+       
+    )
+    assert response["despesas_no_periodo_custeio"] == Decimal("0")
+    assert response["saldo_atual_custeio"] == Decimal("6000.00")
