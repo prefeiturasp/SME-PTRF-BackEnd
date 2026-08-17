@@ -6,8 +6,8 @@ Funcionalidade: Excluir Motivo de pagamento antecipado
     E realizo login no sistema PTRF com perfil "SME"
 
   Esquema do Cenário: Validar exclusão de motivo de pagamento antecipado :<caso>
-    E excluo o Motivo pagamento antecipado com o nome de motivo "teste automatizado" do banco de dados
-    E crio o Motivo pagamento antecipado com o nome de motivo 'teste automatizado' do banco de dados
+    E excluo o Motivo pagamento antecipado com o nome de motivo "teste automatizado" via API
+    E crio o Motivo pagamento antecipado com o nome de motivo 'teste automatizado' via API
     E clico na opcao "<opcao_painel_parametrizacao>"
     E informo dado nos campos "<filtrar_por_motivo_de_pagamento_antecipado>" da tela de pesquisa de Motivo pagamento antecipado
     E clico no botao "Filtrar" da tela Motivo pagamento antecipado
