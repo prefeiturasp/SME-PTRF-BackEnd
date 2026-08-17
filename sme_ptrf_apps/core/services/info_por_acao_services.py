@@ -847,7 +847,7 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
             logger.info(
                 f'Encontrados fechamentos de períodos anteriores ao período {periodo} para a conta {conta_associacao}')
             sumario_periodo_anterior = fechamento_sumarizado_por_conta(
-                fechamentos_periodo_anterior, considera_exclude_despesa=False)
+                fechamentos_periodo_anterior)
 
             info['saldo_anterior_capital'] = sumario_periodo_anterior['saldo_atual_capital']
             info['saldo_atual_capital'] = info['saldo_anterior_capital']
