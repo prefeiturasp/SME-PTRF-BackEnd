@@ -2,6 +2,7 @@ import datetime
 import logging
 from io import BytesIO
 
+from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse
 from django.template.loader import render_to_string
@@ -103,18 +104,26 @@ class AssociacoesViewSet(ModelViewSet):
 
         obj = self.get_object()
 
-        try:
-            self.perform_destroy(obj)
-        except ProtectedError as e:
-            obj_protected = list(e.protected_objects)[0]
-            isnot_periodo_inicial_associacao = not isinstance(obj_protected, PeriodoInicialAssociacao)
+        with transaction.atomic():
+            try:
+                self.perform_destroy(obj)
+            except ProtectedError as e:
+                objects_protected = list(e.protected_objects)
 
-            if len(e.protected_objects) > 1 or isnot_periodo_inicial_associacao:
-                content = {
-                    'erro': 'ProtectedError',
-                    'mensagem': 'Não é possível excluir essa associação porque ela já possui movimentação (despesas, receitas, etc.)'
-                }
-                return Response(content, status=status.HTTP_400_BAD_REQUEST)
+                somente_periodos_iniciais = all(
+                    isinstance(obj_protected, PeriodoInicialAssociacao)
+                    for obj_protected in objects_protected
+                )
+
+                if not somente_periodos_iniciais:
+                    content = {
+                        'erro': 'ProtectedError',
+                        'mensagem': 'Não é possível excluir essa associação porque ela já possui movimentação (despesas, receitas, etc.)'
+                    }
+                    return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+                obj.periodos_iniciais.all().delete()
+                self.perform_destroy(obj)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
