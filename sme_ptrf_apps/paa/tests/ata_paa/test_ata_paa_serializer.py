@@ -41,13 +41,14 @@ def test_serializer(ata_paa):
 
 
 def test_serializer_precisa_professor_gremio_true(
-        ata_paa, parametros, acao_factory, acao_associacao_factory, despesa_factory, rateio_despesa_factory):
+        ata_paa, parametros, acao_factory, acao_associacao_factory,
+        receita_prevista_paa_factory):
     """Testa se serializer retorna precisa_professor_gremio=True quando unidade precisa e há
-      despesas completas com ação grêmio no período"""
-    parametros.tipos_unidades_professor_gremio = ['EMEF']
+      receitas previstas com ação grêmio no período"""
+    parametros.tipos_unidades_professor_gremio = ['CIEJA']
     parametros.save()
 
-    ata_paa.paa.associacao.unidade.tipo_unidade = 'EMEF'
+    ata_paa.paa.associacao.unidade.tipo_unidade = 'CIEJA'
     ata_paa.paa.associacao.unidade.save()
 
     # Cria ação "Orçamento Grêmio Estudantil"
@@ -58,20 +59,7 @@ def test_serializer_precisa_professor_gremio_true(
         status='ATIVA'
     )
 
-    # Cria despesa completa no período do PAA
-    periodo_paa = ata_paa.paa.periodo_paa
-    despesa = despesa_factory.create(
-        associacao=ata_paa.paa.associacao,
-        data_transacao=periodo_paa.data_inicial + timedelta(days=1),
-        status=STATUS_COMPLETO
-    )
-
-    # Cria rateio completo com a ação do grêmio
-    rateio_despesa_factory.create(
-        despesa=despesa,
-        associacao=ata_paa.paa.associacao,
-        acao_associacao=acao_associacao_gremio
-    )
+    receita_prevista_paa_factory.create(paa=ata_paa.paa, acao_associacao=acao_associacao_gremio)
 
     serializer = AtaPaaSerializer(ata_paa)
     assert serializer.data['precisa_professor_gremio'] is True

@@ -94,14 +94,29 @@ def atualiza_diretor_unidade(unidade: Unidade) -> None:
 def consulta_unidade(codigo_eol):
     """Consulta por uma unidade"""
     result = {}
+    unidade_codigo_eol = Unidade.objects.filter(codigo_eol=str(codigo_eol)).first()
+
     if len(str(codigo_eol)) != 6:
         result['erro'] = 'codigo_eol_inválido'
         result['mensagem'] = f"Código eol {codigo_eol} inválido. O código eol deve conter 6 dígitos."
         logger.info(result['mensagem'])
-    elif Unidade.objects.filter(codigo_eol=codigo_eol).exists():
-        result['erro'] = 'codigo_eol_ja_cadastrado'
-        result['mensagem'] = f"O código eol {codigo_eol} já está vinculado a uma associação."
-        logger.info(result['mensagem'])
+    elif unidade_codigo_eol:
+        if unidade_codigo_eol.associacoes.count() > 0:
+            result['erro'] = 'codigo_eol_ja_cadastrado'
+            result['mensagem'] = f"O código eol {codigo_eol} já está vinculado a uma associação."
+            logger.info(result['mensagem'])
+        else:
+            result['codigo_eol'] = codigo_eol
+            result['nome'] = unidade_codigo_eol.nome or ''
+            result['nome_dre'] = unidade_codigo_eol.dre.nome or '' if unidade_codigo_eol.dre else ''
+            result['tipo_unidade'] = unidade_codigo_eol.tipo_unidade or ''
+            result['email'] = unidade_codigo_eol.email or ''
+            result['telefone'] = unidade_codigo_eol.telefone or ''
+            result['numero'] = unidade_codigo_eol.numero or ''
+            result['tipo_logradouro'] = unidade_codigo_eol.tipo_logradouro or ''
+            result['logradouro'] = unidade_codigo_eol.logradouro or ''
+            result['bairro'] = unidade_codigo_eol.bairro or ''
+            result['cep'] = f"{unidade_codigo_eol.cep:0>8}" if unidade_codigo_eol.cep is not None else ''
     else:
         try:
             response = SmeIntegracaoService.get_dados_unidade_eol(codigo_eol)

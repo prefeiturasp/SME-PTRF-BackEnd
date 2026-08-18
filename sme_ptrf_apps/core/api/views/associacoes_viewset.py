@@ -2,6 +2,7 @@ import datetime
 import logging
 from io import BytesIO
 
+from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse
 from django.template.loader import render_to_string
@@ -35,7 +36,7 @@ from ....dre.services import (
     atualiza_itens_verificacao,
 )
 from ...models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade, Ata, AnalisePrestacaoConta, \
-    FechamentoPeriodo, Recurso
+    FechamentoPeriodo, Recurso, PeriodoInicialAssociacao
 from ...services import (
     atualiza_dados_unidade,
     gerar_planilha,
@@ -103,14 +104,26 @@ class AssociacoesViewSet(ModelViewSet):
 
         obj = self.get_object()
 
-        try:
-            self.perform_destroy(obj)
-        except ProtectedError:
-            content = {
-                'erro': 'ProtectedError',
-                'mensagem': 'Não é possível excluir essa associação porque ela já possui movimentação (despesas, receitas, etc.)'
-            }
-            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            try:
+                self.perform_destroy(obj)
+            except ProtectedError as e:
+                objects_protected = list(e.protected_objects)
+
+                somente_periodos_iniciais = all(
+                    isinstance(obj_protected, PeriodoInicialAssociacao)
+                    for obj_protected in objects_protected
+                )
+
+                if not somente_periodos_iniciais:
+                    content = {
+                        'erro': 'ProtectedError',
+                        'mensagem': 'Não é possível excluir essa associação porque ela já possui movimentação (despesas, receitas, etc.)'
+                    }
+                    return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+                obj.periodos_iniciais.all().delete()
+                self.perform_destroy(obj)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -698,11 +711,38 @@ class AssociacoesViewSet(ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='eol',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def consulta_unidade(self, request):
+    def consulta_unidade_associacao(self, request):
         codigo_eol = self.request.query_params.get('codigo_eol')
         result = consulta_unidade(codigo_eol)
         status_code = status.HTTP_400_BAD_REQUEST if 'erro' in result.keys() else status.HTTP_200_OK
         return Response(result, status=status_code)
+
+    @action(detail=False, methods=['get'], url_path='verifica-cnpj-existente',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def verifica_cnpj_existente(self, request):
+        cnpj = self.request.query_params.get('cnpj')
+        associacao = Associacao.objects.filter(cnpj=cnpj).first()
+        result = None
+
+        if associacao:
+            result = {
+                'erro': 'cnpj_existente',
+                'mensagem': f"O CNPJ {cnpj} já está cadastrado na base."
+            }
+
+        status_code = status.HTTP_409_CONFLICT if result else status.HTTP_200_OK
+        return Response(result, status=status_code)
+
+    @action(detail=False, methods=['get'], url_path='opcoes-status-valores-reprogramados',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def opcoes_status_valores_reprogramados(self, request):
+        result = [
+            {'key': key, 'value': value}
+            for key, value
+            in PeriodoInicialAssociacao.STATUS_VALORES_REPROGRAMADOS_CHOICES
+        ]
+
+        return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, url_path='status-presidente', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])

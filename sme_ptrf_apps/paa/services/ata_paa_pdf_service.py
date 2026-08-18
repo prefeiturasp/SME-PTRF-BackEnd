@@ -14,7 +14,7 @@ LOGGER.addHandler(logging.NullHandler())
 LOGGER.setLevel(40)  # Only show errors
 
 
-def gerar_arquivo_ata_paa_pdf(dados_ata, ata_paa: AtaPaa) -> AtaPaa:
+def gerar_arquivo_ata_paa_pdf(dados_ata: dict, ata_paa: AtaPaa) -> AtaPaa:
     """
     Gera o arquivo PDF da ata PAA
     """

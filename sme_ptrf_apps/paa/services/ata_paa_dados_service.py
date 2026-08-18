@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime
 from typing import Any, Optional
+from django.contrib.auth.models import User
 
 from sme_ptrf_apps.paa.models import AtaPaa, ParticipanteAtaPaa, Paa, PeriodoPaa
 from sme_ptrf_apps.paa.services.dados_documento_paa_service import (
@@ -16,17 +17,18 @@ _FORMATO_DATA = "%d/%m/%Y"
 
 
 def _filtrar_itens_atividades_retificadas(items: list[dict]) -> tuple[list[dict], bool]:
-    """Retorna apenas os itens marcados como retificados e um flag de presença.
+    """Retorna todos os itens retificados ou não e um flag de presença.
 
     Args:
         items: Lista de itens que contêm a chave ``retificado``.
 
     Returns:
-        Tupla ``(items_retificados, tem_retificado)`` onde ``items_retificados``
-        é a lista filtrada e ``tem_retificado`` indica se há ao menos um item.
+        Tupla ``(items, bool(tem_retificado))`` onde ``items``
+        é a lista completa e ``tem_retificado`` indica se há ao menos um item.
     """
+
     items_retificados = [item for item in items if item.get('retificado')]
-    return items_retificados, bool(items_retificados)
+    return items, bool(items_retificados)
 
 
 def _aplicar_filtro_retificacao_no_grupo(prioridades: list[dict], key: str) -> bool:
@@ -52,7 +54,7 @@ def _aplicar_filtro_retificacao_no_grupo(prioridades: list[dict], key: str) -> b
     return bool(items_retificados)
 
 
-def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
+def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario: Optional[User] = None) -> dict[str, Any]:
     """Gera os dados necessários para a geração do PDF da ata PAA.
 
     Para atas de retificação, obtém as alterações do ciclo corrente via
@@ -79,6 +81,7 @@ def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
 
         alteracoes: Optional[dict] = None
         etiqueta_retificacao: Optional[str] = None
+        px_versao = None
         if is_retificacao:
             # Importando aqui para evitar dependência circular entre serviços de retificação.
             from sme_ptrf_apps.paa.services.retificacao_paa_service import RetificacaoPaaService
@@ -93,10 +96,12 @@ def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
             # não exista (situação improvável em produção), usa a data atual como fallback.
             # Em caso de regra de negócio alterada, basta utilizar a data do bloco else
             doc_retificacao = CicloRetificacaoService(paa).documento_atual
+            px_versao = CicloRetificacaoService(paa).numero_versao
             if doc_retificacao and doc_retificacao.criado_em:
                 data_retificacao = doc_retificacao.criado_em.strftime(_FORMATO_DATA)
             else:
                 data_retificacao = datetime.now().strftime(_FORMATO_DATA)
+
             etiqueta_retificacao = f"Retificado em: {data_retificacao}"
 
         cabecalho = cria_cabecalho(ata_paa)
@@ -142,7 +147,13 @@ def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
                 _filtrar_itens_atividades_retificadas(atividades_estatutarias)
             )
 
-        numeros_blocos = calcular_numeros_blocos(prioridades, atividades_estatutarias)
+        dados = {
+            "prioridades": prioridades,
+            "atividades_estatutarias": atividades_estatutarias,
+            "manifestacoes": dados_texto_ata.get("manifestacoes", ""),
+        }
+
+        numeros_blocos = calcular_numeros_blocos(dados, is_retificacao)
 
         dados_ata = {
             "cabecalho": cabecalho,
@@ -161,6 +172,7 @@ def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
             "retificado_prioridades_pdde": retificado_prioridades_pdde,
             "retificado_prioridades_outros": retificado_prioridades_outros,
             "retificado_atividades_estatutarias": retificado_atividades_estatutarias,
+            "versao_retificacao": f"#{px_versao:02d}" if px_versao is not None else None,
         }
         LOGGER.info("Dados da ata PAA gerados com sucesso")
         LOGGER.info("Dados da ata PAA %s", dados_ata)
@@ -170,11 +182,15 @@ def gerar_dados_ata_paa(ata_paa: AtaPaa, usuario=None) -> dict[str, Any]:
         raise
 
 
-def calcular_numeros_blocos(prioridades, atividades_estatutarias):
+def calcular_numeros_blocos(dados: dict, is_retificacao: bool) -> dict[str, int]:
     """
     Calcula os números dos blocos dinamicamente baseado nos blocos que existem.
     Similar à função nome_blocos do relatório de acertos.
     """
+    prioridades = dados.get('prioridades', [])
+    atividades_estatutarias = dados.get('atividades_estatutarias', [])
+    manifestacoes = dados.get('manifestacoes', "")
+
     numeros = {}
     numero_bloco = 2  # Começa em 2 porque Bloco 1 e 2 são fixos
 
@@ -212,18 +228,27 @@ def calcular_numeros_blocos(prioridades, atividades_estatutarias):
         numero_bloco += 1
         numeros['atividades_estatutarias'] = numero_bloco
 
-    # Bloco de Manifestações (sempre após Atividades Estatutárias)
-    numero_bloco += 1
-    numeros['manifestacoes'] = numero_bloco
+    if is_retificacao:
+        # Bloco de Justificativa da Retificação (sempre após Atividades Estatutárias)
+        numero_bloco += 1
+        numeros['justificativa_retificacao'] = numero_bloco
 
-    # Bloco de Lista de Presença (sempre após Manifestações)
+    if manifestacoes:
+        # Bloco de Manifestações (sempre após Atividades Estatutárias ou Justificativa da Retificação)
+        numero_bloco += 1
+        numeros['manifestacoes'] = numero_bloco
+
+    numero_bloco += 1
+    numeros['parecer_conselho'] = numero_bloco
+
+    # Bloco de Lista de Presença (sempre após Parecer do Conselho)
     numero_bloco += 1
     numeros['lista_presenca'] = numero_bloco
 
     return numeros
 
 
-def presentes_ata_paa(ata_paa: AtaPaa):
+def presentes_ata_paa(ata_paa: AtaPaa) -> dict[str, list[dict]]:
     """
     Retorna os presentes na ata PAA organizados por tipo
     """
@@ -243,8 +268,8 @@ def presentes_ata_paa(ata_paa: AtaPaa):
         presentes_ata_membros_list.append(presente_dict)
 
     presentes_ata_nao_membros = ParticipanteAtaPaa.objects.filter(
-        ata_paa=ata_paa, membro=False, conselho_fiscal=False
-    ).order_by('nome').values('uuid', 'nome', 'cargo', 'presente', 'professor_gremio')
+        ata_paa=ata_paa, membro=False, conselho_fiscal=False,
+    ).exclude(identificacao="").order_by('nome').values('uuid', 'nome', 'cargo', 'presente', 'professor_gremio')
 
     presentes_na_ata = {
         "presentes_ata_membros": presentes_ata_membros_list,
@@ -383,7 +408,7 @@ def criar_paragrafos_introducao_retificacao(dados_texto_da_ata: dict, paa: Paa) 
     ]
 
 
-def dados_texto_ata_paa(ata_paa: AtaPaa, usuario=None):
+def dados_texto_ata_paa(ata_paa: AtaPaa, usuario: Optional[User] = None) -> dict[str, Any]:
     """
     Gera os dados de texto da ata PAA
     """
@@ -407,6 +432,7 @@ def dados_texto_ata_paa(ata_paa: AtaPaa, usuario=None):
         "comentarios": ata_paa.comentarios,
         "parecer_conselho": ata_paa.parecer_conselho,
         "justificativa": ata_paa.justificativa if ata_paa.justificativa else "",
+        "justificativa_retificacao": ata_paa.justificativa_retificacao if ata_paa.justificativa_retificacao else "",
         "usuario": usuario.username if usuario else "",
         "hora_reuniao": ata_paa.hora_reuniao.strftime('%H:%M') if ata_paa.hora_reuniao else "00:00",
         "hora_reuniao_formatada": formatar_hora_ata(ata_paa.hora_reuniao) if ata_paa.hora_reuniao else "00h00",
@@ -463,7 +489,7 @@ def cria_cabecalho(ata_paa: AtaPaa):
     return cabecalho
 
 
-def formata_data(data):
+def formata_data(data: Any) -> str:
     """
     Formata data para exibição
     """
@@ -479,7 +505,7 @@ def formata_data(data):
     return data.strftime(_FORMATO_DATA)
 
 
-def formatar_hora_ata(hora):
+def formatar_hora_ata(hora: Any) -> str:
     """
     Formata hora para exibição na ata (formato: 13h00)
     """
@@ -498,7 +524,7 @@ def formatar_hora_ata(hora):
     return hora.strftime('%Hh%M')
 
 
-def _formatar_data_dia_mes_ano(data) -> str:
+def _formatar_data_dia_mes_ano(data: Any) -> str:
     """
     Formata uma data como "1º de agosto de 2026" (dia numérico + mês por extenso).
     """
@@ -523,7 +549,7 @@ def formatar_datas_periodo(periodo_paa: PeriodoPaa) -> str:
     return f"{_formatar_data_dia_mes_ano(periodo_paa.data_inicial)} a {_formatar_data_dia_mes_ano(periodo_paa.data_final)}"  # noqa
 
 
-def criar_identificacao_associacao_ata(paa):
+def criar_identificacao_associacao_ata(paa: Paa) -> dict[str, str]:
     """
     Cria os dados de identificação da associação para a ata PAA
     """

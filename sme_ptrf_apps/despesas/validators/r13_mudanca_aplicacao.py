@@ -1,4 +1,4 @@
-from sme_ptrf_apps.despesas.models import RateioDespesa
+from sme_ptrf_apps.despesas.models import RateioDespesa, Despesa
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 from .base import AbstractDespesaValidator, DespesaValidationError
@@ -12,6 +12,10 @@ class MudancaAplicacaoValidator(AbstractDespesaValidator):
     Presente apenas em UPDATE_PIPELINE e UPDATE_ACERTO_PIPELINE (pipelines.py).
 
     Legado: despesa_service.py:234-355 (_atualizar_rateios)
+    O validate verificava somente ctx.rateios, e ignorava ctx.despesas_impostos
+
+    TODO: adotar estrutura de cache para rateios/impostos, considerando N requisição para cada item de rateios/impostos
+    viabilizar caches via DespesaDtoContext
     """
 
     def validate(self, ctx: DespesaDtoContext) -> DespesaDtoContext:
@@ -21,7 +25,8 @@ class MudancaAplicacaoValidator(AbstractDespesaValidator):
         Levanta DespesaValidationError com detail={"mensagem": "..."} no primeiro rateio com violação.
         """
         if ctx.despesa_instance:
-            self._validar_mudancas_de_aplicacao(ctx.rateios, ctx.despesa_instance)
+            self._validar_mudancas_de_aplicacao(ctx.rateios, ctx.eh_despesa_sem_comprovacao_fiscal)
+        self._validar_mudancas_de_aplicacao_impostos(ctx.despesas_impostos)
         return ctx
 
     def apply(self, ctx: DespesaDtoContext) -> DespesaDtoContext:
@@ -30,10 +35,11 @@ class MudancaAplicacaoValidator(AbstractDespesaValidator):
         Legado: despesa_service.py:300-313 (CAPITAL→CUSTEIO) e 343-350 (CUSTEIO→CAPITAL)
         """
         if ctx.despesa_instance:
-            self._resetar_campos_por_mudanca(ctx.rateios, ctx.despesa_instance)
+            self._resetar_campos_por_mudanca(ctx.rateios, ctx.eh_despesa_sem_comprovacao_fiscal)
+        self._resetar_campos_por_mudanca_impostos(ctx.despesas_impostos)
         return ctx
 
-    def _validar_mudancas_de_aplicacao(self, rateios: list, despesa) -> None:
+    def _validar_mudancas_de_aplicacao(self, rateios: list, eh_despesa_sem_comprovacao_fiscal: bool) -> None:
         for rateio in rateios:
             # despesa_service.py:257
             if "uuid" not in rateio:
@@ -47,7 +53,7 @@ class MudancaAplicacaoValidator(AbstractDespesaValidator):
             # despesa_service.py:267-276
             aplicacao_anterior = rateio_atual.aplicacao_recurso
             nova_aplicacao = rateio.get("aplicacao_recurso")
-            sem_exigencia = self._sem_exigencia_especificacao(rateio, rateio_atual, despesa)
+            sem_exigencia = self._sem_exigencia_especificacao(rateio, rateio_atual, eh_despesa_sem_comprovacao_fiscal)
 
             # despesa_service.py:279-318
             if aplicacao_anterior == APLICACAO_CAPITAL and nova_aplicacao == APLICACAO_CUSTEIO:
@@ -57,7 +63,31 @@ class MudancaAplicacaoValidator(AbstractDespesaValidator):
             elif aplicacao_anterior == APLICACAO_CUSTEIO and nova_aplicacao == APLICACAO_CAPITAL:
                 self._validar_custeio_para_capital(rateio, rateio_atual, sem_exigencia)
 
-    def _resetar_campos_por_mudanca(self, rateios: list, despesa) -> None:
+    def _validar_mudancas_de_aplicacao_impostos(self, despesas_impostos):
+        for imposto in despesas_impostos:
+            if not isinstance(imposto, dict) or not imposto.get("uuid"):
+                continue  # imposto novo (create) não tem "antes" pra comparar — nada a validar
+            imposto_instance = Despesa.objects.filter(uuid=imposto["uuid"]).first()
+            if not imposto_instance:
+                continue
+            eh_sem_comprovacao = imposto.get(
+                "eh_despesa_sem_comprovacao_fiscal", imposto_instance.eh_despesa_sem_comprovacao_fiscal
+            )
+            self._validar_mudancas_de_aplicacao(imposto.get("rateios", []), eh_sem_comprovacao)
+
+    def _resetar_campos_por_mudanca_impostos(self, despesas_impostos):
+        for imposto in despesas_impostos:
+            if not isinstance(imposto, dict) or not imposto.get("uuid"):
+                continue
+            imposto_instance = Despesa.objects.filter(uuid=imposto["uuid"]).first()
+            if not imposto_instance:
+                continue
+            eh_sem_comprovacao = imposto.get(
+                "eh_despesa_sem_comprovacao_fiscal", imposto_instance.eh_despesa_sem_comprovacao_fiscal
+            )
+            self._resetar_campos_por_mudanca(imposto.get("rateios", []), eh_sem_comprovacao)
+
+    def _resetar_campos_por_mudanca(self, rateios: list, eh_despesa_sem_comprovacao_fiscal: bool) -> None:
         for rateio in rateios:
             if "uuid" not in rateio:
                 continue
@@ -72,7 +102,7 @@ class MudancaAplicacaoValidator(AbstractDespesaValidator):
             if aplicacao_anterior == nova_aplicacao:
                 continue
 
-            sem_exigencia = self._sem_exigencia_especificacao(rateio, rateio_atual, despesa)
+            sem_exigencia = self._sem_exigencia_especificacao(rateio, rateio_atual, eh_despesa_sem_comprovacao_fiscal)
 
             # despesa_service.py:300-313
             if aplicacao_anterior == APLICACAO_CAPITAL and nova_aplicacao == APLICACAO_CUSTEIO:
@@ -82,13 +112,16 @@ class MudancaAplicacaoValidator(AbstractDespesaValidator):
                 self._resetar_campos_custeio(rateio, sem_exigencia)
 
     @staticmethod
-    def _sem_exigencia_especificacao(rateio, rateio_atual, despesa) -> bool:
-        """despesa_service.py:271-276."""
+    def _sem_exigencia_especificacao(rateio, rateio_atual, eh_despesa_sem_comprovacao_fiscal: bool) -> bool:
+        """ despesa_service.py:271-276. eh_despesa_sem_comprovacao_fiscal já vem resolvido pelo chamador
+            (ctx.eh_despesa_sem_comprovacao_fiscal pra despesa principal, ou o valor submetido no próprio
+            imposto com fallback pro banco)
+        """
         saida_recurso_externo = rateio.get(
             "saida_de_recurso_externo",
             rateio_atual.saida_de_recurso_externo,
         )
-        return despesa.eh_despesa_sem_comprovacao_fiscal or saida_recurso_externo
+        return eh_despesa_sem_comprovacao_fiscal or saida_recurso_externo
 
     @staticmethod
     def _validar_capital_para_custeio(rateio: dict, sem_exigencia: bool) -> None:

@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import pytest
 from rest_framework.exceptions import ValidationError
+from waffle.testutils import override_flag
 
 from sme_ptrf_apps.core.models import (
     AnaliseLancamentoPrestacaoConta,
@@ -332,15 +333,14 @@ def test_viewset_context_nao_injeta_uuid_sem_flag(
     assert "uuid_solicitacao_acerto" not in context
 
 
+@override_flag('despesas-pipeline', active=True)
 def test_viewset_context_injeta_uuid_com_flag(
     solicitacao_acerto_documento_factory,
     recurso_factory,
-    flag_factory,
 ):
     """Com despesas-pipeline, uuid válido no body entra no context (fluxo 3)."""
     from sme_ptrf_apps.despesas.api.views.despesas_viewset import DespesasViewSet
 
-    flag_factory.create(name="despesas-pipeline", everyone=True)
     solicitacao = solicitacao_acerto_documento_factory()
     request = SimpleNamespace(
         data={"uuid_solicitacao_acerto": str(solicitacao.uuid)},

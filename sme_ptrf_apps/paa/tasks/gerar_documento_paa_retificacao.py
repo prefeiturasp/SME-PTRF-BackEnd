@@ -56,7 +56,12 @@ def gerar_documento_paa_retificacao_async(self, paa_uuid, username=""):
 
         documento_paa = service.documento_paa
 
-        gerar_arquivo_documento_paa_pdf(paa, documento_paa, usuario, previa=False, alteracoes=alteracoes)
+        gerar_arquivo_documento_paa_pdf(
+            paa, documento_paa, usuario, previa=False, alteracoes=alteracoes,
+            # kwargs
+            retificacao=True,
+            px_versao=documento_paa.versao_documento,
+        )
 
         service.marcar_concluido()
 

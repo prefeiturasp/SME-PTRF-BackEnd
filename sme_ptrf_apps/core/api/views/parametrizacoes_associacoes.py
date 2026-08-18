@@ -4,7 +4,7 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
 )
 
-from sme_ptrf_apps.core.models import Associacao
+from sme_ptrf_apps.core.models import Associacao, Recurso
 from django_filters import rest_framework as filters
 from django.db.models import Q
 from rest_framework.filters import SearchFilter
@@ -31,6 +31,13 @@ class ParametrizacoesAssociacoesViewSet(mixins.ListModelMixin, GenericViewSet):
 
     def get_queryset(self):
         qs = Associacao.objects.all().order_by('unidade__tipo_unidade', 'unidade__nome')
+
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+        if recurso_uuid is not None and recurso_uuid != "":
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
+
+            if recurso:
+                qs = qs.filter(Q(periodos_iniciais__recurso=recurso))
 
         uuid_dre = self.request.query_params.get('unidade__dre__uuid')
         if uuid_dre is not None and uuid_dre != "":
