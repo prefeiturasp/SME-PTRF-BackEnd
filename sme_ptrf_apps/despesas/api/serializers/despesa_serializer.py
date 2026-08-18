@@ -1,6 +1,8 @@
 import logging
+from django.db import transaction
+
 from rest_framework import serializers
-from waffle import get_waffle_flag_model
+from sme_ptrf_apps.despesas.feature_flags import despesas_pipeline_ativa
 
 from .rateio_despesa_serializer import RateioDespesaSerializer, RateioDespesaTabelaGastosEscolaSerializer
 from .tipo_documento_serializer import TipoDocumentoSerializer, TipoDocumentoListSerializer
@@ -88,8 +90,7 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     )
 
     def validate_rateios(self, value):
-        flags = get_waffle_flag_model()
-        existe_flag_pipeline = flags.objects.filter(name='despesas-pipeline', everyone=True).exists()
+        existe_flag_pipeline = despesas_pipeline_ativa(self.context.get("request"))
         if existe_flag_pipeline:
             # bypass validate_rateios(R01, REG-003, REG-004, R05, REG-006), executa pela pipeline
             return value
@@ -161,17 +162,27 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
     def validate(self, data):
         recurso = self.context.get("recurso")
 
-        flags = get_waffle_flag_model()
-        existe_flag_pipeline = flags.objects.filter(name='despesas-pipeline', everyone=True).exists()
-        if not existe_flag_pipeline:
-            if not self.instance:
+        existe_flag_pipeline = despesas_pipeline_ativa(self.context.get("request"))
 
-                if not recurso:
-                    raise serializers.ValidationError(
-                        "Recurso da despesa é obrigatório"
-                    )
+        # Retorno de dados validados e mutados da pipeline
+        if existe_flag_pipeline:
+            data = self.executa_pipeline(data)
+            # retornar imediatamente com flag ativa para evitar
+            # executar ValidacaoDespesaService.validar_periodo_e_contas(código legado) em paralelo
+            # com a pipeline (codigo novo)
+            return data
 
-        # ainda não coberto
+        if not self.instance and not recurso:
+            raise serializers.ValidationError(
+                "Recurso da despesa é obrigatório"
+            )
+
+        # ainda não coberto — só roda com a flag desligada
+        # Regras cobertas por este método e seus validators correspondentes na pipeline:
+        #   Período da PC devolvida               → REG-007 (PeriodoPcDevolvidaValidator)
+        #   Datas de conta dos rateios             → REG-008 (ContasRateiosValidator)
+        #   Datas de conta dos impostos            → REG-008 (ContasImpostosValidator)
+        #   Conta e ação do mesmo recurso          → REG-009 (ContaAcaoRecursoValidator)
         ValidacaoDespesaService.validar_periodo_e_contas(
             instance=self.instance,
             data_transacao=data.get("data_transacao"),
@@ -179,10 +190,6 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             despesas_impostos=data.get("despesas_impostos", []),
             recurso=self.instance.recurso if self.instance else recurso
         )
-
-        # Retorno de dados validados e mutados da pipeline
-        if existe_flag_pipeline:
-            data = self.executa_pipeline(data)
 
         return data
 
@@ -196,20 +203,23 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
             service = PrioridadesPaaImpactadasDespesaRateioService(rateio, instance_despesa)
             service.limpar_valor_prioridades_impactadas()
 
+    @transaction.atomic
     def create(self, validated_data):
         from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
-        from waffle import get_waffle_flag_model
+        # REG-029 — vincular gasto incluído (só pipeline + uuid de acerto no context)
+        # Agora dentro do MESMO @transaction.atomic do método: se a vinculação de SolicitaçãoAcerto
+        # falhar, o savepoint de DespesaService.create() também é desfeito —
+        # a despesa nunca fica persistida sem o vínculo.
+        pipeline_ativa = despesas_pipeline_ativa(self.context.get("request"))
 
         validated_data["recurso"] = self.context["recurso"]
 
         despesa = DespesaService.create(
             validated_data,
-            limpar_prioridades_callback=self._limpar_prioridades_paa
+            limpar_prioridades_callback=self._limpar_prioridades_paa,
+            pipeline_ativa=pipeline_ativa
         )
 
-        # REG-029 — vincular gasto incluído (só pipeline + uuid de acerto no context)
-        flags = get_waffle_flag_model()
-        pipeline_ativa = flags.objects.filter(name='despesas-pipeline', everyone=True).exists()
         uuid_acerto = self.context.get("uuid_solicitacao_acerto")
         if pipeline_ativa and uuid_acerto:
             from sme_ptrf_apps.core.services.solicitacao_acerto_documento_service import (
@@ -229,6 +239,8 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
         from copy import deepcopy
         import time
 
+        pipeline_ativa = despesas_pipeline_ativa(self.context.get("request"))
+
         # [PIPELINE — Fluxo 4] REG-031: DespesaService.update já chama
         # _marcar_lancamento_como_atualizado (PC devolvida + solicitação pendente).
         # REG-033: herança de conciliação de impostos também fica no service.
@@ -247,7 +259,8 @@ class DespesaCreateSerializer(serializers.ModelSerializer):
                 return DespesaService.update(
                     instance,
                     deepcopy(payload_original),
-                    limpar_prioridades_callback=self._limpar_prioridades_paa
+                    limpar_prioridades_callback=self._limpar_prioridades_paa,
+                    pipeline_ativa=pipeline_ativa
                 )
             except DatabaseError as e:
                 if "timeout" in str(e).lower() or "closed" in str(e).lower():

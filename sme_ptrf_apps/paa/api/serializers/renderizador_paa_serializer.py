@@ -1,6 +1,7 @@
 from typing import Optional
 
 from rest_framework import serializers
+from rest_framework.request import Request
 
 from sme_ptrf_apps.paa.models import AtaPaa, DocumentoPaa, Paa
 from sme_ptrf_apps.paa.models.documento_paa import obter_documento_final_por_retificacao
@@ -26,10 +27,12 @@ STATUS_COLORS = {
 
 
 def _cor_status_geracao(status: str) -> str:
+    """Retorna a cor de exibição do status de geração do documento ou ata."""
     return STATUS_COLORS.get(status, "grey")
 
 
 def _url_documento_final(request, paa: Paa, eh_retificacao: bool) -> str:
+    """Retorna a URL completa para download do documento final do PAA."""
     if not request:
         return ''
     path = f'/api/paa/{paa.uuid}/documento-final/?retificacao={"true" if eh_retificacao else "false"}'
@@ -37,6 +40,7 @@ def _url_documento_final(request, paa: Paa, eh_retificacao: bool) -> str:
 
 
 def _url_ata_paa(request, ata: Optional[AtaPaa]) -> str:
+    """Retorna a URL completa para download da ata do PAA."""
     if not request or not ata:
         return ''
     path = f'/api/atas-paa/download-arquivo-ata-paa/?ata-paa-uuid={ata.uuid}'
@@ -44,6 +48,7 @@ def _url_ata_paa(request, ata: Optional[AtaPaa]) -> str:
 
 
 class RenderizadorStatusDocumentoPaaSerializer(serializers.Serializer):
+    """Serializer para renderização do status de geração do documento PAA."""
     status_geracao = serializers.CharField()
     mensagem = serializers.CharField()
     cor_mensagem = serializers.CharField()
@@ -53,6 +58,7 @@ class RenderizadorStatusDocumentoPaaSerializer(serializers.Serializer):
 
 
 class RenderizadorDocumentoPaaSerializer(serializers.Serializer):
+    """Serializer para renderização do documento PAA."""
     uuid = serializers.UUIDField(allow_null=True)
     existe_arquivo = serializers.BooleanField()
     status = RenderizadorStatusDocumentoPaaSerializer()
@@ -60,6 +66,7 @@ class RenderizadorDocumentoPaaSerializer(serializers.Serializer):
 
 
 class RenderizadorStatusAtaPaaSerializer(serializers.Serializer):
+    """Serializer para renderização do status de geração da ata PAA."""
     status_geracao = serializers.CharField()
     mensagem = serializers.CharField()
     cor_mensagem = serializers.CharField()
@@ -68,6 +75,7 @@ class RenderizadorStatusAtaPaaSerializer(serializers.Serializer):
 
 
 class RenderizadorAtaPaaSerializer(serializers.Serializer):
+    """Serializer para renderização da ata PAA."""
     uuid = serializers.UUIDField(allow_null=True)
     existe_arquivo = serializers.BooleanField()
     status = RenderizadorStatusAtaPaaSerializer()
@@ -79,12 +87,14 @@ class RenderizadorAtaPaaSerializer(serializers.Serializer):
 
 
 class RenderizadorBlocoDocumentacaoSerializer(serializers.Serializer):
+    """Serializer para renderização do bloco de documentação do PAA (documento + ata)."""
     secao_titulo = serializers.CharField(allow_blank=False)
     documento = RenderizadorDocumentoPaaSerializer()
     ata = RenderizadorAtaPaaSerializer()
 
 
 class RenderizadorPaaSerializer(serializers.Serializer):
+    """Serializer para renderização do PAA com dados de documentação e atas."""
     uuid = serializers.UUIDField()
     referencia = serializers.CharField(allow_blank=True)
     pode_retificar = serializers.BooleanField()
@@ -99,12 +109,14 @@ class RenderizadorPaaSerializer(serializers.Serializer):
 class RenderizadorPaaBuilder:
     """DTO de renderização com regras de negócio aplicadas no backend."""
 
-    def __init__(self, paa: Paa, request=None, usuario=None):
+    def __init__(self, paa: Paa, request: Request = None, usuario: str = None) -> None:
+        """Inicializa o builder com o PAA, request e usuário logado."""
         self.paa = paa
         self.request = request
         self.usuario = usuario
 
     def _documento_render(self, documento: Optional[DocumentoPaa], eh_retificacao: bool) -> dict:
+        """renderização para documento final do PAA Serializado."""
         if not documento:
             dados = {
                 'uuid': None,
@@ -146,6 +158,7 @@ class RenderizadorPaaBuilder:
         return serialized.data
 
     def _texto_justificativa_ata(self, ata: Optional[AtaPaa], eh_retificacao: bool) -> str:
+        """Texto exibido no bloco de justificativa da ata, se houver."""
         if not ata:
             return ''
         if eh_retificacao:
@@ -285,6 +298,7 @@ class RenderizadorPaaBuilder:
         return serialized.data
 
     def _ata_por_tipo(self, tipo_ata: str) -> Optional[AtaPaa]:
+        """Retorna a ata mais recente do tipo especificado, se houver."""
         return (
             self.paa.atas_da_paa.filter(tipo_ata=tipo_ata).order_by('-pk').first()
         )
@@ -323,6 +337,7 @@ class RenderizadorPaaBuilder:
         )
 
     def _pode_retificar(self) -> bool:
+        """Indica se o PAA pode ser retificado pelo usuário logado."""
         if self.paa.status_em_retificacao:
             return False
         try:
@@ -332,6 +347,7 @@ class RenderizadorPaaBuilder:
             return False
 
     def _unidade(self) -> dict:
+        """Retorna dados da unidade associada ao PAA."""
         unidade = self.paa.associacao.unidade
         codigo = unidade.codigo_eol
         try:
@@ -394,8 +410,9 @@ class RenderizadorPaaBuilder:
         exibe_dados_retificacao = bool(
             self.paa.status_em_retificacao or doc_retificacao or ata_retificacao
         )
+        titulo_secao = f'Retificado #{int(versao_retificacao):02d}' if versao_retificacao else 'Retificado'
         bloco_docs_retificacao = {
-            'secao_titulo': f'PAA Retificado #{versao_retificacao}' if versao_retificacao else 'PAA Retificado',
+            'secao_titulo': titulo_secao,
             'documento': self._documento_render(doc_retificacao, True),
             'ata': self._ata_render(ata_retificacao, True, eh_paa_vigente),
         } if exibe_dados_retificacao else None

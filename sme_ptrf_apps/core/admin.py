@@ -41,6 +41,7 @@ from .models import (
     PrevisaoRepasseSme,
     Censo,
     ParametroFiqueDeOlhoPc,
+    FiqueDeOlho,
     ModeloCarga,
     Ambiente,
     ArquivoDownload,
@@ -87,7 +88,7 @@ from django.db.models import Count
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html
 
-admin.site.register(ParametroFiqueDeOlhoPc)
+# admin.site.register(ParametroFiqueDeOlhoPc)
 admin.site.register(ModeloCarga)
 admin.site.register(MotivoRejeicaoEncerramentoContaAssociacao)
 
@@ -757,9 +758,9 @@ class ArquivoAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'status']
+    list_display = ['nome', 'status', 'recurso']
     search_fields = ['nome', ]
-    list_filter = ['status', ]
+    list_filter = ['status', 'recurso']
     readonly_fields = ('uuid', id)
 
 
@@ -2231,3 +2232,17 @@ class LogEntryAdminCustom(LogEntryAdmin):
         fuso_horario_local = get_current_timezone()
         data_hora_aware = make_aware(obj.timestamp, fuso_horario_local)
         return localtime(data_hora_aware)
+
+
+@admin.register(FiqueDeOlho)
+class FiqueDeOlhoAdmin(admin.ModelAdmin):
+    list_display = ('texto_preview', 'tipo_texto', 'recurso')
+    list_filter = (
+        'tipo_texto',
+        'recurso',
+    )
+
+    def texto_preview(self, obj):
+        return obj.get_short_texto()
+
+    texto_preview.short_description = "Texto"

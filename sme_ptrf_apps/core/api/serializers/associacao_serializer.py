@@ -2,9 +2,11 @@ from rest_framework import serializers
 from sme_ptrf_apps.core.api.serializers.recurso_serializer import RecursoSerializer
 from sme_ptrf_apps.utils.update_instance_from_dict import update_instance_from_dict
 from ...api.serializers.unidade_serializer import (UnidadeInfoAtaSerializer, UnidadeLookUpSerializer,
-                                                   UnidadeListEmAssociacoesSerializer, UnidadeSerializer, UnidadeCreateSerializer)
+                                                   UnidadeListEmAssociacoesSerializer, UnidadeSerializer,
+                                                   UnidadeCreateSerializer)
 from ...api.serializers.periodo_serializer import PeriodoLookUpSerializer
-from ...models import Associacao, Unidade, Periodo
+from ...api.serializers.periodo_inicial_associacao_serializer import SimplePeriodoInicialAssociacaoSerializer
+from ...models import Associacao, Unidade, Periodo, PeriodoInicialAssociacao
 
 
 class AssociacaoSerializer(serializers.ModelSerializer):
@@ -52,12 +54,17 @@ class AssociacaoCreateSerializer(serializers.ModelSerializer):
         allow_empty=True,
     )
 
+    periodos_iniciais = serializers.ListField(
+        child=SimplePeriodoInicialAssociacaoSerializer(), required=True, write_only=True
+    )
+
     class Meta:
         model = Associacao
         fields = '__all__'
 
     def create(self, validated_data):
         unidade = validated_data.pop('unidade')
+        periodos_iniciais = validated_data.pop('periodos_iniciais', [])
         observacao = ""
 
         if "unidade__observacao" in validated_data:
@@ -66,13 +73,19 @@ class AssociacaoCreateSerializer(serializers.ModelSerializer):
         if not unidade.get('nome_dre'):
             raise serializers.ValidationError({"nome_dre": ["EOL informado não possui DRE."]})
 
-        
         associacao = Associacao.objects.create(**validated_data)
         unidade['observacao'] = observacao
-        
-        unidade_object = UnidadeCreateSerializer().create(unidade)
+
+        unidade_object = Unidade.objects.filter(codigo_eol=unidade.get('codigo_eol')).first()
+
+        if not unidade_object:
+            unidade_object = UnidadeCreateSerializer().create(unidade)
+
         associacao.unidade = unidade_object
         associacao.save()
+
+        for periodo_inicial in periodos_iniciais:
+            associacao.periodos_iniciais.create(**periodo_inicial)
 
         return associacao
 
@@ -92,12 +105,16 @@ class AssociacaoUpdateSerializer(serializers.ModelSerializer):
         allow_null=True,
         allow_empty=True,
     )
+    periodos_iniciais = serializers.ListField(
+        child=SimplePeriodoInicialAssociacaoSerializer(), required=True, write_only=True
+    )
 
     class Meta:
         model = Associacao
         fields = '__all__'
 
     def update(self, instance, validated_data):
+        periodos_iniciais = validated_data.pop('periodos_iniciais', [])
         observacao = ""
 
         if validated_data.get("unidade__observacao"):
@@ -106,10 +123,39 @@ class AssociacaoUpdateSerializer(serializers.ModelSerializer):
         instance.unidade.observacao = observacao
         instance.unidade.save()
 
-        update_instance_from_dict(instance, validated_data)
+        if instance.pode_editar_dados_associacao_encerrada:
+            update_instance_from_dict(instance, validated_data)
+
         instance.save()
 
+        if instance.pode_editar_dados_associacao_encerrada and \
+                instance.pode_editar_periodo_inicial['pode_editar_periodo_inicial'] and \
+                len(periodos_iniciais) > 0:
+            periodos_iniciais_list = []
+
+            for periodo_inicial in periodos_iniciais:
+                uuid = periodo_inicial.pop('uuid', None)
+
+                periodo_inicial_obj = None
+
+                if uuid:
+                    periodo_inicial_obj = instance.periodos_iniciais.filter(uuid=uuid).first()
+                    if periodo_inicial_obj:
+                        update_instance_from_dict(periodo_inicial_obj, periodo_inicial)
+                        periodo_inicial_obj.save()
+                else:
+                    periodo_inicial_obj = instance.periodos_iniciais.create(**periodo_inicial)
+
+                periodos_iniciais_list.append(periodo_inicial_obj)
+
+            periodos_iniciais_a_remover = PeriodoInicialAssociacao.objects.exclude(
+                id__in=[d.id for d in periodos_iniciais_list]
+            ).filter(associacao=instance)
+
+            periodos_iniciais_a_remover.delete()
+
         return instance
+
 
 class AssociacaoInfoAtaSerializer(serializers.ModelSerializer):
     unidade = UnidadeInfoAtaSerializer(many=False)
@@ -128,6 +174,7 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
     unidade = UnidadeListEmAssociacoesSerializer(many=False)
     encerrada = serializers.SerializerMethodField('get_encerrada')
     status_valores_reprogramados = serializers.SerializerMethodField('get_status_valores_reprogramados')
+    recursos = serializers.SerializerMethodField('get_recursos_da_associacao', required=False)
 
     informacoes = serializers.SerializerMethodField(method_name='get_informacoes', required=False)
 
@@ -142,6 +189,14 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
         recurso = getattr(request, "recurso", None) if request else None
         return obj.get_status_valores_reprogramados(recurso=recurso)
 
+    def get_recursos_da_associacao(self, obj):
+        recursos = []
+
+        for periodo_inicial in obj.periodos_iniciais.all():
+            recursos.append(periodo_inicial.recurso.nome)
+
+        return recursos
+
     class Meta:
         model = Associacao
         fields = [
@@ -154,14 +209,15 @@ class AssociacaoListSerializer(serializers.ModelSerializer):
             'tooltip_encerramento_conta',
             'unidade',
             'encerrada',
-            'informacoes'
+            'informacoes',
+            'recursos'
         ]
 
 
 class AssociacaoCompletoSerializer(serializers.ModelSerializer):
     unidade = UnidadeSerializer(many=False)
     periodo_inicial = PeriodoLookUpSerializer()
-
+    periodos_iniciais = SimplePeriodoInicialAssociacaoSerializer(many=True, read_only=True)
     data_de_encerramento = serializers.SerializerMethodField('get_data_de_encerramento')
     recursos_da_associacao = serializers.SerializerMethodField('get_recursos_da_associacao')
 
@@ -172,14 +228,14 @@ class AssociacaoCompletoSerializer(serializers.ModelSerializer):
             "pode_editar_dados_associacao_encerrada": obj.pode_editar_dados_associacao_encerrada
         }
         return response
-    
+
     def get_recursos_da_associacao(self, obj):
         recursos = set()
         for periodo_inicial in obj.periodos_iniciais.all():
             recursos.add(periodo_inicial.recurso)
- 
+
         response = RecursoSerializer(recursos, many=True).data
- 
+
         return response
 
     class Meta:
@@ -198,5 +254,6 @@ class AssociacaoCompletoSerializer(serializers.ModelSerializer):
             'data_de_encerramento',
             'id',
             'pode_editar_periodo_inicial',
-            'recursos_da_associacao'
+            'recursos_da_associacao',
+            'periodos_iniciais'
         ]

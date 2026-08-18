@@ -35,7 +35,8 @@ def test_api_acoes_list_associacoes_nao_vinculadas(jwt_authenticated_client_a,
                 'nome_com_tipo': associacao_eco_delta_000087.unidade.nome_com_tipo,
                 'nome_dre': associacao_eco_delta_000087.unidade.nome_dre
             },
-            'cnpj': associacao_eco_delta_000087.cnpj
+            'cnpj': associacao_eco_delta_000087.cnpj,
+            'recursos': [],
         }
     ]
 
@@ -73,7 +74,8 @@ def test_api_acoes_list_associacoes_nao_vinculadas_encerradas_e_nao_encerradas(j
                 'nome_com_tipo': associacao_eco_delta_000087.unidade.nome_com_tipo,
                 'nome_dre': associacao_eco_delta_000087.unidade.nome_dre
             },
-            'cnpj': associacao_eco_delta_000087.cnpj
+            'cnpj': associacao_eco_delta_000087.cnpj,
+            'recursos': [],
         },
         {
             'uuid': f'{associacao_eco_delta_000088.uuid}',
@@ -90,7 +92,8 @@ def test_api_acoes_list_associacoes_nao_vinculadas_encerradas_e_nao_encerradas(j
                 'nome_com_tipo': associacao_eco_delta_000088.unidade.nome_com_tipo,
                 'nome_dre': associacao_eco_delta_000088.unidade.nome_dre
             },
-            'cnpj': associacao_eco_delta_000088.cnpj
+            'cnpj': associacao_eco_delta_000088.cnpj,
+            'recursos': [],
         },
     ]
 
@@ -126,7 +129,8 @@ def test_api_acoes_list_associacoes_nao_vinculadas_somente_nao_encerradas(jwt_au
                 'nome_com_tipo': associacao_eco_delta_000087.unidade.nome_com_tipo,
                 'nome_dre': associacao_eco_delta_000087.unidade.nome_dre
             },
-            'cnpj': associacao_eco_delta_000087.cnpj
+            'cnpj': associacao_eco_delta_000087.cnpj,
+            'recursos': [],
         },
     ]
 
@@ -162,7 +166,8 @@ def test_api_acoes_list_associacoes_nao_vinculadas_somente_encerradas(jwt_authen
                 'nome_com_tipo': associacao_eco_delta_000087.unidade.nome_com_tipo,
                 'nome_dre': associacao_eco_delta_000087.unidade.nome_dre
             },
-            'cnpj': associacao_eco_delta_000087.cnpj
+            'cnpj': associacao_eco_delta_000087.cnpj,
+            'recursos': [],
         },
     ]
 
@@ -197,7 +202,8 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome(jwt_authenticated_cl
                 'nome_com_tipo': associacao_eco_delta_000087.unidade.nome_com_tipo,
                 'nome_dre': associacao_eco_delta_000087.unidade.nome_dre
             },
-            'cnpj': associacao_eco_delta_000087.cnpj
+            'cnpj': associacao_eco_delta_000087.cnpj,
+            'recursos': [],
         },
     ]
 
@@ -233,7 +239,8 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome_e_encerradas_e_nao_e
                 'nome_com_tipo': associacao_eco_delta_000087.unidade.nome_com_tipo,
                 'nome_dre': associacao_eco_delta_000087.unidade.nome_dre
             },
-            'cnpj': associacao_eco_delta_000087.cnpj
+            'cnpj': associacao_eco_delta_000087.cnpj,
+            'recursos': [],
         },
         {
             'uuid': f'{associacao_eco_delta_000088.uuid}',
@@ -250,7 +257,8 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome_e_encerradas_e_nao_e
                 'nome_com_tipo': associacao_eco_delta_000088.unidade.nome_com_tipo,
                 'nome_dre': associacao_eco_delta_000088.unidade.nome_dre
             },
-            'cnpj': associacao_eco_delta_000088.cnpj
+            'cnpj': associacao_eco_delta_000088.cnpj,
+            'recursos': [],
         },
     ]
 
@@ -286,7 +294,8 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome_e_somente_nao_encerr
                 'nome_com_tipo': associacao_eco_delta_000087.unidade.nome_com_tipo,
                 'nome_dre': associacao_eco_delta_000087.unidade.nome_dre
             },
-            'cnpj': associacao_eco_delta_000087.cnpj
+            'cnpj': associacao_eco_delta_000087.cnpj,
+            'recursos': [],
         },
     ]
 
@@ -322,7 +331,8 @@ def test_api_acoes_list_associacoes_nao_vinculadas_por_nome_e_somente_encerradas
                 'nome_com_tipo': associacao_eco_delta_000088.unidade.nome_com_tipo,
                 'nome_dre': associacao_eco_delta_000088.unidade.nome_dre
             },
-            'cnpj': associacao_eco_delta_000088.cnpj
+            'cnpj': associacao_eco_delta_000088.cnpj,
+            'recursos': [],
         },
     ]
 

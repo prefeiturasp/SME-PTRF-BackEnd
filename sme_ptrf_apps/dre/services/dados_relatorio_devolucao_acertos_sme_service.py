@@ -26,12 +26,18 @@ class DadosRelatorioDevolucaoAcertosSme:
 
 
     def __info_cabecalho(self):
+        from sme_ptrf_apps.dre.services.consolidado_dre_service import TextDocumentConsolidadoPC
+
+        recurso = self.consolidado_dre.periodo.recurso
+        texto_normal = TextDocumentConsolidadoPC(recurso.habilita_exibicao_de_lauda).normal()
+
         info_cabecalho = {
-            "recurso": self.consolidado_dre.periodo.recurso.nome,
+            "recurso": recurso.nome,
             'periodo_referencia': self.consolidado_dre.periodo.referencia,
             'data_inicio_periodo': self.consolidado_dre.periodo.data_inicio_realizacao_despesas,
             'data_fim_periodo': self.consolidado_dre.periodo.data_fim_realizacao_despesas,
-            'tipo_relatorio': self.consolidado_dre.referencia
+            'tipo_relatorio': self.consolidado_dre.referencia,
+            'tipo_documento': texto_normal
         }
 
         return info_cabecalho

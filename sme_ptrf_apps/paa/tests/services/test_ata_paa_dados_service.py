@@ -59,15 +59,49 @@ def test_calcular_numeros_blocos_com_todos_blocos():
         {'titulo': 'Prioridades Recursos próprios', 'items': [{'id': 3}]},
     ]
     atividades_estatutarias = [{'id': 1}]
+    is_retificacao = True
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
 
-    resultado = calcular_numeros_blocos(prioridades, atividades_estatutarias)
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
 
     assert resultado['ptrf'] == 3
     assert resultado['pdde'] == 4
     assert resultado['recursos_proprios'] == 5
     assert resultado['atividades_estatutarias'] == 6
+    assert resultado['justificativa_retificacao'] == 7
+    assert resultado['manifestacoes'] == 8
+    assert resultado['parecer_conselho'] == 9
+    assert resultado['lista_presenca'] == 10
+
+
+def test_calcular_numeros_blocos_com_todos_blocos_sem_retificacao():
+    prioridades = [
+        {'titulo': 'Prioridades PTRF', 'items': [{'id': 1}]},
+        {'titulo': 'Prioridades PDDE', 'items': [{'id': 2}]},
+        {'titulo': 'Prioridades Recursos próprios', 'items': [{'id': 3}]},
+    ]
+    atividades_estatutarias = [{'id': 1}]
+    is_retificacao = False
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
+
+    assert resultado['ptrf'] == 3
+    assert resultado['pdde'] == 4
+    assert resultado['recursos_proprios'] == 5
+    assert resultado['atividades_estatutarias'] == 6
+    assert 'justificativa_retificacao' not in resultado
     assert resultado['manifestacoes'] == 7
-    assert resultado['lista_presenca'] == 8
+    assert resultado['parecer_conselho'] == 8
+    assert resultado['lista_presenca'] == 9
 
 
 def test_calcular_numeros_blocos_sem_ptrf():
@@ -75,27 +109,87 @@ def test_calcular_numeros_blocos_sem_ptrf():
         {'titulo': 'Prioridades PDDE', 'items': [{'id': 1}]},
     ]
     atividades_estatutarias = []
+    is_retificacao = True
 
-    resultado = calcular_numeros_blocos(prioridades, atividades_estatutarias)
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
 
     assert 'ptrf' not in resultado
     assert resultado['pdde'] == 3
+    assert resultado['justificativa_retificacao'] == 4
+    assert resultado['manifestacoes'] == 5
+    assert resultado['parecer_conselho'] == 6
+    assert resultado['lista_presenca'] == 7
+
+
+def test_calcular_numeros_blocos_sem_ptrf_sem_retificacao():
+    prioridades = [
+        {'titulo': 'Prioridades PDDE', 'items': [{'id': 1}]},
+    ]
+    atividades_estatutarias = []
+    is_retificacao = False
+
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
+
+    assert 'ptrf' not in resultado
+    assert resultado['pdde'] == 3
+    assert 'justificativa_retificacao' not in resultado
     assert resultado['manifestacoes'] == 4
-    assert resultado['lista_presenca'] == 5
+    assert resultado['parecer_conselho'] == 5
+    assert resultado['lista_presenca'] == 6
 
 
 def test_calcular_numeros_blocos_sem_prioridades():
     prioridades = []
     atividades_estatutarias = [{'id': 1}]
+    is_retificacao = True
 
-    resultado = calcular_numeros_blocos(prioridades, atividades_estatutarias)
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
 
     assert 'ptrf' not in resultado
     assert 'pdde' not in resultado
     assert 'recursos_proprios' not in resultado
     assert resultado['atividades_estatutarias'] == 3
+    assert resultado['justificativa_retificacao'] == 4
+    assert resultado['manifestacoes'] == 5
+    assert resultado['parecer_conselho'] == 6
+    assert resultado['lista_presenca'] == 7
+
+
+def test_calcular_numeros_blocos_sem_prioridades_sem_retificacao():
+    prioridades = []
+    atividades_estatutarias = [{'id': 1}]
+    is_retificacao = False
+
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
+
+    assert 'ptrf' not in resultado
+    assert 'pdde' not in resultado
+    assert 'recursos_proprios' not in resultado
+    assert resultado['atividades_estatutarias'] == 3
+    assert 'justificativa_retificacao' not in resultado
     assert resultado['manifestacoes'] == 4
-    assert resultado['lista_presenca'] == 5
+    assert resultado['parecer_conselho'] == 5
+    assert resultado['lista_presenca'] == 6
 
 
 def test_calcular_numeros_blocos_prioridades_vazias():
@@ -104,22 +198,82 @@ def test_calcular_numeros_blocos_prioridades_vazias():
         {'titulo': 'Prioridades PDDE', 'items': []},
     ]
     atividades_estatutarias = []
+    is_retificacao = True
 
-    resultado = calcular_numeros_blocos(prioridades, atividades_estatutarias)
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
 
     assert 'ptrf' not in resultado
     assert 'pdde' not in resultado
+    assert resultado['justificativa_retificacao'] == 3
+    assert resultado['manifestacoes'] == 4
+    assert resultado['parecer_conselho'] == 5
+    assert resultado['lista_presenca'] == 6
+
+
+def test_calcular_numeros_blocos_prioridades_vazias_sem_retificacao():
+    prioridades = [
+        {'titulo': 'Prioridades PTRF', 'items': []},
+        {'titulo': 'Prioridades PDDE', 'items': []},
+    ]
+    atividades_estatutarias = []
+    is_retificacao = False
+
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
+
+    assert 'ptrf' not in resultado
+    assert 'pdde' not in resultado
+    assert 'justificativa_retificacao' not in resultado
     assert resultado['manifestacoes'] == 3
-    assert resultado['lista_presenca'] == 4
+    assert resultado['parecer_conselho'] == 4
+    assert resultado['lista_presenca'] == 5
 
 
 def test_calcular_numeros_blocos_apenas_fixos():
     prioridades = []
     atividades_estatutarias = []
 
-    resultado = calcular_numeros_blocos(prioridades, atividades_estatutarias)
+    is_retificacao = True
 
-    assert resultado['manifestacoes'] == 3
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
+
+    assert resultado['justificativa_retificacao'] == 3
+    assert resultado['manifestacoes'] == 4
+    assert resultado['parecer_conselho'] == 5
+    assert resultado['lista_presenca'] == 6
+
+
+def test_calcular_numeros_blocos_apenas_fixos_sem_retificacao():
+    prioridades = []
+    atividades_estatutarias = []
+
+    is_retificacao = False
+
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+    }
+
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
+
+    assert 'justificativa_retificacao' not in resultado
+    assert 'manifestacoes' not in resultado
+    assert resultado['parecer_conselho'] == 3
     assert resultado['lista_presenca'] == 4
 
 
@@ -210,8 +364,7 @@ class TestFiltrarItensRetificados:
 
         resultado, _ = _filtrar_itens_atividades_retificadas(items)
 
-        assert len(resultado) == 2
-        assert all(i['retificado'] for i in resultado)
+        assert len(resultado) == 3
 
     def test_flag_true_quando_ha_retificado(self):
         items = [{'retificado': True}, {'retificado': False}]
@@ -277,7 +430,8 @@ def test_gerar_dados_ata_paa_inclui_numeros_blocos(
 
     assert 'numeros_blocos' in resultado
     assert resultado['numeros_blocos']['ptrf'] == 3
-    assert resultado['numeros_blocos']['manifestacoes'] == 5
+    assert resultado['numeros_blocos']['parecer_conselho'] == 5
+    assert resultado['numeros_blocos']['lista_presenca'] == 6
 
 
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_titulo_introducao", autospec=True)
@@ -353,6 +507,7 @@ def test_gerar_dados_ata_retificacao_inclui_etiqueta_e_flags(
     doc_mock = MagicMock()
     doc_mock.criado_em = datetime(2025, 6, 10, 10, 0, 0)
     mock_ciclo_service_cls.return_value.documento_atual = doc_mock
+    mock_ciclo_service_cls.return_value.numero_versao = 1
 
     mock_cabecalho.return_value = {}
     mock_identificacao.return_value = {}
@@ -375,6 +530,7 @@ def test_gerar_dados_ata_retificacao_inclui_etiqueta_e_flags(
     assert resultado['retificado_prioridades_pdde'] is False
     assert resultado['retificado_prioridades_outros'] is False
     assert resultado['retificado_atividades_estatutarias'] is False
+    assert resultado['versao_retificacao'] == "#01"
 
 
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_titulo_introducao", autospec=True)
@@ -405,6 +561,7 @@ def test_gerar_dados_ata_retificacao_sem_doc_usa_data_atual(
 
     mock_retificacao_service_cls.return_value.identificar_alteracoes.return_value = {}
     mock_ciclo_service_cls.return_value.documento_atual = None
+    mock_ciclo_service_cls.return_value.numero_versao = 1
 
     mock_cabecalho.return_value = {}
     mock_identificacao.return_value = {}

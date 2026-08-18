@@ -212,16 +212,17 @@ class TestBuildRnFallback:
     ):
         """R2 sem doc próprio: secao_titulo deve referenciar a versão do doc R1 (fallback)."""
         paa = _paa_em_retificacao(paa_factory)
+        versao = 1
         doc_r1 = documento_paa_factory(
-            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=versao
         )
         replica_paa_factory(
             paa=paa,
-            historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': 1}},
+            historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': versao}},
         )
         result = _builder(paa).build()
         assert result['retificacao'] is not None
-        assert result['retificacao']['secao_titulo'] == 'PAA Retificado #1'
+        assert result['retificacao']['secao_titulo'] == f'Retificado #{versao:02d}'
 
     def test_r2_sem_doc_exibe_dados_retificacao_true(
         self, paa_factory, replica_paa_factory, documento_paa_factory
@@ -247,7 +248,7 @@ class TestBuildRnFallback:
         )
         result = _builder(paa).build()
         assert result['retificacao'] is not None
-        assert result['retificacao']['secao_titulo'] == 'PAA Retificado #1'
+        assert result['retificacao']['secao_titulo'] == 'Retificado #01'
 
     def test_r2_com_doc_proprio_usa_versao_r2(
         self, paa_factory, replica_paa_factory, documento_paa_factory
@@ -260,12 +261,14 @@ class TestBuildRnFallback:
         documento_paa_factory(
             paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=2
         )
+        versao = 1
+        versao_esperada = 2
         replica_paa_factory(
             paa=paa,
-            historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': 1}},
+            historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': versao}},
         )
         result = _builder(paa).build()
-        assert result['retificacao']['secao_titulo'] == 'PAA Retificado #2'
+        assert result['retificacao']['secao_titulo'] == f'Retificado #{versao_esperada:02d}'
 
 
 # _cor_status_geracao

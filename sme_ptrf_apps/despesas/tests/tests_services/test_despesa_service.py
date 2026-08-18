@@ -967,10 +967,8 @@ def test_marca_lancamento_como_excluido_com_flag(
     analise_lancamento_prestacao_conta_factory,
     despesa_factory,
     associacao,
-    periodo_2020_2,
-    flag_factory,
+    periodo_2020_2
 ):
-    flag_factory.create(name="despesas-pipeline", everyone=True)
     despesa, analise_lancamento = criar_cenario_marcar_lancamento_como_excluido(
         prestacao_conta_factory,
         solicitacao_acerto_lancamento_factory,
@@ -984,7 +982,7 @@ def test_marca_lancamento_como_excluido_com_flag(
 
     assert not analise_lancamento.lancamento_excluido
 
-    DespesaService._marcar_lancamento_como_excluido(despesa)
+    DespesaService._marcar_lancamento_como_excluido(despesa, pipeline_ativa=True)
 
     analise_lancamento.refresh_from_db()
     assert analise_lancamento.lancamento_excluido
@@ -1015,4 +1013,3 @@ def test_nao_marca_lancamento_excluido_sem_flag(
 
     analise_lancamento.refresh_from_db()
     assert not analise_lancamento.lancamento_excluido
-
