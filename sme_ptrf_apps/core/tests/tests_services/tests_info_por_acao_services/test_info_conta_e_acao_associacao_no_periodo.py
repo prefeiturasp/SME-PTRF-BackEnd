@@ -221,6 +221,7 @@ def test_info_acao_associacao_no_periodo_recalcula_saldo_com_rateios_atuais(
     response = info_acao_associacao_no_periodo(
         acao_associacao=acao_associacao,
         periodo=periodo,
+        conta=conta,
         exclude_despesa=str(despesa.uuid),
     )
 
@@ -337,6 +338,7 @@ def test_info_acao_associacao_no_periodo_recalcula_saldo_com_rateios_atuais_sem_
     response = info_acao_associacao_no_periodo(
         acao_associacao=acao_associacao,
         periodo=periodo,
+        conta=conta,
        
     )
     assert response["despesas_no_periodo_custeio"] == Decimal("0")
