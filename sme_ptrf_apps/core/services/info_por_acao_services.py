@@ -138,7 +138,7 @@ def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
                 if not gasto_por_conta_acao_aplicacao[acao][aplicacao]:
                     continue
 
-                saldo_atual_aplicacao = saldos_acao[saldo_atual_key]                
+                saldo_atual_aplicacao = saldos_acao[saldo_atual_key]
                 gasto_da_despesa_na_acao_aplicacao = round(gasto_por_conta_acao_aplicacao[acao][aplicacao], 2)
 
                 if round(saldo_atual_aplicacao + saldo_livre_acao, 2) < gasto_da_despesa_na_acao_aplicacao:
@@ -377,7 +377,7 @@ def info_acao_associacao_no_periodo(
                     info['saldo_atual_capital'] -= rateio.valor_rateio
 
         return info
-    
+
     def sumariza_receitas_acao_entre_periodos(periodo_inicial, periodo_final, acao_associacao, info, conta=None):
         receitas = Receita.receitas_da_acao_associacao_entre_periodos(
             acao_associacao=acao_associacao,
