@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from django.db import models
 from django.db.models.signals import pre_save
@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 
 class AtaParecerTecnico(ModeloBase):
+    DATA_CORTE_PORTARIA = date(2026, 8, 19)
+
     history = AuditlogHistoryField()
 
     # Status Choice
@@ -128,6 +130,18 @@ class AtaParecerTecnico(ModeloBase):
         self.consolidado_dre = consolidado_dre
         self.save(update_fields=['consolidado_dre'])
         return self
+
+    def portaria_publicada(self) -> str:
+        if not self.data_portaria:
+            return ""
+
+        data_portaria = self.data_portaria.strftime("%d/%m/%Y")
+
+        if self.criado_em.date() >= self.DATA_CORTE_PORTARIA:
+            return f"publicada em {data_portaria}"
+
+        return f"de {data_portaria}"
+
 
 
 @receiver(pre_save, sender=AtaParecerTecnico)
