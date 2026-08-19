@@ -138,10 +138,11 @@ def saldos_insuficientes_para_rateios(rateios, periodo, exclude_despesa=None):
                 if not gasto_por_conta_acao_aplicacao[acao][aplicacao]:
                     continue
 
-                saldo_atual_aplicacao = saldos_acao[saldo_atual_key]
+                saldo_atual_aplicacao = saldos_acao[saldo_atual_key]                
                 gasto_da_despesa_na_acao_aplicacao = round(gasto_por_conta_acao_aplicacao[acao][aplicacao], 2)
 
                 if round(saldo_atual_aplicacao + saldo_livre_acao, 2) < gasto_da_despesa_na_acao_aplicacao:
+
                     saldo_insuficiente = {
                         'conta': conta,
                         'acao': acao_associacao.acao.nome,
@@ -313,7 +314,7 @@ def info_acao_associacao_no_periodo(
             info['receitas_no_periodo_custeio'] += fechamento_periodo.total_receitas_custeio
             info['receitas_devolucao_no_periodo_custeio'] += fechamento_periodo.total_receitas_devolucao_custeio
             info['repasses_no_periodo_custeio'] += fechamento_periodo.total_repasses_custeio
-            info['despesas_no_periodo_custeio'] += fechamento_periodo.total_despesas_custeio
+        
 
             info['receitas_nao_conciliadas_custeio'] += fechamento_periodo.total_receitas_nao_conciliadas_custeio
             info['despesas_nao_conciliadas_custeio'] += fechamento_periodo.total_despesas_nao_conciliadas_custeio
@@ -328,7 +329,7 @@ def info_acao_associacao_no_periodo(
             info['receitas_no_periodo_capital'] += fechamento_periodo.total_receitas_capital
             info['receitas_devolucao_no_periodo_capital'] += fechamento_periodo.total_receitas_devolucao_capital
             info['repasses_no_periodo_capital'] += fechamento_periodo.total_repasses_capital
-            info['despesas_no_periodo_capital'] += fechamento_periodo.total_despesas_capital
+    
             
             info['receitas_nao_conciliadas_capital'] += fechamento_periodo.total_receitas_nao_conciliadas_capital
             info['despesas_nao_conciliadas_capital'] += fechamento_periodo.total_despesas_nao_conciliadas_capital
@@ -355,13 +356,18 @@ def info_acao_associacao_no_periodo(
                 info['saldo_atual_custeio'] += fechamento_periodo.saldo_reprogramado_custeio
                 info['saldo_atual_capital'] += fechamento_periodo.saldo_reprogramado_capital
                 info['saldo_atual_livre'] += fechamento_periodo.saldo_reprogramado_livre
+                info['despesas_no_periodo_custeio'] += fechamento_periodo.total_despesas_custeio
+                info['despesas_no_periodo_capital'] += fechamento_periodo.total_despesas_capital
+
 
         if exclude_despesa and considera_exclude_despesa:
             rateios = RateioDespesa.rateios_da_acao_associacao_no_periodo(
                 acao_associacao=acao_associacao,
+                conta_associacao=conta,
                 periodo=periodo,
                 exclude_despesa=exclude_despesa,
             )
+
             for rateio in rateios:
                 if rateio.aplicacao_recurso == APLICACAO_CUSTEIO:
                     info['despesas_no_periodo_custeio'] += rateio.valor_rateio
@@ -371,7 +377,7 @@ def info_acao_associacao_no_periodo(
                     info['saldo_atual_capital'] -= rateio.valor_rateio
 
         return info
-
+    
     def sumariza_receitas_acao_entre_periodos(periodo_inicial, periodo_final, acao_associacao, info, conta=None):
         receitas = Receita.receitas_da_acao_associacao_entre_periodos(
             acao_associacao=acao_associacao,
@@ -768,6 +774,8 @@ def info_conta_associacao_no_periodo(conta_associacao, periodo, exclude_despesa=
                 info['saldo_atual_custeio'] += fechamento_periodo.saldo_reprogramado_custeio
                 info['saldo_atual_capital'] += fechamento_periodo.saldo_reprogramado_capital
                 info['saldo_atual_livre'] += fechamento_periodo.saldo_reprogramado_livre
+                info['despesas_no_periodo_custeio'] += fechamento_periodo.total_despesas_custeio
+                info['despesas_no_periodo_capital'] += fechamento_periodo.total_despesas_capital
 
         if exclude_despesa and considera_exclude_despesa:
             rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
