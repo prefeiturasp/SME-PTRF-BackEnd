@@ -195,6 +195,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         "numero_portaria": ata_de_parecer_tecnico.numero_portaria if ata_de_parecer_tecnico and ata_de_parecer_tecnico.numero_portaria else "--",
         "data_portaria": ata_de_parecer_tecnico.data_portaria if ata_de_parecer_tecnico and ata_de_parecer_tecnico.data_portaria else "--",
         "titulo_sequencia_publicacao": titulo_sequencia_publicacao,
+        "portaria_publicada": ata_de_parecer_tecnico.portaria_publicada()
     }
     dados_texto_da_ata = {
         "data_reuniao_por_extenso": data_por_extenso(ata_de_parecer_tecnico.data_reuniao) if ata_de_parecer_tecnico and ata_de_parecer_tecnico.data_reuniao else "---",
