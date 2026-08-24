@@ -16,8 +16,8 @@ class RepresentacaoCargo(Enum):
 
 
 class MembroEnum(Enum):
-    PRESIDENTE_DIRETORIA_EXECUTIVA = 'Presidente da diretoria executiva'
-    VICE_PRESIDENTE_DIRETORIA_EXECUTIVA = 'Vice-Presidente da diretoria executiva'
+    PRESIDENTE_DIRETORIA_EXECUTIVA = 'Presidente da Diretoria Executiva'
+    VICE_PRESIDENTE_DIRETORIA_EXECUTIVA = 'Vice-Presidente da Diretoria Executiva'
     SECRETARIO = 'Secretário'
     TESOUREIRO = 'Tesoureiro'
     VOGAL_1 = 'Vogal 1'
@@ -25,7 +25,7 @@ class MembroEnum(Enum):
     VOGAL_3 = 'Vogal 3'
     VOGAL_4 = 'Vogal 4'
     VOGAL_5 = 'Vogal 5'
-    PRESIDENTE_CONSELHO_FISCAL = 'Presidente do conselho fiscal'
+    PRESIDENTE_CONSELHO_FISCAL = 'Presidente do Conselho Fiscal'
     CONSELHEIRO_1 = 'Conselheiro 1'
     CONSELHEIRO_2 = 'Conselheiro 2'
     CONSELHEIRO_3 = 'Conselheiro 3'

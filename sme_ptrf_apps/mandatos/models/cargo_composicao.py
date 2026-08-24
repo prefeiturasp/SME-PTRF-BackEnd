@@ -24,8 +24,8 @@ class CargoComposicao(ModeloBase):
     CARGO_ASSOCIACAO_CONSELHEIRO_4 = 'CONSELHEIRO_4'
 
     CARGO_ASSOCIACAO_NOMES = {
-        CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA: 'Presidente da diretoria executiva',
-        CARGO_ASSOCIACAO_VICE_PRESIDENTE_DIRETORIA_EXECUTIVA: 'Vice-Presidente da diretoria executiva',
+        CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA: 'Presidente da Diretoria Executiva',
+        CARGO_ASSOCIACAO_VICE_PRESIDENTE_DIRETORIA_EXECUTIVA: 'Vice-Presidente da Diretoria Executiva',
         CARGO_ASSOCIACAO_SECRETARIO: 'Secretário',
         CARGO_ASSOCIACAO_TESOUREIRO: 'Tesoureiro',
         CARGO_ASSOCIACAO_VOGAL_1: 'Vogal 1',
@@ -33,7 +33,7 @@ class CargoComposicao(ModeloBase):
         CARGO_ASSOCIACAO_VOGAL_3: 'Vogal 3',
         CARGO_ASSOCIACAO_VOGAL_4: 'Vogal 4',
         CARGO_ASSOCIACAO_VOGAL_5: 'Vogal 5',
-        CARGO_ASSOCIACAO_PRESIDENTE_CONSELHO_FISCAL: 'Presidente do conselho fiscal',
+        CARGO_ASSOCIACAO_PRESIDENTE_CONSELHO_FISCAL: 'Presidente do Conselho Fiscal',
         CARGO_ASSOCIACAO_CONSELHEIRO_1: 'Conselheiro 1',
         CARGO_ASSOCIACAO_CONSELHEIRO_2: 'Conselheiro 2',
         CARGO_ASSOCIACAO_CONSELHEIRO_3: 'Conselheiro 3',

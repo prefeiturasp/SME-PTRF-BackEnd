@@ -66,7 +66,7 @@ DOCS = dict(
             name="Exemplo de resposta",
             value=[{
                 "ata_paa": 'uuid-1234',
-                "cargo": 'Presidente da diretoria executiva',
+                "cargo": 'Presidente da Diretoria Executiva',
                 "identificacao": '1234567',
                 "nome": 'Nome do Membro',
                 "editavel": False,
