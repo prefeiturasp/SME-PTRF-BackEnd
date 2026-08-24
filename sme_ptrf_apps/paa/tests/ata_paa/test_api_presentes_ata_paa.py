@@ -323,3 +323,102 @@ def test_padrao_presentes_uuid_invalido(jwt_authenticated_client_sme, flag_paa):
         content_type='application/json'
     )
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+def test_get_nome_cargo_membro_associacao_sem_identificador(
+    jwt_authenticated_client_sme, flag_paa
+):
+    """Testa o retorno de erro HTTP 400 quando o parâmetro identificador não é informado."""
+    response = jwt_authenticated_client_sme.get(
+        "/api/presentes-ata-paa/get-nome-cargo-membro-associacao/",
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    result = json.loads(response.content)
+    assert result["erro"] == "parametros_requeridos"
+    assert result["mensagem"] == "É necessário enviar o identificador."
+
+
+@patch(
+    "sme_ptrf_apps.paa.api.views.presentes_ata_paa_viewset.TerceirizadasService.get_informacao_servidor"
+)
+def test_get_nome_cargo_membro_associacao_sucesso(
+    mock_get_servidor, jwt_authenticated_client_sme, flag_paa
+):
+    """Testa a busca com sucesso quando o identificador possui 7 caracteres e o servidor é encontrado."""
+    mock_get_servidor.return_value = [
+        {"nm_pessoa": "Maria Souza", "cargo": "Diretora"}
+    ]
+
+    response = jwt_authenticated_client_sme.get(
+        "/api/presentes-ata-paa/get-nome-cargo-membro-associacao/?identificador=1234567",
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    result = json.loads(response.content)
+    assert result["mensagem"] == "buscando-servidor-nao-membro"
+    assert result["nome"] == "Maria Souza"
+    assert result["cargo"] == "Diretora"
+
+
+def test_get_nome_cargo_membro_associacao_tamanho_diferente_de_7(
+    jwt_authenticated_client_sme, flag_paa
+):
+    """Testa que quando o identificador possui tamanho diferente de 7 caracteres, retorna 'servidor-nao-encontrado' sem chamar o serviço externo."""
+    response = jwt_authenticated_client_sme.get(
+        "/api/presentes-ata-paa/get-nome-cargo-membro-associacao/?identificador=123",
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    result = json.loads(response.content)
+    assert result["mensagem"] == "servidor-nao-encontrado"
+    assert result["nome"] == ""
+    assert result["cargo"] == ""
+
+
+@patch(
+    "sme_ptrf_apps.paa.api.views.presentes_ata_paa_viewset.TerceirizadasService.get_informacao_servidor"
+)
+def test_get_nome_cargo_membro_associacao_servidor_nao_encontrado(
+    mock_get_servidor, jwt_authenticated_client_sme, flag_paa
+):
+    """Testa o retorno quando o serviço externo não encontra nenhum servidor (retorna lista vazia ou None)."""
+    mock_get_servidor.return_value = None
+
+    response = jwt_authenticated_client_sme.get(
+        "/api/presentes-ata-paa/get-nome-cargo-membro-associacao/?identificador=1234567",
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    result = json.loads(response.content)
+    assert result["mensagem"] == "servidor-nao-encontrado"
+    assert result["nome"] == ""
+    assert result["cargo"] == ""
+
+
+@pytest.mark.parametrize(
+    "exception_type", [TerceirizadasException, ReadTimeout, ConnectTimeout]
+)
+@patch(
+    "sme_ptrf_apps.paa.api.views.presentes_ata_paa_viewset.TerceirizadasService.get_informacao_servidor"
+)
+def test_get_nome_cargo_membro_associacao_excecoes_capturadas(
+    mock_get_servidor, exception_type, jwt_authenticated_client_sme, flag_paa
+):
+    """Testa se a action captura as exceções e trata retornando o padrão 'servidor-nao-encontrado' com status 200."""
+    mock_get_servidor.side_effect = exception_type
+
+    response = jwt_authenticated_client_sme.get(
+        "/api/presentes-ata-paa/get-nome-cargo-membro-associacao/?identificador=1234567",
+        content_type="application/json",
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    result = json.loads(response.content)
+    assert result["mensagem"] == "servidor-nao-encontrado"
+    assert result["nome"] == ""
+    assert result["cargo"] == ""

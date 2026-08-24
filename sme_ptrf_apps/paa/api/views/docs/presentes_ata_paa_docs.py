@@ -23,6 +23,26 @@ DOCS = dict(
             }
         )},
     ),
+    get_nome_cargo_membro_associacao=extend_schema(
+        description="Retorna o nome e o cargo de um servidor pelo identificador informado.",
+        parameters=[
+            OpenApiParameter(
+                name='identificador',
+                description='Registro Funcional (RF) do servidor',
+                required=True,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY
+            ),
+        ],
+        responses={200: OpenApiExample(
+            name="Exemplo de resposta",
+            value={
+                "mensagem": "buscando-servidor-nao-membro",
+                "nome": "Nome do Servidor",
+                "cargo": "Cargo do Servidor"
+            }
+        )},
+    ),
     get_participantes_ordenados_por_cargo=extend_schema(
         description="Retorna todos os participantes de uma ata PAA ordenados pelo cargo.",
         parameters=[

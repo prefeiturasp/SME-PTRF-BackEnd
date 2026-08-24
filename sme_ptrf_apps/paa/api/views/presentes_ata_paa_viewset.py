@@ -119,6 +119,55 @@ class PresentesAtaPaaViewSet(mixins.CreateModelMixin,
 
         return Response(result)
 
+    @action(detail=False, url_path='get-nome-cargo-membro-associacao',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def get_nome_cargo_membro_associacao(self, request):
+        """
+        Retorna o nome e o cargo de um servidor pelo identificador informado.
+
+        Params:
+            identificador: registro funcional do servidor.
+
+        Returns:
+            Response: dados do servidor encontrado ou indicação de que não foi
+            localizado.
+        """
+        identificador = request.query_params.get('identificador')
+
+        if not identificador:
+            erro = {
+                'erro': 'parametros_requeridos',
+                'mensagem': 'É necessário enviar o identificador.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(identificador) == 7:
+            try:
+                servidor = TerceirizadasService.get_informacao_servidor(identificador)
+
+                if servidor:
+                    result = {
+                        "mensagem": "buscando-servidor-nao-membro",
+                        "nome": servidor[0]["nm_pessoa"],
+                        "cargo": servidor[0]["cargo"]
+                    }
+
+                    return Response(result)
+            except TerceirizadasException as e:
+                print({'detail': str(e)})
+            except ReadTimeout:
+                print({'detail': 'EOL Timeout'})
+            except ConnectTimeout:
+                print({'detail': 'EOL Timeout'})
+
+        result = {
+            "mensagem": "servidor-nao-encontrado",
+            "nome": "",
+            "cargo": ""
+        }
+
+        return Response(result)
+
     @action(detail=False, url_path='get-participantes-ordenados-por-cargo',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def get_participantes_ordenados_por_cargo(self, request: Request) -> Response:
@@ -216,3 +265,4 @@ class PresentesAtaPaaViewSet(mixins.CreateModelMixin,
             membros.append(dado)
 
         return Response(membros)
+
