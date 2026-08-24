@@ -203,7 +203,9 @@ class AcaoAdmin(admin.ModelAdmin):
     form = AcaoAdminForm
     search_fields = ('nome', 'recurso__nome')
     list_display = (
-        'nome', 'recurso', 'aceita_custeio', 'aceita_capital', 'aceita_livre', 'exibir_paa', 'e_recursos_proprios')
+        'nome', 'recurso', 'aceita_custeio', 'aceita_capital', 'aceita_livre',
+        'exibir_paa', 'e_recursos_proprios', 'ordem_exibicao'
+    )
     readonly_fields = ('uuid', 'id')
     list_filter = (
         ('recurso__nome', custom_titled_filter('Recurso')),

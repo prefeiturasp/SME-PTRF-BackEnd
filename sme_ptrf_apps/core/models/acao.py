@@ -35,6 +35,42 @@ class Acao(ModeloIdNome):
         null=False
     )
 
+    ordem_exibicao = models.PositiveIntegerField(
+        'Ordem de exibição',
+        default=0,
+        db_index=True,
+        help_text='Define a ordem de exibição das ações.'
+    )
+
+    def save(self, *args, **kwargs):
+        recurso = self.recurso
+
+        # Se é um objeto novo (ainda não salvo no banco)
+        if not self.pk and self.ordem_exibicao == 0 and self.recurso.id:
+            # Busca o maior valor atual de 'ordem_exibicao' APENAS para este recurso
+            max_ordem = Acao.objects.filter(recurso=recurso).aggregate(
+                models.Max('ordem_exibicao')
+            )['ordem_exibicao__max']
+
+            # Se já existirem registros, define como (maior + 1), senão assume 1
+            self.ordem_exibicao = (max_ordem or 0) + 1
+
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        recurso = self.recurso
+        ordem_removida = self.ordem_exibicao
+
+        # Remove o registro atual
+        super().delete(*args, **kwargs)
+
+        # Reordena os itens subsequentes do mesmo recurso
+        if recurso:
+            Acao.objects.filter(
+                recurso=recurso,
+                ordem_exibicao__gt=ordem_removida
+            ).update(ordem_exibicao=models.F('ordem_exibicao') - 1)
+
     def tem_receitas_previstas_paa_em_elaboracao(self):
         return self.receitas_previstas_paa_em_elaboracao_acao_ptrf().exists()
 
@@ -67,7 +103,7 @@ class Acao(ModeloIdNome):
     class Meta:
         verbose_name = "Ação"
         verbose_name_plural = "03.0) Ações"
-        unique_together = ['nome',]
+        unique_together = ['nome', 'recurso']
 
 
 auditlog.register(Acao)

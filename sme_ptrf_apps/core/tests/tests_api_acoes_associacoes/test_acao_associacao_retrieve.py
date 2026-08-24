@@ -58,7 +58,8 @@ def test_retrieve_acao_associacao(
             "exibir_paa": True,
             "tem_receitas_previstas_paa_em_elaboracao": False,
             "tem_prioridades_paa_em_elaboracao": False,
-            "recurso": f'{acao_associacao.acao.recurso.uuid}'
+            "recurso": f'{acao_associacao.acao.recurso.uuid}',
+            "ordem_exibicao": acao_associacao.acao.ordem_exibicao
         },
         'status': acao_associacao.status,
         'criado_em': acao_associacao.criado_em.isoformat("T"),

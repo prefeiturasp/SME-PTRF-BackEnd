@@ -24,7 +24,8 @@ def test_api_acoes_list(jwt_authenticated_client_a, acao_x, acao_y):
             "exibir_paa": True,
             "tem_receitas_previstas_paa_em_elaboracao": False,
             "tem_prioridades_paa_em_elaboracao": False,
-            "recurso": f'{acao_x.recurso.uuid}'
+            "recurso": f'{acao_x.recurso.uuid}',
+            "ordem_exibicao": acao_x.ordem_exibicao
         },
         {
             'id': acao_y.id,
@@ -38,7 +39,8 @@ def test_api_acoes_list(jwt_authenticated_client_a, acao_x, acao_y):
             "exibir_paa": True,
             "tem_receitas_previstas_paa_em_elaboracao": False,
             "tem_prioridades_paa_em_elaboracao": False,
-            "recurso": f'{acao_y.recurso.uuid}'
+            "recurso": f'{acao_y.recurso.uuid}',
+            "ordem_exibicao": acao_y.ordem_exibicao
         }
     ]
 
@@ -63,7 +65,8 @@ def test_api_acoes_list_por_nome(jwt_authenticated_client_a, acao_xpto, acao_y):
             "exibir_paa": True,
             "tem_receitas_previstas_paa_em_elaboracao": False,
             "tem_prioridades_paa_em_elaboracao": False,
-            "recurso": f'{acao_xpto.recurso.uuid}'
+            "recurso": f'{acao_xpto.recurso.uuid}',
+            "ordem_exibicao": acao_xpto.ordem_exibicao
         },
     ]
 
