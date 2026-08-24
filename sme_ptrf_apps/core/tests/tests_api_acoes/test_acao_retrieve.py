@@ -28,7 +28,8 @@ def test_retrieve_acao(
         "exibir_paa": True,
         "tem_receitas_previstas_paa_em_elaboracao": False,
         "tem_prioridades_paa_em_elaboracao": False,
-        "recurso": f'{acao_x.recurso.uuid}'
+        "recurso": f'{acao_x.recurso.uuid}',
+        "ordem_exibicao": acao_x.ordem_exibicao,
     }
 
     assert response.status_code == status.HTTP_200_OK

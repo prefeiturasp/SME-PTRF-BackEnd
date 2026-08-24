@@ -1,12 +1,18 @@
 from django.core.exceptions import ValidationError
 from sme_ptrf_apps.core.models import Associacao, AcaoAssociacao
 from sme_ptrf_apps.core.models.periodo import Periodo
+from sme_ptrf_apps.core.models.recurso import Recurso
 from sme_ptrf_apps.core.services.resumo_rescursos_service import ResumoRecursosService
 
 
-def associacoes_nao_vinculadas_a_acao(acao):
+def associacoes_nao_vinculadas_a_acao(acao, recurso_uuid=None):
     associacoes_vinculadas = acao.associacoes_da_acao.values_list('associacao__id', flat=True)
     result = Associacao.objects.exclude(id__in=associacoes_vinculadas)
+    if recurso_uuid is not None:
+        recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
+        if recurso is None:
+            raise ValidationError("Recurso não encontrado!")
+        result = Associacao.filter_by_recurso(result, recurso=recurso)
     return result
 
 
