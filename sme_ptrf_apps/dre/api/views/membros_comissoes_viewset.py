@@ -1,8 +1,9 @@
 from django_filters import rest_framework as filters
 from django.db.models import Q
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.filters import SearchFilter
+from rest_framework.response import Response
 
 from ...models import MembroComissao
 from ..serializers.membro_comissao_serializer import (
@@ -10,6 +11,8 @@ from ..serializers.membro_comissao_serializer import (
     MembroComissaoCreateSerializer,
     MembroComissaoRetrieveSerializer
 )
+
+from sme_ptrf_apps.dre.services import MembroComissaoService
 
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiDre,
@@ -49,3 +52,17 @@ class MembrosComissoesViewSet(viewsets.ModelViewSet):
             return MembroComissaoRetrieveSerializer
         else:
             return MembroComissaoListSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        """
+        Remove um membro da comissão e das atas em elaboração em que ele está presente.
+
+        Obtém o membro a partir da requisição, realiza sua exclusão por meio
+        do serviço MembroComissaoService e retorna HTTP 204 (No Content)
+        em caso de sucesso.
+        """
+        instance = self.get_object()
+
+        MembroComissaoService.deletar_membro(instance)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
