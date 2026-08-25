@@ -349,7 +349,7 @@ def cargo_composicao_01(
         'CargoComposicao',
         composicao=composicao_01_2023_a_2025,
         ocupante_do_cargo=ocupante_cargo_01,
-        cargo_associacao='Presidente da diretoria executiva',
+        cargo_associacao='Presidente da Diretoria Executiva',
         substituto=False,
         substituido=False,
     )
@@ -379,7 +379,7 @@ def cargo_composicao_02(
         'CargoComposicao',
         composicao=composicao_01_2023_a_2025,
         ocupante_do_cargo=ocupante_cargo_02,
-        cargo_associacao='Vice Presidente da diretoria executiva',
+        cargo_associacao='Vice Presidente da Diretoria Executiva',
         substituto=False,
         substituido=False,
     )
@@ -436,7 +436,7 @@ def cargo_composicao_01_testes_data_saida_do_cargo(
         'CargoComposicao',
         composicao=composicao_02_testes_data_saida_do_cargo,
         ocupante_do_cargo=ocupante_cargo_01,
-        cargo_associacao='Presidente da diretoria executiva',
+        cargo_associacao='Presidente da Diretoria Executiva',
         substituto=False,
         substituido=False,
     )
@@ -648,7 +648,7 @@ def cargo_composicao_01_testes_service_data_saida_do_cargo(
         'CargoComposicao',
         composicao=composicao_01_testes_service_data_saida_do_cargo,
         ocupante_do_cargo=ocupante_cargo_01,
-        cargo_associacao='Presidente da diretoria executiva',
+        cargo_associacao='Presidente da Diretoria Executiva',
         substituto=False,
         substituido=False,
     )
@@ -663,7 +663,7 @@ def cargo_composicao_02_testes_service_data_saida_do_cargo_nao_deve_criar_nova_c
         'CargoComposicao',
         composicao=composicao_03_testes_service_data_saida_do_cargo_nao_deve_criar_nova_composicao,
         ocupante_do_cargo=ocupante_cargo_01,
-        cargo_associacao='Presidente da diretoria executiva',
+        cargo_associacao='Presidente da Diretoria Executiva',
         substituto=False,
         substituido=False,
     )

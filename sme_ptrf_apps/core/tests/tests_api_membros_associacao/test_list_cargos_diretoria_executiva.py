@@ -13,11 +13,11 @@ def test_api_list_cargos_diretoria_executiva(jwt_authenticated_client_a):
     expected_results = [
         {
             "id": "PRESIDENTE_DIRETORIA_EXECUTIVA",
-            "nome": "Presidente da diretoria executiva"
+            "nome": "Presidente da Diretoria Executiva"
         },
         {
             "id": "VICE_PRESIDENTE_DIRETORIA_EXECUTIVA",
-            "nome": "Vice-Presidente da diretoria executiva"
+            "nome": "Vice-Presidente da Diretoria Executiva"
         },
         {
             "id": "SECRETARIO",

@@ -18,7 +18,9 @@ class Participante(ModeloBase):
     professor_gremio = models.BooleanField('Professor do grêmio ?', default=False)
 
     def eh_conselho_fiscal(self):
-        if "Presidente do conselho fiscal" in self.cargo or "Conselheiro" in self.cargo:
+        cargo = (self.cargo or "").lower()
+
+        if "presidente do conselho fiscal" in cargo or "conselheiro" in cargo:
             self.conselho_fiscal = True
             self.save()
 
