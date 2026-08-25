@@ -20,7 +20,7 @@ def test_instance_model(
 
 
 def test_str_model(cargo_composicao_01):
-    assert cargo_composicao_01.__str__() == "Presidente da diretoria executiva"
+    assert cargo_composicao_01.__str__() == "Presidente da Diretoria Executiva"
 
 
 def test_admin():

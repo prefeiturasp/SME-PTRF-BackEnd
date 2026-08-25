@@ -23,7 +23,7 @@ dados_relacao_bens = {
     "presidente_diretoria_executiva": "GERALDO NUNES AGUILAR",
     "tipo_unidade": "EMEF",
     "nome_unidade": "JOAO DA SILVA",
-    "cargo_substituto_presidente_ausente": "Presidente da diretoria executiva"
+    "cargo_substituto_presidente_ausente": "Presidente da Diretoria Executiva"
   },
   "relacao_de_bens_adquiridos_ou_produzidos": {
     "linhas": [
