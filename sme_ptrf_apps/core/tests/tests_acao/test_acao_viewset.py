@@ -214,3 +214,172 @@ def test_destroy_nao_autenticado_retorna_401(acao_x):
     response = view(request, uuid=acao_x.uuid)
 
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+def test_acoes_ordenadas_com_recurso_uuid_retorna_200(
+    acao_factory, usuario_permissao_associacao
+):
+    """Testa se a rota acoes_ordenadas retorna 200 com recurso_uuid válido"""
+    recurso = Recurso.objects.get(legado=True)
+    
+    # Cria três ações com ordem de exibição definida
+    acao1 = acao_factory.create(nome='Acao 1', recurso=recurso, ordem_exibicao=1)
+    acao2 = acao_factory.create(nome='Acao 2', recurso=recurso, ordem_exibicao=2)
+    acao3 = acao_factory.create(nome='Acao 3', recurso=recurso, ordem_exibicao=3)
+
+    request = APIRequestFactory().get("", {'recurso_uuid': str(recurso.uuid)})
+    view = AcoesViewSet.as_view({'get': 'acoes_ordenadas'})
+    force_authenticate(request, user=usuario_permissao_associacao)
+    response = view(request)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert isinstance(response.data, list)
+    assert len(response.data) >= 3
+
+    # Verifica se as ações estão na ordem correta
+    uuids = [str(a['uuid']) for a in response.data]
+    acao1_idx = uuids.index(str(acao1.uuid))
+    acao2_idx = uuids.index(str(acao2.uuid))
+    acao3_idx = uuids.index(str(acao3.uuid))
+
+    assert acao1_idx < acao2_idx < acao3_idx
+
+
+def test_acoes_ordenadas_filtra_por_recurso(acao_factory, usuario_permissao_associacao):
+    """Testa se a rota acoes_ordenadas filtra corretamente por recurso_uuid"""
+    recurso_legado = Recurso.objects.get(legado=True)
+
+    # Cria recurso não legado
+    recurso_nao_legado, _ = Recurso.objects.get_or_create(
+        nome="Recurso Não Legado para Teste",
+        defaults={
+            "nome_exibicao": "Não Legado",
+            "cor": "#000000",
+            "legado": False,
+        },
+    )
+
+    acao_legado = acao_factory.create(nome='Acao Legado', recurso=recurso_legado)
+    acao_nao_legado = acao_factory.create(nome='Acao Nao Legado', recurso=recurso_nao_legado)
+
+    request = APIRequestFactory().get("", {'recurso_uuid': str(recurso_legado.uuid)})
+    view = AcoesViewSet.as_view({'get': 'acoes_ordenadas'})
+    force_authenticate(request, user=usuario_permissao_associacao)
+    response = view(request)
+
+    assert response.status_code == status.HTTP_200_OK
+    uuids = [str(a['uuid']) for a in response.data]
+
+    assert str(acao_legado.uuid) in uuids
+    assert str(acao_nao_legado.uuid) not in uuids
+
+
+# Testes da rota reordenas
+def test_reordenas_sem_uuids_retorna_400(usuario_permissao_associacao):
+    """Testa se a rota reordenas retorna 400 quando uuids_ordenados não é fornecido"""
+    payload = {}
+    request = APIRequestFactory().post("", payload, format='json')
+    view = AcoesViewSet.as_view({'post': 'reordenar'})
+    force_authenticate(request, user=usuario_permissao_associacao)
+    response = view(request)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'erro' in response.data
+
+
+def test_reordenas_com_lista_vazia_retorna_400(usuario_permissao_associacao):
+    """Testa se a rota reordena retorna 400 quando uuids_ordenados é uma lista vazia"""
+    payload = {'uuids_ordenados': []}
+    request = APIRequestFactory().post("", payload, format='json')
+    view = AcoesViewSet.as_view({'post': 'reordenar'})
+    force_authenticate(request, user=usuario_permissao_associacao)
+    response = view(request)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'erro' in response.data
+
+
+def test_reordenas_com_uuids_invalidos_retorna_400(usuario_permissao_associacao):
+    """Testa se a rota reordenas retorna 400 quando nenhuma ação é encontrada"""
+    import uuid
+    payload = {'uuids_ordenados': [str(uuid.uuid4()), str(uuid.uuid4())]}
+    request = APIRequestFactory().post("", payload, format='json')
+    view = AcoesViewSet.as_view({'post': 'reordenar'})
+    force_authenticate(request, user=usuario_permissao_associacao)
+    response = view(request)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'erro' in response.data
+
+
+def test_reordenas_com_uuids_validos_retorna_200_e_atualiza_ordem(
+    acao_factory, usuario_permissao_associacao
+):
+    """Testa se a rota reordenas retorna 200 e atualiza a ordem das ações"""
+    recurso = Recurso.objects.get(legado=True)
+
+    # Cria três ações
+    acao1 = acao_factory.create(nome='Acao 1', recurso=recurso, ordem_exibicao=1)
+    acao2 = acao_factory.create(nome='Acao 2', recurso=recurso, ordem_exibicao=2)
+    acao3 = acao_factory.create(nome='Acao 3', recurso=recurso, ordem_exibicao=3)
+
+    # Reordena as ações
+    nova_ordem = [str(acao3.uuid), str(acao1.uuid), str(acao2.uuid)]
+    payload = {'uuids_ordenados': nova_ordem}
+
+    request = APIRequestFactory().post("", payload, format='json')
+    view = AcoesViewSet.as_view({'post': 'reordenar'})
+    force_authenticate(request, user=usuario_permissao_associacao)
+    response = view(request)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert 'mensagem' in response.data
+
+    # Verifica se a ordem foi atualizada
+    acao1.refresh_from_db()
+    acao2.refresh_from_db()
+    acao3.refresh_from_db()
+
+    assert acao3.ordem_exibicao == 1
+    assert acao1.ordem_exibicao == 2
+    assert acao2.ordem_exibicao == 3
+
+
+def test_reordenas_com_uuids_parcialmente_validos_atualiza_apenas_validos(
+    acao_factory, usuario_permissao_associacao
+):
+    """Testa se a rota reordenas atualiza apenas as ações válidas quando há UUIDs inválidos"""
+    import uuid
+    recurso = Recurso.objects.get(legado=True)
+
+    acao1 = acao_factory.create(nome='Acao 1', recurso=recurso, ordem_exibicao=1)
+    acao2 = acao_factory.create(nome='Acao 2', recurso=recurso, ordem_exibicao=2)
+
+    # Mistura UUIDs válidos e inválidos
+    uuid_invalido = str(uuid.uuid4())
+    nova_ordem = [str(acao2.uuid), str(acao1.uuid), uuid_invalido]
+    payload = {'uuids_ordenados': nova_ordem}
+
+    request = APIRequestFactory().post("", payload, format='json')
+    view = AcoesViewSet.as_view({'post': 'reordenar'})
+    force_authenticate(request, user=usuario_permissao_associacao)
+    response = view(request)
+
+    assert response.status_code == status.HTTP_200_OK
+
+    # Verifica se as ações válidas foram atualizadas
+    acao1.refresh_from_db()
+    acao2.refresh_from_db()
+
+    assert acao2.ordem_exibicao == 1
+    assert acao1.ordem_exibicao == 2
+
+
+def test_reordenas_nao_autenticado_retorna_401():
+    """Testa se a rota reordenas retorna 401 quando não autenticado"""
+    payload = {'uuids_ordenados': []}
+    request = APIRequestFactory().post("", payload, format='json')
+    view = AcoesViewSet.as_view({'post': 'reordenar'})
+    response = view(request)
+
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
