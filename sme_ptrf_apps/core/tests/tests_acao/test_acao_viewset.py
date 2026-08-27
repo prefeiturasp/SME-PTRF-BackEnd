@@ -129,7 +129,6 @@ def test_create_retorna_201(usuario_permissao_associacao):
         'aceita_custeio': False,
         'aceita_livre': False,
         'e_recursos_proprios': False,
-        'posicao_nas_pesquisas': 'AAAA',
         'exibir_paa': True,
     }
     request = APIRequestFactory().post("", payload, format='json')
@@ -161,7 +160,6 @@ def test_update_retorna_200(acao_x, usuario_permissao_associacao):
         'aceita_custeio': True,
         'aceita_livre': False,
         'e_recursos_proprios': False,
-        'posicao_nas_pesquisas': 'BBBB',
         'exibir_paa': True,
     }
     request = APIRequestFactory().put("", payload, format='json')
