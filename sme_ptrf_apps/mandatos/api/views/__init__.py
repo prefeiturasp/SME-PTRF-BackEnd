@@ -1,4 +1,8 @@
+# flake8: noqa
 from .mandatos_viewset import MandatosViewSet
+from .mandatos_vacancia_viewset import MandatosVacanciaViewSet
 from .composicoes_viewset import ComposicoesViewSet
 from .ocupantes_cargos_viewset import OcupantesCargosViewSet
+from .ocupantes_cargos_vacancia_viewset import OcupantesCargosVacanciaViewSet
 from .cargos_composicoes_viewset import CargosComposicoesViewSet
+from .cargos_composicao_vacancia_viewset import CargosComposicoesVacanciaViewSet
