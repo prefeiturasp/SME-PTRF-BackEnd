@@ -190,7 +190,7 @@ class AcoesViewSet(mixins.ListModelMixin,
             )
 
         # Mapeia as Ações existentes por UUID para acesso O(1)
-        # Assumindo que você criou o campo 'ordem_exibicao' ou usará 'posicao_nas_pesquisas'
+        # Assumindo que você criou o campo 'ordem_exibicao'
         acoes = Acao.objects.filter(uuid__in=uuids_ordenados)
         acoes_dict = {str(acao.uuid): acao for acao in acoes}
 

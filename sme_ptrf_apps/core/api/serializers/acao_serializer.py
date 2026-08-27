@@ -15,8 +15,8 @@ class AcaoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Acao
-        fields = ('id', 'uuid', 'nome', 'e_recursos_proprios', 'posicao_nas_pesquisas',
-                  'aceita_capital', 'aceita_custeio', 'aceita_livre', 'exibir_paa',
+        fields = ('id', 'uuid', 'nome', 'e_recursos_proprios', 'aceita_capital',
+                  'aceita_custeio', 'aceita_livre', 'exibir_paa',
                   'tem_receitas_previstas_paa_em_elaboracao', 'tem_prioridades_paa_em_elaboracao', 'recurso',
                   'ordem_exibicao')
         read_only_fields = (
