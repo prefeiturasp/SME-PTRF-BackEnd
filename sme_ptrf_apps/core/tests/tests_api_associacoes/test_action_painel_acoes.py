@@ -201,8 +201,8 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
         'ultima_atualizacao': f'{datetime.datetime(2020, 4, 18, 10, 11, 12)}',
         'info_acoes': [
             {
-                'acao_associacao_uuid': f'{acao_associacao_de_destaque.uuid}',
-                'acao_associacao_nome': acao_associacao_de_destaque.acao.nome,
+                'acao_associacao_uuid': f'{acao_associacao.uuid}',
+                'acao_associacao_nome': acao_associacao.acao.nome,
 
                 'saldo_reprogramado': 0,
                 'saldo_reprogramado_capital': 0,
@@ -232,11 +232,10 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
 
             },
             {
-                'acao_associacao_uuid': f'{acao_associacao.uuid}',
-                'acao_associacao_nome': acao_associacao.acao.nome,
+                'acao_associacao_uuid': f'{acao_associacao_de_destaque.uuid}',
+                'acao_associacao_nome': acao_associacao_de_destaque.acao.nome,
 
                 'saldo_reprogramado': 0,
-
                 'saldo_reprogramado_capital': 0,
                 'saldo_reprogramado_custeio': 0,
                 'saldo_reprogramado_livre': 0,
