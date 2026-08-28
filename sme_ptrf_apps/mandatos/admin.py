@@ -1,7 +1,10 @@
 from django.contrib import admin, messages
 from django.utils.safestring import mark_safe
 
-from .models import Mandato, Composicao, CargoComposicao, OcupanteCargo, SolicitacaoDeMigracao
+from .models import (
+    Mandato, Composicao, CargoComposicao, OcupanteCargo, SolicitacaoDeMigracao,
+    CargoComposicaoVacancia, ComposicaoVacancia
+)
 from .services import ServicoSolicitacaoDeMigracao, ServicoMandatoVigente
 
 
@@ -23,7 +26,8 @@ class ComposicaoAdmin(admin.ModelAdmin):
 class CargoComposicaoAdmin(admin.ModelAdmin):
     list_display = ('ocupante_do_cargo', 'cargo_associacao', 'substituto', 'substituido', 'composicao')
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
-    search_fields = ('ocupante_do_cargo__nome', 'composicao__associacao__unidade__codigo_eol', 'composicao__associacao__unidade__nome')
+    search_fields = ('ocupante_do_cargo__nome', 'composicao__associacao__unidade__codigo_eol',
+                     'composicao__associacao__unidade__nome')
     raw_id_fields = ('composicao', 'ocupante_do_cargo')
 
 
@@ -48,7 +52,7 @@ class SolicitacaoDeMigracaoAdmin(admin.ModelAdmin):
         mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
 
         if not mandato_vigente:
-            self.message_user(request, mark_safe(f"<strong>Erro: Não existe um mandato vigente cadastrado</strong>"),
+            self.message_user(request, mark_safe("<strong>Erro: Não existe um mandato vigente cadastrado</strong>"),
                               level=messages.ERROR)
         else:
             ServicoSolicitacaoDeMigracao().executa_migracoes(queryset)
@@ -59,3 +63,30 @@ class SolicitacaoDeMigracaoAdmin(admin.ModelAdmin):
             ), level=messages.WARNING)
 
     executa_migracao.short_description = "Realizar migração"
+
+
+@admin.register(ComposicaoVacancia)
+class ComposicaoVacanciaAdmin(admin.ModelAdmin):
+    list_display = ('associacao', 'mandato', 'data_inicial', 'data_final')
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
+    list_filter = ('mandato', 'associacao')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    raw_id_fields = ('associacao',)
+
+    def data_inicial(self, obj):
+        return obj.mandato.data_inicial
+    data_inicial.short_description = 'Início Mandato'
+
+    def data_final(self, obj):
+        return obj.mandato.data_final
+    data_final.short_description = 'Término Mandato'
+
+
+@admin.register(CargoComposicaoVacancia)
+class CargoComposicaoVacanciaAdmin(admin.ModelAdmin):
+    list_display = ('ocupante_do_cargo', 'cargo_associacao', 'data_inicio_no_cargo', 'data_fim_no_cargo', 'composicao')
+    readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
+    search_fields = ('ocupante_do_cargo__nome', 'composicao__associacao__unidade__codigo_eol',
+                     'composicao__associacao__unidade__nome')
+    raw_id_fields = ('composicao', 'ocupante_do_cargo', 'substituido_por')
+    list_filter = ('cargo_associacao',)
