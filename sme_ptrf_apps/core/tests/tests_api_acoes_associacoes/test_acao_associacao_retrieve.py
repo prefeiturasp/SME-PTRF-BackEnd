@@ -51,7 +51,6 @@ def test_retrieve_acao_associacao(
             'uuid': f'{acao_associacao.acao.uuid}',
             'nome': acao_associacao.acao.nome,
             'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios,
-            'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
             "aceita_capital": acao_associacao.acao.aceita_capital,
             "aceita_custeio": acao_associacao.acao.aceita_custeio,
             "aceita_livre": acao_associacao.acao.aceita_livre,

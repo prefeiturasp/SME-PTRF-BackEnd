@@ -13,13 +13,6 @@ class Acao(ModeloIdNome):
         )
 
     history = AuditlogHistoryField()
-    posicao_nas_pesquisas = models.CharField(
-        'posição nas pesquisas',
-        max_length=10,
-        blank=True,
-        default='ZZZZZZZZZZ',
-        help_text='A ordem alfabética desse texto definirá a ordem que a ação será exibida nas pesquisas.'
-    )
 
     e_recursos_proprios = models.BooleanField("Recursos Externos", default=False)
     aceita_capital = models.BooleanField('Aceita capital?', default=False)
@@ -39,7 +32,7 @@ class Acao(ModeloIdNome):
         'Ordem de exibição',
         default=0,
         db_index=True,
-        help_text='Define a ordem de exibição das ações.'
+        help_text='Define a ordem de exibição das ações para o recurso vinculado.'
     )
 
     def save(self, *args, **kwargs):
