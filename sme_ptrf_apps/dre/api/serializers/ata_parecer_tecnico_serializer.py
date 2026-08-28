@@ -47,6 +47,8 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
 
     portaria_publicada = serializers.SerializerMethodField()
 
+    eh_portaria_publicada = serializers.SerializerMethodField()
+
 
     def get_hora_reuniao(self, obj):
         return obj.hora_reuniao.strftime('%H:%M')
@@ -72,6 +74,9 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
     def get_portaria_publicada(self, obj):
         return obj.portaria_publicada()
 
+    def get_eh_portaria_publicada(self, obj):
+        return obj.eh_portaria_publicada()
+
     class Meta:
         model = AtaParecerTecnico
         fields = (
@@ -92,7 +97,8 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
             'versao',
             'motivo_retificacao',
             'eh_retificacao',
-            'portaria_publicada'
+            'portaria_publicada',
+            'eh_portaria_publicada'
         )
 
 
