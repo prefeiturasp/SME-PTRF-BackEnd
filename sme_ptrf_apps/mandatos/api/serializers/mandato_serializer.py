@@ -5,6 +5,7 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from ...models import Mandato, Composicao
 from ...services import ServicoMandato
 from ...services.composicao_service import ServicoComposicaoVigente, ServicoCriaComposicaoVigenteDoMandato
+from waffle import flag_is_active
 
 from datetime import timedelta
 
@@ -21,7 +22,7 @@ class CustomError(APIException):
 class MandatoSerializer(serializers.ModelSerializer):
     editavel = serializers.SerializerMethodField('get_editavel')
     data_inicial_proximo_mandato = serializers.SerializerMethodField('get_data_inicial_proximo_mandato')
-    data_final_mandato_anterior_ao_mais_recente = serializers.SerializerMethodField('get_data_final_mandato_anterior_ao_mais_recente')
+    data_final_mandato_anterior_ao_mais_recente = serializers.SerializerMethodField('get_data_final_mandato_anterior_ao_mais_recente')  # noqa
     limite_min_data_inicial = serializers.SerializerMethodField('get_limite_min_data_inicial')
 
     def get_editavel(self, obj):
@@ -58,17 +59,30 @@ class MandatoSerializer(serializers.ModelSerializer):
         data_final = validated_data["data_final"]
         referencia_mandato = validated_data["referencia_mandato"]
 
+        request = self.context.get('request')
+        v2_ativa = flag_is_active(request, 'historico-de-membros-v2')
+
         if instance.data_inicial != data_inicial:
             instance.att_data_inicio_composicoes_e_cargos_composicoes(
                 data_inicial=instance.data_inicial,
                 nova_data=data_inicial
             )
+            if v2_ativa:
+                instance.att_data_inicio_composicao_vacancia(
+                    data_inicial_antiga=instance.data_inicial,
+                    nova_data=data_inicial
+                )
 
         if instance.data_final != data_final:
             instance.att_data_fim_composicoes_e_cargos_composicoes(
                 data_final=instance.data_final,
                 nova_data=data_final
             )
+            if v2_ativa:
+                instance.att_data_fim_composicao_vacancia(
+                    data_final_antiga=instance.data_final,
+                    nova_data=data_final
+                )
 
         instance.data_inicial = data_inicial
         instance.data_final = data_final
@@ -79,7 +93,9 @@ class MandatoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Mandato
-        fields = ('id', 'uuid', 'referencia_mandato', 'data_inicial', 'data_final', 'editavel', 'data_inicial_proximo_mandato', 'data_final_mandato_anterior_ao_mais_recente', 'limite_min_data_inicial')
+        fields = ('id', 'uuid', 'referencia_mandato', 'data_inicial', 'data_final', 'editavel',
+                  'data_inicial_proximo_mandato', 'data_final_mandato_anterior_ao_mais_recente',
+                  'limite_min_data_inicial')
 
     def validate(self, data):
         data_inicial = data.get('data_inicial')
@@ -90,13 +106,37 @@ class MandatoSerializer(serializers.ModelSerializer):
 
         if self.instance:
             if self.instance.possui_composicoes_com_data_final_maior_que_a_informada(data=data_final):
-                raise CustomError({"detail": "Não é possível editar a data final do mandato pois existe composição de membros registrada."})
+                raise CustomError({
+                    "detail": (
+                        "Não é possível editar a data final do mandato pois existe composição de membros registrada."
+                    )
+                })
+
+            # V2
+            request = self.context.get('request')
+            v2_ativa = flag_is_active(request, 'historico-de-membros-v2')
+            if v2_ativa:
+                if data_final and self.instance.possui_cargo_vacancia_incompativel_com_nova_data_final(data_final):
+                    raise CustomError({
+                        "detail": "Não é possível editar a data final do mandato: existe registro de "
+                                  "composição de membros (v2) com data incompatível com a nova data final."
+                    })
+
+                if data_inicial and self.instance.possui_cargo_vacancia_incompativel_com_nova_data_inicial(data_inicial):  # noqa
+                    raise CustomError({
+                        "detail": "Não é possível editar a data inicial do mandato: existe registro de "
+                                  "composição de membros (v2) com data incompatível com a nova data inicial."
+                    })
 
         # Verificar se a data inicial é maior que a data final do mandato mais recente no caso de uma inclusão
         if data_inicial and not self.instance and mandato_mais_recente:
             data_final_mandato_recente = mandato_mais_recente.data_final
             if data_inicial <= data_final_mandato_recente:
-                raise CustomError({"detail": "A data inicial do período de mandato deve ser maior que a data final do mandato anterior"})
+                raise CustomError({
+                    "detail": (
+                        "A data inicial do período de mandato deve ser maior que a data final do mandato anterior"
+                    )
+                })
 
         # Verificar se a data final é menor que a data inicial
         if data_inicial and data_final and data_final < data_inicial:
@@ -107,7 +147,8 @@ class MandatoSerializer(serializers.ModelSerializer):
             mandatos = Mandato.objects.filter(data_inicial__lte=data_inicial, data_final__gte=data_inicial)
 
             if self.instance:
-                mandatos = mandatos.exclude(uuid=self.instance.uuid)  # Excluir o próprio objeto atual ao verificar colisões
+                # Excluir o próprio objeto atual ao verificar colisões
+                mandatos = mandatos.exclude(uuid=self.instance.uuid)
 
             if mandatos.exists():
                 raise CustomError({"detail": "A data inicial informada é de vigência de outro mandato cadastrado."})
@@ -116,7 +157,8 @@ class MandatoSerializer(serializers.ModelSerializer):
             overlapped_mandatos = Mandato.objects.filter(data_inicial__lte=data_final, data_final__gte=data_inicial)
 
             if self.instance:
-                overlapped_mandatos = overlapped_mandatos.exclude(uuid=self.instance.uuid)  # Exclui o próprio mandato atual, caso esteja sendo atualizado
+                # Exclui o próprio mandato atual, caso esteja sendo atualizado
+                overlapped_mandatos = overlapped_mandatos.exclude(uuid=self.instance.uuid)
 
             if overlapped_mandatos.exists():
                 raise CustomError({"detail": "As datas do mandato se sobrepõem com outros mandatos já cadastrados."})
