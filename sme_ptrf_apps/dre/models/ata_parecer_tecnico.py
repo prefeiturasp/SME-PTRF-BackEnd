@@ -145,6 +145,8 @@ class AtaParecerTecnico(ModeloBase):
 
         return f"de {data_portaria}"
 
+    def eh_portaria_publicada(self) -> bool:
+        return self.criado_em.date() >= self.DATA_CORTE_PORTARIA
 
 
 @receiver(pre_save, sender=AtaParecerTecnico)
