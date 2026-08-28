@@ -82,3 +82,14 @@ def test_portaria_publicada_sem_data_portaria(ata_parecer_tecnico_t1):
     ata_parecer_tecnico_t1.data_portaria = None
 
     assert ata_parecer_tecnico_t1.portaria_publicada() == ""
+
+def test_eh_portaria_publicada_anterior_data_corte(ata_parecer_tecnico_t1):
+    ata_parecer_tecnico_t1.DATA_CORTE_PORTARIA = date(2026, 8, 19)
+    ata_parecer_tecnico_t1.criado_em = timezone.make_aware(datetime(2026, 8, 18))
+    assert ata_parecer_tecnico_t1.eh_portaria_publicada() == False
+
+
+def test_eh_portaria_publicada_data_corte_ou_posterior(ata_parecer_tecnico_t1):
+    ata_parecer_tecnico_t1.DATA_CORTE_PORTARIA = date(2026, 8, 19)
+    ata_parecer_tecnico_t1.criado_em = timezone.make_aware(datetime(2026, 8, 19))
+    assert ata_parecer_tecnico_t1.eh_portaria_publicada()
