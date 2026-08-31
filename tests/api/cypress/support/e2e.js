@@ -23,6 +23,7 @@ import "./commands_api/commands_login";
 import "./commands_api/commands_tipos_conta";
 import "./commands_api/commands_fornecedores";
 import "./commands_api/commands_motivos_pagamento_antecipado";
+import "./commands_api/commands_tipos_documento";
 import "./commands_api/commands_acoes";
 import "./commands_api/commands_acoes_associacoes";
 import "./commands_api/commands_ambientes";

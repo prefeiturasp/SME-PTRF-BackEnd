@@ -6,8 +6,8 @@ Funcionalidade: Excluir tipo de documento
     E realizo login no sistema PTRF com perfil "SME"
 
   Esquema do Cenário: Validar exclusão de tipo de documento :<caso>
-    E excluo o tipo de documento com o nome de "teste automatizado" do banco de dados
-    E crio o tipo de documento com o nome de "teste automatizado" do banco de dados
+    E excluo o tipo de documento com o nome de "teste automatizado" via API
+    E crio o tipo de documento com o nome de "teste automatizado" via API
     E clico na opcao "<opcao_painel_parametrizacao>"
     E informo dado nos campos "<filtrar_por_nome>" da tela tipo de documento
     E clico no botao "Filtrar" da tela tipo de documento
