@@ -32,14 +32,6 @@ Dado('crio o Motivo pagamento antecipado com o nome de motivo {string} do banco 
 	cy.criar_motivo_pagamento_antecipado_db(motivo)
 });
 
-Dado('excluo o tipo de documento com o nome de {string} do banco de dados', (nome) => {
-	cy.excluir_tipo_do_documento_db(nome)
-});
-
-Dado('crio o tipo de documento com o nome de {string} do banco de dados', (nome) => {
-	cy.criar_tipo_do_documento_db(nome)
-});
-
 Dado('excluo o tipo de transacao com o nome de {string} do banco de dados', (nome) => {
 	cy.excluir_tipo_de_transacao_db(nome)
 });
