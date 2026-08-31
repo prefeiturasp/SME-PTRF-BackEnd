@@ -1,4 +1,4 @@
-from django.db.models import Sum, Q, Count, Max
+from django.db.models import Sum, Q
 
 from sme_ptrf_apps.core.models import Associacao, FechamentoPeriodo, PrestacaoConta
 from sme_ptrf_apps.core.models.periodo import Periodo
@@ -403,8 +403,10 @@ def monta_item_de_despesa_imposto_para_lista_de_transacoes(periodo, conta_associ
                 conta_associacao=conta_associacao).order_by('id'),
             many=True).data,
         'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
-        'despesa_geradora_do_imposto': DespesaImpostoSerializer(despesa_geradora_do_imposto,
-                                                                many=False).data if despesa_geradora_do_imposto else None,
+        'despesa_geradora_do_imposto': (
+            DespesaImpostoSerializer(despesa_geradora_do_imposto, many=False).data
+            if despesa_geradora_do_imposto else None
+        ),
         'despesas_impostos': None,
         'uuid': str(despesa_imposto.uuid)
     }
@@ -428,7 +430,7 @@ def transacoes_para_conciliacao_agrupado_por_impostos(despesas, periodo, conta_a
                 max_notificar_dias_nao_conferido = rateio.notificar_dias_nao_conferido
 
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
-        despesas_impostos = despesa.despesas_impostos.all()
+        despesas_impostos = despesa.despesas_impostos.exclude(status=STATUS_INATIVO)
 
         # Retorna a lista de uuid das despesas contidas na lista de transações
         # Utilizada para verificar se a despesa já está contida nessa lista para evitar repetição
@@ -436,7 +438,15 @@ def transacoes_para_conciliacao_agrupado_por_impostos(despesas, periodo, conta_a
 
         # Se despesa_geradora_do_imposto não estiver atribuido,
         # ou seja for None então ela é a despesa geradora do imposto
-        if (not despesa_geradora_do_imposto) or (str(despesa.uuid) not in existe_em_transacoes and despesa.conferido == conferido and despesa.cadastro_completo()):
+        despesa_ainda_nao_listada = str(despesa.uuid) not in existe_em_transacoes
+        if (
+            (not despesa_geradora_do_imposto) or
+            (
+                despesa_ainda_nao_listada and
+                despesa.conferido == conferido and
+                despesa.cadastro_completo()
+            )
+        ):
             transacao = {
                 'periodo': f'{periodo.uuid}',
                 'conta': f'{conta_associacao.uuid}',
@@ -459,10 +469,14 @@ def transacoes_para_conciliacao_agrupado_por_impostos(despesas, periodo, conta_a
                         'id'),
                     many=True).data,
                 'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
-                'despesa_geradora_do_imposto': DespesaImpostoSerializer(despesa_geradora_do_imposto,
-                                                                        many=False).data if despesa_geradora_do_imposto else None,
-                'despesas_impostos': DespesaImpostoSerializer(despesas_impostos, many=True,
-                                                              required=False).data if despesas_impostos else None,
+                'despesa_geradora_do_imposto': (
+                    DespesaImpostoSerializer(despesa_geradora_do_imposto, many=False).data
+                    if despesa_geradora_do_imposto else None
+                ),
+                'despesas_impostos': (
+                    DespesaImpostoSerializer(despesas_impostos, many=True, required=False).data
+                    if despesas_impostos else None
+                ),
                 'uuid': str(despesa.uuid)
             }
             transacoes.append(transacao)
@@ -470,34 +484,50 @@ def transacoes_para_conciliacao_agrupado_por_impostos(despesas, periodo, conta_a
         if despesas_impostos:
             for despesa_imposto in despesas_impostos:
                 despesa_geradora_do_imposto = despesa_imposto.despesa_geradora_do_imposto.first()
+                imposto_ainda_nao_listado = str(despesa_imposto.uuid) not in existe_em_transacoes
+                mesmo_conferido = (
+                    despesa_imposto.conferido == despesa_geradora_do_imposto.conferido
+                )
 
                 # Se o filtro de ação nao foi passado, simplesmente retorna as despesas
                 if not acao_associacao:
-                    if despesa_imposto.conferido == despesa_geradora_do_imposto.conferido and str(despesa_imposto.uuid) not in existe_em_transacoes and despesa_imposto.cadastro_completo():
-                        transacao = monta_item_de_despesa_imposto_para_lista_de_transacoes(periodo,
-                                                                                           conta_associacao,
-                                                                                           despesa_imposto,
-                                                                                           max_notificar_dias_nao_conferido,
-                                                                                           DespesaConciliacaoSerializer,
-                                                                                           RateioDespesaConciliacaoSerializer,
-                                                                                           DespesaImpostoSerializer,
-                                                                                           despesa_geradora_do_imposto)
+                    if (
+                        mesmo_conferido and
+                        imposto_ainda_nao_listado and
+                        despesa_imposto.cadastro_completo()
+                    ):
+                        transacao = monta_item_de_despesa_imposto_para_lista_de_transacoes(
+                            periodo,
+                            conta_associacao,
+                            despesa_imposto,
+                            max_notificar_dias_nao_conferido,
+                            DespesaConciliacaoSerializer,
+                            RateioDespesaConciliacaoSerializer,
+                            DespesaImpostoSerializer,
+                            despesa_geradora_do_imposto,
+                        )
                         transacoes.append(transacao)
                 else:
                     # Se o filtro de ação foi passado, percorre os rateios
                     # e verifica se o rateio atual tem a mesma ação passada no filtro
                     rateios = despesa_imposto.rateios.all()
                     for rateio in rateios:
-                        if despesa_imposto.conferido == despesa_geradora_do_imposto.conferido and rateio.acao_associacao == acao_associacao and (str(despesa_imposto.uuid) not in existe_em_transacoes) and despesa_imposto.cadastro_completo():
-
-                            transacao = monta_item_de_despesa_imposto_para_lista_de_transacoes(periodo,
-                                                                                               conta_associacao,
-                                                                                               despesa_imposto,
-                                                                                               max_notificar_dias_nao_conferido,
-                                                                                               DespesaConciliacaoSerializer,
-                                                                                               RateioDespesaConciliacaoSerializer,
-                                                                                               DespesaImpostoSerializer,
-                                                                                               despesa_geradora_do_imposto)
+                        if (
+                            mesmo_conferido and
+                            rateio.acao_associacao == acao_associacao and
+                            imposto_ainda_nao_listado and
+                            despesa_imposto.cadastro_completo()
+                        ):
+                            transacao = monta_item_de_despesa_imposto_para_lista_de_transacoes(
+                                periodo,
+                                conta_associacao,
+                                despesa_imposto,
+                                max_notificar_dias_nao_conferido,
+                                DespesaConciliacaoSerializer,
+                                RateioDespesaConciliacaoSerializer,
+                                DespesaImpostoSerializer,
+                                despesa_geradora_do_imposto,
+                            )
                             transacoes.append(transacao)
 
     return transacoes
@@ -579,7 +609,7 @@ def transacoes_para_conciliacao(periodo, conta_associacao, conferido=False, acao
                 max_notificar_dias_nao_conferido = rateio.notificar_dias_nao_conferido
 
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
-        despesas_impostos = despesa.despesas_impostos.all()
+        despesas_impostos = despesa.despesas_impostos.exclude(status=STATUS_INATIVO)
 
         transacao = {
             'periodo': f'{periodo.uuid}',
@@ -606,8 +636,10 @@ def transacoes_para_conciliacao(periodo, conta_associacao, conferido=False, acao
                     'id'),
                 many=True).data,
             'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
-            'despesa_geradora_do_imposto': DespesaImpostoSerializer(despesa_geradora_do_imposto,
-                                                                    many=False).data if despesa_geradora_do_imposto else None,
+            'despesa_geradora_do_imposto': (
+                DespesaImpostoSerializer(despesa_geradora_do_imposto, many=False).data
+                if despesa_geradora_do_imposto else None
+            ),
             'despesas_impostos': DespesaImpostoSerializer(despesas_impostos, many=True,
                                                           required=False).data if despesas_impostos else None
         }
@@ -674,7 +706,11 @@ def permite_editar_campos_extrato(associacao, periodo, conta_associacao):
     criada_no_periodo = False
     if periodo and conta_associacao and conta_associacao.data_inicio:
         criada_no_periodo = periodo == Periodo.da_data_por_recurso(conta_associacao.data_inicio, periodo.recurso)
-        if criada_no_periodo and (not periodo.encerrado or prestacao_conta.status in [PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_NAO_APRESENTADA]):
+        status_permite = prestacao_conta.status in [
+            PrestacaoConta.STATUS_DEVOLVIDA,
+            PrestacaoConta.STATUS_NAO_APRESENTADA,
+        ]
+        if criada_no_periodo and (not periodo.encerrado or status_permite):
             return True
 
     if prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
@@ -698,7 +734,11 @@ def deve_aplicar_nova_regra_data_extrato(associacao, periodo, conta_associacao):
     criada_no_periodo = False
     if periodo and conta_associacao and conta_associacao.data_inicio:
         criada_no_periodo = periodo == Periodo.da_data_por_recurso(conta_associacao.data_inicio, periodo.recurso)
-        if criada_no_periodo and (not periodo.encerrado or prestacao_conta.status in [PrestacaoConta.STATUS_DEVOLVIDA, PrestacaoConta.STATUS_NAO_APRESENTADA]):
+        status_permite = prestacao_conta.status in [
+            PrestacaoConta.STATUS_DEVOLVIDA,
+            PrestacaoConta.STATUS_NAO_APRESENTADA,
+        ]
+        if criada_no_periodo and (not periodo.encerrado or status_permite):
             return True
 
     if prestacao_conta.status != PrestacaoConta.STATUS_DEVOLVIDA:
