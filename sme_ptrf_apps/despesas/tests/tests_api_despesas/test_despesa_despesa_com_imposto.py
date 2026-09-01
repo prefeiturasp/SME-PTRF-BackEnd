@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 
 import pytest
 from rest_framework import status
@@ -213,6 +214,27 @@ def test_retrieve_despesa_com_imposto(
 
     assert response.status_code == status.HTTP_200_OK
     assert result["uuid"] == str(despesa_com_imposto.uuid)
+
+
+def test_retrieve_nao_retorna_imposto_inativo_vinculado(
+    jwt_authenticated_client_d,
+    despesa_com_imposto,
+    despesa_despesa_imposto,
+    rateio_despesa_com_imposto,
+    rateio_despesa_despesa_imposto,
+):
+    despesa_despesa_imposto.data_e_hora_de_inativacao = datetime(2026, 8, 21, 15, 11, 36)
+    despesa_despesa_imposto.save()
+
+    response = jwt_authenticated_client_d.get(
+        f'/api/despesas/{despesa_com_imposto.uuid}/',
+        content_type='application/json',
+    )
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    uuids_impostos = [item["uuid"] for item in result["despesas_impostos"]]
+    assert str(despesa_despesa_imposto.uuid) not in uuids_impostos
 
 
 def test_put_despesa_remove_vinculo_com_a_despesa_de_imposto(

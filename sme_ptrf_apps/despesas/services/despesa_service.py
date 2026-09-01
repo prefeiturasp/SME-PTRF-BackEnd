@@ -4,7 +4,7 @@ from django.db.models import Count
 from rest_framework import serializers
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.core.models import PrestacaoConta
-from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
+from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO, STATUS_INATIVO
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 from sme_ptrf_apps.despesas.models import Despesa, RateioDespesa
 from sme_ptrf_apps.despesas.api.serializers.rateio_despesa_serializer import RateioDespesaCreateSerializer
@@ -28,7 +28,7 @@ def ordena_despesas_por_imposto(qs, lista_argumentos_ordenacao=None):
     despesas_ordenadas = []
     for despesa in qs:
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
-        despesas_impostos = despesa.despesas_impostos.all()
+        despesas_impostos = despesa.despesas_impostos.exclude(status=STATUS_INATIVO)
 
         if not despesa_geradora_do_imposto:
             despesas_ordenadas.append(despesa)
@@ -397,6 +397,43 @@ class DespesaService:
         RateioDespesa.objects.filter(despesa=despesa).exclude(uuid__in=keep).delete()
 
     @staticmethod
+    def _uuid_valido(valor):
+        if valor is None:
+            return None
+        texto = str(valor).strip()
+        if not texto or texto.lower() in {"none", "null"}:
+            return None
+        return texto
+
+    @staticmethod
+    def _sanitizar_payload_imposto(imposto):
+        for campo in (
+            "despesas_impostos",
+            "motivos_pagamento_antecipado",
+            "data_e_hora_de_inativacao",
+            "status",
+            "id",
+            "criado_em",
+            "alterado_em",
+        ):
+            imposto.pop(campo, None)
+
+    @classmethod
+    def _remover_impostos_nao_mantidos(cls, despesa, keep):
+        if keep:
+            omitidos = despesa.despesas_impostos.exclude(uuid__in=keep)
+        else:
+            omitidos = despesa.despesas_impostos.all()
+
+        for imposto in list(omitidos):
+            if imposto.status == STATUS_INATIVO:
+                continue
+            elif imposto.inativar_em_vez_de_excluir or despesa.inativar_em_vez_de_excluir:
+                imposto.inativar_despesa()
+            else:
+                imposto.delete()
+
+    @staticmethod
     def _cria_atualiza_fornecedor(despesa: Despesa, validated_data: dict):
         from sme_ptrf_apps.despesas.models.fornecedor import Fornecedor
 
@@ -431,13 +468,13 @@ class DespesaService:
                     "mensagem": "A despesa de imposto precisa ter rateio associado"
                 })
 
-            imposto.pop("despesas_impostos", None)
-            imposto.pop("motivos_pagamento_antecipado", None)
+            cls._sanitizar_payload_imposto(imposto)
 
             # [PIPELINE] - Duplicado em REG-064 .apply(). Sem conflito, independente de flag
             if not pipeline_ativa:
                 imposto["recurso"] = despesa.recurso
 
+            imposto.pop("uuid", None)
             desp = Despesa.objects.create(**imposto)
             cls._criar_rateios(desp, rateios)
 
@@ -475,8 +512,7 @@ class DespesaService:
                         "mensagem": "A despesa de imposto precisa ter rateio associado"
                     })
 
-                imposto.pop("despesas_impostos", None)
-                imposto.pop("motivos_pagamento_antecipado", None)
+                cls._sanitizar_payload_imposto(imposto)
 
                 # Despesa de imposto herda o status de conciliação da despesa de origem
                 # caso esteja num contexto de PC devolvida para acertos
@@ -504,14 +540,30 @@ class DespesaService:
                     for rateio in rateios:
                         rateio["update_conferido"] = False
 
-                if "uuid" in imposto:
-                    desp = Despesa.by_uuid(imposto["uuid"])
+                uuid_imposto = cls._uuid_valido(imposto.pop("uuid", None))
+                desp_existente = None
+                if uuid_imposto:
+                    try:
+                        desp_existente = Despesa.by_uuid(uuid_imposto)
+                    except Despesa.DoesNotExist:
+                        desp_existente = None
+
+                # Imposto INATIVO (excluído com PC existente) não pode ser reaproveitado:
+                # o PUT da geradora atualizava valor/tipo no registro velho e o pre_save mantinha INATIVO.
+                if desp_existente and desp_existente.status != STATUS_INATIVO:
                     for attr, value in imposto.items():
-                        setattr(desp, attr, value)
-                    desp.save()
+                        setattr(desp_existente, attr, value)
+                    desp_existente.save()
+                    desp = desp_existente
                     logger.info(f"Despesa imposto atualizada uuid={desp.uuid}")
                 else:
-                    # [PIPELINE] - Duplicado em REG-064 .apply(). Sem conflito, independente de flag
+                    if desp_existente and desp_existente.status == STATUS_INATIVO:
+                        logger.info(
+                            f"Imposto uuid={uuid_imposto} está INATIVO; será criado um novo em vez de reaproveitar."
+                        )
+                        for rateio in rateios:
+                            rateio.pop("uuid", None)
+                            rateio.pop("id", None)
                     imposto["recurso"] = despesa.recurso
                     desp = Despesa.objects.create(**imposto)
                     logger.info(f"Despesa imposto criada uuid={desp.uuid}")
@@ -527,15 +579,16 @@ class DespesaService:
                 keep.append(desp.uuid)
                 lista.append(desp)
 
-            despesa.despesas_impostos.exclude(uuid__in=keep).delete()
-            despesa.despesas_impostos.set(lista)
+            cls._remover_impostos_nao_mantidos(despesa, keep)
+            inativos = list(despesa.despesas_impostos.filter(status=STATUS_INATIVO))
+            despesa.despesas_impostos.set(lista + inativos)
 
         elif not despesa.retem_imposto:
             if despesa.despesas_impostos.exists():
                 logger.info(
                     f"Removendo todas as despesas de imposto da despesa {despesa.uuid}"
                 )
-                despesa.despesas_impostos.all().delete()
+                cls._remover_impostos_nao_mantidos(despesa, keep=[])
 
         # Atualiza status dos impostos após vínculo
         for despesa_imposto in despesa.despesas_impostos.all():

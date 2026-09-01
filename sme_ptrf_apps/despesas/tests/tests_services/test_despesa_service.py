@@ -1,13 +1,14 @@
 """
 Testes para DespesaService, em especial a correção CAPITAL→CUSTEIO.
 """
+from decimal import Decimal
 import datetime
 
 import pytest
 from rest_framework import serializers
 
 from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
-from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO, STATUS_INCOMPLETO
+from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO, STATUS_INCOMPLETO, STATUS_INATIVO
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL, APLICACAO_CUSTEIO
 
 from sme_ptrf_apps.core.models import (
@@ -766,6 +767,54 @@ def test_update_imposto_herda_conciliacao_quando_pc_devolvida(
         rateio_imposto.periodo_conciliacao_id ==
         rateio_origem.periodo_conciliacao_id
     )
+
+
+def test_update_nao_reaproveita_imposto_inativo(
+    tipo_documento,
+    despesa_conciliada_com_rateio,
+    despesa_factory,
+):
+    despesa = despesa_conciliada_com_rateio
+    imposto_inativo = despesa_factory(
+        associacao=despesa.associacao,
+        tipo_documento=tipo_documento,
+        tipo_transacao=despesa.tipo_transacao,
+        valor_total=52.80,
+        data_transacao=despesa.data_transacao,
+        data_documento=despesa.data_transacao,
+    )
+    imposto_inativo.data_e_hora_de_inativacao = datetime.datetime(2026, 8, 21, 15, 11, 36)
+    imposto_inativo.save()
+    assert imposto_inativo.status == STATUS_INATIVO
+
+    despesa.despesas_impostos.add(imposto_inativo)
+
+    DespesaService._processar_impostos_update(
+        despesa,
+        [
+            {
+                "uuid": str(imposto_inativo.uuid),
+                "tipo_documento": tipo_documento,
+                "valor_total": 38.40,
+                "rateios": [
+                    {
+                        "valor_rateio": 38.40,
+                    }
+                ],
+            }
+        ],
+    )
+
+    despesa.refresh_from_db()
+    imposto_inativo.refresh_from_db()
+
+    assert imposto_inativo.status == STATUS_INATIVO
+    assert despesa.despesas_impostos.filter(uuid=imposto_inativo.uuid).exists()
+
+    novo_imposto = despesa.despesas_impostos.exclude(uuid=imposto_inativo.uuid).get()
+    assert novo_imposto.uuid != imposto_inativo.uuid
+    assert novo_imposto.status != STATUS_INATIVO
+    assert novo_imposto.valor_total == Decimal("38.40")
 
 
 def criar_cenario_marcar_lancamento_como_atualizado(

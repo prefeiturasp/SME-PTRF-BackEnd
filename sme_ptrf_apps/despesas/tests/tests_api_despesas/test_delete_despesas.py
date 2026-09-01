@@ -59,7 +59,10 @@ def test_api_delete_despesas_com_imposto_sem_pc(
     assert Despesa.objects.filter(uuid=tapi_despesa_imposto.uuid).exists()
     assert RateioDespesa.objects.filter(uuid=tapi_rateio_despesa_imposto.uuid).exists()
 
-    response = jwt_authenticated_client_d.delete(f'/api/despesas/{tapi_despesa_com_imposto.uuid}/', content_type='application/json')
+    response = jwt_authenticated_client_d.delete(
+        f'/api/despesas/{tapi_despesa_com_imposto.uuid}/',
+        content_type='application/json',
+    )
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -82,21 +85,63 @@ def test_api_delete_despesas_com_imposto_com_pc(
     assert Despesa.objects.filter(uuid=tapi_despesa_imposto.uuid).exists()
     assert RateioDespesa.objects.filter(uuid=tapi_rateio_despesa_imposto.uuid).exists()
 
-    response = jwt_authenticated_client_d.delete(f'/api/despesas/{tapi_despesa_com_imposto.uuid}/', content_type='application/json')
+    response = jwt_authenticated_client_d.delete(
+        f'/api/despesas/{tapi_despesa_com_imposto.uuid}/',
+        content_type='application/json',
+    )
 
     assert response.status_code == status.HTTP_200_OK
 
     assert Despesa.objects.filter(uuid=tapi_despesa_com_imposto.uuid).exists()
-    assert Despesa.by_uuid(tapi_despesa_com_imposto.uuid).status == 'INATIVO', "Despesa principal deveria estar inativa."
+    assert Despesa.by_uuid(tapi_despesa_com_imposto.uuid).status == 'INATIVO', (
+        "Despesa principal deveria estar inativa."
+    )
 
     assert RateioDespesa.objects.filter(uuid=tapi_rateio_despesa_com_imposto.uuid).exists()
-    assert RateioDespesa.by_uuid(tapi_rateio_despesa_com_imposto.uuid).status == 'INATIVO', "Rateio da despesa principal deveria estar inativo."
+    assert RateioDespesa.by_uuid(tapi_rateio_despesa_com_imposto.uuid).status == 'INATIVO', (
+        "Rateio da despesa principal deveria estar inativo."
+    )
 
     assert Despesa.objects.filter(uuid=tapi_despesa_imposto.uuid).exists()
-    assert Despesa.by_uuid(tapi_despesa_imposto.uuid).status == 'INATIVO', "Despesa imposto deveria estar inativa."
+    assert Despesa.by_uuid(tapi_despesa_imposto.uuid).status == 'INATIVO', (
+        "Despesa imposto deveria estar inativa."
+    )
 
     assert RateioDespesa.objects.filter(uuid=tapi_rateio_despesa_imposto.uuid).exists()
-    assert RateioDespesa.by_uuid(tapi_rateio_despesa_imposto.uuid).status == 'INATIVO', "Rateio da despesa imposto deveria estar inativo."
+    assert RateioDespesa.by_uuid(tapi_rateio_despesa_imposto.uuid).status == 'INATIVO', (
+        "Rateio da despesa imposto deveria estar inativo."
+    )
+
+    geradora = Despesa.by_uuid(tapi_despesa_com_imposto.uuid)
+    assert geradora.despesas_impostos.filter(uuid=tapi_despesa_imposto.uuid).exists(), (
+        "Inativar a geradora deve manter o vínculo histórico com os impostos."
+    )
+
+
+def test_api_delete_imposto_com_pc_mantem_vinculo(
+    jwt_authenticated_client_d,
+    tapi_despesa_com_imposto,
+    tapi_rateio_despesa_com_imposto,
+    tapi_despesa_imposto,
+    tapi_rateio_despesa_imposto,
+    tapi_periodo_2019_2,
+    tapi_prestacao_conta_da_despesa,
+):
+    assert tapi_despesa_com_imposto.despesas_impostos.filter(uuid=tapi_despesa_imposto.uuid).exists()
+
+    response = jwt_authenticated_client_d.delete(
+        f'/api/despesas/{tapi_despesa_imposto.uuid}/',
+        content_type='application/json',
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    imposto = Despesa.by_uuid(tapi_despesa_imposto.uuid)
+    geradora = Despesa.by_uuid(tapi_despesa_com_imposto.uuid)
+
+    assert imposto.status == 'INATIVO'
+    assert geradora.status != 'INATIVO'
+    assert geradora.despesas_impostos.filter(uuid=imposto.uuid).exists()
 
 
 def test_api_delete_despesas_com_estorno_com_pc(
