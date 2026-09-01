@@ -464,7 +464,7 @@ class PaaRollbackHandlers(RollbackEngine):
             return fonte_recurso, associacao
 
         def _update(obj: RecursoProprioPaa, anterior: dict, uuid: str = None) -> None:
-            "Atualiza com as informações anteriores"
+            """Atualiza com as informações anteriores"""
             fonte_recurso, associacao = _resolve(anterior)
             obj.fonte_recurso = fonte_recurso
             obj.associacao = associacao
@@ -496,7 +496,7 @@ class PaaRollbackHandlers(RollbackEngine):
         """Realiza o Rollback das receitas dos outros recursos"""
 
         def _update(obj: ReceitaPrevistaOutroRecursoPeriodo, anterior: dict, uuid: str = None) -> None:
-            "Atualiza com as informações anteriores"
+            """Atualiza com as informações anteriores"""
             # `outro_recurso_periodo` é a chave de identificação do item — não muda
             obj.previsao_valor_capital = self._str_cash_para_decimal(anterior.get('previsao_valor_capital'))
             obj.previsao_valor_custeio = self._str_cash_para_decimal(anterior.get('previsao_valor_custeio'))
@@ -691,7 +691,7 @@ class CancelaRetificacaoPaaService(PaaRollbackHandlers):
 
     # limpeza
     def _remover_documentos_previos(self) -> None:
-        "Remove os documento prévios"
+        """Remove os documentos prévios"""
         removidos, _ = DocumentoPaa.objects.filter(
             paa=self.paa,
             versao=DocumentoPaa.VersaoChoices.PREVIA,
