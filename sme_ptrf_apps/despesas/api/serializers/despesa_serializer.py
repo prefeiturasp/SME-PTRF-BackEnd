@@ -10,9 +10,15 @@ from .tipo_transacao_serializer import TipoTransacaoSerializer
 from .motivo_pagamento_antecipado_serializer import MotivoPagamentoAntecipadoSerializer
 from ..serializers.rateio_despesa_serializer import RateioDespesaCreateSerializer
 from ...models import Despesa, TipoDocumento, TipoTransacao
+from ...status_cadastro_completo import STATUS_INATIVO
 from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
 from ....core.models import Associacao
 from sme_ptrf_apps.despesas.services.validacao_despesa_service import ValidacaoDespesaService
+
+
+def serializar_despesas_impostos_ativas(despesa, context=None):
+    qs = despesa.despesas_impostos.exclude(status=STATUS_INATIVO)
+    return DespesaImpostoSerializer(qs, many=True, context=context or {}).data
 
 
 log = logging.getLogger(__name__)
@@ -53,7 +59,7 @@ class DespesaSerializer(serializers.ModelSerializer):
     tipo_documento = TipoDocumentoSerializer()
     tipo_transacao = TipoTransacaoSerializer()
     rateios = RateioDespesaSerializer(many=True)
-    despesas_impostos = DespesaImpostoSerializer(many=True, required=False, allow_null=True)
+    despesas_impostos = serializers.SerializerMethodField()
     despesa_geradora_do_imposto = serializers.SerializerMethodField(
         method_name="get_despesa_de_imposto", required=False, allow_null=True)
     motivos_pagamento_antecipado = MotivoPagamentoAntecipadoSerializer(many=True)
@@ -62,6 +68,9 @@ class DespesaSerializer(serializers.ModelSerializer):
 
     def get_despesa_anterior_ao_uso_do_sistema_editavel(self, despesa):
         return despesa.checa_despesa_anterior_ao_uso_do_sistema_editavel()
+
+    def get_despesas_impostos(self, despesa):
+        return serializar_despesas_impostos_ativas(despesa, context=self.context)
 
     def get_despesa_de_imposto(self, despesa):
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
@@ -308,7 +317,7 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
     rateios = RateioDespesaTabelaGastosEscolaSerializer(many=True)
 
     receitas_saida_do_recurso = serializers.SerializerMethodField('get_recurso_externo')
-    despesas_impostos = DespesaImpostoSerializer(many=True, required=False)
+    despesas_impostos = serializers.SerializerMethodField()
     despesa_geradora_do_imposto = serializers.SerializerMethodField(method_name="get_despesa_de_imposto",
                                                                     required=False)
 
@@ -321,6 +330,9 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
         despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
         return DespesaImpostoSerializer(
             despesa_geradora_do_imposto, many=False).data if despesa_geradora_do_imposto else None
+
+    def get_despesas_impostos(self, despesa):
+        return serializar_despesas_impostos_ativas(despesa, context=self.context)
 
     def get_recurso_externo(self, despesa):
         return despesa.receitas_saida_do_recurso.first().uuid if despesa.receitas_saida_do_recurso.exists() else None

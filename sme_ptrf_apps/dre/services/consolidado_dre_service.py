@@ -263,7 +263,13 @@ def retornar_ja_publicadas(dre, periodo):
         data_publicacao_retificacao = consolidado_dre.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y') if consolidado_dre.consolidado_retificado and consolidado_dre.consolidado_retificado.data_publicacao else ''
         tipo_publicacao = f"Retificação {text_possessive_document_consolidado_pc} de {data_publicacao_retificacao}" if consolidado_dre.eh_retificacao else tipo_publicacao
 
-        publication_type = text_document_consolidado_pc.PUBLICATION_TYPE_RECTIFICATION if tipo_publicacao.startswith('Retificação') else text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL
+        publication_type = text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE
+
+        if tipo_publicacao == "Parcial":
+            publication_type = text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL
+        elif tipo_publicacao.startswith("Retificação"):
+            publication_type = text_document_consolidado_pc.PUBLICATION_TYPE_RECTIFICATION
+
         publication_text = tipo_publicacao if tipo_publicacao.startswith('Retificação') else None
 
         nome_publicacao = text_document_consolidado_pc.publication_name(
@@ -427,10 +433,9 @@ def retornar_proxima_publicacao(dre, periodo, sequencia_de_publicacao, sequencia
                 quantity_unities=qtde_unidades
             )
         else:
-            titulo_relatorio = text_document_consolidado_pc.text_sequencial_with_quantity(
+            titulo_relatorio = text_document_consolidado_pc.text_with_quantity(
                 publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE,
-                sequency_number=sequencia_de_publicacao_atual,
-                quantity_unities=qtde_unidades
+                quantity=qtde_unidades
             )
 
         # verificando se a publicacao anterior foi marcada como publicada no DO, para permitir gerar a próxima publicação
