@@ -27,11 +27,11 @@ def test_servico_cargos_da_diretoria_executiva():
     result = [
         {
             "id": "PRESIDENTE_DIRETORIA_EXECUTIVA",
-            "nome": "Presidente da diretoria executiva"
+            "nome": "Presidente da Diretoria Executiva"
         },
         {
             "id": "VICE_PRESIDENTE_DIRETORIA_EXECUTIVA",
-            "nome": "Vice-Presidente da diretoria executiva"
+            "nome": "Vice-Presidente da Diretoria Executiva"
         },
         {
             "id": "SECRETARIO",

@@ -326,7 +326,7 @@ class Associacao(ModeloIdNome):
     @classmethod
     def acoes_da_associacao(cls, associacao_uuid):
         associacao = cls.objects.filter(uuid=associacao_uuid).first()
-        return associacao.acoes.all().order_by('acao__posicao_nas_pesquisas') if associacao else []
+        return associacao.acoes.all().order_by('acao__ordem_exibicao') if associacao else []
 
     def get_periodo_inicial_associacao(self, recurso=None):
         if recurso:

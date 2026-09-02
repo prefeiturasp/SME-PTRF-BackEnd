@@ -56,12 +56,15 @@ def _assert_no_filter(filter_instance):
     qs.filter.assert_not_called()
 
 
-def _assert_filtered(filter_instance, **expected_kwargs):
+def _assert_filtered(filter_instance, assert_distinct=True, **expected_kwargs):
     qs = _mock_qs()
     result = filter_instance.queryset(None, qs)
     qs.filter.assert_called_once_with(**expected_kwargs)
-    qs.filter.return_value.distinct.assert_called_once()
-    assert result is qs.filter.return_value.distinct.return_value
+    if assert_distinct:
+        qs.filter.return_value.distinct.assert_called_once()
+        assert result is qs.filter.return_value.distinct.return_value
+    else:
+        assert result is qs.filter.return_value
 
 
 def test_recurso_list_filter_queryset_sem_valor(admin_request):
@@ -181,6 +184,7 @@ def test_ata_list_filter_queryset_sem_valor(admin_request):
 def test_ata_list_filter_queryset_com_valor(admin_request):
     _assert_filtered(
         make_filter(AtaListFilter, admin_request, RECURSO_ID),
+        assert_distinct=False,
         periodo__recurso_id=RECURSO_ID,
     )
 

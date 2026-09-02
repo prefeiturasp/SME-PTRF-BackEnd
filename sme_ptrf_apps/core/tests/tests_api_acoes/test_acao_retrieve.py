@@ -21,14 +21,14 @@ def test_retrieve_acao(
         "id": acao_x.id,
         "nome": acao_x.nome,
         "e_recursos_proprios": acao_x.e_recursos_proprios,
-        "posicao_nas_pesquisas": "ZZZZZZZZZZ",
         "aceita_capital": acao_x.aceita_capital,
         "aceita_custeio": acao_x.aceita_custeio,
         "aceita_livre": acao_x.aceita_livre,
         "exibir_paa": True,
         "tem_receitas_previstas_paa_em_elaboracao": False,
         "tem_prioridades_paa_em_elaboracao": False,
-        "recurso": f'{acao_x.recurso.uuid}'
+        "recurso": f'{acao_x.recurso.uuid}',
+        "ordem_exibicao": acao_x.ordem_exibicao,
     }
 
     assert response.status_code == status.HTTP_200_OK

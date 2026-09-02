@@ -1,6 +1,7 @@
+from django.db import transaction
 from django.db.models.query_utils import Q
 
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
+from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiParameter, OpenApiTypes
 
 from rest_framework import mixins, status
 from rest_framework.decorators import action
@@ -16,6 +17,7 @@ from ..serializers.acao_serializer import AcaoSerializer
 from ...models import Acao, Recurso
 from ...services import associacoes_nao_vinculadas_a_acao
 from ..serializers.associacao_serializer import AssociacaoListSerializer
+from rest_framework import serializers
 
 
 class AcoesViewSet(mixins.ListModelMixin,
@@ -94,11 +96,15 @@ class AcoesViewSet(mixins.ListModelMixin,
         acao = self.get_object()
         filtro_informacoes = self.request.query_params.get('filtro_informacoes')
         filtro_informacoes_list = filtro_informacoes.split(',') if filtro_informacoes else []
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
 
         encerradas = FiltroInformacoesAssociacao.FILTRO_INFORMACOES_ENCERRADAS
         nao_encerradas = FiltroInformacoesAssociacao.FILTRO_INFORMACOES_NAO_ENCERRADAS
 
-        qs = associacoes_nao_vinculadas_a_acao(acao)
+        if recurso_uuid:
+            qs = associacoes_nao_vinculadas_a_acao(acao, recurso_uuid=recurso_uuid)
+        else:
+            qs = associacoes_nao_vinculadas_a_acao(acao)
 
         if filtro_informacoes_list:
             if encerradas in filtro_informacoes_list and nao_encerradas in filtro_informacoes_list:
@@ -124,11 +130,15 @@ class AcoesViewSet(mixins.ListModelMixin,
         acao = self.get_object()
         filtro_informacoes = self.request.query_params.get('filtro_informacoes')
         filtro_informacoes_list = filtro_informacoes.split(',') if filtro_informacoes else []
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
 
         encerradas = FiltroInformacoesAssociacao.FILTRO_INFORMACOES_ENCERRADAS
         nao_encerradas = FiltroInformacoesAssociacao.FILTRO_INFORMACOES_NAO_ENCERRADAS
 
-        qs = associacoes_nao_vinculadas_a_acao(acao)
+        if recurso_uuid:
+            qs = associacoes_nao_vinculadas_a_acao(acao, recurso_uuid=recurso_uuid)
+        else:
+            qs = associacoes_nao_vinculadas_a_acao(acao)
 
         if nome is not None:
             qs = qs.filter(Q(nome__unaccent__icontains=nome) | Q(
@@ -146,3 +156,101 @@ class AcoesViewSet(mixins.ListModelMixin,
 
         result = AssociacaoListSerializer(qs, many=True).data
         return Response(result, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        summary='Atualiza a ordem de exibição das ações',
+        request=inline_serializer(
+            name='ReordenarAcoesSerializer',
+            fields={
+                'uuids_ordenados': serializers.ListField(
+                    child=serializers.UUIDField(),
+                    help_text='Lista de UUIDs das ações na nova ordem de exibição.'
+                )
+            }
+        ),
+        responses={
+            200: inline_serializer(
+                name='ReordenarAcoesResponseSerializer',
+                fields={'mensagem': serializers.CharField()}
+            ),
+            400: inline_serializer(
+                name='ReordenarAcoesErrorSerializer',
+                fields={'erro': serializers.CharField()}
+            )
+        }
+    )
+    @action(detail=False, methods=['post'], url_path='reordenar')
+    def reordenar(self, request):
+        uuids_ordenados = request.data.get('uuids_ordenados', [])
+
+        if not uuids_ordenados:
+            return Response(
+                {'erro': 'A lista de UUIDs não foi fornecida.'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Mapeia as Ações existentes por UUID para acesso O(1)
+        # Assumindo que você criou o campo 'ordem_exibicao'
+        acoes = Acao.objects.filter(uuid__in=uuids_ordenados)
+        acoes_dict = {str(acao.uuid): acao for acao in acoes}
+
+        acoes_para_atualizar = []
+
+        # Itera sobre a lista recebida para definir a nova ordem
+        for posicao, uuid_str in enumerate(uuids_ordenados, start=1):
+            acao = acoes_dict.get(str(uuid_str))
+            if acao:
+                acao.ordem_exibicao = posicao  # Ou atualiza o campo desejado
+                acoes_para_atualizar.append(acao)
+
+        if not acoes_para_atualizar:
+            return Response(
+                {'erro': 'Nenhuma ação correspondente foi encontrada.'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Atualiza em lote com transação atômica para garantir consistência
+        with transaction.atomic():
+            Acao.objects.bulk_update(acoes_para_atualizar, ['ordem_exibicao'])
+
+        return Response(
+            {'mensagem': 'Ordem das ações atualizada com sucesso!'}, 
+            status=status.HTTP_200_OK
+        )
+
+    @extend_schema(
+        summary='Retorna as ações ordenadas pela ordem de exibição',
+        description='Retorna a lista de ações ordenadas por recurso e por ordem_exibicao. Aceita filtro opcional por recurso_uuid.',
+        parameters=[
+            OpenApiParameter(
+                name='recurso_uuid',
+                description='UUID do recurso para filtrar as ações',
+                required=False,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY
+            ),
+        ],
+        responses={200: AcaoSerializer(many=True)},
+    )
+    @action(detail=False, methods=['get'], url_path='ordenadas')
+    def acoes_ordenadas(self, request):
+        """
+        Retorna as ações ordenadas explicitamente por ordem_exibicao.
+        Permite filtrar por um recurso específico através da query string 'recurso_uuid'.
+        """
+        qs = Acao.objects.all()
+        recurso_uuid = request.query_params.get('recurso_uuid')
+
+        if recurso_uuid:
+            qs = qs.filter(recurso__uuid=recurso_uuid)
+        else:
+            return Response(
+                {'erro': 'O parâmetro recurso_uuid é obrigatório para esta operação.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Ordena primariamente pelo recurso e secundariamente pela ordem de exibição
+        qs = qs.order_by('recurso', 'ordem_exibicao', 'nome')
+
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

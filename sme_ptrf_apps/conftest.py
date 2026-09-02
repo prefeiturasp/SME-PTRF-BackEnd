@@ -239,7 +239,6 @@ def acao_ptrf(acao):
 def acao_de_destaque(acao_factory):
     return acao_factory(
         nome="ZZZZZ",
-        posicao_nas_pesquisas="AAAAAAAAAA",
     )
 
 

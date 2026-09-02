@@ -99,6 +99,7 @@ class PainelResumoRecursos:
         self.info_acoes = []
         acoes_associacao = Associacao.acoes_da_associacao(associacao_uuid=self.associacao.uuid)
         acoes_associacao = AcaoAssociacao.filter_by_recurso(acoes_associacao, self.recurso)
+        acoes_associacao = acoes_associacao.order_by('acao__ordem_exibicao')
         for acao in acoes_associacao:
             self.info_acoes.append(
                 PainelResumoRecursosCardAcao(

@@ -46,7 +46,7 @@ class AcaoAssociacaoViewSet(mixins.RetrieveModelMixin,
 
     def get_queryset(self):
         recurso_uuid = self.request.query_params.get('recurso_uuid')
-    
+
         if recurso_uuid:
             try:
                 recurso = Recurso.objects.filter(uuid=recurso_uuid).first()

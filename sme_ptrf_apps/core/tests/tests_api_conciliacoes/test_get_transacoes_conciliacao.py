@@ -90,14 +90,14 @@ def monta_result_esperado(transacoes_esperadas, periodo, conta):
                         'uuid': f'{rateio.acao_associacao.acao.uuid}',
                         'nome': rateio.acao_associacao.acao.nome,
                         'e_recursos_proprios': False,
-                        'posicao_nas_pesquisas': rateio.acao_associacao.acao.posicao_nas_pesquisas,
                         'aceita_capital': rateio.acao_associacao.acao.aceita_capital,
                         'aceita_custeio': rateio.acao_associacao.acao.aceita_custeio,
                         'aceita_livre': rateio.acao_associacao.acao.aceita_livre,
                         'exibir_paa': rateio.acao_associacao.acao.exibir_paa,
                         "tem_receitas_previstas_paa_em_elaboracao": False,
                         "tem_prioridades_paa_em_elaboracao": False,
-                        "recurso": f'{rateio.acao_associacao.acao.recurso.uuid}'
+                        "recurso": f'{rateio.acao_associacao.acao.recurso.uuid}',
+                        "ordem_exibicao": rateio.acao_associacao.acao.ordem_exibicao
                     }
                 },
                 "conferido": rateio.conferido,
