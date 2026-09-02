@@ -17,7 +17,7 @@ class AtaParecerTecnico(ModeloBase):
     # Data fixa utilizada como marco para separar o comportamento legado das novas nomenclaturas.
     # A partir desta data (deploy da melhoria em produção, realizado após o término da sprint 40),
     # as atas passam a utilizar o novo texto de publicação da portaria.
-    DATA_CORTE_PORTARIA = date(2026, 8, 19)
+    DATA_CORTE_PORTARIA = date(2026, 9, 3)
 
     history = AuditlogHistoryField()
 
