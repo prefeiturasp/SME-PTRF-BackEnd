@@ -16,7 +16,6 @@ def test_serializer(acao):
     assert serializer.data['nome']
     assert not serializer.data['e_recursos_proprios']
     assert serializer.data['uuid']
-    assert serializer.data['posicao_nas_pesquisas'] is not None
 
 
 def test_serializer_create_valido():
@@ -28,7 +27,6 @@ def test_serializer_create_valido():
         'aceita_custeio': False,
         'aceita_livre': True,
         'e_recursos_proprios': False,
-        'posicao_nas_pesquisas': 'AAAA',
         'exibir_paa': True,
     }
     serializer = AcaoSerializer(data=data)

@@ -2,7 +2,6 @@ import json
 
 import pytest
 from rest_framework import status
-
 pytestmark = pytest.mark.django_db
 
 
@@ -41,6 +40,8 @@ def test_api_retrieve_ata_parecer_tecnico(jwt_authenticated_client_dre, ata_pare
         'uuid': f'{ata_parecer_tecnico.uuid}',
         'hora_reuniao': '00:00',
         'data_portaria': None,
+        'portaria_publicada': '',
+        'eh_portaria_publicada': False,
         'numero_portaria': None,
         'versao': 'PREVIA'
     }

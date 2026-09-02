@@ -56,3 +56,5 @@ from .valores_reprogramados_dre_service import (
 from .analise_consolidado_dre_service import AnaliseConsolidadoDreService, RelatorioDevolucaoAcertos
 from .dados_relatorio_devolucao_acertos_sme_service import DadosRelatorioDevolucaoAcertosSmeService
 from .relatorio_devolucao_acertos_sme_service import ArquivoRelatorioDevolucaoAcertosSmeService
+
+from .membro_comissao_service import MembroComissaoService

@@ -71,17 +71,18 @@ class PrestacaoContaListFilter(RecursoListFilter):
             return queryset.filter(periodo__recurso_id=self.value()).distinct()
         return queryset
 
-        
+
 class PeriodoRecursoListFilter(RecursoListFilter):
     def queryset(self, request, queryset):
         if self.value():
             return queryset.filter(periodo__recurso_id=self.value()).distinct()
         return queryset
 
+
 class AtaListFilter(RecursoListFilter):
     def queryset(self, request, queryset):
         if self.value():
-            return queryset.filter(periodo__recurso_id=self.value()).distinct()
+            return queryset.filter(periodo__recurso_id=self.value())
         return queryset
 
 

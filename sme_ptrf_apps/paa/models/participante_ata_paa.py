@@ -33,7 +33,10 @@ class ParticipanteAtaPaa(ModeloBase):
     def eh_conselho_fiscal(self) -> None:
         """Verifica se o participante pertence ao conselho fiscal com base
         no cargo e atualiza o campo `conselho_fiscal` da instância."""
-        if "Presidente do conselho fiscal" in self.cargo or "Conselheiro" in self.cargo:
+
+        cargo = (self.cargo or "").lower()
+
+        if "presidente do conselho fiscal" in cargo or "conselheiro" in cargo:
             self.conselho_fiscal = True
             self.save()
 
@@ -81,11 +84,14 @@ class ParticipanteAtaPaa(ModeloBase):
         """Retorna um valor inteiro para ordenar os participantes pelo cargo."""
         cargos = {
             'Presidente da diretoria executiva': 1,
-            'Vice-Presidente da diretoria executiva': 2,
+            'Presidente da Diretoria Executiva': 1,
+            'Vice-Presidente da diretoria executiva': 2,            
+            'Vice-Presidente da Diretoria Executiva': 2,
             'Secretário': 3,
             'Tesoureiro': 4,
             'Vogal': 5,
             'Presidente do conselho fiscal': 6,
+            'Presidente do Conselho Fiscal': 6,
             'Conselheiro': 7,
         }
         return cargos.get(participante['cargo'], 8)  # 8 para cargos não listados

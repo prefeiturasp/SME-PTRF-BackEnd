@@ -142,9 +142,12 @@ from sme_ptrf_apps.situacao_patrimonial.api.views import (
 
 from sme_ptrf_apps.mandatos.api.views import (
     MandatosViewSet,
+    MandatosVacanciaViewSet,
     ComposicoesViewSet,
     OcupantesCargosViewSet,
-    CargosComposicoesViewSet
+    OcupantesCargosVacanciaViewSet,
+    CargosComposicoesViewSet,
+    CargosComposicoesVacanciaViewSet
 )
 
 from sme_ptrf_apps.logging.simulador_de_logs.simulador_de_logs_view import (
@@ -283,9 +286,13 @@ router.register("receitas-previstas-outros-recursos-periodo", ReceitaPrevistaOut
 router.register("receitas-previstas-paa", ReceitaPrevistaPaaViewSet, basename="receitas-previstas-paa")
 router.register("receitas-previstas-pdde", ReceitaPrevistaPddeViewSet, basename="receitas-previstas-pdde")
 router.register("mandatos", MandatosViewSet, basename="mandatos")
+router.register("mandatos-vacancia", MandatosVacanciaViewSet, basename="mandatos-vacancia")
 router.register("composicoes", ComposicoesViewSet, basename="composicoes")
 router.register("ocupantes-cargos", OcupantesCargosViewSet, basename="ocupantes-cargos")
+OcupantesCargosVacanciaViewSet,
+router.register("ocupantes-cargos-vacancia", OcupantesCargosVacanciaViewSet, basename="ocupantes-cargos-vacancia")
 router.register("cargos-composicao", CargosComposicoesViewSet, basename="cargos-composicao")
+router.register("cargos-composicao-vacancia", CargosComposicoesVacanciaViewSet, basename="cargos-composicao-vacancia")
 router.register("prestacoes-contas-reprovadas-nao-apresentacao", PrestacaoContaReprovadaNaoApresentacaoViewSet,
                 basename="prestacoes-contas-reprovadas-nao-apresentacao")
 router.register("paa", PaaViewSet, basename='paa')
