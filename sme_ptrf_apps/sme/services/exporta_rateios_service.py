@@ -135,7 +135,7 @@ class ExportacoesRateiosService:
     def monta_dados(self):
         linhas_vertical = []
 
-        for instance in self.queryset:
+        for instance in self.queryset.iterator(chunk_size=2000):
             logger.info(
                 "Iniciando extração de dados de rateios, rateio id: %s.",
                 instance.id,
