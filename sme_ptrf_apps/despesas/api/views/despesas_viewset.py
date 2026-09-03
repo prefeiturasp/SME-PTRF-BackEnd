@@ -11,6 +11,7 @@ from .docs.despesas_viewset_docs import DOCS
 from sme_ptrf_apps.core.models.periodo import Periodo
 from sme_ptrf_apps.despesas.services.filtra_despesas_por_tags import filtra_despesas_por_tags
 
+from sme_ptrf_apps.users.api.mixins import EscopoPorUnidadesDoUsuarioMixin
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
     PermissaoAPITodosComLeituraOuGravacao,
@@ -55,7 +56,8 @@ class CustomPagination(PageNumberPagination):
 
 
 @extend_schema_view(**DOCS)
-class DespesasViewSet(mixins.CreateModelMixin,
+class DespesasViewSet(EscopoPorUnidadesDoUsuarioMixin,
+                      mixins.CreateModelMixin,
                       mixins.RetrieveModelMixin,
                       mixins.UpdateModelMixin,
                       mixins.DestroyModelMixin,
@@ -72,7 +74,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
     def get_queryset(self):
         from ...services.despesa_service import ordena_despesas_por_imposto
-        qs = Despesa.objects.exclude(status='INATIVO').all()
+        qs = super().get_queryset().exclude(status='INATIVO')
 
         qs = Despesa.filter_by_recurso(qs, self.request.recurso)
 
