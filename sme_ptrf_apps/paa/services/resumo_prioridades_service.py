@@ -235,6 +235,9 @@ class ResumoPrioridadesService:
             'custeio': 0,
             'capital': 0,
             'livre_aplicacao': 0,
+            'saldo_congelado_em': (
+                self.paa.saldo_congelado_em.strftime('%d/%m/%Y') if self.paa.saldo_congelado_em else ''
+            ),
             'children': []
         }
 
