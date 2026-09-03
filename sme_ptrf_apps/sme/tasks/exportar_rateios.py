@@ -17,8 +17,8 @@ OPERACAO_EXPORTACAO_RATEIOS = 'Extração de dados - Rateios'
     bind=True,
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
-    time_limet=600,
-    soft_time_limit=300000
+    time_limit=20000,
+    soft_time_limit=20000
 )
 def exportar_rateios_async(self, data_inicio, data_final, username, dre_uuid=None):
     export_logger = ContextualLogger.get_logger(
@@ -37,6 +37,19 @@ def exportar_rateios_async(self, data_inicio, data_final, username, dre_uuid=Non
         },
     )
 
+    SELECT_RELATED_RATEIOS = (
+        'associacao__unidade__dre',
+        'despesa__recurso',
+        'despesa__tipo_documento',
+        'despesa__tipo_transacao',
+        'tipo_custeio',
+        'especificacao_material_servico',
+        'conta_associacao__tipo_conta',
+        'acao_associacao__acao',
+        'periodo_conciliacao',
+        'tag',
+    )
+
     dre_codigo_eol = None
     if dre_uuid:
         from sme_ptrf_apps.core.models.unidade import Unidade
@@ -46,11 +59,11 @@ def exportar_rateios_async(self, data_inicio, data_final, username, dre_uuid=Non
         except Unidade.DoesNotExist:
             logger.warning(f"DRE com uuid {dre_uuid} não encontrada")
 
-        queryset = RateioDespesa.objects.filter(
+        queryset = RateioDespesa.objects.select_related(*SELECT_RELATED_RATEIOS).filter(
             associacao__unidade__dre__uuid=dre_uuid,
         ).exclude(status=STATUS_INATIVO).order_by('id')
     else:
-        queryset = RateioDespesa.objects.exclude(status=STATUS_INATIVO).order_by('id')
+        queryset = RateioDespesa.objects.select_related(*SELECT_RELATED_RATEIOS).exclude(status=STATUS_INATIVO).order_by('id')  # noqa
 
     try:
         params = {
