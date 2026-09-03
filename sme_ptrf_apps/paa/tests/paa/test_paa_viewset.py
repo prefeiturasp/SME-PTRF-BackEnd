@@ -15,7 +15,7 @@ def test_resumo_prioridades_com_saldo_congelado(jwt_authenticated_client_sme, fl
 
     assert response.status_code == status.HTTP_200_OK
     assert result[0]['key'] == 'PTRF'
-    assert result[0]['saldo_congelado_em'] == '03/09/2026'
+    assert result[0]['mensagem_saldo_congelado'] == 'Atualização de saldo da PC bloqueada em 03/09/2026 às 00:00'
 
 
 def test_resumo_prioridades_sem_saldo_congelado(jwt_authenticated_client_sme, flag_paa, paa_factory):
@@ -28,4 +28,4 @@ def test_resumo_prioridades_sem_saldo_congelado(jwt_authenticated_client_sme, fl
 
     assert response.status_code == status.HTTP_200_OK
     assert result[0]['key'] == 'PTRF'
-    assert result[0]['saldo_congelado_em'] == ''
+    assert result[0]['mensagem_saldo_congelado'] == ''
