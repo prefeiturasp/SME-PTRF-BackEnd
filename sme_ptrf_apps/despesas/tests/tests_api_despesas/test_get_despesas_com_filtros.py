@@ -71,7 +71,8 @@ def rateio_factory(associacao, conta_associacao, acao_associacao_ptrf):
     return _factory
 
 
-def get_despesas(client, **params):
+def get_despesas(client, associacao, **params):
+    params = {'associacao__uuid': associacao.uuid, **params}
     query = "&".join(f"{k}={v}" for k, v in params.items())
     response = client.get(f"/api/despesas/?{query}", content_type="application/json")
     assert response.status_code == status.HTTP_200_OK
@@ -101,7 +102,7 @@ def test_filtro_por_cpf_cnpj_fornecedor(
 
     result = get_despesas(
         jwt_authenticated_client_d,
-        associacao__uuid=associacao.uuid,
+        associacao,
         cpf_cnpj_fornecedor=cpf_cnpj,
     )
 
@@ -114,6 +115,7 @@ def test_filtro_por_tipo_documento(
     _despesa_factory,
     rateio_factory,
     tipo_documento,
+    associacao,
     campo,
 ):
     d1 = _despesa_factory()
@@ -124,6 +126,7 @@ def test_filtro_por_tipo_documento(
     valor = getattr(tipo_documento, campo)
     result = get_despesas(
         jwt_authenticated_client_d,
+        associacao,
         **{f"tipo_documento__{campo}": valor},
     )
 
@@ -135,6 +138,7 @@ def test_filtro_por_tag(
     _despesa_factory,
     rateio_factory,
     tag_teste_filtro_por_tag,
+    associacao,
 ):
     d1 = _despesa_factory()
     d2 = _despesa_factory()
@@ -144,6 +148,7 @@ def test_filtro_por_tag(
 
     result = get_despesas(
         jwt_authenticated_client_d,
+        associacao,
         rateios__tag__uuid=tag_teste_filtro_por_tag.uuid,
     )
 
@@ -165,6 +170,7 @@ def test_filtro_vinculo_atividades(
     tag_2,
     filtro,
     esperado,
+    associacao,
 ):
     d1 = _despesa_factory()
     d2 = _despesa_factory()
@@ -176,6 +182,7 @@ def test_filtro_vinculo_atividades(
 
     result = get_despesas(
         jwt_authenticated_client_d,
+        associacao,
         filtro_vinculo_atividades=filtro,
     )
 

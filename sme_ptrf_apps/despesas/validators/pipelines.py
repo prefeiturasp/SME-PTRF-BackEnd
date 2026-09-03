@@ -26,6 +26,8 @@ from .r61_normaliza_cpf_cnpj import NormalizaCpfCnpjValidator
 from .r64_imposto_recurso import ImpostoRecursoValidator
 from .r68_rateio_associacao import RateioAssociacaoValidator
 from .r69_contexto_acerto import ContextoAcertoValidator
+from .r70_associacao_imutavel import AssociacaoImutavelValidator
+from .r71_conta_acao_mesma_associacao import ContaAcaoMesmaAssociacaoValidator
 
 
 # REG-005 deve sempre preceder REG-006 — a quantidade válida é pré-condição do cálculo.
@@ -55,6 +57,7 @@ _CORE_VALIDATORS = [
     ContasRateiosValidator(),           # REG-008
     ContasImpostosValidator(),          # REG-008
     ContaAcaoRecursoValidator(),        # REG-009
+    ContaAcaoMesmaAssociacaoValidator(),  # REG-071
     ImpostosValidator(),                # REG-012
 ]
 
@@ -76,6 +79,7 @@ CREATE_PIPELINE = ValidatorPipeline(
 UPDATE_PIPELINE = ValidatorPipeline(
     flow_name="Fluxo 2 — Edição",
     validators=[
+        AssociacaoImutavelValidator(),      # REG-070
         PeriodoFechadoValidator(),          # REG-019
         *_CORE_VALIDATORS,
         MudancaAplicacaoValidator(),        # REG-013
@@ -99,6 +103,7 @@ UPDATE_ACERTO_PIPELINE = ValidatorPipeline(
     flow_name="Fluxo 4 — Edição via Acerto",
     validators=[
         ContextoAcertoValidator(),           # REG-069 — PC devolvida + solicitação
+        AssociacaoImutavelValidator(),       # REG-070
         *_CORE_VALIDATORS,
         MudancaAplicacaoValidator(),         # REG-013
         DespesaIncompletaAcertoValidator(),  # REG-024
