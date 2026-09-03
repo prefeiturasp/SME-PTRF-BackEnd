@@ -4,5 +4,6 @@ from .composicao_service import ServicoComposicaoVigente, ServicoCriaComposicaoV
 from .cargo_composicao_service import ServicoCargosDaComposicao, ServicoCargosDaDiretoriaExecutiva, \
     ServicoPendenciaCargosDaComposicaoVigenteDaAssociacao
 from .solicitacao_de_migracao_service import ServicoSolicitacaoDeMigracao
+from .solicitacao_de_migracao_vacancia_service import ServicoSolicitacaoDeMigracaoVacancia
 from .mandato_vacancia_service import ServicoMandatoVigenteVacancia
 from .historico_cargo_composicao_service import ServicoHistoricoCargoComposicao
