@@ -356,6 +356,21 @@ class ConciliacoesViewSet(GenericViewSet):
         data_extrato = request.data.get('data_extrato', None)
         saldo_extrato = request.data.get('saldo_extrato', 0.0)
 
+        aplicar_nova_regra_data_extrato = deve_aplicar_nova_regra_data_extrato(
+            conta_associacao.associacao,
+            periodo,
+            conta_associacao
+        )
+
+        # Regra US #129997
+        if aplicar_nova_regra_data_extrato:
+            info_solicitacao = conta_associacao.get_info_solicitacao_encerramento(periodo)
+
+            if info_solicitacao['possui_solicitacao_encerramento']:
+                data_extrato = info_solicitacao['data_encerramento']
+            else:
+                data_extrato = periodo.data_fim_realizacao_despesas
+
         # Define texto
         texto_observacao = request.data.get('observacao', "")
 
