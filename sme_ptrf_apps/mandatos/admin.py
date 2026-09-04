@@ -1,11 +1,17 @@
 from django.contrib import admin, messages
 from django.utils.safestring import mark_safe
+from waffle import flag_is_active
 
 from .models import (
     Mandato, Composicao, CargoComposicao, OcupanteCargo, SolicitacaoDeMigracao,
     CargoComposicaoVacancia, ComposicaoVacancia
 )
-from .services import ServicoSolicitacaoDeMigracao, ServicoMandatoVigente
+from .services import (
+    ServicoSolicitacaoDeMigracao,
+    ServicoMandatoVigente,
+    ServicoMandatoVigenteVacancia,
+    ServicoSolicitacaoDeMigracaoVacancia,
+)
 
 
 @admin.register(Mandato)
@@ -48,20 +54,52 @@ class SolicitacaoDeMigracaoAdmin(admin.ModelAdmin):
     actions = ['executa_migracao', ]
 
     def executa_migracao(self, request, queryset):
-        servico_mandato_vigente = ServicoMandatoVigente()
-        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+        """Dispara a migração de membros legados para o Histórico de Membros (v1 e/ou v2).
 
-        if not mandato_vigente:
-            self.message_user(request, mark_safe("<strong>Erro: Não existe um mandato vigente cadastrado</strong>"),
-                              level=messages.ERROR)
-        else:
-            ServicoSolicitacaoDeMigracao().executa_migracoes(queryset)
-            self.message_user(request, mark_safe(
-                "<strong>Atenção! Processo de migração iniciado. </br> "
-                "Este processo rodará em segundo plano e pode demorar! </br> "
-                "Volte mais tarde e verifique o Status do Processamento</strong>"
-            ), level=messages.WARNING)
+        As duas migrações são checadas de forma independente (não são mutuamente exclusivas):
+        se ambas as flags `historico-de-membros` e `historico-de-membros-v2` estiverem ativas,
+        as duas migrações são disparadas para o mesmo queryset, cada uma gravando na sua própria
+        estrutura de dados (`Composicao`/`CargoComposicao` para a v1, `ComposicaoVacancia`/
+        `CargoComposicaoVacancia` para a v2).
 
+        Args:
+            request: requisição do Django Admin, usada para checar as feature flags.
+            queryset: `SolicitacaoDeMigracao` selecionadas na lista do admin.
+        """
+        if flag_is_active(request, 'historico-de-membros'):
+            servico_mandato_vigente = ServicoMandatoVigente()
+            mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+            if not mandato_vigente:
+                self.message_user(request, mark_safe("<strong>Erro: Não existe um mandato vigente cadastrado</strong>"),
+                                  level=messages.ERROR)
+            else:
+                ServicoSolicitacaoDeMigracao().executa_migracoes(queryset)
+                self.message_user(request, mark_safe(
+                    "<strong>Atenção! Processo de migração iniciado. </br> "
+                    "Este processo rodará em segundo plano e pode demorar! </br> "
+                    "Volte mais tarde e verifique o Status do Processamento</strong>"
+                ), level=messages.WARNING)
+
+        if flag_is_active(request, 'historico-de-membros-v2'):
+            srv = ServicoMandatoVigenteVacancia()
+            mandato_vigente = srv.get_mandato_vigente()
+
+            if not mandato_vigente:
+                self.message_user(
+                    request,
+                    mark_safe("<strong>Erro: Não existe um mandato vigente cadastrado</strong>"),
+                    level=messages.ERROR)
+            else:
+                ServicoSolicitacaoDeMigracaoVacancia().executa_migracoes(queryset)
+                self.message_user(
+                    request,
+                    mark_safe(
+                        "<strong>Atenção! Processo de migração de vacância iniciado. </br> "
+                        "Este processo rodará em segundo plano e pode demorar! </br> "
+                        "Volte mais tarde e verifique o Status do Processamento</strong>"
+                    ),
+                    level=messages.WARNING)
     executa_migracao.short_description = "Realizar migração"
 
 
