@@ -4,7 +4,7 @@ from django.db.models import Q
 
 
 class ServicoMandatoVigenteVacancia:
-    def get_mandato_vigente(self):
+    def get_mandato_vigente(self) -> Mandato:
         data_atual = date.today()
 
         # Filtrar os mandatos com data_inicial anterior ou igual à data atual
