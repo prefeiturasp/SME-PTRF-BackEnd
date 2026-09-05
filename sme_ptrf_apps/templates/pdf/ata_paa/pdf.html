@@ -62,8 +62,18 @@
 
 {# ************************* Rodape ************************* #}
 <p id="nome-associacao-rodape" class="font-10">
-  <i>{{ dados.dados_texto_da_ata.unidade_tipo }} {{ dados.dados_texto_da_ata.unidade_nome }} -
-    Documento final gerado pelo usuário {{ dados.dados_texto_da_ata.usuario }}, via SIG-Escola, em: {% now "j/m/Y H:i:s" %}</i>
+    <i>
+        {{ dados.dados_texto_da_ata.unidade_tipo }}
+        {{ dados.dados_texto_da_ata.unidade_nome }} -
+        Documento final gerado pelo usuário
+        {{ dados.dados_texto_da_ata.usuario }},
+        via SIG-Escola, em:
+        {% if dados.dados_da_ata.gerado_em %}
+            {{ dados.dados_da_ata.gerado_em|date:"d/m/Y H:i:s" }}
+        {% else %}
+            {% now "d/m/Y H:i:s" %}
+        {% endif %}
+    </i>
 </p>
 {# ************************* Fim Rodape ************************* #}
 

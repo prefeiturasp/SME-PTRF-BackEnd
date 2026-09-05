@@ -12,7 +12,14 @@ LOGGER = logging.getLogger(__name__)
 
 
 def gerar_arquivo_documento_paa_pdf(paa, documento_paa, usuario, previa=False, alteracoes=None, **kwargs):
-    dados = gerar_dados_documento_paa(paa, usuario, previa, alteracoes=alteracoes, **kwargs)
+    dados = gerar_dados_documento_paa(
+        paa,
+        usuario,
+        previa,
+        alteracoes=alteracoes,
+        gerado_em=documento_paa.gerado_em,
+        **kwargs
+    )
 
     html_template = get_template('pdf/paa/documento/pdf-horizontal.html')
 
