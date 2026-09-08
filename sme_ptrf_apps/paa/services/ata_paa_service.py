@@ -1,6 +1,7 @@
 import logging
-from django.db import transaction
 from typing import Optional
+from datetime import datetime
+from django.db import transaction
 from django.contrib.auth.models import User
 
 from sme_ptrf_apps.paa.models import AtaPaa, LogReplicaPaa
@@ -14,13 +15,14 @@ from sme_ptrf_apps.paa.services.paa_service import PaaService
 LOGGER = logging.getLogger(__name__)
 
 
-def _salvar_log_replica(paa: Paa, replica: ReplicaPaa) -> LogReplicaPaa:
+def _salvar_log_replica(paa: Paa, replica: ReplicaPaa, gerado_em: datetime) -> LogReplicaPaa:
     """
     Registra snapshot da réplica no log ao concluir a retificação com êxito.
 
     Args:
         paa: Instância do Paa.
         replica: Instância de ReplicaPaa associada ao PAA.
+        gerado_em: Nova data/hora de geração para aplicar no LogReplicaPaa
 
     Returns:
         LogReplicaPaa criado.
@@ -34,6 +36,16 @@ def _salvar_log_replica(paa: Paa, replica: ReplicaPaa) -> LogReplicaPaa:
         .get('documento_retificado', {})
         .get('versao_documento')
     )
+
+    # atualiza data/hora de geração da ata no log da réplica
+    historico.setdefault('ata_retificada', {})
+    historico['ata_retificada']['gerado_em'] = str(gerado_em)
+
+    # atualiza data/hora do documento no log da réplica
+    if paa.documento_final and paa.documento_final.gerado_em:
+        historico.setdefault('documento_retificado', {})
+        historico['documento_retificado']['gerado_em'] = str(paa.documento_final.gerado_em)
+
     versao_documento = (versao_anterior or 0) + 1
     log = LogReplicaPaa.objects.create(
         paa=paa,
@@ -122,7 +134,11 @@ def gerar_arquivo_ata_paa_retificacao(ata_paa: AtaPaa, usuario: Optional[User] =
 
         with transaction.atomic():
             if replica:
-                _salvar_log_replica(paa=paa, replica=replica)
+                _salvar_log_replica(
+                    paa=paa,
+                    replica=replica,
+                    gerado_em=ata_paa.gerado_em
+                )
                 _remover_replica(replica=replica)
             _apagar_atas_retificacao_anteriores(ata_paa)
             PaaService.concluir_paa(paa)

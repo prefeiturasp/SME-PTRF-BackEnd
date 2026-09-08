@@ -103,7 +103,7 @@ def _secao_plano_para_documento_receitas(secao):
     }
 
 
-def gerar_dados_documento_paa(paa, usuario, previa=False, alteracoes=None, **kwargs):
+def gerar_dados_documento_paa(paa, usuario, previa=False, alteracoes=None, gerado_em: datetime = None, **kwargs):
     plano = PlanoOrcamentarioService(paa).construir_plano_orcamentario()
     parametros_paa = ParametroPaa.objects.all().first()
     secoes_por_key = {s["key"]: s for s in plano["secoes"]}
@@ -113,7 +113,7 @@ def gerar_dados_documento_paa(paa, usuario, previa=False, alteracoes=None, **kwa
 
     cabecalho = cria_cabecalho(paa.periodo_paa)
     identificacao_associacao = criar_identificacao_associacao(paa)
-    data_geracao_documento = cria_data_geracao_documento(usuario, previa)
+    data_geracao_documento = cria_data_geracao_documento(usuario, previa, gerado_em)
     grupos_prioridades = criar_grupos_prioridades(paa, alteracoes=alteracoes)
     atividades_estatutarias = criar_atividades_estatutarias(paa, alteracoes=alteracoes)
     recursos_proprios = criar_recursos_proprios(paa, secoes_por_key.get("outros_recursos"), alteracoes=alteracoes)
@@ -450,8 +450,11 @@ def cria_cabecalho(periodo_paa):
     return cabecalho
 
 
-def cria_data_geracao_documento(usuario, previa=False):
-    data_geracao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+def cria_data_geracao_documento(usuario, previa=False, gerado_em=False):
+    data_geracao = (
+        gerado_em or datetime.now()
+    ).strftime("%d/%m/%Y %H:%M:%S")
+
     tipo_texto = "parcial" if previa else "final"
     quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}, "
     texto = f"Documento {tipo_texto} gerado {quem_gerou}via SIG - Escola, em: {data_geracao}"

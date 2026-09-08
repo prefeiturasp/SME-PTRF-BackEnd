@@ -66,7 +66,7 @@ def test_gerar_dados_documento_paa(
     mock_plano_service.return_value.construir_plano_orcamentario.assert_called_once()
     mock_cabecalho.assert_called_once_with(paa.periodo_paa)
     mock_identificacao.assert_called_once_with(paa)
-    mock_data.assert_called_once_with(usuario, True)
+    mock_data.assert_called_once_with(usuario, True, None)
     mock_grupos.assert_called_once_with(paa, alteracoes=None)
     mock_atividades.assert_called_once_with(paa, alteracoes=None)
     mock_recursos.assert_called_once_with(paa, None, alteracoes=None)
