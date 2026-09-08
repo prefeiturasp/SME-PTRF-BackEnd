@@ -9,7 +9,8 @@ import logging
 from rest_framework import mixins
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response, Serializer
+from rest_framework.serializers import Serializer
+from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import status

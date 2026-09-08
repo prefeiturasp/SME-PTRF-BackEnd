@@ -38,7 +38,7 @@ class ReceitaPrevistaPaa(ModeloBase):
     previsao_valor_livre = models.DecimalField('Previsão Valor Livre Aplicação',
                                                max_digits=20, decimal_places=2, default=0)
 
-    def acao_associacao_objeto(self) -> "ReceitaPrevistaPaa":
+    def acao_associacao_objeto(self) -> "AcaoAssociacao":
         return self.acao_associacao
 
     class Meta:

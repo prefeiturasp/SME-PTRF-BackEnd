@@ -31,7 +31,7 @@ class DocumentoPaaViewSet(GenericViewSet):
 
     @action(detail=True, methods=['get'], url_path='download',
             permission_classes=[IsAuthenticated])
-    def download(self, request: Request, uuid: str | None = None):
+    def download(self, request: Request, uuid: str | None = None) -> HttpResponse | Response:
         """
         Endpoint para fazer download do arquivo PDF do documento PAA
 
