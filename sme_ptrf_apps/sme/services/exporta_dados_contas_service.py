@@ -168,8 +168,12 @@ class ExportacaoDadosContasService:
                 for _, campo in self.cabecalho:
 
                     if campo == "__bb_saldo_bancario__":
-                        linha.append(self._obter_saldo_bancario(instance))
-                        continue
+                        if instance.tipo_conta.permite_consulta_integracao_bb is False:
+                            linha.append("Conta sem consulta à API")
+                            continue
+                        else:
+                            linha.append(self._obter_saldo_bancario(instance))
+                            continue
 
                     # Removendo ponto e vírgula e substituindo por vírgula
                     if campo == "tipo_conta__recurso__nome":
