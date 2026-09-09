@@ -62,7 +62,8 @@ from sme_ptrf_apps.paa.fixtures.factories import (
     ReceitaPrevistaPddeFactory, PrioridadePaaFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory,
     AtaPaaFactory, ParticipanteAtaPaaFactory, AtividadeEstatutariaPaaFactory,
     OutroRecursoFactory, DocumentoPaaFactory, OutroRecursoPeriodoFactory,
-    ReceitaPrevistaOutroRecursoPeriodoFactory, ModeloCargaPaaFactory, ReplicaPaaFactory
+    ReceitaPrevistaOutroRecursoPeriodoFactory, ModeloCargaPaaFactory, ReplicaPaaFactory,
+    LogReplicaPaaFactory
 )
 from sme_ptrf_apps.situacao_patrimonial.fixtures.factories import (
     BemProduzidoFactory,
@@ -97,7 +98,7 @@ factories_to_register = [
     PDFFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory, AtaPaaFactory, ParticipanteAtaPaaFactory,
     AtividadeEstatutariaPaaFactory, OutroRecursoFactory, DocumentoPaaFactory, OutroRecursoPeriodoFactory,
     ReceitaPrevistaOutroRecursoPeriodoFactory, RecursoFactory, PeriodoInicialAssociacaoFactory,
-    ModeloCargaPaaFactory, ReplicaPaaFactory, ComissaoFactory,
+    ModeloCargaPaaFactory, ReplicaPaaFactory, ComissaoFactory, LogReplicaPaaFactory
 ]
 
 for factory in factories_to_register:
@@ -3227,6 +3228,7 @@ def receita_prevista_paa(acao_associacao, paa):
         previsao_valor_capital=2000.0,
         previsao_valor_livre=3000.0
     )
+
 
 @pytest.fixture
 def recurso_esperado():
