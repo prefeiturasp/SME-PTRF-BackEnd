@@ -189,7 +189,7 @@ class RenderizadorPaaBuilder:
         parecer = AtaPaa.PARECER_NOMES.get(ata.parecer_conselho, '')
         if not parecer:
             return ''
-        parecer_lc = parecer.lower()
+        parecer_lc = parecer.lower() if not eh_retificacao else 'Retificado'
         data_str = ata.data_reuniao.strftime('%d/%m/%Y')
         hr = ata.hora_reuniao
         hora_str = hr.strftime('%Hh%M') if hr is not None else '00h00'

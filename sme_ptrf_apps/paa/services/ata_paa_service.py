@@ -40,13 +40,8 @@ def _salvar_log_replica(paa: Paa, replica: ReplicaPaa, gerado_em: datetime) -> L
 
     versao_documento = (versao_anterior or 0) + 1
 
-    if versao_documento == 1:
-        # quando é primeira retificação não há documento retificado, portanto,
-        # é salvo o snapshot atualizado da ata (corrento)
-        ata_retificada = RetificacaoPaaService(paa, None)._snapshot_ata_retificada()
-    else:
-        # Do contrário, obtemos do próprio histórico que foi criao ao iniciar a retificação
-        ata_retificada = historico.get('ata_retificada', {})
+    # É salvo o snapshot atualizado da ata (corrente)
+    ata_retificada = RetificacaoPaaService(paa, None)._snapshot_ata_retificada()
 
     # atualiza data/hora de geração da ata no log da réplica
     ata_retificada['gerado_em'] = str(gerado_em)
