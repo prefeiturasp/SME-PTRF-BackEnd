@@ -45,6 +45,7 @@ class RecursoSerializer(serializers.ModelSerializer):
             'habilita_aprovacao_com_ressalvas',
             'habilita_exibicao_de_lauda',
             'textos_ata',
+            'existe_saldo_reprogramado'
         )
         read_only_fields = (
             'id',
@@ -61,6 +62,7 @@ class RecursoSerializer(serializers.ModelSerializer):
             'habilita_aprovacao_com_ressalvas',
             'habilita_exibicao_de_lauda',
             'textos_ata',
+            'existe_saldo_reprogramado',
         )
 
     def get_textos_ata(self, obj):
