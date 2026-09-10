@@ -3,6 +3,7 @@ import logging
 from celery import chain, group, Celery
 
 from django.contrib.auth import get_user_model
+from django.db import transaction
 
 from sme_ptrf_apps.core.models import (
     TaskCelery,
@@ -192,20 +193,44 @@ class PrestacaoContaService:
         return cls(periodo_uuid, associacao_uuid, username, logger)
 
     def _set_pc(self):
-        """Define a prestação de contas para o período e associação informados."""
-        self._prestacao = PrestacaoConta.abrir(periodo=self._periodo, associacao=self._associacao)
-        self._identifica_operacao_no_logger()
+        """Define a prestação de contas para o período e associação informados.
 
-        self.logger.info(f'Aberta a prestação de contas {self._prestacao}.')
+        Usa select_for_update para impedir que dois cliques simultâneos em concluir-v2
+        subam duas chains Celery da mesma PC.
+        """
+        status_ja_em_andamento = (
+            PrestacaoConta.STATUS_A_PROCESSAR,
+            PrestacaoConta.STATUS_EM_PROCESSAMENTO,
+            PrestacaoConta.STATUS_CALCULADA,
+            PrestacaoConta.STATUS_DEVOLVIDA_CALCULADA,
+        )
 
-        if self._prestacao.status in (PrestacaoConta.STATUS_EM_PROCESSAMENTO, PrestacaoConta.STATUS_A_PROCESSAR):
-            raise Exception(f'Prestação de contas {self._prestacao} já está em processamento.')
+        with transaction.atomic():
+            prestacao = (
+                PrestacaoConta.objects
+                .select_for_update()
+                .filter(periodo=self._periodo, associacao=self._associacao)
+                .first()
+            )
+            if prestacao is None:
+                prestacao = PrestacaoConta.abrir(periodo=self._periodo, associacao=self._associacao)
+                prestacao = PrestacaoConta.objects.select_for_update().get(pk=prestacao.pk)
+            else:
+                prestacao.atualizar_comentarios_de_analise_sem_pc()
 
-        self._e_retorno_devolucao = self._prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA
+            self._prestacao = prestacao
+            self._identifica_operacao_no_logger()
 
-        self._prestacao.a_processar()
+            self.logger.info(f'Aberta a prestação de contas {self._prestacao}.')
 
-        self.logger.info(f'PC {self._prestacao} aguardando processamento.')
+            if self._prestacao.status in status_ja_em_andamento:
+                raise Exception(f'Prestação de contas {self._prestacao} já está em processamento.')
+
+            self._e_retorno_devolucao = self._prestacao.status == PrestacaoConta.STATUS_DEVOLVIDA
+
+            self._prestacao.a_processar()
+
+            self.logger.info(f'PC {self._prestacao} aguardando processamento.')
 
     def _persiste_dados_demonstrativo_financeiro(self, conta_associacao, previa=False):
         self.logger.info(f'Criando registro do demonstrativo financeiro da conta {conta_associacao}.')
