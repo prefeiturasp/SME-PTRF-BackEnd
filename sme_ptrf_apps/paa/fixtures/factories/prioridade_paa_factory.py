@@ -18,6 +18,7 @@ class PrioridadePaaFactory(DjangoModelFactory):
 
     paa = SubFactory(PaaFactory)
     prioridade = True
+    descricao = 'Descrição da prioridade'
     recurso = LazyFunction(lambda: random.choice([e.name for e in RecursoOpcoesEnum]))
     acao_associacao = SubFactory(AcaoAssociacaoFactory)
     acao_pdde = SubFactory(AcaoPddeFactory)

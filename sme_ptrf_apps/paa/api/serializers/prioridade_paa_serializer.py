@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from waffle import flag_is_active
 
 from sme_ptrf_apps.paa.models import Paa, PrioridadePaa, ProgramaPdde, AcaoPdde, OutroRecurso
 from sme_ptrf_apps.paa.models.prioridade_paa import SimNaoChoices
@@ -43,6 +44,15 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
             'required': 'Recurso não foi informado.'
         },
         required=True
+    )
+    descricao = serializers.CharField(
+        max_length=100,
+        required=False,
+        allow_blank=True,
+        allow_null=True,
+        error_messages={
+            'max_length': 'A descrição deve ter no máximo 100 caracteres.'
+        }
     )
     paa = serializers.SlugRelatedField(
         slug_field='uuid',
@@ -108,8 +118,8 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = PrioridadePaa
         fields = (
-            'uuid', 'paa', 'prioridade', 'recurso', 'acao_associacao', 'outro_recurso', 'programa_pdde', 'acao_pdde',
-            'tipo_aplicacao', 'tipo_despesa_custeio', 'especificacao_material', 'valor_total', 'copia_de')
+            'uuid', 'paa', 'prioridade', 'recurso', 'descricao', 'acao_associacao', 'outro_recurso', 'programa_pdde',
+            'acao_pdde', 'tipo_aplicacao', 'tipo_despesa_custeio', 'especificacao_material', 'valor_total', 'copia_de')
 
     def validate(self, attrs: dict) -> dict:
         """
@@ -147,6 +157,11 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
             No fim valida o valor da prioridade pelo service
             ResumoPrioridadesService.validar_valor_prioridade
 
+        12. Verifica se a descrição foi informada quando o tipo de aplicação não é
+            CAPITAL; para CAPITAL, a descrição é opcional e possui limite de 100
+            caracteres. Essa validação é aplicada somente quando a feature flag
+            paa-receitas-prevista está ativa.
+
         Args:
             attrs (dict): Dados informados para a validação.
 
@@ -158,6 +173,18 @@ class PrioridadePaaCreateUpdateSerializer(serializers.ModelSerializer):
         """
         if not attrs.get('paa'):
             raise serializers.ValidationError({'paa': 'PAA não informado.'})
+
+        tipo_aplicacao = attrs.get('tipo_aplicacao')
+        descricao = attrs.get('descricao')
+        if self.instance:
+            tipo_aplicacao = tipo_aplicacao or self.instance.tipo_aplicacao
+            descricao = descricao if descricao is not None else self.instance.descricao
+
+        if (
+            flag_is_active(self.context.get('request'), 'paa-receitas-prevista') and
+            tipo_aplicacao != TipoAplicacaoOpcoesEnum.CAPITAL.name and not descricao
+        ):
+            raise serializers.ValidationError({'descricao': 'Descrição não informada.'})
 
         if attrs.get('recurso') == RecursoOpcoesEnum.PTRF.name:
             # Requer Ação associacao quando o Recurso é PTRF
@@ -398,6 +425,7 @@ class PrioridadePaaListSerializer(serializers.ModelSerializer):
             'uuid',
             'paa',
             'prioridade',
+            'descricao',
             'prioridade_objeto',
             'recurso',
             'recurso_objeto',

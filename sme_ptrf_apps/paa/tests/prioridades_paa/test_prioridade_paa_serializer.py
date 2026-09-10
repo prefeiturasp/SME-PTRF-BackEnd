@@ -5,6 +5,7 @@ from sme_ptrf_apps.paa.fixtures.factories import PrioridadePaaFactory
 from rest_framework.exceptions import ValidationError
 from sme_ptrf_apps.paa.models.prioridade_paa import SimNaoChoices
 from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
+from waffle.testutils import override_flag
 
 pytestmark = pytest.mark.django_db
 
@@ -17,6 +18,7 @@ def test_prioridade_paa_list_default_serializer(paa):
     assert 'paa' in serializer.data
     assert 'prioridade' in serializer.data
     assert 'recurso' in serializer.data
+    assert 'descricao' in serializer.data
     assert 'acao_associacao' in serializer.data
     assert 'programa_pdde' in serializer.data
     assert 'acao_pdde' in serializer.data
@@ -30,6 +32,53 @@ def test_prioridade_paa_create_sem_paa():
     prioridade = {}
     with pytest.raises(ValidationError):
         PrioridadePaaCreateUpdateSerializer().validate(prioridade)
+
+
+@override_flag('paa-receitas-prevista', active=True)
+def test_prioridade_paa_custeio_exige_descricao(paa):
+    prioridade = {
+        'paa': paa,
+        'tipo_aplicacao': TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+    }
+
+    with pytest.raises(ValidationError) as exc_info:
+        PrioridadePaaCreateUpdateSerializer().validate(prioridade)
+
+    assert exc_info.value.detail == {'descricao': 'Descrição não informada.'}
+
+
+@override_flag('paa-receitas-prevista', active=True)
+def test_prioridade_paa_capital_permite_descricao_vazia(paa, especificacao_material):
+    prioridade = {
+        'paa': paa,
+        'tipo_aplicacao': TipoAplicacaoOpcoesEnum.CAPITAL.name,
+        'descricao': '',
+        'especificacao_material': especificacao_material,
+    }
+
+    assert PrioridadePaaCreateUpdateSerializer().validate(prioridade) == prioridade
+
+
+@override_flag('paa-receitas-prevista', active=True)
+def test_prioridade_paa_descricao_deve_ter_no_maximo_100_caracteres():
+    serializer = PrioridadePaaCreateUpdateSerializer(data={'descricao': 'a' * 101})
+
+    assert not serializer.is_valid()
+    assert serializer.errors['descricao'] == ['A descrição deve ter no máximo 100 caracteres.']
+
+
+@override_flag('paa-receitas-prevista', active=False)
+def test_prioridade_paa_descricao_nao_e_obrigatoria_com_flag_inativa(paa):
+    prioridade = {
+        'paa': paa,
+        'tipo_aplicacao': TipoAplicacaoOpcoesEnum.CUSTEIO.name,
+        'descricao': '',
+    }
+
+    with pytest.raises(ValidationError) as exc_info:
+        PrioridadePaaCreateUpdateSerializer().validate(prioridade)
+
+    assert 'descricao' not in exc_info.value.detail
 
 
 def test_prioridade_paa_com_recurso_ptrf_capital(paa):
