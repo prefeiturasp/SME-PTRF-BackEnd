@@ -173,6 +173,11 @@ class RecursoAdmin(admin.ModelAdmin):
                 'tipo_conta_dois',
             )
         }),
+        ('Saldo Reprogramado', {
+            'fields': (
+                'existe_saldo_reprogramado',
+            )
+        }),
         ('Informações Internas', {
             'fields': (
                 'uuid',

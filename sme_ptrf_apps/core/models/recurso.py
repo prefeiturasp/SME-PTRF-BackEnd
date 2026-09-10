@@ -123,6 +123,12 @@ class Recurso(ModeloIdNome, TemAtivo):
         default=""
     )
 
+    existe_saldo_reprogramado = models.BooleanField(
+        verbose_name="O recurso possui saldo reprogramado?",
+        help_text="Caso a opção seja marcada, será considerada a nomenclatura Saldo reprogramado para exibição e indica que o saldo será reprogramado para os próximos períodos. Caso não seja marcada, a nomenclatura de exibição será Saldo.",
+        default=False,
+    )
+
     class Meta:
         verbose_name = 'Recurso'
         verbose_name_plural = '20.0) Recursos'
