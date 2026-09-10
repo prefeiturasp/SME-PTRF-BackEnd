@@ -1,18 +1,17 @@
+from requests import ConnectTimeout, ReadTimeout
 from rest_framework import mixins, status
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 from waffle.mixins import WaffleFlagMixin
+from drf_spectacular.utils import extend_schema_view
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
-from rest_framework.permissions import IsAuthenticated
-
 from sme_ptrf_apps.users.services import SmeIntegracaoService, SmeIntegracaoException
 from ...models import OcupanteCargo
 from ..serializers import OcupanteCargoSerializer
-from drf_spectacular.utils import extend_schema_view
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from requests import ConnectTimeout, ReadTimeout
 from .docs.ocupantes_cargos_vacancia_docs import DOCS
 
 
@@ -23,8 +22,10 @@ class OcupantesCargosVacanciaViewSet(
     mixins.RetrieveModelMixin,
     GenericViewSet
 ):
+    """Leitura de OcupanteCargo e consultas ao SME Integração (RF/EOL), atrás da flag v2."""
+
     waffle_flag = "historico-de-membros-v2"
-    permission_classes = [IsAuthenticated, PermissaoApiUe]
+    permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
     queryset = OcupanteCargo.objects.all()
     serializer_class = OcupanteCargoSerializer
@@ -33,6 +34,7 @@ class OcupantesCargosVacanciaViewSet(
     @action(detail=False, methods=['get'], url_path='codigo-identificacao',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def consulta_codigo_identificacao_no_smeintegracao(self, request):
+        """Consulta dados de aluno (codigo-eol) ou de servidor (rf) no SME Integração."""
         rf = self.request.query_params.get('rf')
         codigo_eol = self.request.query_params.get('codigo-eol')
         if not rf and not codigo_eol:
@@ -60,6 +62,7 @@ class OcupantesCargosVacanciaViewSet(
     @action(detail=False, methods=['get'], url_path='cargos-do-rf',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def get_cargos_do_rf_no_smeintegracao(self, request):
+        """Retorna os cargos vinculados a um RF no SME Integração."""
         rf = self.request.query_params.get('rf')
 
         if not rf:

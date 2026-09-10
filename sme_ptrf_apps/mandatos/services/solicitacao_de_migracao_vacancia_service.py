@@ -8,24 +8,23 @@ logger = logging.getLogger(__name__)
 
 
 class ServicoSolicitacaoDeMigracaoVacancia:
-    """ Dispara, de forma assíncrona, a migração de associações para o Histórico de Membros (v2). """
+    """Dispara, de forma assíncrona, a migração de associações para o Histórico de Membros (v2)."""
 
     def executa_migracoes(self, queryset: QuerySet) -> None:
-        """ Dispara a task de migração de vacância para cada solicitação no queryset.
+        """Dispara a task de migração de vacância para cada solicitação do queryset.
 
         Args:
-            queryset (QuerySet): QuerySet contendo as solicitações de migração
+            queryset: QuerySet de SolicitacaoDeMigracao.
         """
-
         logger.info(f"Iniciando serviço de migrações vacância para: {queryset}")
         for solicitacao in queryset.all():
             self.executa_migracao(solicitacao)
 
     def executa_migracao(self, solicitacao: SolicitacaoDeMigracao) -> None:
-        """ Agenda a task assíncrona de migração vacância para uma única solicitação.
+        """Agenda a task assíncrona de migração de vacância para uma única solicitação.
 
         Args:
-            solicitacao: a `SolicitacaoDeMigracao` cuja migração vacância será agendada.
+            solicitacao: a SolicitacaoDeMigracao cuja migração de vacância será agendada.
         """
         from ..tasks import solicitacao_de_migracao_vacancia_async
 

@@ -53,7 +53,7 @@ class CargoComposicaoVacanciaSerializer(serializers.ModelSerializer):
     cargo_associacao_label = serializers.CharField(source='get_cargo_associacao_display')
     vago = serializers.SerializerMethodField()
 
-    def get_vago(self, obj):
+    def get_vago(self, obj: CargoComposicaoVacancia) -> bool:
         return obj.ocupante_do_cargo_id is None
 
     class Meta:
@@ -68,11 +68,11 @@ class CargoComposicaoVacanciaSerializer(serializers.ModelSerializer):
 
 
 class CargoComposicaoVacanciaEditarOcupanteSerializer(serializers.ModelSerializer):
-    """ Edição dos dados do ocupante já existente.
+    """Edição dos dados cadastrais do ocupante de um registro já existente.
 
-    Não permite alterar `cargo_associacao`, datas e vínculos, são fonte verdade no cargo da composição.
-    Essas mudanças passam exclusivamente pelas ações dedicadas de entrada/saída/cancelar/corrigir, que
-    aplicam os validators.
+    Não permite alterar cargo_associacao, datas e vínculos, que são fonte de verdade no
+    cargo da composição. Essas mudanças passam exclusivamente pelas ações dedicadas de
+    entrada/saída/cancelar/corrigir, que aplicam os validators.
     """
     ocupante_do_cargo = OcupanteCargoCreateSerializer(required=False)
 
@@ -81,7 +81,7 @@ class CargoComposicaoVacanciaEditarOcupanteSerializer(serializers.ModelSerialize
         fields = ('id', 'uuid', 'ocupante_do_cargo')
         read_only_fields = ('id', 'uuid')
 
-    def update(self, instance, validated_data) -> CargoComposicaoVacancia:
+    def update(self, instance: CargoComposicaoVacancia, validated_data: dict) -> CargoComposicaoVacancia:
         dados_ocupante = validated_data.pop('ocupante_do_cargo')
 
         try:

@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from typing import Optional
 
 from rest_framework import serializers
@@ -7,13 +8,11 @@ from rest_framework.status import HTTP_400_BAD_REQUEST
 from ...models import Mandato
 from ...services import ServicoMandatoVacancia
 
-from datetime import date, timedelta
-
 
 class CustomError(APIException):
-    """Readers error class"""
+    """ Erro de validação de regra de negócio, sempre HTTP 400. """
 
-    def __init__(self, msg):
+    def __init__(self, msg: dict) -> None:
         APIException.__init__(self, msg)
         self.status_code = HTTP_400_BAD_REQUEST
         self.message = msg
@@ -27,11 +26,11 @@ class MandatoVacanciaSerializer(serializers.ModelSerializer):
     limite_min_data_inicial = serializers.SerializerMethodField('get_limite_min_data_inicial')
 
     def get_editavel(self, obj: Mandato) -> bool:
-        """ Retorna True para Editável se o mandato é o vigente ou futuro, False caso contrário. """
+        """Retorna True se o mandato é o vigente ou futuro (editável), False caso contrário."""
         return obj.eh_mandato_vacancia_vigente() or obj.eh_mandato_vacancia_futuro()
 
     def get_data_inicial_proximo_mandato(self, obj: Mandato) -> Optional[date]:
-        """ Retorna a data inicial do próximo mandato, caso exista, ou None caso contrário. """
+        """Retorna a data inicial do próximo mandato, caso exista, ou None caso contrário."""
         servico_mandato = ServicoMandatoVacancia()
         mandato_mais_recente = servico_mandato.get_mandato_mais_recente()
         if obj == mandato_mais_recente:
@@ -40,7 +39,7 @@ class MandatoVacanciaSerializer(serializers.ModelSerializer):
             return None
 
     def get_data_final_mandato_anterior_ao_mais_recente(self, obj: Mandato) -> Optional[date]:
-        """ Retorna a data final do mandato anterior ao mais recente, ou None se não existir. """
+        """Retorna o dia seguinte ao término do mandato anterior ao mais recente, ou None."""
         servico_mandato = ServicoMandatoVacancia()
         mandato_anterior_ao_mais_recente = servico_mandato.get_mandato_anterior_ao_mais_recente()
         result = None
@@ -49,7 +48,7 @@ class MandatoVacanciaSerializer(serializers.ModelSerializer):
         return result
 
     def get_limite_min_data_inicial(self, obj: Mandato) -> Optional[date]:
-        """ Retorna a data final do mandato anterior ao mais recente, ou None se não existir. """
+        """Retorna o dia seguinte ao término do mandato imediatamente anterior a este, ou None."""
         mandato_anterior = Mandato.objects.filter(
             data_final__lt=obj.data_inicial
         ).order_by('id').last()
@@ -60,7 +59,7 @@ class MandatoVacanciaSerializer(serializers.ModelSerializer):
 
         return result
 
-    def update(self, instance, validated_data):
+    def update(self, instance: Mandato, validated_data: dict) -> Mandato:
         data_inicial = validated_data["data_inicial"]
         data_final = validated_data["data_final"]
         referencia_mandato = validated_data["referencia_mandato"]
@@ -90,7 +89,7 @@ class MandatoVacanciaSerializer(serializers.ModelSerializer):
                   'data_inicial_proximo_mandato', 'data_final_mandato_anterior_ao_mais_recente',
                   'limite_min_data_inicial')
 
-    def validate(self, data):
+    def validate(self, data: dict) -> dict:
         data_inicial = data.get('data_inicial')
         data_final = data.get('data_final')
 

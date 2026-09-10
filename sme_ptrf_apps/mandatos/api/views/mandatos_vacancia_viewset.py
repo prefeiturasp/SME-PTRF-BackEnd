@@ -1,3 +1,4 @@
+from django.db.models.deletion import ProtectedError
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -15,8 +16,11 @@ from .docs.mandatos_vacancia_docs import DOCS
 
 @extend_schema_view(**DOCS)
 class MandatosVacanciaViewSet(WaffleFlagMixin, viewsets.ModelViewSet):
-    """ Viewset necessário pra v2 para flag exclusiva. isolado da v1, que depende da flag `historico-de-membros` (v1)
-     e usa MandatoSerializer. Esta passa a usar MandatoVacanciaSerializer """
+    """CRUD de Mandato para a v2, atrás da flag historico-de-membros-v2.
+
+    Isolado da v1 (MandatosViewSet + MandatoSerializer, atrás da flag historico-de-membros):
+    usa MandatoVacanciaSerializer e os serviços de vacância.
+    """
     waffle_flag = "historico-de-membros-v2"
     permission_classes = [IsAuthenticated & PermissaoApiSME]
     lookup_field = 'uuid'
@@ -25,6 +29,7 @@ class MandatosVacanciaViewSet(WaffleFlagMixin, viewsets.ModelViewSet):
     pagination_class = CustomPagination
 
     def get_queryset(self):
+        """Aplica o filtro opcional ?referencia= (unaccent, case-insensitive) sobre referencia_mandato."""
         qs = self.queryset
         filtro_referencia = self.request.query_params.get('referencia', None)
         if filtro_referencia:
@@ -34,6 +39,7 @@ class MandatosVacanciaViewSet(WaffleFlagMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='mandato-vigente',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def mandato_vigente(self, request):
+        """Retorna o mandato vigente serializado, ou {"uuid": None} se não houver."""
         mandato_vigente = ServicoMandatoVigenteVacancia().get_mandato_vigente()
 
         result = MandatoVacanciaSerializer(mandato_vigente).data if mandato_vigente else {"uuid": None}
@@ -43,8 +49,12 @@ class MandatosVacanciaViewSet(WaffleFlagMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='mandatos-anteriores',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def mandatos_anteriores(self, request):
-        """ Mesmo critério de filtro da v1 (`MandatosViewSet.mandatos_anteriores`), reimplementado aqui
-        para não depender da flag `historico-de-membros` (v1) - só leitura de Mandato, sem Composicao. """
+        """Retorna os mandatos anteriores ao vigente.
+
+        Mesmo critério de filtro da v1 (MandatosViewSet.mandatos_anteriores), reimplementado
+        aqui para não depender da flag historico-de-membros (v1): só leitura de Mandato,
+        sem Composicao.
+        """
         mandato_vigente = ServicoMandatoVigenteVacancia().get_mandato_vigente()
 
         qs = Mandato.objects.all().order_by('-data_inicial')
@@ -58,7 +68,7 @@ class MandatosVacanciaViewSet(WaffleFlagMixin, viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='mandato-mais-recente',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def mandato_mais_recente(self, request):
-        """ Retorna o mandato mais recente, caso exista, ou None caso contrário. """
+        """Retorna o mandato mais recente serializado, ou lista vazia se não houver nenhum."""
         mandato_mais_recente = ServicoMandatoVacancia().get_mandato_mais_recente()
 
         if mandato_mais_recente:
@@ -70,9 +80,11 @@ class MandatosVacanciaViewSet(WaffleFlagMixin, viewsets.ModelViewSet):
         return Response(result, status=status.HTTP_200_OK)
 
     def destroy(self, request, *args, **kwargs):
-        """ Override do destroy para impedir deleção de mandatos com cargos/composição. """
-        from django.db.models.deletion import ProtectedError
+        """Exclui um mandato, bloqueando com HTTP 400 quando não é permitido.
 
+        Bloqueia se o mandato não é o mais recente, se já há ocupantes cadastrados nas
+        composições, ou se o banco recusa a exclusão por dado protegido (ProtectedError).
+        """
         obj = self.get_object()
         mandato_mais_recente = ServicoMandatoVacancia().get_mandato_mais_recente()
 
