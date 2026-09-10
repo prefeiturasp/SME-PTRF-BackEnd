@@ -11,6 +11,7 @@ from sme_ptrf_apps.paa.services.ata_paa_pdf_service import gerar_arquivo_ata_paa
 from sme_ptrf_apps.core.models import Parametros, Acao
 from sme_ptrf_apps.paa.models import Paa, ReplicaPaa
 from sme_ptrf_apps.paa.services.paa_service import PaaService
+from sme_ptrf_apps.paa.services.retificacao_paa_service import RetificacaoPaaService
 
 LOGGER = logging.getLogger(__name__)
 
@@ -37,16 +38,20 @@ def _salvar_log_replica(paa: Paa, replica: ReplicaPaa, gerado_em: datetime) -> L
         .get('versao_documento')
     )
 
+    versao_documento = (versao_anterior or 0) + 1
+
+    # É salvo o snapshot atualizado da ata (corrente)
+    ata_retificada = RetificacaoPaaService(paa, None)._snapshot_ata_retificada()
+
     # atualiza data/hora de geração da ata no log da réplica
-    historico.setdefault('ata_retificada', {})
-    historico['ata_retificada']['gerado_em'] = str(gerado_em)
+    ata_retificada['gerado_em'] = str(gerado_em)
+    historico['ata_retificada'] = ata_retificada
 
     # atualiza data/hora do documento no log da réplica
     if paa.documento_final and paa.documento_final.gerado_em:
         historico.setdefault('documento_retificado', {})
         historico['documento_retificado']['gerado_em'] = str(paa.documento_final.gerado_em)
 
-    versao_documento = (versao_anterior or 0) + 1
     log = LogReplicaPaa.objects.create(
         paa=paa,
         origem=LogReplicaPaa.CONCLUSAO,
