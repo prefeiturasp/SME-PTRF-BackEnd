@@ -5,5 +5,5 @@ from .cargo_composicao_service import ServicoCargosDaComposicao, ServicoCargosDa
     ServicoPendenciaCargosDaComposicaoVigenteDaAssociacao
 from .solicitacao_de_migracao_service import ServicoSolicitacaoDeMigracao
 from .solicitacao_de_migracao_vacancia_service import ServicoSolicitacaoDeMigracaoVacancia
-from .mandato_vacancia_service import ServicoMandatoVigenteVacancia
+from .mandato_vacancia_service import ServicoMandatoVigenteVacancia, ServicoMandatoVacancia
 from .historico_cargo_composicao_service import ServicoHistoricoCargoComposicao

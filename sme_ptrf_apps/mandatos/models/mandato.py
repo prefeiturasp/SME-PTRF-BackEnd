@@ -153,7 +153,7 @@ class Mandato(ModeloBase):
 
         termina_antes_do_novo_inicio = CargoComposicaoVacancia.objects.filter(
             composicao__mandato=self,
-            data_fim_no_cargo__lt=nova_data_inicial,
+            data_fim_no_cargo__lte=nova_data_inicial,
         )
 
         return comeca_antes_do_novo_inicio.exists() or termina_antes_do_novo_inicio.exists()
@@ -177,12 +177,38 @@ class Mandato(ModeloBase):
             data_fim_no_cargo__gt=nova_data_final,
         ).exclude(data_fim_no_cargo=self.data_final)
 
+        # não permitir nova data final igual a data inicial do cargo, considerando o D-1 para a saída de um membro
+        # é necessário estar no cargo pelo menos 1 dia
         comeca_depois_do_novo_fim = CargoComposicaoVacancia.objects.filter(
             composicao__mandato=self,
-            data_inicio_no_cargo__gt=nova_data_final,
+            data_inicio_no_cargo__gte=nova_data_final,
         )
 
         return termina_depois_do_novo_fim.exists() or comeca_depois_do_novo_fim.exists()
+
+    def eh_mandato_vacancia_vigente(self) -> bool:
+        """ Retorna True se o mandato é o vigente, False caso contrário. """
+        from ..services import ServicoMandatoVigenteVacancia
+        servico_mandato_vigente = ServicoMandatoVigenteVacancia()
+        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+        return self == mandato_vigente
+
+    def eh_mandato_vacancia_futuro(self) -> bool:
+        """ Retorna True se o mandato é futuro, False caso contrário. """
+        from ..services import ServicoMandatoVigenteVacancia
+        servico_mandato_vigente = ServicoMandatoVigenteVacancia()
+        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+        if mandato_vigente:
+            return self.data_inicial > mandato_vigente.data_final
+        else:
+            data_atual = date.today()
+            return self.data_inicial > data_atual
+
+    def possui_composicao_vacancia(self) -> bool:
+        """ Retorna True se o mandato possui composição de vacância, False caso contrário. """
+        return self.composicoes_vacancia_do_mandato.exists()
 
 
 auditlog.register(Mandato)
