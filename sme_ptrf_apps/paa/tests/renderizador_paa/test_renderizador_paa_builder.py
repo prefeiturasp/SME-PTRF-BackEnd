@@ -456,7 +456,7 @@ class TestTextoResumoAssembleia:
             parecer_conselho=AtaPaa.PARECER_APROVADA,
         )
         resultado = _builder(paa)._texto_resumo_assembleia(ata, True)
-        assert 'Plano Anual de Atividades aprovado' in resultado
+        assert 'Plano Anual de Atividades retificado' in resultado
 
     def test_sem_parecer_retorna_vazio(self, paa_factory, ata_paa_factory):
         paa = paa_factory()
