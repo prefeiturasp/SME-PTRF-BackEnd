@@ -8,7 +8,7 @@ from sme_ptrf_apps.paa.api.serializers.renderizador_paa_serializer import (
     _url_documento_final,
     _url_ata_paa,
 )
-from sme_ptrf_apps.paa.models import DocumentoPaa, AtaPaa
+from sme_ptrf_apps.paa.models import DocumentoPaa, AtaPaa, LogReplicaPaa
 from sme_ptrf_apps.paa.services.retificacao_paa_service import ValidacaoRetificacao
 
 pytestmark = pytest.mark.django_db
@@ -199,18 +199,18 @@ class TestBuildCicloRetificacaoSemDocumento:
         assert result['ciclo_retificacao_sem_documento'] is False
 
 
-# build() — Rn fallback: exibe dados do ciclo anterior quando ciclo atual não tem doc
+# Antes: build() — Rn fallback: exibe dados do ciclo anterior quando ciclo atual não tem doc
+# Depois: fallback removido, agora exibe dados em branco ao iniciar nova retificação
 class TestBuildRnFallback:
     """
     Verifica que quando o PAA está em EM_RETIFICACAO e o ciclo atual ainda não gerou
-    documento, o bloco retificacao exibe os dados do ciclo anterior (fallback), e não
-    fica em branco.
+    documento, o bloco retificacao exibe os dados em branco.
     """
 
     def test_r2_sem_doc_usa_secao_titulo_com_versao_r1(
         self, paa_factory, replica_paa_factory, documento_paa_factory
     ):
-        """R2 sem doc próprio: secao_titulo deve referenciar a versão do doc R1 (fallback)."""
+        """R2 sem doc próprio: secao_titulo deve referenciar a versão seguinte."""
         paa = _paa_em_retificacao(paa_factory)
         versao = 1
         doc_r1 = documento_paa_factory(
@@ -221,6 +221,8 @@ class TestBuildRnFallback:
             historico={'documento_retificado': {'uuid': str(doc_r1.uuid), 'versao_documento': versao}},
         )
         result = _builder(paa).build()
+        versao += 1
+
         assert result['retificacao'] is not None
         assert result['retificacao']['secao_titulo'] == f'Retificado #{versao:02d}'
 
@@ -454,7 +456,7 @@ class TestTextoResumoAssembleia:
             parecer_conselho=AtaPaa.PARECER_APROVADA,
         )
         resultado = _builder(paa)._texto_resumo_assembleia(ata, True)
-        assert 'Plano Anual de Atividades aprovado' in resultado
+        assert 'Plano Anual de Atividades retificado' in resultado
 
     def test_sem_parecer_retorna_vazio(self, paa_factory, ata_paa_factory):
         paa = paa_factory()
@@ -542,3 +544,81 @@ class TestMensagemExibicaoAta:
         ata = ata_paa_factory(paa=paa, status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO)
         resultado = _builder(paa)._mensagem_exibicao_ata(ata, False)
         assert 'pendente' in resultado.lower()
+
+
+class TestBuildRetificacoesAnteriores:
+    """
+    Verifica que quando o PAA possui retificações anteriores
+    """
+
+    def test_paa_com_retificacoes_anteriores(
+        self, paa_factory, documento_paa_factory,
+        ata_paa_factory, log_replica_paa_factory
+    ):
+        paa = _paa_em_retificacao(paa_factory)
+
+        def gera_retificacao(versao, paa):
+            doc = documento_paa_factory(
+                paa=paa,
+                retificacao=True,
+                versao=FINAL,
+                status_geracao=CONCLUIDO,
+                versao_documento=versao
+            )
+
+            ata = ata_paa_factory(
+                paa=paa,
+                tipo_ata=AtaPaa.ATA_RETIFICACAO,
+                status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO
+            )
+
+            gerado_em = '2026-09-05 00:18:04.978509'
+
+            historico = {
+                'documento_retificado': {'uuid': str(doc.uuid), 'versao_documento': versao, 'gerado_em': gerado_em},
+                'ata_retificada': {'uuid': str(ata.uuid), 'gerado_em': gerado_em},
+            }
+
+            log_replica_paa_factory.create(
+                paa=paa,
+                origem=LogReplicaPaa.CONCLUSAO,
+                replica=historico,
+                numero_versao_documento=versao,
+            )
+
+        # Cria retificações anteriores baseado em Log de Réplica
+        gera_retificacao(1, paa)
+        gera_retificacao(2, paa)
+        gera_retificacao(3, paa)
+
+        result = _builder(paa).build()
+
+        assert result['retificacoes_anteriores'] is not None
+        assert len(result['retificacoes_anteriores']) == 3
+
+    def test_paa_sem_logs_de_conclusao(self, paa_factory, log_replica_paa_factory):
+        """
+        Deve retornar uma lista vazia quando o PAA não possui
+        logs de conclusão.
+        """
+        # arrange
+        paa = paa_factory()
+
+        gerado_em = '2026-09-05 00:18:04.978509'
+
+        historico = {
+            'documento_retificado': {'uuid': '', 'versao_documento': 1, 'gerado_em': gerado_em},
+            'ata_retificada': {'uuid': '', 'gerado_em': gerado_em},
+        }
+
+        log_replica_paa_factory.create(
+            paa=paa,
+            replica=historico,
+            origem=LogReplicaPaa.CANCELAMENTO,
+            numero_versao_documento=1,
+        )
+
+        result = _builder(paa).build()
+
+        retificacoes_anteriores = result['retificacoes_anteriores']
+        assert retificacoes_anteriores == []
