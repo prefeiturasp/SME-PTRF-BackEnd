@@ -12,12 +12,20 @@
     <th style="width: 3%">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.ordem }} - Ordem</th>
     <th style="width: 15%">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.unidade }} - Unidade</th>
     <th style="width: 7%">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.conta }} - Conta</th>
-    <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.reprogramado_do_periodo_anterior }} - Reprogramado do período anterior</th>
+    {% if dados.existe_saldo_reprogramado %}
+      <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.reprogramado_do_periodo_anterior }} - Reprogramado do período anterior</th>
+    {% else %}
+      <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.reprogramado_do_periodo_anterior }} - Saldo do período anterior</th>
+    {% endif %}
     <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.transferido_pela_dre }} - Transferido pela DRE</th>
     <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.outros_creditos }} - Outros créditos</th>
     <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.valor_total_disponivel }} - Valor total disponível</th>
     <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.despesa_realizada }} - Despesa realizada</th>
-    <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.saldo_reprogramado_para_o_proximo_periodo }} - Saldo reprogramado para<br/>o próximo período</th>
+    {% if dados.existe_saldo_reprogramado %}
+      <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.saldo_reprogramado_para_o_proximo_periodo }} - Saldo reprogramado para<br/>o próximo período</th>
+    {% else %}
+      <th colspan="2">{{ dados.ordem_bloco4_dados_fisico_financeiros.numeros_colunas.saldo_reprogramado_para_o_proximo_periodo }} - Saldo para<br/>o próximo período</th>
+    {% endif %}
     {% if dados.existe_devolucao_ao_tesouro %}
       <th colspan="2">29 - Devolução ao Tesouro</th>
       <th>30 - Situação da PC</th>

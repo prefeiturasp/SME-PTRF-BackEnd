@@ -30,6 +30,7 @@ def gerar_dados_ata(prestacao_de_contas=None, ata=None, usuario=None):
             "repasses_pendentes": repasses_pendentes,
             "justificativa_repasses_pendentes": ata.justificativa_repasses_pendentes,
             # "despesas_com_pagamento_antecipado": despesas_com_pagamento_antecipado,
+            "existe_saldo_reprogramado": ata.periodo.recurso.existe_saldo_reprogramado
         }
     finally:
         LOGGER.info("Dados da ata gerado com sucesso")
