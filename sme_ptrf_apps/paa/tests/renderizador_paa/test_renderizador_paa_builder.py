@@ -1,4 +1,5 @@
 import pytest
+import uuid
 from datetime import date, time
 from unittest.mock import patch, MagicMock
 
@@ -622,3 +623,118 @@ class TestBuildRetificacoesAnteriores:
 
         retificacoes_anteriores = result['retificacoes_anteriores']
         assert retificacoes_anteriores == []
+
+    def test_paa_com_retificacao_anterior_em_retificacao_sem_doc_final(
+        self,
+        paa_factory,
+        replica_paa_factory,
+        log_replica_paa_factory,
+        documento_paa_factory
+    ):
+        paa = _paa_em_retificacao(paa_factory)
+
+        def gera_retificacao(versao, paa):
+
+            gerado_em = '2026-09-05 00:18:04.978509'
+            doc_uuid = uuid.uuid4()
+            ata_uuid = uuid.uuid4()
+
+            historico = {
+                'documento_retificado': {'uuid': str(doc_uuid), 'versao_documento': versao, 'gerado_em': gerado_em},
+                'ata_retificada': {'uuid': str(ata_uuid), 'gerado_em': gerado_em},
+            }
+            log_replica_paa_factory.create(
+                paa=paa,
+                origem=LogReplicaPaa.CONCLUSAO,
+                replica=historico,
+                numero_versao_documento=versao,
+            )
+            return historico
+
+        # Cria retificações anteriores baseado em Log de Réplica
+        gera_retificacao(1, paa)
+        gera_retificacao(2, paa)
+        historico = gera_retificacao(3, paa)
+
+        # Documento do ciclo 3
+        documento_paa_factory(
+            uuid=historico.get('documento_retificado', {}).get('uuid'),
+            paa=paa,
+            retificacao=True,
+            versao=FINAL,
+            status_geracao=CONCLUIDO,
+            versao_documento=3
+        )
+
+        # Retificado mais recente sem Documento final e em retificação
+        replica_paa_factory(
+            paa=paa,
+            historico=historico
+        )
+
+        result = _builder(paa).build()
+
+        retificado = result['retificacao']
+        retificado_anterior = result['retificacao_anterior']
+
+        assert retificado['secao_titulo'] == 'Retificado #04'
+        assert retificado_anterior['secao_titulo'] == 'Retificado #03'
+        assert len(result['retificacoes_anteriores']) == 2
+
+    def test_paa_com_retificacao_anterior_gerado(
+        self,
+        paa_factory,
+        replica_paa_factory,
+        log_replica_paa_factory,
+        documento_paa_factory
+    ):
+        paa = _paa_em_retificacao(paa_factory)
+        paa.set_paa_status_gerado()
+
+        def gera_retificacao(versao, paa):
+
+            gerado_em = '2026-09-05 00:18:04.978509'
+            doc_uuid = uuid.uuid4()
+            ata_uuid = uuid.uuid4()
+
+            historico = {
+                'documento_retificado': {'uuid': str(doc_uuid), 'versao_documento': versao, 'gerado_em': gerado_em},
+                'ata_retificada': {'uuid': str(ata_uuid), 'gerado_em': gerado_em},
+            }
+            log_replica_paa_factory.create(
+                paa=paa,
+                origem=LogReplicaPaa.CONCLUSAO,
+                replica=historico,
+                numero_versao_documento=versao,
+            )
+            return historico
+
+        # Cria retificações anteriores baseado em Log de Réplica
+        gera_retificacao(1, paa)
+        gera_retificacao(2, paa)
+        historico = gera_retificacao(3, paa)
+
+        # Documento do ciclo 3
+        documento_paa_factory(
+            uuid=historico.get('documento_retificado', {}).get('uuid'),
+            paa=paa,
+            retificacao=True,
+            versao=FINAL,
+            status_geracao=CONCLUIDO,
+            versao_documento=3
+        )
+
+        # Retificado mais recente sem Documento final e em retificação
+        replica_paa_factory(
+            paa=paa,
+            historico=historico
+        )
+
+        result = _builder(paa).build()
+
+        retificado = result['retificacao']
+        retificado_anterior = result['retificacao_anterior']
+
+        assert retificado['secao_titulo'] == 'Retificado #03'
+        assert retificado_anterior is None
+        assert len(result['retificacoes_anteriores']) == 2
