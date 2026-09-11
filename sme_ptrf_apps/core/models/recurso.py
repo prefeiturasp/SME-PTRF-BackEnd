@@ -146,7 +146,7 @@ class Recurso(ModeloIdNome, TemAtivo):
 
     @property
     def get_text_valores_reprogramados_ata(self):
-        if self.nome == "Prêmio Excelência Educacional":
+        if self.nome == "Prêmio Excelência Educacional" or not self.existe_saldo_reprogramado:
             return "valores estes que serão tratados conforme a legislação vigente"
 
         return "valores estes que foram reprogramados"

@@ -21,7 +21,12 @@
       </th>
     </tr>
       <tr>
-        <th colSpan="2" style="width: 15%" class="th-fundo-branco">01 - Saldo reprogramado do período anterior</th>
+        {% if valor.existe_saldo_reprogramado %}
+          <th colSpan="2" style="width: 15%" class="th-fundo-branco">01 - Saldo reprogramado do período anterior</th>
+        {% else %}
+          <th colSpan="2" style="width: 15%" class="th-fundo-branco">01 - Saldo do período anterior</th>
+        {% endif %}
+        
         <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
 
         <th colSpan="2" style="width: 10%" class="th-fundo-branco">02 - Previsto pela SME</th>
@@ -39,7 +44,11 @@
         <th colSpan="2" class="th-fundo-branco">06 - Despesa realizada</th>
         <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
 
-        <th colSpan="2" style="width: 15%" class="th-fundo-branco">07 - Saldo reprogramado para o próximo período</th>
+        {% if valor.existe_saldo_reprogramado %}
+          <th colSpan="2" style="width: 15%" class="th-fundo-branco">07 - Saldo reprogramado para o próximo período</th>
+        {% else %}
+          <th colSpan="2" style="width: 15%" class="th-fundo-branco">07 - Saldo para o próximo período</th>
+        {% endif %}
 
         {# Controlando o layout. Não devem ser exibidas as linhas de contas que tenham valores zerados em todas as colunas. #}
         {% if dados.execucao_financeira.por_tipo_de_conta|length == 1 and dados.existe_devolucao_ao_tesouro %}
@@ -222,7 +231,11 @@
         <th colSpan="24" class="font-12"><strong>Execução financeira - {{ valor.tipo_conta }}</strong></th>
       </tr>
         <tr>
-          <th colSpan="2" style="width: 15%" class="th-fundo-branco">01 - Saldo reprogramado do período anterior</th>
+          {% if valor.existe_saldo_reprogramado %}
+            <th colSpan="2" style="width: 15%" class="th-fundo-branco">01 - Saldo reprogramado do período anterior</th>
+          {% else %}
+            <th colSpan="2" style="width: 15%" class="th-fundo-branco">01 - Saldo do período anterior</th>
+          {% endif %}
           <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
 
           <th colSpan="2" style="width: 10%" class="th-fundo-branco">02 - Previsto pela SME</th>
@@ -240,7 +253,11 @@
           <th colSpan="2" class="th-fundo-branco">06 - Despesa realizada</th>
           <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
 
-          <th colSpan="2" style="width: 15%" class="th-fundo-branco">07 - Saldo reprogramado para o próximo período</th>
+          {% if valor.existe_saldo_reprogramado %}
+            <th colSpan="2" style="width: 15%" class="th-fundo-branco">07 - Saldo reprogramado para o próximo período</th>
+          {% else %}
+            <th colSpan="2" style="width: 15%" class="th-fundo-branco">07 - Saldo para o próximo período</th>
+          {% endif %}
           <th rowspan="2" class="separacao-de-colunas-da-tabela"> </th>
 
           {% if dados.existe_devolucao_ao_tesouro %}

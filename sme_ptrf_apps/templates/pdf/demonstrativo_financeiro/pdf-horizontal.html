@@ -139,7 +139,11 @@
 
       <tr>
         <th rowSpan="2" style="width: 7%"><strong>1. Ação</strong></th>
-        <th rowSpan="2" colSpan="2"><strong>2. Saldo reprogramado do período anterior</strong></th>
+        {% if dados.existe_saldo_reprogramado %}
+          <th rowSpan="2" colSpan="2"><strong>2. Saldo reprogramado do período anterior</strong></th>
+        {% else %}
+          <th rowSpan="2" colSpan="2"><strong>2. Saldo do período anterior</strong></th>
+        {% endif %}
         <th colSpan="10" class="text-center"><strong>Valores do período</strong></th>
         <th colSpan="7" class="text-center"><strong>Conciliação bancária</strong></th>
       </tr>
@@ -148,10 +152,12 @@
         <th colSpan="2" class="align-top">3. Créditos (Bloco 4)</th>
         <th colSpan="2" class="align-top">4. Despesas demonstradas (Bloco 5)</th>
         <th colSpan="2" class="align-top">5. Despesas não demonstradas (Bloco 6)</th>
-        <th colSpan="4" class="align-top"><strong>6. Saldo reprogramado para o próximo período (2+3-4-5)*</strong>
-        </th>
-        <th colSpan="2" class="align-top">7. Despesas não demonstradas de períodos anteriores (Bloco 7)
-        </th>
+        {% if dados.existe_saldo_reprogramado %}
+          <th colSpan="4" class="align-top"><strong>6. Saldo reprogramado para o próximo período (2+3-4-5)*</strong></th>
+        {% else %}
+          <th colSpan="4" class="align-top"><strong>6. Saldo para o próximo período (2+3-4-5)*</strong></th>
+        {% endif %}
+        <th colSpan="2" class="align-top">7. Despesas não demonstradas de períodos anteriores (Bloco 7)</th>
         <th colSpan="5" class="align-top"><strong>8. Saldo ao final do período<br/>(5+6+7)**</strong></th>
       </tr>
       </thead>
@@ -314,13 +320,23 @@
 
     <p class="font-10">
       <i>Notas explicativas:
-        <br> * Saldo Reprogramado (Campo 6) = Saldo reprogramado do período anterior (2) +
-        Créditos (3) - Despesas demonstradas (4) - Despesas não demonstradas do período (5). Quando o valor de
-        custeio e/ou capital forem menores que zero, as despesas são deduzidas do saldo de Livre Aplicação.
-        <br>** Saldo ao final do período (Campo 8) = Despesas não demonstradas do período (5) + Saldo reprogramado para
-        o próximo
-        período (6) + Despesas não demonstradas de períodos anteriores (7).
-        <br>*** Total geral: soma de cada coluna considerando o tipo de aplicação do recurso correspondente (C, L e K).
+        {% if dados.existe_saldo_reprogramado %}
+          <br> * Saldo Reprogramado (Campo 6) = Saldo reprogramado do período anterior (2) +
+          Créditos (3) - Despesas demonstradas (4) - Despesas não demonstradas do período (5). Quando o valor de
+          custeio e/ou capital forem menores que zero, as despesas são deduzidas do saldo de Livre Aplicação.
+          <br>** Saldo ao final do período (Campo 8) = Despesas não demonstradas do período (5) + Saldo reprogramado para
+          o próximo
+          período (6) + Despesas não demonstradas de períodos anteriores (7).
+          <br>*** Total geral: soma de cada coluna considerando o tipo de aplicação do recurso correspondente (C, L e K).
+        {% else %}
+          <br> * Saldo (Campo 6) = Saldo do período anterior (2) +
+          Créditos (3) - Despesas demonstradas (4) - Despesas não demonstradas do período (5). Quando o valor de
+          custeio e/ou capital forem menores que zero, as despesas são deduzidas do saldo de Livre Aplicação.
+          <br>** Saldo ao final do período (Campo 8) = Despesas não demonstradas do período (5) + Saldo para
+          o próximo
+          período (6) + Despesas não demonstradas de períodos anteriores (7).
+          <br>*** Total geral: soma de cada coluna considerando o tipo de aplicação do recurso correspondente (C, L e K).
+        {% endif %}
       </i>
     </p>
   </article>

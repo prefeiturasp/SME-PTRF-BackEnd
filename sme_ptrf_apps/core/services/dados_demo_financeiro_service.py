@@ -103,7 +103,8 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
             "justificativas": justificativas,
             "data_geracao_documento": data_geracao_documento,
             "data_geracao": data_geracao,
-            "previa": previa
+            "previa": previa,
+            "existe_saldo_reprogramado": periodo.recurso.existe_saldo_reprogramado
         }
     # except Exception as e:
     #    LOGGER.error("ERRO no DADOS DEMONSTRATIVO: %s", str(e))
