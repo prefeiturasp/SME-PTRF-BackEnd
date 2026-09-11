@@ -112,6 +112,7 @@ class RenderizadorPaaSerializer(serializers.Serializer):
     unidade = serializers.DictField()
     original = RenderizadorBlocoDocumentacaoSerializer()
     retificacao = RenderizadorBlocoDocumentacaoSerializer(allow_null=True)
+    retificacao_anterior = RenderizadorBlocoDocumentacaoSerializer(allow_null=True)
     retificacoes_anteriores = RetificacaoAnteriorSerializer(many=True)
 
 
@@ -439,9 +440,9 @@ class RenderizadorPaaBuilder:
         """
         doc_original = obter_documento_final_por_retificacao(self.paa, False)
         ata_original = self._ata_por_tipo(AtaPaa.ATA_APRESENTACAO)
+        ciclo = CicloRetificacaoService(self.paa)
 
         if self.paa.status_em_retificacao:
-            ciclo = CicloRetificacaoService(self.paa)
             ciclo_doc_atual = ciclo.documento_atual
             # True quando o ciclo corrente ainda não gerou seu próprio documento.
             # Usado pelo frontend para exibir o botão de retificação sem depender
@@ -472,6 +473,7 @@ class RenderizadorPaaBuilder:
             self.paa.status_em_retificacao or doc_retificacao or ata_retificacao
         )
 
+        # Retificado mais recente
         titulo_secao = f'Retificado #{int(versao_retificacao):02d}' if versao_retificacao else 'Retificado'
         bloco_docs_retificacao = {
             'secao_titulo': titulo_secao,
@@ -479,16 +481,43 @@ class RenderizadorPaaBuilder:
             'ata': self._ata_render(ata_retificacao, True, eh_paa_vigente),
         } if exibe_dados_retificacao else None
 
-        log_replicas = self.paa.logs_replica.filter(
-            origem=LogReplicaPaa.CONCLUSAO
-        ).order_by('-numero_versao_documento')
+        # Obtém retificação anterior (caso haja)
+        bloco_docs_retificacao_anterior = None
 
-        inicio_logs = 0 if self.paa.status_em_retificacao else 1
-        retificacoes_anteriores = [{
-            'secao_titulo': f'Retificado #{log.numero_versao_documento}',
-            'documento': self._documento_retificacao_anterior_render(log),
-            'ata': self._ata_retificacao_anterior_render(log)
-        } for log in log_replicas[inicio_logs:]]
+        if self.paa.status_em_retificacao and not ciclo.documento_atual:
+            doc_anterior = self._doc_retificacao_concluido()
+
+            if exibe_dados_retificacao and doc_anterior:
+                versao_ret = str(doc_anterior.versao_documento)
+
+                bloco_docs_retificacao_anterior = {
+                    'secao_titulo': f'Retificado #{int(versao_ret):02d}' if versao_ret else 'Retificado',
+                    'documento': self._documento_render(doc_anterior, True),
+                    'ata': self._ata_render(self._ata_retificacao_concluida(), True, eh_paa_vigente),
+                }
+
+        log_replicas = (
+            self.paa.logs_replica
+            .filter(origem=LogReplicaPaa.CONCLUSAO)
+            .order_by('-numero_versao_documento')
+        )
+
+        inicio_logs = (
+            1
+            if (
+                not self.paa.status_em_retificacao or not ciclo.documento_atual
+            )
+            else 0
+        )
+
+        retificacoes_anteriores = [
+            {
+                'secao_titulo': f'Retificado #{log.numero_versao_documento}',
+                'documento': self._documento_retificacao_anterior_render(log),
+                'ata': self._ata_retificacao_anterior_render(log),
+            }
+            for log in log_replicas[inicio_logs:]
+        ]
 
         dados = {
             'uuid': str(self.paa.uuid),
@@ -500,6 +529,7 @@ class RenderizadorPaaBuilder:
             'unidade': self._unidade(),
             'original': bloco_docs_originais,
             'retificacao': bloco_docs_retificacao,
+            'retificacao_anterior': bloco_docs_retificacao_anterior,
             'retificacoes_anteriores': retificacoes_anteriores,
         }
         serializer = RenderizadorPaaSerializer(data=dados)
