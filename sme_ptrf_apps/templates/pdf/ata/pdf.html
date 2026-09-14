@@ -153,7 +153,11 @@
         </thead>
         <tbody>
         <tr>
-          <td>Saldo reprogramado do período anterior</td>
+          {% if dados.existe_saldo_reprogramado %}
+            <td>Saldo reprogramado do período anterior</td>
+          {% else %}
+            <td>Saldo do período anterior</td>
+          {% endif %}
           <td>{{ info.saldo_reprogramado_custeio|formata_valor }}</td>
           <td>{{ info.saldo_reprogramado_capital|formata_valor }}</td>
           <td>{{ info.saldo_reprogramado_livre|formata_valor }}</td>
@@ -188,7 +192,11 @@
           <td>{{ info.despesas_nao_conciliadas|formata_valor }}</td>
         </tr>
         <tr>
-          <td>Saldo reprogramado para o próximo período</td>
+          {% if dados.existe_saldo_reprogramado %}
+            <td>Saldo reprogramado para o próximo período</td>
+          {% else %}
+            <td>Saldo para o próximo período</td>
+          {% endif %}
           <td>{{ info.saldo_atual_custeio|formata_valor }}</td>
           <td>{{ info.saldo_atual_capital|formata_valor }}</td>
           <td>{{ info.saldo_atual_livre|formata_valor }}</td>
@@ -257,7 +265,11 @@
       </thead>
       <tbody>
       <tr>
-        <td>Saldo reprogramado do período anterior</td>
+        {% if dados.existe_saldo_reprogramado %}
+          <td>Saldo reprogramado do período anterior</td>
+        {% else %}
+          <td>Saldo do período anterior</td>
+        {% endif %}
         <td>{{ conta.totais.saldo_reprogramado_custeio|formata_valor }}</td>
         <td>{{ conta.totais.saldo_reprogramado_capital|formata_valor }}</td>
         <td>{{ conta.totais.saldo_reprogramado_livre|formata_valor }}</td>
@@ -292,7 +304,11 @@
         <td>{{ conta.totais.despesas_nao_conciliadas|formata_valor }}</td>
       </tr>
       <tr>
-        <td>Saldo reprogramado para o próximo período</td>
+        {% if dados.existe_saldo_reprogramado %}
+          <td>Saldo reprogramado para o próximo período</td>
+        {% else %}
+          <td>Saldo para o próximo período</td>
+        {% endif %}
         <td>{{ conta.totais.saldo_atual_custeio|formata_valor }}</td>
         <td>{{ conta.totais.saldo_atual_capital|formata_valor }}</td>
         <td>{{ conta.totais.saldo_atual_livre|formata_valor }}</td>

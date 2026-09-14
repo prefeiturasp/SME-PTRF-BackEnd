@@ -27,6 +27,7 @@ class RecuperaDadosDemoFinanceiro:
             "periodo_data_inicio": self.formata_data(self.dados.periodo_data_inicio),
             "periodo_data_fim": self.formata_data(self.dados.periodo_data_fim),
             "conta": self.dados.conta_associacao,
+            "existe_saldo_reprogramado": self.demonstrativo.prestacao_conta.periodo.recurso.existe_saldo_reprogramado
         }
 
         return cabecalho
