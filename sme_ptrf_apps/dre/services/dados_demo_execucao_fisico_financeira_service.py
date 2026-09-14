@@ -114,7 +114,8 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
             "previa": previa,
             "existe_devolucao_ao_tesouro": existe_devolucao_ao_tesouro,
             "ordem_bloco3_execucao_fisica": ordem_bloco3_execucao_fisica,
-            "ordem_bloco4_dados_fisico_financeiros": ordem_bloco4_dados_fisico_financeiros
+            "ordem_bloco4_dados_fisico_financeiros": ordem_bloco4_dados_fisico_financeiros,
+            "existe_saldo_reprogramado": periodo.recurso.existe_saldo_reprogramado
         }
 
     finally:
@@ -423,6 +424,7 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dr
                     "livre": rla,
                     "totais": totais,
                     "justificativa": justificativa.texto if justificativa else '',
+                    "existe_saldo_reprogramado": periodo.recurso.existe_saldo_reprogramado,
                 }
             else:
                 execucao_financeira = {
@@ -432,6 +434,7 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dr
                     "livre": rla,
                     "totais": totais,
                     "justificativa": obj_justificativas_list,
+                    "existe_saldo_reprogramado": periodo.recurso.existe_saldo_reprogramado,
                 }
 
             execucao_financeira_list['por_tipo_de_conta'].append(execucao_financeira)
