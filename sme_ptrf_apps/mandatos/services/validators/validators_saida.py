@@ -1,22 +1,24 @@
 from datetime import date
+
 from sme_ptrf_apps.mandatos.exceptions import CargoComposicaoVacanciaValidationError
 from sme_ptrf_apps.mandatos.models import CargoComposicaoVacancia, Mandato
 
 
 class ValidatorSaidaOcupanteVigente:
-    """ Datas dentro do intervalo do mandato"""
+    """Exige que o registro esteja ocupado e vigente para permitir a saída."""
 
     @staticmethod
     def validar(cargo_composicao_vacancia: CargoComposicaoVacancia) -> None:
-        """ Para realizar a saída, a vacancia deve estar ocupada e vigente
-        Ocupante preenchido e `data_fim_no_cargo` igual a `mandato.data_final`
+        """Valida que o registro está ocupado e vigente.
+
+        Vigente = ocupante preenchido e ``data_fim_no_cargo`` igual à ``data_final`` do mandato.
 
         Args:
-            cargo_composicao_vacancia: vacancia a ser validada
+            cargo_composicao_vacancia: registro a ser validado.
 
         Raises:
-            CargoComposicaoVacanciaValidationError: se não há ocupante ou
-            a data fim do cargo for diferente da data fim do mandato
+            CargoComposicaoVacanciaValidationError: se não há ocupante, ou se a data
+                de fim do cargo difere da data de fim do mandato.
         """
         if cargo_composicao_vacancia.ocupante_do_cargo_id is None or \
             cargo_composicao_vacancia.data_fim_no_cargo != cargo_composicao_vacancia.composicao.mandato.data_final:  # noqa
@@ -26,18 +28,19 @@ class ValidatorSaidaOcupanteVigente:
 
 
 class ValidatorSaidaDataNaoPosteriorAoMandato:
-    """ Valida que data não é posterior a hoje """
+    """Exige que a data de saída não ultrapasse a data final do mandato."""
 
     @staticmethod
     def validar(data_saida: date, mandato: Mandato) -> None:
-        """ Valida que data não é posterior ao Mandato
+        """Valida que a data de saída não é posterior à data final do mandato.
 
         Args:
-            data_saida (date): data a ser validada
-            mandato: mandato de referencia
+            data_saida: data a ser validada.
+            mandato: mandato de referência.
 
         Raises:
-            CargoComposicaoVacanciaValidationError
+            CargoComposicaoVacanciaValidationError: se ``data_saida`` for posterior a
+                ``mandato.data_final``.
         """
         if data_saida > mandato.data_final:
             raise CargoComposicaoVacanciaValidationError({
@@ -46,18 +49,19 @@ class ValidatorSaidaDataNaoPosteriorAoMandato:
 
 
 class ValidatorSaidaDataNaoAnteriorAoCargo:
-    """ Valida que data não é anterior ao início do cargo """
+    """Exige que a data de saída não seja anterior ao início do cargo."""
 
     @staticmethod
     def validar(data_saida: date, cargo_composicao_vacancia: CargoComposicaoVacancia) -> None:
-        """ Valida que data de saída não pode ser anterior à data inicial do cargo
+        """Valida que a data de saída não é anterior à data inicial do cargo.
 
         Args:
-            data_saida (date): data a ser validada (Considerar D-N)
-            cargo_composicao_vacancia: registro de vacancia
+            data_saida: data a ser validada (já considerando o D-N).
+            cargo_composicao_vacancia: registro de vacância.
 
         Raises:
-            CargoComposicaoVacanciaValidationError
+            CargoComposicaoVacanciaValidationError: se ``data_saida`` for anterior a
+                ``data_inicio_no_cargo``.
         """
         if data_saida < cargo_composicao_vacancia.data_inicio_no_cargo:
             raise CargoComposicaoVacanciaValidationError({
@@ -66,18 +70,21 @@ class ValidatorSaidaDataNaoAnteriorAoCargo:
 
 
 class ValidatorSaidaDataNaoFutura:
-    """ Valida que data não é futura """
+    """Exige que a data de saída não seja futura."""
 
     @staticmethod
     def validar(data_saida: date, mandato: Mandato) -> None:
-        """ Valida que data de saída não é futura
+        """Valida que a data de saída não é futura.
+
+        A data final do mandato é a única exceção: pode coincidir com uma data futura.
 
         Args:
-            data_saida (date): data a ser validada
-            mandato: mandato de referencia
+            data_saida: data a ser validada.
+            mandato: mandato de referência.
 
         Raises:
-            CargoComposicaoVacanciaValidationError
+            CargoComposicaoVacanciaValidationError: se ``data_saida`` for posterior a
+                hoje e diferente da data final do mandato.
         """
         data_futura = data_saida > date.today()
         data_difere_fim_mandato = data_saida != mandato.data_final
@@ -88,19 +95,22 @@ class ValidatorSaidaDataNaoFutura:
 
 
 class ValidatorSaidaCancelarSaidaRegistroEncerrado:
-    """ Só faz sentido cancelar a saída de um registro que de fato já saiu.
-     não há nada a cancelar num registro que já está vigente. """
+    """Só permite cancelar a saída de um registro que de fato já saiu.
+
+    Não há nada a cancelar num registro que ainda está vigente.
+    """
 
     @staticmethod
     def validar(cargo_composicao_vacancia: CargoComposicaoVacancia, mandato: Mandato) -> None:
-        """
+        """Valida que o registro está encerrado (já teve saída).
+
         Args:
-            `cargo_composicao_vacancia`: registro cuja saída se deseja cancelar
-            `mandato`: mandato de referencia
+            cargo_composicao_vacancia: registro cuja saída se deseja cancelar.
+            mandato: mandato de referência.
 
         Raises:
-            CargoComposicaoVacanciaValidationError: se o registro já está vigente
-
+            CargoComposicaoVacanciaValidationError: se o registro ainda está vigente
+                (``data_fim_no_cargo`` igual à data final do mandato).
         """
         if cargo_composicao_vacancia.data_fim_no_cargo == mandato.data_final:
             raise CargoComposicaoVacanciaValidationError({
@@ -109,18 +119,21 @@ class ValidatorSaidaCancelarSaidaRegistroEncerrado:
 
 
 class ValidatorSaidaCancelarSaidaSemSucessor:
-    """ não pode cancelar uma saída se já existe um sucessor direto (substituido_por preenchido)
-        reativar o registro criaria dois ocupantes vigentes para o mesmo cargo, violando as regras de único registro
+    """Impede cancelar uma saída quando já existe um sucessor direto.
 
+    Reativar o registro criaria dois ocupantes vigentes para o mesmo cargo, violando
+    a regra de registro vigente único.
     """
+
     @staticmethod
     def validar(cargo_composicao_vacancia: CargoComposicaoVacancia) -> None:
-        """
-            Args:
-                `cargo_composicao_vacancia`: registro do cargo
+        """Valida que o registro não tem sucessor direto vinculado.
 
-            Raises:
-                CargoComposicaoVacanciaValidationError: se já existe substituido_por
+        Args:
+            cargo_composicao_vacancia: registro do cargo.
+
+        Raises:
+            CargoComposicaoVacanciaValidationError: se ``substituido_por`` estiver preenchido.
         """
         if cargo_composicao_vacancia.substituido_por_id is not None:
             raise CargoComposicaoVacanciaValidationError({

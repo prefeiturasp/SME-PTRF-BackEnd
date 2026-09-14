@@ -1,6 +1,7 @@
 from datetime import date, timedelta
+from typing import List, Optional
+
 from django.db import transaction
-from typing import List
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.mandatos.models import Mandato
 from sme_ptrf_apps.mandatos.models import ComposicaoVacancia, CargoComposicaoVacancia, OcupanteCargo
@@ -30,12 +31,13 @@ from .mandato_vacancia_service import ServicoMandatoVigenteVacancia
 
 
 class ServicoHistoricoCargoComposicao:
-    """ Nenhum outr módulo monta a quesry de 'quem está ativo'/'está ativo' """
+    """Ponto único de leitura/escrita da timeline de cargos da composição (Histórico de Membros v2)."""
     # D-N onde N = dias. Por padrão = 1
     DIAS_ANTECEDENCIA_SAIDA = 1
 
     @staticmethod
     def get_or_create_composicao_vacancia(associacao: Associacao, mandato: Mandato) -> ComposicaoVacancia:
+        """Retorna a ComposicaoVacancia do par (associacao, mandato), criando-a se não existir."""
         with transaction.atomic():
             composicao_vacancia, _ = ComposicaoVacancia.objects.get_or_create(
                 associacao=associacao,
@@ -45,17 +47,16 @@ class ServicoHistoricoCargoComposicao:
 
     @staticmethod
     def get_composicao_vacancia_por_uuid_ou_associacao_e_data(
-        composicao_uuid: str = None,
-        associacao_uuid: str = None,
-        data: date = None,
-    ) -> ComposicaoVacancia | None:
-        """ Resolve a ComposicaoVacancia por uuid direto (caminho rápido, quando o
-        front já tem em mãos) ou por associacao_uuid + data (mesmos
-        parâmetros que a v1 já usa hoje em cargos-composicao/composicao-por-data/,
-        sem exigir o uuid da ComposicaoVacancia de antemão).
+        composicao_uuid: Optional[str] = None,
+        associacao_uuid: Optional[str] = None,
+        data: Optional[date] = None,
+    ) -> Optional[ComposicaoVacancia]:
+        """Resolve a ComposicaoVacancia por uuid direto ou por associacao_uuid + data.
 
-        Só existe uma ComposicaoVacancia por (associacao, mandato)
-        e mandatos não se sobrepõem no tempo.
+        O uuid direto é o caminho rápido (quando o front já o tem em mãos); associacao_uuid
+        + data usa os mesmos parâmetros que a v1 já expõe em composicao-por-data/, sem exigir
+        o uuid de antemão. Só existe uma ComposicaoVacancia por (associacao, mandato) e
+        mandatos não se sobrepõem no tempo.
 
         Args:
             composicao_uuid: uuid da ComposicaoVacancia, se já conhecido.
@@ -80,8 +81,8 @@ class ServicoHistoricoCargoComposicao:
     @staticmethod
     def get_ocupante_em_data(composicao_vacancia: ComposicaoVacancia,
                              cargo_associacao: str,
-                             data: date) -> CargoComposicaoVacancia:
-        """ Query que verifica 'quem ocupa?' e 'está vago?' """
+                             data: date) -> Optional[CargoComposicaoVacancia]:
+        """Retorna o registro do cargo que cobre a data (ocupado ou vago), ou None."""
         return CargoComposicaoVacancia.objects.filter(
             composicao=composicao_vacancia,
             cargo_associacao=cargo_associacao,
@@ -91,6 +92,7 @@ class ServicoHistoricoCargoComposicao:
 
     @classmethod
     def get_snapshot_da_composicao_em_data(cls, composicao_vacancia: ComposicaoVacancia, data: date) -> dict:
+        """Retorna, por cargo do catálogo, o registro vigente na data (ou None se vago/inexistente)."""
         return {
             cargo_associacao: cls.get_ocupante_em_data(composicao_vacancia, cargo_associacao, data)
             for cargo_associacao, _ in Cargos.choices
@@ -98,7 +100,10 @@ class ServicoHistoricoCargoComposicao:
 
     @staticmethod
     def get_datas_de_alteracao_da_composicao(composicao_vacancia: ComposicaoVacancia) -> List[date]:
-        """ Listagem de Datas de Alteração da Composição - permitirá navegar entre alterações de um mandato """
+        """Retorna as datas de início distintas dos registros da composição, em ordem crescente.
+
+        São os "marcos" de navegação entre alterações de um mandato.
+        """
         return list(
             CargoComposicaoVacancia.objects.filter(composicao=composicao_vacancia)
             .values_list('data_inicio_no_cargo', flat=True)
@@ -251,9 +256,11 @@ class ServicoHistoricoCargoComposicao:
     @classmethod
     @transaction.atomic
     def cancelar_entrada(cls, cargo_composicao_vacancia: CargoComposicaoVacancia) -> None:
-        """ Desfaz uma entrada como se nunca tivesse acontecido. Só permitido no registro
-        vigente (ninguém entrou depois). Restaura quem veio antes (ocupante substituído
-        ou vacância) de volta ao estado anterior a esta entrada. """
+        """Desfaz uma entrada como se nunca tivesse acontecido.
+
+        Só permitido no registro vigente (ninguém entrou depois). Restaura quem veio antes
+        (ocupante substituído ou vacância) ao estado anterior a esta entrada.
+        """
         mandato = cargo_composicao_vacancia.composicao.mandato
 
         # reaproveita a mesma checagem de "é o vigente"
@@ -289,10 +296,11 @@ class ServicoHistoricoCargoComposicao:
 
     @classmethod
     def cancelar_saida(cls, cargo_composicao_vacancia: CargoComposicaoVacancia) -> CargoComposicaoVacancia:
-        """ Reverte uma saída
-            - volta data_fim_no_cargo para a data final do mandato vigente, de novo
-            - remove vacancia aberta associada, se existir.
-            - Mas é bloqueado se já existir um sucessor direto (substituido_por preenchido).
+        """Reverte uma saída.
+
+        Volta data_fim_no_cargo para a data final do mandato e remove a vacância aberta
+        associada, se existir. Bloqueado se já existir um sucessor direto (substituido_por
+        preenchido).
         """
         mandato: Mandato = cargo_composicao_vacancia.composicao.mandato
 
@@ -326,19 +334,19 @@ class ServicoHistoricoCargoComposicao:
     def corrigir_data_saida(cls,
                             cargo_composicao_vacancia: CargoComposicaoVacancia,
                             nova_data_saida: date) -> CargoComposicaoVacancia:
-        """ Corrige data de saída já registrada:
-         - reverte para vigente (mesma regra de cancelar saida). Bloqueado se já existe sucessor direto
-         - registra a saída de novo com a data corrigida.
-         - todas as validações de saída rodam novamente sobre a nova data
-           """
+        """Corrige a data de uma saída já registrada.
 
+        Reverte o registro para vigente (mesma regra de cancelar_saida, bloqueado se já
+        existe sucessor direto) e registra a saída de novo com a data corrigida. Todas as
+        validações de saída rodam de novo sobre a nova data.
+        """
         cls.cancelar_saida(cargo_composicao_vacancia)
         return cls.registrar_saida(cargo_composicao_vacancia, nova_data_saida)
 
     @staticmethod
     def get_timeline_do_cargo(
             composicao_vacancia: ComposicaoVacancia, cargo_associacao: str) -> List[CargoComposicaoVacancia]:
-        """ Retorna todo o histórico (ocupados e vagos) de um cargo, ordenado cronologicamente"""
+        """Retorna todo o histórico (ocupados e vagos) de um cargo, ordenado cronologicamente."""
         return list(
             CargoComposicaoVacancia.objects.filter(
                 composicao=composicao_vacancia,
@@ -347,15 +355,17 @@ class ServicoHistoricoCargoComposicao:
         )
 
     @classmethod
-    def monta_cargos_da_composicao(cls, composicao_vacancia: ComposicaoVacancia, data: date) -> dict:
-        """ Monta os cargos da composição
+    def monta_cargos_da_composicao(cls, composicao_vacancia: ComposicaoVacancia,
+                                   data: Optional[date]) -> dict:
+        """Monta os cargos da composição para uma data de referência.
+
         Args:
             composicao_vacancia: composição cujos cargos serão montados.
-            data: data de referência do snapshot (padrão hoje).
+            data: data de referência do snapshot. None assume hoje.
 
         Returns:
-            Dicionário com as chaves diretoria_executiva (9 itens) e "conselho fiscal" (5 itens),
-            um item por cargo na ordem de Cargos.choices
+            Dicionário com as chaves diretoria_executiva (9 itens) e conselho_fiscal
+            (5 itens), um item por cargo na ordem de Cargos.choices.
         """
         data = data or date.today()
         mandato_vigente = ServicoMandatoVigenteVacancia().get_mandato_vigente()
@@ -388,21 +398,22 @@ class ServicoHistoricoCargoComposicao:
 
     @staticmethod
     def _monta_item_do_cargo(
-            registro: CargoComposicaoVacancia,
+            registro: Optional[CargoComposicaoVacancia],
             cargo_associacao: str,
             label: str,
             eh_composicao_vigente: bool,
             mandato_data_final: date) -> dict:
-        """ Monta um item do cargo da composição
+        """Monta um item do cargo da composição.
+
         Args:
-            registro: CargoComposicaoVacancia do cargo na data de referencia
-            cargo_associacao: cargo associado, usado quando registro é None
-            label: label completo do cargo (Cargo.choices) usado pra derivar o label curto.
-            eh_composicao_vigente: se o mandato desta composição é o mandato vigente
-            mandato_data_final: data de saída do mandato
+            registro: registro do cargo na data de referência, ou None se não houver.
+            cargo_associacao: cargo, usado quando registro é None.
+            label: label completo do cargo (Cargo.choices), usado para derivar o label curto.
+            eh_composicao_vigente: se o mandato desta composição é o mandato vigente.
+            mandato_data_final: data de fim do mandato.
 
         Returns:
-            Dicionário com as chaves cargo_associacao, label, eh_composicao_vigente, ocupantes e vagas
+            Dicionário com os dados do cargo/ocupante no formato consumido pelo frontend.
         """
         # representa cargo sem ocupante
         cargo_vazio = registro is None or registro.ocupante_do_cargo_id is None
@@ -472,18 +483,18 @@ class ServicoHistoricoCargoComposicao:
     @classmethod
     @transaction.atomic
     def editar_ocupante(cls, cargo_composicao_vacancia: CargoComposicaoVacancia,
-                        dados_ocupante: dict = None) -> CargoComposicaoVacancia:
-        """ Edita ocupante de um registro existente.
+                        dados_ocupante: Optional[dict] = None) -> CargoComposicaoVacancia:
+        """Edita os dados cadastrais do ocupante de um registro existente.
 
-        Não altera `cargo_associacao` fonte base do registro, nem datas ou vínculo em si
-        Essas açoes passam exclusivamente pelos fluxo de registrar entrada/saída/cancelar/corrigir
+        Não altera cargo_associacao, datas nem vínculo de substituição. Essas mudanças passam
+        exclusivamente pelo fluxo de registrar entrada/saída/cancelar/corrigir.
 
         Args:
-            `cargo_composicao_vacancia`: CargoComposicaoVacancia a ser editado
-            `dados_ocupante`: dados do ocupante a serem editados
+            cargo_composicao_vacancia: registro a ser editado.
+            dados_ocupante: campos do ocupante a atualizar.
 
         Raises:
-            CargoComposicaoVacanciaValidationError: se o cargo estiver vago
+            CargoComposicaoVacanciaValidationError: se o cargo estiver vago.
         """
         ValidatorCargoVazio.validar(cargo_composicao_vacancia)
 

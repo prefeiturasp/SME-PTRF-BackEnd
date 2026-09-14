@@ -1,4 +1,7 @@
 from datetime import date
+
+from django.db.models import QuerySet
+
 from sme_ptrf_apps.mandatos.exceptions import CargoComposicaoVacanciaValidationError
 from sme_ptrf_apps.mandatos.models import (
     Mandato, CargoComposicaoVacancia, OcupanteCargo, ComposicaoVacancia
@@ -6,19 +9,18 @@ from sme_ptrf_apps.mandatos.models import (
 
 
 class ValidatorEntradaDatasDentroDoMandato:
-    """ Datas dentro do intervalo do mandato"""
+    """Exige que a data de início esteja dentro do intervalo do mandato."""
 
     @staticmethod
-    def validar(mandato, data_inicio):
-        """ Valida que `data_inicio` está dentro do
-            intervalo `[mandato.data_inicial, mandato.data_final]`
+    def validar(mandato: Mandato, data_inicio: date) -> None:
+        """Valida que data_inicio está no intervalo [mandato.data_inicial, mandato.data_final].
 
         Args:
-            mandato: mandato de referencia
-            data_inicio: data de inicio a validar
+            mandato: mandato de referência.
+            data_inicio: data de início a validar.
 
         Raises:
-            CargoComposicaoVacanciaValidationError: se qualquer data estiver fora do intervalo
+            CargoComposicaoVacanciaValidationError: se data_inicio estiver fora do intervalo.
         """
         if data_inicio < mandato.data_inicial:
             raise CargoComposicaoVacanciaValidationError({
@@ -31,17 +33,17 @@ class ValidatorEntradaDatasDentroDoMandato:
 
 
 class ValidatorEntradaDataNaoFutura:
-    """ Valida que data não é posterior a hoje """
+    """Exige que a data de entrada não seja futura."""
 
     @staticmethod
     def validar(data_entrada: date) -> None:
-        """ Valida que data não é futura
+        """Valida que a data de entrada não é posterior a hoje.
 
         Args:
-            data (date): data a ser validada
+            data_entrada: data a ser validada.
 
         Raises:
-            CargoComposicaoVacanciaValidationError
+            CargoComposicaoVacanciaValidationError: se data_entrada for posterior a hoje.
         """
         if data_entrada > date.today():
             raise CargoComposicaoVacanciaValidationError({
@@ -50,25 +52,27 @@ class ValidatorEntradaDataNaoFutura:
 
 
 class ValidatorEntradaCargoSemOcupanteVigente:
-    """ Não pode existir outro registro ocupado e vigente para o mesmo cargo
+    """Impede um segundo registro ocupado e vigente para o mesmo cargo.
 
-    Sem constraint de banco, por isso, ao registrar uma entrada é importante considerar o uso
-    de `select_for_update()` na query para evitar corrida entre duas entradas concorrentes.
+    Não há constraint de banco para isso; ao registrar uma entrada, a query dos registros
+    do cargo deve ser travada com select_for_update() para evitar corrida entre duas
+    entradas concorrentes.
     """
 
     @staticmethod
-    def validar(registros_do_cargo, mandato: Mandato) -> None:
-        """ Valida que não há registro ocupado e vigente no cargo associacao
+    def validar(registros_do_cargo: QuerySet, mandato: Mandato) -> None:
+        """Valida que não há registro ocupado e vigente no cargo.
 
         Args:
-            `registros_do_cargo`: queryset de `CargoComposicaoVacancia` já filtrado por
-            `composicao_vacancia` + `cargo_associacao` (travado por select_for_update()
-            antes de chamar o validator).
-            mandato: mandato de referência - define o sentinela de considerá-lo como "vigente"
-            quando `data_fim_no_cargo` é igual à data fim do mandato `mandato.data_final`
+            registros_do_cargo: queryset de CargoComposicaoVacancia já filtrado por
+                composição + cargo_associacao (travado por select_for_update() antes
+                de chamar o validator).
+            mandato: mandato de referência. Um registro é vigente quando data_fim_no_cargo
+                é igual a mandato.data_final.
 
         Raises:
-            CargoComposicaoVacanciaValidationError: se já existir um registro ocupado e vigente no cargo.
+            CargoComposicaoVacanciaValidationError: se já existir um registro ocupado e
+                vigente no cargo.
         """
         existe_vigente = registros_do_cargo.filter(
             ocupante_do_cargo__isnull=False,
@@ -81,24 +85,26 @@ class ValidatorEntradaCargoSemOcupanteVigente:
 
 
 class ValidatorEntradaSemConflitoDeDatas:
-    """ O intervalo do novo registro não pode conflitar com nehum registro OCUPADO
-    já existente do mesmo cargo (vigente ou histórico). Sobrepor uma vacancia aberta(Vacancia sem ocupante no cargo)
-    é o caso normal de preencher um gap """
+    """Impede que o novo registro se sobreponha a um registro ocupado do mesmo cargo.
+
+    Vale para registros ocupados vigentes ou históricos. Sobrepor uma vacância aberta
+    (registro sem ocupante) é o caso normal de preencher um gap e não é conflito.
+    """
 
     @staticmethod
-    def validar(registros_do_cargo, data_inicio: date, data_fim: date) -> None:
-        """
-            Valida ausência de sobreposição contra registros ocupados do mesmo cargo.
+    def validar(registros_do_cargo: QuerySet, data_inicio: date, data_fim: date) -> None:
+        """Valida ausência de sobreposição contra registros ocupados do mesmo cargo.
 
-            Args:
-                `registros_do_cargo`: queryset de `CargoComposicaoVacancia` já filtrado por
-                    `composicao` + `cargo_associacao` (travado por select_for_update() antes de chamar o validator).
-                `data_inicio`: data de inicio a validar
-                `data_fim`: data de término a validar
+        Args:
+            registros_do_cargo: queryset de CargoComposicaoVacancia já filtrado por
+                composição + cargo_associacao (travado por select_for_update() antes
+                de chamar o validator).
+            data_inicio: data de início a validar.
+            data_fim: data de término a validar.
 
-            Raises:
-                CargoComposicaoVacanciaValidationError: se houver sobreposição com um
-                    registro ocupado (vigente ou histórico).
+        Raises:
+            CargoComposicaoVacanciaValidationError: se houver sobreposição com um registro
+                ocupado (vigente ou histórico).
         """
         conflito = registros_do_cargo.filter(
             ocupante_do_cargo__isnull=False,
@@ -112,8 +118,11 @@ class ValidatorEntradaSemConflitoDeDatas:
 
 
 class ValidatorEntradaOcupanteNaoEstaEmOutroCargo:
-    """ O mesmo ocupante não pode estar ativo, no mesmo período, em um cargo DIFERENTE dentro da mesma composição.
-    Pode voltar a ocupar o MESMO cargo em um período diferente, por isso o cargo atual é excluído da checagem."""
+    """Impede o mesmo ocupante ativo, no mesmo período, em outro cargo da mesma composição.
+
+    O ocupante pode voltar a ocupar o mesmo cargo em um período diferente, por isso o
+    cargo atual é excluído da checagem.
+    """
 
     @staticmethod
     def validar(composicao_vacancia: ComposicaoVacancia,
@@ -121,18 +130,18 @@ class ValidatorEntradaOcupanteNaoEstaEmOutroCargo:
                 cargo_associacao: str,
                 data_inicio: date,
                 data_fim: date) -> None:
-        """ Valida que o ocupante não está em outro cargo, sobreposto no tempo.
+        """Valida que o ocupante não está em outro cargo com período sobreposto.
 
         Args:
-            `composicao_vacancia`: composição onde o novo registro será inserido
-            `ocupante_do_cargo`: pessoa sendo lançada no cargo.
-            `cargo_associacao`: cargo sendo preenchido agora (excluído da checagem).
-            `data_inicio`: início do intervalo do novo registro
-            `data_fim`: fim do intervalo do novo registro
+            composicao_vacancia: composição onde o novo registro será inserido.
+            ocupante_do_cargo: pessoa sendo lançada no cargo.
+            cargo_associacao: cargo sendo preenchido agora (excluído da checagem).
+            data_inicio: início do intervalo do novo registro.
+            data_fim: fim do intervalo do novo registro.
 
         Raises:
-            CargoComposicaoVacanciaValidationError: se o ocupante já estiver em outro cargo, com período sobresposto,
-            na mesma composição.
+            CargoComposicaoVacanciaValidationError: se o ocupante já estiver em outro cargo,
+                com período sobreposto, na mesma composição.
         """
         conflito = CargoComposicaoVacancia.objects.filter(
             composicao=composicao_vacancia,
@@ -147,25 +156,27 @@ class ValidatorEntradaOcupanteNaoEstaEmOutroCargo:
 
 
 class ValidatorEntradaSemDuplicidadeDeOcupante:
-    """ Não podem existir dois OcupanteCargo distintos, ambos ocupados e vigentes na mesma composição, com o mesmo
-        `codigo_identificacao`ou o mesmo `cpf_responsavel`.
+    """Impede dois OcupanteCargo distintos, ocupados e vigentes na mesma composição, com o
+    mesmo codigo_identificacao ou o mesmo cpf_responsavel.
 
-        Escopo restrito a registros OCUPADOS e VIGENTES. Históricos encerrados não contam
-        permitindo reentrada da mesma pessoa em outro período.
-        O próprio `ocupante_do_cargo` é excluído da comparação.
+    Escopo restrito a registros ocupados e vigentes: históricos encerrados não contam,
+    permitindo reentrada da mesma pessoa em outro período. O próprio ocupante_do_cargo
+    é excluído da comparação.
     """
 
     @staticmethod
     def validar(composicao_vacancia: ComposicaoVacancia, ocupante_do_cargo: OcupanteCargo, mandato: Mandato) -> None:
-        """ Valida ausência de outro OcupanteCargo vigente com o mesmo `codigo_identificador/cpf_responsavel`.
-            Args:
-                `composicao_vacancia`: composição onde o novo registro sera inserido.
-                `ocupante_do_cargo`: pessoa sendo lançada no cargo. (excluída da checagem)
-                `mandato`: mandato de referência para verificar quando `data_fim_no_cargo` é igual à
-                            data fim do mandato `mandato.data_final`
-            Raises:
-                CargoComposicaoVacanciaValidationError: se outro ocupante vigente com o mesmo
-                `codigo_identificador/cpf_responsavel` com `ocupante_do_cargo`.
+        """Valida ausência de outro ocupante vigente com o mesmo codigo_identificacao/cpf_responsavel.
+
+        Args:
+            composicao_vacancia: composição onde o novo registro será inserido.
+            ocupante_do_cargo: pessoa sendo lançada no cargo (excluída da checagem).
+            mandato: mandato de referência. Um registro é vigente quando data_fim_no_cargo
+                é igual a mandato.data_final.
+
+        Raises:
+            CargoComposicaoVacanciaValidationError: se outro ocupante vigente tiver o mesmo
+                codigo_identificacao ou o mesmo cpf_responsavel.
         """
         vigentes = CargoComposicaoVacancia.objects.filter(
             composicao=composicao_vacancia,

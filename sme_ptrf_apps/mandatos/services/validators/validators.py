@@ -6,17 +6,17 @@ from sme_ptrf_apps.mandatos.models import (
 
 
 class ValidatorCargoVazio:
-    """ Valida que cargo não deve estar vazio."""
+    """Exige que o cargo não esteja vazio (sem ocupante)."""
 
     @staticmethod
     def validar(cargo_composicao_vacancia: CargoComposicaoVacancia) -> None:
-        """ Valida o novo período de um registro já existente.
+        """Valida que o registro tem ocupante definido.
 
         Args:
-            `cargo_composicao_vacancia`: registro sendo editado.
+            cargo_composicao_vacancia: registro sendo editado.
 
         Raises:
-            CargoComposicaoVacanciaValidationError: se cargo estiver vazio.
+            CargoComposicaoVacanciaValidationError: se o cargo estiver vazio.
         """
         if cargo_composicao_vacancia.ocupante_do_cargo_id is None:
             raise CargoComposicaoVacanciaValidationError({
@@ -25,23 +25,22 @@ class ValidatorCargoVazio:
 
 
 class ValidatorSemGapNaTimelineDoCargo:
-    """ Confirma que a timeline de um cargo continua cobrindo o mandato inteiro sem
-    nenhum buraco (todo dia do mandato tem exatamente um registro - ocupado ou vago).
+    """Confirma que a timeline de um cargo cobre o mandato inteiro, sem buraco nem sobreposição.
 
-    A ideia é rodar defensivamente como segurança ao final de qualquer operação que crie ou altere
-    CargoComposicaoVacancia (entrada, saída, cancelamento) - se
-    detectar uma inconsistência, levanta erro e a transação (@transaction.atomic do
-    método chamador) é revertida por completo, sem deixar dado inconsistente no banco.
+    Todo dia do mandato tem exatamente um registro (ocupado ou vago). Roda defensivamente
+    ao final de qualquer operação que crie ou altere CargoComposicaoVacancia (entrada,
+    saída, cancelamento): se detectar inconsistência, levanta erro e a transação
+    (@transaction.atomic do método chamador) é revertida por completo.
     """
 
     @staticmethod
     def validar(composicao_vacancia: ComposicaoVacancia, cargo_associacao: str, mandato: Mandato) -> None:
-        """ Confere a timeline completa de um cargo dentro de uma composição.
+        """Confere a timeline completa de um cargo dentro de uma composição.
 
         Args:
             composicao_vacancia: composição a verificar.
             cargo_associacao: cargo cuja timeline será verificada.
-            mandato: mandato de referência - define o intervalo total esperado.
+            mandato: mandato de referência, que define o intervalo total esperado.
 
         Raises:
             CargoComposicaoVacanciaValidationError: se existir algum trecho do mandato
