@@ -382,6 +382,7 @@ def criar_grupos_prioridades(paa, alteracoes=None):
             "tipo_aplicacao": prioridade.get_tipo_aplicacao_display(),
             "tipo_despesa_custeio": prioridade.tipo_despesa_custeio.nome if prioridade.tipo_despesa_custeio else "-",
             "especificacao_material": prioridade.especificacao_material.descricao,
+            "descricao": prioridade.descricao or "-",
             "valor_total": prioridade.valor_total,
             "retificado": str(prioridade.uuid) in prioridades_alteradas,
         })
@@ -419,7 +420,12 @@ def criar_grupos_prioridades(paa, alteracoes=None):
         },
     ]
 
+    flags = get_waffle_flag_model()
+    flag_paa_receitas_prevista = flags.objects.filter(
+        name='paa-receitas-prevista', everyone=True).exists()
+
     for grupo in grupos:
+        grupo['flag_ativas'] = ['paa-receitas-prevista'] if flag_paa_receitas_prevista else []
         grupo["total"] = calcular_total_grupo(grupo["items"])
 
     return grupos
