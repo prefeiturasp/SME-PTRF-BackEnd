@@ -1,4 +1,5 @@
 import json
+from uuid import uuid4
 
 import pytest
 
@@ -14,6 +15,46 @@ from ...models import ObservacaoConciliacao
 from ...models.solicitacao_encerramento_conta_associacao import SolicitacaoEncerramentoContaAssociacao
 
 pytestmark = pytest.mark.django_db
+
+
+def test_api_salva_observacoes_sem_periodo(jwt_authenticated_client_a, conta_associacao_cartao):
+    payload = {'conta_associacao_uuid': f'{conta_associacao_cartao.uuid}'}
+
+    response = jwt_authenticated_client_a.patch(
+        '/api/conciliacoes/salvar-observacoes/', data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_salva_observacoes_periodo_nao_encontrado(jwt_authenticated_client_a, conta_associacao_cartao):
+    payload = {'periodo_uuid': f'{uuid4()}', 'conta_associacao_uuid': f'{conta_associacao_cartao.uuid}'}
+
+    response = jwt_authenticated_client_a.patch(
+        '/api/conciliacoes/salvar-observacoes/', data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_api_salva_observacoes_sem_conta_associacao(jwt_authenticated_client_a, periodo):
+    payload = {'periodo_uuid': f'{periodo.uuid}'}
+
+    response = jwt_authenticated_client_a.patch(
+        '/api/conciliacoes/salvar-observacoes/', data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_salva_observacoes_conta_associacao_nao_encontrada(jwt_authenticated_client_a, periodo):
+    payload = {'periodo_uuid': f'{periodo.uuid}', 'conta_associacao_uuid': f'{uuid4()}'}
+
+    response = jwt_authenticated_client_a.patch(
+        '/api/conciliacoes/salvar-observacoes/', data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
 
 
 def test_api_salva_observacoes_conciliacao_justificativa(jwt_authenticated_client_a, periodo, conta_associacao_cartao):

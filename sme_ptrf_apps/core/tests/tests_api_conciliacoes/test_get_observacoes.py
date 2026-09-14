@@ -1,9 +1,82 @@
 import json
+from uuid import uuid4
+
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 from datetime import date
 from sme_ptrf_apps.core.models.solicitacao_encerramento_conta_associacao import SolicitacaoEncerramentoContaAssociacao
 pytestmark = pytest.mark.django_db
+
+
+def test_api_get_observacoes_sem_associacao(jwt_authenticated_client_a, periodo_2020_1, conta_associacao_cartao):
+    url = f'/api/conciliacoes/observacoes/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_associacao_cartao.uuid}'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_get_observacoes_associacao_nao_encontrada(jwt_authenticated_client_a, periodo_2020_1, conta_associacao_cartao):
+    url = f'/api/conciliacoes/observacoes/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_associacao_cartao.uuid}&associacao={uuid4()}'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_api_get_observacoes_sem_periodo(jwt_authenticated_client_a, conta_associacao_cartao):
+    url = f'/api/conciliacoes/observacoes/?conta_associacao={conta_associacao_cartao.uuid}&associacao={conta_associacao_cartao.associacao.uuid}'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_get_observacoes_periodo_nao_encontrado(jwt_authenticated_client_a, conta_associacao_cartao):
+    url = f'/api/conciliacoes/observacoes/?periodo={uuid4()}&conta_associacao={conta_associacao_cartao.uuid}&associacao={conta_associacao_cartao.associacao.uuid}'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_api_get_observacoes_sem_conta_associacao(jwt_authenticated_client_a, periodo_2020_1, associacao):
+    url = f'/api/conciliacoes/observacoes/?periodo={periodo_2020_1.uuid}&associacao={associacao.uuid}'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_get_observacoes_conta_associacao_nao_encontrada(jwt_authenticated_client_a, periodo_2020_1, associacao):
+    url = f'/api/conciliacoes/observacoes/?periodo={periodo_2020_1.uuid}&conta_associacao={uuid4()}&associacao={associacao.uuid}'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_api_get_observacoes_com_comprovante_extrato(jwt_authenticated_client_a, periodo_2020_1, conta_associacao,
+                                                      observacao_conciliacao_periodo_2020_1):
+    observacao_conciliacao_periodo_2020_1.comprovante_extrato.save(
+        'comprovante.pdf', SimpleUploadedFile('comprovante.pdf', b'%PDF-1.4 conteudo'), save=True)
+
+    try:
+        url = f'/api/conciliacoes/observacoes/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_associacao.uuid}&associacao={conta_associacao.associacao.uuid}'
+
+        response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+        assert response.status_code == status.HTTP_200_OK
+        assert json.loads(response.content)['comprovante_extrato'] != ''
+    finally:
+        observacao_conciliacao_periodo_2020_1.comprovante_extrato.delete(save=True)
 
 
 def test_api_get_observacoes_sem_observacoes_e_encerramento(jwt_authenticated_client_a,
