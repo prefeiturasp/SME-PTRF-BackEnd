@@ -1,17 +1,38 @@
 import os
 import logging
+from typing import Optional
+
 from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.template.loader import get_template
 
 from weasyprint import HTML, CSS
 
+from sme_ptrf_apps.paa.models import DocumentoPaa, Paa
 from sme_ptrf_apps.paa.services.dados_documento_paa_service import gerar_dados_documento_paa
 
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_arquivo_documento_paa_pdf(paa, documento_paa, usuario, previa=False, alteracoes=None, **kwargs):
+def gerar_arquivo_documento_paa_pdf(
+    paa: Paa,
+    documento_paa: DocumentoPaa,
+    usuario: str,
+    previa: bool = False,
+    alteracoes: Optional[dict] = None,
+    **kwargs: object,
+) -> None:
+    """Gera o PDF do documento PAA e salva o arquivo no modelo informado.
+
+    Args:
+        paa: PAA utilizado para montar os dados do documento.
+        documento_paa: Documento que receberá o arquivo PDF gerado.
+        usuario: Identificação do usuário responsável pela geração.
+        previa: Indica se o documento deve ser gerado como prévia.
+        alteracoes: Alterações que devem ser consideradas na geração do
+            documento.
+        **kwargs: Opções adicionais encaminhadas para a geração dos dados.
+    """
     dados = gerar_dados_documento_paa(
         paa,
         usuario,
