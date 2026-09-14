@@ -126,7 +126,6 @@ class ExportacoesDadosUnidadesService:
 
             logger.info(f"Escrevendo linha {linha_horizontal} de unidades, uuid: {instance.uuid}.")
             linhas_vertical.append(linha_horizontal)
-            logger.info(f"Finalizando extração de dados de unidades, uuid: {instance.uuid}.")
 
         return linhas_vertical
 

@@ -157,11 +157,11 @@ class ExportacaoDadosContasService:
             write = csv.writer(tmp.file, delimiter=";")
             write.writerow([cabecalho[0] for cabecalho in self.cabecalho])
 
-            for instance in self.queryset:
+            for instance in self.queryset.iterator(chunk_size=2000):
 
                 if not ContaAssociacao.objects.filter(id=instance.id).exists():
                     logger.info(
-                        f"Este registro não existe mais na base de dados, portanto será pulado"
+                        "Este registro não existe mais na base de dados, portanto será pulado"
                     )
                     continue
 
@@ -283,7 +283,7 @@ class ExportacaoDadosContasService:
         return self.queryset
 
     def cria_registro_central_download(self):
-        logger.info(f"Criando registro na central de download")
+        logger.info("Criando registro na central de download")
         obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo,
@@ -324,7 +324,10 @@ class ExportacaoDadosContasService:
         write.writerow(rodape)
         rodape.clear()
 
-        rodape.append("¹ Saldo atual do banco: valor obtido por meio da soma dos campos 'valorDisponibilidade' fornecidos via API de saldo bancário e de saldo das aplicações do BB Ágil.")
+        rodape.append(
+            "¹ Saldo atual do banco: valor obtido por meio da soma dos campos 'valorDisponibilidade' "
+            "fornecidos via API de saldo bancário e de saldo das aplicações do BB Ágil."
+        )
         write.writerow(rodape)
         rodape.clear()
 

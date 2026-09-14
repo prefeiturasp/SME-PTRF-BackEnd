@@ -29,13 +29,13 @@ CABECALHO_ASSOCIACOES = [
     ('ID do Período Inicial', 'id_periodo_inicial', lambda x: str(x).replace(";", ",") if x else ""),
     ('Referência do Período inicial', 'referencia_periodo_inicial', lambda x: x.replace(";", ",") if x else ""),
     # ('ID do Período Inicial', 'periodo_inicial__id', lambda x: str(x).replace(";", ",") if x else ""),
-    # ('Referência do Período inicial', 'periodo_inicial__referencia', lambda x: x.replace(";", ",") if x else ""),    
+    # ('Referência do Período inicial', 'periodo_inicial__referencia', lambda x: x.replace(";", ",") if x else ""),
     ('Data de encerramento', 'data_de_encerramento', lambda x: x.strftime("%d/%m/%Y") if x else ""),
     ('CCM', 'ccm', lambda x: x.replace(";", ",") if x else ""),
     ('E-mail', 'email', lambda x: x.replace(";", ",") if x else ""),
     ('Número do processo de regularidade', 'processo_regularidade', lambda x: x.replace(";", ",") if x else ""),
     ('Status do presidente', 'status_presidente', lambda x: x.replace(";", ",") if x else ""),
-    ('Cargo substituto do presidente', 'cargo_substituto_presidente_ausente', lambda x: x.replace(";", ",") if x else ""),
+    ('Cargo substituto do presidente', 'cargo_substituto_presidente_ausente', lambda x: x.replace(";", ",") if x else ""),  # noqa
     ('Data e hora de criação', 'criado_em', lambda x: x.strftime("%d/%m/%Y às %H:%M:%S")),
     ('Data e hora da última atualização', 'alterado_em', lambda x: x.strftime("%d/%m/%Y às %H:%M:%S")),
 ]
@@ -100,7 +100,7 @@ class ExportaAssociacoesService:
         self.exporta_associacoes_csv()
 
     def cria_registro_central_download(self):
-        logger.info(f"Criando registro na central de download")
+        logger.info("Criando registro na central de download")
         obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo,
@@ -151,11 +151,11 @@ class ExportaAssociacoesService:
 
     def monta_dados(self):
         linhas_vertical = []
-        for instance in self.queryset:
+        for instance in self.queryset.iterator(chunk_size=1000):
             logger.info(f"Iniciando extração de asscociacao: {instance.id}.")
 
             if not Associacao.objects.filter(id=instance.id).exists():
-                logger.info(f"Este registro não existe mais na base de dados, portanto será pulado")
+                logger.info("Este registro não existe mais na base de dados, portanto será pulado")
                 continue
 
             linha_horizontal = []
@@ -167,7 +167,6 @@ class ExportaAssociacoesService:
 
             logger.info(f"Escrevendo linha {linha_horizontal} da associacao: {instance.id}.")
             linhas_vertical.append(linha_horizontal)
-            logger.info(f"Finalizado extração de dados da associacao: {instance.id}.")
 
         return linhas_vertical
 
