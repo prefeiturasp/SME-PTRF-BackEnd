@@ -1,4 +1,6 @@
 from datetime import timedelta
+from typing import Optional
+
 from django.db import models
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
@@ -42,23 +44,23 @@ class CargoComposicaoVacancia(ModeloBase):
 
     @property
     def substituido(self) -> bool:
-        """ True se este registro foi encerrado e outro assumiu no dia seguinte, sem gap """
+        """True se este registro foi encerrado e outro assumiu no dia seguinte, sem gap."""
         return self.substituido_por_id is not None
 
     @property
     def substituto(self) -> bool:
-        """ True se este registro começou substituindo diretamente quem saiu no dia anterior """
+        """True se este registro começou substituindo diretamente quem saiu no dia anterior."""
         return self.substituto_imediato is not None
 
     @property
-    def substituto_imediato(self) -> bool:
-        """ True se este registro começou substituindo diretamente quem saiu no dia anterior """
+    def substituto_imediato(self) -> Optional["CargoComposicaoVacancia"]:
+        """Registro que sucedeu este diretamente (saída no dia anterior), ou None."""
         return self.substitui.filter(
             data_fim_no_cargo=self.data_inicio_no_cargo - timedelta(days=1)
         ).first()
 
     @classmethod
-    def ordenar_por_cargo(cls, participante):
+    def ordenar_por_cargo(cls, participante: dict) -> int:
         cargos = {
             Cargo.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA.label: 1,
             Cargo.CARGO_ASSOCIACAO_VICE_PRESIDENTE_DIRETORIA_EXECUTIVA.label: 2,
