@@ -1,5 +1,8 @@
 from unittest.mock import MagicMock
 
+from django.test import RequestFactory
+
+from sme_ptrf_apps.core.admin import DreArquivoDownloadFilter, DreListFilter
 from sme_ptrf_apps.core.admin_filters.recurso_filters import (
     AcaoAssociacaoAListFilter,
     AnalisePrestacaoContaFilter,
@@ -15,6 +18,7 @@ from sme_ptrf_apps.core.admin_filters.recurso_filters import (
     RecursoListFilter,
     RelacaoBensListFilter,
 )
+from sme_ptrf_apps.core.models import ArquivoDownload
 
 from .conftest import make_filter
 
@@ -208,4 +212,91 @@ def test_analise_consolidado_dre_list_filter_queryset_com_valor(admin_request):
     _assert_filtered(
         make_filter(AnaliseConsolidadoDreListFilter, admin_request, RECURSO_ID),
         consolidado_dre__periodo__recurso_id=RECURSO_ID,
+    )
+
+
+# Testes dos filtros de DRE definidos diretamente em core/admin.py:
+# DreListFilter (ComentarioAnalisePrestacaoAdmin) e DreArquivoDownloadFilter (ArquivoDownloadAdmin).
+def _make_dre(codigo_eol, nome):
+    dre = MagicMock()
+    dre.codigo_eol = codigo_eol
+    dre.nome = nome
+    return dre
+
+
+def test_dre_list_filter_title():
+    assert DreListFilter.title == 'DRE'
+
+
+def test_dre_list_filter_lookups_via_prestacao_conta(admin_request):
+    dre = _make_dre('123456', 'DRE Teste')
+    objeto = MagicMock()
+    objeto.prestacao_conta.associacao.unidade.dre = dre
+    objeto.associacao = None
+
+    model_admin = MagicMock()
+    model_admin.get_queryset.return_value = [objeto]
+
+    filtro = make_filter(DreListFilter, admin_request, param_name='dre', model_admin=model_admin)
+
+    assert ('123456', 'DRE Teste') in filtro.lookup_choices
+
+
+def test_dre_list_filter_lookups_via_associacao(admin_request):
+    dre = _make_dre('654321', 'DRE Associação')
+    objeto = MagicMock()
+    objeto.prestacao_conta = None
+    objeto.associacao.unidade.dre = dre
+
+    model_admin = MagicMock()
+    model_admin.get_queryset.return_value = [objeto]
+
+    filtro = make_filter(DreListFilter, admin_request, param_name='dre', model_admin=model_admin)
+
+    assert ('654321', 'DRE Associação') in filtro.lookup_choices
+
+
+def _dre_list_filter_model_admin_vazio():
+    return MagicMock(get_queryset=lambda request: [])
+
+
+# DreListFilter.queryset não retorna o queryset original quando não há valor
+# (diferente dos demais filtros acima), então não reutiliza _assert_no_filter.
+def test_dre_list_filter_queryset_sem_valor(admin_request):
+    filtro = make_filter(
+        DreListFilter, admin_request, param_name='dre', model_admin=_dre_list_filter_model_admin_vazio()
+    )
+    qs = _mock_qs()
+    assert filtro.queryset(None, qs) is None
+    qs.filter.assert_not_called()
+
+
+def test_dre_list_filter_queryset_com_valor(admin_request):
+    filtro = make_filter(
+        DreListFilter, admin_request, RECURSO_ID, param_name='dre', model_admin=_dre_list_filter_model_admin_vazio()
+    )
+    qs = _mock_qs()
+    filtro.queryset(None, qs)
+    qs.filter.assert_called_once()
+
+
+def test_dre_arquivo_download_filter_title():
+    assert DreArquivoDownloadFilter.title == 'DRE'
+
+
+def test_dre_arquivo_download_filter_lookups(dre, admin_request):
+    filtro = DreArquivoDownloadFilter(admin_request, {}, ArquivoDownload, MagicMock())
+    resultado = list(filtro.lookups(RequestFactory().get('/admin/'), None))
+    assert any(nome == dre.nome for _, nome in resultado)
+
+
+def test_dre_arquivo_download_filter_queryset_sem_valor(admin_request):
+    _assert_no_filter(make_filter(DreArquivoDownloadFilter, admin_request, param_name='dre_filtro'))
+
+
+def test_dre_arquivo_download_filter_queryset_com_valor(dre, admin_request):
+    _assert_filtered(
+        make_filter(DreArquivoDownloadFilter, admin_request, dre.codigo_eol, param_name='dre_filtro'),
+        assert_distinct=False,
+        dre__codigo_eol=dre.codigo_eol,
     )

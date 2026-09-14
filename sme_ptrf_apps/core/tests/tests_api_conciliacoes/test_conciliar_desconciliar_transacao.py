@@ -3,8 +3,99 @@ from rest_framework import status
 from sme_ptrf_apps.despesas.models import Despesa, RateioDespesa
 from sme_ptrf_apps.receitas.models import Receita
 import json
+from uuid import uuid4
 
 pytestmark = pytest.mark.django_db
+
+
+def test_api_conciliar_despesa_sem_periodo(jwt_authenticated_client_a, conta_associacao_cartao, despesa_2020_1):
+    url = f'/api/conciliacoes/conciliar-despesa/?conta_associacao={conta_associacao_cartao.uuid}&transacao={despesa_2020_1.uuid}'
+
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_conciliar_despesa_periodo_nao_encontrado(jwt_authenticated_client_a, conta_associacao_cartao, despesa_2020_1):
+    url = f'/api/conciliacoes/conciliar-despesa/?periodo={uuid4()}&conta_associacao={conta_associacao_cartao.uuid}&transacao={despesa_2020_1.uuid}'
+
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_api_conciliar_despesa_sem_conta_associacao(jwt_authenticated_client_a, periodo_2020_1, despesa_2020_1):
+    url = f'/api/conciliacoes/conciliar-despesa/?periodo={periodo_2020_1.uuid}&transacao={despesa_2020_1.uuid}'
+
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_conciliar_despesa_conta_associacao_nao_encontrada(jwt_authenticated_client_a, periodo_2020_1, despesa_2020_1):
+    url = f'/api/conciliacoes/conciliar-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={uuid4()}&transacao={despesa_2020_1.uuid}'
+
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_api_conciliar_despesa_sem_transacao(jwt_authenticated_client_a, periodo_2020_1, conta_associacao_cartao):
+    url = f'/api/conciliacoes/conciliar-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_associacao_cartao.uuid}'
+
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_desconciliar_despesa_sem_periodo(jwt_authenticated_client_a, conta_associacao_cartao, despesa_2020_1):
+    url = f'/api/conciliacoes/desconciliar-despesa/?conta_associacao={conta_associacao_cartao.uuid}&transacao={despesa_2020_1.uuid}'
+
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_desconciliar_despesa_periodo_nao_encontrado(jwt_authenticated_client_a, conta_associacao_cartao, despesa_2020_1):
+    url = f'/api/conciliacoes/desconciliar-despesa/?periodo={uuid4()}&conta_associacao={conta_associacao_cartao.uuid}&transacao={despesa_2020_1.uuid}'
+
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_api_desconciliar_despesa_sem_conta_associacao(jwt_authenticated_client_a, periodo_2020_1, despesa_2020_1):
+    url = f'/api/conciliacoes/desconciliar-despesa/?periodo={periodo_2020_1.uuid}&transacao={despesa_2020_1.uuid}'
+
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_desconciliar_despesa_conta_associacao_nao_encontrada(jwt_authenticated_client_a, periodo_2020_1, despesa_2020_1):
+    url = f'/api/conciliacoes/desconciliar-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={uuid4()}&transacao={despesa_2020_1.uuid}'
+
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_api_desconciliar_despesa_sem_transacao(jwt_authenticated_client_a, periodo_2020_1, conta_associacao_cartao):
+    url = f'/api/conciliacoes/desconciliar-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_associacao_cartao.uuid}'
+
+    response = jwt_authenticated_client_a.patch(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
 
 
 def test_api_deve_conciliar_transacao_despesa(

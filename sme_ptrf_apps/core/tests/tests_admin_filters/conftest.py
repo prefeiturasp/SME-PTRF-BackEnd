@@ -35,6 +35,6 @@ def recurso_list_filter(admin_request):
     return RecursoListFilter(admin_request, {}, Recurso, AdminSite())
 
 
-def make_filter(filter_class, admin_request, value=None):
-    params = {"recurso": value} if value is not None else {}
-    return filter_class(admin_request, params, Recurso, AdminSite())
+def make_filter(filter_class, admin_request, value=None, param_name="recurso", model_admin=None):
+    params = {param_name: value} if value is not None else {}
+    return filter_class(admin_request, params, Recurso, model_admin or AdminSite())
