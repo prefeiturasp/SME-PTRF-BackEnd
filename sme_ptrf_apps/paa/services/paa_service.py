@@ -36,9 +36,16 @@ class ImportacaoConfirmacaoNecessaria(Exception):
 
 
 class PaaService:
+    """Centraliza operações de conclusão, importação e geração de dados do PAA."""
 
     @classmethod
-    def pode_elaborar_novo_paa(cls):
+    def pode_elaborar_novo_paa(cls) -> None:
+        """Valida se o mês atual permite elaborar um novo PAA.
+
+        Raises:
+            AssertionError: Se o mês de elaboração não estiver configurado ou
+                ainda não tiver sido alcançado.
+        """
 
         mes_atual = date.today().month
         param_paa = ParametroPaa.get()
@@ -47,7 +54,15 @@ class PaaService:
         assert mes_atual >= param_paa.mes_elaboracao_paa, "Mês não liberado para Elaboração de novo PAA."
 
     @classmethod
-    def gerar_arquivo_pdf_levantamento_prioridades_paa(cls, dados):
+    def gerar_arquivo_pdf_levantamento_prioridades_paa(cls, dados: dict) -> HttpResponse:
+        """Renderiza e retorna o PDF do levantamento de prioridades do PAA.
+
+        Args:
+            dados: Dados usados para renderizar o template do levantamento.
+
+        Returns:
+            Resposta HTTP contendo o arquivo PDF para download.
+        """
         logger.info('Iniciando task gerar_pdf_levantamento_prioridades_paa')
 
         html_template = get_template('pdf/paa/pdf_levantamento_prioridades_paa.html')
@@ -66,7 +81,15 @@ class PaaService:
         return response
 
     @classmethod
-    def somatorio_totais_por_programa_pdde(cls, paa_uuid):
+    def somatorio_totais_por_programa_pdde(cls, paa_uuid: str) -> dict:
+        """Calcula os totais de receitas PDDE agrupados por programa.
+
+        Args:
+            paa_uuid: UUID do PAA usado para filtrar as receitas.
+
+        Returns:
+            Dicionário com os totais de cada programa e os totais gerais.
+        """
         from sme_ptrf_apps.paa.services.acoes_paa_service import AcoesPaaService
 
         flags = get_waffle_flag_model()
@@ -155,7 +178,29 @@ class PaaService:
         return objeto
 
     @classmethod
-    def importar_prioridades_paa_anterior(cls, paa_atual, paa_anterior, confirmar_importacao=False) -> list:
+    def importar_prioridades_paa_anterior(
+        cls,
+        paa_atual: Paa,
+        paa_anterior: Paa,
+        confirmar_importacao: bool = False,
+    ) -> list[PrioridadePaa]:
+        """Replica no PAA atual as prioridades do PAA anterior.
+
+        Args:
+            paa_atual: PAA que receberá as prioridades importadas.
+            paa_anterior: PAA de onde as prioridades serão copiadas.
+            confirmar_importacao: Confirma a remoção de prioridades importadas
+                anteriormente no PAA atual.
+
+        Returns:
+            Lista de prioridades criadas para o PAA atual.
+
+        Raises:
+            Exception: Se não houver prioridades para importar ou a importação
+                não puder ser repetida.
+            ImportacaoConfirmacaoNecessaria: Se já houver prioridades importadas
+                e a confirmação não tiver sido fornecida.
+        """
         prioridades_a_importar = paa_anterior.prioridadepaa_set.filter(prioridade=True)
 
         if not prioridades_a_importar.exists():
@@ -211,7 +256,7 @@ class PaaService:
             return importados
 
     @classmethod
-    def registra_historico_acoes(cls, paa):
+    def registra_historico_acoes(cls, paa: Paa) -> Paa:
         """
         Registra as ações disponíveis no momento da conclusão do PAA.
         Congela o saldo do PAA.
@@ -236,7 +281,7 @@ class PaaService:
         return paa
 
     @classmethod
-    def concluir_paa(cls, paa):
+    def concluir_paa(cls, paa: Paa) -> Paa:
         """
         Esse service é chamado quando a ata PAA é gerada.
         Marca o PAA como gerado, atualizando seu status para GERADO.
@@ -259,6 +304,15 @@ class PaaService:
 
     @classmethod
     def pode_gerar_documento_final(cls, paa: Paa) -> list[str]:
+        """Verifica se o documento final do PAA pode ser gerado.
+
+        Args:
+            paa: PAA cujo documento final será validado.
+
+        Returns:
+            Lista de mensagens com as pendências que impedem a geração; uma
+            lista vazia indica que não foram encontradas pendências.
+        """
 
         def texto_editor_vazio(html: str | None) -> bool:
             """ Ignora Tags HTML para verificar se há texto no Editor. """
