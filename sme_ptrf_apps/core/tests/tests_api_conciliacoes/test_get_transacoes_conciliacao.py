@@ -1,9 +1,64 @@
 import json
+from uuid import uuid4
 
 import pytest
 from rest_framework import status
 
 pytestmark = pytest.mark.django_db
+
+
+def test_api_get_transacoes_sem_periodo(jwt_authenticated_client_a, conta_associacao_cartao):
+    url = f'/api/conciliacoes/transacoes-despesa/?conta_associacao={conta_associacao_cartao.uuid}&conferido=True'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_get_transacoes_periodo_nao_encontrado(jwt_authenticated_client_a, conta_associacao_cartao):
+    url = f'/api/conciliacoes/transacoes-despesa/?periodo={uuid4()}&conta_associacao={conta_associacao_cartao.uuid}&conferido=True'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_api_get_transacoes_sem_conta_associacao(jwt_authenticated_client_a, periodo_2020_1):
+    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conferido=True'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_get_transacoes_conta_associacao_nao_encontrada(jwt_authenticated_client_a, periodo_2020_1):
+    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={uuid4()}&conferido=True'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_api_get_transacoes_acao_associacao_nao_encontrada(jwt_authenticated_client_a, periodo_2020_1, conta_associacao_cartao):
+    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_associacao_cartao.uuid}&acao_associacao={uuid4()}&conferido=True'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_api_get_transacoes_sem_conferido(jwt_authenticated_client_a, periodo_2020_1, conta_associacao_cartao):
+    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_associacao_cartao.uuid}'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requerido'
 
 
 def retorna_tags_de_informacao(transacao):
