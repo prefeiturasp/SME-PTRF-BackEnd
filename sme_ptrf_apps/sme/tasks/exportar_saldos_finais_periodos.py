@@ -6,14 +6,22 @@ from sme_ptrf_apps.core.models import FechamentoPeriodo
 
 logger = logging.getLogger(__name__)
 
+
 @shared_task(
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
-    time_limet=600,
-    soft_time_limit=300000
+    time_limit=7400,
+    soft_time_limit=7200
 )
 def exportar_saldos_finais_periodo_async(data_inicio, data_final, username, dre_uuid=None):
     logger.info("Exportando csv em processamento...")
+    SELECT_RELATED = (
+        'associacao__unidade__dre',
+        'periodo__recurso',
+        'prestacao_conta',
+        'conta_associacao__tipo_conta',
+        'acao_associacao__acao',
+    )
 
     dre_codigo_eol = None
     if dre_uuid:
@@ -23,12 +31,14 @@ def exportar_saldos_finais_periodo_async(data_inicio, data_final, username, dre_
             dre_codigo_eol = dre.codigo_eol
         except Unidade.DoesNotExist:
             logger.warning(f"DRE com uuid {dre_uuid} não encontrada")
-        
+
         queryset = FechamentoPeriodo.objects.filter(
             associacao__unidade__dre__uuid=dre_uuid,
-        ).order_by('id')
+        )
     else:
-        queryset = FechamentoPeriodo.objects.all().order_by('id')
+        queryset = FechamentoPeriodo.objects.all()
+
+    queryset = queryset.select_related(*SELECT_RELATED).order_by('id')
 
     try:
         logger.info("Criando arquivo %s pcs_saldo_final_periodo.csv")

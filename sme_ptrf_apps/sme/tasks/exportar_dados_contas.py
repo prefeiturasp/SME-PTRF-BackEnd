@@ -11,12 +11,15 @@ logger = logging.getLogger(__name__)
 @shared_task(
     retry_backoff=2,
     retry_kwargs={"max_retries": 8},
-    time_limet=600,
-    soft_time_limit=30000,
+    time_limit=28400,
+    soft_time_limit=28400,
 )
 def exportar_dados_conta_async(data_inicio, data_final, username, dre_uuid=None):
     logger.info("Exportando csv em processamento...")
-    queryset = ContaAssociacao.objects.all()
+    queryset = ContaAssociacao.objects.select_related(
+        "associacao__unidade__dre",
+        "tipo_conta__recurso",
+    )
 
     flags = get_waffle_flag_model()
     flag_integracao_bb_ativa = flags.objects.filter(
@@ -39,6 +42,8 @@ def exportar_dados_conta_async(data_inicio, data_final, username, dre_uuid=None)
         queryset = queryset.filter(
             associacao__unidade__dre__uuid=dre_uuid,
         )
+
+    queryset = queryset.order_by("id")
 
     try:
         logger.info("Criando arquivo %s dados_contas.csv")

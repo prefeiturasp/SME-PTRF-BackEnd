@@ -120,7 +120,7 @@ class ExportacoesDocumentosDespesasService:
     def monta_dados(self):
         linhas_vertical = []
 
-        for instance in self.queryset:
+        for instance in self.queryset.iterator(chunk_size=2000):
 
             logger.info(
                 "Iniciando extração de dados de despesas, despesa id: %s.",
@@ -281,11 +281,6 @@ class ExportacoesDocumentosDespesasService:
                 instance.id,
             )
             linhas_vertical.append(linha_horizontal)
-
-            logger.info(
-                "Finalizando extração de dados de despesas, despesa id: %s.",
-                instance.id,
-            )
 
         return linhas_vertical
 

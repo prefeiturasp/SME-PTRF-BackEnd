@@ -100,7 +100,7 @@ class ExportacaoDadosSaldosBancariosService:
     def monta_dados(self):
         linhas_vertical = []
 
-        for instance in self.queryset:
+        for instance in self.queryset.iterator(chunk_size=2000):
             logger.info(f"Iniciando extração de dados de saldos bancarios, id: {instance.id}.")
 
             if not ObservacaoConciliacao.objects.filter(id=instance.id).exists():
