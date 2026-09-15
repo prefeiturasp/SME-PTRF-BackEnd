@@ -17,8 +17,8 @@ OPERACAO_EXPORTACAO_RATEIOS = 'Extração de dados - Rateios'
     bind=True,
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
-    time_limit=20000,
-    soft_time_limit=20000
+    time_limit=7400,
+    soft_time_limit=7200
 )
 def exportar_rateios_async(self, data_inicio, data_final, username, dre_uuid=None):
     export_logger = ContextualLogger.get_logger(

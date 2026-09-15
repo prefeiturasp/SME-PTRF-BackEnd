@@ -1,5 +1,5 @@
 import csv
-import datetime, time
+import datetime
 import logging
 
 from tempfile import NamedTemporaryFile
@@ -158,7 +158,7 @@ class ExportacoesDadosCreditosService:
             write = csv.writer(tmp.file, delimiter=";")
             write.writerow([cabecalho[0] for cabecalho in self.cabecalho])
 
-            for instance in self.queryset:
+            for instance in self.queryset.iterator(chunk_size=2000):
 
                 motivos = list(instance.motivos_estorno.all())
 
@@ -228,7 +228,7 @@ class ExportacoesDadosCreditosService:
                     elif isinstance(campo, tuple) and campo[1] == 'categoria_receita':
                         linha.append(campo[0][getattr(instance, campo[1])])
 
-                    elif type(campo) == tuple and getattr(instance, campo[1]).__class__.__name__ == 'ManyRelatedManager':
+                    elif type(campo) == tuple and getattr(instance, campo[1]).__class__.__name__ == 'ManyRelatedManager':  # noqa
                         for instance_m2m in getattr(instance, campo[1]).all():
                             linha.append(getattr(instance, campo[0]))
                             linha.append(getattr(instance_m2m, self.cabecalho[1][1]))
@@ -273,7 +273,7 @@ class ExportacoesDadosCreditosService:
         return self.queryset
 
     def cria_registro_central_download(self):
-        logger.info(f"Criando registro na central de download")
+        logger.info("Criando registro na central de download")
 
         obj = gerar_arquivo_download(
             self.user,

@@ -84,7 +84,7 @@ class ExportaDemonstrativosFinanceirosService:
         self.exporta_demonstrativos_financeiros_csv()
 
     def cria_registro_central_download(self):
-        logger.info(f"Criando registro na central de download")
+        logger.info("Criando registro na central de download")
         obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo,
@@ -138,7 +138,6 @@ class ExportaDemonstrativosFinanceirosService:
             self.cria_rodape(write)
             self.envia_arquivo_central_download(tmp)
 
-
     def get_periodo_demonstrativo_financeiro(self, instance):
         if instance and instance.prestacao_conta:
             periodo = instance.prestacao_conta.periodo if instance.prestacao_conta.periodo else None
@@ -155,17 +154,33 @@ class ExportaDemonstrativosFinanceirosService:
 
         return periodo
 
+    def _get_observacao_conciliacao(self, instance) -> ObservacaoConciliacao:
+        """ Retorna a observação de conciliação do demonstrativo financeiro """
+        periodo = self.get_periodo_demonstrativo_financeiro(instance)
+        observacao = None
+
+        if periodo:
+            observacao = ObservacaoConciliacao.objects.filter(
+                periodo=periodo,
+                conta_associacao=instance.conta_associacao,
+                associacao=instance.conta_associacao.associacao,
+            ).first()
+
+        return observacao
+
     def monta_dados(self):
         linhas_vertical = []
 
-        for instance in self.queryset:
+        for instance in self.queryset.iterator(chunk_size=2000):
             logger.info(f"Iniciando extração de dados do demonstrativo financeiro : {instance.id}.")
 
             if not DemonstrativoFinanceiro.objects.filter(id=instance.id).exists():
-                logger.info(f"Este registro não existe mais na base de dados, portanto será pulado")
+                logger.info("Este registro não existe mais na base de dados, portanto será pulado")
                 continue
 
             linha_horizontal = []
+
+            observacao = self._get_observacao_conciliacao(instance)
 
             for _, campo in self.cabecalho:
                 # Removendo ponto e vírgula e substituindo por vírgula
@@ -178,22 +193,22 @@ class ExportaDemonstrativosFinanceirosService:
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo.replace(";", ",") if campo else "")
                     continue
-                
+
                 if campo == "conta_associacao__associacao__nome":
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo.replace(";", ",") if campo else "")
                     continue
-                
+
                 if campo == "conta_associacao__associacao__unidade__dre__nome":
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo.replace(";", ",") if campo else "")
                     continue
-                
+
                 if campo == "conta_associacao__tipo_conta__nome":
                     campo = get_recursive_attr(instance, campo)
                     linha_horizontal.append(campo.replace(";", ",") if campo else "")
                     continue
-                
+
                 if campo == "arquivo_pdf":
                     campo = get_recursive_attr(instance, campo)
                     url = ""
@@ -225,46 +240,16 @@ class ExportaDemonstrativosFinanceirosService:
                     continue
 
                 if campo == 'DATA_SALDO_BANCARIO':
-                    periodo = self.get_periodo_demonstrativo_financeiro(instance)
-                    observacao = None
-
-                    if periodo:
-                        observacao = ObservacaoConciliacao.objects.filter(
-                            periodo=periodo,
-                            conta_associacao=instance.conta_associacao,
-                            associacao=instance.conta_associacao.associacao,
-                        ).first()
-
                     data_saldo_bancario = observacao.data_extrato if observacao and observacao.data_extrato else ''
                     linha_horizontal.append(data_saldo_bancario)
                     continue
 
                 if campo == 'SALDO_BANCARIO':
-                    periodo = self.get_periodo_demonstrativo_financeiro(instance)
-                    observacao = None
-
-                    if periodo:
-                        observacao = ObservacaoConciliacao.objects.filter(
-                            periodo=periodo,
-                            conta_associacao=instance.conta_associacao,
-                            associacao=instance.conta_associacao.associacao,
-                        ).first()
-
                     saldo_extrato = observacao.saldo_extrato if observacao and observacao.saldo_extrato else ''
                     linha_horizontal.append(saldo_extrato)
                     continue
 
                 if campo == 'JUSTIFICATIVA_CONCILIACAO':
-                    periodo = self.get_periodo_demonstrativo_financeiro(instance)
-                    observacao = None
-
-                    if periodo:
-                        observacao = ObservacaoConciliacao.objects.filter(
-                            periodo=periodo,
-                            conta_associacao=instance.conta_associacao,
-                            associacao=instance.conta_associacao.associacao,
-                        ).first()
-
                     texto = observacao.texto if observacao and observacao.texto else ''
                     linha_horizontal.append(texto.replace(";", ","))
                     continue

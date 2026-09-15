@@ -189,7 +189,7 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
         linhas_vertical = []
         despesa_primeira_linha = set()
 
-        for instance in self.queryset:
+        for instance in self.queryset.iterator(chunk_size=2000):
             linha_horizontal = []
 
             despesa_id = instance.solicitacao_acerto_lancamento.analise_lancamento.despesa.id
