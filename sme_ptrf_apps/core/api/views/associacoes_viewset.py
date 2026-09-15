@@ -46,7 +46,8 @@ from ...services import (
     get_status_presidente,
     update_status_presidente,
     get_implantacao_de_saldos_da_associacao,
-    retorna_repasses_pendentes_periodos_ate_agora
+    retorna_repasses_pendentes_periodos_ate_agora,
+    get_periodo_corte,
 )
 from ..serializers.associacao_serializer import (
     AssociacaoCompletoSerializer,
@@ -659,7 +660,19 @@ class AssociacoesViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def periodos_ate_agora_fora_implantacao(self, request, uuid=None):
         associacao = self.get_object()
+        solicitacao_dre = self.request.query_params.get('solicitacao_dre', 'false').lower() == 'true'
         periodos = associacao.periodos_ate_agora_fora_implantacao(self.request.recurso)
+
+        if solicitacao_dre:
+            periodo_corte_dre = get_periodo_corte(recurso=self.request.recurso)
+
+            if not periodo_corte_dre:
+                periodos = periodos.none()
+            else:
+                periodos = periodos.filter(
+                    data_inicio_realizacao_despesas__gte=periodo_corte_dre.data_inicio_realizacao_despesas
+                )
+
         return Response(PeriodoLookUpSerializer(periodos, many=True).data)
 
     @action(detail=True, url_path='status-prestacoes', methods=['get'],
