@@ -247,9 +247,7 @@ class PaaRollbackHandlers(RollbackEngine):
             handler(alteracoes)
             self._log_fim_secao(nome_sessao)
 
-    # ----------------------------------------------------------
     # Handlers de seção
-    # ----------------------------------------------------------
 
     def _rollback_atividades_estatutarias_paa(self, alteracoes: dict) -> None:
         """Rollback de atividades estatutárias vinculadas ao PAA (paa_id setado)."""

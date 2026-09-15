@@ -4,9 +4,7 @@ from unittest.mock import patch, MagicMock
 from sme_ptrf_apps.paa.services.plano_aplicacao_service import PlanoAplicacaoService
 
 
-# ---------------------------------------------------------------------------
 # Fixtures locais
-# ---------------------------------------------------------------------------
 
 @pytest.fixture
 def paa(paa_factory, periodo_paa_1, associacao):
@@ -34,9 +32,7 @@ def _make_prioridade(prioridade: bool, recurso: str, valor_total=None) -> dict:
     }
 
 
-# ---------------------------------------------------------------------------
 # _obter_alteracoes
-# ---------------------------------------------------------------------------
 
 _PATCH_RETIFICACAO = 'sme_ptrf_apps.paa.services.retificacao_paa_service.RetificacaoPaaService'
 
@@ -83,9 +79,7 @@ class TestObterAlteracoes:
         )
 
 
-# ---------------------------------------------------------------------------
 # _construir_grupo
-# ---------------------------------------------------------------------------
 
 class TestConstruirGrupo:
     def test_estrutura_basica_do_retorno(self):
@@ -167,9 +161,7 @@ class TestConstruirGrupo:
         assert total == 0
 
 
-# ---------------------------------------------------------------------------
 # construir_plano_aplicacao
-# ---------------------------------------------------------------------------
 
 @pytest.mark.django_db
 class TestConstruirPlanoAplicacao:
