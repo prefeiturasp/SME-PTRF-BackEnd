@@ -243,7 +243,10 @@ def cria_identificacao_dre(dre):
 
 def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dre, eh_consolidado_de_publicacoes_parciais, previa):
     """BLOCO 2 - EXECUÇÃO FINANCEIRA"""
-    from .relatorio_consolidado_service import informacoes_execucao_financeira
+    from .relatorio_consolidado_service import (
+        informacoes_execucao_financeira,
+        total_devolucoes_ao_tesouro_sem_duplicidade,
+    )
 
     tipos_contas = TipoConta.objects.all()
     execucao_financeira_list = {
@@ -436,7 +439,18 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dr
 
             execucao_financeira_list['por_tipo_de_conta'].append(execucao_financeira)
 
-    execucao_financeira_list['total_todas_as_contas'].append(retorna_total_todas_as_contas_execucao_financeira(execucao_financeira_list['por_tipo_de_conta']))
+    total_devolucoes_ao_tesouro = total_devolucoes_ao_tesouro_sem_duplicidade(
+        dre=dre,
+        periodo=periodo,
+        apenas_nao_publicadas=apenas_nao_publicadas,
+        consolidado_dre=consolidado_dre,
+    )
+    execucao_financeira_list['total_todas_as_contas'].append(
+        retorna_total_todas_as_contas_execucao_financeira(
+            execucao_financeira_list['por_tipo_de_conta'],
+            total_devolucoes_ao_tesouro=total_devolucoes_ao_tesouro,
+        )
+    )
 
     return execucao_financeira_list
 
@@ -491,7 +505,10 @@ def retorna_objeto_totais_todas_as_contas_execucao_financeira_vazio():
     return totais_todas_as_contas
 
 
-def retorna_total_todas_as_contas_execucao_financeira(execucao_financeira_list):
+def retorna_total_todas_as_contas_execucao_financeira(
+    execucao_financeira_list,
+    total_devolucoes_ao_tesouro=None,
+):
 
     totais_todas_as_contas = retorna_objeto_totais_todas_as_contas_execucao_financeira_vazio()
 
@@ -536,6 +553,10 @@ def retorna_total_todas_as_contas_execucao_financeira(execucao_financeira_list):
        totais_todas_as_contas['totais']['saldo_reprogramado_proximo_periodo_total'] += converte_string_value_formatada_para_float(ex['totais']['saldo_reprogramado_proximo_periodo_total'])
        totais_todas_as_contas['totais']['devolucoes_ao_tesouro_no_periodo_total'] += converte_string_value_formatada_para_float(ex['totais']['devolucoes_ao_tesouro_no_periodo_total'])
        totais_todas_as_contas['totais']['outros_creditos'] += converte_string_value_formatada_para_float(ex['totais']['outros_creditos'])
+
+    if total_devolucoes_ao_tesouro is not None:
+        totais_todas_as_contas['totais']['devolucoes_ao_tesouro_no_periodo_total'] = total_devolucoes_ao_tesouro
+        totais_todas_as_contas['livre']['devolucoes_ao_tesouro_no_periodo_total'] = total_devolucoes_ao_tesouro
 
     # Formatando os valores após terem sido somados corretamente
     for chave, valor in totais_todas_as_contas.items():
