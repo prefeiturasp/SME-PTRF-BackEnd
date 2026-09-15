@@ -86,6 +86,22 @@ class TestValidarEdicaoAtaPc:
 
         assert resultado['is_valid'] is True
 
+    def test_permite_edicao_ata_apresentacao_previa_sem_pc_com_pdf_gerado_previamente(
+        self, ata_factory,
+    ):
+        """Após reabrir a PC, a ata vira prévia sem PC e precisa continuar editável."""
+        ata = ata_factory(
+            tipo_ata=Ata.ATA_APRESENTACAO,
+            prestacao_conta=None,
+            previa=True,
+            status_geracao_pdf=Ata.STATUS_NAO_GERADO,
+            pdf_gerado_previamente=True,
+        )
+
+        resultado = validar_edicao_ata_pc(ata)
+
+        assert resultado['is_valid'] is True
+
     def test_bloqueia_edicao_ata_apresentacao_durante_retificacao(
         self, ata_factory, prestacao_conta_devolvida,
     ):

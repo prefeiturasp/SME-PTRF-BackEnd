@@ -7,8 +7,10 @@ STATUS_PC_PERMITE_EDITAR_ATA_APRESENTACAO = {
 
 
 def _pc_permite_editar_ata_apresentacao(ata: Ata) -> bool:
-    if not ata.prestacao_conta_id:
-        return False
+    # Prévia sem PC (PC reaberta/apagada ou ainda não concluída): a UE precisa
+    # conseguir ajustar data, participantes e demais campos da reunião.
+    if ata.previa or not ata.prestacao_conta_id:
+        return True
     return ata.prestacao_conta.status in STATUS_PC_PERMITE_EDITAR_ATA_APRESENTACAO
 
 
@@ -17,6 +19,7 @@ def validar_edicao_ata_pc(ata: Ata) -> dict:
     Valida se a ata de PC pode ser editada (participantes, dados da reunião, etc.).
 
     Regras:
+    - Prévia / ata sem PC vinculada: edição permitida (ex.: após reabrir a PC).
     - Apresentação enquanto a PC não foi recebida (NAO_APRESENTADA / NAO_RECEBIDA):
       edição permitida mesmo com PDF gerado, para permitir regeração.
     - Apresentação após recebimento da PC com PDF gerado: bloqueada;
