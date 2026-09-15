@@ -90,6 +90,25 @@ def test_api_update_ata_apresentacao_bloqueada_quando_pdf_gerado_previamente_e_p
     assert 'retificação' in response.json()['mensagem'].lower()
 
 
+def test_api_update_ata_apresentacao_previa_permitida_apos_reabrir_pc_com_pdf_gerado_previamente(
+    jwt_authenticated_client_a, ata_apresentacao,
+):
+    ata_apresentacao.prestacao_conta = None
+    ata_apresentacao.previa = True
+    ata_apresentacao.status_geracao_pdf = Ata.STATUS_NAO_GERADO
+    ata_apresentacao.pdf_gerado_previamente = True
+    ata_apresentacao.save()
+
+    response = jwt_authenticated_client_a.patch(
+        f'/api/atas-associacao/{ata_apresentacao.uuid}/',
+        data=json.dumps(_payload_edicao_ata()),
+        content_type='application/json',
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert Ata.by_uuid(uuid=ata_apresentacao.uuid).data_reuniao == datetime.date(2020, 6, 20)
+
+
 def test_api_update_ata_apresentacao_permitida_quando_pdf_gerado_e_pc_nao_recebida(
     jwt_authenticated_client_a, ata_apresentacao,
 ):
