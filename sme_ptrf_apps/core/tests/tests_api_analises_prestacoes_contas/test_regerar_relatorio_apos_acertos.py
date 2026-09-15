@@ -3,23 +3,20 @@ import uuid
 
 import pytest
 from rest_framework import status
+
 from sme_ptrf_apps.core.models.tasks_celery import TaskCelery
 
 pytestmark = pytest.mark.django_db
 
 
-def test_regerar_previa_relatorio_apos_acertos(
+def test_regerar_relatorio_apos_acertos(
     jwt_authenticated_client_a,
     analise_prestacao_conta_2020_1_teste_analises_sem_versao,
     conta_associacao_cartao,
     conta_associacao_cheque
 ):
-
     analise_prestacao = analise_prestacao_conta_2020_1_teste_analises_sem_versao.uuid
-    url = (
-        '/api/analises-prestacoes-contas/regerar-previa-relatorio-apos-acertos/'
-        f'?analise_prestacao_uuid={analise_prestacao}'
-    )
+    url = f'/api/analises-prestacoes-contas/regerar-relatorio-apos-acertos/?analise_prestacao_uuid={analise_prestacao}'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
@@ -31,13 +28,13 @@ def test_regerar_previa_relatorio_apos_acertos(
 
     assert response.status_code == status.HTTP_200_OK
     assert resultado_esperado == result
-    assert TaskCelery.objects.filter(nome_task='regerar_previa_relatorio_apos_acertos_v2_async').exists()
+    assert TaskCelery.objects.filter(nome_task='regerar_relatorio_apos_acertos_v2_async').exists()
 
 
-def test_regerar_previa_relatorio_apos_acertos_sem_uuid(
+def test_regerar_relatorio_apos_acertos_sem_uuid(
     jwt_authenticated_client_a,
 ):
-    url = '/api/analises-prestacoes-contas/regerar-previa-relatorio-apos-acertos/'
+    url = '/api/analises-prestacoes-contas/regerar-relatorio-apos-acertos/'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
@@ -46,12 +43,12 @@ def test_regerar_previa_relatorio_apos_acertos_sem_uuid(
     assert result['erro'] == 'parametros_requeridos'
 
 
-def test_regerar_previa_relatorio_apos_acertos_analise_nao_encontrada(
+def test_regerar_relatorio_apos_acertos_analise_nao_encontrada(
     jwt_authenticated_client_a,
 ):
     analise_inexistente = uuid.uuid4()
     url = (
-        f'/api/analises-prestacoes-contas/regerar-previa-relatorio-apos-acertos/'
+        '/api/analises-prestacoes-contas/regerar-relatorio-apos-acertos/'
         f'?analise_prestacao_uuid={analise_inexistente}'
     )
 
@@ -62,10 +59,10 @@ def test_regerar_previa_relatorio_apos_acertos_analise_nao_encontrada(
     assert result['erro'] == 'Objeto não encontrado.'
 
 
-def test_regerar_previa_relatorio_apos_acertos_uuid_invalido(
+def test_regerar_relatorio_apos_acertos_uuid_invalido(
     jwt_authenticated_client_a,
 ):
-    url = '/api/analises-prestacoes-contas/regerar-previa-relatorio-apos-acertos/?analise_prestacao_uuid=uuid-invalido'
+    url = '/api/analises-prestacoes-contas/regerar-relatorio-apos-acertos/?analise_prestacao_uuid=uuid-invalido'
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
     result = json.loads(response.content)
