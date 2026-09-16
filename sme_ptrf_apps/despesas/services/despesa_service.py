@@ -238,10 +238,21 @@ class DespesaService:
     # =====================================================
 
     @staticmethod
+    def _limpar_campos_capital_se_necessario(rateio):
+        if rateio.get("aplicacao_recurso") != APLICACAO_CAPITAL:
+            rateio.update({
+                "quantidade_itens_capital": 0,
+                "valor_item_capital": 0,
+                "nao_exibir_em_rel_bens": False,
+                "numero_processo_incorporacao_capital": "",
+            })
+
+    @staticmethod
     def _criar_rateios(despesa: Despesa, rateios):
         rateios_lista = []
 
         for rateio in rateios:
+            DespesaService._limpar_campos_capital_se_necessario(rateio)
             rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
             rateio["associacao"] = despesa.associacao
             rateio_obj = RateioDespesaCreateSerializer().create(rateio)
@@ -287,6 +298,8 @@ class DespesaService:
                     # REG-013 — MudancaAplicacaoValidator (validate + apply) já cobriu isso
                     # quando a pipeline está ativa: campos já chegam validados e resetados.
                     if not pipeline_ativa:
+                        DespesaService._limpar_campos_capital_se_necessario(rateio)
+
                         aplicacao_anterior = rateio_para_atualizar.aplicacao_recurso
                         nova_aplicacao = rateio.get("aplicacao_recurso")
 
@@ -319,19 +332,10 @@ class DespesaService:
                                             "de Custeio. A especificação atual é de Capital."
                                         )
                                     })
-                                rateio.update({
-                                    "numero_processo_incorporacao_capital": "",
-                                    "quantidade_itens_capital": 0,
-                                    "nao_exibir_em_rel_bens": False,
-                                    "valor_item_capital": 0,
-                                })
+
                             else:
                                 rateio.update({
-                                    "numero_processo_incorporacao_capital": "",
-                                    "quantidade_itens_capital": 0,
                                     "especificacao_material_servico": None,
-                                    "nao_exibir_em_rel_bens": False,
-                                    "valor_item_capital": 0,
                                 })
 
                             logger.info(

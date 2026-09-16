@@ -22,6 +22,40 @@ from sme_ptrf_apps.core.models import (
 pytestmark = pytest.mark.django_db
 
 
+def test_limpar_campos_capital_se_necessario_limpa_campos_de_custeio():
+    rateio = {
+        "aplicacao_recurso": APLICACAO_CUSTEIO,
+        "quantidade_itens_capital": 3,
+        "valor_item_capital": Decimal("120.50"),
+        "nao_exibir_em_rel_bens": True,
+        "numero_processo_incorporacao_capital": "PROC-123",
+    }
+
+    DespesaService._limpar_campos_capital_se_necessario(rateio)
+
+    assert rateio["quantidade_itens_capital"] == 0
+    assert rateio["valor_item_capital"] == 0
+    assert rateio["nao_exibir_em_rel_bens"] is False
+    assert rateio["numero_processo_incorporacao_capital"] == ""
+
+
+def test_limpar_campos_capital_se_necessario_preserva_campos_de_capital():
+    rateio = {
+        "aplicacao_recurso": APLICACAO_CAPITAL,
+        "quantidade_itens_capital": 3,
+        "valor_item_capital": Decimal("120.50"),
+        "nao_exibir_em_rel_bens": True,
+        "numero_processo_incorporacao_capital": "PROC-123",
+    }
+
+    DespesaService._limpar_campos_capital_se_necessario(rateio)
+
+    assert rateio["quantidade_itens_capital"] == 3
+    assert rateio["valor_item_capital"] == Decimal("120.50")
+    assert rateio["nao_exibir_em_rel_bens"] is True
+    assert rateio["numero_processo_incorporacao_capital"] == "PROC-123"
+
+
 @pytest.fixture
 def despesa_com_rateio_capital(
     despesa_factory,
