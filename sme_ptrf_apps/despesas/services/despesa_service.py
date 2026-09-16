@@ -238,7 +238,7 @@ class DespesaService:
     # =====================================================
 
     @staticmethod
-    def _limpar_campos_capital_se_necessario(rateio):
+    def _limpar_campos_capital_diferente_de_capital(rateio):
         if rateio.get("aplicacao_recurso") != APLICACAO_CAPITAL:
             rateio.update({
                 "quantidade_itens_capital": 0,
@@ -252,7 +252,7 @@ class DespesaService:
         rateios_lista = []
 
         for rateio in rateios:
-            DespesaService._limpar_campos_capital_se_necessario(rateio)
+            DespesaService._limpar_campos_capital_diferente_de_capital(rateio)
             rateio["eh_despesa_sem_comprovacao_fiscal"] = despesa.eh_despesa_sem_comprovacao_fiscal
             rateio["associacao"] = despesa.associacao
             rateio_obj = RateioDespesaCreateSerializer().create(rateio)
@@ -298,7 +298,7 @@ class DespesaService:
                     # REG-013 — MudancaAplicacaoValidator (validate + apply) já cobriu isso
                     # quando a pipeline está ativa: campos já chegam validados e resetados.
                     if not pipeline_ativa:
-                        DespesaService._limpar_campos_capital_se_necessario(rateio)
+                        DespesaService._limpar_campos_capital_diferente_de_capital(rateio)
 
                         aplicacao_anterior = rateio_para_atualizar.aplicacao_recurso
                         nova_aplicacao = rateio.get("aplicacao_recurso")
