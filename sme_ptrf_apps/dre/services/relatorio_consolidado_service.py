@@ -262,6 +262,29 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
     return dados
 
 
+def total_devolucoes_ao_tesouro_sem_duplicidade(
+    dre,
+    periodo,
+    apenas_nao_publicadas=False,
+    consolidado_dre=None
+):
+    """Soma cada devolução uma vez, independentemente dos tipos de conta da despesa."""
+    filtros = {
+        'prestacao_conta__periodo': periodo,
+        'prestacao_conta__associacao__unidade__dre': dre,
+        'prestacao_conta__status__in': ['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+    }
+
+    if consolidado_dre:
+        filtros['prestacao_conta__consolidado_dre'] = consolidado_dre
+    elif apenas_nao_publicadas:
+        filtros['prestacao_conta__publicada'] = False
+
+    return DevolucaoAoTesouro.objects.filter(**filtros).aggregate(
+        total=Sum('valor')
+    )['total'] or 0
+
+
 def informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=False, consolidado_dre=None):
     def _totalizador_zerado():
         return {
