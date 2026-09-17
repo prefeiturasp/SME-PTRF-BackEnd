@@ -571,9 +571,7 @@ class TestAssociacaoPeriodoTemPc:
         assert resultado is True
 
 
-# ---------------------------------------------------------------------------
 # processa_repasse
-# ---------------------------------------------------------------------------
 @pytest.fixture
 def arquivo_mock(arquivo_factory):
     return arquivo_factory(

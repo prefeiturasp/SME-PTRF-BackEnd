@@ -46,7 +46,7 @@ class CargosComposicoesVacanciaViewSet(WaffleFlagMixin,
         return CargoComposicaoVacanciaSerializer
 
     def _get_composicao_vacancia_ou_404(self, composicao_uuid: str) -> ComposicaoVacancia:
-        """ Busca Composição por uuid, convertendo erro em Http404, evita erro para DoesNotExist """
+        """Busca a ComposicaoVacancia por uuid, convertendo DoesNotExist/uuid inválido em Http404."""
         try:
             return ComposicaoVacancia.by_uuid(composicao_uuid)
         except (ComposicaoVacancia.DoesNotExist, ValidationError):
@@ -55,7 +55,7 @@ class CargosComposicoesVacanciaViewSet(WaffleFlagMixin,
     @action(detail=False, methods=['get'], url_path='composicao-vigente',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def composicao_vigente(self, request):
-        """ Inicialização da composição vigente """
+        """Retorna o uuid da ComposicaoVacancia do par (associação, mandato), criando-a se necessário."""
         associacao = Associacao.by_uuid(request.query_params.get('associacao_uuid'))
         mandato = Mandato.by_uuid(request.query_params.get('mandato_uuid'))
 
@@ -68,6 +68,7 @@ class CargosComposicoesVacanciaViewSet(WaffleFlagMixin,
     @action(detail=True, methods=['post'], url_path='registrar-saida',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def registrar_saida(self, request, uuid=None):
+        """Registra a saída do ocupante vigente do cargo, a partir da data_saida do payload."""
         cargo_composicao_vacancia = self.get_object()
 
         serializer = RegistrarSaidaSerializer(data=request.data)
@@ -89,8 +90,7 @@ class CargosComposicoesVacanciaViewSet(WaffleFlagMixin,
     @action(detail=False, methods=['get'], url_path='composicao-por-data',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def composicao_por_data(self, request):
-        """ retorna a composição por composicao_uuid ou associacao_uuid+data """
-
+        """Retorna o snapshot da composição (por cargo) resolvida por composicao_uuid ou associacao_uuid+data."""
         composicao_vacancia = ServicoHistoricoCargoComposicao.get_composicao_vacancia_por_uuid_ou_associacao_e_data(
             composicao_uuid=request.query_params.get('composicao_uuid'),
             associacao_uuid=request.query_params.get('associacao_uuid'),
@@ -115,6 +115,7 @@ class CargosComposicoesVacanciaViewSet(WaffleFlagMixin,
     @action(detail=False, methods=['get'], url_path='datas-de-alteracao',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def datas_de_alteracoes_na_composicao(self, request):
+        """Retorna as datas (marcos) de alteração da composição."""
         composicao_vacancia = self._get_composicao_vacancia_ou_404(request.query_params.get('composicao_uuid'))
 
         datas = ServicoHistoricoCargoComposicao.get_datas_de_alteracao_da_composicao(composicao_vacancia)
@@ -124,6 +125,7 @@ class CargosComposicoesVacanciaViewSet(WaffleFlagMixin,
     @action(detail=True, methods=['patch'], url_path='cancelar-saida',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def cancelar_saida(self, request, uuid=None):
+        """Reverte a saída do registro, devolvendo-o ao estado vigente."""
         cargo_composicao_vacancia = self.get_object()
 
         try:
@@ -139,6 +141,7 @@ class CargosComposicoesVacanciaViewSet(WaffleFlagMixin,
     @action(detail=True, methods=['patch'], url_path='corrigir-saida',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def corrigir_data_saida(self, request, uuid=None):
+        """Corrige a data de uma saída já registrada, a partir da data_saida do payload."""
         cargo_composicao_vacancia = self.get_object()
 
         serializer = RegistrarSaidaSerializer(data=request.data)
@@ -160,9 +163,9 @@ class CargosComposicoesVacanciaViewSet(WaffleFlagMixin,
     @action(detail=False, methods=['get'], url_path='timeline',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def timeline(self, request):
-        """ GET /timeline/?composicao_uuid=...&cargo_associacao_uuid=...
-            histórico completo de um cargo, ordenado por data.
+        """Retorna o histórico completo de um cargo (ocupados e vagos), ordenado por data.
 
+        Query params: composicao_uuid, cargo_associacao_uuid.
         """
         composicao_vacancia = self._get_composicao_vacancia_ou_404(request.query_params.get('composicao_uuid'))
         registros = ServicoHistoricoCargoComposicao.get_timeline_do_cargo(
@@ -178,8 +181,10 @@ class CargosComposicoesVacanciaViewSet(WaffleFlagMixin,
     @action(detail=False, methods=['get'], url_path='cargos-da-composicao',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def cargos_da_composicao(self, request):
-        """ GET /cargos-da-composicao/?composicao_uuid=...&data=...
-            monta os cargos da composicao no mesmo formato adaptáveis para a transição v2 frontend """
+        """Monta os cargos da composição no formato consumido pelo frontend da v2.
+
+        Query params: composicao_uuid, data (opcional, padrão hoje).
+        """
         composicao_vacancia = self._get_composicao_vacancia_ou_404(request.query_params.get('composicao_uuid'))
 
         cargos = ServicoHistoricoCargoComposicao.monta_cargos_da_composicao(
@@ -192,6 +197,7 @@ class CargosComposicoesVacanciaViewSet(WaffleFlagMixin,
     @action(detail=True, methods=['patch'], url_path='cancelar-entrada',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
     def cancelar_entrada(self, request, uuid=None):
+        """Desfaz a entrada vigente do cargo, restaurando o estado anterior."""
         cargo_composicao_vacancia = self.get_object()
 
         try:

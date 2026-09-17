@@ -16,6 +16,7 @@ class ValidacaoPaaDre(serializers.ValidationError):
 
 
 class PaaDreService:
+    """Consulta PAAs, unidades e filtros relacionados a uma DRE."""
 
     @staticmethod
     def _obter_dre(unidade_dre_uuid: str) -> Unidade:
@@ -70,6 +71,13 @@ class PaaDreService:
     def _get_associacoes(dre: Unidade, filtros: Dict) -> QuerySet[Associacao]:
         """
         Retorna queryset de associações da DRE aplicando filtros.
+
+        Args:
+            dre: Unidade que representa a DRE.
+            filtros: Filtros de unidades e tipos de unidade.
+
+        Returns:
+            QuerySet ordenado de associações ativas.
         """
         qs: QuerySet[Associacao] = (
             Associacao.ativas
@@ -87,8 +95,13 @@ class PaaDreService:
 
     @staticmethod
     def _get_periodos(filtros: Dict) -> QuerySet[PeriodoPaa]:
-        """
-        Retorna queryset de períodos aplicando filtros.
+        """Obtém períodos PAA aplicando o filtro de período, quando informado.
+
+        Args:
+            filtros: Filtros de períodos da consulta.
+
+        Returns:
+            QuerySet de períodos ordenado pela data inicial decrescente.
         """
         qs: QuerySet[PeriodoPaa] = PeriodoPaa.objects.all()
 
@@ -103,8 +116,15 @@ class PaaDreService:
         periodos: QuerySet[PeriodoPaa],
         filtro_status: Optional[List[str]]
     ) -> QuerySet[Paa]:
-        """
-        Retorna queryset de PAAs filtrados.
+        """Obtém PAAs relacionados às associações e períodos informados.
+
+        Args:
+            associacoes: Associações que limitam a consulta.
+            periodos: Períodos que limitam a consulta.
+            filtro_status: Status usados para filtrar os PAAs ou None.
+
+        Returns:
+            QuerySet de PAAs filtrados.
         """
         qs: QuerySet[Paa] = (
             Paa.objects
@@ -119,8 +139,13 @@ class PaaDreService:
 
     @staticmethod
     def _mapear_paas(paas: QuerySet[Paa]) -> Dict[Tuple[int, int], Paa]:
-        """
-        Cria um mapa de PAAs para acesso rápido.
+        """Mapeia cada PAA pela associação e pelo período correspondentes.
+
+        Args:
+            paas: PAAs que serão indexados.
+
+        Returns:
+            Mapa cuja chave é formada pelos IDs da associação e do período.
         """
         return {
             (p.associacao_id, p.periodo_paa_id): p
@@ -132,8 +157,14 @@ class PaaDreService:
         associacao: Associacao,
         periodo: PeriodoPaa
     ) -> Dict:
-        """
-        Monta estrutura de resposta para PAA não iniciado.
+        """Monta estrutura de resposta para PAA não iniciado.
+
+        Args:
+            associacao: Associação da unidade que não possui PAA.
+            periodo: Período ao qual a combinação pertence.
+
+        Returns:
+            Dicionário com os dados da unidade, do período e o status não iniciado.
         """
         return {
             'uuid': None,
@@ -160,8 +191,13 @@ class PaaDreService:
 
     @staticmethod
     def _deve_incluir_nao_iniciado(filtro_status: Optional[List[str]]) -> bool:
-        """
-        Define se deve incluir registros de PAA não iniciado.
+        """Define se deve incluir registros de PAA não iniciado.
+
+        Args:
+            filtro_status: Status filtrados ou None.
+
+        Returns:
+            True quando o status não iniciado deve ser incluído.
         """
         return not filtro_status or PaaStatusEnum.NAO_INICIADO.name in filtro_status
 
@@ -211,12 +247,18 @@ class PaaDreService:
 
     @staticmethod
     def _listar_periodos() -> List[Dict]:
+        """Lista os períodos PAA disponíveis ordenados por referência."""
         return PeriodoPaaSimplesSerializer(PeriodoPaa.objects.all().order_by("-referencia"), many=True).data
 
     @staticmethod
     def _listar_unidades(dre: Unidade) -> List[Dict]:
-        """
-        Lista unidades da DRE a partir das associações ativas.
+        """Lista unidades da DRE a partir das associações ativas.
+
+        Args:
+            dre: Unidade que representa a DRE.
+
+        Returns:
+            Lista de unidades com seus dados para seleção.
         """
         qs = (
             Associacao.ativas
@@ -244,6 +286,7 @@ class PaaDreService:
 
     @staticmethod
     def _listar_tipos_unidade() -> List[Dict]:
+        """Lista os tipos de unidade disponíveis para filtragem."""
         return [
             {"id": key, "nome": value}
             for key, value in TIPOS_CHOICE
@@ -251,6 +294,7 @@ class PaaDreService:
 
     @staticmethod
     def _listar_status() -> List[Dict]:
+        """Lista os status de PAA disponíveis para filtragem."""
         return [
             {"id": status.name, "nome": status.value}
             for status in PaaStatusEnum

@@ -14,9 +14,14 @@ class DesabilitacaoRecursoException(Exception):
 
 
 class OutroRecursoPeriodoDesabilitacaoService(OutroRecursoPeriodoBaseService):
+    """Aplica a desabilitação de um recurso em seus PAAs relacionados."""
 
     def __init__(self, outro_recurso_periodo: OutroRecursoPeriodoPaa) -> None:
-        """Inicializa o service com a instância do recurso de período."""
+        """Inicializa o service com a instância do recurso de período.
+
+        Args:
+            outro_recurso_periodo: Recurso de período que será desabilitado.
+        """
         super().__init__(outro_recurso_periodo)
 
     def aplica_regras_desabilitacao_em_elaboracao(self, paa: Paa) -> Dict:

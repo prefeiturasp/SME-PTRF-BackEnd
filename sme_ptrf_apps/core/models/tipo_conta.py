@@ -17,6 +17,10 @@ class TipoConta(ModeloIdNome):
     numero_cartao = models.CharField('Nº do cartão', max_length=80, blank=True, default='')
     apenas_leitura = models.BooleanField("Apenas Leitura?", default=False)
     permite_inativacao = models.BooleanField("Permite inativação da conta?", default=False)
+    permite_consulta_integracao_bb = models.BooleanField(
+        "Permite consulta via integração com o Banco do Brasil?",
+        default=False
+    )
     recurso = models.ForeignKey(
         "core.Recurso",
         verbose_name="Recurso",

@@ -121,9 +121,7 @@ def test_nao_retorna_acoes_de_outra_associacao(paa, acao_assoc_outra_associacao)
     assert acao_assoc_outra_associacao not in resultado
 
 
-# ---------------------------------------------------------------------------
 # obter_pdde
-# ---------------------------------------------------------------------------
 
 @pytest.fixture
 def acao_pdde_ativa(acao_pdde_factory):
@@ -185,9 +183,7 @@ def test_obter_pdde_retorna_queryset_vazio_sem_acoes_validas(paa, acao_pdde_inat
     assert resultado.count() == 0
 
 
-# ---------------------------------------------------------------------------
 # obter_outros_recursos_periodo
-# ---------------------------------------------------------------------------
 
 @pytest.fixture
 def flag_paa_retificacao(flag_factory):

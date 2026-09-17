@@ -28,6 +28,7 @@ class TipoContaSerializer(serializers.ModelSerializer):
             'numero_cartao',
             'apenas_leitura',
             'permite_inativacao',
+            'permite_consulta_integracao_bb',
             'recurso',
             'recurso_completo'
         )

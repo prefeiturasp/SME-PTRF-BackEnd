@@ -106,11 +106,11 @@ class ExportacaoDadosRepassesService:
     def monta_dados(self):
         linhas_vertical = []
 
-        for instance in self.queryset:
+        for instance in self.queryset.iterator(chunk_size=2000):
             logger.info(f"Iniciando extração de dados de repasses, id: {instance.id}.")
 
             if not Repasse.objects.filter(id=instance.id).exists():
-                logger.info(f"Este registro não existe mais na base de dados, portanto será pulado")
+                logger.info("Este registro não existe mais na base de dados, portanto será pulado")
                 continue
 
             linha_horizontal = []
@@ -222,7 +222,7 @@ class ExportacaoDadosRepassesService:
         return self.queryset
 
     def cria_registro_central_download(self):
-        logger.info(f"Criando registro na central de download")
+        logger.info("Criando registro na central de download")
 
         obj = gerar_arquivo_download(
             self.user,

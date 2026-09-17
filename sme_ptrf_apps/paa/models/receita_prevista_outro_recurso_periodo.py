@@ -7,7 +7,7 @@ from django.db import models
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
-from sme_ptrf_apps.paa.models import Paa, OutroRecursoPeriodoPaa
+from sme_ptrf_apps.paa.models import Paa, OutroRecursoPeriodoPaa, OutroRecurso
 
 
 class ReceitaPrevistaOutroRecursoPeriodo(ModeloBase):
@@ -37,7 +37,7 @@ class ReceitaPrevistaOutroRecursoPeriodo(ModeloBase):
         return self.paa.associacao.unidade.nome
     unidade_nome.short_description = "Unidade"
 
-    def outro_recurso_objeto(self) -> "ReceitaPrevistaOutroRecursoPeriodo":
+    def outro_recurso_objeto(self) -> "OutroRecurso":
         """Retorna o objeto do outro recurso vinculado ao período."""
         return self.outro_recurso_periodo.outro_recurso
 
