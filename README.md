@@ -1,5 +1,5 @@
 <!-- BADGES:START -->
-![version](https://img.shields.io/badge/version-9.46.0-blue) ![python](https://img.shields.io/badge/python-3.12.9-blue) ![coverage](https://img.shields.io/badge/coverage-78%25-orange)
+![version](https://img.shields.io/badge/version-10.0.0-blue) ![python](https://img.shields.io/badge/python-3.12.9-blue) ![coverage](https://img.shields.io/badge/coverage-81%25-green)
 <!-- BADGES:END -->
 
 ## PTRF - Sistema de Gestão de Recursos Educacionais
