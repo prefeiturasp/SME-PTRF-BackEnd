@@ -62,7 +62,8 @@ from sme_ptrf_apps.paa.fixtures.factories import (
     ReceitaPrevistaPddeFactory, PrioridadePaaFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory,
     AtaPaaFactory, ParticipanteAtaPaaFactory, AtividadeEstatutariaPaaFactory,
     OutroRecursoFactory, DocumentoPaaFactory, OutroRecursoPeriodoFactory,
-    ReceitaPrevistaOutroRecursoPeriodoFactory, ModeloCargaPaaFactory, ReplicaPaaFactory
+    ReceitaPrevistaOutroRecursoPeriodoFactory, ModeloCargaPaaFactory, ReplicaPaaFactory,
+    LogReplicaPaaFactory
 )
 from sme_ptrf_apps.situacao_patrimonial.fixtures.factories import (
     BemProduzidoFactory,
@@ -97,7 +98,7 @@ factories_to_register = [
     PDFFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory, AtaPaaFactory, ParticipanteAtaPaaFactory,
     AtividadeEstatutariaPaaFactory, OutroRecursoFactory, DocumentoPaaFactory, OutroRecursoPeriodoFactory,
     ReceitaPrevistaOutroRecursoPeriodoFactory, RecursoFactory, PeriodoInicialAssociacaoFactory,
-    ModeloCargaPaaFactory, ReplicaPaaFactory, ComissaoFactory,
+    ModeloCargaPaaFactory, ReplicaPaaFactory, ComissaoFactory, LogReplicaPaaFactory
 ]
 
 for factory in factories_to_register:
@@ -3228,6 +3229,7 @@ def receita_prevista_paa(acao_associacao, paa):
         previsao_valor_livre=3000.0
     )
 
+
 @pytest.fixture
 def recurso_esperado():
     def _recurso_esperado(recurso):
@@ -3251,7 +3253,8 @@ def recurso_esperado():
                 "letra_b": recurso.get_fixed_text_texto_letra("B"),
                 "letra_c": recurso.get_fixed_text_texto_letra("C"),
                 "letra_d": recurso.get_fixed_text_texto_letra("D"),
-            }
+            },
+            "existe_saldo_reprogramado": recurso.existe_saldo_reprogramado
         }
 
     return _recurso_esperado

@@ -10,6 +10,7 @@ from django.dispatch import receiver
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
+from datetime import datetime
 
 
 class DocumentoPaa(ModeloBase):
@@ -61,6 +62,8 @@ class DocumentoPaa(ModeloBase):
         default=False,
         help_text="Identifica se o documento é gerado por uma retificação"
     )
+
+    gerado_em = models.DateTimeField('Gerado em', blank=True, null=True)
 
     def __str__(self) -> str:
         """Retorna uma representação textual da atividade com a label do
@@ -121,11 +124,13 @@ class DocumentoPaa(ModeloBase):
     def arquivo_em_processamento(self) -> None:
         """Marca o documento como em processamento, indicando que a geração está em andamento."""
         self.status_geracao = DocumentoPaa.StatusChoices.EM_PROCESSAMENTO
+        self.gerado_em = datetime.now()
         self.save()
 
     def arquivo_em_erro_processamento(self) -> None:
         """Marca o documento como com erro no processamento, indicando que a geração falhou."""
         self.status_geracao = DocumentoPaa.StatusChoices.ERRO_PROCESSAMENTO
+        self.gerado_em = None
         self.save()
 
 

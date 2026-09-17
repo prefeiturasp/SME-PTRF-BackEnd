@@ -11,3 +11,4 @@ from .cargo_composicao_vacancia_serializer import (
     CargoComposicaoVacanciaSerializer,
     CargoComposicaoVacanciaEditarOcupanteSerializer
 )
+from .mandato_vacancia_serializer import MandatoVacanciaSerializer

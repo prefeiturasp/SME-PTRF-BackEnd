@@ -2,19 +2,27 @@ import logging
 
 from celery import shared_task
 from sme_ptrf_apps.core.models.demonstrativo_financeiro import DemonstrativoFinanceiro
-from sme_ptrf_apps.sme.services.exporta_demonstrativos_financeiros_service import ExportaDemonstrativosFinanceirosService
+from sme_ptrf_apps.sme.services.exporta_demonstrativos_financeiros_service import (
+    ExportaDemonstrativosFinanceirosService
+)
 
 logger = logging.getLogger(__name__)
+
 
 @shared_task(
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
-    time_limet=600,
-    soft_time_limit=30000
+    time_limit=7400,
+    soft_time_limit=7200
 )
 def exportar_demonstativos_financeiros_async(data_inicio, data_final, username, dre_uuid=None):
     logger.info("Exportando csv em processamento...")
 
+    SELECT_RELATED = (
+        'conta_associacao__associacao__unidade__dre',
+        'conta_associacao__tipo_conta__recurso',
+        'prestacao_conta__periodo',
+    )
     dre_codigo_eol = None
     if dre_uuid:
         from sme_ptrf_apps.core.models.unidade import Unidade
@@ -23,12 +31,14 @@ def exportar_demonstativos_financeiros_async(data_inicio, data_final, username, 
             dre_codigo_eol = dre.codigo_eol
         except Unidade.DoesNotExist:
             logger.warning(f"DRE com uuid {dre_uuid} não encontrada")
-        
+
         queryset = DemonstrativoFinanceiro.objects.filter(
             conta_associacao__associacao__unidade__dre__uuid=dre_uuid,
-        ).order_by('id')
+        )
     else:
-        queryset = DemonstrativoFinanceiro.objects.all().order_by('id')
+        queryset = DemonstrativoFinanceiro.objects.all()
+
+    queryset = queryset.select_related(*SELECT_RELATED).order_by('id')
 
     try:
         logger.info("Criando arquivo %s pcs_demonstrativos.csv")

@@ -235,6 +235,10 @@ class ResumoPrioridadesService:
             'custeio': 0,
             'capital': 0,
             'livre_aplicacao': 0,
+            'mensagem_saldo_congelado': (
+                'Atualização de saldo da PC bloqueada em ' + self.paa.saldo_congelado_em.strftime('%d/%m/%Y às %H:%M')
+                if self.paa.saldo_congelado_em else ''
+            ),
             'children': []
         }
 

@@ -159,7 +159,9 @@ class RetificacaoPaaService:
         ).only('uuid').first()
 
         return {
-            'uuid': str(documento_original.uuid) if documento_original else None
+            'uuid': str(documento_original.uuid) if documento_original else None,
+            'versao_documento': documento_original.versao_documento if documento_original else None,
+            'versao': documento_original.versao if documento_original else None,
         }
 
     def _snapshot_documento_retificado(self) -> dict:
@@ -181,7 +183,8 @@ class RetificacaoPaaService:
 
         return {
             'uuid': str(documento_retificado.uuid) if documento_retificado else None,
-            'versao_documento': documento_retificado.versao_documento if documento_retificado else None
+            'versao_documento': documento_retificado.versao_documento if documento_retificado else None,
+            'versao': documento_retificado.versao if documento_retificado else None,
         }
 
     def _snapshot_ata_original(self):
@@ -191,7 +194,21 @@ class RetificacaoPaaService:
         ).only('uuid').first()
 
         return {
-            'uuid': str(ata_original.uuid) if ata_original else None
+            'uuid': str(ata_original.uuid) if ata_original else None,
+            'tipo_ata': ata_original.tipo_ata if ata_original else None,
+            'tipo_reuniao': ata_original.tipo_reuniao if ata_original else None,
+            'convocacao': ata_original.convocacao if ata_original else None,
+            'data_reuniao': str(ata_original.data_reuniao) if ata_original else None,
+            'local_reuniao': ata_original.local_reuniao if ata_original else None,
+            'presidente_reuniao': ata_original.presidente_reuniao if ata_original else None,
+            'cargo_presidente_reuniao': ata_original.cargo_presidente_reuniao if ata_original else None,
+            'secretario_reuniao': ata_original.secretario_reuniao if ata_original else None,
+            'cargo_secretaria_reuniao': ata_original.cargo_secretaria_reuniao if ata_original else None,
+            'comentarios': ata_original.comentarios if ata_original else None,
+            'parecer_conselho': ata_original.parecer_conselho if ata_original else None,
+            'preenchida_em': str(ata_original.preenchida_em) if ata_original else None,
+            'hora_reuniao': str(ata_original.hora_reuniao) if ata_original else None,
+            'justificativa': ata_original.justificativa if ata_original else None,
         }
 
     def _snapshot_ata_retificada(self) -> dict:
@@ -212,7 +229,22 @@ class RetificacaoPaaService:
         )
 
         return {
-            'uuid': str(ata_retificada.uuid) if ata_retificada else None
+            'uuid': str(ata_retificada.uuid) if ata_retificada else None,
+            'tipo_ata': ata_retificada.tipo_ata if ata_retificada else None,
+            'tipo_reuniao': ata_retificada.tipo_reuniao if ata_retificada else None,
+            'convocacao': ata_retificada.convocacao if ata_retificada else None,
+            'data_reuniao': str(ata_retificada.data_reuniao) if ata_retificada else None,
+            'local_reuniao': ata_retificada.local_reuniao if ata_retificada else None,
+            'presidente_reuniao': ata_retificada.presidente_reuniao if ata_retificada else None,
+            'cargo_presidente_reuniao': ata_retificada.cargo_presidente_reuniao if ata_retificada else None,
+            'secretario_reuniao': ata_retificada.secretario_reuniao if ata_retificada else None,
+            'cargo_secretaria_reuniao': ata_retificada.cargo_secretaria_reuniao if ata_retificada else None,
+            'comentarios': ata_retificada.comentarios if ata_retificada else None,
+            'parecer_conselho': ata_retificada.parecer_conselho if ata_retificada else None,
+            'preenchida_em': str(ata_retificada.preenchida_em) if ata_retificada else None,
+            'hora_reuniao': str(ata_retificada.hora_reuniao) if ata_retificada else None,
+            'justificativa': ata_retificada.justificativa if ata_retificada else None,
+            'justificativa_retificacao': ata_retificada.justificativa_retificacao if ata_retificada else None,
         }
 
     def gerar_snapshot(self):

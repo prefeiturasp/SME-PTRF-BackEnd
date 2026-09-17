@@ -28,7 +28,8 @@ def test_api_list_tipos_conta(jwt_authenticated_client_a, tipo_conta, recurso_es
             'apenas_leitura': tipo_conta.apenas_leitura,
             'uuid': f'{tipo_conta.uuid}',
             'recurso': f"{tipo_conta.recurso.uuid}",
-            'recurso_completo': recurso_esperado(tipo_conta.recurso)
+            'recurso_completo': recurso_esperado(tipo_conta.recurso),
+            'permite_consulta_integracao_bb': tipo_conta.permite_consulta_integracao_bb
         }
     ]
 

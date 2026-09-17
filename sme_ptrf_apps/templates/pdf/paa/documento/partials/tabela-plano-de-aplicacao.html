@@ -11,7 +11,11 @@
 
             <thead>
               <tr style="background: #f8f9fa;">
-                <th colspan="5" style="padding: 6px;">{{ grupo.titulo }}</th>
+                {% if 'paa-receitas-prevista' in grupo.flag_ativas %}
+                    <th colspan="6" style="padding: 6px;">{{ grupo.titulo }}</th>
+                {% else %}
+                    <th colspan="5" style="padding: 6px;">{{ grupo.titulo }}</th>
+                {% endif %}
               </tr>
 
               <tr style="background: #f8f9fa;">
@@ -19,6 +23,9 @@
                 <th>Tipo de aplicação</th>
                 <th>Tipo de despesa</th>
                 <th>Especificação do bem, material ou serviço</th>
+                {% if 'paa-receitas-prevista' in grupo.flag_ativas %}
+                    <th>Descrição</th>
+                {% endif %}
                 <th class="text-right">Valor total</th>
               </tr>
             </thead>
@@ -37,6 +44,9 @@
                   <td>{{ prioridade.tipo_aplicacao }}</td>
                   <td>{{ prioridade.tipo_despesa_custeio }}</td>
                   <td>{{ prioridade.especificacao_material }}</td>
+                  {% if 'paa-receitas-prevista' in grupo.flag_ativas %}
+                    <td>{{ prioridade.descricao }}</td>
+                  {% endif %}
                   <td class="text-right">{{ prioridade.valor_total|formata_valor }}</td>
                 </tr>
               {% endfor %}
@@ -46,6 +56,7 @@
                 <td></td>
                 <td></td>
                 <td></td>
+                {% if 'paa-receitas-prevista' in grupo.flag_ativas %}<td></td>{% endif %}
                 <td class="text-right">{{ grupo.total|formata_valor }}</td>
               </tr>
             </tbody>

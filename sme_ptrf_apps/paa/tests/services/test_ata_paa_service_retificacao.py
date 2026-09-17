@@ -1,10 +1,10 @@
 import pytest
-from datetime import date, time
+from datetime import date, time, datetime
 from unittest.mock import patch
 
 from model_bakery import baker
 
-from sme_ptrf_apps.paa.models import AtaPaa, LogReplicaPaa
+from sme_ptrf_apps.paa.models import AtaPaa, LogReplicaPaa, DocumentoPaa
 from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.services.ata_paa_service import (
     gerar_arquivo_ata_paa_retificacao,
@@ -169,10 +169,12 @@ class TestValidarGeracaoAtaPaaRetificacao:
 
 
 class TestSalvarLogReplica:
+    # Data de quando a ata foi gerada
+    DATA_GERACAO_ATA = datetime(2026, 9, 4, 14, 30, 0)
 
     def test_cria_log_com_origem_conclusao(self, paa_em_retificacao, replica_padrao):
         """Log deve ser criado com origem CONCLUSAO ao finalizar retificação."""
-        log = _salvar_log_replica(paa=paa_em_retificacao, replica=replica_padrao)
+        log = _salvar_log_replica(paa=paa_em_retificacao, replica=replica_padrao, gerado_em=self.DATA_GERACAO_ATA)
 
         assert LogReplicaPaa.objects.filter(pk=log.pk).exists()
         assert log.origem == LogReplicaPaa.CONCLUSAO
@@ -180,7 +182,7 @@ class TestSalvarLogReplica:
 
     def test_log_preserva_historico_da_replica(self, paa_em_retificacao, replica_padrao):
         """O snapshot do log deve ser o historico completo da réplica."""
-        log = _salvar_log_replica(paa=paa_em_retificacao, replica=replica_padrao)
+        log = _salvar_log_replica(paa=paa_em_retificacao, replica=replica_padrao, gerado_em=self.DATA_GERACAO_ATA)
 
         assert log.replica == replica_padrao.historico
 
@@ -189,7 +191,7 @@ class TestSalvarLogReplica:
         numero_versao_documento deve ser lido e incrementado de historico.documento_retificado.versao_documento.
         pois o log sempre registra o último documento/versão retificado.
         """
-        log = _salvar_log_replica(paa=paa_em_retificacao, replica=replica_padrao)
+        log = _salvar_log_replica(paa=paa_em_retificacao, replica=replica_padrao, gerado_em=self.DATA_GERACAO_ATA)
 
         assert log.numero_versao_documento == 3
 
@@ -200,7 +202,11 @@ class TestSalvarLogReplica:
             historico={'documento_retificado': {}},
         )
 
-        log = _salvar_log_replica(paa=paa_em_retificacao, replica=replica)
+        log = _salvar_log_replica(
+            paa=paa_em_retificacao,
+            replica=replica,
+            gerado_em=self.DATA_GERACAO_ATA
+        )
 
         assert log.numero_versao_documento == 1
 
@@ -208,12 +214,97 @@ class TestSalvarLogReplica:
         """Historico vazio não deve causar erro — versao_documento deve ser 1."""
         replica = replica_paa_factory.create(paa=paa_em_retificacao, historico={})
 
-        log = _salvar_log_replica(paa=paa_em_retificacao, replica=replica)
+        log = _salvar_log_replica(
+            paa=paa_em_retificacao,
+            replica=replica,
+            gerado_em=self.DATA_GERACAO_ATA
+        )
 
         assert log.numero_versao_documento == 1
 
+    def test_salva_data_geracao_da_ata_no_historico(
+        self,
+        paa_em_retificacao,
+        replica_padrao,
+    ):
+        """Deve salvar a data/hora de geração da ata em ata_retificada.gerado_em."""
+        log = _salvar_log_replica(
+            paa=paa_em_retificacao,
+            replica=replica_padrao,
+            gerado_em=self.DATA_GERACAO_ATA,
+        )
+
+        assert (log.replica['ata_retificada']['gerado_em'] == str(self.DATA_GERACAO_ATA))
+
+    def test_salva_data_geracao_do_documento_no_historico(
+        self,
+        paa_em_retificacao,
+        replica_padrao,
+        documento_paa_factory,
+    ):
+        """Deve salvar a data/hora de geração do documento retificado em documento_retificado.gerado_em."""
+        documento_paa_factory.create(
+            paa=paa_em_retificacao,
+            versao=DocumentoPaa.VersaoChoices.FINAL,
+            status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+            retificacao=True,
+            gerado_em=datetime(2026, 9, 4, 15, 45, 0)
+        )
+
+        log = _salvar_log_replica(
+            paa=paa_em_retificacao,
+            replica=replica_padrao,
+            gerado_em=self.DATA_GERACAO_ATA,
+        )
+
+        gerado_em = str(paa_em_retificacao.documento_final.gerado_em)
+
+        assert log.replica['documento_retificado']['gerado_em'] == gerado_em
+
+    def test_nao_salva_data_do_documento_quando_documento_final_nao_existe(
+        self,
+        paa_em_retificacao,
+        replica_paa_factory,
+    ):
+        """Sem documento final, não deve adicionar gerado_em em documento_retificado."""
+        replica = replica_paa_factory.create(
+            paa=paa_em_retificacao,
+            historico={
+                'documento_retificado': {
+                    'uuid': None,
+                    'versao_documento': 2,
+                },
+            },
+        )
+
+        log = _salvar_log_replica(
+            paa=paa_em_retificacao,
+            replica=replica,
+            gerado_em=self.DATA_GERACAO_ATA,
+        )
+
+        assert 'gerado_em' not in log.replica['documento_retificado']
+
+    def test_sempre_atualiza_data_geracao_da_ata(
+        self,
+        paa_em_retificacao,
+        replica_padrao,
+    ):
+        """A data de geração da ata deve ser atualizada com o valor recebido pelo service."""
+        nova_data = datetime(2026, 9, 4, 18, 20, 30)
+
+        log = _salvar_log_replica(
+            paa=paa_em_retificacao,
+            replica=replica_padrao,
+            gerado_em=nova_data,
+        )
+
+        assert log.replica['ata_retificada']['gerado_em'] == str(nova_data)
+
 
 class TestRemoverReplica:
+    # Data de quando a ata foi gerada
+    DATA_GERACAO_ATA = datetime.now()
 
     def test_remove_replica_do_banco(self, replica_padrao):
         """Réplica deve ser deletada do banco após chamada."""
@@ -226,7 +317,7 @@ class TestRemoverReplica:
 
     def test_log_replica_persiste_apos_remocao(self, paa_em_retificacao, replica_padrao):
         """Log salvo antes da remoção deve continuar existindo depois da remoção da réplica."""
-        log = _salvar_log_replica(paa=paa_em_retificacao, replica=replica_padrao)
+        log = _salvar_log_replica(paa=paa_em_retificacao, replica=replica_padrao, gerado_em=self.DATA_GERACAO_ATA)
         _remover_replica(replica=replica_padrao)
 
         assert LogReplicaPaa.objects.filter(pk=log.pk).exists()

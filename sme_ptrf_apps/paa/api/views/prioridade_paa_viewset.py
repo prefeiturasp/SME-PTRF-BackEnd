@@ -237,6 +237,7 @@ class PrioridadePaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelView
         original_data = {
             'paa': str(original.paa.uuid) if original.paa else None,
             'prioridade': int(original.prioridade),
+            'descricao': original.descricao,
             'recurso': original.recurso,
             'outro_recurso': str(original.outro_recurso.uuid) if original.outro_recurso else None,
             'acao_associacao': str(original.acao_associacao.uuid) if original.acao_associacao else None,

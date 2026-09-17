@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 @shared_task(
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
-    time_limet=600,
-    soft_time_limit=30000
+    time_limit=7400,
+    soft_time_limit=7200
 )
 def exportar_materiais_e_servicos_async(data_inicio, data_final, username):
     logger.info("Exportando csv em processamento...")

@@ -7,14 +7,18 @@ from sme_ptrf_apps.sme.services.exporta_status_prestacoes_conta_service import E
 
 logger = logging.getLogger(__name__)
 
+
 @shared_task(
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
-    time_limet=600,
-    soft_time_limit=30000
+    time_limit=7400,
+    soft_time_limit=7200
 )
 def exportar_status_prestacoes_contas_async(data_inicio, data_final, username, dre_uuid):
     logger.info("Exportando csv em processamento...")
+
+    SELECT_RELATED = ('associacao__unidade__dre', 'periodo__recurso')
+    PREFETCH = ('motivos_aprovacao_ressalva', 'motivos_reprovacao')
 
     dre_codigo_eol = None
     if dre_uuid:
@@ -24,12 +28,19 @@ def exportar_status_prestacoes_contas_async(data_inicio, data_final, username, d
             dre_codigo_eol = dre.codigo_eol
         except Unidade.DoesNotExist:
             logger.warning(f"DRE com uuid {dre_uuid} não encontrada")
-        
+
         queryset = PrestacaoConta.objects.filter(
             associacao__unidade__dre__uuid=dre_uuid,
-        ).order_by('criado_em')
+        )
     else:
-        queryset = PrestacaoConta.objects.all().order_by('criado_em')
+        queryset = PrestacaoConta.objects.all()
+
+    queryset = (
+        queryset
+        .select_related(*SELECT_RELATED)
+        .prefetch_related(*PREFETCH)
+        .order_by('criado_em', 'id')
+    )
 
     try:
         logger.info("Criando arquivo %s status_prestacoes_de_contas.csv")

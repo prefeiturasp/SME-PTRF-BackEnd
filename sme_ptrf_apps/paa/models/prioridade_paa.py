@@ -71,6 +71,8 @@ class PrioridadePaa(ModeloBase):
     prioridade = models.BooleanField(
         choices=SimNaoChoices.choices, default=SimNaoChoices.NAO, verbose_name='Prioridade')
 
+    descricao = models.TextField(null=True, blank=True, verbose_name='Descrição')
+
     recurso = models.CharField(
         max_length=20, choices=RecursoOpcoesEnum.choices(), null=True, blank=False)
 

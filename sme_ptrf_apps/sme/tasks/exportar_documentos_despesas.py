@@ -11,13 +11,13 @@ logger = logging.getLogger(__name__)
 @shared_task(
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
-    time_limet=600,
-    soft_time_limit=300000
+    time_limit=7400,
+    soft_time_limit=7200
 )
 def exportar_documentos_despesas_async(data_inicio, data_final, username, dre_uuid):
     logger.info("Exportando csv em processamento...")
 
-    queryset = Despesa.objects
+    queryset = Despesa.objects.all()
 
     dre_codigo_eol = None
     if dre_uuid:
@@ -27,12 +27,22 @@ def exportar_documentos_despesas_async(data_inicio, data_final, username, dre_uu
             dre_codigo_eol = dre.codigo_eol
         except Unidade.DoesNotExist:
             logger.warning(f"DRE com uuid {dre_uuid} não encontrada")
-        
+
         queryset = queryset.filter(
             associacao__unidade__dre__uuid=dre_uuid,
         )
 
-    queryset = queryset.order_by('id').order_by("criado_em")
+    queryset = (
+        queryset
+        .select_related(
+            'associacao__unidade__dre',
+            'recurso',
+            'tipo_documento',
+            'tipo_transacao',
+        )
+        .prefetch_related('motivos_pagamento_antecipado')
+        .order_by('id').order_by("criado_em")
+    )
 
     try:
         logger.info("Criando arquivo %s despesas_documento.csv")

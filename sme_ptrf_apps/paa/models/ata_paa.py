@@ -11,6 +11,7 @@ from django.dispatch import receiver
 from auditlog.models import AuditlogHistoryField
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from waffle import get_waffle_flag_model
+from datetime import datetime
 
 
 class AtaPaa(ModeloBase):
@@ -190,6 +191,8 @@ class AtaPaa(ModeloBase):
         help_text="O PDF já foi gerado e precisa ser regerado quando a ata é editada/apagada"
     )
 
+    gerado_em = models.DateTimeField('Gerado em', blank=True, null=True)
+
     @property
     def nome(self) -> str:
         """Retorna o nome exibido da ata com base no tipo de ata."""
@@ -271,6 +274,7 @@ class AtaPaa(ModeloBase):
 
     def arquivo_pdf_iniciar(self) -> None:
         """Atualiza a ata para o status de geração em processamento."""
+        self.gerado_em = datetime.now()
         self.status_geracao_pdf = self.STATUS_EM_PROCESSAMENTO
         self.save()
 
@@ -284,6 +288,7 @@ class AtaPaa(ModeloBase):
     def arquivo_pdf_nao_gerado(self) -> None:
         """Reverte a ata para o status de PDF ainda não gerado."""
         self.status_geracao_pdf = self.STATUS_NAO_GERADO
+        self.gerado_em = None
         self.save()
 
     @classmethod
