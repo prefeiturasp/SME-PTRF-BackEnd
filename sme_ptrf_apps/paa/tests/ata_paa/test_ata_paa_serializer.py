@@ -601,6 +601,64 @@ def test_update_ata_paa_define_novo_secretario_sem_flag_historico_membros(ata_pa
     assert ata_paa_atualizada.secretario_da_reuniao.nome == 'Maria Santos'
 
 
+def test_validate_data_reuniao_com_data_futura_invalida(paa):
+    """Testa que data_reuniao posterior à data de hoje é inválida"""
+    data_futura = date.today() + timedelta(days=1)
+
+    serializer = AtaPaaCreateSerializer(data={
+        'paa': paa.uuid,
+        'data_reuniao': data_futura,
+    })
+
+    assert serializer.is_valid() is False
+    assert 'data_reuniao' in serializer.errors
+    assert str(serializer.errors['data_reuniao'][0]) == (
+        "A data da reunião não pode ser posterior à data de hoje."
+    )
+
+
+def test_validate_data_reuniao_com_data_igual_a_hoje_valida(paa):
+    """Testa que data_reuniao igual à data de hoje é válida"""
+    serializer = AtaPaaCreateSerializer(data={
+        'paa': paa.uuid,
+        'data_reuniao': date.today(),
+    })
+
+    assert serializer.is_valid() is True
+    assert 'data_reuniao' not in serializer.errors
+
+
+def test_validate_data_reuniao_com_data_passada_valida(paa):
+    """Testa que data_reuniao anterior à data de hoje é válida"""
+    data_passada = date.today() - timedelta(days=1)
+
+    serializer = AtaPaaCreateSerializer(data={
+        'paa': paa.uuid,
+        'data_reuniao': data_passada,
+    })
+
+    assert serializer.is_valid() is True
+
+
+def test_validate_data_reuniao_com_valor_none_valida(paa):
+    """Testa que data_reuniao com valor None é válida, pois o campo permite null"""
+    serializer = AtaPaaCreateSerializer(data={
+        'paa': paa.uuid,
+        'data_reuniao': None,
+    })
+
+    assert serializer.is_valid() is True
+
+
+def test_validate_data_reuniao_nao_informada_valida(paa):
+    """Testa que a ausência de data_reuniao é válida, pois o campo não é obrigatório"""
+    serializer = AtaPaaCreateSerializer(data={
+        'paa': paa.uuid,
+    })
+
+    assert serializer.is_valid() is True
+
+
 @patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.get_waffle_flag_model')
 def test_update_ata_paa_define_novo_secretario_com_flag_historico(mock_waffle, ata_paa):
     mock_flag_model = MagicMock()
