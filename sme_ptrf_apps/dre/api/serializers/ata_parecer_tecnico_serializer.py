@@ -37,7 +37,8 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
 
     periodo = PeriodoLookUpSerializer(many=False)
 
-    presentes_na_ata = PresentesAtaDreSerializer(many=True)
+    # presentes_na_ata = PresentesAtaDreSerializer(many=True)
+    presentes_na_ata = serializers.SerializerMethodField()
 
     versao = serializers.SerializerMethodField('get_versao')
 
@@ -76,6 +77,28 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
 
     def get_eh_portaria_publicada(self, obj):
         return obj.eh_portaria_publicada()
+
+    def get_presentes_na_ata(self, obj):
+        request = self.context.get('request')
+        recurso = getattr(request, 'recurso', None)
+
+        presentes = obj.presentes_na_ata.all()
+
+        from sme_ptrf_apps.dre.models import MembroComissao
+
+        if recurso:
+            membros_rf = MembroComissao.objects.filter(
+                comissoes__recursos=recurso,
+                comissoes__responsavel_analise_pc=True
+            ).values_list('rf', flat=True)
+
+            presentes = presentes.filter(rf__in=membros_rf)
+
+        return PresentesAtaDreSerializer(
+            presentes,
+            many=True,
+            context=self.context,
+        ).data
 
     class Meta:
         model = AtaParecerTecnico

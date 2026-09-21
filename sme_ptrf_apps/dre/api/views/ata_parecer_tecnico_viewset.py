@@ -298,6 +298,7 @@ class AtaParecerTecnicoViewset(viewsets.ModelViewSet):
             usar_snapshot=True,
             congelar_snapshot=False,
             origem='TELA',
+            recurso=request.recurso
         )
 
         return Response(info)
