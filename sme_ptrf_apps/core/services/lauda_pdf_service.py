@@ -52,7 +52,9 @@ def _montar_titulos_publicacao_lauda(lauda, parcial):
         if seq_num is not None:
             titulo_sequencia_publicacao = f"Lauda referente à Parcial #{seq_num}"
         else:
-            titulo_sequencia_publicacao = f"Lauda referente à retificação {text_possessive_lower_document_consolidado_pc}"
+            titulo_sequencia_publicacao = (
+                f"Lauda referente à retificação {text_possessive_lower_document_consolidado_pc}"
+            )
     elif eh_parcial == "Parcial":
         public_type_param = text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL
         text_sequencial = text_document_consolidado_pc.text_sequencial(
@@ -71,10 +73,14 @@ def _montar_titulos_publicacao_lauda(lauda, parcial):
             pagina = getattr(cons_ret, "pagina_publicacao", None) or "-"
             text_possessive_upper_document_consolidado_pc = text_document_consolidado_pc.possessive(case="upper")
             titulo_retificacao = (
-                f"RETIFICAÇÃO {text_possessive_upper_document_consolidado_pc} DO DOC {formata_data_publicacao(lauda.consolidado_dre)} "
+                f"RETIFICAÇÃO {text_possessive_upper_document_consolidado_pc} "
+                f"DO DOC {formata_data_publicacao(lauda.consolidado_dre)} "
                 f"- PÁGINA {pagina}"
             )
-            subtitulo_retificacao = "LEIA-SE COMO SEGUE E NÃO COMO CONSTOU:"
+            subtitulo_retificacao = (
+                "Para a(s) associação(ões) listada(s) a seguir, "
+                "leia-se como segue e não como constou:"
+            )
 
     return {
         "titulo_sequencia_publicacao": titulo_sequencia_publicacao,
