@@ -2,7 +2,7 @@ import datetime
 import logging
 from sme_ptrf_apps.core.models import PrestacaoConta
 from django.db import transaction
-from sme_ptrf_apps.dre.models import PresenteAtaDre, AtaParecerTecnicoSnapshot, AtaParecerTecnico
+from sme_ptrf_apps.dre.models import PresenteAtaDre, AtaParecerTecnicoSnapshot, AtaParecerTecnico, MembroComissao
 from sme_ptrf_apps.dre.services.ata_pdf_parecer_tecnico_service import gerar_arquivo_ata_parecer_tecnico_pdf
 from sme_ptrf_apps.core.services.ata_dados_service import data_por_extenso
 from sme_ptrf_apps.core.services.dados_demo_financeiro_service import formata_data
@@ -76,6 +76,7 @@ def obter_payload_ata(
     usar_snapshot=True,
     congelar_snapshot=False,
     origem=AtaParecerTecnicoSnapshot.ORIGEM_TELA,
+    recurso=None
 ):
     snapshot = None
     if usar_snapshot and ata_de_parecer_tecnico:
@@ -90,6 +91,7 @@ def obter_payload_ata(
         ata_de_parecer_tecnico=ata_de_parecer_tecnico,
         usuario=usuario,
         parcial=parcial,
+        recurso=recurso,
     )
 
     if congelar_snapshot and ata_de_parecer_tecnico:
@@ -142,7 +144,7 @@ def gerar_arquivo_ata_parecer_tecnico(
         return None
 
 
-def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre(dre, periodo, ata_de_parecer_tecnico=None, usuario=None, parcial=None):
+def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre(dre, periodo, ata_de_parecer_tecnico=None, usuario=None, parcial=None, recurso=None):
     from sme_ptrf_apps.dre.services.consolidado_dre_service import TextDocumentConsolidadoPC
     from sme_ptrf_apps.dre.models import Comissao
 
@@ -215,7 +217,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         "letra_d": recurso.get_fixed_text_texto_letra("D")
     }
     presentes_na_ata = {
-        "presentes": get_presentes_na_ata(ata_de_parecer_tecnico)
+        "presentes": get_presentes_na_ata(ata_de_parecer_tecnico, recurso)
     }
 
     lista_aprovadas = []  # Lista usada para separar por status aprovada
@@ -353,18 +355,33 @@ def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre(
     return resultado
 
 
-def get_presentes_na_ata(ata):
+def get_presentes_na_ata(ata, recurso=None):
     ata_id = ata.id if ata and ata.id else None
+
     presentes_na_ata = []
 
     if ata_id:
-        queryset_presentes_na_ata = PresenteAtaDre.objects.filter(ata=ata_id)
+        queryset_presentes_na_ata = PresenteAtaDre.objects.filter(
+            ata=ata_id
+        )
+
+        if recurso:
+            membros_rf = MembroComissao.objects.filter(
+                comissoes__recursos=recurso,
+                comissoes__responsavel_analise_pc=True
+            ).values_list('rf', flat=True)
+
+            queryset_presentes_na_ata = queryset_presentes_na_ata.filter(
+                rf__in=membros_rf
+            )
+
         for presente in queryset_presentes_na_ata:
             dados_presentes = {
                 "nome": presente.nome if presente.nome else "",
                 "rf": presente.rf if presente.rf else "",
-                "cargo": presente.cargo if presente.cargo else ""
+                "cargo": presente.cargo if presente.cargo else "",
             }
+
             presentes_na_ata.append(dados_presentes)
 
     return presentes_na_ata
