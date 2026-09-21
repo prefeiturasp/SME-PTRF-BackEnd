@@ -135,11 +135,9 @@ class ExportacoesRateiosService:
     def monta_dados(self):
         linhas_vertical = []
 
+        logger.info("Iniciando extração de dados de rateios.")
+
         for instance in self.queryset.iterator(chunk_size=2000):
-            logger.info(
-                "Iniciando extração de dados de rateios, rateio id: %s.",
-                instance.id,
-            )
 
             if not RateioDespesa.objects.filter(id=instance.id).exists():
                 logger.info(
@@ -323,17 +321,9 @@ class ExportacoesRateiosService:
                 campo = get_recursive_attr(instance, campo)
                 linha_horizontal.append(campo)
 
-            logger.info(
-                "Escrevendo linha %s de rateios, rateio id: %s.",
-                linha_horizontal,
-                instance.id,
-            )
             linhas_vertical.append(linha_horizontal)
-            logger.info(
-                "Finalizando extração de dados de rateios, rateio id: %s.",
-                instance.id,
-            )
 
+        logger.info("Finalizando extração de dados de rateios.")
         return linhas_vertical
 
     def filtra_range_data(self, field) -> QuerySet:

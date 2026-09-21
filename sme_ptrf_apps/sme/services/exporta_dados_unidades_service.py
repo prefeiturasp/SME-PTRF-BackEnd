@@ -110,8 +110,9 @@ class ExportacoesDadosUnidadesService:
 
     def monta_dados(self):
         linhas_vertical = []
+
+        logger.info("Iniciando extração de unidades.")
         for instance in self.queryset:
-            logger.info(f"Iniciando extração de unidades, uuid: {instance.uuid}.")
 
             if not Unidade.objects.filter(uuid=instance.uuid).exists():
                 logger.info("Este registro não existe mais na base de dados, portanto será pulado")
@@ -124,9 +125,9 @@ class ExportacoesDadosUnidadesService:
                 valor_tratado = tratamento(valor)
                 linha_horizontal.append(valor_tratado)
 
-            logger.info(f"Escrevendo linha {linha_horizontal} de unidades, uuid: {instance.uuid}.")
             linhas_vertical.append(linha_horizontal)
 
+        logger.info("Finalizando extração de unidades.")
         return linhas_vertical
 
     def filtra_range_data(self, field) -> QuerySet:
