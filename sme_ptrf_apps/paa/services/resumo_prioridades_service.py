@@ -22,6 +22,31 @@ class ResumoPrioridadesService:
         self.paa = paa
         self._resumo_prioridades_cache = None
 
+    @staticmethod
+    def _to_decimal_or_none(valor):
+        """Converte valor para Decimal, preservando None (saldo não congelado)."""
+        if valor is None or valor == '':
+            return None
+        return Decimal(valor)
+
+    def calcular_saldos_congelado_atual_previsao(self, congelado, atual, previsao) -> Decimal:
+        """
+        Soma o saldo reprogramado com a previsão da receita.
+
+        Quando o PAA está com saldo congelado, usa o valor congelado — inclusive zero.
+        
+        - Decimal(0) é um congelamento válido e não deve cair para o saldo atual.
+
+        - Sem congelamento (None), usa o saldo atual da ação.
+        """
+        previsao_valor = Decimal(previsao or 0)
+        saldo_atual = Decimal(atual or 0)
+
+        if self.paa.saldo_congelado_em is not None and congelado is not None:
+            return Decimal(congelado) + previsao_valor
+
+        return saldo_atual + previsao_valor
+
     def calcula_saldos(self, key, receitas, despesas) -> dict:
         """
             Calcula os saldos com base nas receitas e despesas.
@@ -109,25 +134,6 @@ class ResumoPrioridadesService:
                 receitas_previstas_paa = receitas_previstas_paa[0] if len(receitas_previstas_paa) else {}
                 return receitas_previstas_paa
 
-            def calcular_saldos_congelado_atual_previsao(congelado, atual, previsao) -> Decimal:
-                """
-                    Calcula o valor somado de saldo congelado, saldo atual e previsão.
-
-                    Prioriza o valor de saldo congelado (se congelado).
-                    Considera saldo atual quando não houver saldo congelado.
-                    Acresce o valor previsão.
-
-                    :param congelado: saldo congelado
-                    :param atual: saldo atual
-                    :param previsao: valor de previsão
-                    :return: soma de (saldo congelado ou saldo atual) e previsão
-                """
-                previsao_valor = Decimal(previsao)
-                saldo_congelado = Decimal(congelado)
-                saldo_atual = Decimal(atual)
-
-                return (saldo_congelado or saldo_atual) + previsao_valor
-
             def get_valor_custeio(acao_associacao_data, receitas_previstas_paa) -> Decimal:
                 """
                     Retorna o cálculo de valor de custeio em uma acao_associacao_data.
@@ -139,12 +145,14 @@ class ResumoPrioridadesService:
                 saldos = acao_associacao_data.get('saldos', {})
 
                 previsao_valor = Decimal(receitas_previstas_paa.get('previsao_valor_custeio', None) or 0)
-                saldo_congelado = Decimal(receitas_previstas_paa.get('saldo_congelado_custeio', None) or 0)
+                saldo_congelado = self._to_decimal_or_none(
+                    receitas_previstas_paa.get('saldo_congelado_custeio')
+                )
                 saldo_atual = Decimal(saldos.get('saldo_atual_custeio', None) or 0)
 
-                valor = calcular_saldos_congelado_atual_previsao(saldo_congelado, saldo_atual, previsao_valor)
-
-                return valor
+                return self.calcular_saldos_congelado_atual_previsao(
+                    saldo_congelado, saldo_atual, previsao_valor
+                )
 
             def get_valor_capital(acao_associacao_data, receitas_previstas_paa) -> Decimal:
                 """
@@ -157,12 +165,14 @@ class ResumoPrioridadesService:
                 saldos = acao_associacao_data.get('saldos', {})
 
                 previsao_valor = Decimal(receitas_previstas_paa.get('previsao_valor_capital', None) or 0)
-                saldo_congelado = Decimal(receitas_previstas_paa.get('saldo_congelado_capital', None) or 0)
+                saldo_congelado = self._to_decimal_or_none(
+                    receitas_previstas_paa.get('saldo_congelado_capital')
+                )
                 saldo_atual = Decimal(saldos.get('saldo_atual_capital', None) or 0)
 
-                valor = calcular_saldos_congelado_atual_previsao(saldo_congelado, saldo_atual, previsao_valor)
-
-                return valor
+                return self.calcular_saldos_congelado_atual_previsao(
+                    saldo_congelado, saldo_atual, previsao_valor
+                )
 
             def get_valor_livre(acao_associacao_data, receitas_previstas_paa) -> Decimal:
                 """
@@ -175,13 +185,15 @@ class ResumoPrioridadesService:
                 saldos = acao_associacao_data.get('saldos', {})
 
                 previsao_valor = Decimal(receitas_previstas_paa.get('previsao_valor_livre', None) or 0)
-                saldo_congelado = Decimal(receitas_previstas_paa.get('saldo_congelado_livre', None) or 0)
+                saldo_congelado = self._to_decimal_or_none(
+                    receitas_previstas_paa.get('saldo_congelado_livre')
+                )
                 saldo_atual = Decimal(saldos.get('saldo_atual_livre', None) or 0)
                 saldo_atual = 0 if saldo_atual < 0 else saldo_atual
 
-                valor = calcular_saldos_congelado_atual_previsao(saldo_congelado, saldo_atual, previsao_valor)
-
-                return valor
+                return self.calcular_saldos_congelado_atual_previsao(
+                    saldo_congelado, saldo_atual, previsao_valor
+                )
 
             # Busca a receita prevista da ação uma única vez e reaproveita nos 3 cálculos abaixo
             # (antes: 1 query + 1 serialização por chamada x 3 chamadas por ação, redundantes entre si)
