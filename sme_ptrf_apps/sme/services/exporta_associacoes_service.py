@@ -151,8 +151,8 @@ class ExportaAssociacoesService:
 
     def monta_dados(self):
         linhas_vertical = []
+        logger.info("Iniciando extração de associações.")
         for instance in self.queryset.iterator(chunk_size=1000):
-            logger.info(f"Iniciando extração de asscociacao: {instance.id}.")
 
             if not Associacao.objects.filter(id=instance.id).exists():
                 logger.info("Este registro não existe mais na base de dados, portanto será pulado")
@@ -165,9 +165,9 @@ class ExportaAssociacoesService:
                 valor_tratado = tratamento(valor)
                 linha_horizontal.append(valor_tratado)
 
-            logger.info(f"Escrevendo linha {linha_horizontal} da associacao: {instance.id}.")
             linhas_vertical.append(linha_horizontal)
 
+        logger.info("Finalizando extração de associações.")
         return linhas_vertical
 
     def texto_rodape(self):
