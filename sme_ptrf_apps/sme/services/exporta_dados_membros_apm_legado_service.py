@@ -97,11 +97,12 @@ class ExportacaoDadosMembrosApmLegadoService:
     def monta_dados(self):
         linhas_vertical = []
 
+        logger.info("Iniciando extração de dados de membros apm.")
+
         for instance in self.queryset:
-            logger.info(f"Iniciando extração de dados de membros apm, id: {instance.id}.")
 
             if not MembroAssociacao.objects.filter(id=instance.id).exists():
-                logger.info(f"Este registro não existe mais na base de dados, portanto será pulado")
+                logger.info("Este registro não existe mais na base de dados, portanto será pulado")
                 continue
 
             linha_horizontal = []
@@ -132,9 +133,9 @@ class ExportacaoDadosMembrosApmLegadoService:
                 valor = get_recursive_attr(instance, campo)
                 linha_horizontal.append(valor)
 
-            logger.info(f"Escrevendo linha {linha_horizontal} de membros apm, id: {instance.id}.")
             linhas_vertical.append(linha_horizontal)
-            logger.info(f"Finalizando extração de dados de membros apm, id: {instance.id}.")
+
+        logger.info("Finalizando extração de dados de membros apm.")
 
         return linhas_vertical
 

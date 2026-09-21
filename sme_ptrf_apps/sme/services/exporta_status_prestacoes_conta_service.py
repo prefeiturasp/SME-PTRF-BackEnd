@@ -103,13 +103,12 @@ class ExportacoesStatusPrestacoesContaService:
 
     def monta_dados(self):
         linhas_vertical = []
-
+        logger.info("Iniciando extração de status de prestação de conta.")
         for instance in self.queryset.iterator(chunk_size=2000):
 
             linha_horizontal = []
 
             if not PrestacaoConta.objects.filter(id=instance.id).exists():
-                logger.info("Este fechamento não existe mais na base de dados, portanto será pulado")
                 continue
 
             for _, campo in self.cabecalho:
@@ -145,9 +144,8 @@ class ExportacoesStatusPrestacoesContaService:
 
                     linha_horizontal[9] = motivos_concatenados
 
-            logger.info(
-                f"Escrevendo linha {linha_horizontal} de status de prestação de conta de custeio {instance.id}.")
             linhas_vertical.append(linha_horizontal)
+        logger.info("Finalizando extração de status de prestação de conta.")
 
         return linhas_vertical
 
@@ -161,6 +159,8 @@ class ExportacoesStatusPrestacoesContaService:
             associacoes_com_periodo_inicial = Associacao.objects.exclude(periodo_inicial=None)
 
         dados_pcs_nao_apresentadas = []
+
+        logger.info("Iniciando extração de status de prestação de conta não apresentada de associação no período.")
 
         for associacao in associacoes_com_periodo_inicial:
             for periodo in self.periodos:
@@ -201,11 +201,10 @@ class ExportacoesStatusPrestacoesContaService:
                             elif campo == 'status':
                                 linha_horizontal.append('NAO_APRESENTADA')
 
-                        logger.info(
-                            f"Escrevendo linha {linha_horizontal} de status de prestação de conta não apresentada da "
-                            f"associacao {associacao.id} do periodo {periodo}."
-                        )
                         dados_pcs_nao_apresentadas.append(linha_horizontal)
+        logger.info(
+            "Finalizando extração de status de prestação de conta não apresentada de associação no período."
+        )
 
         return dados_pcs_nao_apresentadas
 
