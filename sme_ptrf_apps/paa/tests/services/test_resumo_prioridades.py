@@ -59,6 +59,98 @@ def test_calcula_node_ptrf(resumo_recursos_paa):
 
 
 @pytest.mark.django_db
+def test_calcular_saldos_congelado_zero_nao_usa_saldo_atual(resumo_recursos_paa):
+    """Saldo congelado em 0 é valor válido e não deve cair para o saldo atual (bug 156438)."""
+    from datetime import datetime
+
+    resumo_recursos_paa.saldo_congelado_em = datetime.now()
+    resumo_recursos_paa.save()
+
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+    resultado = service.calcular_saldos_congelado_atual_previsao(
+        congelado=Decimal('0.00'),
+        atual=Decimal('3580.00'),
+        previsao=Decimal('10000.00'),
+    )
+
+    assert resultado == Decimal('10000.00')
+
+
+@pytest.mark.django_db
+def test_calcular_saldos_congelado_positivo_usa_congelado(resumo_recursos_paa):
+    from datetime import datetime
+
+    resumo_recursos_paa.saldo_congelado_em = datetime.now()
+    resumo_recursos_paa.save()
+
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+    resultado = service.calcular_saldos_congelado_atual_previsao(
+        congelado=Decimal('100.00'),
+        atual=Decimal('3580.00'),
+        previsao=Decimal('10000.00'),
+    )
+
+    assert resultado == Decimal('10100.00')
+
+
+@pytest.mark.django_db
+def test_calcular_saldos_sem_congelamento_usa_saldo_atual(resumo_recursos_paa):
+    assert resumo_recursos_paa.saldo_congelado_em is None
+
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+    resultado = service.calcular_saldos_congelado_atual_previsao(
+        congelado=None,
+        atual=Decimal('3580.00'),
+        previsao=Decimal('10000.00'),
+    )
+
+    assert resultado == Decimal('13580.00')
+
+
+@pytest.mark.django_db
+@patch('sme_ptrf_apps.core.models.acao_associacao.AcaoAssociacao.saldo_atual')
+def test_calcula_node_ptrf_saldo_congelado_zero_nao_soma_saldo_atual(mock_saldo_atual, resumo_recursos_paa):
+    """
+    Reproduz o cenário da retificação: PAA congelado com saldo 0 e saldo atual
+    positivo na associação. A receita do resumo de prioridades deve ser só a
+    previsão, igual à tela de receitas previstas.
+    """
+    from datetime import datetime
+    from sme_ptrf_apps.paa.fixtures.factories import ReceitaPrevistaPaaFactory
+    from sme_ptrf_apps.core.fixtures.factories.acao_associacao_factory import AcaoAssociacaoFactory
+
+    mock_saldo_atual.return_value = {
+        'saldo_atual_custeio': Decimal('0'),
+        'saldo_atual_capital': Decimal('0'),
+        'saldo_atual_livre': Decimal('3580.00'),
+    }
+
+    resumo_recursos_paa.saldo_congelado_em = datetime.now()
+    resumo_recursos_paa.save()
+
+    acao_associacao = AcaoAssociacaoFactory.create(associacao=resumo_recursos_paa.associacao)
+    ReceitaPrevistaPaaFactory.create(
+        paa=resumo_recursos_paa,
+        acao_associacao=acao_associacao,
+        previsao_valor_custeio=0,
+        previsao_valor_capital=0,
+        previsao_valor_livre=Decimal('10000.00'),
+        saldo_congelado_custeio=Decimal('0.00'),
+        saldo_congelado_capital=Decimal('0.00'),
+        saldo_congelado_livre=Decimal('0.00'),
+    )
+
+    service = ResumoPrioridadesService(paa=resumo_recursos_paa)
+    result = service.calcula_node_ptrf()
+
+    receita = result['children'][0]['children'][0]
+    assert receita['recurso'] == 'Receita'
+    assert receita['livre_aplicacao'] == Decimal('10000.00')
+    assert receita['custeio'] == Decimal('0')
+    assert receita['capital'] == Decimal('0')
+
+
+@pytest.mark.django_db
 def test_calcula_node_pdde(receita_prevista_pdde_resumo_recursos):
 
     service = ResumoPrioridadesService(paa=receita_prevista_pdde_resumo_recursos.paa)
