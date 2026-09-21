@@ -171,8 +171,8 @@ class ExportaDemonstrativosFinanceirosService:
     def monta_dados(self):
         linhas_vertical = []
 
+        logger.info("Iniciando extração de dados do demonstrativo financeiro.")
         for instance in self.queryset.iterator(chunk_size=2000):
-            logger.info(f"Iniciando extração de dados do demonstrativo financeiro : {instance.id}.")
 
             if not DemonstrativoFinanceiro.objects.filter(id=instance.id).exists():
                 logger.info("Este registro não existe mais na base de dados, portanto será pulado")
@@ -257,9 +257,9 @@ class ExportaDemonstrativosFinanceirosService:
                 campo = get_recursive_attr(instance, campo)
                 linha_horizontal.append(campo)
 
-            logger.info(f"Escrevendo linha {linha_horizontal} do demonstrativo financeiro : {instance.id}.")
             linhas_vertical.append(linha_horizontal)
-            logger.info(f"Finalizado extração de dados do demonstrativo financeiro : {instance.id}.")
+
+        logger.info("Finalizando extração de dados do demonstrativo financeiro.")
 
         return linhas_vertical
 

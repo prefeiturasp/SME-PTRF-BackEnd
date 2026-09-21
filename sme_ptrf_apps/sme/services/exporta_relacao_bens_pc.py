@@ -103,8 +103,8 @@ class ExportacoesDadosRelacaoBensService:
     def monta_dados(self):
         linhas_vertical = []
 
+        logger.info("Iniciando extração de dados de relação de bens.")
         for instance in self.queryset.iterator(chunk_size=1000):
-            logger.info(f"Iniciando extração de dados de relação de bens : {instance.id}.")
 
             if not RelacaoBens.objects.filter(id=instance.id).exists():
                 logger.info("Este registro não existe mais na base de dados, portanto será pulado")
@@ -172,9 +172,8 @@ class ExportacoesDadosRelacaoBensService:
                 campo = get_recursive_attr(instance, campo)
                 linha_horizontal.append(campo)
 
-            logger.info(f"Escrevendo linha {linha_horizontal} de relação de bens : {instance.id}.")
             linhas_vertical.append(linha_horizontal)
-            logger.info(f"Finalizado extração de dados de relação de bens : {instance.id}.")
+        logger.info("Finalizando extração de dados de relação de bens.")
 
         return linhas_vertical
 

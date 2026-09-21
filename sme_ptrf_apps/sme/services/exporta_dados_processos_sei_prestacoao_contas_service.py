@@ -70,8 +70,8 @@ class ExportacaoDadosProcessosSEIPrestacaoContasService:
     def monta_dados(self):
         linhas_vertical = []
 
+        logger.info("Iniciando extração de dados de processos associação.")
         for instance in self.queryset:
-            logger.info(f"Iniciando extração de dados de processos associação, id: {instance.id}.")
 
             if not ProcessoAssociacao.objects.filter(id=instance.id).exists():
                 logger.info(f"Este registro não existe mais na base de dados, portanto será pulado")
@@ -96,10 +96,9 @@ class ExportacaoDadosProcessosSEIPrestacaoContasService:
                 campo_valor = "" if not campo_valor else str(campo_valor).replace(";", ",")
                 linha_horizontal.append(campo_valor)
 
-            logger.info(f"Escrevendo linha {linha_horizontal}, id: {instance.id}.")
             linhas_vertical.append(linha_horizontal)
-            logger.info(f"Finalizando extração de dados, id: {instance.id}.")
 
+        logger.info("Finalizando extração de dados de processos associação.")
         return linhas_vertical
 
     def cria_registro_central_download(self):

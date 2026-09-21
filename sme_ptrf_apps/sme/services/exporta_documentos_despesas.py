@@ -120,12 +120,9 @@ class ExportacoesDocumentosDespesasService:
     def monta_dados(self):
         linhas_vertical = []
 
+        logger.info("Iniciando extração de dados de despesas.")
         for instance in self.queryset.iterator(chunk_size=2000):
 
-            logger.info(
-                "Iniciando extração de dados de despesas, despesa id: %s.",
-                instance.id,
-            )
             linha_horizontal = []
 
             motivos = list(instance.motivos_pagamento_antecipado.all())
@@ -275,12 +272,9 @@ class ExportacoesDocumentosDespesasService:
                 campo = get_recursive_attr(instance, campo)
                 linha_horizontal.append(campo)
 
-            logger.info(
-                "Escrevendo linha %s de despesas, despesa id: %s.",
-                linha_horizontal,
-                instance.id,
-            )
             linhas_vertical.append(linha_horizontal)
+
+        logger.info("Finalizando extração de dados de despesas.")
 
         return linhas_vertical
 

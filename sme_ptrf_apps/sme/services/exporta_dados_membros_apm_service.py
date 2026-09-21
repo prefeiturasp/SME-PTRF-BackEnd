@@ -104,10 +104,8 @@ class ExportacaoDadosMembrosApmService:
     def monta_dados(self):
         linhas_vertical = []
 
+        logger.info("Iniciando extração de dados de membros apm.")
         for instance in self.queryset:
-            logger.info(
-                f"Iniciando extração de dados de membros apm, id: {instance.id}."
-            )
 
             if not CargoComposicao.objects.filter(id=instance.id).exists():
                 logger.info(
@@ -181,13 +179,9 @@ class ExportacaoDadosMembrosApmService:
                 valor = get_recursive_attr(instance, campo)
                 linha_horizontal.append(valor or "")
 
-            logger.info(
-                f"Escrevendo linha {linha_horizontal} de membros apm, id: {instance.id}."
-            )
             linhas_vertical.append(linha_horizontal)
-            logger.info(
-                f"Finalizando extração de dados de membros apm, id: {instance.id}."
-            )
+
+        logger.info("Finalizando extração de dados de membros apm.")
 
         return linhas_vertical
 

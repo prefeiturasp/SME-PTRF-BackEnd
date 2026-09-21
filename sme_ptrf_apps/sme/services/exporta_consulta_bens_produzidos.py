@@ -910,45 +910,34 @@ class ExportacaoConsultaBensProduzidosService:
             logger.warning("Queryset vazio - nenhum dado para exportar")
             return linhas_vertical
 
+        logger.info("Iniciando extração de dados de bens produzidos.")
         for instance in self.queryset:
-            logger.info(f"Iniciando extração de dados, tipo: {type(instance).__name__}, id: {getattr(instance, 'id', 'N/A')}.")
 
             linha_horizontal = []
             
             # Determinar o tipo de objeto e mapear campos apropriadamente
             if hasattr(instance, 'despesa'):  # BemProduzidoItem
-                logger.info(f"Processando bem adquirido: {instance}")
                 linha_horizontal = self.monta_linha_bem_adquirido(instance)
             else:
-                logger.info(f"Processando bem produzido: {instance}")
                 linha_horizontal = self.monta_linha_bem_produzido(instance)
 
             if linha_horizontal:
-                logger.info(f"Escrevendo linha {linha_horizontal}")
                 linhas_vertical.append(linha_horizontal)
-            else:
-                logger.warning(f"Linha vazia para instância {instance}")
 
-        print(linhas_vertical)
-        logger.info(f"Total de linhas montadas: {len(linhas_vertical)}")
+        logger.info("Finalizando extração de dados de bens produzidos.")
         return linhas_vertical
 
     def monta_linha_bem_produzido(self, instance):
         """Monta linha para bem produzido"""
         try:
-            logger.info(f"Montando linha para bem produzido: {instance}")
-            
             # 1. Especificação dos bens
             especificacao = getattr(instance.especificacao_do_bem, 'descricao', '') if instance.especificacao_do_bem else ''
-            logger.info(f"Especificação: {especificacao}")
             
             # 2. Tipo de bem
             tipo_bem = 'Produzido'
-            logger.info(f"Tipo de bem: Produzido")
             
             # 3. Nº do processo de incorporação
             processo = getattr(instance, 'num_processo_incorporacao', '-') or '-' if hasattr(instance, 'num_processo_incorporacao') else '-'
-            logger.info(f"Processo: {processo}")
             
             # 4. Tipo (Documento) - Lista de tipos das despesas
             tipos = []
@@ -958,7 +947,6 @@ class ExportacaoConsultaBensProduzidosService:
                     tipo_doc = getattr(bem_produzido_despesa.despesa.tipo_documento, 'nome', '') if hasattr(bem_produzido_despesa.despesa, 'tipo_documento') else '-'
                     if tipo_doc:
                         tipos.append(tipo_doc)
-            logger.info(f"Tipos: {tipos}")
             
             # 5. Número (Documento) - Lista de números das despesas
             numeros = []
@@ -967,7 +955,7 @@ class ExportacaoConsultaBensProduzidosService:
                     num_doc = getattr(bem_produzido_despesa.despesa, 'numero_documento', '') if hasattr(bem_produzido_despesa.despesa, 'numero_documento') else ''
                     if num_doc:
                         numeros.append(num_doc)
-            logger.info(f"Números: {numeros}")
+
             
             # 6. Data (Data do Documento) - Lista de datas das despesas
             datas = []
@@ -976,7 +964,6 @@ class ExportacaoConsultaBensProduzidosService:
                     if hasattr(bem_produzido_despesa.despesa, 'data_documento') and bem_produzido_despesa.despesa.data_documento:
                         data_doc = bem_produzido_despesa.despesa.data_documento.strftime("%d/%m/%Y")
                         datas.append(data_doc)
-            logger.info(f"Datas: {datas}")
             
             acoes = []
             if hasattr(instance, 'bem_produzido') and hasattr(instance.bem_produzido, 'despesas'):
@@ -986,23 +973,19 @@ class ExportacaoConsultaBensProduzidosService:
                             if hasattr(rateio, 'acao_associacao') and rateio.acao_associacao:
                                 if hasattr(rateio.acao_associacao, 'acao') and rateio.acao_associacao.acao:
                                     acoes.append(getattr(rateio.acao_associacao.acao, 'nome', '-'))
-            logger.info(f"Ação: {acoes}")
                             
             # 8. Valor das despesas
             valor_despesas = []
             if hasattr(instance, 'bem_produzido') and hasattr(instance.bem_produzido, 'despesas'):
                 for bem_produzido_despesa in instance.bem_produzido.despesas.all():
                     valor_despesas.append(bem_produzido_despesa.despesa.valor_total or '-')
-            logger.info(f"Valor despesas: {valor_despesas}")
             
             # 9. Quantidade
             quantidade = getattr(instance, 'quantidade', 1) or 1
-            logger.info(f"Quantidade: {quantidade}")
             
             # 10. Unitário - somar todos os valores das despesas primeiro
             valor_total_despesas = sum(valor_despesas) if valor_despesas else 0
             valor_unitario = valor_total_despesas / quantidade if quantidade > 0 else 0
-            logger.info(f"Valor unitário: {valor_unitario}")
             
             # 11. Valor total
             valor_total = valor_total_despesas
@@ -1021,7 +1004,6 @@ class ExportacaoConsultaBensProduzidosService:
                 f"{valor_total:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
             ]
             
-            logger.info(f"Linha montada com sucesso: {linha}")
             return linha
             
         except Exception as e:
@@ -1031,19 +1013,14 @@ class ExportacaoConsultaBensProduzidosService:
     def monta_linha_bem_adquirido(self, instance):
         """Monta linha para bem adquirido"""
         try:
-            logger.info(f"Montando linha para bem adquirido: {instance}")
-            
             # 1. Especificação dos bens
             especificacao = getattr(instance.especificacao_material_servico, 'descricao', '') if instance.especificacao_material_servico else ''
-            logger.info(f"Especificação: {especificacao}")
             
             # 2. Tipo de bem
             tipo_bem = 'Adquirido'
-            logger.info(f"Tipo de bem: Adquirido")
             
             # 3. Nº do processo de incorporação
             processo = getattr(instance, 'numero_processo_incorporacao_capital', '-') if hasattr(instance, 'numero_processo_incorporacao_capital') else '-'
-            logger.info(f"Processo: {processo}")
             
             # 4. Tipo (Documento) - Lista de tipos das despesas
             tipos = []
@@ -1059,7 +1036,6 @@ class ExportacaoConsultaBensProduzidosService:
                     if tipo_doc and tipo_doc not in tipos:
                         tipos.append(tipo_doc)
             tipo = '; '.join(tipos) if tipos else ''
-            logger.info(f"Tipos: {tipo}")
             
             # 5. Número (Documento) - Lista de números das despesas
             numeros = []
@@ -1075,7 +1051,6 @@ class ExportacaoConsultaBensProduzidosService:
                     if num_doc and num_doc not in numeros:
                         numeros.append(num_doc)
             numero = '; '.join(numeros) if numeros else ''
-            logger.info(f"Números: {numero}")
             
             # 6. Data (Data do Documento) - Lista de datas das despesas
             datas = []
@@ -1092,26 +1067,21 @@ class ExportacaoConsultaBensProduzidosService:
                         if data_doc not in datas:
                             datas.append(data_doc)
             data = '; '.join(datas) if datas else ''
-            logger.info(f"Datas: {data}")
             
             # 7. Ação
             acao = ''
             if hasattr(instance, 'acao_associacao') and instance.acao_associacao:
                 if hasattr(instance.acao_associacao, 'acao') and instance.acao_associacao.acao:
                     acao = getattr(instance.acao_associacao.acao, 'nome', '')
-            logger.info(f"Ação: {acao}")
             
             # 8. Valor das despesas
             valor_despesas = instance.valor_rateio or 0
-            logger.info(f"Valor despesas: {valor_despesas}")
             
             # 9. Quantidade
             quantidade = getattr(instance, 'quantidade', 1) or 1
-            logger.info(f"Quantidade: {quantidade}")
             
             # 10. Unitário
             valor_unitario = valor_despesas / quantidade if quantidade > 0 else 0
-            logger.info(f"Valor unitário: {valor_unitario}")
             
             # 11. Valor total
             valor_total = valor_despesas
@@ -1130,7 +1100,6 @@ class ExportacaoConsultaBensProduzidosService:
                 f"{valor_total:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
             ]
             
-            logger.info(f"Linha montada com sucesso: {linha}")
             return linha
             
         except Exception as e:
