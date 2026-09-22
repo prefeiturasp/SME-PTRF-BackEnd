@@ -7,7 +7,7 @@ from sme_ptrf_apps.dre.services.ata_pdf_parecer_tecnico_service import gerar_arq
 from sme_ptrf_apps.core.services.ata_dados_service import data_por_extenso
 from sme_ptrf_apps.core.services.dados_demo_financeiro_service import formata_data
 from sme_ptrf_apps.utils.numero_por_extenso import real
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 
 LOGGER = logging.getLogger(__name__)
 
@@ -217,7 +217,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         "letra_d": recurso.get_fixed_text_texto_letra("D")
     }
     presentes_na_ata = {
-        "presentes": get_presentes_na_ata(ata_de_parecer_tecnico, recurso)
+        "presentes": get_presentes_na_ata(ata_de_parecer_tecnico, recurso, dre)
     }
 
     lista_aprovadas = []  # Lista usada para separar por status aprovada
@@ -355,7 +355,7 @@ def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre(
     return resultado
 
 
-def get_presentes_na_ata(ata, recurso=None):
+def get_presentes_na_ata(ata, recurso=None, dre=None):
     ata_id = ata.id if ata and ata.id else None
 
     presentes_na_ata = []
@@ -366,13 +366,26 @@ def get_presentes_na_ata(ata, recurso=None):
         )
 
         if recurso:
-            membros_rf = MembroComissao.objects.filter(
-                comissoes__recursos=recurso,
-                comissoes__responsavel_analise_pc=True
-            ).values_list('rf', flat=True)
 
-            queryset_presentes_na_ata = queryset_presentes_na_ata.filter(
-                rf__in=membros_rf
+            """ 
+                Participantes que não pertencem a nenhuma comissão devem ser mantidos na listagem.
+                Para membros de comissão, a filtragem considera apenas aqueles vinculados ao recurso selecionado.
+            """
+            membro_comissao = MembroComissao.objects.filter(
+                dre=dre,
+                rf=OuterRef('rf'),
+            )
+
+            membro_comissao_recurso = membro_comissao.filter(
+                comissoes__recursos=recurso,
+                comissoes__responsavel_analise_pc=True,
+            )
+
+            queryset_presentes_na_ata = queryset_presentes_na_ata.annotate(
+                eh_membro_comissao=Exists(membro_comissao),
+                pertence_ao_recurso=Exists(membro_comissao_recurso),
+            ).filter(
+                Q(eh_membro_comissao=False) | Q(pertence_ao_recurso=True)
             )
 
         for presente in queryset_presentes_na_ata:
