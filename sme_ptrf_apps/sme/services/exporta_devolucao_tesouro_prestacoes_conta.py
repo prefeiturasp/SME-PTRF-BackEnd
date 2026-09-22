@@ -189,6 +189,8 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
         linhas_vertical = []
         despesa_primeira_linha = set()
 
+        logger.info("Iniciando extração de dados de devolucao ao tesouro de prestação de conta.")
+
         for instance in self.queryset.iterator(chunk_size=2000):
             linha_horizontal = []
 
@@ -362,15 +364,10 @@ class ExportacoesDevolucaoTesouroPrestacoesContaService:
 
                     linhas_vertical.append(linha_nova)
             else:
-                logger.info(
-                    "Escrevendo linha %s de status de prestação de conta de "
-                    "custeio %s.",
-                    linha_horizontal,
-                    instance.id,
-                )
                 despesa_primeira_linha.add(despesa_id)
                 linhas_vertical.append(linha_horizontal)
 
+        logger.info("Finalizando extração de dados de devolucao ao tesouro de prestação de conta.")
         return linhas_vertical
 
     def filtra_range_data(self, field):
