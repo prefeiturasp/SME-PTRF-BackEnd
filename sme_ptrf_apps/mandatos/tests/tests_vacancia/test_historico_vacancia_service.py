@@ -80,8 +80,8 @@ def test_registrar_entrada_materializa_vago_implicito_antes_da_primeira_entrada(
         composicao_vacancia_2026, CargoComposicao.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA
     )
     assert len(timeline) == 2
-    assert timeline[0].id == vago.id
-    assert timeline[1].id == registro.id
+    assert timeline[0]['id'] == vago.id
+    assert timeline[1]['id'] == registro.id
 
 
 @freeze_time(DATA_CONGELADA)
@@ -202,7 +202,59 @@ def test_get_datas_de_alteracao_da_composicao_retorna_marcos_ordenados(composica
 
     datas = ServicoHistoricoCargoComposicao.get_datas_de_alteracao_da_composicao(composicao_vacancia_2026)
 
-    assert datas == [date(2026, 1, 1), date(2026, 2, 1)]
+    assert datas == [
+        (date(2026, 1, 1), date(2026, 1, 31)),
+        (date(2026, 2, 1), date(2026, 12, 31)),
+    ]
+
+
+def test_get_datas_de_alteracao_da_composicao_sem_nenhum_registro_retorna_lista_vazia(composicao_vacancia_2026):
+    """Composição recém-criada, sem nenhum cargo preenchido: não há marco a montar."""
+    datas = ServicoHistoricoCargoComposicao.get_datas_de_alteracao_da_composicao(composicao_vacancia_2026)
+
+    assert datas == []
+
+
+@freeze_time(DATA_CONGELADA)
+def test_get_datas_de_alteracao_da_composicao_mescla_intervalos_sobrepostos_de_cargos_diferentes(
+        composicao_vacancia_2026):
+    """Cargos diferentes têm vigências independentes que se sobrepõem - os marcos precisam
+    ser os cortes cronológicos únicos entre elas, não os pares (início, fim) de cada
+    registro isolado."""
+    presidente = _ocupante('Pedro')
+    tesoureiro_antigo = _ocupante('Luis')
+    tesoureiro_novo = _ocupante('Ana')
+
+    # Presidente: um único registro cobrindo o mandato inteiro (01/01 a 31/12)
+    ServicoHistoricoCargoComposicao.registrar_entrada(
+        composicao_vacancia=composicao_vacancia_2026,
+        ocupante_do_cargo=presidente,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA,
+        data_entrada=date(2026, 1, 1),
+    )
+
+    # Tesoureiro: troca no meio do mandato (01/01 a 31/07, depois 01/08 a 31/12) -
+    # o corte de 01/08 não existe no registro do presidente.
+    registro_tesoureiro = ServicoHistoricoCargoComposicao.registrar_entrada(
+        composicao_vacancia=composicao_vacancia_2026,
+        ocupante_do_cargo=tesoureiro_antigo,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_TESOUREIRO,
+        data_entrada=date(2026, 1, 1),
+    )
+    ServicoHistoricoCargoComposicao.registrar_saida(registro_tesoureiro, data_saida=date(2026, 8, 1))
+    ServicoHistoricoCargoComposicao.registrar_entrada(
+        composicao_vacancia=composicao_vacancia_2026,
+        ocupante_do_cargo=tesoureiro_novo,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_TESOUREIRO,
+        data_entrada=date(2026, 8, 1),
+    )
+
+    datas = ServicoHistoricoCargoComposicao.get_datas_de_alteracao_da_composicao(composicao_vacancia_2026)
+
+    assert datas == [
+        (date(2026, 1, 1), date(2026, 7, 31)),
+        (date(2026, 8, 1), date(2026, 12, 31)),
+    ]
 
 
 @freeze_time('2026-06-15')
@@ -975,7 +1027,8 @@ def test_monta_cargos_da_composicao_separa_diretoria_executiva_e_conselho_fiscal
 
 @freeze_time(DATA_CONGELADA)
 def test_monta_cargos_da_composicao_cargo_vazio_nunca_teve_registro(composicao_vacancia_2026):
-    """Cargo sem nenhum registro: ocupante_do_cargo todo None, editável, sem uuid/id."""
+    """Cargo sem nenhum registro: ocupante_do_cargo todo None, vago, sem uuid/id, sem
+    nenhuma ação de cancelamento disponível."""
     cargos = ServicoHistoricoCargoComposicao.monta_cargos_da_composicao(composicao_vacancia_2026, date(2026, 6, 1))
 
     tesoureiro = (
@@ -986,14 +1039,15 @@ def test_monta_cargos_da_composicao_cargo_vazio_nunca_teve_registro(composicao_v
     assert tesoureiro['uuid'] is None
     assert tesoureiro['ocupante_do_cargo']['nome'] is None
     assert tesoureiro['data_inicio_no_cargo'] is None
-    assert tesoureiro['ocupante_editavel'] is True
-    assert tesoureiro['data_final_editavel'] is False
-    assert tesoureiro['data_fim_no_cargo_composicao_mais_recente'] is None
+    assert tesoureiro['cargo_vago'] is True
+    assert tesoureiro['pode_cancelar_entrada'] is False
+    assert tesoureiro['pode_cancelar_saida'] is False
 
 
 @freeze_time(DATA_CONGELADA)
 def test_monta_cargos_da_composicao_cargo_ocupado(composicao_vacancia_2026):
-    """Cargo ocupado: dados do ocupante presentes, não editável (ocupante), data final editável."""
+    """Cargo ocupado: dados do ocupante presentes, não vago, com a entrada cancelável
+    (ninguém saiu ainda)."""
     pedro = _ocupante('Pedro')
     ServicoHistoricoCargoComposicao.registrar_entrada(
         composicao_vacancia=composicao_vacancia_2026,
@@ -1008,14 +1062,15 @@ def test_monta_cargos_da_composicao_cargo_ocupado(composicao_vacancia_2026):
     assert presidente['ocupante_do_cargo']['nome'] == 'Pedro'
     assert presidente['ocupante_do_cargo']['id'] == pedro.id
     assert presidente['data_inicio_no_cargo'] == date(2026, 1, 1)
-    assert presidente['ocupante_editavel'] is False
-    assert presidente['data_final_editavel'] is True
+    assert presidente['cargo_vago'] is False
+    assert presidente['pode_cancelar_entrada'] is True
+    assert presidente['pode_cancelar_saida'] is False
 
 
 @freeze_time(DATA_CONGELADA)
 def test_monta_cargos_da_composicao_cargo_vago_apos_saida_tem_registro_mas_e_editavel(composicao_vacancia_2026):
     """Vago com registro real (pós-saída) - diferente de nunca-preenchido, mas continua
-    editável (ocupante_editavel), com id/uuid do registro de vacância preenchidos."""
+    vago (cargo_vago), com id/uuid do registro de vacância preenchidos."""
     pedro = _ocupante('Pedro')
     registro = ServicoHistoricoCargoComposicao.registrar_entrada(
         composicao_vacancia=composicao_vacancia_2026,
@@ -1032,8 +1087,9 @@ def test_monta_cargos_da_composicao_cargo_vago_apos_saida_tem_registro_mas_e_edi
 
     assert secretario['id'] is not None
     assert secretario['ocupante_do_cargo']['nome'] is None
-    assert secretario['ocupante_editavel'] is True
-    assert secretario['data_final_editavel'] is False
+    assert secretario['cargo_vago'] is True
+    assert secretario['pode_cancelar_entrada'] is False
+    assert secretario['pode_cancelar_saida'] is False
 
 
 @freeze_time('2026-06-15')
@@ -1053,9 +1109,11 @@ def test_monta_cargos_da_composicao_eh_composicao_vigente_false_quando_mandato_j
 
 
 @freeze_time(DATA_CONGELADA)
-def test_monta_cargos_da_composicao_tag_substituto_e_substituido(composicao_vacancia_2026):
-    """tag_substituto/tag_substituido usam as datas reais do próprio registro (não a data
-    final da composição, diferente da v1 - ver docstring de _monta_item_do_cargo)."""
+def test_monta_cargos_da_composicao_substituto_e_substituido(composicao_vacancia_2026):
+    """substituto/substituido só indicam booleanamente se o ocupante entrou no lugar de
+    outro ou foi sucedido - os nomes de quem substituiu/foi substituído (ocupante_substitui/
+    ocupante_substituido_por) e as tags textuais (tag_substituto/tag_substituido) não fazem
+    mais parte do formato v2; o timeline já mostra a sequência de ocupantes por si só."""
     pedro = _ocupante('Pedro')
     luis = _ocupante('Luis')
 
@@ -1081,8 +1139,6 @@ def test_monta_cargos_da_composicao_tag_substituto_e_substituido(composicao_vaca
 
     assert vogal_1_luis['ocupante_do_cargo']['nome'] == 'Luis'
     assert vogal_1_luis['substituto'] is True
-    assert vogal_1_luis['tag_substituto'] == 'Novo membro em 01/02/2026'
-    assert vogal_1_luis['ocupante_substitui'] == 'Pedro'
 
     # snapshot em 15/01 (dentro do período do Pedro): Pedro já está marcado como substituido
     cargos_pedro = ServicoHistoricoCargoComposicao.monta_cargos_da_composicao(
@@ -1095,22 +1151,6 @@ def test_monta_cargos_da_composicao_tag_substituto_e_substituido(composicao_vaca
 
     assert vogal_1_pedro['ocupante_do_cargo']['nome'] == 'Pedro'
     assert vogal_1_pedro['substituido'] is True
-    assert vogal_1_pedro['tag_substituido'] == 'Substituído em 01/02/2026'
-    assert vogal_1_pedro['ocupante_substituido_por'] == 'Luis'
-
-
-@freeze_time(DATA_CONGELADA)
-def test_monta_cargos_da_composicao_cargo_vago_replica_ocupante_editavel(composicao_vacancia_2026):
-    """cargo_vago é o mesmo valor de ocupante_editavel, sob um nome mais direto pro
-    consumo da v2 (ocupante_editavel é mantido só por compatibilidade com o formato v1)."""
-    cargos = ServicoHistoricoCargoComposicao.monta_cargos_da_composicao(composicao_vacancia_2026, date(2026, 6, 1))
-
-    tesoureiro = (
-        next(c for c in cargos['diretoria_executiva']
-             if c['cargo_associacao'] == CargoComposicao.CARGO_ASSOCIACAO_TESOUREIRO))
-
-    assert tesoureiro['cargo_vago'] is True
-    assert tesoureiro['cargo_vago'] == tesoureiro['ocupante_editavel']
 
 
 @freeze_time(DATA_CONGELADA)
@@ -1164,6 +1204,208 @@ def test_monta_cargos_da_composicao_ocupante_vigente_false_quando_vago(composica
     )
 
     assert tesoureiro['ocupante_vigente'] is False
+
+
+@freeze_time(DATA_CONGELADA)
+def test_monta_cargos_da_composicao_eh_primeiro_ocupante_true_para_o_primeiro_e_false_para_o_seguinte(
+        composicao_vacancia_2026):
+    """Paulo é o primeiro ocupante do cargo; José, que entra depois dele (mesmo com um
+    vago no meio), não é - eh_primeiro_ocupante olha pra quem ocupou antes, não pro gap."""
+    paulo = _ocupante('Paulo')
+    jose = _ocupante('Jose')
+
+    registro_paulo = ServicoHistoricoCargoComposicao.registrar_entrada(
+        composicao_vacancia=composicao_vacancia_2026,
+        ocupante_do_cargo=paulo,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_SECRETARIO,
+        data_entrada=date(2026, 1, 1),
+    )
+    ServicoHistoricoCargoComposicao.registrar_saida(registro_paulo, data_saida=date(2026, 1, 30))
+    ServicoHistoricoCargoComposicao.registrar_entrada(
+        composicao_vacancia=composicao_vacancia_2026,
+        ocupante_do_cargo=jose,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_SECRETARIO,
+        data_entrada=date(2026, 3, 5),
+    )
+
+    # snapshot num marco em que Paulo ainda ocupava o cargo
+    cargos_paulo = ServicoHistoricoCargoComposicao.monta_cargos_da_composicao(
+        composicao_vacancia_2026, date(2026, 1, 15)
+    )
+    secretario_paulo = (
+        next(c for c in cargos_paulo['diretoria_executiva']
+             if c['cargo_associacao'] == CargoComposicao.CARGO_ASSOCIACAO_SECRETARIO))
+    assert secretario_paulo['ocupante_do_cargo']['nome'] == 'Paulo'
+    assert secretario_paulo['eh_primeiro_ocupante'] is True
+
+    # snapshot num marco em que José já ocupava o cargo
+    cargos_jose = ServicoHistoricoCargoComposicao.monta_cargos_da_composicao(
+        composicao_vacancia_2026, date(2026, 3, 10)
+    )
+    secretario_jose = (
+        next(c for c in cargos_jose['diretoria_executiva']
+             if c['cargo_associacao'] == CargoComposicao.CARGO_ASSOCIACAO_SECRETARIO))
+    assert secretario_jose['ocupante_do_cargo']['nome'] == 'Jose'
+    assert secretario_jose['eh_primeiro_ocupante'] is False
+
+
+@freeze_time(DATA_CONGELADA)
+def test_monta_cargos_da_composicao_eh_primeiro_ocupante_true_mesmo_apos_periodo_vago_inicial(
+        composicao_vacancia_2026):
+    """Paulo entra um mês depois do início do mandato (cargo ficou vago até então) - como
+    não houve nenhum OCUPANTE antes dele, ele continua sendo o primeiro."""
+    paulo = _ocupante('Paulo')
+
+    ServicoHistoricoCargoComposicao.registrar_entrada(
+        composicao_vacancia=composicao_vacancia_2026,
+        ocupante_do_cargo=paulo,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_TESOUREIRO,
+        data_entrada=date(2026, 2, 1),
+    )
+
+    cargos = ServicoHistoricoCargoComposicao.monta_cargos_da_composicao(composicao_vacancia_2026, date(2026, 6, 1))
+    tesoureiro = (
+        next(c for c in cargos['diretoria_executiva']
+             if c['cargo_associacao'] == CargoComposicao.CARGO_ASSOCIACAO_TESOUREIRO))
+
+    assert tesoureiro['ocupante_do_cargo']['nome'] == 'Paulo'
+    assert tesoureiro['eh_primeiro_ocupante'] is True
+
+
+# get_timeline_consolidada_da_composicao
+
+@freeze_time(DATA_CONGELADA)
+def test_get_timeline_consolidada_separa_diretoria_executiva_e_conselho_fiscal(composicao_vacancia_2026):
+    """9 cargos em diretoria_executiva, 5 em conselho_fiscal, na ordem de Cargo.choices -
+    mesmo agrupamento de monta_cargos_da_composicao, só que com a timeline inteira embutida
+    em cada cargo em vez do snapshot de uma única data."""
+    resultado = ServicoHistoricoCargoComposicao.get_timeline_consolidada_da_composicao(composicao_vacancia_2026)
+
+    assert len(resultado['diretoria_executiva']) == 9
+    assert len(resultado['conselho_fiscal']) == 5
+    assert resultado['diretoria_executiva'][0]['cargo_associacao'] == CargoComposicao.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA  # noqa
+    assert resultado['conselho_fiscal'][0]['cargo_associacao'] == CargoComposicao.CARGO_ASSOCIACAO_PRESIDENTE_CONSELHO_FISCAL  # noqa
+
+
+@freeze_time(DATA_CONGELADA)
+def test_get_timeline_consolidada_cargo_nunca_tocado_tem_timeline_vazia(composicao_vacancia_2026):
+    """Cargo sem nenhum registro no banco: entra no resultado com timeline: [] (o
+    placeholder "vago" sintético é responsabilidade só do frontend, igual já acontece
+    hoje em get_timeline_do_cargo)."""
+    resultado = ServicoHistoricoCargoComposicao.get_timeline_consolidada_da_composicao(composicao_vacancia_2026)
+
+    tesoureiro = next(
+        c for c in resultado['diretoria_executiva']
+        if c['cargo_associacao'] == CargoComposicao.CARGO_ASSOCIACAO_TESOUREIRO
+    )
+
+    assert tesoureiro['cargo_associacao_label'] == 'Tesoureiro'
+    assert tesoureiro['timeline'] == []
+
+
+@freeze_time(DATA_CONGELADA)
+def test_get_timeline_consolidada_inclui_vago_no_meio_da_timeline_em_ordem_cronologica(composicao_vacancia_2026):
+    """Ocupado -> vago (gap real) -> ocupado: os 3 segmentos aparecem, em ordem, na
+    timeline consolidada do cargo - mesmo cenário de test_cenario_completo_gap_entre_dois_ocupantes."""
+    joao = _ocupante('João')
+    maria = _ocupante('Maria')
+
+    registro_joao = ServicoHistoricoCargoComposicao.registrar_entrada(
+        composicao_vacancia=composicao_vacancia_2026,
+        ocupante_do_cargo=joao,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_CONSELHEIRO_3,
+        data_entrada=date(2026, 1, 1),
+    )
+    ServicoHistoricoCargoComposicao.registrar_saida(registro_joao, data_saida=date(2026, 6, 1))
+    ServicoHistoricoCargoComposicao.registrar_entrada(
+        composicao_vacancia=composicao_vacancia_2026,
+        ocupante_do_cargo=maria,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_CONSELHEIRO_3,
+        data_entrada=date(2026, 9, 1),
+    )
+
+    resultado = ServicoHistoricoCargoComposicao.get_timeline_consolidada_da_composicao(composicao_vacancia_2026)
+    conselheiro_3 = next(
+        c for c in resultado['conselho_fiscal']
+        if c['cargo_associacao'] == CargoComposicao.CARGO_ASSOCIACAO_CONSELHEIRO_3
+    )
+
+    assert len(conselheiro_3['timeline']) == 3
+    assert conselheiro_3['timeline'][0]['ocupante_do_cargo']['nome'] == 'João'
+    assert conselheiro_3['timeline'][1]['cargo_vago'] is True
+    assert conselheiro_3['timeline'][2]['ocupante_do_cargo']['nome'] == 'Maria'
+
+
+@freeze_time(DATA_CONGELADA)
+def test_get_timeline_consolidada_eh_primeiro_ultimo_ocupante_e_substituto_batem_com_calculo_por_registro(
+        composicao_vacancia_2026):
+    """Os três campos que a consolidada pré-calcula em memória (eh_primeiro_ocupante,
+    eh_ultimo_ocupante, substituto) - pra eliminar o N+1 de _monta_item_do_cargo quando
+    chamado por registro - precisam bater com a mesma regra de negócio: Pedro é o
+    primeiro ocupante e foi substituído diretamente por Luis, que é o último e o substituto."""
+    pedro = _ocupante('Pedro')
+    luis = _ocupante('Luis')
+
+    registro_pedro = ServicoHistoricoCargoComposicao.registrar_entrada(
+        composicao_vacancia=composicao_vacancia_2026,
+        ocupante_do_cargo=pedro,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA,
+        data_entrada=date(2026, 1, 1),
+    )
+    ServicoHistoricoCargoComposicao.registrar_saida(registro_pedro, data_saida=date(2026, 2, 1))
+    registro_luis = ServicoHistoricoCargoComposicao.registrar_entrada(
+        composicao_vacancia=composicao_vacancia_2026,
+        ocupante_do_cargo=luis,
+        cargo_associacao=CargoComposicao.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA,
+        data_entrada=date(2026, 2, 1),
+    )
+
+    resultado = ServicoHistoricoCargoComposicao.get_timeline_consolidada_da_composicao(composicao_vacancia_2026)
+    presidente = next(
+        c for c in resultado['diretoria_executiva']
+        if c['cargo_associacao'] == CargoComposicao.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA
+    )
+
+    assert len(presidente['timeline']) == 2
+    item_pedro = next(item for item in presidente['timeline'] if item['uuid'] == str(registro_pedro.uuid))
+    item_luis = next(item for item in presidente['timeline'] if item['uuid'] == str(registro_luis.uuid))
+
+    assert item_pedro['eh_primeiro_ocupante'] is True
+    assert item_pedro['eh_ultimo_ocupante'] is False
+    assert item_pedro['substituto'] is False
+    assert item_pedro['substituido'] is True
+
+    assert item_luis['eh_primeiro_ocupante'] is False
+    assert item_luis['eh_ultimo_ocupante'] is True
+    assert item_luis['substituto'] is True
+    assert item_luis['substituido'] is False
+
+
+@freeze_time(DATA_CONGELADA)
+def test_get_timeline_consolidada_numero_de_queries_nao_escala_com_quantidade_de_registros(
+        composicao_vacancia_2026, django_assert_max_num_queries):
+    """A consolidada precisa rodar em um número fixo de queries pra composição inteira -
+    é justamente o que elimina o N+1 que hoje existe (1 request por cargo, e dentro de
+    cada uma até 3 queries extras por registro em _monta_item_do_cargo)."""
+    for indice, (cargo_associacao, _) in enumerate(CargoComposicao.CARGO_ASSOCIACAO_CHOICES):
+        registro = ServicoHistoricoCargoComposicao.registrar_entrada(
+            composicao_vacancia=composicao_vacancia_2026,
+            ocupante_do_cargo=_ocupante(f'Ocupante {indice}'),
+            cargo_associacao=cargo_associacao,
+            data_entrada=date(2026, 1, 1),
+        )
+        ServicoHistoricoCargoComposicao.registrar_saida(registro, data_saida=date(2026, 6, 1))
+        ServicoHistoricoCargoComposicao.registrar_entrada(
+            composicao_vacancia=composicao_vacancia_2026,
+            ocupante_do_cargo=_ocupante(f'Ocupante {indice} substituto'),
+            cargo_associacao=cargo_associacao,
+            data_entrada=date(2026, 9, 1),
+        )
+
+    # 14 cargos x 2 registros cada (28 no total) - se escalasse por registro (N+1)
+    # seriam dezenas de queries; deve continuar num número fixo e pequeno.
+    with django_assert_max_num_queries(6):
+        ServicoHistoricoCargoComposicao.get_timeline_consolidada_da_composicao(composicao_vacancia_2026)
 
 
 # editar_ocupante
