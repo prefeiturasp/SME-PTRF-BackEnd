@@ -1,6 +1,7 @@
 import pytest
 import datetime
-from sme_ptrf_apps.paa.models import AtaPaa, DocumentoPaa
+from sme_ptrf_apps.paa.models import AtaPaa, DocumentoPaa, Paa
+from sme_ptrf_apps.paa.choices import StatusChoices
 
 pytestmark = pytest.mark.django_db
 
@@ -163,3 +164,18 @@ def test_get_tem_ata_concluida_sem_ata(paa):
 def test_get_tem_ata_concluida_com_ata_concluida(paa, ata_paa_factory):
     ata_paa_factory.create(paa=paa, status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO)
     assert paa.get_tem_ata_concluida() is True
+
+
+def test_retorna_false_quando_nao_ha_data_registrada_na_atividade_estatutaria(
+        paa, atividade_estatutaria_factory,
+):
+    atividade_estatutaria_factory.create(status=StatusChoices.ATIVO, paa=None)
+    assert Paa.get_atividades_previstas_preenchidas(paa) is False
+
+
+def test_retorna_true_quando_ha_data_registrada_na_atividade_estatutaria(
+        paa, atividade_estatutaria_factory, atividade_estatutaria_paa_factory
+):
+    atividade_estatutaria = atividade_estatutaria_factory.create(status=StatusChoices.ATIVO, paa=None)
+    atividade_estatutaria_paa_factory.create(paa=paa, atividade_estatutaria=atividade_estatutaria)
+    assert Paa.get_atividades_previstas_preenchidas(paa) is True

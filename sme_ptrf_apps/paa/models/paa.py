@@ -97,6 +97,17 @@ class Paa(ModeloBase):
         self.saldo_congelado_em = None
         self.save()
 
+    def get_atividades_previstas_preenchidas(self) -> bool:
+        """
+        Verifica se todas as atividades estatutárias previstas para o PAA possuem
+        data preenchida.
+
+        Returns:
+            bool: True se todas as atividades previstas estiverem com a data preenchida.
+        """
+        from sme_ptrf_apps.paa.models.atividade_estatutaria_paa import AtividadeEstatutariaPaa
+        return AtividadeEstatutariaPaa.todas_datas_preenchidas(self)
+
     def get_total_recursos_proprios(self) -> float:
         """
         Retorna o total de recursos próprios do PAA.

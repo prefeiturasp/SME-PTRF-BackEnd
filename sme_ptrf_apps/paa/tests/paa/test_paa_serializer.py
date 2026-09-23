@@ -18,6 +18,7 @@ def test_paa_retriever_serializer(paa):
     assert 'texto_introducao' in serializer.data
     assert 'texto_conclusao' in serializer.data
     assert 'status' in serializer.data
+    assert 'atividades_previstas_preenchidas' in serializer.data
 
 
 def test_paa_model_tem_campos_acoes_conclusao(paa):
