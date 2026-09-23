@@ -29,6 +29,20 @@ class PaaSerializer(serializers.ModelSerializer):
     tem_documento_final_concluido = serializers.SerializerMethodField()
     tem_ata_concluida = serializers.SerializerMethodField()
     status_andamento = serializers.SerializerMethodField()
+    atividades_previstas_preenchidas = serializers.SerializerMethodField()
+
+    def get_atividades_previstas_preenchidas(self, obj: Paa) -> bool:
+        """
+        Informa se todas as atividades previstas do PAA foram preenchidas.
+
+        Args:
+            obj (Paa): Instância do Plano de Ação e Acompanhamento.
+
+        Returns:
+            bool: ``True`` se todas as atividades previstas estiverem preenchidas; caso contrário,
+            ``False``.
+        """
+        return obj.get_atividades_previstas_preenchidas()
 
     def get_status_andamento(self, obj: Paa) -> str:
         """
@@ -84,9 +98,11 @@ class PaaSerializer(serializers.ModelSerializer):
         model = Paa
         fields = ('uuid', 'periodo_paa', 'associacao', 'periodo_paa_objeto', 'saldo_congelado_em',
                   'texto_introducao', 'texto_conclusao', 'status', 'objetivos', 'total_recursos_proprios',
-                  'status_andamento', 'tem_documento_final_concluido', 'tem_ata_concluida')
+                  'status_andamento', 'tem_documento_final_concluido', 'tem_ata_concluida',
+                  'atividades_previstas_preenchidas')
         read_only_fields = ('periodo_paa_objeto', 'periodo_paa', 'status', 'objetivos', 'total_recursos_proprios',
-                            'status_andamento', 'tem_documento_final_concluido', 'tem_ata_concluida')
+                            'status_andamento', 'tem_documento_final_concluido', 'tem_ata_concluida',
+                            'atividades_previstas_preenchidas')
 
     def get_total_recursos_proprios(self, obj: Paa) -> float:
         """
