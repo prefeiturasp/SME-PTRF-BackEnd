@@ -234,7 +234,10 @@ def test_datas_de_alteracao_retorna_marcos_em_ordem(cargo_ocupado, composicao_va
     response = view(request)
 
     assert response.status_code == status.HTTP_200_OK
-    assert response.data == ['2026-01-01', '2026-02-01']
+    assert response.data == [
+        {'inicio': '2026-01-01', 'fim': '2026-01-31'},
+        {'inicio': '2026-02-01', 'fim': '2026-12-31'},
+    ]
 
 
 def test_registrar_saida_em_registro_ja_encerrado_retorna_400_nao_500(
@@ -383,8 +386,8 @@ def test_timeline_retorna_historico_ordenado_do_cargo(cargo_ocupado, composicao_
 
     assert response.status_code == status.HTTP_200_OK
     assert len(response.data) == 2  # ocupante Pedro + vago
-    assert response.data[0]['data_inicio_no_cargo'] == '2026-01-01'
-    assert response.data[1]['vago'] is True
+    assert response.data[0]['data_inicio_no_cargo'] == date(2026, 1, 1)
+    assert response.data[1]['cargo_vago'] is True
 
 
 def test_timeline_composicao_uuid_inexistente_retorna_404(usuario_permissao_sme, flag_factory):
@@ -425,7 +428,7 @@ def test_timeline_composicao_uuid_mal_formado_retorna_404_nao_500(usuario_permis
 def test_cargos_da_composicao_retorna_formato_v1_diretoria_e_conselho(
         cargo_ocupado, composicao_vacancia, usuario_permissao_sme):
     """GET /cargos-da-composicao/?composicao_uuid=&data= retorna {diretoria_executiva,
-    conselho_fiscal}, formato compatível com o que a v1 já produz."""
+    conselho_fiscal}, mesma estrutura de agrupamento que a v1 já produz (9 + 5 cargos)."""
     request = APIRequestFactory().get('', {
         'composicao_uuid': str(composicao_vacancia.uuid),
         'data': '2026-06-01',
@@ -440,7 +443,7 @@ def test_cargos_da_composicao_retorna_formato_v1_diretoria_e_conselho(
     assert len(response.data['conselho_fiscal']) == 5
     presidente = response.data['diretoria_executiva'][0]
     assert presidente['ocupante_do_cargo']['nome'] == cargo_ocupado.ocupante_do_cargo.nome
-    assert presidente['ocupante_editavel'] is False
+    assert presidente['cargo_vago'] is False
 
 
 def test_cargos_da_composicao_uuid_inexistente_retorna_404(usuario_permissao_sme, flag_factory):
@@ -452,6 +455,54 @@ def test_cargos_da_composicao_uuid_inexistente_retorna_404(usuario_permissao_sme
     })
     force_authenticate(request, user=usuario_permissao_sme)
     view = CargosComposicoesVacanciaViewSet.as_view({'get': 'cargos_da_composicao'})
+
+    response = view(request)
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@override_flag(FLAG, active=True)
+def test_timeline_consolidada_retorna_todos_os_cargos_com_suas_timelines(
+        cargo_ocupado, composicao_vacancia, usuario_permissao_sme):
+    """GET /timeline-consolidada/?composicao_uuid= retorna os 14 cargos (9 diretoria +
+    5 conselho), cada um já com a timeline completa embutida - numa única resposta,
+    sem precisar de uma requisição por cargo."""
+    ServicoHistoricoCargoComposicao.registrar_saida(cargo_ocupado, data_saida=date(2026, 6, 1))
+
+    request = APIRequestFactory().get('', {
+        'composicao_uuid': str(composicao_vacancia.uuid),
+    })
+    force_authenticate(request, user=usuario_permissao_sme)
+    view = CargosComposicoesVacanciaViewSet.as_view({'get': 'timeline_consolidada'})
+
+    response = view(request)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data['diretoria_executiva']) == 9
+    assert len(response.data['conselho_fiscal']) == 5
+
+    presidente = response.data['diretoria_executiva'][0]
+    assert presidente['cargo_associacao'] == Cargo.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA
+    assert len(presidente['timeline']) == 2  # ocupante Pedro + vago (mesma saída do teste de /timeline/)
+    assert presidente['timeline'][0]['ocupante_do_cargo']['nome'] == cargo_ocupado.ocupante_do_cargo.nome
+    assert presidente['timeline'][1]['cargo_vago'] is True
+
+    tesoureiro = next(
+        c for c in response.data['diretoria_executiva']
+        if c['cargo_associacao'] == Cargo.CARGO_ASSOCIACAO_TESOUREIRO
+    )
+    assert tesoureiro['timeline'] == []  # nunca teve nenhum registro
+
+
+def test_timeline_consolidada_composicao_uuid_inexistente_retorna_404(usuario_permissao_sme, flag_factory):
+    """composicao_uuid que não existe: 404, não 500 (mesmo helper das demais actions)."""
+    flag_factory.create(name=FLAG, everyone=True)
+
+    request = APIRequestFactory().get('', {
+        'composicao_uuid': str(uuid4()),
+    })
+    force_authenticate(request, user=usuario_permissao_sme)
+    view = CargosComposicoesVacanciaViewSet.as_view({'get': 'timeline_consolidada'})
 
     response = view(request)
 

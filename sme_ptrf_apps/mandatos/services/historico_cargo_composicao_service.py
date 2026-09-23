@@ -1,5 +1,4 @@
 from datetime import date, timedelta
-from typing import List, Optional
 
 from django.db import transaction
 from sme_ptrf_apps.core.models import Associacao
@@ -47,10 +46,10 @@ class ServicoHistoricoCargoComposicao:
 
     @staticmethod
     def get_composicao_vacancia_por_uuid_ou_associacao_e_data(
-        composicao_uuid: Optional[str] = None,
-        associacao_uuid: Optional[str] = None,
-        data: Optional[date] = None,
-    ) -> Optional[ComposicaoVacancia]:
+        composicao_uuid: str | None = None,
+        associacao_uuid: str | None = None,
+        data: date | None = None,
+    ) -> ComposicaoVacancia | None:
         """Resolve a ComposicaoVacancia por uuid direto ou por associacao_uuid + data.
 
         O uuid direto é o caminho rápido (quando o front já o tem em mãos); associacao_uuid
@@ -81,7 +80,7 @@ class ServicoHistoricoCargoComposicao:
     @staticmethod
     def get_ocupante_em_data(composicao_vacancia: ComposicaoVacancia,
                              cargo_associacao: str,
-                             data: date) -> Optional[CargoComposicaoVacancia]:
+                             data: date) -> CargoComposicaoVacancia | None:
         """Retorna o registro do cargo que cobre a data (ocupado ou vago), ou None."""
         return CargoComposicaoVacancia.objects.filter(
             composicao=composicao_vacancia,
@@ -99,17 +98,59 @@ class ServicoHistoricoCargoComposicao:
         }
 
     @staticmethod
-    def get_datas_de_alteracao_da_composicao(composicao_vacancia: ComposicaoVacancia) -> List[date]:
-        """Retorna as datas de início distintas dos registros da composição, em ordem crescente.
+    def _bloco_cronologico_intervalo_datas(datas: list[tuple[date, date]]) -> list[tuple[date, date]]:
+        # maior data_fim_no_cargo entre todas as datas - teto dos intervalos gerados
+        data_final = max(fim for _, fim in datas)
 
-        São os "marcos" de navegação entre alterações de um mandato.
-        """
-        return list(
-            CargoComposicaoVacancia.objects.filter(composicao=composicao_vacancia)
-            .values_list('data_inicio_no_cargo', flat=True)
-            .distinct()
-            .order_by('data_inicio_no_cargo')
+        # 1º grupo de cortes: o início de cada data, de qualquer cargo
+        cortes = {inicio for inicio, _ in datas}  # usando set para evitar duplicatas
+        # 2º grupo de cortes: o dia seguinte ao fim de cada data
+        cortes.update(
+            fim + timedelta(days=1)
+            for _, fim in datas
+            if fim + timedelta(days=1) <= data_final
         )
+        # ordena cronologicamente
+        cortes_ordenados = sorted(cortes)
+
+        # cada corte vira o início de um marco; o fim do marco é a véspera do
+        # próximo corte, ou o teto (data_final) quando for o último corte da lista
+        return [
+            (
+                inicio,
+                cortes_ordenados[indice + 1] - timedelta(days=1)
+                if indice + 1 < len(cortes_ordenados)
+                else data_final
+            )
+            for indice, inicio in enumerate(cortes_ordenados)
+        ]
+
+    @staticmethod
+    def get_datas_de_alteracao_da_composicao(composicao_vacancia: ComposicaoVacancia) -> list[tuple[date, date]]:
+        """Retorna os intervalos cronológicos, sem sobreposição, em que a composição
+        permaneceu inalterada, em ordem crescente para consulta.
+
+        São os "marcos" de navegação entre alterações de um mandato. Os registros de
+        cargos diferentes têm vigências independentes e se sobrepõem entre si (ex.: um
+        cargo pode começar em 01/01 e só mudar de novo em 31/07, enquanto outro começa
+        também em 01/01 mas muda em 31/08) - por isso não dá pra usar os pares
+        (data_inicio_no_cargo, data_fim_no_cargo) de cada registro diretamente como
+        intervalo de um marco. Em vez disso, cada início de registro (de qualquer cargo)
+        e o dia seguinte a cada fim marcam um novo corte na linha do tempo; os intervalos
+        entre cortes consecutivos são os marcos em que nada mudou em nenhum cargo.
+        """
+        # busca todos os registros/datas (de todos os cargos) da composição, já como
+        # tuplas (data_inicio_no_cargo, data_fim_no_cargo) - sem instanciar o model
+        datas = list(
+            CargoComposicaoVacancia.objects.filter(composicao=composicao_vacancia)
+            .values_list('data_inicio_no_cargo', 'data_fim_no_cargo')
+        )
+
+        # composição sem nenhum registro em nenhum cargo: não há marco a montar
+        if not datas:
+            return []
+
+        return ServicoHistoricoCargoComposicao._bloco_cronologico_intervalo_datas(datas)
 
     @classmethod
     @transaction.atomic
@@ -345,18 +386,104 @@ class ServicoHistoricoCargoComposicao:
 
     @staticmethod
     def get_timeline_do_cargo(
-            composicao_vacancia: ComposicaoVacancia, cargo_associacao: str) -> List[CargoComposicaoVacancia]:
+            composicao_vacancia: ComposicaoVacancia, cargo_associacao: str) -> list:
         """Retorna todo o histórico (ocupados e vagos) de um cargo, ordenado cronologicamente."""
-        return list(
-            CargoComposicaoVacancia.objects.filter(
-                composicao=composicao_vacancia,
-                cargo_associacao=cargo_associacao
-            ).order_by('data_inicio_no_cargo')
+
+        cargos = CargoComposicaoVacancia.objects.filter(
+            composicao=composicao_vacancia,
+            cargo_associacao=cargo_associacao
+        ).order_by('data_inicio_no_cargo')
+
+        timeline = []
+        mandato_vigente = ServicoMandatoVigenteVacancia().get_mandato_vigente()
+        eh_composicao_vigente = composicao_vacancia.mandato_id == (mandato_vigente.id if mandato_vigente else None)
+        for cargo_composicao_vacancia in cargos:
+            timeline.append(
+                ServicoHistoricoCargoComposicao()._monta_item_do_cargo(
+                    registro=cargo_composicao_vacancia,
+                    cargo_associacao=cargo_associacao,
+                    label=Cargos(cargo_associacao).label,
+                    eh_composicao_vigente=eh_composicao_vigente,
+                    mandato_data_final=cargo_composicao_vacancia.composicao.mandato.data_final,
+                    data_consulta_no_cargo=None
+                )
+            )
+        return timeline
+
+    @classmethod
+    def get_timeline_consolidada_da_composicao(cls, composicao_vacancia: ComposicaoVacancia) -> dict:
+        """Monta, numa única leitura ao banco, a timeline completa (todos os registros,
+        ocupados e vagos) de todos os cargos da composição — pensado para servir a
+        navegação por data no frontend sem nenhuma requisição adicional.
+
+        Com todos os registros da composição já em memória, eh_primeiro_ocupante,
+        eh_ultimo_ocupante e substituto são derivados por cargo (O(n)), eliminando o N+1
+        de queries que _monta_item_do_cargo faz quando chamado isoladamente por registro.
+        """
+        mandato_vigente = ServicoMandatoVigenteVacancia().get_mandato_vigente()
+        eh_composicao_vigente = composicao_vacancia.mandato_id == (mandato_vigente.id if mandato_vigente else None)
+        mandato_data_final = composicao_vacancia.mandato.data_final
+
+        registros_por_cargo = {}
+        cargos_composicoes = (
+            CargoComposicaoVacancia.objects
+            .filter(composicao=composicao_vacancia)
+            .select_related('ocupante_do_cargo')
+            .order_by('cargo_associacao', 'data_inicio_no_cargo')
         )
+        # Separar em dicionário por cargo
+        for registro in cargos_composicoes:
+            registros_por_cargo.setdefault(registro.cargo_associacao, []).append(registro)
+
+        diretoria_executiva = []
+        conselho_fiscal = []
+
+        for indice, (cargo_associacao, label) in enumerate(Cargos.choices):
+            registros_do_cargo = registros_por_cargo.get(cargo_associacao, [])
+
+            # ids que SÃO um substituto (referenciados como substituido_por por outro registro)
+            # TODO: ponto de observação, substituto deve identificar o substituto imediatamente anterior
+            ids_que_sao_substituto = {
+                registro.substituido_por_id for registro in registros_do_cargo if registro.substituido_por_id
+            }
+            registros_com_ocupante = [r for r in registros_do_cargo if r.ocupante_do_cargo_id]
+            id_primeiro_ocupante = registros_com_ocupante[0].id if registros_com_ocupante else None
+            id_ultimo_ocupante = registros_com_ocupante[-1].id if registros_com_ocupante else None
+
+            timeline = [
+                cls._monta_item_do_cargo(
+                    registro=registro,
+                    cargo_associacao=cargo_associacao,
+                    label=label,
+                    eh_composicao_vigente=eh_composicao_vigente,
+                    mandato_data_final=mandato_data_final,
+                    data_consulta_no_cargo=None,
+                    eh_primeiro_ocupante=registro.id == id_primeiro_ocupante,
+                    eh_ultimo_ocupante=registro.id == id_ultimo_ocupante,
+                    substituto=registro.id in ids_que_sao_substituto,
+                )
+                for registro in registros_do_cargo
+            ]
+
+            item = {
+                'cargo_associacao': cargo_associacao,
+                'cargo_associacao_label': label.split(' ')[0],
+                'timeline': timeline,
+            }
+
+            if indice < 9:
+                diretoria_executiva.append(item)
+            else:
+                conselho_fiscal.append(item)
+
+        return {
+            'diretoria_executiva': diretoria_executiva,
+            'conselho_fiscal': conselho_fiscal,
+        }
 
     @classmethod
     def monta_cargos_da_composicao(cls, composicao_vacancia: ComposicaoVacancia,
-                                   data: Optional[date]) -> dict:
+                                   data: date | None) -> dict:
         """Monta os cargos da composição para uma data de referência.
 
         Args:
@@ -383,7 +510,8 @@ class ServicoHistoricoCargoComposicao:
                 cargo_associacao=cargo_associacao,
                 label=label,
                 eh_composicao_vigente=eh_composicao_vigente,
-                mandato_data_final=composicao_vacancia.mandato.data_final
+                mandato_data_final=composicao_vacancia.mandato.data_final,
+                data_consulta_no_cargo=data
             )
 
             if indice < 9:
@@ -398,11 +526,15 @@ class ServicoHistoricoCargoComposicao:
 
     @staticmethod
     def _monta_item_do_cargo(
-            registro: Optional[CargoComposicaoVacancia],
+            registro: CargoComposicaoVacancia | None,
             cargo_associacao: str,
             label: str,
             eh_composicao_vigente: bool,
-            mandato_data_final: date) -> dict:
+            mandato_data_final: date,
+            data_consulta_no_cargo: date | None,
+            eh_primeiro_ocupante: bool | None = None,
+            eh_ultimo_ocupante: bool | None = None,
+            substituto: bool | None = None) -> dict:
         """Monta um item do cargo da composição.
 
         Args:
@@ -416,21 +548,55 @@ class ServicoHistoricoCargoComposicao:
             Dicionário com os dados do cargo/ocupante no formato consumido pelo frontend.
         """
         # representa cargo sem ocupante
-        cargo_vazio = registro is None or registro.ocupante_do_cargo_id is None
+        eh_cargo_vago = registro is None or registro.ocupante_do_cargo_id is None
+
         # representa cargo vigente sem ocupante
         cargo_vazio_vigente = (
             registro and registro.ocupante_do_cargo_id is None and
             registro.data_fim_no_cargo == mandato_data_final
         )
 
+        # é ocupante inicial: primeiro ocupante que já existiu no cargo, mesmo que antes dele
+        # tenha havido um período vago (sem nenhum ocupante anterior)
+        if eh_primeiro_ocupante is None:
+            eh_primeiro_ocupante = bool(registro) and not eh_cargo_vago and not CargoComposicaoVacancia.objects.filter(
+                composicao_id=registro.composicao_id,
+                cargo_associacao=registro.cargo_associacao,
+                ocupante_do_cargo__isnull=False,
+                data_inicio_no_cargo__lt=registro.data_inicio_no_cargo,
+            ).exists()
+
+        # é último ocupante: último ocupante que já existiu no cargo, mesmo que depois dele
+        # tenha havido um período vago (sem nenhum ocupante posterior)
+        if eh_ultimo_ocupante is None:
+            eh_ultimo_ocupante = bool(registro) and not eh_cargo_vago and not CargoComposicaoVacancia.objects.filter(
+                composicao_id=registro.composicao_id,
+                cargo_associacao=registro.cargo_associacao,
+                ocupante_do_cargo__isnull=False,
+                data_inicio_no_cargo__gt=registro.data_inicio_no_cargo,
+            ).exists()
+
         ocupante = registro.ocupante_do_cargo if registro and registro.ocupante_do_cargo_id else None
-        ocupante_vigente = bool(registro) and not cargo_vazio and registro.data_fim_no_cargo == mandato_data_final
-        ocupante_substitui = (
-            registro.substituto_imediato.ocupante_do_cargo.nome if registro and registro.substituto else None
+
+        # identifica se o cargo é ocupado e vigente
+        ocupante_vigente = bool(registro) and not eh_cargo_vago and registro.data_fim_no_cargo == mandato_data_final
+
+        # Substituto - booleano se é substituto imediato do ocupante anterior
+        if substituto is None:
+            substituto = registro.substituto if registro else None
+
+        cargo_na_data = bool(registro) and str(registro.data_inicio_no_cargo) == str(data_consulta_no_cargo)
+        tag_novo_membro = (
+            f'Novo membro em {registro.data_inicio_no_cargo.strftime("%d/%m/%Y")}'
+            if registro and cargo_na_data and not eh_primeiro_ocupante else None
         )
-        ocupante_substituido_por = (
-            registro.substituido_por.ocupante_do_cargo.nome if registro and registro.substituido_por else None
-        )
+
+        substituido = registro.substituido if registro else None
+
+        # tag de saída: Vacância em DD/MM/YYYY: identifica se cargo tem saída registrada
+        tem_saida = bool(registro) and not eh_cargo_vago and not ocupante_vigente
+        _data_saida = registro.data_fim_no_cargo if tem_saida else None
+        tag_vacancia = f'Vacância em {_data_saida.strftime("%d/%m/%Y")}' if tem_saida else None
 
         # padrão anterior para manter mínimo impacto de transição para a nova estrutura
         return {
@@ -455,35 +621,30 @@ class ServicoHistoricoCargoComposicao:
             "cargo_associacao_label": label.split(" ")[0],
             "data_inicio_no_cargo": registro.data_inicio_no_cargo if registro else None,
             "data_fim_no_cargo": registro.data_fim_no_cargo if registro else None,
-            # Não existe "composição passada" na v2 (uma única composição por mandato) - sempre None
-            "data_fim_no_cargo_composicao_mais_recente": None,
             "eh_composicao_vigente": eh_composicao_vigente,
-            "substituto": registro.substituto if registro else None,
-            "tag_substituto": (
-                f'Novo membro em {registro.data_inicio_no_cargo.strftime("%d/%m/%Y")}'
-                if registro and registro.substituto else None
-            ),
-            "substituido": registro.substituido if registro else None,
-            # Diferente da v1 (usa a data final da composição inteira pra montar essa tag) -
-            # aqui usa data_fim_no_cargo do próprio registro, a data real da substituição.
-            "tag_substituido": (
-                f'Substituído em {registro.substituido_por.data_inicio_no_cargo.strftime("%d/%m/%Y")}'
-                if registro and registro.substituido_por else None
-            ),
-            "ocupante_substitui": ocupante_substitui,
-            "ocupante_substituido_por": ocupante_substituido_por,
-            "cargo_vago": cargo_vazio,
+            "substituto": substituto,
+            "tag_novo_membro": tag_novo_membro,
+            "substituido": substituido,
+            "cargo_vago": eh_cargo_vago,
             "cargo_vago_vigente": cargo_vazio_vigente,
+            "cargo_vigente": cargo_vazio_vigente or ocupante_vigente,
+            "tem_saida": tem_saida,
+            "tag_vacancia": tag_vacancia,
             "ocupante_vigente": ocupante_vigente,
-            "ocupante_editavel": cargo_vazio,
-            "data_final_editavel": not cargo_vazio,
-            "vago_desde": registro.data_inicio_no_cargo if registro and registro.ocupante_do_cargo_id is None else None,
+            "eh_primeiro_ocupante": eh_primeiro_ocupante,
+            "eh_ultimo_ocupante": eh_ultimo_ocupante,
+
+            # só pode cancelar um ocupante que já saiu (não vigente) e ainda não tem sucessor
+            "pode_cancelar_saida": (
+                not eh_cargo_vago and not ocupante_vigente and not substituido and eh_ultimo_ocupante
+            ),
+            "pode_cancelar_entrada": not eh_cargo_vago and ocupante_vigente,
         }
 
     @classmethod
     @transaction.atomic
     def editar_ocupante(cls, cargo_composicao_vacancia: CargoComposicaoVacancia,
-                        dados_ocupante: Optional[dict] = None) -> CargoComposicaoVacancia:
+                        dados_ocupante: dict | None) -> CargoComposicaoVacancia:
         """Edita os dados cadastrais do ocupante de um registro existente.
 
         Não altera cargo_associacao, datas nem vínculo de substituição. Essas mudanças passam

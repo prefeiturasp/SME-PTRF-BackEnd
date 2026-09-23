@@ -5,6 +5,8 @@ from sme_ptrf_apps.core.models import Periodo, Unidade
 from ...api.serializers.presentes_ata_dre_serializer import PresentesAtaDreSerializer, PresentesAtaDreCreateSerializer
 from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.unidade_serializer import UnidadeLookUpSerializer
+from sme_ptrf_apps.dre.models import MembroComissao
+from django.db.models import Exists, OuterRef, Q
 
 
 class AtaParecerTecnicoLookUpSerializer(serializers.ModelSerializer):
@@ -37,7 +39,7 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
 
     periodo = PeriodoLookUpSerializer(many=False)
 
-    presentes_na_ata = PresentesAtaDreSerializer(many=True)
+    presentes_na_ata = serializers.SerializerMethodField()
 
     versao = serializers.SerializerMethodField('get_versao')
 
@@ -76,6 +78,36 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
 
     def get_eh_portaria_publicada(self, obj):
         return obj.eh_portaria_publicada()
+
+    def get_presentes_na_ata(self, obj):
+        request = self.context.get('request')
+        recurso = getattr(request, 'recurso', None)
+
+        presentes = obj.presentes_na_ata.all()
+
+        if recurso:
+            membro_comissao = MembroComissao.objects.filter(
+                dre=obj.dre,
+                rf=OuterRef('rf'),
+            )
+
+            membro_comissao_recurso = membro_comissao.filter(
+                comissoes__recursos=recurso,
+                comissoes__responsavel_analise_pc=True,
+            )
+
+            presentes = presentes.annotate(
+                eh_membro_comissao=Exists(membro_comissao),
+                pertence_ao_recurso=Exists(membro_comissao_recurso),
+            ).filter(
+                Q(eh_membro_comissao=False) | Q(pertence_ao_recurso=True)
+            )
+
+        return PresentesAtaDreSerializer(
+            presentes,
+            many=True,
+            context=self.context,
+        ).data
 
     class Meta:
         model = AtaParecerTecnico
