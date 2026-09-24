@@ -1,6 +1,8 @@
 import logging
 import math
 from decimal import Decimal
+from typing import Any
+
 from django.db.models import Sum
 
 from sme_ptrf_apps.paa.models import Paa, RecursoProprioPaa
@@ -13,10 +15,18 @@ logger = logging.getLogger(__name__)
 CAMPOS_ORCAMENTARIOS = ('custeio', 'capital', 'livre', 'total')
 
 
-def _to_float(val, default=None):
-    """
-    Converte valor para float.
+def _to_float(val: Any, default: float | None = None) -> float | None:
+    """Converte valor para float.
+
     Se val for None, NaN, inf ou inválido, retorna default.
+
+    Args:
+        val: Valor a ser convertido para float.
+        default: Valor retornado caso a conversão não seja possível.
+            Padrão None.
+
+    Returns:
+        O valor convertido para float, ou default se a conversão falhar.
     """
     if val is None:
         return default
@@ -29,10 +39,19 @@ def _to_float(val, default=None):
         return default
 
 
-def _converter_valores_para_float(valores_dict, campos=None):
-    """
-    Converte valores de um dicionário para float.
-    Garante que os campos custeio, capital, livre e total existam e sejam válidos (None/NaN → 0.0).
+def _converter_valores_para_float(valores_dict: dict, campos: tuple[str, ...] | None = None) -> dict:
+    """Converte valores de um dicionário para float.
+
+    Garante que os campos custeio, capital, livre e total existam e sejam
+    válidos (None/NaN → 0.0).
+
+    Args:
+        valores_dict: Dicionário contendo os valores a serem convertidos.
+        campos: Chaves a converter. Padrão None, que utiliza
+            `CAMPOS_ORCAMENTARIOS`.
+
+    Returns:
+        Novo dicionário com os campos informados convertidos para float.
     """
     campos = campos or CAMPOS_ORCAMENTARIOS
     return {campo: _to_float(valores_dict.get(campo), 0.0) for campo in campos}
@@ -42,10 +61,21 @@ class PlanoOrcamentarioService:
     """Service para agregar e formatar dados do Plano Orçamentário"""
 
     def __init__(self, paa: Paa):
+        """Inicializa o service com o PAA fornecido.
+
+        Args:
+            paa: PAA que será utilizado para construir o plano orçamentário.
+        """
         self.paa = paa
 
     def _obter_alteracoes(self) -> dict:
-        """Retorna alterações do PAA em relação ao snapshot da retificação (com cache por instância)."""
+        """Retorna alterações do PAA em relação ao snapshot da retificação (com cache por instância).
+
+        Returns:
+            Dicionário com as alterações identificadas pelo
+            RetificacaoPaaService, ou um dicionário vazio caso ocorra
+            algum erro ao obtê-las.
+        """
         if not hasattr(self, '_alteracoes_cache'):
             from sme_ptrf_apps.paa.services.retificacao_paa_service import RetificacaoPaaService
             try:
@@ -55,17 +85,34 @@ class PlanoOrcamentarioService:
                 self._alteracoes_cache = {}
         return self._alteracoes_cache
 
-    def _status_alteracao(self, alteracoes_secao, chave):
-        """Retorna 'adicionado', 'modificado', 'removido' ou None para uma chave na seção de alterações."""
+    def _status_alteracao(self, alteracoes_secao: dict, chave: Any) -> str | None:
+        """Retorna o status de alteração de uma chave na seção de alterações.
+
+        Args:
+            alteracoes_secao: Dicionário de alterações da seção, indexado
+                pela chave do registro.
+            chave: Chave do registro a ser consultado.
+
+        Returns:
+            'adicionado', 'modificado' ou 'removido' conforme a ação
+            registrada, ou None caso a chave não conste nas alterações.
+        """
         item = alteracoes_secao.get(str(chave))
         if item is None:
             return None
         return item.get('acao')
 
-    def _status_alteracao_agregado(self, alteracoes_secao):
-        """
-        Agrega status de múltiplos registros em uma seção.
-        Retorna 'adicionado' se só há adições, 'removido' se só há remoções, 'modificado' se há mix, None se vazio.
+    def _status_alteracao_agregado(self, alteracoes_secao: dict) -> str | None:
+        """Agrega status de múltiplos registros em uma seção.
+
+        Args:
+            alteracoes_secao: Dicionário de alterações da seção, indexado
+                pela chave de cada registro.
+
+        Returns:
+            'adicionado' se só há adições, 'removido' se só há remoções,
+            'modificado' se há mistura de ações, ou None se a seção
+            estiver vazia.
         """
         if not alteracoes_secao:
             return None
@@ -76,10 +123,21 @@ class PlanoOrcamentarioService:
             return 'removido'
         return 'modificado'
 
-    def _calcular_saldo(self, receitas, despesas):
-        """
-        Calcula saldo considerando regras de negativos.
-        Se custeio ou capital ficarem negativos, o déficit é deduzido do saldo de livre aplicação.
+    def _calcular_saldo(self, receitas: dict, despesas: dict) -> dict:
+        """Calcula saldo considerando regras de negativos.
+
+        Se custeio ou capital ficarem negativos, o déficit é deduzido do
+        saldo de livre aplicação.
+
+        Args:
+            receitas: Dicionário com os valores de receita por tipo de
+                aplicação (custeio, capital, livre).
+            despesas: Dicionário com os valores de despesa por tipo de
+                aplicação (custeio, capital, livre).
+
+        Returns:
+            Dicionário com os saldos finais por tipo de aplicação
+            (custeio, capital, livre) e o total.
         """
         saldo_custeio_bruto = receitas['custeio'] - despesas['custeio']
         saldo_capital_bruto = receitas['capital'] - despesas['capital']
@@ -105,7 +163,7 @@ class PlanoOrcamentarioService:
             'total': saldo_custeio_final + saldo_capital_final + saldo_livre_final
         }
 
-    def _obter_saldos_finais(self, receita_prevista, saldos_atual):
+    def _obter_saldos_finais(self, receita_prevista: dict, saldos_atual: dict) -> dict:
         """
         Obtém saldos finais verificando se estão congelados.
         Se o saldo estiver congelado e todos os valores congelados estiverem preenchidos,
@@ -144,10 +202,13 @@ class PlanoOrcamentarioService:
             'saldo_atual_livre': saldo_livre_final
         }
 
-    def _obter_receitas_ptrf(self):
-        """
-        Obtém receitas PTRF formatadas com saldos atuais e congelados.
-        Retorna lista de receitas com informações completas para cada ação.
+    def _obter_receitas_ptrf(self) -> list:
+        """Obtém receitas PTRF formatadas com saldos atuais e congelados.
+
+        Returns:
+            Lista de receitas com informações completas (ação, receitas
+            previstas, saldos e status de alteração) para cada ação
+            associada ao PTRF.
         """
         acoes_associacoes = AcoesPaaService(self.paa).obter_ptrf()
 
@@ -207,10 +268,16 @@ class PlanoOrcamentarioService:
             })
         return receitas
 
-    def _obter_prioridades_agrupadas(self):
-        """
-        Obtém prioridades agrupadas por recurso (PTRF ou PDDE).
-        Agrupa valores de custeio e capital por ação (PTRF) ou programa (PDDE).
+    def _obter_prioridades_agrupadas(self) -> dict:
+        """Obtém prioridades agrupadas por recurso (PTRF ou PDDE).
+
+        Agrupa valores de custeio e capital por ação (PTRF) ou programa
+        (PDDE).
+
+        Returns:
+            Dicionário com as chaves 'PTRF' e 'PDDE', cada uma mapeando o
+            UUID da ação/programa aos valores agregados de custeio,
+            capital e livre.
         """
         prioridades_qs = queryset_prioridades_paa(self.paa.prioridadepaa_set.all())
         prioridades_list = list(prioridades_qs)
@@ -261,11 +328,14 @@ class PlanoOrcamentarioService:
             'PDDE': prioridades_pdde
         }
 
-    def _obter_acoes_pdde_totais(self):
-        """
-        Obtém totais por ação PDDE.
-        Retorna lista de ações PDDE com valores totais de receitas.
+    def _obter_acoes_pdde_totais(self) -> list:
+        """Obtém totais por ação PDDE.
+
         Apenas retorna ações que têm receitas ou prioridades para este PAA.
+
+        Returns:
+            Lista de ações PDDE com valores totais de receitas por tipo de
+            aplicação (custeio, capital, livre) e status de alteração.
         """
         from sme_ptrf_apps.paa.models import AcaoPdde, ReceitaPrevistaPdde
 
@@ -332,10 +402,12 @@ class PlanoOrcamentarioService:
 
         return acoes_com_totais
 
-    def _obter_total_recursos_proprios(self):
-        """
-        Obtém total de recursos próprios do PAA.
-        Soma todos os valores de recursos próprios vinculados ao PAA.
+    def _obter_total_recursos_proprios(self) -> Decimal:
+        """Obtém total de recursos próprios do PAA.
+
+        Returns:
+            Soma de todos os valores de recursos próprios vinculados ao
+            PAA.
         """
         queryset = RecursoProprioPaa.objects.filter(
             associacao=self.paa.associacao,
@@ -344,10 +416,13 @@ class PlanoOrcamentarioService:
         valor_total = queryset.aggregate(total=Sum('valor'))
         return valor_total.get('total') or Decimal('0')
 
-    def _obter_receitas_outros_recursos(self):
-        """
-        Obtém receitas de outros recursos do período formatadas.
-        Retorna lista com receitas de recursos próprios e outros recursos.
+    def _obter_receitas_outros_recursos(self) -> list:
+        """Obtém receitas de outros recursos do período formatadas.
+
+        Returns:
+            Lista com receitas de recursos próprios e outros recursos do
+            período, cada uma contendo valores por tipo de aplicação e
+            status de alteração.
         """
         from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa, ReceitaPrevistaOutroRecursoPeriodo
         from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum
@@ -426,10 +501,12 @@ class PlanoOrcamentarioService:
 
         return receitas
 
-    def _obter_prioridades_outros_recursos(self):
-        """
-        Obtém prioridades de recursos próprios e outros recursos agrupadas.
-        Retorna dicionário com prioridades agrupadas por UUID do recurso.
+    def _obter_prioridades_outros_recursos(self) -> dict:
+        """Obtém prioridades de recursos próprios e outros recursos agrupadas.
+
+        Returns:
+            Dicionário com as prioridades agrupadas por UUID do recurso,
+            cada uma com os valores de custeio, capital e livre.
         """
         from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum
 
@@ -467,10 +544,26 @@ class PlanoOrcamentarioService:
 
         return prioridades_agrupadas
 
-    def _calcular_secao_outros_recursos(self, receitas_outros_recursos, prioridades_outros_recursos):
-        """
-        Calcula seção de Outros Recursos do plano orçamentário.
-        Cria linhas com receitas, despesas e saldos para recursos próprios e outros recursos.
+    def _calcular_secao_outros_recursos(
+        self, receitas_outros_recursos: list, prioridades_outros_recursos: dict
+    ) -> dict | None:
+        """Calcula seção de Outros Recursos do plano orçamentário.
+
+        Cria linhas com receitas, despesas e saldos para recursos próprios
+        e outros recursos.
+
+        Args:
+            receitas_outros_recursos: Lista de receitas de recursos
+                próprios e outros recursos, conforme retornado por
+                `_obter_receitas_outros_recursos`.
+            prioridades_outros_recursos: Dicionário de prioridades
+                agrupadas por UUID do recurso, conforme retornado por
+                `_obter_prioridades_outros_recursos`.
+
+        Returns:
+            Dicionário com a chave, o título e as linhas da seção Outros
+            Recursos, ou None caso não haja receitas ou nenhuma linha
+            elegível para exibição.
         """
         if not receitas_outros_recursos:
             return None
@@ -567,10 +660,19 @@ class PlanoOrcamentarioService:
             'linhas': linhas
         }
 
-    def _calcular_receita_base(self, item):
-        """
-        Calcula receita base de um item PTRF.
-        Considera saldo (já verificado se congelado ou atual) mais valores de previsão.
+    def _calcular_receita_base(self, item: dict) -> dict:
+        """Calcula receita base de um item PTRF.
+
+        Considera saldo (já verificado se congelado ou atual) mais valores
+        de previsão.
+
+        Args:
+            item: Item de receita PTRF, conforme retornado por
+                `_obter_receitas_ptrf`.
+
+        Returns:
+            Dicionário com os valores de custeio, capital e livre (e
+            respectivas flags de aceitação) e o total.
         """
         receitas_previstas = item.get('receitas_previstas_paa') or []
         if receitas_previstas:
@@ -604,10 +706,22 @@ class PlanoOrcamentarioService:
             'total': custeio + capital + livre
         }
 
-    def _calcular_secao_ptrf(self, receitas_ptrf, prioridades_ptrf):
-        """
-        Calcula seção PTRF do plano orçamentário.
+    def _calcular_secao_ptrf(self, receitas_ptrf: list, prioridades_ptrf: dict) -> dict | None:
+        """Calcula seção PTRF do plano orçamentário.
+
         Cria linhas com receitas, despesas e saldos para cada ação PTRF.
+
+        Args:
+            receitas_ptrf: Lista de receitas PTRF, conforme retornado por
+                `_obter_receitas_ptrf`.
+            prioridades_ptrf: Dicionário de prioridades PTRF agrupadas por
+                UUID da ação, conforme retornado por
+                `_obter_prioridades_agrupadas`.
+
+        Returns:
+            Dicionário com a chave, o título e as linhas da seção PTRF, ou
+            None caso não haja receitas ou nenhuma linha elegível para
+            exibição.
         """
         if not receitas_ptrf:
             return None
@@ -705,10 +819,22 @@ class PlanoOrcamentarioService:
             'linhas': linhas
         }
 
-    def _calcular_secao_pdde(self, acoes_pdde, prioridades_pdde):
-        """
-        Calcula seção PDDE do plano orçamentário.
+    def _calcular_secao_pdde(self, acoes_pdde: list, prioridades_pdde: dict) -> dict | None:
+        """Calcula seção PDDE do plano orçamentário.
+
         Cria linhas com receitas, despesas e saldos para cada ação PDDE.
+
+        Args:
+            acoes_pdde: Lista de ações PDDE com totais, conforme retornado
+                por `_obter_acoes_pdde_totais`.
+            prioridades_pdde: Dicionário de prioridades PDDE agrupadas por
+                UUID da ação, conforme retornado por
+                `_obter_prioridades_agrupadas`.
+
+        Returns:
+            Dicionário com a chave, o título e as linhas da seção PDDE, ou
+            None caso não haja ações ou nenhuma linha elegível para
+            exibição.
         """
         if not acoes_pdde:
             return None
@@ -811,9 +937,13 @@ class PlanoOrcamentarioService:
             'linhas': linhas
         }
 
-    def construir_plano_orcamentario(self):
-        """
-        Constrói o plano orçamentário completo.
+    def construir_plano_orcamentario(self) -> dict:
+        """Constrói o plano orçamentário completo.
+
+        Returns:
+            Dicionário com a chave 'secoes' contendo a lista de seções
+            (PTRF, PDDE e Outros Recursos) prontas para renderização.
+            Seções sem linhas elegíveis são omitidas.
         """
         secoes = []
 
