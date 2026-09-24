@@ -7,6 +7,8 @@ logger = logging.getLogger(__name__)
 
 
 class RegistrarAcoesPtrfConclusaoPaaService:
+    """Service para registrar as ações PTRF disponíveis no momento da conclusão do PAA."""
+
     @classmethod
     def registrar(cls, paa: Paa) -> int:
         """
@@ -31,6 +33,8 @@ class RegistrarAcoesPtrfConclusaoPaaService:
 
 
 class RegistrarAcoesPddeConclusaoPaaService:
+    """Service para registrar as ações PDDE disponíveis no momento da conclusão do PAA."""
+
     @classmethod
     def registrar(cls, paa: Paa) -> int:
         """
@@ -54,6 +58,8 @@ class RegistrarAcoesPddeConclusaoPaaService:
 
 
 class RegistrarAcoesOutrosRecursosConclusaoPaaService:
+    """Service para registrar as ações de outros recursos disponíveis no momento da conclusão do PAA."""
+
     @classmethod
     def registrar(cls, paa: Paa) -> int:
         """
