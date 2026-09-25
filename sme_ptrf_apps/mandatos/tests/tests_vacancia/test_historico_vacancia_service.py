@@ -1040,6 +1040,8 @@ def test_monta_cargos_da_composicao_cargo_vazio_nunca_teve_registro(composicao_v
     assert tesoureiro['ocupante_do_cargo']['nome'] is None
     assert tesoureiro['data_inicio_no_cargo'] is None
     assert tesoureiro['cargo_vago'] is True
+    assert tesoureiro['cargo_vago_vigente'] is True
+    assert tesoureiro['cargo_vigente'] is True
     assert tesoureiro['pode_cancelar_entrada'] is False
     assert tesoureiro['pode_cancelar_saida'] is False
 

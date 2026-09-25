@@ -550,9 +550,10 @@ class ServicoHistoricoCargoComposicao:
         # representa cargo sem ocupante
         eh_cargo_vago = registro is None or registro.ocupante_do_cargo_id is None
 
-        # representa cargo vigente sem ocupante
-        cargo_vazio_vigente = (
-            registro and registro.ocupante_do_cargo_id is None and
+        # representa cargo vigente sem ocupante - inclui o cargo que nunca teve nenhum
+        # registro criado (composicao do zero)
+        cargo_vazio_vigente = registro is None or (
+            registro.ocupante_do_cargo_id is None and
             registro.data_fim_no_cargo == mandato_data_final
         )
 
