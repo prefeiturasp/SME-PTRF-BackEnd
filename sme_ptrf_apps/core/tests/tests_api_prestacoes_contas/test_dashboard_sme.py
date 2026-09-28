@@ -238,7 +238,7 @@ def test_dashboard_sme(
                 'quantidade_prestacoes': 1,
                 'status': 'APROVADA_RESSALVA'},
             {
-                'titulo': 'Prestações de contas reprovadas',
+                'titulo': 'Prestações de contas rejeitadas',
                 'quantidade_prestacoes': 0,
                 'status': 'REPROVADA'}
         ],
@@ -320,7 +320,7 @@ def test_dashboard_sme_periodo_sem_pendencias_nas_dres(jwt_authenticated_client_
                 'quantidade_prestacoes': 0,
                 'status': 'APROVADA_RESSALVA'},
             {
-                'titulo': 'Prestações de contas reprovadas',
+                'titulo': 'Prestações de contas rejeitadas',
                 'quantidade_prestacoes': 0,
                 'status': 'REPROVADA'}
         ],

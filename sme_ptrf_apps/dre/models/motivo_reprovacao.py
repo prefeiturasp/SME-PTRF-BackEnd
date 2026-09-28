@@ -14,8 +14,8 @@ class MotivoReprovacao(ModeloBase):
     recurso = models.ForeignKey('core.Recurso', on_delete=models.PROTECT, verbose_name='recurso', related_name='motivos_reprovacao')
 
     class Meta:
-        verbose_name = 'Motivo de reprovação'
-        verbose_name_plural = 'Motivos de reprovação'
+        verbose_name = 'Motivo de rejeição'
+        verbose_name_plural = 'Motivos de rejeição'
         unique_together = ['motivo', 'recurso']
 
     def __str__(self):

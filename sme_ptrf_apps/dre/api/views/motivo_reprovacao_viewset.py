@@ -58,7 +58,7 @@ class MotivoReprovacaoParametrizacaoViewSet(viewsets.ModelViewSet):
             content = {
                 'mensagem': (
                     'Essa operação não pode ser realizada. '
-                    'Há PCs com análise concluída com esse motivo de reprovação de PC.'
+                    'Há PCs com análise concluída com esse motivo de rejeição de PC.'
                 )
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)

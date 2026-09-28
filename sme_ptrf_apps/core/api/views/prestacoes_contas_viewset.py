@@ -742,7 +742,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 'erro': 'falta_de_informacoes',
                 'operacao': 'concluir-analise',
                 'mensagem': (
-                    'Para concluir como Reprovada é necessário informar o campo motivos_reprovacao ou '
+                    'Para concluir como Rejeitada é necessário informar o campo motivos_reprovacao ou '
                     'outros_motivos_reprovacao.'
                 )
             }
@@ -757,7 +757,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             except MotivoReprovacao.DoesNotExist:
                 erro = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto motivo de reprovação para o uuid {motivo_uuid} não foi encontrado na base."
+                    'mensagem': f"O objeto motivo de rejeição para o uuid {motivo_uuid} não foi encontrado na base."
                 }
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -987,7 +987,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                              description='SIM, se quer incluir as aprovadas e ressalvadas',
                              required=False, type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
             OpenApiParameter(name='add_reprovadas_nao_apresentacao', enum=['SIM'],
-                             description='SIM, se quer incluir as reprovadas não apresentadas',
+                             description='SIM, se quer incluir as rejeitadas não apresentadas',
                              required=False, type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
         ],
         responses={200: PrestacaoContaLookUpSerializer()},

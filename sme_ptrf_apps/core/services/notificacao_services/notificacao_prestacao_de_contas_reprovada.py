@@ -44,12 +44,12 @@ def notificar_prestacao_de_contas_reprovada(prestacao_de_contas, motivos_reprova
 
             if usuario.has_perm('core.recebe_notificacao_reprovacao_pc_incluindo_motivos'):
                 descricao_notificacao = (
-                    f"A prestação de contas referente ao período {prestacao_de_contas.periodo.referencia} foi reprovada pelos seguintes motivos: {motivos_reprovacao_notificacao} {outros_motivos_reprovacao}\n\n"
+                    f"A prestação de contas referente ao período {prestacao_de_contas.periodo.referencia} foi rejeitada pelos seguintes motivos: {motivos_reprovacao_notificacao} {outros_motivos_reprovacao}\n\n"
                     f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
                 )
             else:
                 descricao_notificacao = (
-                    f"A prestação de contas referente ao período {prestacao_de_contas.periodo.referencia} foi reprovada.\n\n"
+                    f"A prestação de contas referente ao período {prestacao_de_contas.periodo.referencia} foi rejeitada.\n\n"
                     f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
                 )
 
@@ -57,7 +57,7 @@ def notificar_prestacao_de_contas_reprovada(prestacao_de_contas, motivos_reprova
                 tipo=Notificacao.TIPO_NOTIFICACAO_INFORMACAO,
                 categoria=Notificacao.CATEGORIA_NOTIFICACAO_REPROVACAO_PC,
                 remetente=Notificacao.REMETENTE_NOTIFICACAO_SISTEMA,
-                titulo=f"A PC do período {prestacao_de_contas.periodo.referencia} foi reprovada pela DRE",
+                titulo=f"A PC do período {prestacao_de_contas.periodo.referencia} foi rejeitada pela DRE",
                 descricao=descricao_notificacao,
                 usuario=usuario,
                 renotificar=True,
