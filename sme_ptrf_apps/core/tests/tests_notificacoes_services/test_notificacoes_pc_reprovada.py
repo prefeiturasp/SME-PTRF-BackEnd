@@ -20,9 +20,9 @@ def test_deve_notificar_usuarios(prestacao_notifica_pc_reprovada, motivo_reprova
     assert notificacao.tipo == Notificacao.TIPO_NOTIFICACAO_INFORMACAO
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_REPROVACAO_PC
     assert notificacao.remetente == Notificacao.REMETENTE_NOTIFICACAO_SISTEMA
-    assert notificacao.titulo == f"A PC do período {periodo.referencia} foi reprovada pela DRE"
+    assert notificacao.titulo == f"A PC do período {periodo.referencia} foi rejeitada pela DRE"
     assert notificacao.descricao == (
-        f"A prestação de contas referente ao período {periodo.referencia} foi reprovada pelos seguintes "
+        f"A prestação de contas referente ao período {periodo.referencia} foi rejeitada pelos seguintes "
         f"motivos: {motivos} {outros_motivos}\n\n"
         f"Recurso: {recurso.nome}\n"
     )

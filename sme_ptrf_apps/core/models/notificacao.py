@@ -64,7 +64,7 @@ class Notificacao(ModeloBase):
         CATEGORIA_NOTIFICACAO_DEVOLUCAO_PC: 'Devolução de PC para ajustes',
         CATEGORIA_NOTIFICACAO_APROVACAO_PC: 'Aprovação de PC',
         CATEGORIA_NOTIFICACAO_APROVACAO_RESSALVAS_PC: 'Aprovação de PC com ressalvas',
-        CATEGORIA_NOTIFICACAO_REPROVACAO_PC: 'Reprovação de PC',
+        CATEGORIA_NOTIFICACAO_REPROVACAO_PC: 'Rejeição de PC',
         CATEGORIA_NOTIFICACAO_ERRO_AO_CONCLUIR_PC: 'Erro ao concluir PC',
         CATEGORIA_NOTIFICACAO_DEVOLUCAO_CONSOLIDADO: 'Devolução de relatório consolidado',
         CATEGORIA_NOTIFICACAO_COMENTARIO_CONSOLIDADO_DRE: 'Comentário no relatório consolidado',
