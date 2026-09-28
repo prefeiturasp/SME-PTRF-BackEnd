@@ -46,7 +46,7 @@ class PrestacaoConta(ModeloBase):
         STATUS_DEVOLVIDA_RECEBIDA: 'Recebida após acertos',
         STATUS_APROVADA: 'Aprovada',
         STATUS_APROVADA_RESSALVA: 'Aprovada com ressalvas',
-        STATUS_REPROVADA: 'Reprovada',
+        STATUS_REPROVADA: 'Rejeitada',
         STATUS_EM_PROCESSAMENTO: 'Em processamento',
         STATUS_A_PROCESSAR: 'A processar',
         STATUS_CALCULADA: 'PC calculada. Gerando relatórios',
@@ -91,7 +91,7 @@ class PrestacaoConta(ModeloBase):
 
     motivos_reprovacao = models.ManyToManyField('dre.MotivoReprovacao', blank=True)
 
-    outros_motivos_reprovacao = models.TextField('Outros motivos para reprovação pela DRE', blank=True, default='')
+    outros_motivos_reprovacao = models.TextField('Outros motivos para rejeição pela DRE', blank=True, default='')
 
     motivos_aprovacao_ressalva = models.ManyToManyField('dre.MotivoAprovacaoRessalva', blank=True)
 
@@ -882,7 +882,7 @@ class PrestacaoConta(ModeloBase):
             cls.STATUS_EM_ANALISE: "Prestações de contas em análise",
             cls.STATUS_DEVOLVIDA: "Prestações de conta devolvidas para acertos",
             cls.STATUS_APROVADA: "Prestações de contas aprovadas",
-            cls.STATUS_REPROVADA: "Prestações de contas reprovadas",
+            cls.STATUS_REPROVADA: "Prestações de contas rejeitadas",
         }
 
         if add_aprovado_ressalva:

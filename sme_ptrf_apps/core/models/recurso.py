@@ -109,7 +109,7 @@ class Recurso(ModeloIdNome, TemAtivo):
     )
 
     texto_ata_letra_c = models.CharField(
-        verbose_name='Texto PCs reprovadas',
+        verbose_name='Texto PCs rejeitadas',
         help_text=f'Este texto é exibido antes do texto complementar: {fixed_text_texto_letra("C")}',
         max_length=256,
         blank=True,

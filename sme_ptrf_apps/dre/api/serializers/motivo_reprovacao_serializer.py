@@ -29,7 +29,7 @@ class MotivoReprovacaoParametrizacaoSerializer(serializers.ModelSerializer):
             UniqueTogetherValidator(
                 queryset=MotivoReprovacao.objects.all(),
                 fields=['motivo', 'recurso'],
-                message='Este motivo de reprovação de PC já existe para este recurso.'
+                message='Este motivo de rejeição de PC já existe para este recurso.'
             )
         ]
 
@@ -44,7 +44,7 @@ class MotivoReprovacaoParametrizacaoSerializer(serializers.ModelSerializer):
 
         if MotivoReprovacao.objects.filter(motivo__iexact=motivo, recurso=recurso).exists():
             raise serializers.ValidationError({
-                'non_field_errors': 'Este motivo de reprovação já existe para o recurso selecionado.'
+                'non_field_errors': 'Este motivo de rejeição já existe para o recurso selecionado.'
                 })
 
         instance = super().create(validated_data)
@@ -70,7 +70,7 @@ class MotivoReprovacaoParametrizacaoSerializer(serializers.ModelSerializer):
 
         if MotivoReprovacao.objects.filter(motivo__iexact=motivo, recurso=recurso).exclude(pk=self.instance.pk).exists():
             raise serializers.ValidationError({
-                'non_field_errors': 'Este motivo de reprovação já existe para o recurso selecionado.'
+                'non_field_errors': 'Este motivo de rejeição já existe para o recurso selecionado.'
                 })
 
         instance = super().update(instance, validated_data)

@@ -650,7 +650,7 @@ def retornar_trilha_de_status(dre_uuid=None, periodo_uuid=None, add_aprovado_res
             },
         'REPROVADA':
             {
-                'titulo': 'Reprovadas',
+                'titulo': 'Rejeitadas',
                 'estilo_css': 0
             },
 
