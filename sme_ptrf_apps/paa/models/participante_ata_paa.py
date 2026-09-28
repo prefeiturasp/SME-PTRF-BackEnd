@@ -26,6 +26,8 @@ class ParticipanteAtaPaa(ModeloBase):
     nome = models.CharField('Nome', max_length=200, blank=True, default='')
     cargo = models.CharField('Cargo', max_length=200, blank=True, default='')
     membro = models.BooleanField('Membro ?', default=False)
+    data_inicio_no_cargo = models.DateField('Data de início no cargo', blank=True, null=True)
+    vago = models.BooleanField('Vago ?', default=False)
     conselho_fiscal = models.BooleanField('Pertence ao conselho fiscal ?', default=False)
     presente = models.BooleanField('Presente ?', default=True)
     professor_gremio = models.BooleanField('Professor do grêmio ?', default=False)
@@ -85,7 +87,7 @@ class ParticipanteAtaPaa(ModeloBase):
         cargos = {
             'Presidente da diretoria executiva': 1,
             'Presidente da Diretoria Executiva': 1,
-            'Vice-Presidente da diretoria executiva': 2,            
+            'Vice-Presidente da diretoria executiva': 2,
             'Vice-Presidente da Diretoria Executiva': 2,
             'Secretário': 3,
             'Tesoureiro': 4,
