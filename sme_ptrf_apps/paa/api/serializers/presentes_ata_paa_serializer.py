@@ -64,6 +64,12 @@ class PresentesAtaPaaCreateSerializer(serializers.ModelSerializer):
 
     presidente_da_reuniao = serializers.BooleanField(required=False, allow_null=True)
     secretario_da_reuniao = serializers.BooleanField(required=False, allow_null=True)
+    data_inicio_no_cargo = serializers.DateField(
+        required=False,
+        allow_null=True,
+        input_formats=['%d/%m/%Y', 'iso-8601']
+    )
+    vago = serializers.BooleanField(required=False, default=False)
 
     def validate(self, attrs: dict) -> dict:
         """
@@ -146,5 +152,5 @@ class PresentesAtaPaaCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ParticipanteAtaPaa
-        fields = ('uuid', 'ata_paa', 'identificacao', 'nome', 'cargo', 'membro', 'presente', 'presidente_da_reuniao',
-                  'secretario_da_reuniao', 'conselho_fiscal', 'professor_gremio')
+        fields = ('uuid', 'ata_paa', 'identificacao', 'nome', 'cargo', 'membro', 'data_inicio_no_cargo', 'presente',
+                  'vago', 'presidente_da_reuniao', 'secretario_da_reuniao', 'conselho_fiscal', 'professor_gremio')

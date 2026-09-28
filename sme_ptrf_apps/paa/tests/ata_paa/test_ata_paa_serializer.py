@@ -684,3 +684,140 @@ def test_update_ata_paa_define_novo_secretario_com_flag_historico(mock_waffle, a
 
     assert ata_paa_atualizada.secretario_da_reuniao is not None
     assert ata_paa_atualizada.secretario_da_reuniao.nome == 'Maria Santos'
+
+
+@pytest.mark.parametrize('data_informada', ['25/03/2024', '2024-03-25'])
+def test_presentes_create_serializer_aceita_data_inicio_no_cargo_nos_formatos(ata_paa, data_informada):
+    """Testa que data_inicio_no_cargo aceita os formatos DD/MM/AAAA e AAAA-MM-DD"""
+    serializer = PresentesAtaPaaCreateSerializer(data={
+        'ata_paa': ata_paa.uuid,
+        'nome': 'João Silva',
+        'cargo': 'Tesoureiro',
+        'data_inicio_no_cargo': data_informada,
+    })
+
+    assert serializer.is_valid(), serializer.errors
+    assert serializer.validated_data['data_inicio_no_cargo'] == date(2024, 3, 25)
+
+
+def test_presentes_create_serializer_data_inicio_no_cargo_formato_invalido(ata_paa):
+    """Testa que data_inicio_no_cargo em formato inválido gera erro de validação"""
+    serializer = PresentesAtaPaaCreateSerializer(data={
+        'ata_paa': ata_paa.uuid,
+        'nome': 'João Silva',
+        'data_inicio_no_cargo': '03-25-2024',
+    })
+
+    assert not serializer.is_valid()
+    assert 'data_inicio_no_cargo' in serializer.errors
+
+
+def test_presentes_create_serializer_data_inicio_no_cargo_nula(ata_paa):
+    """Testa que data_inicio_no_cargo aceita valor nulo"""
+    serializer = PresentesAtaPaaCreateSerializer(data={
+        'ata_paa': ata_paa.uuid,
+        'nome': 'João Silva',
+        'data_inicio_no_cargo': None,
+    })
+
+    assert serializer.is_valid(), serializer.errors
+    participante = serializer.save()
+    assert participante.data_inicio_no_cargo is None
+
+
+def test_presentes_create_serializer_vago_padrao_false(ata_paa):
+    """Testa que vago assume False quando não informado"""
+    serializer = PresentesAtaPaaCreateSerializer(data={
+        'ata_paa': ata_paa.uuid,
+        'nome': 'João Silva',
+    })
+
+    assert serializer.is_valid(), serializer.errors
+    participante = serializer.save()
+    assert participante.vago is False
+
+
+def test_presentes_create_serializer_salva_vago_e_data_inicio_no_cargo(ata_paa):
+    """Testa criação de participante com vago e data_inicio_no_cargo"""
+    serializer = PresentesAtaPaaCreateSerializer(data={
+        'ata_paa': ata_paa.uuid,
+        'cargo': 'Vogal',
+        'membro': True,
+        'vago': True,
+        'data_inicio_no_cargo': '25/03/2024',
+    })
+
+    assert serializer.is_valid(), serializer.errors
+    participante = serializer.save()
+    participante.refresh_from_db()
+    assert participante.vago is True
+    assert participante.data_inicio_no_cargo == date(2024, 3, 25)
+
+
+def test_update_participante_data_inicio_no_cargo_e_vago(participante_ata_paa, ata_paa):
+    """Testa update de participante alterando data_inicio_no_cargo e vago"""
+    participante_ata_paa.ata_paa = ata_paa
+    participante_ata_paa.save()
+
+    serializer = PresentesAtaPaaCreateSerializer(
+        instance=participante_ata_paa,
+        data={'data_inicio_no_cargo': '01/02/2025', 'vago': True},
+        partial=True
+    )
+
+    assert serializer.is_valid(), serializer.errors
+    participante = serializer.save()
+    participante.refresh_from_db()
+    assert participante.data_inicio_no_cargo == date(2025, 2, 1)
+    assert participante.vago is True
+
+
+def test_ata_paa_create_serializer_valida_presentes_com_data_inicio_no_cargo_dd_mm_aaaa(paa):
+    """Testa que o serializer da ata aceita data_inicio_no_cargo DD/MM/AAAA nos presentes aninhados"""
+    serializer = AtaPaaCreateSerializer()
+    campo_presentes = serializer.fields['presentes_na_ata_paa']
+
+    presentes = campo_presentes.run_validation([
+        {'nome': 'João Silva', 'cargo': 'Tesoureiro', 'data_inicio_no_cargo': '25/03/2024', 'vago': False},
+        {'cargo': 'Vogal', 'data_inicio_no_cargo': None, 'vago': True},
+    ])
+
+    assert presentes[0]['data_inicio_no_cargo'] == date(2024, 3, 25)
+    assert presentes[0]['vago'] is False
+    assert presentes[1]['data_inicio_no_cargo'] is None
+    assert presentes[1]['vago'] is True
+
+
+def test_create_ata_paa_com_presentes_data_inicio_no_cargo_e_vago(paa):
+    """Testa criação de ata PAA com participantes contendo data_inicio_no_cargo e vago"""
+    validated_data = {
+        'paa': paa,
+        'tipo_ata': AtaPaa.ATA_APRESENTACAO,
+        'data_reuniao': date(2025, 2, 5),
+        'presentes_na_ata_paa': [
+            {
+                'nome': 'João Silva',
+                'cargo': 'Tesoureiro',
+                'membro': True,
+                'presente': True,
+                'data_inicio_no_cargo': date(2024, 3, 25),
+                'vago': False
+            },
+            {
+                'cargo': 'Vogal',
+                'membro': True,
+                'presente': False,
+                'data_inicio_no_cargo': None,
+                'vago': True
+            }
+        ]
+    }
+
+    ata_paa = AtaPaaCreateSerializer().create(validated_data)
+
+    tesoureiro = ata_paa.presentes_na_ata_paa.get(cargo='Tesoureiro')
+    vogal = ata_paa.presentes_na_ata_paa.get(cargo='Vogal')
+    assert tesoureiro.data_inicio_no_cargo == date(2024, 3, 25)
+    assert tesoureiro.vago is False
+    assert vogal.data_inicio_no_cargo is None
+    assert vogal.vago is True
