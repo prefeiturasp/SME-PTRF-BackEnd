@@ -240,8 +240,6 @@ def test_criar_recursos_proprios_calcula_totais_corretamente(
     assert len(resultado["items"]) == 2
 
     # Totais de recurso próprio
-    # TODO: Bloco utilizado, condicional, sme_ptrf_apps/paa/services/dados_documento_paa_service.py
-    #  comentado para validação.
     assert resultado["total_recursos_proprios"] == Decimal("0")
     assert resultado["total_prioridades_recursos_proprios"] == Decimal("0")
     assert resultado["saldo_recursos_proprios"] == Decimal("0")
