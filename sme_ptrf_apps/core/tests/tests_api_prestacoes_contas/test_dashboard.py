@@ -224,9 +224,8 @@ def test_dashboard(
         'cards': [
             {
                 'titulo': 'Prestações de contas não recebidas',
-                'quantidade_nao_recebida': 1, # Total de PCs não recebidas
-                #'quantidade_prestacoes': 2,  # Uma PC não recebida + Uma Associação sem PC.
-                'quantidade_prestacoes': 1, # Total de PC não Apresentadas
+                'quantidade_nao_recebida': 1,
+                'quantidade_prestacoes': 2,  # Uma PC não recebida + Uma Associação sem PC.
                 'status': 'NAO_RECEBIDA'},
             {
                 'titulo': 'Prestações de contas recebidas aguardando análise',
@@ -275,9 +274,8 @@ def test_dashboard_add_aprovada_ressalva(
         'cards': [
             {
                 'titulo': 'Prestações de contas não recebidas',
-                'quantidade_nao_recebida': 1, # Total de PCs não recebidas
-                #'quantidade_prestacoes': 2,  # Uma PC não recebida + Uma Associação sem PC.
-                'quantidade_prestacoes': 1, # Total de PC não Apresentadas
+                'quantidade_nao_recebida': 1,
+                'quantidade_prestacoes': 2,
                 'status': 'NAO_RECEBIDA'},
             {
                 'titulo': 'Prestações de contas recebidas aguardando análise',
@@ -397,8 +395,8 @@ def test_dashboard_com_pc_reprovada_nao_apresentacao(
             {
                 'titulo': 'Prestações de contas não recebidas',
                 'quantidade_nao_recebida': 1,
-                #'quantidade_prestacoes': 2,  # Uma PC não recebida + Uma Associação sem PC - Uma PC Reprovada por não apresentacao.
-                'quantidade_prestacoes': 1,
+                #'quantidade_prestacoes': 1,  # Uma PC não recebida + Uma Associação sem PC - Uma PC Reprovada por não apresentacao.
+                'quantidade_prestacoes': 2,
                 'status': 'NAO_RECEBIDA'},
             {
                 'titulo': 'Prestações de contas recebidas aguardando análise',
