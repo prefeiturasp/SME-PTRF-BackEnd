@@ -28,7 +28,7 @@ from .prioridades_impactadas_receitas_previstas_service import (
     PrioridadesPaaImpactadasReceitasPrevistasRecursoProprioService,
     ConfirmarExlusaoPrioridadesPaaRecursoProprioService
 )
-from .acoes_pdde_service import AcoesPddeService
+from .acoes_pdde_service import AcoesPddeService, ResumoAcoesPddeService
 from .acoes_paa_service import AcoesPaaService, AcoesReceitasPrevistasPaaService
 from .retificacao_paa_service import RetificacaoPaaService
 from .valida_geracao_documentos_service import ValidaGeracaoDocumentoPAAService, ValidaGeracaoDocumentoException
