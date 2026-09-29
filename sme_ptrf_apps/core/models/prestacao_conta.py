@@ -897,22 +897,24 @@ class PrestacaoConta(ModeloBase):
 
         quantidade_pcs_apresentadas = 0
         for status, titulo in titulos_por_status.items():
+
             if status == cls.STATUS_NAO_RECEBIDA:
                 continue
 
             quantidade_status = qs.filter(status=status).count()
 
+            # Este código atualmente não deve ser considerado, portanto, está sendo comentado
             # Tratativa PrestacaoContaReprovadaNaoApresentacao
-            if status == cls.STATUS_REPROVADA and add_reprovadas_nao_apresentacao:
-                quantidade_status += cls.retorna_quantidade_pcs_reprovadas_nao_apresentacao(periodo_uuid, dre_uuid)
+            #if status == cls.STATUS_REPROVADA and add_reprovadas_nao_apresentacao:
+            #    quantidade_status += cls.retorna_quantidade_pcs_reprovadas_nao_apresentacao(periodo_uuid, dre_uuid)
 
-            if status == cls.STATUS_APROVADA and not add_aprovado_ressalva:
+            if status == cls.STATUS_APROVADA and not add_aprovado_ressalva:                
                 quantidade_status += qs.filter(status=cls.STATUS_APROVADA_RESSALVA).count()
 
             if status == cls.STATUS_DEVOLVIDA:
                 quantidade_status += qs.filter(
                     status__in=[cls.STATUS_DEVOLVIDA_RETORNADA, cls.STATUS_DEVOLVIDA_RECEBIDA]).count()
-
+            
             quantidade_pcs_apresentadas += quantidade_status
 
             if status == cls.STATUS_DEVOLVIDA and add_info_devolvidas_retornadas:
@@ -1004,17 +1006,26 @@ class PrestacaoConta(ModeloBase):
                 'TOTAL_UNIDADES': 0
             }
 
-            qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre.uuid)
+            associacoes_ativas = Associacao.get_associacoes_ativas_no_periodo(
+                periodo=periodo, dre=dre)
+
+            qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__in=associacoes_ativas)
 
             quantidade_pcs_apresentadas = 0
-            qtd_por_status['TOTAL_UNIDADES'] = Associacao.get_associacoes_ativas_no_periodo(
-                periodo=periodo, dre=dre).count()
+            qtd_por_status['TOTAL_UNIDADES'] = associacoes_ativas.count()
 
             for status in qtd_por_status.keys():
-                if status == 'TOTAL_UNIDADES' or status == cls.STATUS_NAO_APRESENTADA:
+                if status in ['TOTAL_UNIDADES', cls.STATUS_NAO_APRESENTADA]:
                     continue
 
                 quantidade_status = qs.filter(status=status).count()
+
+                # Considera na soma de quantidade pois será utilizada para deduzir do valor total de unidades
+                # obtendo assim, o valor real de PCs não apresentadas
+                if status == cls.STATUS_DEVOLVIDA:
+                    quantidade_pcs_apresentadas += qs.filter(
+                        status__in=[cls.STATUS_DEVOLVIDA_RETORNADA, cls.STATUS_DEVOLVIDA_RECEBIDA]).count()
+
                 quantidade_pcs_apresentadas += quantidade_status
                 qtd_por_status[status] = quantidade_status
 
