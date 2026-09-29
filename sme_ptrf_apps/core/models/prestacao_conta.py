@@ -908,13 +908,13 @@ class PrestacaoConta(ModeloBase):
             #if status == cls.STATUS_REPROVADA and add_reprovadas_nao_apresentacao:
             #    quantidade_status += cls.retorna_quantidade_pcs_reprovadas_nao_apresentacao(periodo_uuid, dre_uuid)
 
-            if status == cls.STATUS_APROVADA and not add_aprovado_ressalva:                
+            if status == cls.STATUS_APROVADA and not add_aprovado_ressalva:
                 quantidade_status += qs.filter(status=cls.STATUS_APROVADA_RESSALVA).count()
 
             if status == cls.STATUS_DEVOLVIDA:
                 quantidade_status += qs.filter(
                     status__in=[cls.STATUS_DEVOLVIDA_RETORNADA, cls.STATUS_DEVOLVIDA_RECEBIDA]).count()
-            
+
             quantidade_pcs_apresentadas += quantidade_status
 
             if status == cls.STATUS_DEVOLVIDA and add_info_devolvidas_retornadas:
