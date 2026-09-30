@@ -2,7 +2,7 @@
 Funcionalidade: Consultar Motivo de pagamento antecipado
 
   Contexto:
-    Dado eu acesso o sistema com a visualização "<visualizacao>"
+    Dado eu acesso o sistema com a visualização "web"
     E realizo login no sistema PTRF com perfil "SME"
 
   Esquema do Cenário: Validar pesquisa de motivo de pagamento antecipado :<caso>
@@ -12,7 +12,7 @@ Funcionalidade: Consultar Motivo de pagamento antecipado
     E informo dado nos campos "<filtrar_por_motivo_de_pagamento_antecipado>" da tela de pesquisa de Motivo pagamento antecipado
     E clico no botao "Filtrar" da tela Motivo pagamento antecipado
     Quando sistema retorna dados da consulta com os valores "<resutado_consulta>" na de pesquisa
-    Entao excluo o Motivo pagamento antecipado com o nome de motivo "teste automatizado" via API
+    Entao excluo e confirmo o Motivo pagamento antecipado com o nome de motivo "teste automatizado" via API
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao  | filtrar_por_motivo_de_pagamento_antecipado |resutado_consulta           |caso                         |
