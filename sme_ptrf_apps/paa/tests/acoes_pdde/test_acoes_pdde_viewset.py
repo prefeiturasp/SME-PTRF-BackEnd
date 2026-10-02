@@ -1,5 +1,7 @@
 import pytest
+from datetime import date, timedelta
 from rest_framework import status
+from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.fixtures.factories.receitas_previstas_pdde_factory import ReceitaPrevistaPddeFactory
 from ...models import AcaoPdde
 from sme_ptrf_apps.core.fixtures.factories import FlagFactory
@@ -145,8 +147,6 @@ def test_cria_exclui_e_verifica_status_inativa(jwt_authenticated_client_sme, pro
 @pytest.mark.django_db
 def test_destroy_acao_pdde_com_receitas_vinculadas(jwt_authenticated_client_sme, flag_paa, documento_paa_factory):
     """Testa a exclusão de uma ação PDDE que está sendo usada em receitas previstas PDDE"""
-    from sme_ptrf_apps.paa.enums import PaaStatusEnum
-    from datetime import date, timedelta
 
     # Criar período vigente
     hoje = date.today()
@@ -310,3 +310,86 @@ def test_receitas_previstas_pdde_retorna_paginado(jwt_authenticated_client_sme, 
         f'/api/acoes-pdde/receitas-previstas-pdde/?paa_uuid={paa.uuid}'
     )
     assert response.status_code == status.HTTP_200_OK
+
+
+@pytest.mark.django_db
+def test_resumo_por_programa_sem_paa_uuid(jwt_authenticated_client_sme, flag_paa):
+    response = jwt_authenticated_client_sme.get('/api/acoes-pdde/resumo-por-programa/')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'non_field_errors' in response.data or 'PAA não foi informado.' in str(response.data)
+
+
+@pytest.mark.django_db
+def test_resumo_por_programa_paa_nao_encontrado(jwt_authenticated_client_sme, flag_paa):
+    response = jwt_authenticated_client_sme.get(
+        '/api/acoes-pdde/resumo-por-programa/?paa_uuid=00000000-0000-0000-0000-000000000000'
+    )
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'PAA não encontrado.' in str(response.data)
+
+
+@pytest.mark.django_db
+def test_resumo_por_programa_sem_acoes(jwt_authenticated_client_sme, flag_paa, paa):
+    response = jwt_authenticated_client_sme.get(
+        f'/api/acoes-pdde/resumo-por-programa/?paa_uuid={paa.uuid}'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert isinstance(response.data, list)
+    assert len(response.data) == 1
+    assert response.data[0]["key"] == "total-pdde"
+    assert response.data[0]["nome"] == "Total do PDDE"
+
+
+@pytest.mark.django_db
+def test_resumo_por_programa_retorna_estrutura_hierarquica(jwt_authenticated_client_sme, flag_paa, paa, acao_pdde):
+    response = jwt_authenticated_client_sme.get(
+        f'/api/acoes-pdde/resumo-por-programa/?paa_uuid={paa.uuid}'
+    )
+    PREFIXO = "PDDE"
+    SUFIXO_PROGRAMA = "Total"
+    assert response.status_code == status.HTTP_200_OK
+    assert len(response.data) == 2
+
+    programa_node = next(node for node in response.data if node["key"] == str(acao_pdde.programa.uuid))
+
+    assert programa_node["nome"] == f'{PREFIXO} {acao_pdde.programa.nome} {SUFIXO_PROGRAMA}'
+    assert len(programa_node["children"]) == 1
+
+    acao_node = programa_node["children"][0]
+    assert acao_node["key"] == str(acao_pdde.uuid)
+    assert acao_node["nome"] == f'{PREFIXO} {acao_pdde.nome}'
+    assert acao_node["acao"]["receitas_previstas_pdde_valores"] is None
+
+    total_node = next(node for node in response.data if node["key"] == "total-pdde")
+    assert total_node["custeio"] == 0
+    assert total_node["capital"] == 0
+    assert total_node["livre_aplicacao"] == 0
+
+
+@pytest.mark.django_db
+def test_resumo_por_programa_com_receita_prevista(jwt_authenticated_client_sme, flag_paa, paa, acao_pdde):
+    ReceitaPrevistaPddeFactory(
+        paa=paa,
+        acao_pdde=acao_pdde,
+        previsao_valor_custeio=100,
+        previsao_valor_capital=0,
+        previsao_valor_livre=0,
+        saldo_custeio=10,
+        saldo_capital=0,
+        saldo_livre=0,
+    )
+
+    response = jwt_authenticated_client_sme.get(
+        f'/api/acoes-pdde/resumo-por-programa/?paa_uuid={paa.uuid}'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    programa_node = next(node for node in response.data if node["key"] == str(acao_pdde.programa.uuid))
+    acao_node = programa_node["children"][0]
+    assert acao_node["custeio"] == 110
+    assert programa_node["custeio"] == 110
+
+    total_node = next(node for node in response.data if node["key"] == "total-pdde")
+    assert total_node["custeio"] == 110

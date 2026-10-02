@@ -213,7 +213,10 @@ def referencia_legacy_gerar_arquivo_lauda_txt_consolidado_dre(
                 f"- PÁGINA {pag_pub} \n"
             )
 
-            titulo_retificacao_continuacao = "((TITULO))LEIA - SE COMO SEGUE E NÃO COMO CONSTOU: \n\n"
+            titulo_retificacao_continuacao = (
+                "((TITULO))Para a(s) associação(ões) listada(s) a seguir, "
+                "leia-se como segue e não como constou: \n\n"
+            )
 
         texto = f"((TEXTO)) No exercício da atribuição a mim conferida pela Portaria SME nº 5.318/2020, torno " \
                 f"público o Parecer Técnico Conclusivo da Comissão de Prestação de Contas do PTRF da DRE " \

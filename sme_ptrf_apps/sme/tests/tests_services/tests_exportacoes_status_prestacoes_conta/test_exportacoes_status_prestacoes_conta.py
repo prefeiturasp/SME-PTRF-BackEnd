@@ -140,7 +140,7 @@ def test_cabecalho(queryset_ordered):
         'Status da PC',
         'Descrição do motivo aprovação com ressalvas',
         'Recomendações da aprovação com resalvas',
-        'Descrição do motivo de reprovação',
+        'Descrição do motivo de rejeição',
     ]
 
     assert cabecalho == resultado_esperado

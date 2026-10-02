@@ -19,7 +19,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     Encerrado	    Gerados	                Devolvida Retornada Período finalizado.	    Prestação de Contas apresentada após acertos.		            X   2
     Encerrado	    Gerados	                Devolvida Recebida  Período finalizado.	    Prestação de Contas recebida após acertos.		            X   4
     Encerrado	    Gerados	                Aprovada	        Período finalizado.	    Prestação de Contas aprovada pela DRE.	                    X	5
-    Encerrado	    Gerados	                Reprovada	        Período finalizado.	    Prestação de Contas reprovada pela DRE.	                    X	3
+    Encerrado	    Gerados	                Rejeitada	        Período finalizado.	    Prestação de Contas rejeitada pela DRE.	                    X	3
     """
 
     def pc_requer_ata_retificacao(prestacao_conta):
@@ -54,7 +54,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         PrestacaoConta.STATUS_DEVOLVIDA_RECEBIDA: 'Prestação de contas recebida após acertos.',
         PrestacaoConta.STATUS_APROVADA: 'Prestação de contas aprovada pela DRE.',
         PrestacaoConta.STATUS_APROVADA_RESSALVA: 'Prestação de contas aprovada com ressalvas pela DRE.',
-        PrestacaoConta.STATUS_REPROVADA: 'Prestação de contas reprovada pela DRE.',
+        PrestacaoConta.STATUS_REPROVADA: 'Prestação de contas rejeitada pela DRE.',
         PrestacaoConta.STATUS_EM_PROCESSAMENTO: 'Documentos em processamento.',
         PrestacaoConta.STATUS_A_PROCESSAR: 'PC aguardando processamento.',
         PrestacaoConta.STATUS_CALCULADA: 'PC calculada. Gerando relatórios...',
