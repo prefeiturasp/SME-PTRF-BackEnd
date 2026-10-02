@@ -158,13 +158,13 @@ class FuncUeRecebimentoDeNotificacoes(models.Model):
             ('recebe_notificacao_proximidade_fim_prazo_ajustes_prestacao_de_contas', '[UE] Pode receber Notificação Proximidade Fim Prazo Ajustes Prestação de Contas'),
             ('recebe_notificacao_comentario_em_pc', '[UE] Pode receber Notificação de Comentários'),
             ('recebe_notificacao_aprovacao_pc', '[UE] Pode receber Notificação Prestação de Contas Aprovada'),
-            ('recebe_notificacao_reprovacao_pc_nao_incluindo_motivos', '[UE] Pode receber Notificação Prestação de Contas Reprovada Não Incluindo Motivos'),
-            ('recebe_notificacao_reprovacao_pc_incluindo_motivos', '[UE] Pode receber Notificação Prestação de Contas Reprovada Incluindo Motivos'),
+            ('recebe_notificacao_reprovacao_pc_nao_incluindo_motivos', '[UE] Pode receber Notificação Prestação de Contas Rejeitada Não Incluindo Motivos'),
+            ('recebe_notificacao_reprovacao_pc_incluindo_motivos', '[UE] Pode receber Notificação Prestação de Contas Rejeitada Incluindo Motivos'),
             ('recebe_notificacao_automatica_inativacao_conta', '[UE] Pode receber Notificação Encerramento de Conta Bancária'),
             ('recebe_notificacao_resultado_encerramento_conta', '[UE] Pode receber Notificação Resultado Encerramento de Conta Bancária'),
             ('recebe_notificacao_geracao_ata_apresentacao', '[UE] Pode receber Notificação Geração Ata de Apresentação'),
             ('recebe_notificacao_geracao_ata_retificacao', '[UE] Pode receber Notificação Geração Ata de Retificação'),
-            ('recebe_notificacao_conclusao_reprovada_pc_nao_apresentada', '[UE] Pode receber Notificação Prestação de Contas Reprovada Não Apresentação'),
+            ('recebe_notificacao_conclusao_reprovada_pc_nao_apresentada', '[UE] Pode receber Notificação Prestação de Contas Rejeitada Não Apresentação'),
         )
 
 

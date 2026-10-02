@@ -1,4 +1,5 @@
 import json
+from datetime import date
 from unittest.mock import patch
 
 import pytest
@@ -422,3 +423,105 @@ def test_get_nome_cargo_membro_associacao_excecoes_capturadas(
     assert result["mensagem"] == "servidor-nao-encontrado"
     assert result["nome"] == ""
     assert result["cargo"] == ""
+
+
+# data_inicio_no_cargo e vago
+
+@pytest.mark.parametrize('data_informada', ['25/03/2024', '2024-03-25'])
+def test_create_presente_ata_paa_com_data_inicio_no_cargo(
+    jwt_authenticated_client_sme, flag_paa, ata_paa, data_informada
+):
+    payload = {
+        "ata_paa": str(ata_paa.uuid),
+        "identificacao": "1234567",
+        "nome": "Participante Teste",
+        "cargo": "Tesoureiro",
+        "membro": True,
+        "presente": True,
+        "data_inicio_no_cargo": data_informada
+    }
+
+    response = jwt_authenticated_client_sme.post(
+        '/api/presentes-ata-paa/',
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    result = json.loads(response.content)
+    assert result['data_inicio_no_cargo'] == '2024-03-25'
+    assert result['vago'] is False
+
+
+def test_create_presente_ata_paa_data_inicio_no_cargo_invalida(jwt_authenticated_client_sme, flag_paa, ata_paa):
+    payload = {
+        "ata_paa": str(ata_paa.uuid),
+        "nome": "Participante Teste",
+        "data_inicio_no_cargo": "2024/25/03"
+    }
+
+    response = jwt_authenticated_client_sme.post(
+        '/api/presentes-ata-paa/',
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'data_inicio_no_cargo' in json.loads(response.content)
+
+
+def test_create_presente_ata_paa_vago(jwt_authenticated_client_sme, flag_paa, ata_paa):
+    payload = {
+        "ata_paa": str(ata_paa.uuid),
+        "cargo": "Vogal",
+        "membro": True,
+        "presente": False,
+        "vago": True,
+        "data_inicio_no_cargo": None
+    }
+
+    response = jwt_authenticated_client_sme.post(
+        '/api/presentes-ata-paa/',
+        data=json.dumps(payload),
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_201_CREATED
+    result = json.loads(response.content)
+    assert result['vago'] is True
+    assert result['data_inicio_no_cargo'] is None
+
+
+def test_get_participantes_ordenados_por_cargo_retorna_data_inicio_no_cargo_e_vago(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    ata_paa,
+    participante_ata_paa_factory
+):
+    participante_ata_paa_factory.create(
+        ata_paa=ata_paa,
+        cargo='Tesoureiro',
+        membro=True,
+        data_inicio_no_cargo=date(2024, 3, 25),
+        vago=False
+    )
+    participante_ata_paa_factory.create(
+        ata_paa=ata_paa,
+        cargo='Vogal',
+        membro=True,
+        vago=True
+    )
+
+    response = jwt_authenticated_client_sme.get(
+        f'/api/presentes-ata-paa/get-participantes-ordenados-por-cargo/?ata_paa_uuid={ata_paa.uuid}',
+        content_type='application/json'
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    result = json.loads(response.content)
+    assert result[0]['cargo'] == 'Tesoureiro'
+    assert result[0]['data_inicio_no_cargo'] == '2024-03-25'
+    assert result[0]['vago'] is False
+    assert result[1]['cargo'] == 'Vogal'
+    assert result[1]['data_inicio_no_cargo'] is None
+    assert result[1]['vago'] is True

@@ -24,7 +24,7 @@ def notificar_prestacao_de_contas_reprovada_nao_apresentacao(prestacao_de_contas
         ).distinct()
 
     descricao_mensagem = (
-        f"A PC {prestacao_de_contas.periodo.referencia} foi concluída como reprovada pois não foi apresentada.\n\n"
+        f"A PC {prestacao_de_contas.periodo.referencia} foi concluída como rejeitada pois não foi apresentada.\n\n"
         f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
     )
 
@@ -36,7 +36,7 @@ def notificar_prestacao_de_contas_reprovada_nao_apresentacao(prestacao_de_contas
                 tipo=Notificacao.TIPO_NOTIFICACAO_AVISO,
                 categoria=Notificacao.CATEGORIA_NOTIFICACAO_CONCLUSAO_PC,
                 remetente=Notificacao.REMETENTE_NOTIFICACAO_DRE,
-                titulo="Conclusão da PC como reprovada por não apresentação",
+                titulo="Conclusão da PC como rejeitada por não apresentação",
                 descricao=descricao_mensagem,
                 usuario=usuario,
                 renotificar=True,

@@ -81,7 +81,9 @@ def test_montar_titulos_publicacao_lauda_retificacao_com_sequencia():
     assert result["titulo_sequencia_publicacao"] == "Lauda referente à Parcial #7"
     assert "PÁGINA 12" in result["titulo_retificacao"]
     assert "RETIFICAÇÃO" in result["titulo_retificacao"]
-    assert result["subtitulo_retificacao"] == "LEIA-SE COMO SEGUE E NÃO COMO CONSTOU:"
+    assert result["subtitulo_retificacao"] == (
+        "Para a(s) associação(ões) listada(s) a seguir, leia-se como segue e não como constou:"
+    )
 
 
 def test_montar_titulos_publicacao_lauda_retificacao_sem_consolidado_retificado():
@@ -108,7 +110,9 @@ def test_montar_titulos_publicacao_lauda_retificacao_sem_pagina():
 
     assert result["titulo_sequencia_publicacao"] == "Lauda referente à retificação da publicação"
     assert "PÁGINA -" in result["titulo_retificacao"]
-    assert result["subtitulo_retificacao"] == "LEIA-SE COMO SEGUE E NÃO COMO CONSTOU:"
+    assert result["subtitulo_retificacao"] == (
+        "Para a(s) associação(ões) listada(s) a seguir, leia-se como segue e não como constou:"
+    )
 
 
 # gerar_arquivo_lauda_pdf_consolidado_dre

@@ -10,7 +10,7 @@ from ..models import Mandato
 class ServicoMandatoVigenteVacancia:
     """Resolve o mandato vigente na data atual (Histórico de Membros v2)."""
 
-    def get_mandato_vigente(self) -> Optional[Mandato]:
+    def get_mandato_vigente(self) -> Mandato | None:
         """Retorna o mandato que cobre hoje (o mais recente, se houver mais de um), ou None."""
         data_atual = date.today()
 

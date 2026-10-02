@@ -30,6 +30,7 @@ class CargoComposicaoVacanciaCreateSerializer(serializers.ModelSerializer):
         ocupante_do_cargo, _ = OcupanteCargo.objects.update_or_create(
             codigo_identificacao=dados_ocupante.get('codigo_identificacao'),
             cpf_responsavel=dados_ocupante.get('cpf_responsavel'),
+            cargo_educacao=dados_ocupante.get('cargo_educacao'),
             defaults={**dados_ocupante},
         )
 

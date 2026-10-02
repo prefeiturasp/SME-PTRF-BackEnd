@@ -119,7 +119,11 @@ class CargosComposicoesVacanciaViewSet(WaffleFlagMixin,
         composicao_vacancia = self._get_composicao_vacancia_ou_404(request.query_params.get('composicao_uuid'))
 
         datas = ServicoHistoricoCargoComposicao.get_datas_de_alteracao_da_composicao(composicao_vacancia)
-        datas_formatos = [d.isoformat() for d in datas]
+        datas_formatos = [
+            {
+                'inicio': dt_inicio.isoformat(),
+                'fim': dt_fim.isoformat()
+            } for dt_inicio, dt_fim in datas]
         return Response(datas_formatos, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['patch'], url_path='cancelar-saida',
@@ -172,11 +176,7 @@ class CargosComposicoesVacanciaViewSet(WaffleFlagMixin,
             composicao_vacancia=composicao_vacancia,
             cargo_associacao=request.query_params.get('cargo_associacao_uuid')
         )
-
-        return Response(
-            CargoComposicaoVacanciaSerializer(registros, many=True).data,
-            status=status.HTTP_200_OK
-        )
+        return Response(registros, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='cargos-da-composicao',
             permission_classes=[IsAuthenticated & PermissaoApiUe])
@@ -206,3 +206,16 @@ class CargosComposicoesVacanciaViewSet(WaffleFlagMixin,
             raise serializers.ValidationError(e.detail)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['get'], url_path='timeline-consolidada',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def timeline_consolidada(self, request):
+        """Retorna, numa única resposta, a timeline completa de todos os cargos da composição.
+
+        Query params: composicao_uuid.
+        """
+        composicao_vacancia = self._get_composicao_vacancia_ou_404(request.query_params.get('composicao_uuid'))
+
+        resultado = ServicoHistoricoCargoComposicao.get_timeline_consolidada_da_composicao(composicao_vacancia)
+
+        return Response(resultado, status=status.HTTP_200_OK)

@@ -633,7 +633,7 @@ def get_status_label(status):
     elif status == 'APROVADA_RESSALVA':
         status_label = 'Aprovada com ressalvas'
     elif status == 'REPROVADA':
-        status_label = 'Reprovada'
+        status_label = 'Rejeitada'
     elif status == 'NAO_RECEBIDA':
         status_label = 'Não recebida'
     elif status == 'RECEBIDA':
@@ -1356,7 +1356,7 @@ def dashboard_sme(periodo, unificar_pcs_apresentadas_nao_recebidas = False):
             PrestacaoConta.STATUS_DEVOLVIDA: "Prestações de conta devolvidas para acertos",
             PrestacaoConta.STATUS_APROVADA: "Prestações de contas aprovadas",
             PrestacaoConta.STATUS_APROVADA_RESSALVA: "Prestações de contas aprovadas com ressalvas",
-            PrestacaoConta.STATUS_REPROVADA: "Prestações de contas reprovadas",
+            PrestacaoConta.STATUS_REPROVADA: "Prestações de contas rejeitadas",
             'TOTAL_UNIDADES': "Total de unidades educacionais",
         }
         dashboard.append(
