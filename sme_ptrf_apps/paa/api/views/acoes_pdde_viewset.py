@@ -19,7 +19,7 @@ from django.db.models.deletion import ProtectedError
 import django_filters
 from waffle.mixins import WaffleFlagMixin
 
-from sme_ptrf_apps.paa.services import AcoesReceitasPrevistasPaaService, AcoesPaaService
+from sme_ptrf_apps.paa.services import AcoesReceitasPrevistasPaaService, AcoesPaaService, ResumoAcoesPddeService
 
 from sme_ptrf_apps.paa.models import AcaoPdde, Paa
 from ..serializers.acao_pdde_serializer import AcaoPddeSerializer
@@ -29,6 +29,9 @@ from ....core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 
 logger = logging.getLogger(__name__)
+
+DICT_NAO_INFORMADO = {"non_field_errors": "PAA não foi informado."}
+DICT_NAO_ENCONTRADO = {"non_field_errors": "PAA não encontrado."}
 
 
 class AcaoPddeFiltro(django_filters.FilterSet):
@@ -53,14 +56,14 @@ class AcaoPddeFiltro(django_filters.FilterSet):
 
     class Meta:
         model = AcaoPdde
-        fields = [
+        fields = (
             'nome',
             'programa__uuid',
             'programa__nome',
             'aceita_capital',
             'aceita_custeio',
             'aceita_livre_aplicacao'
-        ]
+        )
 
 
 class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
@@ -102,12 +105,12 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
         """
         paa_uuid = request.query_params.get('paa_uuid')
         if not paa_uuid:
-            raise serializers.ValidationError({"non_field_errors": "PAA não foi informado."})
+            raise serializers.ValidationError(DICT_NAO_INFORMADO)
 
         try:
             paa = Paa.by_uuid(paa_uuid)
         except Paa.DoesNotExist:
-            raise serializers.ValidationError({"non_field_errors": "PAA não encontrado."})
+            raise serializers.ValidationError(DICT_NAO_ENCONTRADO)
 
         qs = AcoesPaaService(paa).obter_pdde()
         serializer = AcaoPddeSerializer(qs, many=True)
@@ -136,12 +139,12 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
         """
         paa_uuid = self.request.query_params.get('paa_uuid')
         if not paa_uuid:
-            raise serializers.ValidationError({"non_field_errors": "PAA não foi informado."})
+            raise serializers.ValidationError(DICT_NAO_INFORMADO)
 
         try:
             paa = Paa.by_uuid(paa_uuid)
         except Paa.DoesNotExist:
-            raise serializers.ValidationError({"non_field_errors": "PAA não encontrado."})
+            raise serializers.ValidationError(DICT_NAO_ENCONTRADO)
 
         qs_acoes_pdde = AcoesReceitasPrevistasPaaService(paa).obter_pdde()
 
@@ -253,3 +256,27 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
                 {"detail": f"Erro ao inativar Ação PDDE: {str(e)}"},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name='paa_uuid', description='UUID do PAA', required=True,
+                             type=OpenApiTypes.UUID, location=OpenApiParameter.QUERY),
+        ],
+        responses={200: OpenApiTypes.OBJECT},
+        description="Retorna as Ações PDDE agrupadas por Programa, com totais, prontas para a tabela do frontend."
+    )
+    @action(detail=False, methods=['get'], url_path='resumo-por-programa',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def resumo_por_programa(self, request: Request) -> Response:
+        """Retorna dados na estrutura de tabela de hierarquias para exibição em frontend."""
+        paa_uuid = request.query_params.get('paa_uuid')
+        if not paa_uuid:
+            raise serializers.ValidationError(DICT_NAO_INFORMADO)
+
+        try:
+            paa = Paa.by_uuid(paa_uuid)
+        except Paa.DoesNotExist:
+            raise serializers.ValidationError(DICT_NAO_ENCONTRADO)
+
+        dados = ResumoAcoesPddeService(paa).resumo_por_programa()
+        return Response(dados, status=status.HTTP_200_OK)

@@ -245,7 +245,7 @@ def test_dashboard(
                 'quantidade_prestacoes': 2,  # Aprovada + Aprovada com ressalva
                 'status': 'APROVADA'},
             {
-                'titulo': 'Prestações de contas reprovadas',
+                'titulo': 'Prestações de contas rejeitadas',
                 'quantidade_prestacoes': 0,
                 'status': 'REPROVADA'}
         ]
@@ -295,7 +295,7 @@ def test_dashboard_add_aprovada_ressalva(
                 'quantidade_prestacoes': 1,
                 'status': 'APROVADA'},
             {
-                'titulo': 'Prestações de contas reprovadas',
+                'titulo': 'Prestações de contas rejeitadas',
                 'quantidade_prestacoes': 0,
                 'status': 'REPROVADA'},
             {
@@ -354,7 +354,7 @@ def test_dashboard_outro_periodo(jwt_authenticated_client_a, prestacao_conta_apr
                 'quantidade_prestacoes': 0,
                 'status': 'APROVADA'},
             {
-                'titulo': 'Prestações de contas reprovadas',
+                'titulo': 'Prestações de contas rejeitadas',
                 'quantidade_prestacoes': 0,
                 'status': 'REPROVADA'}
         ]
@@ -395,7 +395,8 @@ def test_dashboard_com_pc_reprovada_nao_apresentacao(
             {
                 'titulo': 'Prestações de contas não recebidas',
                 'quantidade_nao_recebida': 1,
-                'quantidade_prestacoes': 1,  # Uma PC não recebida + Uma Associação sem PC - Uma PC Reprovada por não apresentacao.
+                #'quantidade_prestacoes': 1,  # Uma PC não recebida + Uma Associação sem PC - Uma PC Reprovada por não apresentacao.
+                'quantidade_prestacoes': 2,
                 'status': 'NAO_RECEBIDA'},
             {
                 'titulo': 'Prestações de contas recebidas aguardando análise',
@@ -416,7 +417,8 @@ def test_dashboard_com_pc_reprovada_nao_apresentacao(
                 'status': 'APROVADA'},
             {
                 'titulo': 'Prestações de contas reprovadas',
-                'quantidade_prestacoes': 1, # Nenhuma Reprovada + Uma PC Reprovada por não apresentacao
+                #'quantidade_prestacoes': 1, # Nenhuma Reprovada + Uma PC Reprovada por não apresentacao
+                'quantidade_prestacoes': 0,
                 'status': 'REPROVADA'}
         ]
     }

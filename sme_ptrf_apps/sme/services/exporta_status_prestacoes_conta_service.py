@@ -27,7 +27,7 @@ CABECALHO = [
     ('Status da PC', 'status'),
     ('Descrição do motivo aprovação com ressalvas', 'motivos_aprovacao_ressalva'),
     ('Recomendações da aprovação com resalvas', 'recomendacoes'),
-    ('Descrição do motivo de reprovação', 'motivos_reprovacao'),
+    ('Descrição do motivo de rejeição', 'motivos_reprovacao'),
 ],
 
 

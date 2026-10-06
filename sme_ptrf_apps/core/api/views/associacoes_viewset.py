@@ -18,7 +18,7 @@ from rest_framework.viewsets import ModelViewSet
 from weasyprint import HTML, CSS
 from drf_spectacular.utils import extend_schema_view
 
-from sme_ptrf_apps.paa.models import PeriodoPaa
+from sme_ptrf_apps.paa.models import Paa, PeriodoPaa
 from sme_ptrf_apps.paa.api.serializers import PaaSerializer
 
 from sme_ptrf_apps.users.permissoes import (
@@ -28,7 +28,6 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasDreComGravacao,
     PermissaoAPIApenasDreComLeituraOuGravacao
 )
-from ....despesas.models import Despesa
 
 from ....dre.services import (
     get_verificacao_regularidade_associacao,
@@ -36,7 +35,7 @@ from ....dre.services import (
     atualiza_itens_verificacao,
 )
 from ...models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade, Ata, AnalisePrestacaoConta, \
-    FechamentoPeriodo, Recurso, PeriodoInicialAssociacao
+    Recurso, PeriodoInicialAssociacao
 from ...services import (
     atualiza_dados_unidade,
     gerar_planilha,
@@ -66,8 +65,6 @@ from ..serializers.processo_associacao_serializer import ProcessoAssociacaoRetri
 from ..serializers.ata_serializer import AtaLookUpSerializer
 
 from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_geracao_documentos, lancamentos_da_prestacao
-from ....receitas.models import Receita
-from ...choices import FiltroInformacoesAssociacao
 from waffle import flag_is_active
 from .docs.associacoes_docs import DOCS
 
@@ -119,7 +116,10 @@ class AssociacoesViewSet(ModelViewSet):
                 if not somente_periodos_iniciais:
                     content = {
                         'erro': 'ProtectedError',
-                        'mensagem': 'Não é possível excluir essa associação porque ela já possui movimentação (despesas, receitas, etc.)'
+                        'mensagem': (
+                            'Não é possível excluir essa associação porque ela já possui '
+                            'movimentação (despesas, receitas, etc.)'
+                        )
                     }
                     return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
@@ -150,7 +150,10 @@ class AssociacoesViewSet(ModelViewSet):
                 if Associacao.TAG_ENCERRADA['key'] in filtro_informacoes_list and associacao.foi_encerrada():
                     excluir_associacao_da_listagem = False
 
-                if Associacao.TAG_ENCERRAMENTO_DE_CONTA['key'] in filtro_informacoes_list and associacao.tem_solicitacao_conta_pendente():
+                encerramento_na_lista = (
+                    Associacao.TAG_ENCERRAMENTO_DE_CONTA['key'] in filtro_informacoes_list
+                )
+                if encerramento_na_lista and associacao.tem_solicitacao_conta_pendente():
                     excluir_associacao_da_listagem = False
 
                 if excluir_associacao_da_listagem:
@@ -273,7 +276,9 @@ class AssociacoesViewSet(ModelViewSet):
         if prestacao_conta:
             gerar_previas = pc_requer_geracao_documentos(prestacao_conta)
 
-        pendencias_dados = associacao.pendencias_dados_da_associacao(periodo.recurso if periodo else self.request.recurso)
+        pendencias_dados = associacao.pendencias_dados_da_associacao(
+            periodo.recurso if periodo else self.request.recurso
+        )
 
         contas_pendentes = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(
             periodo)
@@ -293,7 +298,9 @@ class AssociacoesViewSet(ModelViewSet):
         else:
             pendencias_cadastrais = None
 
-        from sme_ptrf_apps.core.services.conta_associacao_service import checa_se_tem_conta_encerrada_com_saldo_no_periodo
+        from sme_ptrf_apps.core.services.conta_associacao_service import (
+            checa_se_tem_conta_encerrada_com_saldo_no_periodo,
+        )
 
         tem_conta_encerrada_com_saldo, tipos_das_contas_encerradas = checa_se_tem_conta_encerrada_com_saldo_no_periodo(
             associacao, periodo, data)
@@ -396,7 +403,8 @@ class AssociacoesViewSet(ModelViewSet):
                 Q(status=ContaAssociacao.STATUS_ATIVA) |
                 (Q(status=ContaAssociacao.STATUS_INATIVA) &
                  Q(solicitacao_encerramento__isnull=False) &
-                 Q(solicitacao_encerramento__data_de_encerramento_na_agencia__gte=periodo.data_inicio_realizacao_despesas)),
+                 Q(solicitacao_encerramento__data_de_encerramento_na_agencia__gte=(
+                     periodo.data_inicio_realizacao_despesas))),
                 associacao=associacao,
                 tipo_conta__recurso=self.request.recurso
             )
@@ -450,7 +458,10 @@ class AssociacoesViewSet(ModelViewSet):
         except (ValidationError, Exception):
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} "
+                    "não foi encontrado na base."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -501,7 +512,10 @@ class AssociacoesViewSet(ModelViewSet):
         except (ValidationError, Exception):
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} "
+                    "não foi encontrado na base."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -550,7 +564,10 @@ class AssociacoesViewSet(ModelViewSet):
             except ContaAssociacao.DoesNotExist:
                 resultado = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto conta-associação para o uuid {dado_conta['uuid']} não foi encontrado na base."
+                    'mensagem': (
+                        f"O objeto conta-associação para o uuid {dado_conta['uuid']} "
+                        "não foi encontrado na base."
+                    )
                 }
                 status_code = status.HTTP_404_NOT_FOUND
                 logger.info('Erro: %r', resultado)
@@ -582,21 +599,25 @@ class AssociacoesViewSet(ModelViewSet):
         result = {
             'tipos_unidade': Unidade.tipos_unidade_to_json(),
             'dres': Unidade.dres_to_json(),
-            'filtro_informacoes': Associacao.filtro_informacoes_dre_to_json() if filtros_informacoes_associacao_dre else Associacao.filtro_informacoes_to_json()
+            'filtro_informacoes': (
+                Associacao.filtro_informacoes_dre_to_json()
+                if filtros_informacoes_associacao_dre
+                else Associacao.filtro_informacoes_to_json()
+            )
         }
         return Response(result)
 
     @staticmethod
-    def _gerar_planilha(associacao_uuid):
+    def _gerar_planilha(associacao_uuid, request=None):
         associacao = Associacao.by_uuid(associacao_uuid)
-        xlsx = gerar_planilha(associacao)
+        xlsx = gerar_planilha(associacao, request=request)
         return xlsx
 
     @action(detail=True, methods=['get'], url_path='exportar',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def exportar(self, _, uuid=None):
+    def exportar(self, request, uuid=None):
 
-        xlsx = self._gerar_planilha(uuid)
+        xlsx = self._gerar_planilha(uuid, request)
 
         result = BytesIO(save_virtual_workbook(xlsx))
 
@@ -616,7 +637,11 @@ class AssociacoesViewSet(ModelViewSet):
         data_atual = datetime.date.today().strftime("%d-%m-%Y")
         usuario_logado = self.request.user
         associacao = Associacao.by_uuid(uuid)
-        contas = list(ContaAssociacao.objects.filter(associacao=associacao).select_related('tipo_conta', 'tipo_conta__recurso').all())
+        contas = list(
+            ContaAssociacao.objects.filter(associacao=associacao).select_related(
+                'tipo_conta', 'tipo_conta__recurso'
+            ).all()
+        )
         atualiza_dados_unidade(associacao)
 
         dados_template = {
@@ -937,7 +962,10 @@ class AssociacoesViewSet(ModelViewSet):
             except Periodo.DoesNotExist:
                 erro = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto período inicial para o uuid {periodo_inicial_uuid} não foi encontrado na base."
+                    'mensagem': (
+                        f"O objeto período inicial para o uuid {periodo_inicial_uuid} "
+                        "não foi encontrado na base."
+                    )
                 }
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -1001,7 +1029,7 @@ class AssociacoesViewSet(ModelViewSet):
         periodo_paa_vigente = PeriodoPaa.periodo_vigente()
         try:
             paa = associacao.paa_set.get(periodo_paa=periodo_paa_vigente)
-        except:
+        except Paa.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         serialized = PaaSerializer(paa, many=False)

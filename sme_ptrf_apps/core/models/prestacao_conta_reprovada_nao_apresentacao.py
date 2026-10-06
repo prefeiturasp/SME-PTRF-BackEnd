@@ -21,14 +21,14 @@ class PrestacaoContaReprovadaNaoApresentacao(ModeloBase):
     )
 
     data_de_reprovacao = models.DateTimeField(
-        "Data da reprovação",
+        "Data da rejeição",
         blank=True,
         null=True
     )
 
     class Meta:
-        verbose_name = "Prestação de conta reprovada não apresentação"
-        verbose_name_plural = "09.0.1) Prestações de contas reprovadas não apresentação"
+        verbose_name = "Prestação de conta rejeitada não apresentação"
+        verbose_name_plural = "09.0.1) Prestações de contas rejeitadas não apresentação"
         unique_together = ['associacao', 'periodo']
 
     def __str__(self):

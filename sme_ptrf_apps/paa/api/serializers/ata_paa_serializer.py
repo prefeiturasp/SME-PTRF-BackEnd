@@ -1,6 +1,7 @@
 """Serializers para o gerenciamento de atas do Plano Anual de Atividades."""
 
 import logging
+from datetime import date
 
 from django.db import transaction
 from rest_framework import serializers
@@ -173,6 +174,26 @@ class AtaPaaCreateSerializer(serializers.ModelSerializer):
     )
 
     presentes_na_ata_paa = PresentesAtaPaaCreateSerializer(many=True, required=False)
+    data_reuniao = serializers.DateField(required=False, allow_null=True)
+
+    def validate_data_reuniao(self, data_reuniao: date | None) -> date | serializers.ValidationError:
+        """Valida a data da reunião.
+
+        Args:
+            data_reuniao: Data da reunião a ser validada.
+
+        Returns:
+            date: Data da reunião válida.
+
+        Raises:
+            serializers.ValidationError: Se a data da reunião for posterior à data de hoje.
+        """
+        if data_reuniao and data_reuniao > date.today():
+            raise serializers.ValidationError(
+                "A data da reunião não pode ser posterior à data de hoje."
+            )
+
+        return data_reuniao
 
     def get_nome_ata(self, obj: AtaPaa) -> str:
         """Retorna o nome da ata.

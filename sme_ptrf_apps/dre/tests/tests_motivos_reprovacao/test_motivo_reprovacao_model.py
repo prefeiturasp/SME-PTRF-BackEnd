@@ -18,8 +18,8 @@ def test_str_model(motivo_reprovacao_x):
 
 
 def test_meta_model(motivo_reprovacao_x):
-    assert motivo_reprovacao_x._meta.verbose_name == 'Motivo de reprovação'
-    assert motivo_reprovacao_x._meta.verbose_name_plural == 'Motivos de reprovação'
+    assert motivo_reprovacao_x._meta.verbose_name == 'Motivo de rejeição'
+    assert motivo_reprovacao_x._meta.verbose_name_plural == 'Motivos de rejeição'
 
 
 def test_admin():

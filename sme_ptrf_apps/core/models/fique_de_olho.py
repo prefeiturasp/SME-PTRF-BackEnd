@@ -14,6 +14,7 @@ from sme_ptrf_apps.utils.truncate_text import truncate_text
 
 class TipoTextoFiqueDeOlhoChoices(models.TextChoices):
     ASSOCIACOES_PRESTACAO_CONTAS = "associacoes_prestacao_contas", "ASSOCIAÇÕES - Prestação de Contas"
+    ASSOCIACOES_HISTORICO_MEMBROS = "associacoes_historico_membros", "ASSOCIAÇÕES - Histórico de Membros"
     DIRETORIAS_CONSOLIDADO_DAS_PCS = "diretorias_consolidado_das_pcs", "DIRETORIAS - Consolidado das PCs"
 
 

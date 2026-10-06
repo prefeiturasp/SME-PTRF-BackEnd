@@ -162,15 +162,19 @@ SCHEMA_COMPOSICAO_POR_DATA = extend_schema(
 
 SCHEMA_DATAS_DE_ALTERACAO = extend_schema(
     description=(
-        "Retorna os \"marcos\" de navegação da composição: a união ordenada, sem repetição, das datas de "
-        "início de todos os registros (ocupados e vagos) de todos os cargos."
+        "Retorna os \"marcos\" de navegação da composição: os intervalos cronológicos, sem sobreposição, "
+        "em que a composição permaneceu inalterada em todos os cargos."
     ) + DESCRICAO_BASE,
     tags=TAGS,
     parameters=[
         OpenApiParameter(**PARAM_COMPOSICAO_UUID),
     ],
     responses={
-        200: OpenApiResponse(description="Lista de datas ISO (YYYY-MM-DD), ordenada. Ex.: [\"2026-01-01\", \"2026-04-01\"]."),
+        200: OpenApiResponse(description=(
+            "Lista de intervalos {inicio, fim} (datas ISO YYYY-MM-DD), ordenada. Ex.: "
+            "[{\"inicio\": \"2026-01-01\", \"fim\": \"2026-01-31\"}, "
+            "{\"inicio\": \"2026-02-01\", \"fim\": \"2026-04-01\"}]."
+        )),
         404: OpenApiResponse(description="Composição não encontrada."),
     },
 )
@@ -207,7 +211,7 @@ SCHEMA_CORRIGIR_SAIDA = extend_schema(
 SCHEMA_TIMELINE = extend_schema(
     description=(
         "Retorna todo o histórico (ocupações e vacâncias) de um cargo dentro de uma composição, "
-        "ordenado cronologicamente."
+        "ordenado cronologicamente. Cada item usa o mesmo formato de `cargos-da-composicao` "
     ) + DESCRICAO_BASE,
     tags=TAGS,
     parameters=[
@@ -215,7 +219,26 @@ SCHEMA_TIMELINE = extend_schema(
         OpenApiParameter(**PARAM_CARGO_ASSOCIACAO_UUID),
     ],
     responses={
-        200: CargoComposicaoVacanciaSerializer(many=True),
+        200: OpenApiResponse(description="Lista de itens no formato descrito acima, um por registro."),
+        404: OpenApiResponse(description="Composição não encontrada."),
+    },
+)
+
+SCHEMA_TIMELINE_CONSOLIDADA = extend_schema(
+    description=(
+        "Retorna, numa única resposta, a timeline completa (todos os registros, ocupados e vagos) "
+        "de todos os cargos da composição — evita N requisições (uma por cargo) na navegação "
+        "por data no frontend."
+    ) + DESCRICAO_BASE,
+    tags=TAGS,
+    parameters=[
+        OpenApiParameter(**PARAM_COMPOSICAO_UUID),
+    ],
+    responses={
+        200: OpenApiResponse(description=(
+            "Dicionário {diretoria_executiva: [...9], conselho_fiscal: [...5]}, cada item "
+            "{cargo_associacao, cargo_associacao_label, timeline: [...]}."
+        )),
         404: OpenApiResponse(description="Composição não encontrada."),
     },
 )
@@ -270,4 +293,5 @@ DOCS = dict(
     timeline=SCHEMA_TIMELINE,
     cargos_da_composicao=SCHEMA_CARGOS_DA_COMPOSICAO,
     cancelar_entrada=SCHEMA_CANCELAR_ENTRADA,
+    timeline_consolidada=SCHEMA_TIMELINE_CONSOLIDADA,
 )

@@ -1,4 +1,5 @@
 import pytest
+from datetime import date
 from unittest.mock import patch
 from requests import ConnectTimeout, ReadTimeout
 
@@ -137,3 +138,34 @@ class TestGetInformacaoServidor:
         mock_service.side_effect = ConnectTimeout()
         resultado = ParticipanteAtaPaa.get_informacao_servidor('1234567')
         assert resultado['mensagem'] == 'servidor-nao-encontrado'
+
+
+class TestDataInicioNoCargoEVago:
+
+    def test_valores_padrao(self, participante_ata_paa_factory, ata_paa):
+        participante = participante_ata_paa_factory.create(ata_paa=ata_paa)
+        participante.refresh_from_db()
+        assert participante.data_inicio_no_cargo is None
+        assert participante.vago is False
+
+    def test_salva_data_inicio_no_cargo_e_vago(self, participante_ata_paa_factory, ata_paa):
+        participante = participante_ata_paa_factory.create(
+            ata_paa=ata_paa,
+            data_inicio_no_cargo=date(2024, 3, 25),
+            vago=True,
+        )
+        participante.refresh_from_db()
+        assert participante.data_inicio_no_cargo == date(2024, 3, 25)
+        assert participante.vago is True
+
+    def test_participantes_ordenados_por_cargo_retorna_novos_campos(self, participante_ata_paa_factory, ata_paa):
+        participante_ata_paa_factory.create(
+            ata_paa=ata_paa,
+            cargo='Tesoureiro',
+            membro=True,
+            data_inicio_no_cargo=date(2024, 3, 25),
+            vago=True,
+        )
+        resultado = ParticipanteAtaPaa.participantes_ordenados_por_cargo(ata_paa, membro=True)
+        assert resultado[0]['data_inicio_no_cargo'] == date(2024, 3, 25)
+        assert resultado[0]['vago'] is True

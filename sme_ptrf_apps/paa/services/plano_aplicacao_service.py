@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from sme_ptrf_apps.paa.models import Paa
 
@@ -19,13 +19,25 @@ class PlanoAplicacaoService:
         ('nao-prioridades-outros-recursos', 'Não Prioridades Outros Recursos', False, ('RECURSO_PROPRIO', 'OUTRO_RECURSO'), True),  # noqa
     ]
 
-    def __init__(self, paa: Paa, usuario: Optional[Any] = None) -> None:
-        """Inicializa o service com o PAA e o usuário opcional."""
+    def __init__(self, paa: Paa, usuario: Any | None = None) -> None:
+        """Inicializa o service com o PAA e o usuário opcional.
+
+        Args:
+            paa: PAA que será utilizado para construir o plano de aplicação.
+            usuario: Usuário associado à requisição, usado para identificar
+                alterações da retificação. Padrão None.
+        """
         self.paa = paa
         self.usuario = usuario
 
     def _obter_alteracoes(self) -> dict:
-        """Retorna alterações do PAA em relação ao snapshot da retificação (com cache por instância)."""
+        """Retorna alterações do PAA em relação ao snapshot da retificação (com cache por instância).
+
+        Returns:
+            Dicionário com as alterações identificadas pelo
+            RetificacaoPaaService, ou um dicionário vazio caso ocorra
+            algum erro ao obtê-las.
+        """
         if not hasattr(self, '_alteracoes_cache'):
             from sme_ptrf_apps.paa.services.retificacao_paa_service import RetificacaoPaaService
             try:
@@ -36,7 +48,13 @@ class PlanoAplicacaoService:
         return self._alteracoes_cache
 
     def _obter_prioridades_serializadas(self) -> list:
-        """Obtém todas as prioridades do PAA serializadas com contexto de alterações."""
+        """Obtém todas as prioridades do PAA serializadas com contexto de alterações.
+
+        Returns:
+            Lista de prioridades do PAA serializadas por
+            PrioridadePaaListSerializer, com o contexto de alterações da
+            retificação incluído.
+        """
         from sme_ptrf_apps.paa.api.serializers.prioridade_paa_serializer import PrioridadePaaListSerializer
         from sme_ptrf_apps.paa.models import PrioridadePaa
         from sme_ptrf_apps.paa.querysets import queryset_prioridades_paa
@@ -49,7 +67,19 @@ class PlanoAplicacaoService:
         ).data
 
     def _construir_grupo(self, key: str, titulo: str, itens: list, eh_outros_recursos: bool = False) -> dict:
-        """Constrói um grupo com seus itens e a linha de total."""
+        """Constrói um grupo com seus itens e a linha de total.
+
+        Args:
+            key: Identificador único do grupo.
+            titulo: Título de exibição do grupo.
+            itens: Lista de prioridades pertencentes ao grupo.
+            eh_outros_recursos: Indica se o grupo representa recursos
+                próprios ou outros recursos. Padrão False.
+
+        Returns:
+            Dicionário com a chave, o título, a flag de outros recursos e
+            os dados do grupo (itens mais a linha de total).
+        """
         total_do_grupo = sum(float(p['valor_total']) for p in itens if p['valor_total'] is not None)
 
         # Adiciona a linha de total dos itens
@@ -69,7 +99,13 @@ class PlanoAplicacaoService:
         }
 
     def construir_plano_aplicacao(self) -> list:
-        """Constrói o plano de aplicação completo com grupos prontos para renderização."""
+        """Constrói o plano de aplicação completo com grupos prontos para renderização.
+
+        Returns:
+            Lista de grupos (dicionários) contendo os itens de cada grupo
+            e a respectiva linha de total, na ordem definida por
+            `_GRUPOS`. Grupos sem itens são omitidos.
+        """
         prioridades = self._obter_prioridades_serializadas()
 
         grupos = []

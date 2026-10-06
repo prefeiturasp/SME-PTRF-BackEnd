@@ -133,10 +133,12 @@ def test_create_serializer_cria_ocupante_e_delega_para_o_service(composicao_vaca
     assert criado.data_fim_no_cargo == composicao_vacancia.mandato.data_final  # vigente
 
 
-def test_create_serializer_reaproveita_ocupante_existente_por_codigo_e_cpf(composicao_vacancia):
-    """update_or_create no create() não deve duplicar OcupanteCargo já cadastrado."""
+def test_create_serializer_reaproveita_ocupante_existente_por_codigo_cpf_e_cargo_educacao(composicao_vacancia):
+    """update_or_create no create() não deve duplicar OcupanteCargo já cadastrado quando
+    codigo_identificacao, cpf_responsavel e cargo_educacao coincidem com o existente."""
     existente = OcupanteCargoFactory(
         codigo_identificacao='999999', cpf_responsavel='55566677788', nome='Nome Antigo',
+        cargo_educacao='Diretor',
     )
     payload = {
         'composicao': str(composicao_vacancia.uuid),
@@ -144,6 +146,7 @@ def test_create_serializer_reaproveita_ocupante_existente_por_codigo_e_cpf(compo
         'data_inicio_no_cargo': '2026-01-01',
         'ocupante_do_cargo': _payload_ocupante(
             nome='Nome Atualizado', codigo_identificacao='999999', cpf_responsavel='55566677788',
+            cargo_educacao='Diretor',
         ),
     }
 
@@ -155,6 +158,34 @@ def test_create_serializer_reaproveita_ocupante_existente_por_codigo_e_cpf(compo
     assert criado.ocupante_do_cargo.id == existente.id
     existente.refresh_from_db()
     assert existente.nome == 'Nome Atualizado'
+
+
+def test_create_serializer_cargo_educacao_diferente_nao_reaproveita_ocupante(composicao_vacancia):
+    """Mesma pessoa (codigo_identificacao + cpf_responsavel) pode ter mais de um OcupanteCargo
+    quando cargo_educacao difere - o lookup usa os três campos como chave, então o
+    update_or_create deve escolher o registro certo em vez de lançar MultipleObjectsReturned."""
+    diretor = OcupanteCargoFactory(
+        codigo_identificacao='999999', cpf_responsavel='55566677788', cargo_educacao='Diretor',
+    )
+    OcupanteCargoFactory(
+        codigo_identificacao='999999', cpf_responsavel='55566677788', cargo_educacao='Professor I',
+    )
+
+    payload = {
+        'composicao': str(composicao_vacancia.uuid),
+        'cargo_associacao': Cargo.CARGO_ASSOCIACAO_VOGAL_1,
+        'data_inicio_no_cargo': '2026-01-01',
+        'ocupante_do_cargo': _payload_ocupante(
+            codigo_identificacao='999999', cpf_responsavel='55566677788', cargo_educacao='Diretor',
+        ),
+    }
+
+    serializer = CargoComposicaoVacanciaCreateSerializer(data=payload)
+    assert serializer.is_valid(), serializer.errors
+    criado = serializer.save()
+
+    assert OcupanteCargo.objects.filter(codigo_identificacao='999999').count() == 2
+    assert criado.ocupante_do_cargo.id == diretor.id
 
 
 def test_create_serializer_invalido_sem_composicao():
