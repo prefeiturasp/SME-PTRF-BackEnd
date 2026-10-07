@@ -1,3 +1,4 @@
+# flake8: noqa: F401
 from .unidade import Unidade
 from .acao import Acao
 from .acao_associacao import AcaoAssociacao
@@ -38,6 +39,7 @@ from .permissoes_ue import (
     FuncUePrestacaoDeContas,
     FuncUeGerais,
     FuncUeGestaoPerfis,
+    FuncUeMembrosDaAssociacao,
 )
 from .permissoes_dre import (
     FuncDreAssociacoesDaDre,
