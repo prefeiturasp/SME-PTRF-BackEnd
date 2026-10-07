@@ -4,6 +4,7 @@ from sme_ptrf_apps.core.models import RelacaoBens
 from sme_ptrf_apps.core.services.relacao_bens import (
     apagar_previas_relacao_de_bens,
     gerar_arquivo_relacao_de_bens_dados_persistidos,
+    previa_relacao_de_bens_bloqueada,
     _persistir_arquivo_relacao_de_bens,
 )
 
@@ -51,4 +52,15 @@ def test_gerar_arquivo_dados_persistidos_sem_relatorio_nao_falha(relacao_bens_fi
         relacao_bens=relacao_bens_final,
         recurso_nome=recurso_nome,
         recurso_nome_exibicao=recurso_nome_exibicao
+    )
+
+
+def test_previa_relacao_de_bens_bloqueada_quando_existe_documento_final(
+    conta_associacao,
+    periodo,
+    relacao_bens_final,
+):
+    assert previa_relacao_de_bens_bloqueada(
+        conta_associacao,
+        periodo,
     )
