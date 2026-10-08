@@ -235,8 +235,12 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
             devolucao_ao_tesouro = None
 
             if categoria == TipoAcertoLancamento.CATEGORIA_DEVOLUCAO:
-                devolucao_ao_tesouro = SolicitacaoDevolucaoAoTesouroRetrieveSerializer(
-                    solicitacao.solicitacao_devolucao_ao_tesouro, many=False).data
+                solicitacao_devolucao = getattr(solicitacao, 'solicitacao_devolucao_ao_tesouro', None)
+                if solicitacao_devolucao:
+                    devolucao_ao_tesouro = SolicitacaoDevolucaoAoTesouroRetrieveSerializer(
+                        solicitacao_devolucao, many=False).data
+                else:
+                    devolucao_ao_tesouro = self.devolucao_ao_tesouro_registrada()
 
             dado_solicitacao = {
                 "tipo_acerto": TipoAcertoLancamentoSerializer(solicitacao.tipo_acerto, many=False).data,
@@ -282,6 +286,38 @@ class AnaliseLancamentoPrestacaoConta(ModeloBase):
         result_com_ordem_calculada = self.calcula_ordem(result)
 
         return result_com_ordem_calculada
+
+    def devolucao_ao_tesouro_registrada(self):
+        """Busca a devolução ao tesouro registrada para a despesa deste lançamento.
+
+        Usada como alternativa quando a solicitação de acerto da categoria devolução
+        não possui SolicitacaoDevolucaoAoTesouro vinculada. A busca é feita em
+        DevolucaoAoTesouro pela prestação de contas da análise e pela despesa do
+        lançamento.
+
+        Returns:
+            dict | None: Dados serializados por DevolucaoAoTesouroRetrieveSerializer,
+            acrescidos da chave ``uuid_registro_devolucao``. Retorna None se o
+            lançamento não for de despesa ou se nenhuma devolução for encontrada.
+        """
+        from sme_ptrf_apps.core.api.serializers.devolucao_ao_tesouro_serializer import \
+            DevolucaoAoTesouroRetrieveSerializer
+        from . import DevolucaoAoTesouro
+
+        if not self.despesa:
+            return None
+
+        devolucao = DevolucaoAoTesouro.objects.filter(
+            prestacao_conta=self.analise_prestacao_conta.prestacao_conta,
+            despesa=self.despesa,
+        ).first()
+
+        if not devolucao:
+            return None
+
+        dados = DevolucaoAoTesouroRetrieveSerializer(devolucao, many=False).data
+        dados['uuid_registro_devolucao'] = f"{devolucao.uuid}"
+        return dados
 
     @staticmethod
     def calcula_ordem(result):
