@@ -3,6 +3,13 @@ from ...models import TipoCusteio
 
 from sme_ptrf_apps.core.models import Unidade
 
+
+class TipoCusteioLookUpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TipoCusteio
+        fields = ('uuid', 'nome', 'id', 'eh_tributos_e_tarifas')
+
+
 class TipoCusteioSimplesSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoCusteio

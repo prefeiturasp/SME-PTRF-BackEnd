@@ -4,7 +4,10 @@ import logging
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
+from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import (
+    AcaoAssociacaoLookUpSerializer,
+    AcaoAssociacaoConciliacaoLookUpSerializer
+)
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
 from sme_ptrf_apps.core.models import AcaoAssociacao, Associacao, ContaAssociacao, Periodo
@@ -231,7 +234,7 @@ class ReceitaConciliacaoSerializer(serializers.ModelSerializer):
         queryset=Associacao.objects.all()
     )
     tipo_receita = TipoReceitaLookUpSerializer()
-    acao_associacao = AcaoAssociacaoLookUpSerializer()
+    acao_associacao = AcaoAssociacaoConciliacaoLookUpSerializer()
     rateio_estornado = RateioDespesaEstornoLookupSerializer()
     mensagem_inativa = serializers.SerializerMethodField('get_mensagem_receita_inativa')
 
