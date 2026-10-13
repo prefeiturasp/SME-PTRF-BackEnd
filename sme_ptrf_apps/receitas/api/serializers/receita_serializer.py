@@ -1,4 +1,3 @@
-import datetime
 import logging
 
 from rest_framework import serializers
@@ -70,14 +69,15 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
         conta_associacao = data['conta_associacao']
 
         if conta_associacao and (data['conta_associacao'].data_inicio > data['data']):
-            raise serializers.ValidationError({"mensagem": "A conta possui data de início posterior a data do crédito."})
+            raise serializers.ValidationError(
+                {"mensagem": "A conta possui data de início posterior a data do crédito."})
 
         # Verifica se vem da Analise DRE, caso sim permite a edição da Receita com a Conta Inativa
         if conta_associacao.inativa and not self.initial_data['origem_analise_lancamento']:
             raise serializers.ValidationError({"mensagem": "Não é permitido criar/editar receita com conta inativada."})
 
         if data['conta_associacao'].tipo_conta.recurso != data['acao_associacao'].acao.recurso:
-            raise serializers.ValidationError({"mensagem": "Conta e Ação devem ser do mesmo recurso."})        
+            raise serializers.ValidationError({"mensagem": "Conta e Ação devem ser do mesmo recurso."})
 
         return data
 
@@ -86,19 +86,25 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
         # Validando data de encerramento
         data_da_receita = validated_data['data'] if validated_data['data'] else None
 
-        data_de_encerramento = validated_data['associacao'].data_de_encerramento if validated_data['associacao'] and validated_data['associacao'].data_de_encerramento else None
+        data_de_encerramento = (
+            validated_data['associacao'].data_de_encerramento
+            if validated_data['associacao'] and validated_data['associacao'].data_de_encerramento else None)
 
         if data_da_receita and data_de_encerramento and data_da_receita > data_de_encerramento:
             data_de_encerramento = data_de_encerramento.strftime("%d/%m/%Y")
             erro = {
-                "erro_data_de_encerramento":True,
+                "erro_data_de_encerramento": True,
                 "data_de_encerramento": f"{data_de_encerramento}",
-                "mensagem": f"A data do crédito não pode ser posterior à {data_de_encerramento}, data de encerramento da associação."
+                "mensagem": (
+                    f"A data do crédito não pode ser posterior à {data_de_encerramento}, data "
+                    "de encerramento da associação.")
             }
             raise ValidationError(erro)
 
-        if validated_data['conta_associacao'].tipo_conta.id not in [t.id for t in validated_data['tipo_receita'].tipos_conta.all()]:
-            raise ValidationError(f"O tipo de receita {validated_data['tipo_receita'].nome} não permite salvar créditos com contas do tipo {validated_data['conta_associacao'].tipo_conta.nome}")
+        if validated_data['conta_associacao'].tipo_conta.id not in [t.id for t in validated_data['tipo_receita'].tipos_conta.all()]:  # noqa
+            raise ValidationError(
+                f"O tipo de receita {validated_data['tipo_receita'].nome} não permite salvar créditos com contas do "
+                f"tipo {validated_data['conta_associacao'].tipo_conta.nome}")
 
         if validated_data['tipo_receita'].e_repasse:
             atualiza_repasse_para_realizado(validated_data)
@@ -122,7 +128,10 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
         if validated_data['tipo_receita'].e_estorno:
             if not motivos_estorno and not outros_motivos_estorno:
                 raise ValidationError({
-                    "detail": "Para salvar um crédito do tipo estorno, é necessário informar o campo 'motivos_estorno' ou 'outros_motivos_estorno'"
+                    "detail": (
+                        "Para salvar um crédito do tipo estorno, é necessário informar o campo "
+                        "'motivos_estorno' ou 'outros_motivos_estorno'"
+                    )
                 })
             receita.adiciona_motivos_estorno(motivos_estorno, outros_motivos_estorno)
 
@@ -131,17 +140,25 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
 
         # Validando data de encerramento
-        if instance and instance.data and validated_data['associacao'] and validated_data['associacao'].data_de_encerramento and instance.data > validated_data['associacao'].data_de_encerramento:
+        if (
+            instance and instance.data and validated_data['associacao'] and
+                validated_data['associacao'].data_de_encerramento and
+                instance.data > validated_data['associacao'].data_de_encerramento):
             data_de_encerramento = validated_data['associacao'].data_de_encerramento.strftime("%d/%m/%Y")
             erro = {
-                "erro_data_de_encerramento":True,
+                "erro_data_de_encerramento": True,
                 "data_de_encerramento": f"{data_de_encerramento}",
-                "mensagem": f"A data do crédito não pode ser posterior à {data_de_encerramento}, data de encerramento da associação."
+                "mensagem": (
+                    f"A data do crédito não pode ser posterior à {data_de_encerramento}, "
+                    "data de encerramento da associação.")
             }
             raise ValidationError(erro)
 
-        if validated_data['conta_associacao'].tipo_conta.id not in [t.id for t in validated_data['tipo_receita'].tipos_conta.all()]:
-            raise ValidationError(f"O tipo de receita {validated_data['tipo_receita'].nome} não permite salvar créditos com contas do tipo {validated_data['conta_associacao'].tipo_conta.nome}")
+        if validated_data['conta_associacao'].tipo_conta.id not in [t.id for t in validated_data['tipo_receita'].tipos_conta.all()]:  # noqa
+            raise ValidationError(
+                f"O tipo de receita {validated_data['tipo_receita'].nome} não permite salvar créditos com contas "
+                f"do tipo {validated_data['conta_associacao'].tipo_conta.nome}"
+            )
 
         if instance.repasse:
             atualiza_repasse_para_pendente(instance)
@@ -167,7 +184,10 @@ class ReceitaCreateSerializer(serializers.ModelSerializer):
         if validated_data['tipo_receita'].e_estorno:
             if not motivos_estorno and not outros_motivos_estorno:
                 raise ValidationError({
-                    "detail": "Para salvar um crédito do tipo estorno, é necessário informar o campo 'motivos_estorno' ou 'outros_motivos_estorno'"
+                    "detail": (
+                        "Para salvar um crédito do tipo estorno, é necessário informar o campo "
+                        "'motivos_estorno' ou 'outros_motivos_estorno'"
+                    )
                 })
 
             receita_atualizada.adiciona_motivos_estorno(motivos_estorno, outros_motivos_estorno)
