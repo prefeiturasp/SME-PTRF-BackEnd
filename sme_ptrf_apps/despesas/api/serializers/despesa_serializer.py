@@ -335,7 +335,9 @@ class DespesaListComRateiosSerializer(serializers.ModelSerializer):
         return serializar_despesas_impostos_ativas(despesa, context=self.context)
 
     def get_recurso_externo(self, despesa):
-        return despesa.receitas_saida_do_recurso.first().uuid if despesa.receitas_saida_do_recurso.exists() else None
+        # return despesa.receitas_saida_do_recurso.first().uuid if despesa.receitas_saida_do_recurso.exists() else None
+        receita = next(iter(despesa.receitas_saida_do_recurso.all()), None)
+        return receita.uuid if receita else None
 
     def get_informacoes(self, despesa):
         return despesa.tags_de_informacao
@@ -396,7 +398,9 @@ class DespesaDocumentoMestreSerializer(serializers.ModelSerializer):
     mensagem_inativa = serializers.SerializerMethodField('get_mensagem_despesa_inativa')
 
     def get_recurso_externo(self, despesa):
-        return despesa.receitas_saida_do_recurso.first().uuid if despesa.receitas_saida_do_recurso.exists() else None
+        # return despesa.receitas_saida_do_recurso.first().uuid if despesa.receitas_saida_do_recurso.exists() else None
+        receita = next(iter(despesa.receitas_saida_do_recurso.all()), None)
+        return receita.uuid if receita else None
 
     def get_mensagem_despesa_inativa(self, despesa):
         return despesa.mensagem_inativacao
