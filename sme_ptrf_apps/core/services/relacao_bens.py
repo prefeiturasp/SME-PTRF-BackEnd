@@ -1,6 +1,6 @@
 import logging
 
-from sme_ptrf_apps.core.models import RelacaoBens
+from sme_ptrf_apps.core.models import RelacaoBens, ContaAssociacao, Periodo
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL
 
@@ -106,3 +106,26 @@ def _persistir_arquivo_relacao_de_bens(periodo, conta_associacao, usuario, prest
     else:
         LOGGER.info("Não houve bem adquirido ou produzido no referido período (%s).", str(periodo))
     return None
+
+
+def previa_relacao_de_bens_bloqueada(conta_associacao: ContaAssociacao, periodo: Periodo) -> bool:
+    """
+    Verifica se a geração da prévia da relação de bens está bloqueada.
+    A prévia não pode ser gerada quando já existe uma versão final
+    da relação de bens vinculada a uma prestação de contas da mesma
+    associação e período.
+
+    Args:
+    conta_associacao: Conta de associação para a qual a prévia
+        será gerada.
+    periodo: Período de referência da prévia.
+
+    Returns:
+        bool: True se já existe uma versão final e a geração da prévia
+        deve ser bloqueada; False caso contrário.
+    """
+    return RelacaoBens.objects.filter(
+        prestacao_conta__associacao=conta_associacao.associacao,
+        prestacao_conta__periodo=periodo,
+        versao=RelacaoBens.VERSAO_FINAL,
+    ).exists()

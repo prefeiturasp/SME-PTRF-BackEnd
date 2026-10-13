@@ -416,7 +416,7 @@ def test_dashboard_com_pc_reprovada_nao_apresentacao(
                 'quantidade_prestacoes': 2,  # Aprovada + Aprovada com ressalva
                 'status': 'APROVADA'},
             {
-                'titulo': 'Prestações de contas reprovadas',
+                'titulo': 'Prestações de contas rejeitadas',
                 #'quantidade_prestacoes': 1, # Nenhuma Reprovada + Uma PC Reprovada por não apresentacao
                 'quantidade_prestacoes': 0,
                 'status': 'REPROVADA'}
