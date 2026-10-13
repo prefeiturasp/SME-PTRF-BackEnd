@@ -148,8 +148,17 @@ class Despesa(ModeloBase):
 
             data_transacao = self.data_transacao
 
-            data_inicio_realizacao_despesas = self.associacao.periodo_inicial.data_inicio_realizacao_despesas if self.associacao and self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_inicio_realizacao_despesas else None
-            data_fim_realizacao_despesas = self.associacao.periodo_inicial.data_fim_realizacao_despesas if self.associacao and self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_fim_realizacao_despesas else None
+            data_inicio_realizacao_despesas = (
+                self.associacao.periodo_inicial.data_inicio_realizacao_despesas
+                if (self.associacao and self.associacao.periodo_inicial and
+                    self.associacao.periodo_inicial.data_inicio_realizacao_despesas) else None
+            )
+
+            data_fim_realizacao_despesas = (
+                self.associacao.periodo_inicial.data_fim_realizacao_despesas
+                if (self.associacao and self.associacao.periodo_inicial and
+                    self.associacao.periodo_inicial.data_fim_realizacao_despesas) else None
+            )
 
             if data_fim_realizacao_despesas:
                 if data_transacao <= data_fim_realizacao_despesas:
@@ -270,7 +279,9 @@ class Despesa(ModeloBase):
             tags.append(tag_informacao(
                 self.TAG_CONCILIADA,
                 "Essa despesa já possui conciliação bancária.",
-                periodo_conciliacao=rateio.periodo_conciliacao.referencia if rateio and rateio.periodo_conciliacao else None,
+                periodo_conciliacao=(
+                    rateio.periodo_conciliacao.referencia
+                    if rateio and rateio.periodo_conciliacao else None),
                 periodo_conciliacao_hint=None,
             ))
 
@@ -339,7 +350,7 @@ class Despesa(ModeloBase):
         meses = max_notificar_dias_nao_conferido // 30
         msg = '1 mês.' if max_notificar_dias_nao_conferido <= 59 else f'{meses} meses.'
 
-        return [f'Essa despesa não possui conciliação bancária.', f'Não demonstrado por {msg}']
+        return ['Essa despesa não possui conciliação bancária.', f'Não demonstrado por {msg}']
 
     def __hint_impostos(self):
         if not self.despesas_impostos.exists():
@@ -352,7 +363,9 @@ class Despesa(ModeloBase):
             linhas_hint.append('Essa despesa teve retenções de impostos:')
 
         for imposto in self.despesas_impostos.all():
-            pagamento = f'pago em {imposto.data_transacao:%d/%m/%Y}' if imposto.data_transacao else 'pagamento ainda não realizado'
+            pagamento = (
+                f'pago em {imposto.data_transacao:%d/%m/%Y}'
+                if imposto.data_transacao else 'pagamento ainda não realizado')
             linhas_hint.append(f'R$ {str(imposto.valor_total).replace(".", ",")}, {pagamento}.')
 
         return linhas_hint
@@ -386,11 +399,13 @@ class Despesa(ModeloBase):
 
         if not self.motivos_pagamento_antecipado and not self.outros_motivos_pagamento_antecipado:
             linhas_hint.append(
-                f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à data do documento ({self.data_documento:%d/%m/%Y})')
+                f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à '
+                f'data do documento ({self.data_documento:%d/%m/%Y})')
             return linhas_hint
 
         linhas_hint.append(
-            f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à data do documento ({self.data_documento:%d/%m/%Y}), motivos:')
+            f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à data '
+            f'do documento ({self.data_documento:%d/%m/%Y}), motivos:')
 
         if self.motivos_pagamento_antecipado:
             for motivo in self.motivos_pagamento_antecipado.all():
@@ -475,7 +490,9 @@ class Despesa(ModeloBase):
         return self.valor_recursos_proprios > 0
 
     def tem_pagamentos_em_multiplas_contas(self):
-        return self.rateios.values('conta_associacao').order_by('conta_associacao').annotate(count=Count('conta_associacao')).count() > 1
+        return self.rateios.values(
+            'conta_associacao'
+        ).order_by('conta_associacao').annotate(count=Count('conta_associacao')).count() > 1
 
     def e_despesa_inativa(self):
         return self.status == STATUS_INATIVO
@@ -528,7 +545,19 @@ class Despesa(ModeloBase):
 
     @classmethod
     def get_tags_informacoes_list(cls):
-        return [cls.TAG_ANTECIPADO, cls.TAG_ESTORNADO, cls.TAG_PARCIAL, cls.TAG_IMPOSTO, cls.TAG_IMPOSTO_PAGO, cls.TAG_IMPOSTO_A_SER_PAGO, cls.TAG_INATIVA, cls.TAG_NAO_RECONHECIDA, cls.TAG_SEM_COMPROVACAO_FISCAL, cls.TAG_CONCILIADA, cls.TAG_NAO_CONCILIADA]
+        return [
+            cls.TAG_ANTECIPADO,
+            cls.TAG_ESTORNADO,
+            cls.TAG_PARCIAL,
+            cls.TAG_IMPOSTO,
+            cls.TAG_IMPOSTO_PAGO,
+            cls.TAG_IMPOSTO_A_SER_PAGO,
+            cls.TAG_INATIVA,
+            cls.TAG_NAO_RECONHECIDA,
+            cls.TAG_SEM_COMPROVACAO_FISCAL,
+            cls.TAG_CONCILIADA,
+            cls.TAG_NAO_CONCILIADA
+        ]
 
     @classmethod
     def filter_by_recurso(cls, queryset, recurso):

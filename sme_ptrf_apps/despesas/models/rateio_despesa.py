@@ -136,7 +136,8 @@ class RateioDespesa(ModeloBase):
 
         if data_fim:
             dataset = dataset.filter(
-                despesa__data_transacao__gte=periodo.data_inicio_realizacao_despesas, despesa__data_transacao__lte=data_fim)
+                despesa__data_transacao__gte=periodo.data_inicio_realizacao_despesas,
+                despesa__data_transacao__lte=data_fim)
         else:
             if periodo.data_fim_realizacao_despesas:
                 dataset = dataset.filter(
@@ -273,9 +274,9 @@ class RateioDespesa(ModeloBase):
         return dataset.all()
 
     @classmethod
-    def rateios_da_conta_associacao_em_periodos_anteriores(cls, conta_associacao, periodo, conferido=None,
-                                                           exclude_despesa=None, aplicacao_recurso=None, acao_associacao=None, incluir_inativas=False,
-                                                           nao_conciliadas_ou_conciliadas_no_periodo=False):
+    def rateios_da_conta_associacao_em_periodos_anteriores(
+        cls, conta_associacao, periodo, conferido=None, exclude_despesa=None, aplicacao_recurso=None,
+            acao_associacao=None, incluir_inativas=False, nao_conciliadas_ou_conciliadas_no_periodo=False):
 
         dataset = cls.objects.exclude(status=STATUS_INCOMPLETO) if incluir_inativas else cls.completos
 
@@ -430,7 +431,8 @@ class RateioDespesa(ModeloBase):
                 totais['total_despesas_custeio'] += despesa.valor_rateio
 
             # Se não conferida ou conferida em período posterior
-            if (not despesa.conferido) or (despesa.periodo_conciliacao and despesa.periodo_conciliacao.referencia > periodo.referencia):
+            if ((not despesa.conferido) or
+                    (despesa.periodo_conciliacao and despesa.periodo_conciliacao.referencia > periodo.referencia)):
                 if despesa.aplicacao_recurso == APLICACAO_CAPITAL:
                     totais['total_despesas_nao_conciliadas_capital'] += despesa.valor_rateio
                 else:
