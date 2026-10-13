@@ -5,10 +5,14 @@ from .especificacao_material_servico_serializer import (
     EspecificacaoMaterialServicoLookUpSerializer,
     EspecificacaoMaterialServicoSerializer,
 )
-from .tipo_custeio_serializer import TipoCusteioSerializer
+from .tipo_custeio_serializer import TipoCusteioSerializer, TipoCusteioLookUpSerializer
 from ...models import Despesa, RateioDespesa
 from ....core.api.serializers import TagLookupSerializer
-from ....core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer, AcaoAssociacaoSerializer
+from ....core.api.serializers.acao_associacao_serializer import (
+    AcaoAssociacaoLookUpSerializer,
+    AcaoAssociacaoSerializer,
+    AcaoAssociacaoConciliacaoLookUpSerializer
+)
 from ....core.api.serializers.associacao_serializer import AssociacaoSerializer
 from ....core.api.serializers.conta_associacao_serializer import (ContaAssociacaoSerializer,
                                                                   ContaAssociacaoLookUpSerializer)
@@ -161,15 +165,15 @@ class RateioDespesaListaSerializer(serializers.ModelSerializer):
 
 
 class RateioDespesaConciliacaoSerializer(serializers.ModelSerializer):
-    acao_associacao = AcaoAssociacaoLookUpSerializer()
+    acao_associacao = AcaoAssociacaoConciliacaoLookUpSerializer()
     especificacao_material_servico = EspecificacaoMaterialServicoLookUpSerializer()
-    tipo_custeio = TipoCusteioSerializer()
+    tipo_custeio = TipoCusteioLookUpSerializer()
     tag = TagLookupSerializer()
     estorno = serializers.SerializerMethodField('get_estorno')
 
     def get_estorno(self, rateio):
         from sme_ptrf_apps.receitas.api.serializers.receita_serializer import ReceitaLookUpSerializer
-        estorno = rateio.estorno.first()
+        estorno = next(iter(rateio.estorno.all()), None)
         return ReceitaLookUpSerializer(estorno, many=False).data
 
     class Meta:

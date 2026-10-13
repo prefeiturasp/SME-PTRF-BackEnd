@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.db.models import Count
 from django.dispatch import receiver
-
+from django.utils.functional import cached_property
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from .fornecedor import Fornecedor
 from .validators import cpf_cnpj_validation, normalize_cpf_cnpj
@@ -148,8 +148,17 @@ class Despesa(ModeloBase):
 
             data_transacao = self.data_transacao
 
-            data_inicio_realizacao_despesas = self.associacao.periodo_inicial.data_inicio_realizacao_despesas if self.associacao and self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_inicio_realizacao_despesas else None
-            data_fim_realizacao_despesas = self.associacao.periodo_inicial.data_fim_realizacao_despesas if self.associacao and self.associacao.periodo_inicial and self.associacao.periodo_inicial.data_fim_realizacao_despesas else None
+            data_inicio_realizacao_despesas = (
+                self.associacao.periodo_inicial.data_inicio_realizacao_despesas
+                if (self.associacao and self.associacao.periodo_inicial and
+                    self.associacao.periodo_inicial.data_inicio_realizacao_despesas) else None
+            )
+
+            data_fim_realizacao_despesas = (
+                self.associacao.periodo_inicial.data_fim_realizacao_despesas
+                if (self.associacao and self.associacao.periodo_inicial and
+                    self.associacao.periodo_inicial.data_fim_realizacao_despesas) else None
+            )
 
             if data_fim_realizacao_despesas:
                 if data_transacao <= data_fim_realizacao_despesas:
@@ -194,19 +203,33 @@ class Despesa(ModeloBase):
 
         return ",".join(tags)
 
-    @property
+    @cached_property
+    def tags_de_informacao_concatenadas_conciliacao(self):
+        tags = []
+        for tag in self.tags_de_informacao_conciliacao:
+            tags.append(tag['tag_nome'])
+
+        tags.sort()
+
+        return ",".join(tags)
+
+    @property  # 1892 queries para 1185 queries
     def tags_de_informacao(self):
         tags = []
+        rateios = getattr(self, '_prefetched_objects_cache', {}).get('rateios')
+        conferido = all(r.conferido for r in rateios) if rateios is not None else self.conferido
+        e_imposto = self.e_despesa_de_imposto()
+
         if self.teve_pagamento_antecipado():
             tags.append(tag_informacao(
                 self.TAG_ANTECIPADO,
                 self.__hint_pagamento_antecipado()
             ))
 
-        if self.possui_estornos():
+        if (any(r.estorno.all() for r in rateios) if rateios is not None else self.possui_estornos()):
             tags.append(tag_informacao(
                 self.TAG_ESTORNADO,
-                f'Esse gasto possui estornos.')
+                'Esse gasto possui estornos.')
             )
 
         if self.possui_retencao_de_impostos():
@@ -215,13 +238,13 @@ class Despesa(ModeloBase):
                 self.__hint_impostos()
             ))
 
-        if self.e_imposto_pago():
+        if e_imposto and self.data_transacao:
             tags.append(tag_informacao(
                 self.TAG_IMPOSTO_PAGO,
                 self.__hint_imposto_pago()
             ))
 
-        if self.e_imposto_nao_pago():
+        if e_imposto and not self.data_transacao:
             tags.append(tag_informacao(
                 self.TAG_IMPOSTO_A_SER_PAGO,
                 self.__hint_imposto_a_ser_pago()
@@ -242,31 +265,41 @@ class Despesa(ModeloBase):
         if self.e_despesa_nao_reconhecida():
             tags.append(tag_informacao(
                 self.TAG_NAO_RECONHECIDA,
-                f"Essa despesa não é reconhecida pela associação."
+                "Essa despesa não é reconhecida pela associação."
             ))
 
         if self.e_despesa_sem_comprovacao_fiscal():
             tags.append(tag_informacao(
                 self.TAG_SEM_COMPROVACAO_FISCAL,
-                f"Essa despesa não possui comprovação fiscal."
+                "Essa despesa não possui comprovação fiscal."
             ))
 
-        if self.conferido:
+        if conferido:
             rateio = self.rateios.all().order_by('periodo_conciliacao').last()
             tags.append(tag_informacao(
                 self.TAG_CONCILIADA,
-                f"Essa despesa já possui conciliação bancária.",
-                periodo_conciliacao=rateio.periodo_conciliacao.referencia if rateio and rateio.periodo_conciliacao else None,
+                "Essa despesa já possui conciliação bancária.",
+                periodo_conciliacao=(
+                    rateio.periodo_conciliacao.referencia
+                    if rateio and rateio.periodo_conciliacao else None),
                 periodo_conciliacao_hint=None,
             ))
 
-        if not self.conferido:
+        if not conferido:
             tags.append(tag_informacao(
                 self.TAG_NAO_CONCILIADA,
                 self.__hint_nao_conciliada()
             ))
 
         return tags
+
+    @cached_property
+    def tags_de_informacao_conciliacao(self):
+        """ Retornam tags de informação cacheada para uso em dados de prestação de contas
+            utilizando-se do @cached_property para evitar alteração na property original
+            para não impactar no fluxo de cadastros e edições de despesas
+        """
+        return self.tags_de_informacao
 
     @property
     def periodo_da_despesa(self):
@@ -317,7 +350,7 @@ class Despesa(ModeloBase):
         meses = max_notificar_dias_nao_conferido // 30
         msg = '1 mês.' if max_notificar_dias_nao_conferido <= 59 else f'{meses} meses.'
 
-        return [f'Essa despesa não possui conciliação bancária.', f'Não demonstrado por {msg}']
+        return ['Essa despesa não possui conciliação bancária.', f'Não demonstrado por {msg}']
 
     def __hint_impostos(self):
         if not self.despesas_impostos.exists():
@@ -330,7 +363,9 @@ class Despesa(ModeloBase):
             linhas_hint.append('Essa despesa teve retenções de impostos:')
 
         for imposto in self.despesas_impostos.all():
-            pagamento = f'pago em {imposto.data_transacao:%d/%m/%Y}' if imposto.data_transacao else 'pagamento ainda não realizado'
+            pagamento = (
+                f'pago em {imposto.data_transacao:%d/%m/%Y}'
+                if imposto.data_transacao else 'pagamento ainda não realizado')
             linhas_hint.append(f'R$ {str(imposto.valor_total).replace(".", ",")}, {pagamento}.')
 
         return linhas_hint
@@ -364,11 +399,13 @@ class Despesa(ModeloBase):
 
         if not self.motivos_pagamento_antecipado and not self.outros_motivos_pagamento_antecipado:
             linhas_hint.append(
-                f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à data do documento ({self.data_documento:%d/%m/%Y})')
+                f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à '
+                f'data do documento ({self.data_documento:%d/%m/%Y})')
             return linhas_hint
 
         linhas_hint.append(
-            f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à data do documento ({self.data_documento:%d/%m/%Y}), motivos:')
+            f'Data do pagamento ({self.data_transacao:%d/%m/%Y}) anterior à data '
+            f'do documento ({self.data_documento:%d/%m/%Y}), motivos:')
 
         if self.motivos_pagamento_antecipado:
             for motivo in self.motivos_pagamento_antecipado.all():
@@ -453,7 +490,9 @@ class Despesa(ModeloBase):
         return self.valor_recursos_proprios > 0
 
     def tem_pagamentos_em_multiplas_contas(self):
-        return self.rateios.values('conta_associacao').order_by('conta_associacao').annotate(count=Count('conta_associacao')).count() > 1
+        return self.rateios.values(
+            'conta_associacao'
+        ).order_by('conta_associacao').annotate(count=Count('conta_associacao')).count() > 1
 
     def e_despesa_inativa(self):
         return self.status == STATUS_INATIVO
@@ -506,7 +545,19 @@ class Despesa(ModeloBase):
 
     @classmethod
     def get_tags_informacoes_list(cls):
-        return [cls.TAG_ANTECIPADO, cls.TAG_ESTORNADO, cls.TAG_PARCIAL, cls.TAG_IMPOSTO, cls.TAG_IMPOSTO_PAGO, cls.TAG_IMPOSTO_A_SER_PAGO, cls.TAG_INATIVA, cls.TAG_NAO_RECONHECIDA, cls.TAG_SEM_COMPROVACAO_FISCAL, cls.TAG_CONCILIADA, cls.TAG_NAO_CONCILIADA]
+        return [
+            cls.TAG_ANTECIPADO,
+            cls.TAG_ESTORNADO,
+            cls.TAG_PARCIAL,
+            cls.TAG_IMPOSTO,
+            cls.TAG_IMPOSTO_PAGO,
+            cls.TAG_IMPOSTO_A_SER_PAGO,
+            cls.TAG_INATIVA,
+            cls.TAG_NAO_RECONHECIDA,
+            cls.TAG_SEM_COMPROVACAO_FISCAL,
+            cls.TAG_CONCILIADA,
+            cls.TAG_NAO_CONCILIADA
+        ]
 
     @classmethod
     def filter_by_recurso(cls, queryset, recurso):

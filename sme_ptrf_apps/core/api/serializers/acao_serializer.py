@@ -4,6 +4,18 @@ from ...models import Acao
 from ...services.acoes_desabilitadas_paa import desabilitar_acao_ptrf_paa
 
 
+class AcaoLookUpSerializer(serializers.ModelSerializer):
+    recurso = serializers.SlugRelatedField(
+        slug_field='uuid',
+        read_only=True
+    )
+
+    class Meta:
+        model = Acao
+        fields = ('id', 'uuid', 'nome', 'e_recursos_proprios',
+                  'aceita_capital', 'aceita_custeio', 'aceita_livre',
+                  'exibir_paa', 'recurso', 'ordem_exibicao')
+
 class AcaoSerializer(serializers.ModelSerializer):
     from sme_ptrf_apps.core.models.recurso import Recurso
 
