@@ -419,13 +419,14 @@ def persistir_dados_relacao_bens(periodo, conta_associacao, rateios, bens_produz
             quantidade = item_bem.quantidade
             valor_item = item_bem.valor_individual
             valor_rateio = item_bem.valor_total
+            
 
             ItemRelatorioRelacaoDeBens.objects.create(
                 tipo_bem=ItemRelatorioRelacaoDeBens.TipoBem.PRODUZIDO,
                 relatorio=relatorio,
                 bem_produzido_id=bem_produzido.id,
                 especificacao_material=especificacao_material,
-                numero_documento_incorporacao=numero_documento_incorporacao,
+                numero_documento_incorporacao=numero_documento_incorporacao,           
                 quantidade=quantidade,
                 valor_item=valor_item,
                 valor_rateio=valor_rateio
@@ -443,17 +444,17 @@ def persistir_dados_relacao_bens(periodo, conta_associacao, rateios, bens_produz
                     if acao_associacao
                     else ''
                 )
-
-                tipo_documento = despesa_bem.tipo_documento.nome if despesa_bem.tipo_documento else ''
-                numero_documento = despesa_bem.numero_documento
-                valor_rateio = rateio_bem.valor_rateio
+                despesa = despesa_bem.despesa
+                tipo_documento = despesa.tipo_documento.nome if despesa.tipo_documento else ''
+                numero_documento = despesa.numero_documento
+                valor_rateio = rateio_bem.rateio.valor_rateio
 
                 ItemRelatorioBemProduzidoRateio.objects.create(
                     relatorio=relatorio,
                     bem_produzido_id=bem_produzido.id,
                     tipo_documento=tipo_documento,
                     numero_documento=numero_documento,
-                    data_documento=despesa_bem.data_documento if despesa_bem.data_documento else '',
+                    data_documento=despesa.data_documento if despesa.data_documento else '',
                     acao=acao_rateio,
                     valor_rateio=valor_rateio,
                 )

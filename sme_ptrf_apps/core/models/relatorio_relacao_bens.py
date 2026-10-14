@@ -79,7 +79,7 @@ class ItemRelatorioRelacaoDeBens(ModeloBase):
                                   related_name='bens', blank=True, null=True)
     tipo_documento = models.CharField(verbose_name='Tipo documento', max_length=200, blank=True, null=True)
     numero_documento =  models.CharField(verbose_name='Nº do documento', max_length=100, default='', blank=True)
-    data_documento = models.DateField(verbose_name='Data documento')
+    data_documento = models.DateField(verbose_name='Data documento', null=True, blank=True)
     especificacao_material = models.CharField(verbose_name='Especificação material', max_length=200, blank=True, null=True)
     numero_documento_incorporacao = models.CharField(verbose_name='Nº documento incorporação', max_length=100, default='',
                                                       blank=True)
