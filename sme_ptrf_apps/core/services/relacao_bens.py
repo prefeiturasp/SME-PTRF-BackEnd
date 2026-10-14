@@ -107,7 +107,6 @@ class RelacaoBensService:
         return possui_bens, rateios, bens_produzidos
 
 
-
 def gerar_arquivo_relacao_de_bens_dados_persistidos(relacao_bens, recurso_nome, recurso_nome_exibicao):
     relatorio_persistido = relacao_bens.relatoriorelacaobens_set.last()
     if relatorio_persistido:

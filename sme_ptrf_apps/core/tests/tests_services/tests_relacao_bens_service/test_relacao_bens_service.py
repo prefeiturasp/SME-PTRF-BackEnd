@@ -1,9 +1,9 @@
 import pytest
 
 from model_bakery import baker
-
+from datetime import date
 from sme_ptrf_apps.core.services.relacao_bens_dados_service import persistir_dados_relacao_bens, formatar_e_retornar_dados_relatorio_relacao_bens
-from sme_ptrf_apps.core.services.relacao_bens import apagar_previas_relacao_de_bens
+from sme_ptrf_apps.core.services.relacao_bens import apagar_previas_relacao_de_bens, RelacaoBensService
 from sme_ptrf_apps.core.models.relatorio_relacao_bens import RelatorioRelacaoBens
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido
 
@@ -189,3 +189,89 @@ def test_formatar_e_retornar_dados_relatorio_relacao_bens(relacao_bens_factory, 
     assert len(resultado['relacao_de_bens_adquiridos_ou_produzidos']['linhas']) == 1
     assert 'data_geracao_documento' in resultado
     assert 'previa' in resultado
+
+
+def test_relacao_bens_possui_bens_adquiridos_e_produzidos(
+    periodo_factory,
+    associacao_factory,
+    conta_associacao_factory,
+    acao_factory,
+    acao_associacao_factory,
+    despesa_factory,
+    rateio_despesa_factory,
+    bem_produzido_factory,
+    bem_produzido_item_factory,
+    bem_produzido_despesa_factory,
+    bem_produzido_rateio_factory,
+    flag_factory
+):
+    # 1. Configuração do Período e Associações
+    periodo = periodo_factory.create(
+        data_inicio_realizacao_despesas=date(2026, 1, 1),
+        data_fim_realizacao_despesas=date(2026, 12, 31)
+    )
+    associacao = associacao_factory.create()
+    conta_associacao = conta_associacao_factory.create(associacao=associacao)
+    acao = acao_factory.create()
+    acao_associacao = acao_associacao_factory(acao=acao, associacao=associacao)
+
+    # 2. Ativação Flag
+    flag_factory.create(
+        name='situacao-patrimonial',
+        everyone=True,
+    )
+
+    despesa_adquirida = despesa_factory.create(
+        data_transacao=date(2026, 4, 15),
+        valor_total=120.00,
+        associacao=associacao
+    )
+    rateio_adquirido = rateio_despesa_factory.create(
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        despesa=despesa_adquirida,
+        associacao=associacao,
+        valor_rateio=120.00,
+        aplicacao_recurso='CAPITAL',
+        nao_exibir_em_rel_bens=False
+    )
+
+    bem_produzido = bem_produzido_factory.create(
+        status='COMPLETO'
+    )
+    bem_produzido_item_factory.create(
+        bem_produzido=bem_produzido,    
+        quantidade=5,
+        valor_individual=100.00
+    )
+    despesa_produzido = despesa_factory.create(
+        data_transacao=date(2026, 4, 24),
+        valor_total=120.00,
+        associacao=associacao
+    )
+    despesa_bp = bem_produzido_despesa_factory.create(
+        bem_produzido=bem_produzido,
+        despesa=despesa_produzido
+    )
+    rateio_despesa_bp = rateio_despesa_factory.create(
+        conta_associacao=conta_associacao,
+        acao_associacao=acao_associacao,
+        despesa=despesa_produzido,
+        associacao=associacao,
+        valor_rateio=120.00,
+        aplicacao_recurso='CAPITAL',
+        nao_exibir_em_rel_bens=True,
+    )
+    bem_produzido_rateio_factory.create(
+        bem_produzido_despesa=despesa_bp,
+        rateio=rateio_despesa_bp
+    )
+
+    service = RelacaoBensService(periodo=periodo, conta_associacao=conta_associacao)
+    possui_bens, rateios, bens_produzidos = service.possui_relacao_bens_no_periodo()
+
+    assert possui_bens is True
+    assert rateios.count() == 1
+    assert rateios.first() == rateio_adquirido
+    assert bens_produzidos.count() == 1
+    assert bens_produzidos.first() == bem_produzido
