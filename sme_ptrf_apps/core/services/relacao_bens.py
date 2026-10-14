@@ -1,9 +1,9 @@
 import logging
 from waffle import get_waffle_flag_model
-from django.db.models import Max, QuerySet
+from django.db.models import Max, QuerySet, Count, Min, Q
 from sme_ptrf_apps.core.models import RelacaoBens, Periodo, ContaAssociacao
 from sme_ptrf_apps.despesas.models import RateioDespesa
-from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido, BemProduzidoItem
+from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL
 
 from ..services.relacao_bens_dados_service import (
@@ -34,12 +34,16 @@ class RelacaoBensService:
         Verifica se existem bens de capital adquiridos ou produzidos
         no período informado para a conta da associação.    
 
-        Para bens adquiridos, considera os rateios de despesas de capital
+        Para bens adquiridos: considera os rateios de despesas de capital
         retornados para a conta da associação no período.
 
-        Para bens produzidos, considera apenas os bens completos cuja
-        maior data de transação entre as despesas vinculadas esteja dentro
-        do período informado.
+        Para bens produzidos:
+            - Buscaa bens produzidos com status completo cuja maior data de transação entre todas as despesas 
+            esteja dentro do período informado.
+            - Para cada bem, verifica as contas associadas aos seus rateios.
+                - Se todos os rateios pertencerem à mesma conta, restringe os rateios à conta consultada.
+                - Se houver rateios de contas diferentes, não aplica o filtro por conta: 
+                o bem deve trazer todos os rateios.
 
         Returns:
             tuple[bool, QuerySet[RateioDespesa], QuerySet[BemProduzido]]:
@@ -62,20 +66,38 @@ class RelacaoBensService:
         bens_produzidos = (
             BemProduzido.objects.filter(
                 status=BemProduzido.STATUS_COMPLETO,
-                despesas__associacao=self.conta_associacao.associacao,
             )
             .annotate(
-                maior_data_transacao=Max('despesas__despesa__data_transacao'),
+                maior_data_transacao=Max(
+                    'despesas__despesa__data_transacao',
+                ),
             )
             .filter(
                 maior_data_transacao__range=(
                     self.periodo.data_inicio_realizacao_despesas,
                     self.periodo.data_fim_realizacao_despesas,
-                )
+                ),
+            )
+            .annotate(
+                quantidade_contas=Count(
+                    'despesas__rateios__rateio__conta_associacao_id',
+                    distinct=True,
+                ),
+                conta_id_unica=Min(
+                    'despesas__rateios__rateio__conta_associacao_id',
+                ),
+            )
+            .filter(
+                Q(quantidade_contas__gt=1)
+                | Q(
+                    quantidade_contas=1,
+                    conta_id_unica=self.conta_associacao.id,
+                ),
             )
             .prefetch_related(
                 'items',
                 'despesas',
+                'despesas__rateios__rateio',
             )
             .distinct()
         )
@@ -152,7 +174,7 @@ def _retornar_dados_relatorio_relacao_de_bens(relacao_bens, recurso_nome, recurs
 
 def _persistir_arquivo_relacao_de_bens(periodo, conta_associacao, usuario, prestacao=None, previa=False):    
 
-    rel_bens_service = RelacaoBensService(periodo, conta_associacao)    
+    rel_bens_service = RelacaoBensService(periodo, conta_associacao)
     possui_bens, rateios, bens_produzidos = rel_bens_service.possui_relacao_bens_no_periodo()
 
     if possui_bens:

@@ -87,6 +87,10 @@ class ItemRelatorioRelacaoDeBens(ModeloBase):
     valor_item = models.DecimalField(verbose_name='Valor total', max_digits=8, decimal_places=2, default=0)
     valor_rateio = models.DecimalField(verbose_name='Valor total', max_digits=8, decimal_places=2, default=0)
 
+    @property
+    def tipo_bem_label(self):
+        return self.TipoBem(self.tipo_bem).label
+
     def __str__(self):
         return self.numero_documento
 
