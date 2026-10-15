@@ -6,4 +6,5 @@ from .logger import ContextualLogger
 from .pipeline import ValidatorPipeline
 from .pipelines import (
     DELETE_PIPELINE,
+    EDIT_PIPELINE,
 )
