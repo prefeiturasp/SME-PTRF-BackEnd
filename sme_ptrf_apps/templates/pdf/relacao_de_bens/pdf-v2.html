@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="pt-br">
+{% load static %}
+{% load formata_valores %}
+{% load replace_string_normalizada %}
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link href="{{ base_static_url }}/css/bootstrap/bootstrap-4.6.0.min.css" rel="stylesheet">
+    <link href="{{ base_static_url }}/css/relacao-de-bens-pdf.css" rel="stylesheet">
+
+  <title>Relação de Bens {{ dados.cabecalho.recurso_nome_exibicao }}</title>
+</head>
+<body>
+{% if dados.previa %}
+<div class="container-watermark">
+    <img class="watermark1" src="{{ base_static_url }}/images/watermark-visualizacao-previa.svg" alt="Marca da água visão prévia">
+    <img class="watermark2" src="{{ base_static_url }}/images/watermark-visualizacao-previa.svg" alt="Marca da água visão prévia">
+</div>
+{% endif %}
+
+{# ************************* Cabecalho das páginas *************************  #}
+<header>
+  <div class="d-flex">
+    <div class="col-auto d-flex align-items-center">
+      <img src="{{ base_static_url }}/images/logo_PrefSP_sem_fundo_horizontal_colorida.svg" alt="logo">
+    </div>
+    <div class="col-auto d-flex align-items-center justify-content-center mr-5 ml-5">
+      <p class="mb-0">
+        <span class="titulo font-14"><strong>{{ dados.cabecalho.recurso }}</strong></span><br/>
+        <span class="font-12 mb-0"><strong>Prestação de Contas </strong> - Relação de Bens Adquiridos ou Produzidos</span>
+      </p>
+    </div>
+    <div class="col d-flex align-items-center justify-content-end">
+      <p class="mb-0 font-12 borda-box-cabecalho-left px-3 py-3">
+        <span>Período de Realização:</span><br/>
+        <span><strong>{{ dados.cabecalho.periodo_referencia }} - {{ dados.cabecalho.periodo_data_inicio }} a {{ dados.cabecalho.periodo_data_fim }}</strong></span><br/>
+      </p>
+      <p class="font-12 mb-0 borda-box-cabecalho-right px-4 py-3">
+        <span>Conta:</span><br/>
+        <span><strong>{{ dados.cabecalho.conta }}</strong></span>
+      </p>
+    </div>
+  </div>
+</header>
+{# ************************* Fim Cabecalho das páginas *************************  #}
+
+{# ************************* Rodape ************************* #}
+<p id="nome-associacao-rodape" class="font-10">
+  <i>{{ dados.identificacao_apm.tipo_unidade }} {{ dados.identificacao_apm.nome_unidade }} - {{ dados.data_geracao_documento }}</i>
+</p>
+{# ************************* Fim Rodape ************************* #}
+
+<section class="conteudo">
+
+  <article id="bloco-1">
+    <p class="font-14 border-bottom pb-1"><strong>Bloco 1 - Identificação da Associação</strong>
+    </p>
+    <div class="col-12 border">
+      <div class="row">
+        <div class="col-4">
+          <p class="pt-2 mb-0 font-12"><strong>Nome da Associação:</strong></p>
+          <p class="font-12">{{ dados.identificacao_apm.nome_associacao }}</p>
+        </div>
+        <div class="col-3">
+          <p class="pt-2 mb-0 font-12"><strong>CNPJ:</strong></p>
+          <p class="font-12">{{ dados.identificacao_apm.cnpj_associacao }}</p>
+        </div>
+        <div class="col-2">
+          <p class="pt-2 mb-0 font-12"><strong>Código EOL:</strong></p>
+          <p class="font-12">{{ dados.identificacao_apm.codigo_eol_associacao }}</p>
+        </div>
+        <div class="col-3">
+          <p class="pt-2 mb-0 font-12"><strong>Diretoria Regional de Educação:</strong></p>
+          <p class="font-12">{% replace_string_normalizada dados.identificacao_apm.nome_dre_associacao 'DIRETORIA REGIONAL DE EDUCACAO' %}</p>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <article id="bloco-2" class="mt-3">
+    <p class="font-14 border-bottom pb-1"><strong>Bloco 2 - Identificação dos Bens Adquiridos ou Produzidos</strong></p>
+    
+    <table class="table table-bordered tabela-relacao-de-bens">
+      <thead class="thead-light">
+      <tr>
+        <th colspan="3"></th>
+        <th colspan="3" class="text-center"><strong>Documento</strong></th>
+        <th colspan="2" class="text-center"><strong>Detalhamento</strong></th>   
+        <th rowspan="1"><strong></th>
+        <th colspan="2" class="text-center"><strong>Valor (R$)</strong></th>
+      </tr>
+      <tr>
+        <th class="align-middle" style="width: 100px;"><strong>01. Especificação dos bens</strong></th>
+        <th class="align-middle" style="width: 80px;"><strong>02. Tipo de bem</strong></th>
+        <th class="align-middle" style="width: 100px;"><strong>03. N° do processo de incorporação</strong></th>
+
+        <th class="align-middle"><strong>04. Tipo</strong></th>
+        <th class="align-middle"><strong>05. Número</strong></th>
+        <th class="align-middle"><strong>06. Data</strong></th>
+
+        <th class="align-middle"><strong>07. Ação</strong></th>
+        <th class="align-middle"><strong>08. Valor das despesas</strong></th>
+
+        <th class="align-middle"><strong>09. Quantidade</strong></th>
+
+        <th class="align-middle"><strong>10. Unitário</strong></th>
+        <th class="align-middle"><strong>11. Valor</strong></th>
+      </tr>
+      </thead>
+      <tbody>
+      {% for bens in dados.relacao_de_bens_adquiridos_ou_produzidos.linhas %}
+        
+       
+        {# BEM ADQUIRIDO #}
+      
+        {% if bens.tipo_bem == 'ADQUIRIDO' %}
+        <tr>
+            <td>{{ bens.especificacao_material }}</td>
+            <td>{{ bens.tipo_bem_label }}</td>
+            <td>{{ bens.numero_documento_incorporacao }}</td>
+
+            <td>{{ bens.tipo_documento }}</td>
+            <td>{{ bens.numero_documento }}</td>
+            <td>{{ bens.data_documento }}</td>
+
+            <td>{{ bens.acao }}</td>
+            <td class="align-middle text-right">{{ bens.valor_rateio }}</td>         
+            
+            <td class="align-middle text-right">{{ bens.quantidade }}</td>
+
+            <td class="align-middle text-right">{{ bens.valor_item }}</td>
+            <td class="align-middle text-right">{{ bens.valor_rateio }}</td>
+        </tr>
+   
+
+        
+        {# BEM PRODUZIDO #}
+
+        {% elif bens.tipo_bem == 'PRODUZIDO' %}
+
+        {% with total_linhas=bens.linhas_tabela|length %}
+            {% for linha in bens.linhas_tabela %}
+                {% with item=linha.0 rateio=linha.1 %}
+                    <tr>
+                        <td>
+                            {% if item %}
+                                {{ item.especificacao_material }}
+                            {% endif %}
+                        </td>
+
+                        {% if forloop.first %}
+                            <td rowspan="{{ total_linhas }}">
+                                {{ bens.tipo_bem_label }}
+                            </td>
+                        {% endif %}                        
+
+                        <td>
+                            {% if item %}
+                                {{ item.numero_documento_incorporacao }}
+                            {% endif %}
+                        </td>
+
+                        <td>{{ rateio.tipo_documento|default:"" }}</td>
+                        <td>{{ rateio.numero_documento|default:"" }}</td>
+                        <td>{{ rateio.data_documento|default:"" }}</td>
+                        <td>{{ rateio.acao|default:"" }}</td>
+                        <td class="align-middle text-right">{{ rateio.valor_rateio|default:"" }}</td>
+
+                        <td class="align-middle text-right">
+                            {% if item %}{{ item.quantidade }}{% endif %}
+                        </td>
+
+                        <td class="align-middle text-right">
+                            {% if item %}{{ item.valor_item }}{% endif %}
+                        </td>
+
+                        <td class="align-middle text-right">
+                            {% if item %}{{ item.valor_rateio }}{% endif %}
+                        </td>
+                    </tr>
+                {% endwith %}
+            {% endfor %}
+        {% endwith %}
+
+        {% endif %}
+
+      {% endfor %}
+      <tr>
+        <td class="total sem-borda" style="border-right: 1px solid #F5F6F8; !important;"><strong>Total</strong></td>
+        <td class="total sem-borda" colspan="9" style="border-right: 1px solid #F5F6F8; !important;"></td>
+        <td class="total sem-borda text-right" style="border: none !important;border-left: 1px solid #F5F6F8; !important;">
+          <strong>{{ dados.relacao_de_bens_adquiridos_ou_produzidos.valor_total }}</strong>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </article>
+
+  {% if not dados.previa %}
+    <article id="bloco-3" class="mt-3">
+      <p class="font-14 border-bottom pb-1"><strong>Bloco 3 - Autenticação</strong>
+      </p>
+      <div class="col-12 border mt-3">
+        <p class="pt-2 mb-1">Declaro, sob as penas de Lei, que os bens acima relacionados, adquiridos ou produzidos com
+          recursos do {{ dados.cabecalho.recurso_nome_exibicao }} foram doados à Prefeitura do Município de São Paulo/ Secretaria Municipal de Educação, para
+          serem incorporados ao patrimônio público e destinados à
+          (ao) {{ dados.identificacao_apm.tipo_unidade }} {{ dados.identificacao_apm.nome_unidade }}, responsável por sua
+          guarda e conservação.</p>
+        <p class="mt-0">Data: <strong class="data-geracao">{{ dados.data_geracao }}</strong></p>
+      </div>
+      <div class="col-12 border-right border-left border-bottom pt-5 pb-1">
+        <div class="row">
+          <div class="col">
+            <p class="mb-0 text-center">
+              __________________________________________________________________________________</p>
+            <p class="font-12 text-center mb-0">Assinatura
+              do {{ dados.identificacao_apm.cargo_substituto_presidente_ausente }} da Associação</p>
+            <p class="text-center pb-2"><strong>{{ dados.identificacao_apm.presidente_diretoria_executiva }}</strong></p>
+          </div>
+        </div>
+      </div>
+    </article>
+  {% endif %}
+
+</section>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+        integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-Piv4xVNRyMGpqkS2by6br4gNJ7DXjqk09RmUpJ8jgGtD7zP9yug3goQfGII0yAns"
+        crossorigin="anonymous"></script>
+</body>

@@ -63,7 +63,7 @@ class BemProduzido(ModeloBase):
             self.status = BemProduzido.STATUS_INCOMPLETO
             self.save(update_fields=["status"])
 
-    def valor_total_utilizado(self):
+    def valor_total_utilizado(self, considera_recurso_proprio=True):
         """
         Calcula o valor total utilizado somando os valores de rateios
         e os recursos próprios utilizados.
@@ -82,7 +82,7 @@ class BemProduzido(ModeloBase):
             self.despesas
             .aggregate(total=Sum('valor_recurso_proprio_utilizado'))
             .get('total') or 0
-        )
+        ) if considera_recurso_proprio else 0
 
         return total_rateios_utilizados + total_recursos_proprios_utilizados
 

@@ -14,8 +14,6 @@ from drf_spectacular.utils import (
 
 from sme_ptrf_apps.core.models import ContaAssociacao, Periodo, PrestacaoConta, RelacaoBens
 
-from sme_ptrf_apps.despesas.models import RateioDespesa
-from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CAPITAL
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
     PermissaoAPITodosComLeituraOuGravacao,
@@ -23,6 +21,7 @@ from sme_ptrf_apps.users.permissoes import (
 )
 
 from sme_ptrf_apps.core.tasks import gerar_previa_relacao_de_bens_async
+from sme_ptrf_apps.core.services import RelacaoBensService
 
 logger = logging.getLogger(__name__)
 
@@ -308,13 +307,9 @@ class RelacaoBensViewSet(GenericViewSet):
 
         msg = ""
         if not relacao_bens:
-            rateios = RateioDespesa.rateios_da_conta_associacao_no_periodo(
-                conta_associacao=conta_associacao,
-                periodo=periodo,
-                aplicacao_recurso=APLICACAO_CAPITAL,
-                nao_exibir_em_rel_bens=False,
-            )
-            if rateios:
+            possui_rel_bens, _, _ = RelacaoBensService(periodo, conta_associacao).possui_relacao_bens_no_periodo()
+            
+            if possui_rel_bens:
                 msg = 'Documento pendente de geração'
             else:
                 msg = "Não houve bem adquirido ou produzido no referido período."
