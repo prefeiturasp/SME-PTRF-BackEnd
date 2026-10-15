@@ -3,21 +3,13 @@ from sme_ptrf_apps.core.models import PrestacaoConta
 from .context import BemProduzidoDtoContext
 
 
-class PeriodoFechadoValidator(AbstractBemProduzidoValidator):
+class VerificarSeTodosPeriodosEstaoFechadosValidator(AbstractBemProduzidoValidator):
     """Valida se todos os períodos do bem produzido estão bloqueados."""
 
     def validate(self, bem_produzido_context: BemProduzidoDtoContext) -> BemProduzidoDtoContext:
-
-        if not bem_produzido_context.associacao:
-            raise SituacaoPatrimonialValidationError({
-                "titulo": "Bem produzido sem associação",
-                "mensagem": "O bem produzido deve possuir uma associação.",
-                "validator": self.__class__.__name__
-            })
-
         todos_periodos_bloqueados = True
 
-        for periodo in bem_produzido_context.periodos:
+        for periodo in bem_produzido_context.periodos or []:
             prestacao_conta = PrestacaoConta.by_periodo(
                 associacao=bem_produzido_context.associacao,
                 periodo=periodo
