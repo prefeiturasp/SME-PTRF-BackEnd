@@ -71,6 +71,15 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
             bem_produzido=bem_produzido
         )
 
+        from sme_ptrf_apps.situacao_patrimonial.validators import (
+            SituacaoPatrimonialValidationError,
+        )
+
+        try:
+            BemProduzidoService.validacoes_edicao_bem_produzido(bem_produzido)
+        except SituacaoPatrimonialValidationError as exc:
+            return Response(exc.detail, status=status.HTTP_409_CONFLICT)
+
         quantidade = despesas_remover.count()
         despesas_remover.delete()
 
@@ -156,6 +165,33 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
             )
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['get'], url_path='modo-visualizacao',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def modo_visualizacao(self, request: Request, *args, **kwargs) -> Response:
+        """
+        Informa se o bem produzido deve ser exibido somente para visualização.
+
+        A decisão usa a despesa mais recente da composição: período fechado
+        (PC gerada) implica modo visualização.
+        """
+        try:
+            bem_produzido = self.get_object()
+        except Exception:
+            return Response(
+                {
+                    "titulo": self.BEM_PRODUZIDO_TITLE,
+                    "mensagem": 'O bem produzido não foi encontrado.',
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(
+            {
+                "modo_visualizacao": BemProduzidoService.bem_produzido_em_modo_visualizacao(
+                    bem_produzido
+                )
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def destroy(self, request: Request, *args, **kwargs) -> Response:
         """
