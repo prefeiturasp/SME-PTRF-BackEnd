@@ -38,7 +38,7 @@ class RelacaoBensService:
         retornados para a conta da associação no período.
 
         Para bens produzidos:
-            - Buscaa bens produzidos com status completo cuja maior data de transação entre todas as despesas 
+            - Busca bens produzidos com status completo cuja maior data de transação entre todas as despesas 
             esteja dentro do período informado.
             - Para cada bem, verifica as contas associadas aos seus rateios.
                 - Se todos os rateios pertencerem à mesma conta, restringe os rateios à conta consultada.
