@@ -1,7 +1,7 @@
 class Tipo_de_conta_Localizadores {
   // tela tipos de conta
   btn_adicionar_tipo_de_conta = () => {
-    return '[class="btn btn-base-verde mt-2"]';
+    return '[class="btn btn-success  d-flex align-items-center "]';
   };
   tbl_resultados_da_consulta = () => {
     return '[class="p-datatable-table"]';

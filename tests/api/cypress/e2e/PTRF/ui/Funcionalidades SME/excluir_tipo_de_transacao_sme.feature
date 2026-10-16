@@ -2,7 +2,7 @@
 Funcionalidade: Excluir tipo de transação
 
   Contexto:
-    Dado eu acesso o sistema com a visualização "<visualizacao>"
+    Dado eu acesso o sistema com a visualização "web"
     E realizo login no sistema PTRF com perfil "SME"
 
   Esquema do Cenário: Validar exclusao de tipo de transação :<caso>
@@ -11,11 +11,12 @@ Funcionalidade: Excluir tipo de transação
     E clico na opcao "<opcao_painel_parametrizacao>"
     E informo dado nos campos "<filtrar_por_nome>" da tela tipo de transacao
     E clico no botao "Filtrar" da tela tipos de transacao
-    # E clico no botao "Editar" da tela tipos de transacao
-    # E clico no botao "Apagar" da tela tipos de transacao
-    #E sistema apresenta a '<mensagem_confirmacao_exclusao>' na tela
-    # Quando clico no botao "Excluir" da tela tipos de transacao
-    # Entao sistema apresenta a '<mensagem>' na tela
+    E clico no botao "Editar" da tela tipos de transacao
+    E clico no botao "Apagar" da tela tipos de transacao
+    E sistema apresenta a '<mensagem_confirmacao_exclusao>' na tela
+    Quando clico no botao "Excluir" da tela tipos de transacao
+    E sistema apresenta a '<mensagem>' na tela
+    Entao confirmo que o tipo de transacao com o nome de "teste automatizado" nao existe via API
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao | filtrar_por_nome       |mensagem_confirmacao_exclusao                    |mensagem                                                        | caso                               |

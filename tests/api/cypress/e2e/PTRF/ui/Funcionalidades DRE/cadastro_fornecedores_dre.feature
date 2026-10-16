@@ -2,7 +2,7 @@
 Funcionalidade: Cadastro fornecedor
 
   Contexto:
-    Dado eu acesso o sistema com a visualização "<visualizacao>"
+    Dado eu acesso o sistema com a visualização "web"
     E realizo login no sistema PTRF com perfil "DRE"
 
   Esquema do Cenário: Validar cadastro de fornecedor :<caso>
@@ -12,7 +12,7 @@ Funcionalidade: Cadastro fornecedor
     E informo dado nos campos "<nome_do_fornecedor>" e "<cpf_cnpj>"
     E clico no botao "Salvar" da tela Fornecedores
     Quando sistema apresenta a '<mensagem>' na tela
-    Entao excluo o fornecedor com o nome "teste automatizado" via API
+    Entao confirmo que o fornecedor com o nome "teste automatizado" não existe via API
 
     Exemplos:
       | visualizacao | nome_do_fornecedor | cpf_cnpj           | mensagem                                            | caso                             |
