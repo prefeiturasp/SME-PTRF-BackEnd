@@ -277,22 +277,22 @@ class ConsolidadoDRE(ModeloBase):
 
     def passar_para_status_em_processamento(self):
         self.status = self.STATUS_EM_PROCESSAMENTO
-        self.save()
+        self.save(update_fields=['status', 'alterado_em'])
         return self
 
     def passar_para_status_gerado(self, parcial):
         self.status = self.STATUS_GERADOS_TOTAIS if not parcial else self.STATUS_GERADOS_PARCIAIS
-        self.save()
+        self.save(update_fields=['status', 'alterado_em'])
         return self
 
     def atribuir_versao(self, previa):
         self.versao = self.VERSAO_PREVIA if previa else self.VERSAO_FINAL
-        self.save()
+        self.save(update_fields=['versao', 'alterado_em'])
         return self
 
     def atribuir_se_eh_parcial(self, parcial):
         self.eh_parcial = parcial
-        self.save()
+        self.save(update_fields=['eh_parcial', 'alterado_em'])
         return self
 
     def get_valor_status_choice(self):

@@ -1,5 +1,6 @@
 import logging
 
+from django.db import transaction
 from django.db.models import Q, Max, Value, Count
 from django.db.models.functions import Coalesce
 
@@ -899,6 +900,7 @@ def verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_
     return obj_parcial
 
 
+@transaction.atomic
 def gerar_previa_consolidado_dre(dre, periodo, parcial, usuario, uuid_retificacao):
     eh_parcial = parcial['parcial']
     sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
@@ -958,7 +960,7 @@ def gerar_previa_consolidado_dre(dre, periodo, parcial, usuario, uuid_retificaca
     periodo_uuid = periodo.uuid
     consolidado_dre_uuid = consolidado_dre.uuid
 
-    gerar_previa_consolidado_dre_async.apply_async(
+    transaction.on_commit(lambda: gerar_previa_consolidado_dre_async.apply_async(
         (
             dre_uuid,
             periodo_uuid,
@@ -968,11 +970,12 @@ def gerar_previa_consolidado_dre(dre, periodo, parcial, usuario, uuid_retificaca
             sequencia_de_publicacao,
             True,
         ), countdown=1
-    )
+    ))
 
     return consolidado_dre
 
 
+@transaction.atomic
 def concluir_consolidado_dre(dre, periodo, parcial, usuario, uuid_retificacao):
     eh_parcial = parcial['parcial']
     sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
@@ -1026,7 +1029,7 @@ def concluir_consolidado_dre(dre, periodo, parcial, usuario, uuid_retificacao):
     ata_parecer_tecnico.sequencia_de_publicacao = consolidado_dre.sequencia_de_publicacao
     ata_parecer_tecnico.save(update_fields=['consolidado_dre', 'sequencia_de_publicacao'])
 
-    concluir_consolidado_dre_async.delay(
+    transaction.on_commit(lambda: concluir_consolidado_dre_async.delay(
         dre_uuid=dre_uuid,
         periodo_uuid=periodo_uuid,
         parcial=parcial,
@@ -1035,7 +1038,7 @@ def concluir_consolidado_dre(dre, periodo, parcial, usuario, uuid_retificacao):
         ata_uuid=ata_parecer_tecnico_uuid,
         sequencia_de_publicacao=sequencia_de_publicacao,
         apenas_nao_publicadas=True,
-    )
+    ))
 
     return consolidado_dre
 
