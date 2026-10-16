@@ -2,7 +2,7 @@
 Funcionalidade: Cadastro tipo de documento
 
   Contexto:
-    Dado eu acesso o sistema com a visualização "<visualizacao>"
+    Dado eu acesso o sistema com a visualização "web"
     E realizo login no sistema PTRF com perfil "SME"
 
   Esquema do Cenário: Validar cadastro de tipo de documento :<caso>
@@ -12,7 +12,7 @@ Funcionalidade: Cadastro tipo de documento
     E informo dado nos campos "<nome_tipo_do_documento>", "<solicitar_a_digitacao_do_numero_do_documento>","<no_numero_do_documento_deve_constar_apenas_digitos>","<documento_comprobatorio_de_despesa>","<habilita_preenchimento_do_imposto>", e "<documento_relativo_ao_imposto_recolhido>"  da tela tipo de documento
     E clico no botao "Salvar" da tela tipo de documento
     Quando sistema apresenta a '<mensagem>' na tela
-    Entao excluo o tipo de documento com o nome de "teste automatizado" via API
+    Entao confirmo que o tipo de documento com o nome de "teste automatizado" não existe via API
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao | nome_tipo_do_documento | solicitar_a_digitacao_do_numero_do_documento | no_numero_do_documento_deve_constar_apenas_digitos | documento_comprobatorio_de_despesa | habilita_preenchimento_do_imposto | documento_relativo_ao_imposto_recolhido | mensagem                                                   | caso                     |
@@ -26,7 +26,8 @@ Funcionalidade: Cadastro tipo de documento
     E informo dado nos campos "<nome_tipo_do_documento>", "<solicitar_a_digitacao_do_numero_do_documento>","<no_numero_do_documento_deve_constar_apenas_digitos>","<documento_comprobatorio_de_despesa>","<habilita_preenchimento_do_imposto>", e "<documento_relativo_ao_imposto_recolhido>"  da tela tipo de documento
     E clico no botao "Salvar" da tela tipo de documento
     Quando sistema apresenta a '<mensagem>' na tela
-    Entao excluo o tipo de documento com o nome de "teste automatizado" via API
+    E confirmo que existe exatamente um tipo de documento com o nome de "teste automatizado" via API
+    Entao excluo e confirmo o tipo de documento com o nome de "teste automatizado" via API
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao | nome_tipo_do_documento | solicitar_a_digitacao_do_numero_do_documento | no_numero_do_documento_deve_constar_apenas_digitos | documento_comprobatorio_de_despesa | habilita_preenchimento_do_imposto | documento_relativo_ao_imposto_recolhido | mensagem                          | caso                          |

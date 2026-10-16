@@ -2,7 +2,7 @@
 Funcionalidade: Cadastro tipo de transação
 
   Contexto:
-    Dado eu acesso o sistema com a visualização "<visualizacao>"
+    Dado eu acesso o sistema com a visualização "web"
     E realizo login no sistema PTRF com perfil "SME"
 
   Esquema do Cenário: Validar cadastro de tipo de transação :<caso>
@@ -12,7 +12,7 @@ Funcionalidade: Cadastro tipo de transação
     E informo dado nos campos "<nome_tipo_de_transacao>" e "<tem_documento>" da tela tipo de transacao
     E clico no botao "Salvar" da tela tipos de transacao
     Quando sistema apresenta a '<mensagem>' na tela
-    Entao excluo o tipo de transacao com o nome de "teste automatizado" via API
+    Entao confirmo que o tipo de transacao com o nome de "teste automatizado" nao existe via API
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao | nome_tipo_de_transacao | tem_documento | mensagem                                                   | caso                                   |
@@ -26,7 +26,8 @@ Funcionalidade: Cadastro tipo de transação
     E informo dado nos campos "<nome_tipo_de_transacao>" e "<tem_documento>" da tela tipo de transacao
     E clico no botao "Salvar" da tela tipos de transacao
     Quando sistema apresenta a '<mensagem>' na tela
-    Entao excluo o tipo de transacao com o nome de "teste automatizado" via API
+    E confirmo que existe exatamente um tipo de transacao com o nome de "teste automatizado" via API
+    Entao excluo e confirmo o tipo de transacao com o nome de "teste automatizado" via API
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao | nome_tipo_de_transacao | tem_documento | mensagem                                                   | caso                                   |
