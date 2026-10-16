@@ -10,7 +10,25 @@
 
     <link href="{{ base_static_url }}/css/bootstrap/bootstrap-4.6.0.min.css" rel="stylesheet">
     <link href="{{ base_static_url }}/css/relacao-de-bens-pdf.css" rel="stylesheet">
+    <style>
+        .tabela-relacao-de-bens {
+            border: none !important;
+            border-collapse: collapse;
+        }
 
+        .tabela-relacao-de-bens th,
+        .tabela-relacao-de-bens td {
+            border: 1px solid #dee2e6!important;
+        }
+
+        .tabela-relacao-de-bens .espaco-entre-bens td {
+            height: 10px;
+            padding: 0 !important;
+            border: none !important;
+            background: transparent;
+        }
+
+    </style>
   <title>Relação de Bens {{ dados.cabecalho.recurso_nome_exibicao }}</title>
 </head>
 <body>
@@ -83,7 +101,7 @@
   <article id="bloco-2" class="mt-3">
     <p class="font-14 border-bottom pb-1"><strong>Bloco 2 - Identificação dos Bens Adquiridos ou Produzidos</strong></p>
     
-    <table class="table table-bordered tabela-relacao-de-bens">
+    <table class="table table-bordered tabela-relacao-de-bens tabela-com-espaco">
       <thead class="thead-light">
       <tr>
         <th colspan="3"></th>
@@ -113,7 +131,12 @@
       <tbody>
       {% for bens in dados.relacao_de_bens_adquiridos_ou_produzidos.linhas %}
         
-       
+        {% if not forloop.first %}
+            <tr class="espaco-entre-bens">
+                <td colspan="11"></td>
+            </tr>
+        {% endif %}        
+
         {# BEM ADQUIRIDO #}
       
         {% if bens.tipo_bem == 'ADQUIRIDO' %}
@@ -133,8 +156,7 @@
 
             <td class="align-middle text-right">{{ bens.valor_item }}</td>
             <td class="align-middle text-right">{{ bens.valor_rateio }}</td>
-        </tr>
-   
+        </tr> 
 
         
         {# BEM PRODUZIDO #}
@@ -187,11 +209,15 @@
 
         {% endif %}
 
+
       {% endfor %}
-      <tr>
-        <td class="total sem-borda" style="border-right: 1px solid #F5F6F8; !important;"><strong>Total</strong></td>
-        <td class="total sem-borda" colspan="9" style="border-right: 1px solid #F5F6F8; !important;"></td>
-        <td class="total sem-borda text-right" style="border: none !important;border-left: 1px solid #F5F6F8; !important;">
+      <tr class="espaco-entre-bens">
+        <td colspan="11"></td>
+      </tr>
+      <tr class="linha-total">
+        <td class="total"><strong>Total</strong></td>
+        <td class="total" colspan="9"></td>
+        <td class="total text-right">
           <strong>{{ dados.relacao_de_bens_adquiridos_ou_produzidos.valor_total }}</strong>
         </td>
       </tr>
