@@ -43,7 +43,8 @@ def test_criar_previa_documentos_relatorio_fisico_financeiro_todas_as_contas(
     membro_comissao_teste_service,
     parametros_dre_teste_service,
     ata_parecer_tecnico_teste_service,
-    settings
+    settings,
+    django_capture_on_commit_callbacks
 ):
     # Foi fundamental para o teste passar!!
     # CELERY_ALWAYS_EAGER
@@ -56,13 +57,14 @@ def test_criar_previa_documentos_relatorio_fisico_financeiro_todas_as_contas(
     parcial = retorna_parcial_false
     usuario = retorna_username
 
-    gerar_previa_consolidado_dre(
-        dre=dre_teste_service_consolidado_dre,
-        periodo=periodo_teste_service_consolidado_dre,
-        parcial=parcial,
-        usuario=usuario,
-        uuid_retificacao=None
-    )
+    with django_capture_on_commit_callbacks(execute=True):
+        gerar_previa_consolidado_dre(
+            dre=dre_teste_service_consolidado_dre,
+            periodo=periodo_teste_service_consolidado_dre,
+            parcial=parcial,
+            usuario=usuario,
+            uuid_retificacao=None
+        )
 
     assert consolidado_dre_teste_service_consolidado_dre \
            .relatorios_consolidados_dre_do_consolidado_dre \

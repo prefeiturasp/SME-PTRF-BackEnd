@@ -161,7 +161,7 @@ class AtaParecerTecnicoCreateSerializer(serializers.ModelSerializer):
 
         if motivo_retificacao:
             ata.consolidado_dre.motivo_retificacao = motivo_retificacao
-            ata.consolidado_dre.save()
+            ata.consolidado_dre.save(update_fields=['motivo_retificacao', 'alterado_em'])
 
         presentes_lista = []
         for presente in presentes_na_ata:
@@ -183,10 +183,10 @@ class AtaParecerTecnicoCreateSerializer(serializers.ModelSerializer):
         if validated_data.get("consolidado_dre__motivo_retificacao"):
             motivo_retificacao = validated_data.pop('consolidado_dre__motivo_retificacao')
             instance.consolidado_dre.motivo_retificacao = motivo_retificacao
-            instance.consolidado_dre.save()
+            instance.consolidado_dre.save(update_fields=['motivo_retificacao', 'alterado_em'])
         elif instance.consolidado_dre:
             instance.consolidado_dre.motivo_retificacao = None
-            instance.consolidado_dre.save()
+            instance.consolidado_dre.save(update_fields=['motivo_retificacao', 'alterado_em'])
 
         update_instance_from_dict(instance, validated_data)
         instance.presentes_na_ata.set(presentes_lista)

@@ -1,7 +1,8 @@
 from decimal import Decimal
 from django.db.models import Sum
 from django.db import transaction
-from rest_framework import serializers
+from rest_framework import serializers, status
+from rest_framework.exceptions import APIException
 
 from django.db.models import Sum
 from sme_ptrf_apps.despesas.models.despesa import Despesa
@@ -11,6 +12,22 @@ from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.situacao_patrimonial.api.serializers.bem_produzido_despesa_serializer import BemProduzidoDespesaSerializer
 from sme_ptrf_apps.situacao_patrimonial.api.serializers.bem_produzido_item_serializer import BemProduzidoItemSerializer, BemProduzidoRascunhoItemSerializer
 from sme_ptrf_apps.despesas.models.especificacao_material_servico import EspecificacaoMaterialServico
+from sme_ptrf_apps.situacao_patrimonial.services import BemProduzidoService
+from sme_ptrf_apps.situacao_patrimonial.validators import SituacaoPatrimonialValidationError
+
+
+class BemProduzidoEdicaoPipelineMixin:
+    def validate(self, data):
+        if self.instance is None:
+            return data
+        try:
+            BemProduzidoService.validacoes_edicao_bem_produzido(self.instance, data)
+        except SituacaoPatrimonialValidationError as exc:
+            erro = APIException(detail=exc.detail)
+            erro.status_code = status.HTTP_400_BAD_REQUEST
+            raise erro
+
+        return data
 
 
 class BemProduzidoSerializer(serializers.ModelSerializer):
@@ -73,7 +90,7 @@ class RecursoProprioSerializer(serializers.Serializer):
     despesa = serializers.SlugRelatedField(queryset=Despesa.objects.all(), slug_field='uuid')
 
 
-class BemProduzidoSaveSerializer(serializers.ModelSerializer):
+class BemProduzidoSaveSerializer(BemProduzidoEdicaoPipelineMixin, serializers.ModelSerializer):
     associacao = serializers.SlugRelatedField(queryset=Associacao.objects.all(), slug_field='uuid', required=True)
     despesas = serializers.ListField(child=serializers.UUIDField(), write_only=True, required=True)
     rateios = BemProduzidoRateioSerializer(many=True, write_only=True, required=True)
@@ -236,7 +253,7 @@ class BemProduzidoSaveSerializer(serializers.ModelSerializer):
             })
 
 
-class BemProduzidoSaveRacunhoSerializer(serializers.ModelSerializer):
+class BemProduzidoSaveRacunhoSerializer(BemProduzidoEdicaoPipelineMixin, serializers.ModelSerializer):
     associacao = serializers.SlugRelatedField(queryset=Associacao.objects.all(), slug_field='uuid')
     despesas = serializers.ListField(child=serializers.UUIDField(), write_only=True)
     rateios = BemProduzidoRateioSerializer(many=True, write_only=True, required=False)
@@ -318,10 +335,17 @@ class BemProduzidoSaveRacunhoSerializer(serializers.ModelSerializer):
         for rateio_payload in rateios:
             rateio = rateio_payload['uuid']
             try:
-                bem_produzido_despesa = bem_produzido.despesas.get(despesa__uuid=rateio.despesa.uuid)
-            except BemProduzidoDespesa.despesa.RelatedObjectDoesNotExist:
-                raise serializers.ValidationError(
-                    f"Bem Produzido Despesa com despesa UUID {rateio.despesa.uuid} não encontrado.")
+                despesa = rateio.despesa
+            except Despesa.DoesNotExist:
+                raise serializers.ValidationError(f"Despesa do rateio {rateio.uuid} não encontrada.")
+
+            if despesa is None:
+                raise serializers.ValidationError(f"Rateio {rateio.uuid} não possui despesa vinculada.")
+
+            bem_produzido_despesa, _ = BemProduzidoDespesa.objects.get_or_create(
+                bem_produzido=bem_produzido,
+                despesa=despesa,
+            )
 
             bem_produzido_rateio, _ = bem_produzido_despesa.rateios.get_or_create(rateio=rateio)
 
@@ -340,6 +364,11 @@ class BemProduzidoSaveRacunhoSerializer(serializers.ModelSerializer):
             item.get('quantidade') or
             item.get('valor_individual')
         )]
+
+        if update and not itens_validos:
+            if not BemProduzidoItem.objects.filter(bem_produzido=bem_produzido).exists():
+                BemProduzidoItem.objects.create(bem_produzido=bem_produzido)
+            return
         
         if update:
             uuids_enviados = [item.get("uuid") for item in itens_validos if item.get("uuid")]
@@ -368,11 +397,10 @@ class BemProduzidoSaveRacunhoSerializer(serializers.ModelSerializer):
         for recurso_data in recursos_proprios:
             despesa = recurso_data["despesa"]
 
-            try:
-                bem_produzido_despesa = bem_produzido.despesas.get(despesa__uuid=despesa.uuid)
-            except BemProduzidoDespesa.despesa.RelatedObjectDoesNotExist:
-                raise serializers.ValidationError(
-                    f"Bem Produzido Despesa com despesa UUID {despesa.uuid} não encontrada.")
+            bem_produzido_despesa, _ = BemProduzidoDespesa.objects.get_or_create(
+                bem_produzido=bem_produzido,
+                despesa=despesa,
+            )
 
             valor_disponivel = despesa.valor_recursos_proprios
 

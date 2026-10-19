@@ -166,7 +166,8 @@ def _criar_estrutura_base_patrimonial(
     despesa = despesa_factory.create(
         associacao=associacao,
         recurso=recurso,
-        data_documento=data_documento
+        data_documento=data_documento,
+        data_transacao=data_documento,
     )
 
     bem_produzido = bem_produzido_factory.create(

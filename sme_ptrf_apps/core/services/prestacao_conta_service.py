@@ -270,23 +270,15 @@ class PrestacaoContaService:
     def _persiste_dados_relacao_de_bens(self, conta_associacao, previa=False):
         # TODO - Rever implementação para seguir o padrão do demonstrativo financeiro
 
-        compras_de_capital = RateioDespesa.rateios_da_conta_associacao_no_periodo(
-            conta_associacao=conta_associacao,
+        relacao_bens = _persistir_arquivo_relacao_de_bens(
             periodo=self._periodo,
-            aplicacao_recurso=APLICACAO_CAPITAL
+            conta_associacao=conta_associacao,
+            usuario=self._username,
+            prestacao=self._prestacao,
+            previa=False
         )
 
-        if compras_de_capital.exists():
-
-            relacao_bens = _persistir_arquivo_relacao_de_bens(
-                periodo=self._periodo,
-                conta_associacao=conta_associacao,
-                usuario=self._username,
-                prestacao=self._prestacao,
-                previa=False
-            )
-
-            return relacao_bens
+        return relacao_bens
 
     def _revoke_tasks_by_id(self):
         """
