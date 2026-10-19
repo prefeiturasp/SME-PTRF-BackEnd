@@ -17,7 +17,9 @@ def test_api_get_transacoes_sem_periodo(jwt_authenticated_client_a, conta_associ
 
 
 def test_api_get_transacoes_periodo_nao_encontrado(jwt_authenticated_client_a, conta_associacao_cartao):
-    url = f'/api/conciliacoes/transacoes-despesa/?periodo={uuid4()}&conta_associacao={conta_associacao_cartao.uuid}&conferido=True'
+    url = (
+        f'/api/conciliacoes/transacoes-despesa/?periodo={uuid4()}&'
+        f'conta_associacao={conta_associacao_cartao.uuid}&conferido=True')
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
@@ -35,7 +37,9 @@ def test_api_get_transacoes_sem_conta_associacao(jwt_authenticated_client_a, per
 
 
 def test_api_get_transacoes_conta_associacao_nao_encontrada(jwt_authenticated_client_a, periodo_2020_1):
-    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={uuid4()}&conferido=True'
+    url = (
+        f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={uuid4()}&conferido=True'
+    )
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
@@ -43,8 +47,11 @@ def test_api_get_transacoes_conta_associacao_nao_encontrada(jwt_authenticated_cl
     assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
 
 
-def test_api_get_transacoes_acao_associacao_nao_encontrada(jwt_authenticated_client_a, periodo_2020_1, conta_associacao_cartao):
-    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_associacao_cartao.uuid}&acao_associacao={uuid4()}&conferido=True'
+def test_api_get_transacoes_acao_associacao_nao_encontrada(
+        jwt_authenticated_client_a, periodo_2020_1, conta_associacao_cartao):
+    url = (
+        f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&'
+        f'conta_associacao={conta_associacao_cartao.uuid}&acao_associacao={uuid4()}&conferido=True')
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
@@ -53,7 +60,8 @@ def test_api_get_transacoes_acao_associacao_nao_encontrada(jwt_authenticated_cli
 
 
 def test_api_get_transacoes_sem_conferido(jwt_authenticated_client_a, periodo_2020_1, conta_associacao_cartao):
-    url = f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_associacao_cartao.uuid}'
+    url = (f'/api/conciliacoes/transacoes-despesa/?periodo={periodo_2020_1.uuid}&'
+           f'conta_associacao={conta_associacao_cartao.uuid}')
 
     response = jwt_authenticated_client_a.get(url, content_type='application/json')
 
@@ -106,10 +114,7 @@ def monta_result_esperado(transacoes_esperadas, periodo, conta):
                     'eh_tributos_e_tarifas': False,
                     'id': rateio.tipo_custeio.id,
                     'nome': rateio.tipo_custeio.nome,
-                    'todas_unidades_selecionadas': True,
                     'uuid': f"{rateio.tipo_custeio.uuid}",
-                    'uso_associacao': 'Todas',
-                    'unidades': [],
                 },
                 "especificacao_material_servico": {
                     "id": rateio.especificacao_material_servico.id,
@@ -149,8 +154,6 @@ def monta_result_esperado(transacoes_esperadas, periodo, conta):
                         'aceita_custeio': rateio.acao_associacao.acao.aceita_custeio,
                         'aceita_livre': rateio.acao_associacao.acao.aceita_livre,
                         'exibir_paa': rateio.acao_associacao.acao.exibir_paa,
-                        "tem_receitas_previstas_paa_em_elaboracao": False,
-                        "tem_prioridades_paa_em_elaboracao": False,
                         "recurso": f'{rateio.acao_associacao.acao.recurso.uuid}',
                         "ordem_exibicao": rateio.acao_associacao.acao.ordem_exibicao
                     }

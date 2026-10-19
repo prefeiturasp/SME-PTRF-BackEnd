@@ -123,7 +123,8 @@ SCHEMA_EXCLUIR_LOTE = extend_schema(
     description=(
         "Remove em lote despesas vinculadas a um bem produzido.\n\n"
         "- Recebe uma lista de UUIDs de despesas.\n"
-        "- Se o bem estiver COMPLETO, volta para RASCUNHO.\n\n"
+        "- Se o bem estiver COMPLETO, volta para RASCUNHO.\n"
+        "- 409: o bem não atende às regras de edição.\n\n"
         "**Requer autenticação.**"
     ),
     tags=TAG,
@@ -142,6 +143,7 @@ SCHEMA_EXCLUIR_LOTE = extend_schema(
     responses={
         200: OpenApiResponse(description="Despesas removidas com sucesso."),
         400: OpenApiResponse(description="Lista inválida."),
+        409: OpenApiResponse(description="O bem produzido não atende às regras de edição."),
     },
 )
 
@@ -169,6 +171,19 @@ SCHEMA_VERIFICAR_VALORES = extend_schema(
     responses={
         200: OpenApiResponse(description="Resultado da verificação."),
         400: OpenApiResponse(description="Lista inválida."),
+    },
+)
+
+SCHEMA_MODO_VISUALIZACAO = extend_schema(
+    description=(
+        "Informa se o bem produzido deve ser aberto somente para visualização.\n\n"
+        "Retorna true apenas para bem completo cuja despesa mais recente está em período fechado (PC gerada).\n\n"
+        "Rascunho permanece editável. Requer autenticação."
+    ),
+    tags=TAG,
+    responses={
+        200: OpenApiResponse(description="Resultado da verificação de modo visualização."),
+        404: OpenApiResponse(description="O bem produzido não foi encontrado."),
     },
 )
 
@@ -209,4 +224,5 @@ DOCS_BEM_PRODUZIDO = dict(
     excluir_em_lote=SCHEMA_EXCLUIR_LOTE,
     verificar_se_pode_informar_valores=SCHEMA_VERIFICAR_VALORES,
     status_delecao_bem_produzido=SCHEMA_STATUS_DELECAO,
+    modo_visualizacao=SCHEMA_MODO_VISUALIZACAO,
 )

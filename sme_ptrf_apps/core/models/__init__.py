@@ -1,3 +1,4 @@
+# flake8: noqa: F401
 from .unidade import Unidade
 from .acao import Acao
 from .acao_associacao import AcaoAssociacao
@@ -38,6 +39,7 @@ from .permissoes_ue import (
     FuncUePrestacaoDeContas,
     FuncUeGerais,
     FuncUeGestaoPerfis,
+    FuncUeMembrosDaAssociacao,
 )
 from .permissoes_dre import (
     FuncDreAssociacoesDaDre,
@@ -73,7 +75,7 @@ from .solicitacao_devolucao_ao_tesouro import SolicitacaoDevolucaoAoTesouro
 from .falha_geracao_pc import FalhaGeracaoPc
 from .transferencia_eol import TransferenciaEol
 from .tasks_celery import TaskCelery
-from .relatorio_relacao_bens import RelatorioRelacaoBens, ItemRelatorioRelacaoDeBens
+from .relatorio_relacao_bens import RelatorioRelacaoBens, ItemRelatorioRelacaoDeBens, ItemRelatorioBemProduzidoRateio
 from .dados_demonstrativo_financeiro import (
     DadosDemonstrativoFinanceiro,
     ItemResumoPorAcao,

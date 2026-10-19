@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from ..serializers.acao_serializer import AcaoSerializer
+from ..serializers.acao_serializer import AcaoSerializer, AcaoLookUpSerializer
 from ..serializers.associacao_serializer import AssociacaoSerializer, AssociacaoListSerializer
 from ..serializers.recurso_serializer import RecursoSerializer
 from ...models import AcaoAssociacao, Associacao, Acao, Recurso
@@ -25,6 +25,22 @@ class AcaoAssociacaoSerializer(serializers.ModelSerializer):
 
 class AcaoAssociacaoLookUpSerializer(serializers.ModelSerializer):
     acao = AcaoSerializer()
+    nome = serializers.SerializerMethodField('get_nome_acao')
+    e_recursos_proprios = serializers.SerializerMethodField('get_recurso_proprio')
+
+    def get_nome_acao(self, obj):
+        return obj.acao.nome
+
+    def get_recurso_proprio(self, obj):
+        return obj.acao.e_recursos_proprios
+
+    class Meta:
+        model = AcaoAssociacao
+        fields = ('uuid', 'id', 'nome', 'e_recursos_proprios', 'acao', )
+
+
+class AcaoAssociacaoConciliacaoLookUpSerializer(serializers.ModelSerializer):
+    acao = AcaoLookUpSerializer()
     nome = serializers.SerializerMethodField('get_nome_acao')
     e_recursos_proprios = serializers.SerializerMethodField('get_recurso_proprio')
 

@@ -3,6 +3,7 @@ import pytest
 from model_bakery import baker
 from sme_ptrf_apps.core.fixtures.factories.periodo_factory import PeriodoFactory
 from sme_ptrf_apps.core.fixtures.factories.unidade_factory import DreFactory
+from sme_ptrf_apps.core.models import Recurso
 from sme_ptrf_apps.dre.models import AtaParecerTecnicoSnapshot
 
 from sme_ptrf_apps.dre.fixtures.factories import (
@@ -162,20 +163,22 @@ def test_info_ata_retorna_lista_vazia_quando_nao_ha_presentes_do_recurso(
     recurso_factory,
 ):
     dre = DreFactory()
-    periodo = PeriodoFactory()
-    ata = AtaParecerTecnicoFactory(
-        dre=dre,
-        periodo=periodo,
-    )
-
     recurso_ptrf = recurso_factory(
         nome='PTRF',
         nome_exibicao='PTRF Exibição',
+        cor=Recurso.CorChoices.LARANJA,
+        legado=False,
     )
-
     recurso_premio = recurso_factory(
         nome='PREMIO',
         nome_exibicao='PREMIO Exibição',
+        cor=Recurso.CorChoices.ROXO,
+        legado=False,
+    )
+    periodo = PeriodoFactory(recurso=recurso_ptrf)
+    ata = AtaParecerTecnicoFactory(
+        dre=dre,
+        periodo=periodo,
     )
 
     comissao_premio = baker.make(

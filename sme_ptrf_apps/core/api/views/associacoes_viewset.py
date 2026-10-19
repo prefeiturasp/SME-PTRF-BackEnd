@@ -653,8 +653,8 @@ class AssociacoesViewSet(ModelViewSet):
             'base_static_url': staticfiles_storage.location
         }
 
-        if flag_is_active(self.request, "historico-de-membros"):
-            dados_template['dados_presidente'] = associacao.dados_presidente_composicao_vigente()
+        from ...services.ficha_cadastral_service import dados_presidente_ficha_para_usuario
+        dados_template['dados_presidente'] = dados_presidente_ficha_para_usuario(associacao, self.request)
 
         html_string = render_to_string(
             'pdf/associacoes/exportarpdf/pdf.html',

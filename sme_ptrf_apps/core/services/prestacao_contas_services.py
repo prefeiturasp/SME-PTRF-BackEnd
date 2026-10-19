@@ -819,9 +819,14 @@ def lancamentos_da_prestacao(
 
         if filtro_conferencia_list:
             ids_para_excluir = []
+            analises_por_despesa = {}
+            for a in analise_prestacao_conta.analises_de_lancamentos.filter(despesa__isnull=False).order_by('pk'):
+                analises_por_despesa.setdefault(a.despesa_id, a)
+
             for despesa in dataset:
                 excluir_despesa = True
-                analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(despesa=despesa).first()
+
+                analise_lancamento = analises_por_despesa.get(despesa.id)
 
                 if 'AJUSTE' in filtro_conferencia_list and analise_lancamento and analise_lancamento.resultado == 'AJUSTE':
                     excluir_despesa = False
@@ -840,7 +845,17 @@ def lancamentos_da_prestacao(
 
             dataset = dataset.exclude(id__in=ids_para_excluir)
 
-        return dataset.all()
+        from django.db.models import Prefetch
+
+        return dataset.select_related(
+            'associacao', 'tipo_documento', 'tipo_transacao'
+        ).prefetch_related(
+            Prefetch('rateios', queryset=RateioDespesa.objects.select_related(
+                'acao_associacao__acao__recurso', 'especificacao_material_servico',
+                'tipo_custeio', 'tag__recurso', 'conta_associacao__tipo_conta',
+            ).prefetch_related('estorno')),
+            'despesas_impostos', 'despesa_geradora', 'receitas_saida_do_recurso',
+        )
 
     receitas = []
     despesas = []
@@ -884,20 +899,20 @@ def lancamentos_da_prestacao(
     lancamentos = []
 
     if ordenar_por_imposto != 'true':
+        analises_por_despesa = {}
+        for a in analise_prestacao_conta.analises_de_lancamentos.filter(despesa__isnull=False).order_by('pk'):
+            analises_por_despesa.setdefault(a.despesa_id, a)
         # Iniciar a lista de lançamentos com a lista de despesas ordenada
         for despesa in despesas:
+            rateios = [
+                r for r in despesa.rateios.all()
+                if r.conta_associacao_id == conta_associacao.id
+                and (r.status != STATUS_INCOMPLETO if inclui_inativas else r.status == STATUS_COMPLETO)
+            ]
+            rateios.sort(key=lambda r: r.id)
+            max_notificar_dias_nao_conferido = max((r.notificar_dias_nao_conferido for r in rateios), default=0)
 
-            max_notificar_dias_nao_conferido = 0
-            despesas_filter = despesa.rateios.filter(status=STATUS_COMPLETO, conta_associacao=conta_associacao)
-
-            if inclui_inativas:
-                despesas_filter = despesa.rateios.exclude(status=STATUS_INCOMPLETO).filter(
-                    conta_associacao=conta_associacao)
-            for rateio in despesas_filter:
-                if rateio.notificar_dias_nao_conferido > max_notificar_dias_nao_conferido:
-                    max_notificar_dias_nao_conferido = rateio.notificar_dias_nao_conferido
-
-            analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(despesa=despesa).first()
+            analise_lancamento = analises_por_despesa.get(despesa.id)
 
             if analise_lancamento and tipo_acerto and not tem_solicitacao_acerto_do_tipo(analise_lancamento,
                                                                                          tipo_acerto):
@@ -906,23 +921,31 @@ def lancamentos_da_prestacao(
             if com_ajustes and (not analise_lancamento or analise_lancamento.resultado != 'AJUSTE'):
                 continue
 
-            despesa_geradora_do_imposto = despesa.despesa_geradora_do_imposto.first()
+            despesa_geradora_do_imposto = next(iter(despesa.despesa_geradora.all()), None)
             despesas_impostos = despesa.despesas_impostos.all()
+
+            data_transacao = despesa.data_transacao if despesa.data_transacao else ''
+            data_documento = despesa.data_documento if despesa.data_documento else data_transacao
+            data_documento_ou_transacao = data_documento
+
+            valores_por_conta = [{
+                'conta_associacao__tipo_conta__nome': conta_associacao.tipo_conta.nome,
+                'valor_rateio__sum': sum(r.valor_rateio for r in rateios)
+            }] if rateios else []
 
             lancamento = {
                 'periodo': f'{prestacao_conta.periodo.uuid}',
                 'conta': f'{conta_associacao.uuid}',
-                'data': despesa.data_documento if despesa.data_documento else despesa.data_transacao if despesa.data_transacao else '',
+                'data': data_documento_ou_transacao,
                 'tipo_transacao': 'Gasto',
                 'numero_documento': despesa.numero_documento,
                 'descricao': despesa.nome_fornecedor,
                 'valor_transacao_total': despesa.valor_total,
-                'valor_transacao_na_conta': despesas_filter.aggregate(Sum('valor_rateio'))['valor_rateio__sum'],
-                'valores_por_conta': despesas_filter.values('conta_associacao__tipo_conta__nome').annotate(
-                    Sum('valor_rateio')),
-                'conferido': despesa.conferido,
+                'valor_transacao_na_conta': sum(r.valor_rateio for r in rateios) if rateios else None,
+                'valores_por_conta': valores_por_conta,
+                'conferido': all(r.conferido for r in despesa.rateios.all()),
                 'documento_mestre': DespesaDocumentoMestreSerializer(despesa, many=False).data,
-                'rateios': RateioDespesaConciliacaoSerializer(despesas_filter.order_by('id'), many=True).data,
+                'rateios': RateioDespesaConciliacaoSerializer(rateios, many=True).data,
                 'notificar_dias_nao_conferido': max_notificar_dias_nao_conferido,
                 'analise_lancamento': {'resultado': analise_lancamento.resultado,
                                        'uuid': analise_lancamento.uuid,
@@ -932,8 +955,8 @@ def lancamentos_da_prestacao(
                                                                         many=False).data if despesa_geradora_do_imposto else None,
                 'despesas_impostos': DespesaImpostoSerializer(despesas_impostos, many=True,
                                                               required=False).data if despesas_impostos else None,
-                'informacoes': despesa.tags_de_informacao,
-                'informacoes_ordenamento': despesa.tags_de_informacao_concatenadas,
+                'informacoes': despesa.tags_de_informacao_conciliacao,
+                'informacoes_ordenamento': despesa.tags_de_informacao_concatenadas_conciliacao,
                 'is_repasse': False
             }
 
@@ -955,10 +978,13 @@ def lancamentos_da_prestacao(
 
             lancamentos.append(lancamento)
 
+    analises_por_receita = {}
+    for a in analise_prestacao_conta.analises_de_lancamentos.filter(receita__isnull=False).order_by('pk'):
+        analises_por_receita.setdefault(a.receita_id, a)
     # Percorrer a lista de créditos ordenada e para cada credito, buscar na lista de lançamentos a posição correta
     for receita in receitas:
 
-        analise_lancamento = analise_prestacao_conta.analises_de_lancamentos.filter(receita=receita).first()
+        analise_lancamento = analises_por_receita.get(receita.id)
 
         if analise_lancamento and tipo_acerto and not tem_solicitacao_acerto_do_tipo(analise_lancamento, tipo_acerto):
             continue

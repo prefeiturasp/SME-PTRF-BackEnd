@@ -1,11 +1,22 @@
 from .pipeline import ValidatorPipeline
-from .r01_periodo_fechado import PeriodoFechadoValidator
+from .r00_possui_associacao import BemProduzidoPossuiAssociacaoValidator
+from .r01_periodo_fechado import VerificarSeTodosPeriodosEstaoFechadosValidator
+from .r03_bloqueio_edicao_completo import BloqueioEdicaoBemProduzidoCompletoPeriodoFechadoValidator
 
 # Fluxo 1 — Deleção de Bem Produzido
-# Contexto: is_create=True, uuid_solicitacao_acerto=None
 DELETE_PIPELINE = ValidatorPipeline(
     flow_name="Fluxo 1 — Deleção",
     validators=[
-        PeriodoFechadoValidator(),
+        BemProduzidoPossuiAssociacaoValidator(),
+        VerificarSeTodosPeriodosEstaoFechadosValidator(),
+    ],
+)
+
+# Fluxo 2 — Edição de Bem Produzido
+EDIT_PIPELINE = ValidatorPipeline(
+    flow_name="Fluxo 2 — Edição",
+    validators=[
+        BemProduzidoPossuiAssociacaoValidator(),
+        BloqueioEdicaoBemProduzidoCompletoPeriodoFechadoValidator(),
     ],
 )
