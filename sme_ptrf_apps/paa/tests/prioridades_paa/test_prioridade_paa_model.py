@@ -5,8 +5,9 @@ from sme_ptrf_apps.paa.models.prioridade_paa import SimNaoChoices
 
 @pytest.mark.django_db
 def test_criacao_prioridade_paa(flag_paa, prioridade_paa_factory, paa):
-    prioridade_paa_factory(paa=paa)
+    prioridade = prioridade_paa_factory(paa=paa, descricao='Descrição da prioridade')
     assert PrioridadePaa.objects.count() == 1
+    assert prioridade.descricao == 'Descrição da prioridade'
 
 
 @pytest.mark.django_db

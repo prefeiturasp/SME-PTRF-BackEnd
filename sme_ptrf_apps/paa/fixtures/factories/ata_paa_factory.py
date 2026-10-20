@@ -42,4 +42,3 @@ class ParticipanteAtaPaaFactory(DjangoModelFactory):
     conselho_fiscal = False
     presente = True
     professor_gremio = False
-

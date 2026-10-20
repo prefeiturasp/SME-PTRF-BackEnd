@@ -1,5 +1,6 @@
 from .ata_parecer_tecnico_factory import AtaParecerTecnicoFactory
 from .ata_parecer_tecnico_snapshot_factory import AtaParecerTecnicoSnapshotFactory
+from .comissao_factory import ComissaoFactory
 from .consolidado_dre_factory import ConsolidadoDREFactory
 from .motivo_aprovacao_ressalva_factory import MotivoAprovacaoRessalvaFactory
 from .motivo_reprovacao_factory import MotivoReprovacaoFactory

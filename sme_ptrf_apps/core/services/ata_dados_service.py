@@ -30,6 +30,7 @@ def gerar_dados_ata(prestacao_de_contas=None, ata=None, usuario=None):
             "repasses_pendentes": repasses_pendentes,
             "justificativa_repasses_pendentes": ata.justificativa_repasses_pendentes,
             # "despesas_com_pagamento_antecipado": despesas_com_pagamento_antecipado,
+            "existe_saldo_reprogramado": ata.periodo.recurso.existe_saldo_reprogramado
         }
     finally:
         LOGGER.info("Dados da ata gerado com sucesso")
@@ -151,9 +152,12 @@ def data_por_extenso(data):
 def cria_cabecalho(ata):
     """ GERA CABECALHO DOCUMENTO EM PDF ATA """
 
+    text_valores_reprogramados_ata = ata.periodo.recurso.get_text_valores_reprogramados_ata
+
     cabecalho = {
         "titulo": ata.periodo.recurso.nome,
         "recurso": ata.periodo.recurso.nome,
+        "text_valores_reprogramados_ata": text_valores_reprogramados_ata,
         "subtitulo": "Prestação de Contas",
         "tipo_ata": 'Apresentação' if ata.tipo_ata == 'APRESENTACAO' else 'Retificação',
         "periodo_referencia": ata.periodo.referencia,

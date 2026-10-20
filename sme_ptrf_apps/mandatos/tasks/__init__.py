@@ -1,1 +1,3 @@
+# flake8: noqa
 from .solicitacao_de_migracao import solicitacao_de_migracao_async
+from .solicitacao_de_migracao_vacancia import solicitacao_de_migracao_vacancia_async

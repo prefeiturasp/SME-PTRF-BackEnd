@@ -84,7 +84,7 @@ def test_dash_board(prestacao_conta1, prestacao_conta2, periodo, dre):
             'quantidade_prestacoes': 1,
             'status': 'APROVADA'},
         {
-            'titulo': 'Prestações de contas reprovadas',
+            'titulo': 'Prestações de contas rejeitadas',
             'quantidade_prestacoes': 0,
             'status': 'REPROVADA'}
     ]

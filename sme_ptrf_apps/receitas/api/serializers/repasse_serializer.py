@@ -4,6 +4,7 @@ from sme_ptrf_apps.core.api.serializers import AssociacaoSerializer
 from sme_ptrf_apps.core.api.serializers.acao_associacao_serializer import AcaoAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.conta_associacao_serializer import ContaAssociacaoLookUpSerializer
 from sme_ptrf_apps.core.models import Periodo, Associacao, ContaAssociacao, AcaoAssociacao
+from sme_ptrf_apps.core.api.serializers.recurso_serializer import RecursoSerializer
 
 from ...models import Repasse
 
@@ -29,6 +30,7 @@ class RepasseSerializer(serializers.ModelSerializer):
     conta_associacao = ContaAssociacaoLookUpSerializer()
     periodo = PeriodoSerializer()
     associacao = AssociacaoSerializer()
+    recurso = serializers.SerializerMethodField('get_recurso')
 
     carga_origem = serializers.SerializerMethodField('get_carga_origem')
     campos_editaveis = serializers.SerializerMethodField('get_campos_editaveis')
@@ -58,6 +60,11 @@ class RepasseSerializer(serializers.ModelSerializer):
         """Quando o repasse tiver a receita do tipo livre realizado é retornado zero."""
         return '0.00' if obj.realizado_livre else str(obj.valor_livre)
 
+    def get_recurso(self, obj):
+        if obj.acao_associacao.acao.recurso:
+            return RecursoSerializer(obj.acao_associacao.acao.recurso).data
+        return None
+
     class Meta:
         model = Repasse
         fields = [
@@ -76,7 +83,8 @@ class RepasseSerializer(serializers.ModelSerializer):
             'carga_origem',
             'carga_origem_linha_id',
             'id',
-            'campos_editaveis'
+            'campos_editaveis',
+            'recurso'
         ]
 
 
@@ -85,6 +93,12 @@ class RepasseListSerializer(serializers.ModelSerializer):
     conta_associacao = ContaAssociacaoLookUpSerializer()
     periodo = PeriodoSerializer()
     associacao = AssociacaoSerializer()
+    recurso = serializers.SerializerMethodField('get_recurso')
+
+    def get_recurso(self, obj):
+        if obj.acao_associacao.acao.recurso:
+            return RecursoSerializer(obj.acao_associacao.acao.recurso).data
+        return None
 
     carga_origem = serializers.SerializerMethodField('get_carga_origem')
     campos_editaveis = serializers.SerializerMethodField('get_campos_editaveis')
@@ -113,6 +127,7 @@ class RepasseListSerializer(serializers.ModelSerializer):
             'acao_associacao',
             'conta_associacao',
             'periodo',
+            'recurso',
             'status',
             'realizado_capital',
             'realizado_custeio',

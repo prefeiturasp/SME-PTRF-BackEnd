@@ -3,6 +3,7 @@ import uuid
 from sme_ptrf_apps.paa.services.paa_dre_service import PaaDreService, ValidacaoPaaDre
 from sme_ptrf_apps.paa.enums import PaaStatusEnum
 
+
 # Fixtures
 @pytest.fixture
 def dre_context(unidade_factory, associacao_factory):

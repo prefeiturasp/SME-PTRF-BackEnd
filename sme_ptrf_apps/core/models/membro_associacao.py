@@ -25,7 +25,7 @@ class MembroAssociacao(ModeloBase):
         blank=True,
         null=True,
         choices=MembroEnum.choices(),
-        default=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.value)
+        default=MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name)
 
     cargo_educacao = models.CharField('Cargo Educação', max_length=160, blank=True, null=True, default="")
 

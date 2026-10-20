@@ -4,8 +4,6 @@ import datetime
 
 from text_unidecode import unidecode
 
-from brazilnum.cnpj import validate_cnpj, format_cnpj
-
 from ..models import AcaoAssociacao, Associacao, Acao
 from ..models.arquivo import (
     DELIMITADOR_PONTO_VIRGULA,
@@ -13,10 +11,6 @@ from ..models.arquivo import (
     SUCESSO,
     ERRO,
     PROCESSADO_COM_ERRO)
-
-from sme_ptrf_apps.users.services.sme_integracao_service import SmeIntegracaoService
-
-from sme_ptrf_apps.core.choices.tipos_unidade import TIPOS_CHOICE
 
 logger = logging.getLogger(__name__)
 
@@ -126,23 +120,22 @@ class CargaAcoesAssociacoesService:
             else:
                 raise CargaAcoesAssociacaoException("A ação já foi criada para a unidade educacional")
 
-
         return acao_associacao
-    
+
     def valida_codigo_eol_e_associacao(self):
         eol = self.__dados_acao_associacao["eol_unidade"]
         associacao = Associacao.objects.filter(unidade__codigo_eol=eol).first()
         if not associacao:
             raise CargaAcoesAssociacaoException("Código EOL não existe")
         self.__dados_acao_associacao["associacao_obj"] = associacao
-    
+
     def valida_acao(self):
         acao_nome = self.__dados_acao_associacao["acao"]
         acao = Acao.objects.filter(nome__iexact=acao_nome).first()
         if not acao:
             raise CargaAcoesAssociacaoException("Ação não existe")
         self.__dados_acao_associacao["acao_obj"] = acao
-    
+
     def valida_status(self):
         status = self.__dados_acao_associacao["status"]
         if not AcaoAssociacao.STATUS_NOMES.get(status.upper()):

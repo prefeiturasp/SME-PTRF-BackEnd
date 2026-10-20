@@ -19,6 +19,11 @@ def notificar_resultado_solicitacao_encerramento_conta_bancaria(conta_associacao
     users = users.filter(visoes__nome="UE")
     users = users.filter(unidades__codigo_eol=associacao.unidade.codigo_eol)
 
+    if recurso:
+        users = users.filter(
+            unidades__associacoes__periodos_iniciais__recurso=recurso
+        ).distinct()
+
     if resultado and resultado != SolicitacaoEncerramentoContaAssociacao.STATUS_PENDENTE:
         for usuario in users:
             logging.info(f"Gerando notificação de resultado de solicitação de encerramento "
@@ -29,13 +34,19 @@ def notificar_resultado_solicitacao_encerramento_conta_bancaria(conta_associacao
 
             if resultado == SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA:
                 titulo = "Aprovação de solicitação de encerramento de conta bancária"
-                descricao = f"A {associacao.unidade.nome_dre} aprovou a sua solicitação de encerramento " \
-                            f"de sua conta bancária {conta_associacao.tipo_conta.nome}. Sua conta já está encerrada."
+                descricao = (
+                    f"A {associacao.unidade.nome_dre} aprovou a sua solicitação de encerramento "
+                    f"de sua conta bancária {conta_associacao.tipo_conta.nome}. Sua conta já está encerrada.\n\n"
+                    f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
+                )
 
             elif resultado == SolicitacaoEncerramentoContaAssociacao.STATUS_REJEITADA:
                 titulo = "Rejeição de solicitação de encerramento de conta bancária"
-                descricao = f"A {associacao.unidade.nome_dre} rejeitou a sua solicitação de encerramento " \
-                            f"de sua conta bancária {conta_associacao.tipo_conta.nome}. Sua conta continua ativa."
+                descricao = (
+                    f"A {associacao.unidade.nome_dre} rejeitou a sua solicitação de encerramento "
+                    f"de sua conta bancária {conta_associacao.tipo_conta.nome}. Sua conta continua ativa.\n\n"
+                    f"Recurso: {recurso.nome if recurso else 'Não informado'}\n"
+                )
 
             Notificacao.notificar(
                 tipo=Notificacao.TIPO_NOTIFICACAO_AVISO,
@@ -49,4 +60,4 @@ def notificar_resultado_solicitacao_encerramento_conta_bancaria(conta_associacao
                 enviar_email=enviar_email
             )
 
-    logger.info(f'Finalizando serviço de notificação de aprovação de solicitação de encerramento conta bancaria.')
+    logger.info('Finalizando serviço de notificação de aprovação de solicitação de encerramento conta bancaria.')

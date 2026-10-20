@@ -3,7 +3,7 @@ from django.apps import apps
 from functools import lru_cache
 from django.db import models
 from datetime import timedelta
-from ..models import Associacao, Periodo, PrestacaoConta
+from ..models import Associacao, Periodo, PrestacaoConta, PeriodoInicialAssociacao
 
 
 def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
@@ -19,7 +19,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     Encerrado	    Gerados	                Devolvida Retornada Período finalizado.	    Prestação de Contas apresentada após acertos.		            X   2
     Encerrado	    Gerados	                Devolvida Recebida  Período finalizado.	    Prestação de Contas recebida após acertos.		            X   4
     Encerrado	    Gerados	                Aprovada	        Período finalizado.	    Prestação de Contas aprovada pela DRE.	                    X	5
-    Encerrado	    Gerados	                Reprovada	        Período finalizado.	    Prestação de Contas reprovada pela DRE.	                    X	3
+    Encerrado	    Gerados	                Rejeitada	        Período finalizado.	    Prestação de Contas rejeitada pela DRE.	                    X	3
     """
 
     def pc_requer_ata_retificacao(prestacao_conta):
@@ -28,7 +28,12 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
 
         ultima_analise = prestacao_conta.analises_da_prestacao.filter(status='DEVOLVIDA').last()
 
-        return ultima_analise is not None and (ultima_analise.requer_alteracao_em_lancamentos or ultima_analise.requer_informacao_devolucao_ao_tesouro)
+        return (
+            ultima_analise is not None and (
+                ultima_analise.requer_alteracao_em_lancamentos or
+                ultima_analise.requer_informacao_devolucao_ao_tesouro
+            )
+        )
 
     def pc_requer_geracao_documentos(prestacao_conta):
         # Necessário devido a conflitos no import direto
@@ -49,7 +54,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         PrestacaoConta.STATUS_DEVOLVIDA_RECEBIDA: 'Prestação de contas recebida após acertos.',
         PrestacaoConta.STATUS_APROVADA: 'Prestação de contas aprovada pela DRE.',
         PrestacaoConta.STATUS_APROVADA_RESSALVA: 'Prestação de contas aprovada com ressalvas pela DRE.',
-        PrestacaoConta.STATUS_REPROVADA: 'Prestação de contas reprovada pela DRE.',
+        PrestacaoConta.STATUS_REPROVADA: 'Prestação de contas rejeitada pela DRE.',
         PrestacaoConta.STATUS_EM_PROCESSAMENTO: 'Documentos em processamento.',
         PrestacaoConta.STATUS_A_PROCESSAR: 'PC aguardando processamento.',
         PrestacaoConta.STATUS_CALCULADA: 'PC calculada. Gerando relatórios...',
@@ -117,6 +122,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         'legenda_cor': cor,
         'prestacao_de_contas_uuid': prestacao.uuid if prestacao and prestacao.uuid else None,
         'requer_retificacao': pc_requer_ata_retificacao(prestacao),
+        'possui_ata_retificacao': prestacao.ultima_ata_retificacao() is not None if prestacao else False,
         'tem_acertos_pendentes': pc_tem_solicitacoes_de_acerto_pendentes(prestacao),
         'requer_acertos_em_extrato': pc_requer_acertos_em_extrato(prestacao),
     }
@@ -146,7 +152,8 @@ def valida_datas_periodo(
     data_inicio_realizacao_despesas,
     data_fim_realizacao_despesas,
     periodo_anterior,
-    periodo_uuid=None
+    periodo_uuid=None,
+    recurso=None
 ):
     mensagem = "Período de realização de despesas válido."
     valido = True
@@ -166,10 +173,31 @@ def valida_datas_periodo(
                         "data de fim do período anterior.")
             valido = False
     else:
-        if (not periodo_uuid and Periodo.objects.exists()) or (
-                periodo_uuid and Periodo.objects.exclude(uuid=periodo_uuid).exists()):
-            mensagem = "Período anterior não definido só é permitido para o primeiro período cadastrado."
-            valido = False
+        if recurso:
+            periodos_recurso = Periodo.objects.filter(recurso=recurso)
+            existe_periodo_para_recurso = (
+                periodos_recurso.exclude(uuid=periodo_uuid).exists()
+                if periodo_uuid
+                else periodos_recurso.exists()
+            )
+
+            if existe_periodo_para_recurso:
+                mensagem = (
+                    "Período anterior não definido só é permitido para o "
+                    "primeiro período cadastrado para o recurso."
+                )
+                valido = False
+        else:
+            periodos = (
+                Periodo.objects.exclude(uuid=periodo_uuid)
+                if periodo_uuid
+                else Periodo.objects.all()
+            )
+
+            if periodos.exists():
+                mensagem = "Período anterior não definido só é permitido para o primeiro período cadastrado."
+                valido = False
+
     result = {
         "valido": valido,
         "mensagem": mensagem,
@@ -218,3 +246,54 @@ def validar_troca_recurso(periodo, recurso_novo):
         raise ValidationError(
             "Não é possível alterar o recurso de um período já utilizado."
         )
+
+
+def _primeiro_periodo_inicial_associado(recurso, dre_uuid=None):
+    queryset = (
+        PeriodoInicialAssociacao.objects
+        .filter(recurso=recurso)
+        .select_related('periodo_inicial')
+    )
+
+    if dre_uuid is not None:
+        queryset = queryset.filter(associacao__unidade__dre__uuid=dre_uuid)
+
+    return queryset.order_by('periodo_inicial__data_inicio_realizacao_despesas').first()
+
+
+def _primeira_associacao_com_periodo_inicial_legado(dre_uuid=None):
+    queryset = (
+        Associacao.objects
+        .filter(periodo_inicial__isnull=False)
+        .select_related('periodo_inicial')
+    )
+
+    if dre_uuid is not None:
+        queryset = queryset.filter(unidade__dre__uuid=dre_uuid)
+
+    return queryset.order_by('periodo_inicial__data_inicio_realizacao_despesas').first()
+
+
+def get_periodo_corte(recurso, dre_uuid=None):
+    if not recurso:
+        return None
+
+    periodo_inicial_assoc = _primeiro_periodo_inicial_associado(recurso=recurso, dre_uuid=dre_uuid)
+
+    if periodo_inicial_assoc and periodo_inicial_assoc.periodo_inicial:
+        return periodo_inicial_assoc.periodo_inicial.proximo_periodo
+
+    if recurso.legado:
+        associacao_legado = _primeira_associacao_com_periodo_inicial_legado(dre_uuid=dre_uuid)
+
+        if associacao_legado and associacao_legado.periodo_inicial:
+            return associacao_legado.periodo_inicial.proximo_periodo
+
+    return None
+
+
+def get_periodo_corte_por_dre(dre_uuid, recurso):
+    if not dre_uuid or not recurso:
+        return None
+
+    return get_periodo_corte(recurso=recurso, dre_uuid=dre_uuid)

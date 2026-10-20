@@ -6,7 +6,7 @@ from ...admin_filters import (
 
 # Testes Conta Associação Admin
 def test_conta_associacao_search_fields(conta_associacao_admin):
-    assert conta_associacao_admin.search_fields == ('uuid', 'associacao__unidade__codigo_eol',
+    assert conta_associacao_admin.search_fields == ('associacao__unidade__codigo_eol',
                                                     'associacao__unidade__nome', 'associacao__nome')
 
 

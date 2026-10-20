@@ -6,9 +6,7 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-# ---------------------------------------------------------------------------
 # relacao_bens_info
-# ---------------------------------------------------------------------------
 
 def test_relacoes_info_sem_bens_adquiridos(jwt_authenticated_client_a, periodo, conta_associacao):
     url = f"/api/relacao-bens/relacao-bens-info/?conta-associacao={conta_associacao.uuid}&periodo={periodo.uuid}"
@@ -45,9 +43,7 @@ def test_relacoes_info_com_relacao_bens_final(
     assert response.json() == str(relacao_bens_final)
 
 
-# ---------------------------------------------------------------------------
 # previa
-# ---------------------------------------------------------------------------
 
 def test_previa_sem_parametros_retorna_400(jwt_authenticated_client_a):
     response = jwt_authenticated_client_a.get("/api/relacao-bens/previa/")
@@ -142,9 +138,7 @@ def test_previa_parametros_validos_retorna_200(jwt_authenticated_client_a, perio
     mock_task.delay.assert_called_once()
 
 
-# ---------------------------------------------------------------------------
 # documento_final
-# ---------------------------------------------------------------------------
 
 def test_documento_final_sem_parametros_retorna_400(jwt_authenticated_client_a):
     response = jwt_authenticated_client_a.get("/api/relacao-bens/documento-final/")
@@ -207,9 +201,7 @@ def test_documento_final_arquivo_xlsx_nao_acessivel_retorna_404(
     assert response.json()['erro'] == 'arquivo_nao_gerado'
 
 
-# ---------------------------------------------------------------------------
 # documento_previa
-# ---------------------------------------------------------------------------
 
 def test_documento_previa_sem_parametros_retorna_400(jwt_authenticated_client_a):
     response = jwt_authenticated_client_a.get("/api/relacao-bens/documento-previa/")
@@ -271,9 +263,7 @@ def test_documento_previa_arquivo_xlsx_nao_acessivel_retorna_404(
     assert response.json()['erro'] == 'arquivo_nao_gerado'
 
 
-# ---------------------------------------------------------------------------
 # pdf (detail action)
-# ---------------------------------------------------------------------------
 
 def test_pdf_arquivo_nao_acessivel_retorna_404(jwt_authenticated_client_a, relacao_bens_previa):
     response = jwt_authenticated_client_a.get(f"/api/relacao-bens/{relacao_bens_previa.uuid}/pdf/")

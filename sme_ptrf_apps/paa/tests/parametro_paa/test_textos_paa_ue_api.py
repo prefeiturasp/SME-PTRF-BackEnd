@@ -111,6 +111,7 @@ class TestTextosPaaUeAPI:
             'texto_pagina_paa_ue': '',
             'texto_atividades_previstas': '',
             'texto_levantamento_prioridades': '',
+            'informe_bloqueio_prioridades': '',
             'introducao_do_paa_ue_1': '',
             'introducao_do_paa_ue_2': '',
             'conclusao_do_paa_ue_1': '',
@@ -131,6 +132,7 @@ class TestTextosPaaUeAPI:
         assert parametro_paa.texto_pagina_paa_ue == ''
         assert parametro_paa.texto_atividades_previstas == ''
         assert parametro_paa.texto_levantamento_prioridades == ''
+        assert parametro_paa.informe_bloqueio_prioridades == ''
         assert parametro_paa.introducao_do_paa_ue_1 == ''
         assert parametro_paa.introducao_do_paa_ue_2 == ''
         assert parametro_paa.conclusao_do_paa_ue_1 == ''
@@ -163,6 +165,7 @@ class TestTextosPaaUeAPI:
             'texto_pagina_paa_ue': None,
             'texto_atividades_previstas': None,
             'texto_levantamento_prioridades': None,
+            'informe_bloqueio_prioridades': None,
             'introducao_do_paa_ue_1': None,
             'introducao_do_paa_ue_2': None,
             'conclusao_do_paa_ue_1': None,
@@ -181,6 +184,9 @@ class TestTextosPaaUeAPI:
         assert content['texto_pagina_paa_ue'][0] == 'O campo Explicação sobre o PAA não foi informado.'
         assert content['texto_atividades_previstas'][0] == 'O campo Atividades previstas não foi informado.'
         assert content['texto_levantamento_prioridades'][0] == 'O campo Levantamento de Prioridades não foi informado.'
+        assert content['informe_bloqueio_prioridades'][0] == (
+            'O campo Informe de bloqueio de prioridades não foi informado.'
+        )
         assert content['introducao_do_paa_ue_1'][0] == 'O campo Introdução 1 da aba Relatórios não foi informado.'
         assert content['introducao_do_paa_ue_2'][0] == 'O campo Introdução 2 da aba Relatórios não foi informado.'
         assert content['conclusao_do_paa_ue_1'][0] == 'O campo Conclusão do PAA 1 não foi informado.'

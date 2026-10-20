@@ -6,6 +6,10 @@ from sme_ptrf_apps.paa.api.serializers.outros_recursos_periodo_paa_serializer im
 
 
 class PeriodoPaaSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por criar, atualizar e serializar
+    os dados de um período paa.
+    """
     data_inicial = serializers.DateField(required=True)
     data_final = serializers.DateField(required=True)
     qtd_outros_recursos_habilitados = serializers.IntegerField(read_only=True, required=False)
@@ -17,7 +21,25 @@ class PeriodoPaaSerializer(serializers.ModelSerializer):
                   'qtd_outros_recursos_habilitados', 'outros_recursos')
         ordering = ('-data_inicial',)
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict) -> PeriodoPaa:
+        """
+        Cria uma nova instância do período PAA.
+
+        Antes da atualização, verifica se tem data final valida e se já tem
+        uma referencia do paa relecionada com período informado.
+
+        Args:
+            validated_data (dict): Dados validados para criação do período PAA.
+
+        Returns:
+            Paa: Instância do período PAA criada.
+
+        Raises:
+            serializers.ValidationError: Caso não exista data final valida.
+
+            serializers.ValidationError: Caso já exista uma
+            referencia do paa relecionada com período informado.
+        """
         referencia = validated_data.get('referencia')
         data_inicial = validated_data.get('data_inicial')
         data_final = validated_data.get('data_final')
@@ -47,7 +69,25 @@ class PeriodoPaaSerializer(serializers.ModelSerializer):
         instance = super().create(validated_data)
         return instance
 
-    def update(self, instance, validated_data):
+    def update(self, instance: PeriodoPaa, validated_data: dict) -> PeriodoPaa:
+        """
+        Atualiza uma nova instância do período PAA.
+
+        Antes da atualização, verifica se tem data final valida e se já tem
+        uma referencia do paa relecionada com período informado.
+
+        Args:
+            validated_data (dict): Dados validados para criação do período PAA.
+
+        Returns:
+            Paa: Instância do período PAA atualizada.
+
+        Raises:
+            serializers.ValidationError: Caso não exista data final valida.
+
+            serializers.ValidationError: Caso já exista uma referencia do paa
+            relecionada com período informado.
+        """
         from sme_ptrf_apps.paa.services import PeriodoPaaService
         referencia = validated_data.get('referencia')
         data_inicial = validated_data.get('data_inicial') or instance.data_inicial
@@ -89,7 +129,10 @@ class PeriodoPaaSerializer(serializers.ModelSerializer):
 
 
 class PeriodoPaaSimplesSerializer(serializers.ModelSerializer):
-
+    """
+    Serializer responsável por serializar
+    os dados de uma período paa simples.
+    """
     class Meta:
         model = PeriodoPaa
         fields = ('uuid', 'id', 'referencia', 'data_inicial', 'data_final', 'ano_inicial_final')

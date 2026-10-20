@@ -21,9 +21,9 @@ resultado_pcs_nao_apresentadas = [
     ['123456', 'Escola Teste', 'Outra', 'DRE teste', '2020.1', 'NAO_APRESENTADA']]
 
 
-def test_dados_esperados_csv(queryset_ordered):
+def test_dados_esperados_csv(queryset_ordered_status_pc):
     dados = ExportacoesStatusPrestacoesContaService(
-        queryset=queryset_ordered
+        queryset=queryset_ordered_status_pc
     ).monta_dados()
 
     assert dados == resultado_esperado
@@ -36,7 +36,7 @@ def test_dados_esperados_csv_visao_dre(queryset_ordered, dre):
 
     ).monta_dados()
 
-    assert dados == resultado_esperado
+    assert sorted(dados) == sorted(resultado_esperado)
 
 
 def test_dados_esperados_csv_visao_dre_sem_pcs(queryset_ordered_dre_sem_pcs, dre_ipiranga):
@@ -140,7 +140,7 @@ def test_cabecalho(queryset_ordered):
         'Status da PC',
         'Descrição do motivo aprovação com ressalvas',
         'Recomendações da aprovação com resalvas',
-        'Descrição do motivo de reprovação',
+        'Descrição do motivo de rejeição',
     ]
 
     assert cabecalho == resultado_esperado

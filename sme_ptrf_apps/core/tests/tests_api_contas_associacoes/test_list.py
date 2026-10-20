@@ -196,3 +196,42 @@ def test_list_contas_associacoes_filtro_todos_nao_encontrado(
 
     assert response.status_code == status.HTTP_200_OK
     assert len(result["results"]) == 0
+
+
+def test_list_contas_associacoes_filtro_recurso_uuid_sucesso(
+    jwt_authenticated_client_a,
+    recurso_factory,
+    tipo_conta_factory,
+    conta_associacao_factory
+):
+    recurso = recurso_factory.create(cor="#01585E")
+    outro_recurso = recurso_factory.create(cor="#0D3B66")
+    tipo_conta = tipo_conta_factory.create(recurso=recurso)
+    outro_tipo_conta = tipo_conta_factory.create(recurso=outro_recurso)
+    conta_associacao = conta_associacao_factory.create(tipo_conta=tipo_conta)
+    conta_associacao_factory.create(tipo_conta=outro_tipo_conta)
+
+    response = jwt_authenticated_client_a.get(
+        f'/api/contas-associacoes/?recurso_uuid={recurso.uuid}',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result["results"]) == 1
+    assert result["results"][0]["uuid"] == str(conta_associacao.uuid)
+    assert result["results"][0]["tipo_conta_dados"]["uuid"] == str(tipo_conta.uuid)
+    assert result["results"][0]["associacao_dados"]["uuid"] == str(conta_associacao.associacao.uuid)
+
+
+def test_list_contas_associacoes_filtro_recurso_uuid_nao_encontrado(
+    jwt_authenticated_client_a,
+    conta_associacao_1
+):
+    response = jwt_authenticated_client_a.get(
+        '/api/contas-associacoes/?recurso_uuid=c636046a-8d67-49a0-9a4c-92b0af480000',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert result == {'detail': 'Recurso não encontrado.'}
+

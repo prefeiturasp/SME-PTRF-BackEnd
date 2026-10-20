@@ -9,11 +9,17 @@ from sme_ptrf_apps.paa.services.ata_paa_dados_service import (
     formatar_hora_ata,
     criar_identificacao_associacao_ata,
     formatar_datas_periodo,
+    data_por_extenso,
 )
 
 from unittest.mock import patch, MagicMock
 
-from sme_ptrf_apps.paa.services.ata_paa_dados_service import calcular_numeros_blocos, gerar_dados_ata_paa
+from sme_ptrf_apps.paa.services.ata_paa_dados_service import (
+    calcular_numeros_blocos,
+    gerar_dados_ata_paa,
+    _aplicar_filtro_retificacao_no_grupo,
+    _filtrar_itens_atividades_retificadas,
+)
 
 
 @pytest.fixture
@@ -53,15 +59,49 @@ def test_calcular_numeros_blocos_com_todos_blocos():
         {'titulo': 'Prioridades Recursos próprios', 'items': [{'id': 3}]},
     ]
     atividades_estatutarias = [{'id': 1}]
+    is_retificacao = True
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
 
-    resultado = calcular_numeros_blocos(prioridades, atividades_estatutarias)
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
 
     assert resultado['ptrf'] == 3
     assert resultado['pdde'] == 4
     assert resultado['recursos_proprios'] == 5
     assert resultado['atividades_estatutarias'] == 6
+    assert resultado['justificativa_retificacao'] == 7
+    assert resultado['manifestacoes'] == 8
+    assert resultado['parecer_conselho'] == 9
+    assert resultado['lista_presenca'] == 10
+
+
+def test_calcular_numeros_blocos_com_todos_blocos_sem_retificacao():
+    prioridades = [
+        {'titulo': 'Prioridades PTRF', 'items': [{'id': 1}]},
+        {'titulo': 'Prioridades PDDE', 'items': [{'id': 2}]},
+        {'titulo': 'Prioridades Recursos próprios', 'items': [{'id': 3}]},
+    ]
+    atividades_estatutarias = [{'id': 1}]
+    is_retificacao = False
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
+
+    assert resultado['ptrf'] == 3
+    assert resultado['pdde'] == 4
+    assert resultado['recursos_proprios'] == 5
+    assert resultado['atividades_estatutarias'] == 6
+    assert 'justificativa_retificacao' not in resultado
     assert resultado['manifestacoes'] == 7
-    assert resultado['lista_presenca'] == 8
+    assert resultado['parecer_conselho'] == 8
+    assert resultado['lista_presenca'] == 9
 
 
 def test_calcular_numeros_blocos_sem_ptrf():
@@ -69,27 +109,87 @@ def test_calcular_numeros_blocos_sem_ptrf():
         {'titulo': 'Prioridades PDDE', 'items': [{'id': 1}]},
     ]
     atividades_estatutarias = []
+    is_retificacao = True
 
-    resultado = calcular_numeros_blocos(prioridades, atividades_estatutarias)
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
 
     assert 'ptrf' not in resultado
     assert resultado['pdde'] == 3
+    assert resultado['justificativa_retificacao'] == 4
+    assert resultado['manifestacoes'] == 5
+    assert resultado['parecer_conselho'] == 6
+    assert resultado['lista_presenca'] == 7
+
+
+def test_calcular_numeros_blocos_sem_ptrf_sem_retificacao():
+    prioridades = [
+        {'titulo': 'Prioridades PDDE', 'items': [{'id': 1}]},
+    ]
+    atividades_estatutarias = []
+    is_retificacao = False
+
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
+
+    assert 'ptrf' not in resultado
+    assert resultado['pdde'] == 3
+    assert 'justificativa_retificacao' not in resultado
     assert resultado['manifestacoes'] == 4
-    assert resultado['lista_presenca'] == 5
+    assert resultado['parecer_conselho'] == 5
+    assert resultado['lista_presenca'] == 6
 
 
 def test_calcular_numeros_blocos_sem_prioridades():
     prioridades = []
     atividades_estatutarias = [{'id': 1}]
+    is_retificacao = True
 
-    resultado = calcular_numeros_blocos(prioridades, atividades_estatutarias)
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
 
     assert 'ptrf' not in resultado
     assert 'pdde' not in resultado
     assert 'recursos_proprios' not in resultado
     assert resultado['atividades_estatutarias'] == 3
+    assert resultado['justificativa_retificacao'] == 4
+    assert resultado['manifestacoes'] == 5
+    assert resultado['parecer_conselho'] == 6
+    assert resultado['lista_presenca'] == 7
+
+
+def test_calcular_numeros_blocos_sem_prioridades_sem_retificacao():
+    prioridades = []
+    atividades_estatutarias = [{'id': 1}]
+    is_retificacao = False
+
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
+
+    assert 'ptrf' not in resultado
+    assert 'pdde' not in resultado
+    assert 'recursos_proprios' not in resultado
+    assert resultado['atividades_estatutarias'] == 3
+    assert 'justificativa_retificacao' not in resultado
     assert resultado['manifestacoes'] == 4
-    assert resultado['lista_presenca'] == 5
+    assert resultado['parecer_conselho'] == 5
+    assert resultado['lista_presenca'] == 6
 
 
 def test_calcular_numeros_blocos_prioridades_vazias():
@@ -98,25 +198,205 @@ def test_calcular_numeros_blocos_prioridades_vazias():
         {'titulo': 'Prioridades PDDE', 'items': []},
     ]
     atividades_estatutarias = []
+    is_retificacao = True
 
-    resultado = calcular_numeros_blocos(prioridades, atividades_estatutarias)
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
 
     assert 'ptrf' not in resultado
     assert 'pdde' not in resultado
+    assert resultado['justificativa_retificacao'] == 3
+    assert resultado['manifestacoes'] == 4
+    assert resultado['parecer_conselho'] == 5
+    assert resultado['lista_presenca'] == 6
+
+
+def test_calcular_numeros_blocos_prioridades_vazias_sem_retificacao():
+    prioridades = [
+        {'titulo': 'Prioridades PTRF', 'items': []},
+        {'titulo': 'Prioridades PDDE', 'items': []},
+    ]
+    atividades_estatutarias = []
+    is_retificacao = False
+
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
+
+    assert 'ptrf' not in resultado
+    assert 'pdde' not in resultado
+    assert 'justificativa_retificacao' not in resultado
     assert resultado['manifestacoes'] == 3
-    assert resultado['lista_presenca'] == 4
+    assert resultado['parecer_conselho'] == 4
+    assert resultado['lista_presenca'] == 5
 
 
 def test_calcular_numeros_blocos_apenas_fixos():
     prioridades = []
     atividades_estatutarias = []
 
-    resultado = calcular_numeros_blocos(prioridades, atividades_estatutarias)
+    is_retificacao = True
 
-    assert resultado['manifestacoes'] == 3
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+        "manifestacoes": "informação testes sobre manifestação",
+    }
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
+
+    assert resultado['justificativa_retificacao'] == 3
+    assert resultado['manifestacoes'] == 4
+    assert resultado['parecer_conselho'] == 5
+    assert resultado['lista_presenca'] == 6
+
+
+def test_calcular_numeros_blocos_apenas_fixos_sem_retificacao():
+    prioridades = []
+    atividades_estatutarias = []
+
+    is_retificacao = False
+
+    dados = {
+        "prioridades": prioridades,
+        "atividades_estatutarias": atividades_estatutarias,
+    }
+
+    resultado = calcular_numeros_blocos(dados, is_retificacao)
+
+    assert 'justificativa_retificacao' not in resultado
+    assert 'manifestacoes' not in resultado
+    assert resultado['parecer_conselho'] == 3
     assert resultado['lista_presenca'] == 4
 
 
+class TestAplicarFiltroRetificacaoNoGrupo:
+    """Testes para _aplicar_filtro_retificacao_no_grupo."""
+
+    def _grupo(self, key, items):
+        total = sum(float(i.get('valor_total', 0)) for i in items)
+        return {'key': key, 'titulo': key, 'items': items, 'total': total}
+
+    def test_retorna_true_quando_ha_item_retificado(self):
+        prioridades = [
+            self._grupo('prioridades_ptrf', [
+                {'valor_total': 100, 'retificado': True},
+                {'valor_total': 200, 'retificado': False},
+            ])
+        ]
+
+        resultado = _aplicar_filtro_retificacao_no_grupo(prioridades, key='prioridades_ptrf')
+
+        assert resultado is True
+
+    def test_retorna_false_quando_nenhum_item_retificado(self):
+        prioridades = [
+            self._grupo('prioridades_ptrf', [
+                {'valor_total': 100, 'retificado': False},
+            ])
+        ]
+
+        resultado = _aplicar_filtro_retificacao_no_grupo(prioridades, key='prioridades_ptrf')
+
+        assert resultado is False
+
+    def test_retorna_false_quando_grupo_nao_encontrado(self):
+        resultado = _aplicar_filtro_retificacao_no_grupo([], key='prioridades_ptrf')
+
+        assert resultado is False
+
+    def test_filtra_items_mantendo_apenas_retificados(self):
+        prioridades = [
+            self._grupo('prioridades_ptrf', [
+                {'valor_total': 100, 'retificado': True},
+                {'valor_total': 200, 'retificado': False},
+                {'valor_total': 50, 'retificado': True},
+            ])
+        ]
+
+        _aplicar_filtro_retificacao_no_grupo(prioridades, key='prioridades_ptrf')
+
+        assert len(prioridades[0]['items']) == 2
+        assert all(i['retificado'] for i in prioridades[0]['items'])
+
+    def test_recalcula_total_com_apenas_itens_retificados(self):
+        prioridades = [
+            self._grupo('prioridades_ptrf', [
+                {'valor_total': 100, 'retificado': True},
+                {'valor_total': 200, 'retificado': False},
+                {'valor_total': 50, 'retificado': True},
+            ])
+        ]
+
+        _aplicar_filtro_retificacao_no_grupo(prioridades, key='prioridades_ptrf')
+
+        assert prioridades[0]['total'] == 150.0
+
+    def test_total_zero_quando_nenhum_item_retificado(self):
+        prioridades = [
+            self._grupo('prioridades_pdde', [
+                {'valor_total': 300, 'retificado': False},
+            ])
+        ]
+
+        _aplicar_filtro_retificacao_no_grupo(prioridades, key='prioridades_pdde')
+
+        assert prioridades[0]['total'] == 0.0
+        assert prioridades[0]['items'] == []
+
+
+class TestFiltrarItensRetificados:
+    """Testes para _filtrar_itens_atividades_retificadas."""
+
+    def test_retorna_apenas_itens_retificados(self):
+        items = [
+            {'nome': 'A', 'retificado': True},
+            {'nome': 'B', 'retificado': False},
+            {'nome': 'C', 'retificado': True},
+        ]
+
+        resultado, _ = _filtrar_itens_atividades_retificadas(items)
+
+        assert len(resultado) == 3
+
+    def test_flag_true_quando_ha_retificado(self):
+        items = [{'retificado': True}, {'retificado': False}]
+
+        _, tem_retificado = _filtrar_itens_atividades_retificadas(items)
+
+        assert tem_retificado is True
+
+    def test_flag_false_quando_nenhum_retificado(self):
+        items = [{'retificado': False}, {'retificado': False}]
+
+        _, tem_retificado = _filtrar_itens_atividades_retificadas(items)
+
+        assert tem_retificado is False
+
+    def test_lista_vazia_retorna_vazia_e_false(self):
+        resultado, tem_retificado = _filtrar_itens_atividades_retificadas([])
+
+        assert resultado == []
+        assert tem_retificado is False
+
+    def test_nao_altera_lista_original(self):
+        items = [{'retificado': True}, {'retificado': False}]
+        original = list(items)
+
+        _filtrar_itens_atividades_retificadas(items)
+
+        assert items == original
+
+
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_titulo_introducao", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_paragrafos_introducao_elaboracao", autospec=True)
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.dados_texto_ata_paa", autospec=True)
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_atividades_estatutarias", autospec=True)
 @patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_grupos_prioridades", autospec=True)
@@ -129,23 +409,174 @@ def test_gerar_dados_ata_paa_inclui_numeros_blocos(
     mock_presentes,
     mock_grupos,
     mock_atividades,
-    mock_dados_texto
+    mock_dados_texto,
+    mock_paragrafos_introducao,
+    mock_titulo_introducao,
 ):
     ata_paa = MagicMock()
+    ata_paa.tipo_retificacao = False
     usuario = MagicMock()
 
     mock_cabecalho.return_value = {"titulo": "Teste"}
     mock_identificacao.return_value = {"nome": "Teste"}
     mock_presentes.return_value = {"presentes": []}
-    mock_grupos.return_value = [{'titulo': 'Prioridades PTRF', 'items': [{'id': 1}]}]
+    mock_grupos.return_value = [{'key': 'prioridades_ptrf', 'titulo': 'Prioridades PTRF', 'items': [{'id': 1}]}]
     mock_atividades.return_value = [{'id': 1}]
     mock_dados_texto.return_value = {"texto": "Teste"}
+    mock_paragrafos_introducao.return_value = ["Parágrafo teste."]
+    mock_titulo_introducao.return_value = "Título teste."
 
     resultado = gerar_dados_ata_paa(ata_paa, usuario)
 
     assert 'numeros_blocos' in resultado
     assert resultado['numeros_blocos']['ptrf'] == 3
-    assert resultado['numeros_blocos']['manifestacoes'] == 5
+    assert resultado['numeros_blocos']['parecer_conselho'] == 5
+    assert resultado['numeros_blocos']['lista_presenca'] == 6
+
+
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_titulo_introducao", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_paragrafos_introducao_elaboracao", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.dados_texto_ata_paa", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_atividades_estatutarias", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_grupos_prioridades", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.presentes_ata_paa", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_identificacao_associacao_ata", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.cria_cabecalho", autospec=True)
+def test_gerar_dados_ata_apresentacao_nao_inclui_flags_retificacao(
+    mock_cabecalho,
+    mock_identificacao,
+    mock_presentes,
+    mock_grupos,
+    mock_atividades,
+    mock_dados_texto,
+    mock_paragrafos_introducao,
+    mock_titulo_introducao,
+):
+    """Ata de apresentação não deve ter etiqueta de retificação nem flags de seção."""
+    ata_paa = MagicMock()
+    ata_paa.tipo_retificacao = False
+
+    mock_cabecalho.return_value = {}
+    mock_identificacao.return_value = {}
+    mock_presentes.return_value = {}
+    mock_grupos.return_value = []
+    mock_atividades.return_value = []
+    mock_dados_texto.return_value = {}
+    mock_paragrafos_introducao.return_value = []
+    mock_titulo_introducao.return_value = "Título teste."
+
+    resultado = gerar_dados_ata_paa(ata_paa)
+
+    assert resultado['is_retificacao'] is False
+    assert resultado['etiqueta_retificacao'] is None
+    assert resultado['retificado_prioridades_ptrf'] is False
+    assert resultado['retificado_prioridades_pdde'] is False
+    assert resultado['retificado_prioridades_outros'] is False
+    assert resultado['retificado_atividades_estatutarias'] is False
+
+
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_titulo_introducao", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_paragrafos_introducao_retificacao", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ciclo_retificacao_service.CicloRetificacaoService")
+@patch("sme_ptrf_apps.paa.services.retificacao_paa_service.RetificacaoPaaService")
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.dados_texto_ata_paa", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_atividades_estatutarias", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_grupos_prioridades", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.presentes_ata_paa", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_identificacao_associacao_ata", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.cria_cabecalho", autospec=True)
+def test_gerar_dados_ata_retificacao_inclui_etiqueta_e_flags(
+    mock_cabecalho,
+    mock_identificacao,
+    mock_presentes,
+    mock_grupos,
+    mock_atividades,
+    mock_dados_texto,
+    mock_retificacao_service_cls,
+    mock_ciclo_service_cls,
+    mock_paragrafos_introducao_retificacao,
+    mock_titulo_introducao,
+):
+    """Ata de retificação deve preencher etiqueta e flags de seção corretamente."""
+    ata_paa = MagicMock()
+    ata_paa.tipo_retificacao = True
+
+    mock_retificacao_service_cls.return_value.identificar_alteracoes.return_value = {
+        'prioridades': {'uuid-ptrf': {'acao': 'modificado'}},
+    }
+    doc_mock = MagicMock()
+    doc_mock.criado_em = datetime(2025, 6, 10, 10, 0, 0)
+    mock_ciclo_service_cls.return_value.documento_atual = doc_mock
+    mock_ciclo_service_cls.return_value.numero_versao = 1
+
+    mock_cabecalho.return_value = {}
+    mock_identificacao.return_value = {}
+    mock_presentes.return_value = {}
+    mock_grupos.return_value = [
+        {'key': 'prioridades_ptrf', 'titulo': 'Prioridades PTRF', 'items': [{'retificado': True}]},
+        {'key': 'prioridades_pdde', 'titulo': 'Prioridades PDDE', 'items': [{'retificado': False}]},
+        {'key': 'prioridades_outros_recursos', 'titulo': 'Prioridades Outros Recursos', 'items': []},
+    ]
+    mock_atividades.return_value = [{'retificado': False}]
+    mock_dados_texto.return_value = {}
+    mock_paragrafos_introducao_retificacao.return_value = []
+    mock_titulo_introducao.return_value = "Título teste."
+
+    resultado = gerar_dados_ata_paa(ata_paa)
+
+    assert resultado['is_retificacao'] is True
+    assert resultado['etiqueta_retificacao'] == "Retificado em: 10/06/2025"
+    assert resultado['retificado_prioridades_ptrf'] is True
+    assert resultado['retificado_prioridades_pdde'] is False
+    assert resultado['retificado_prioridades_outros'] is False
+    assert resultado['retificado_atividades_estatutarias'] is False
+    assert resultado['versao_retificacao'] == "#01"
+
+
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_titulo_introducao", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_paragrafos_introducao_retificacao", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ciclo_retificacao_service.CicloRetificacaoService")
+@patch("sme_ptrf_apps.paa.services.retificacao_paa_service.RetificacaoPaaService")
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.dados_texto_ata_paa", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_atividades_estatutarias", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_grupos_prioridades", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.presentes_ata_paa", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.criar_identificacao_associacao_ata", autospec=True)
+@patch("sme_ptrf_apps.paa.services.ata_paa_dados_service.cria_cabecalho", autospec=True)
+def test_gerar_dados_ata_retificacao_sem_doc_usa_data_atual(
+    mock_cabecalho,
+    mock_identificacao,
+    mock_presentes,
+    mock_grupos,
+    mock_atividades,
+    mock_dados_texto,
+    mock_retificacao_service_cls,
+    mock_ciclo_service_cls,
+    mock_paragrafos_introducao_retificacao,
+    mock_titulo_introducao,
+):
+    """Quando documento_atual não existe, data_retificacao cai para datetime.now()."""
+    ata_paa = MagicMock()
+    ata_paa.tipo_retificacao = True
+
+    mock_retificacao_service_cls.return_value.identificar_alteracoes.return_value = {}
+    mock_ciclo_service_cls.return_value.documento_atual = None
+    mock_ciclo_service_cls.return_value.numero_versao = 1
+
+    mock_cabecalho.return_value = {}
+    mock_identificacao.return_value = {}
+    mock_presentes.return_value = {}
+    mock_grupos.return_value = []
+    mock_atividades.return_value = []
+    mock_dados_texto.return_value = {}
+    mock_paragrafos_introducao_retificacao.return_value = []
+    mock_titulo_introducao.return_value = "Título teste."
+
+    resultado = gerar_dados_ata_paa(ata_paa)
+
+    assert resultado['is_retificacao'] is True
+    assert resultado['etiqueta_retificacao'] is not None
+    assert resultado['etiqueta_retificacao'].startswith("Retificado em: ")
 
 
 @pytest.mark.django_db
@@ -450,3 +881,47 @@ class TestCriarIdentificacaoAssociacaoAta:
 def test_formatar_datas_periodo_padrao(periodo_paa_completo):
     resultado = formatar_datas_periodo(periodo_paa_completo)
     assert resultado == "1º de janeiro de 2024 a 31 de dezembro de 2024"
+
+
+def test_formatar_datas_periodo_com_data_inicial_none():
+    periodo = baker.prepare('PeriodoPaa', referencia='2025', data_inicial=None, data_final=date(2025, 12, 31))
+    resultado = formatar_datas_periodo(periodo)
+    assert resultado.startswith(' a ')
+    assert '31 de dezembro de 2025' in resultado
+
+
+def test_formatar_datas_periodo_com_data_final_none():
+    periodo = baker.prepare('PeriodoPaa', referencia='2025', data_inicial=date(2025, 1, 1), data_final=None)
+    resultado = formatar_datas_periodo(periodo)
+    assert '1º de janeiro de 2025' in resultado
+    assert resultado.endswith(' a ')
+
+
+def test_formatar_datas_periodo_dia_diferente_de_1():
+    periodo = baker.prepare(
+        'PeriodoPaa', referencia='2025', data_inicial=date(2025, 4, 15), data_final=date(2025, 10, 31))
+    resultado = formatar_datas_periodo(periodo)
+    assert '15 de abril de 2025' in resultado
+    assert '31 de outubro de 2025' in resultado
+
+
+class TestDataPorExtenso:
+
+    def test_data_none_retorna_template_vazio(self):
+        resultado = data_por_extenso(None)
+        assert '___ dias' in resultado or '___' in resultado
+
+    def test_dia_1_retorna_no_primeiro_dia(self):
+        resultado = data_por_extenso('2025-01-01')
+        assert 'No primeiro dia' in resultado
+        assert 'janeiro' in resultado
+
+    def test_dia_maior_que_1_retorna_aos_n_dias(self):
+        resultado = data_por_extenso('2025-03-15')
+        assert 'Aos' in resultado
+        assert 'março' in resultado
+
+    def test_dia_31(self):
+        resultado = data_por_extenso('2024-12-31')
+        assert 'dezembro' in resultado
+        assert 'dois mil e vinte e quatro' in resultado

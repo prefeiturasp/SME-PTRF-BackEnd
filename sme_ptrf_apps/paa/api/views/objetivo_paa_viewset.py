@@ -1,9 +1,16 @@
+"""
+Módulo de API para gerenciamento dos objetivos do PAA.
+
+Este módulo concentra os endpoints de listagem, consulta, criação, atualização e
+remoção dos recursos próprios do PAA, permitindo a filtragem e paginação.
+"""
 import logging
 
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
+from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 import django_filters
 from waffle.mixins import WaffleFlagMixin
@@ -13,12 +20,22 @@ from sme_ptrf_apps.paa.models import ObjetivoPaa
 from sme_ptrf_apps.paa.models.objetivo_paa import StatusChoices
 from sme_ptrf_apps.paa.api.serializers import ObjetivoPaaSerializer
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter
+from drf_spectacular.utils import extend_schema_view
+from sme_ptrf_apps.paa.api.views.docs.objetivo_paa_docs import DOCS
 
 logger = logging.getLogger(__name__)
 
 
 class ObjetivoPAAFilterBackend(django_filters.FilterSet):
+    """
+    FilterSet responsável pela filtragem dos objetivos do PAA.
+
+    Permite filtrar os objetivos pelos seguintes campos:
+
+    - nome
+    - status
+    - paa__uuid
+    """
     nome = django_filters.CharFilter(lookup_expr='icontains')
     status = django_filters.CharFilter(field_name="status", lookup_expr="exact")
     paa__uuid = django_filters.CharFilter(field_name="paa__uuid", lookup_expr="exact")
@@ -28,25 +45,14 @@ class ObjetivoPAAFilterBackend(django_filters.FilterSet):
         fields = ['nome', 'status', 'paa__uuid']
 
 
-@extend_schema_view(
-    list=extend_schema(
-        description=(
-            "Retorna a lista de objetivos do PAA. "
-            "Permite filtrar por **nome**, **status**, "
-            "e também pelo campo relacional **paa__uuid**."
-        ),
-        parameters=[
-            OpenApiParameter("nome", str, OpenApiParameter.QUERY,
-                             description="Filtra pelo nome (case-insensitive, acento ignorado)"),
-            OpenApiParameter("status", str, OpenApiParameter.QUERY,
-                             description="Filtra por Status (0 / 1)", enum=list(StatusChoices.choices)),
-            OpenApiParameter("paa__uuid", bool, OpenApiParameter.QUERY,
-                             description="Filtra pelo UUID do PAA"),
-        ],
-        responses={200: ObjetivoPaaSerializer(many=True)},
-    )
-)
+@extend_schema_view(**DOCS)
 class ObjetivoPaaViewSet(WaffleFlagMixin, ModelViewSet):
+    """
+    ViewSet responsável pelo gerenciamento dos objetivos do PAA.
+
+    Disponibiliza operações de listagem, consulta, criação, atualização e
+    remoção dos recursos próprios do PAA, permitindo a filtragem e paginação.
+    """
     waffle_flag = "paa"
     permission_classes = [IsAuthenticated]
     lookup_field = 'uuid'
@@ -59,6 +65,9 @@ class ObjetivoPaaViewSet(WaffleFlagMixin, ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='tabelas',
             permission_classes=[PermissaoApiUe])
-    def tabelas(self, request, *args, **kwrgs):
+    def tabelas(self, request: Request, *args, **kwrgs) -> Response:
+        """
+        Retorne as tabelas dos objetivos do PAA.
+        """
         tabelas = dict(status=StatusChoices.to_dict())
         return Response(tabelas, status=status.HTTP_200_OK)

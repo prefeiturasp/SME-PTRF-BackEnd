@@ -8,7 +8,8 @@ pytestmark = pytest.mark.django_db
 
 def test_retrieve_acao_associacao(
     jwt_authenticated_client_a,
-    acao_associacao_charli_bravo_000086_x
+    acao_associacao_charli_bravo_000086_x,
+    recurso_esperado
 ):
     response = jwt_authenticated_client_a.get(
         f'/api/acoes-associacoes/{acao_associacao_charli_bravo_000086_x.uuid}/', content_type='application/json')
@@ -40,7 +41,8 @@ def test_retrieve_acao_associacao(
                 'nome_com_tipo': acao_associacao.associacao.unidade.nome_com_tipo,
                 'nome_dre': acao_associacao.associacao.unidade.nome_dre
             },
-            'cnpj': acao_associacao.associacao.cnpj
+            'cnpj': acao_associacao.associacao.cnpj,
+            'recursos': [],
         },
         'data_de_encerramento_associacao': None,
         'tooltip_associacao_encerrada': None,
@@ -49,18 +51,20 @@ def test_retrieve_acao_associacao(
             'uuid': f'{acao_associacao.acao.uuid}',
             'nome': acao_associacao.acao.nome,
             'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios,
-            'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
             "aceita_capital": acao_associacao.acao.aceita_capital,
             "aceita_custeio": acao_associacao.acao.aceita_custeio,
             "aceita_livre": acao_associacao.acao.aceita_livre,
             "exibir_paa": True,
             "tem_receitas_previstas_paa_em_elaboracao": False,
             "tem_prioridades_paa_em_elaboracao": False,
-            "recurso": f'{acao_associacao.acao.recurso.uuid}'
+            "recurso": f'{acao_associacao.acao.recurso.uuid}',
+            "ordem_exibicao": acao_associacao.acao.ordem_exibicao
         },
         'status': acao_associacao.status,
         'criado_em': acao_associacao.criado_em.isoformat("T"),
+        'recurso': recurso_esperado(acao_associacao.acao.recurso)
     }
+
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
 

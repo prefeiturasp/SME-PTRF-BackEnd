@@ -6,7 +6,7 @@ from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 from django.db import models
-from .validators import cnpj_validation
+from .validators import cnpj_validation, normalize_cnpj
 
 
 class RelatorioRelacaoBens(ModeloBase):
@@ -45,20 +45,71 @@ class RelatorioRelacaoBens(ModeloBase):
     def __str__(self):
         return f"Relatório {self.nome_associacao} | {self.periodo_referencia} gerado em {self.data_geracao}"
 
+    def save(self, *args, **kwargs):
+        if self.cnpj_associacao:
+            self.cnpj_associacao = normalize_cnpj(self.cnpj_associacao)
+        return super().save(*args, **kwargs)
+
 
 class ItemRelatorioRelacaoDeBens(ModeloBase):
+
+    class TipoBem(models.TextChoices):
+        ADQUIRIDO = 'ADQUIRIDO', 'Adquirido'
+        PRODUZIDO = 'PRODUZIDO', 'Produzido'
+
     history = AuditlogHistoryField()
 
+    tipo_bem = models.CharField(
+        verbose_name='Tipo de Bem',
+        max_length=50,
+        choices=TipoBem.choices,
+        default=TipoBem.ADQUIRIDO,
+        blank=True,
+        null=True,
+    )
+
+    bem_produzido_id = models.PositiveBigIntegerField(
+        verbose_name='Bem produzido ID',
+        blank=True, 
+        null=True
+    )
+
+    acao = models.CharField(verbose_name='Ação', max_length=160, blank=True, null=True)
     relatorio = models.ForeignKey('RelatorioRelacaoBens', on_delete=models.CASCADE,
                                   related_name='bens', blank=True, null=True)
     tipo_documento = models.CharField(verbose_name='Tipo documento', max_length=200, blank=True, null=True)
     numero_documento =  models.CharField(verbose_name='Nº do documento', max_length=100, default='', blank=True)
-    data_documento = models.DateField(verbose_name='Data documento')
+    data_documento = models.DateField(verbose_name='Data documento', null=True, blank=True)
     especificacao_material = models.CharField(verbose_name='Especificação material', max_length=200, blank=True, null=True)
     numero_documento_incorporacao = models.CharField(verbose_name='Nº documento incorporação', max_length=100, default='',
                                                       blank=True)
     quantidade = models.PositiveIntegerField(verbose_name='Quantidade')
     valor_item = models.DecimalField(verbose_name='Valor total', max_digits=8, decimal_places=2, default=0)
+    valor_rateio = models.DecimalField(verbose_name='Valor total', max_digits=8, decimal_places=2, default=0)
+
+    @property
+    def tipo_bem_label(self):
+        return self.TipoBem(self.tipo_bem).label
+
+    def __str__(self):
+        return self.numero_documento
+
+
+class ItemRelatorioBemProduzidoRateio(ModeloBase):
+    history = AuditlogHistoryField()
+
+    relatorio = models.ForeignKey(
+        'RelatorioRelacaoBens', 
+        on_delete=models.CASCADE,       
+        blank=True,
+        null=True
+    )
+
+    bem_produzido_id = models.PositiveBigIntegerField(verbose_name='Bem produzido ID')
+    tipo_documento = models.CharField(verbose_name='Tipo documento', max_length=200, blank=True, null=True)
+    numero_documento =  models.CharField(verbose_name='Nº do documento', max_length=100, default='', blank=True)
+    data_documento = models.DateField(verbose_name='Data documento')
+    acao = models.CharField(verbose_name='Ação', max_length=160, blank=True, null=True)
     valor_rateio = models.DecimalField(verbose_name='Valor total', max_digits=8, decimal_places=2, default=0)
 
     def __str__(self):
@@ -67,3 +118,4 @@ class ItemRelatorioRelacaoDeBens(ModeloBase):
 
 auditlog.register(RelatorioRelacaoBens)
 auditlog.register(ItemRelatorioRelacaoDeBens)
+auditlog.register(ItemRelatorioBemProduzidoRateio)

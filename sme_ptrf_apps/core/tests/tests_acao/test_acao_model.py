@@ -16,8 +16,8 @@ def test_instance_model(acao):
     assert model.alterado_em
     assert model.uuid
     assert model.id
-    assert model.posicao_nas_pesquisas
     assert not model.e_recursos_proprios
+    assert model.ordem_exibicao
 
 
 def test_srt_model(acao):

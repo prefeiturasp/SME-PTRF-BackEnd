@@ -7,6 +7,8 @@ from django.contrib.auth import get_user_model
 
 from ...models import ConsolidadoDRE
 
+from sme_ptrf_apps.dre.fixtures.factories import ComissaoFactory
+
 pytestmark = pytest.mark.django_db
 
 
@@ -413,3 +415,8 @@ def lauda_teste_api(
         usuario=usuario_dre_teste_api,
         status='GERADA_TOTAL',
     )
+
+
+@pytest.fixture
+def comissao_exame_contas_publicar_consolidado(recurso_legado):
+    return ComissaoFactory(nome="Exame de Contas do PTRF", responsavel_analise_pc=True, recursos=[recurso_legado])

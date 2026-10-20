@@ -5,6 +5,7 @@ from sme_ptrf_apps.core.fixtures.factories.acao_associacao_factory import AcaoAs
 from sme_ptrf_apps.core.fixtures.factories.associacao_factory import AssociacaoFactory
 from sme_ptrf_apps.core.fixtures.factories.conta_associacao_factory import ContaAssociacaoFactory
 from sme_ptrf_apps.despesas.fixtures.factories.despesa_factory import DespesaFactory
+from sme_ptrf_apps.core.fixtures.factories.tag_factory import TagFactory
 from sme_ptrf_apps.despesas.models.rateio_despesa import RateioDespesa
 from sme_ptrf_apps.despesas.tipos_aplicacao_recurso import APLICACAO_CHOICES
 from .especificacao_material_servico_factory import EspecificacaoMaterialServicoFactory
@@ -27,3 +28,4 @@ class RateioDespesaFactory(DjangoModelFactory):
     quantidade_itens_capital = Sequence(lambda n: fake.random_int(min=1, max=9))
     valor_item_capital = Sequence(lambda n: fake.random_int(min=100, max=999))
     valor_rateio = Sequence(lambda n: fake.random_int(min=100, max=999))
+    tag = SubFactory(TagFactory)

@@ -1,3 +1,4 @@
+from django.db import transaction
 from django_filters import rest_framework as filters
 from rest_framework import mixins, status
 from rest_framework.decorators import action
@@ -10,6 +11,7 @@ from .docs.despesas_viewset_docs import DOCS
 from sme_ptrf_apps.core.models.periodo import Periodo
 from sme_ptrf_apps.despesas.services.filtra_despesas_por_tags import filtra_despesas_por_tags
 
+from sme_ptrf_apps.users.api.mixins import EscopoPorUnidadesDoUsuarioMixin
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
     PermissaoAPITodosComLeituraOuGravacao,
@@ -54,7 +56,8 @@ class CustomPagination(PageNumberPagination):
 
 
 @extend_schema_view(**DOCS)
-class DespesasViewSet(mixins.CreateModelMixin,
+class DespesasViewSet(EscopoPorUnidadesDoUsuarioMixin,
+                      mixins.CreateModelMixin,
                       mixins.RetrieveModelMixin,
                       mixins.UpdateModelMixin,
                       mixins.DestroyModelMixin,
@@ -71,7 +74,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
 
     def get_queryset(self):
         from ...services.despesa_service import ordena_despesas_por_imposto
-        qs = Despesa.objects.exclude(status='INATIVO').all()
+        qs = super().get_queryset().exclude(status='INATIVO')
 
         qs = Despesa.filter_by_recurso(qs, self.request.recurso)
 
@@ -233,6 +236,28 @@ class DespesasViewSet(mixins.CreateModelMixin,
         if self.action == "create":
             context["recurso"] = self.request.recurso
 
+        # Detecção de fluxo acerto (pipelines 3/4) só com a flag — legado inalterado.
+        from sme_ptrf_apps.despesas.feature_flags import despesas_pipeline_ativa
+        pipeline_ativa = despesas_pipeline_ativa(self.request)
+        if not pipeline_ativa:
+            return context
+
+        from sme_ptrf_apps.despesas.services.fluxo_acerto import (
+            resolver_uuid_solicitacao_acerto_create,
+            resolver_uuid_solicitacao_acerto_update,
+        )
+
+        if self.action == "create":
+            uuid_acerto = resolver_uuid_solicitacao_acerto_create(self.request)
+            if uuid_acerto:
+                context["uuid_solicitacao_acerto"] = uuid_acerto
+
+        elif self.action in ("update", "partial_update"):
+            despesa = self.get_object()
+            uuid_acerto = resolver_uuid_solicitacao_acerto_update(despesa, self.request)
+            if uuid_acerto:
+                context["uuid_solicitacao_acerto"] = uuid_acerto
+
         return context
 
     def get_serializer_class(self):
@@ -246,6 +271,9 @@ class DespesasViewSet(mixins.CreateModelMixin,
     def destroy(self, request, *args, **kwargs):
         from django.db.models.deletion import ProtectedError
         from ....core.models import DevolucaoAoTesouro, ContaAssociacao
+        from sme_ptrf_apps.despesas.services.despesa_service import DespesaService
+        from sme_ptrf_apps.despesas.feature_flags import despesas_pipeline_ativa
+        pipeline_ativa = despesas_pipeline_ativa(self.request)
         despesa = self.get_object()
 
         if despesa.rateios.filter(conta_associacao__status=ContaAssociacao.STATUS_INATIVA).exists():
@@ -256,12 +284,16 @@ class DespesasViewSet(mixins.CreateModelMixin,
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
+        # Acerto exclusão (flag): marca lançamento antes de apagar/inativar a despesa.
+        DespesaService._marcar_lancamento_como_excluido(despesa, pipeline_ativa)
+
         if not despesa.inativar_em_vez_de_excluir:
             # Em caso de inativação, a inativação dos impostos é feita pelo próprio método inativar_despesa.
             for despesa_imposto in despesa.despesas_impostos.all():
                 try:
                     self.perform_destroy(despesa_imposto)
                 except Exception as err:
+                    transaction.set_rollback(True)  # rollback para _marcar_lancamento_como_excluido em caso de erro
                     erro = {
                         'erro': 'despesa_do_imposto_nao_deletada',
                         'mensagem': str(err)
@@ -280,6 +312,7 @@ class DespesasViewSet(mixins.CreateModelMixin,
                 self.perform_destroy(despesa)
                 return Response(status=status.HTTP_204_NO_CONTENT)
             except ProtectedError as exception:
+                transaction.set_rollback(True)  # rollback para _marcar_lancamento_como_excluido em caso de erro
                 erros = []
 
                 if exception.args:

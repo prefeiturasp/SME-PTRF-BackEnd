@@ -15,7 +15,8 @@ def test_api_valores_reprogramados_filtro_nome_unidade(
     periodo_anterior,
     fechamento_conta_cheque_valores_reprogramados,
     fechamento_conta_cheque_valores_reprogramados_2,
-    parametros_dre_valores_reprogramados
+    parametros_dre_valores_reprogramados,
+    recurso_esperado
 ):
     response = jwt_authenticated_client_dre.get(
         f'/api/valores-reprogramados/?dre_uuid={dre.uuid}&search=Duar', content_type='application/json')
@@ -24,6 +25,7 @@ def test_api_valores_reprogramados_filtro_nome_unidade(
     resultado_esperado = [
         {
             'associacao': {
+                'recursos': [],
                 'cnpj': associacao_2.cnpj,
                 'nome': associacao_2.nome,
                 'data_de_encerramento': None,
@@ -41,16 +43,22 @@ def test_api_valores_reprogramados_filtro_nome_unidade(
                 'uuid': f'{associacao_2.uuid}',
             },
             'periodo': {
+                'id': periodo_anterior.id,
+                'uuid': f'{periodo_anterior.uuid}',
                 'data_fim_realizacao_despesas': f'{periodo_anterior.data_fim_realizacao_despesas}',
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
                 'referencia': periodo_anterior.referencia,
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
-                'uuid': f'{periodo_anterior.uuid}'
+                "recurso": recurso_esperado(periodo_anterior.recurso),
             },
             'total_conta_cartao': 0,
             'total_conta_cheque': 300.0
         }
     ]
+
+    # Evita falha no teste por conta de diferenças nos campos de data de criação e alteração do recurso, que são gerados dinamicamente no teste
+    resultado_esperado[0]['periodo']['recurso']['criado_em'] = result[0]['periodo']['recurso']['criado_em']
+    resultado_esperado[0]['periodo']['recurso']['alterado_em'] = result[0]['periodo']['recurso']['alterado_em']
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado
@@ -66,7 +74,8 @@ def test_api_valores_reprogramados_filtro_nome_associacao(
     periodo_anterior,
     fechamento_conta_cheque_valores_reprogramados,
     fechamento_conta_cheque_valores_reprogramados_2,
-    parametros_dre_valores_reprogramados
+    parametros_dre_valores_reprogramados,
+    recurso_esperado
 ):
     response = jwt_authenticated_client_dre.get(
         f'/api/valores-reprogramados/?dre_uuid={dre.uuid}&search=Anton', content_type='application/json')
@@ -75,6 +84,7 @@ def test_api_valores_reprogramados_filtro_nome_associacao(
     resultado_esperado = [
         {
             'associacao': {
+                'recursos': [],
                 'cnpj': associacao_2.cnpj,
                 'nome': associacao_2.nome,
                 'data_de_encerramento': None,
@@ -92,16 +102,22 @@ def test_api_valores_reprogramados_filtro_nome_associacao(
                 'uuid': f'{associacao_2.uuid}',
             },
             'periodo': {
+                'id': periodo_anterior.id,
+                'uuid': f'{periodo_anterior.uuid}',
                 'data_fim_realizacao_despesas': f'{periodo_anterior.data_fim_realizacao_despesas}',
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
                 'referencia': periodo_anterior.referencia,
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
-                'uuid': f'{periodo_anterior.uuid}'
+                "recurso": recurso_esperado(periodo_anterior.recurso),
             },
             'total_conta_cartao': 0,
             'total_conta_cheque': 300.0
         }
     ]
+
+    # Evita falha no teste por conta de diferenças nos campos de data de criação e alteração do recurso, que são gerados dinamicamente no teste
+    resultado_esperado[0]['periodo']['recurso']['criado_em'] = result[0]['periodo']['recurso']['criado_em']
+    resultado_esperado[0]['periodo']['recurso']['alterado_em'] = result[0]['periodo']['recurso']['alterado_em']
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado
@@ -117,7 +133,8 @@ def test_api_valores_reprogramados_filtro_codigo_eol(
     periodo_anterior,
     fechamento_conta_cheque_valores_reprogramados,
     fechamento_conta_cheque_valores_reprogramados_2,
-    parametros_dre_valores_reprogramados
+    parametros_dre_valores_reprogramados,
+    recurso_esperado
 ):
     response = jwt_authenticated_client_dre.get(
         f'/api/valores-reprogramados/?dre_uuid={dre.uuid}&search=123457', content_type='application/json')
@@ -126,6 +143,7 @@ def test_api_valores_reprogramados_filtro_codigo_eol(
     resultado_esperado = [
         {
             'associacao': {
+                'recursos': [],
                 'cnpj': associacao_2.cnpj,
                 'nome': associacao_2.nome,
                 'data_de_encerramento': None,
@@ -143,16 +161,22 @@ def test_api_valores_reprogramados_filtro_codigo_eol(
                 'uuid': f'{associacao_2.uuid}',
             },
             'periodo': {
+                'id': periodo_anterior.id,
+                'uuid': f'{periodo_anterior.uuid}',
                 'data_fim_realizacao_despesas': f'{periodo_anterior.data_fim_realizacao_despesas}',
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
                 'referencia': periodo_anterior.referencia,
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
-                'uuid': f'{periodo_anterior.uuid}'
+                "recurso": recurso_esperado(periodo_anterior.recurso),
             },
             'total_conta_cartao': 0,
             'total_conta_cheque': 300.0
         }
     ]
+
+    # Evita falha no teste por conta de diferenças nos campos de data de criação e alteração do recurso, que são gerados dinamicamente no teste
+    resultado_esperado[0]['periodo']['recurso']['criado_em'] = result[0]['periodo']['recurso']['criado_em']
+    resultado_esperado[0]['periodo']['recurso']['alterado_em'] = result[0]['periodo']['recurso']['alterado_em']
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado
@@ -168,7 +192,8 @@ def test_api_valores_reprogramados_filtro_tipo_unidade(
     periodo_anterior,
     fechamento_conta_cheque_valores_reprogramados,
     fechamento_conta_cheque_valores_reprogramados_2,
-    parametros_dre_valores_reprogramados
+    parametros_dre_valores_reprogramados,
+    recurso_esperado
 ):
     response = jwt_authenticated_client_dre.get(
         f'/api/valores-reprogramados/?dre_uuid={dre.uuid}&tipo_unidade=EMEF', content_type='application/json')
@@ -177,6 +202,7 @@ def test_api_valores_reprogramados_filtro_tipo_unidade(
     resultado_esperado = [
         {
             'associacao': {
+                'recursos': [],
                 'cnpj': associacao_2.cnpj,
                 'nome': associacao_2.nome,
                 'data_de_encerramento': None,
@@ -194,16 +220,22 @@ def test_api_valores_reprogramados_filtro_tipo_unidade(
                 'uuid': f'{associacao_2.uuid}',
             },
             'periodo': {
+                'id': periodo_anterior.id,
+                'uuid': f'{periodo_anterior.uuid}',
                 'data_fim_realizacao_despesas': f'{periodo_anterior.data_fim_realizacao_despesas}',
                 'data_inicio_realizacao_despesas': f'{periodo_anterior.data_inicio_realizacao_despesas}',
                 'referencia': periodo_anterior.referencia,
                 'referencia_por_extenso': periodo_anterior.referencia_por_extenso,
-                'uuid': f'{periodo_anterior.uuid}'
+                "recurso": recurso_esperado(periodo_anterior.recurso),
             },
             'total_conta_cartao': 0,
             'total_conta_cheque': 300.0
         }
     ]
+
+    # Evita falha no teste por conta de diferenças nos campos de data de criação e alteração do recurso, que são gerados dinamicamente no teste
+    resultado_esperado[0]['periodo']['recurso']['criado_em'] = result[0]['periodo']['recurso']['criado_em']
+    resultado_esperado[0]['periodo']['recurso']['alterado_em'] = result[0]['periodo']['recurso']['alterado_em']
 
     assert response.status_code == status.HTTP_200_OK
     assert result == resultado_esperado

@@ -6,6 +6,11 @@ from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
 from django.contrib.admin.sites import site
 
 
+@pytest.fixture(autouse=True)
+def flag_paa_receitas_prevista(flag_factory):
+    return flag_factory.create(name='paa-receitas-prevista', everyone=True)
+
+
 @pytest.fixture
 def prioridade_paa_admin():
     return PrioridadePaaAdmin(model=PrioridadePaa, admin_site=site)
@@ -38,6 +43,7 @@ def prioridade_paa_ptrf_custeio(paa, acao_associacao, especificacao_material_ser
                       uuid=uuid.uuid4(),
                       paa=paa,
                       prioridade=1,
+                      descricao='Descrição da prioridade',
                       recurso=RecursoOpcoesEnum.PTRF.name,
                       tipo_aplicacao=TipoAplicacaoOpcoesEnum.CUSTEIO.name,
                       acao_pdde=None,

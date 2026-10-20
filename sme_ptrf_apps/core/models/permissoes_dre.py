@@ -273,3 +273,14 @@ class FuncDreRecebimentoDeNotificacoes(models.Model):
         permissions = (
             ('recebe_notificacao_encerramento_conta', '[DRE] Pode receber Notificação de Solicitação de Encerramento de Conta Bancária'),
         )
+
+class FuncDrePaa(models.Model):
+    class Meta:
+        managed = False  # No database table creation.
+        default_permissions = ()  # disable "add", "change", "delete" and "view" default permissions
+        verbose_name = "[DRE] Acessar PAA"
+        verbose_name_plural = "[DRE] Acessar PAA"    
+        permissions = (
+            ('custom_access_paa_dre', '[DRE] Pode acessar PAA'),
+        )
+    

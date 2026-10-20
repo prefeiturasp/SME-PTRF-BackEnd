@@ -1,3 +1,4 @@
+"""Serializers para o gerenciamento das ações do pdde do Plano Anual de Atividades."""
 from rest_framework import serializers
 
 from sme_ptrf_apps.paa.models import AcaoPdde, ProgramaPdde
@@ -5,13 +6,14 @@ from sme_ptrf_apps.paa.api.serializers.programa_pdde_serializer import ProgramaP
 
 
 class AcaoPddeSimplesSerializer(serializers.ModelSerializer):
-
+    """Serializer para apresentar a ação pdde com apenas uuid e nome"""
     class Meta:
         model = AcaoPdde
         fields = ('uuid', 'nome')
 
 
 class AcaoPddeSerializer(serializers.ModelSerializer):
+    """Serializer para representar a ação pdde"""
     programa = serializers.SlugRelatedField(queryset=ProgramaPdde.objects.all(), slug_field='uuid')
     programa_objeto = ProgramaPddeSerializer(read_only=True, many=False)
 

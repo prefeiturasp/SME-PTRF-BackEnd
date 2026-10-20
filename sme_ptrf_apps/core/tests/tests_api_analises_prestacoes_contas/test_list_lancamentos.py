@@ -1,3 +1,5 @@
+import uuid
+
 import pytest
 from rest_framework import status
 
@@ -91,3 +93,84 @@ def test_api_list_lancamentos_por_tipo_ajuste(
 
     assert len(result) == 1
     assert result[0]["documento_mestre"]["uuid"] == str(despesa_2020_1.uuid)
+
+
+def test_api_list_lancamentos_sem_conta_associacao(
+    jwt_authenticated_client_a,
+    analise_prestacao_conta_2020_1_teste_analises,
+):
+    url = (
+        f"/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_analises.uuid}/lancamentos-com-ajustes/"
+    )
+
+    response = jwt_authenticated_client_a.get(url, content_type="application/json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["erro"] == "parametros_requeridos"
+
+
+def test_api_list_lancamentos_conta_associacao_nao_encontrada(
+    jwt_authenticated_client_a,
+    analise_prestacao_conta_2020_1_teste_analises,
+):
+    conta_inexistente = uuid.uuid4()
+    url = (
+        f"/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_analises.uuid}/"
+        f"lancamentos-com-ajustes/?conta_associacao={conta_inexistente}"
+    )
+
+    response = jwt_authenticated_client_a.get(url, content_type="application/json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["erro"] == "Objeto não encontrado."
+
+
+def test_api_list_lancamentos_acao_associacao_nao_encontrada(
+    jwt_authenticated_client_a,
+    conta_associacao_cartao,
+    analise_prestacao_conta_2020_1_teste_analises,
+):
+    acao_inexistente = uuid.uuid4()
+    url = (
+        f"/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_analises.uuid}/"
+        f"lancamentos-com-ajustes/?conta_associacao={conta_associacao_cartao.uuid}&acao_associacao={acao_inexistente}"
+    )
+
+    response = jwt_authenticated_client_a.get(url, content_type="application/json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["erro"] == "Objeto não encontrado."
+
+
+def test_api_list_lancamentos_tipo_invalido(
+    jwt_authenticated_client_a,
+    conta_associacao_cartao,
+    analise_prestacao_conta_2020_1_teste_analises,
+):
+    url = (
+        f"/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_analises.uuid}/"
+        f"lancamentos-com-ajustes/?conta_associacao={conta_associacao_cartao.uuid}&tipo=INVALIDO"
+    )
+
+    response = jwt_authenticated_client_a.get(url, content_type="application/json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["erro"] == "parametro_inválido"
+
+
+def test_api_list_lancamentos_tipo_acerto_nao_encontrado(
+    jwt_authenticated_client_a,
+    conta_associacao_cartao,
+    analise_prestacao_conta_2020_1_teste_analises,
+):
+    tipo_acerto_inexistente = uuid.uuid4()
+    url = (
+        f"/api/analises-prestacoes-contas/{analise_prestacao_conta_2020_1_teste_analises.uuid}/"
+        f"lancamentos-com-ajustes/?conta_associacao={conta_associacao_cartao.uuid}"
+        f"&tipo_acerto={tipo_acerto_inexistente}"
+    )
+
+    response = jwt_authenticated_client_a.get(url, content_type="application/json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()["erro"] == "Objeto não encontrado."

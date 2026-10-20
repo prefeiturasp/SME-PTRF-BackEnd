@@ -58,12 +58,12 @@ PARAM_PERIODO_UUID = {
 
 SCHEMA_LIST = extend_schema(
     description=(
-        "Retorna uma lista de prestações de contas reprovadas por não apresentação, "
+        "Retorna uma lista de prestações de contas rejeitadas por não apresentação, "
         "ordenada por tipo de unidade e nome da unidade.\n\n"
         "**Requer autenticação.** Apenas usuários com vínculo a unidades escolares UE, DRE ou SME podem acessar.\n\n"
         "Disponível apenas quando a feature flag `pc-reprovada-nao-apresentacao` está habilitada."
     ),
-    tags=["Prestações de Contas Reprovadas - Não Apresentação"],
+    tags=["Prestações de Contas Rejeitadas - Não Apresentação"],
     parameters=[
         OpenApiParameter(**PARAM_PAGE),
         OpenApiParameter(**PARAM_PAGE_SIZE),
@@ -80,11 +80,11 @@ SCHEMA_LIST = extend_schema(
 
 SCHEMA_RETRIEVE = extend_schema(
     description=(
-        "Retorna os detalhes de uma prestação de conta reprovada por não apresentação identificada pelo UUID.\n\n"
+        "Retorna os detalhes de uma prestação de conta rejeitada por não apresentação identificada pelo UUID.\n\n"
         "**Requer autenticação.** Apenas usuários com vínculo a unidades escolares UE, DRE ou SME podem acessar.\n\n"
         "Disponível apenas quando a feature flag `pc-reprovada-nao-apresentacao` está habilitada."
     ),
-    tags=["Prestações de Contas Reprovadas - Não Apresentação"],
+    tags=["Prestações de Contas Rejeitadas - Não Apresentação"],
     responses={
         200: PrestacaoContaReprovadaNaoApresentacaoSerializer,
         401: OpenApiResponse(description="Authentication credentials were not provided."),
@@ -95,11 +95,11 @@ SCHEMA_RETRIEVE = extend_schema(
 
 SCHEMA_CREATE = extend_schema(
     description=(
-        "Cria um novo registro de prestação de conta reprovada por não apresentação.\n\n"
+        "Cria um novo registro de prestação de conta rejeitada por não apresentação.\n\n"
         "**Requer autenticação.** Apenas usuários com vínculo a unidades escolares UE, DRE ou SME podem acessar.\n\n"
         "Disponível apenas quando a feature flag `pc-reprovada-nao-apresentacao` está habilitada."
     ),
-    tags=["Prestações de Contas Reprovadas - Não Apresentação"],
+    tags=["Prestações de Contas Rejeitadas - Não Apresentação"],
     request=PrestacaoContaReprovadaNaoApresentacaoCreateSerializer,
     responses={
         201: PrestacaoContaReprovadaNaoApresentacaoCreateSerializer,
@@ -111,11 +111,11 @@ SCHEMA_CREATE = extend_schema(
 
 SCHEMA_UPDATE = extend_schema(
     description=(
-        "Atualiza completamente um registro de prestação de conta reprovada por não apresentação.\n\n"
+        "Atualiza completamente um registro de prestação de conta rejeitada por não apresentação.\n\n"
         "**Requer autenticação.** Apenas usuários com vínculo a unidades escolares UE, DRE ou SME podem acessar.\n\n"
         "Disponível apenas quando a feature flag `pc-reprovada-nao-apresentacao` está habilitada."
     ),
-    tags=["Prestações de Contas Reprovadas - Não Apresentação"],
+    tags=["Prestações de Contas Rejeitadas - Não Apresentação"],
     request=PrestacaoContaReprovadaNaoApresentacaoCreateSerializer,
     responses={
         200: PrestacaoContaReprovadaNaoApresentacaoCreateSerializer,
@@ -128,11 +128,11 @@ SCHEMA_UPDATE = extend_schema(
 
 SCHEMA_PARTIAL_UPDATE = extend_schema(
     description=(
-        "Atualiza parcialmente um registro de prestação de conta reprovada por não apresentação.\n\n"
+        "Atualiza parcialmente um registro de prestação de conta rejeitada por não apresentação.\n\n"
         "**Requer autenticação.** Apenas usuários com vínculo a unidades escolares UE, DRE ou SME podem acessar.\n\n"
         "Disponível apenas quando a feature flag `pc-reprovada-nao-apresentacao` está habilitada."
     ),
-    tags=["Prestações de Contas Reprovadas - Não Apresentação"],
+    tags=["Prestações de Contas Rejeitadas - Não Apresentação"],
     request=PrestacaoContaReprovadaNaoApresentacaoCreateSerializer,
     responses={
         200: PrestacaoContaReprovadaNaoApresentacaoCreateSerializer,
@@ -145,11 +145,11 @@ SCHEMA_PARTIAL_UPDATE = extend_schema(
 
 SCHEMA_DESTROY = extend_schema(
     description=(
-        "Exclui um registro de prestação de conta reprovada por não apresentação.\n\n"
+        "Exclui um registro de prestação de conta rejeitada por não apresentação.\n\n"
         "**Requer autenticação.** Apenas usuários com vínculo a unidades escolares UE, DRE ou SME podem acessar.\n\n"
         "Disponível apenas quando a feature flag `pc-reprovada-nao-apresentacao` está habilitada."
     ),
-    tags=["Prestações de Contas Reprovadas - Não Apresentação"],
+    tags=["Prestações de Contas Rejeitadas - Não Apresentação"],
     responses={
         204: OpenApiResponse(description="Registro excluído com sucesso."),
         401: OpenApiResponse(description="Authentication credentials were not provided."),

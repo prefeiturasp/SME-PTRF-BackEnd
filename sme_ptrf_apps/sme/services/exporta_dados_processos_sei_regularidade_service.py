@@ -65,17 +65,17 @@ class ExportaDadosProcessosSeiRegularidadeService:
     def monta_dados(self):
         linhas_vertical = []
 
+        logger.info("Iniciando extração de dados processos SEI regularidade.")
         for instance in self.queryset:
-            logger.info(f"Iniciando extração de dados processos SEI regularidade, id: {instance.id}.")
             linha_horizontal = []
 
             for _, campo in self.cabecalho:
                 campo = get_recursive_attr(instance, campo)
                 linha_horizontal.append(campo)
 
-            logger.info(f"Escrevendo linha {linha_horizontal}, id: {instance.id}.")
             linhas_vertical.append(linha_horizontal)
-            logger.info(f"Finalizando extração de dados, id: {instance.id}.")
+
+        logger.info("Finalizando extração de dados processos SEI regularidade.")
 
         return linhas_vertical
 

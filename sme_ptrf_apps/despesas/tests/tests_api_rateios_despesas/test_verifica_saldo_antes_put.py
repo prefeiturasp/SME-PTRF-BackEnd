@@ -3,6 +3,8 @@ import json
 import pytest
 from rest_framework import status
 
+from sme_ptrf_apps.core.models import Recurso
+
 pytestmark = pytest.mark.django_db
 
 
@@ -141,6 +143,8 @@ def test_api_verifica_saldo_antes_put_saldo_insuficiente_conta_com_saldo_exato_e
     rateio_despesa_justa,
     payload_despesa_maior
 ):
+    Recurso.objects.filter(legado=True).update(permite_saldo_conta_negativo=True)
+
     response = jwt_authenticated_client_d.post(f'/api/rateios-despesas/verificar-saldos/?despesa_uuid={despesa_justa.uuid}',
                                                data=json.dumps(payload_despesa_maior),
                                                content_type='application/json')

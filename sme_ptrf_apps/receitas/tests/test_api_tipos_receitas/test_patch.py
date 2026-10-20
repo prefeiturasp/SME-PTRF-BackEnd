@@ -22,13 +22,15 @@ def test_patch_sucesso(jwt_authenticated_client_sme, tipo_receita_estorno):
     assert TipoReceita.objects.filter(nome="Tipo receita 001").first().aceita_capital is True
 
 
-def test_post_erro_nome_duplicado(jwt_authenticated_client_sme, tipo_receita_estorno, tipo_receita_repasse):
+def test_post_erro_nome_duplicado(jwt_authenticated_client_sme, tipo_receita_estorno, tipo_receita_repasse,
+                                  recurso_legado):
     payload = {
-        "nome": "Repasse"
+        "nome": "Repasse",
+        "recurso": str(recurso_legado.uuid)
     }
     response = jwt_authenticated_client_sme.patch(f'/api/tipos-receitas/{tipo_receita_estorno.uuid}/',
                                                   content_type='application/json',
                                                   data=json.dumps(payload))
     content = json.loads(response.content)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert content == {'non_field_errors': 'Este Tipo de Receita já existe.'}
+    assert content == {'non_field_errors': 'Este Tipo de Receita já existe para esse recurso.'}

@@ -16,6 +16,7 @@ def test_list_atividade_estatutaria_default_serializer(atividade_estatutaria_ati
     assert 'nome' in serializer.data
     assert 'tipo' in serializer.data
     assert 'mes' in serializer.data
+    assert 'alteracao' in serializer.data
 
 
 def test_create_atividade_estatutaria_sem_nome():

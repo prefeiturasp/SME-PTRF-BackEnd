@@ -36,7 +36,7 @@ def test_update_membro_comissao(
     assert membro_comissao.nome == 'Pedro'
     assert membro_comissao.email == 'pedro@teste.com'
     assert membro_comissao.dre == dre_y
-    assert membro_comissao.comissoes.filter(uuid=comissao_b.uuid)
+    assert membro_comissao.comissoes.filter(uuid=comissao_b.uuid).exists()
 
 
 def test_update_membro_comissao_nome_igual(

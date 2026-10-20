@@ -34,6 +34,7 @@ def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, per
             'texto_status': 'Período em andamento. ',
             'prestacao_de_contas_uuid': None,
             'requer_retificacao': False,
+            'possui_ata_retificacao': False,
             'tem_acertos_pendentes': False,
             'requer_acertos_em_extrato': False
         },
@@ -77,6 +78,7 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
             'texto_status': 'Período finalizado. Documentos pendentes de geração.',
             'prestacao_de_contas_uuid': None,
             'requer_retificacao': False,
+            'possui_ata_retificacao': False,
             'tem_acertos_pendentes': False,
             'requer_acertos_em_extrato': False
         },
@@ -98,7 +100,9 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
     assert result == esperado
 
 
-def test_chamada_sem_passar_data(jwt_authenticated_client_a, associacao, periodo_2020_1, prestacao_conta_2020_1_conciliada):
+def test_chamada_sem_passar_data(
+    jwt_authenticated_client_a, associacao, periodo_2020_1, prestacao_conta_2020_1_conciliada
+):
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/',
                                               content_type='application/json')
     result = json.loads(response.content)
@@ -147,8 +151,10 @@ def test_chamada_data_sem_periodo(jwt_authenticated_client_a, associacao, period
 def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prestacao_conta_2020_1_conciliada):
     periodo = prestacao_conta_2020_1_conciliada.periodo
 
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo.data_inicio_realizacao_despesas}',
-                                              content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo.data_inicio_realizacao_despesas}',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
     esperado = {
         'associacao': f'{associacao.uuid}',
@@ -167,6 +173,7 @@ def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prest
             'texto_status': 'Período finalizado. Prestação de contas ainda não recebida pela DRE.',
             'prestacao_de_contas_uuid': f'{prestacao_conta_2020_1_conciliada.uuid}',
             'requer_retificacao': False,
+            'possui_ata_retificacao': False,
             'tem_acertos_pendentes': False,
             'requer_acertos_em_extrato': False
         },
@@ -204,8 +211,10 @@ def _prestacao_conta_devolvida(periodo, associacao):
 def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, associacao, _prestacao_conta_devolvida):
     periodo = _prestacao_conta_devolvida.periodo
 
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo.data_inicio_realizacao_despesas}',
-                                              content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo.data_inicio_realizacao_despesas}',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     esperado = {
@@ -225,6 +234,7 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
             'texto_status': 'Período finalizado. Prestação de contas devolvida para ajustes.',
             'prestacao_de_contas_uuid': f'{_prestacao_conta_devolvida.uuid}',
             'requer_retificacao': False,
+            'possui_ata_retificacao': False,
             'tem_acertos_pendentes': False,
             'requer_acertos_em_extrato': False
         },
@@ -253,8 +263,10 @@ def test_status_periodo_pendencias_cadastrais_com_contas_pendentes(
     observacao_conciliacao_campos_nao_preenchidos_002,
     periodo_2020_1
 ):
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
-                                              content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
@@ -275,8 +287,10 @@ def test_status_periodo_pendencias_cadastrais_somente_uma_conta_pendente(
     periodo_2020_1
 ):
 
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
-                                              content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     pendencias_cadastrais_esperado = {
@@ -302,8 +316,10 @@ def test_status_periodo_pendencias_cadastrais_sem_contas_pendentes(
     periodo_2020_1,
 ):
 
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
-                                              content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     pendencias_cadastrais_esperado = {
@@ -327,8 +343,11 @@ def test_status_periodo_pendencias_cadastrais_somente_dados_associacao_com_pende
     periodo_2020_1,
 ):
 
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao_cadastro_incompleto.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
-                                              content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao_cadastro_incompleto.uuid}/status-periodo/'
+        f'?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     pendencias_cadastrais_esperado = {
@@ -351,8 +370,11 @@ def test_status_periodo_todas_as_pendencias_cadastrais(
     conta_associacao_incompleta,
     periodo_2020_1,
 ):
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{conta_associacao_incompleta.associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
-                                              content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{conta_associacao_incompleta.associacao.uuid}/status-periodo/'
+        f'?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     pendencias_cadastrais_esperado = {
@@ -392,7 +414,9 @@ def test_status_periodo_saldo_zerado_sem_justificativa(
     periodo_2020_1 = periodo_factory.create(data_inicio_realizacao_despesas=datetime(2020, 1, 1),
                                             data_fim_realizacao_despesas=datetime(2020, 5, 30))
     observacao_conciliacao_factory.create(data_extrato=periodo_2020_1.data_fim_realizacao_despesas, saldo_extrato=0,
-                                          periodo=periodo_2020_1, associacao=associacao, conta_associacao=conta_associacao,
+                                          periodo=periodo_2020_1,
+                                          associacao=associacao,
+                                          conta_associacao=conta_associacao,
                                           comprovante_extrato=comprovante, texto=None)
 
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-01',
@@ -424,7 +448,9 @@ def test_status_periodo_saldo_diferente_de_zero_sem_justificativa(
     periodo_2020_1 = periodo_factory.create(data_inicio_realizacao_despesas=datetime(2020, 1, 1),
                                             data_fim_realizacao_despesas=datetime(2020, 5, 30))
     observacao_conciliacao_factory.create(data_extrato=periodo_2020_1.data_fim_realizacao_despesas, saldo_extrato=1000,
-                                          periodo=periodo_2020_1, associacao=associacao, conta_associacao=conta_associacao,
+                                          periodo=periodo_2020_1,
+                                          associacao=associacao,
+                                          conta_associacao=conta_associacao,
                                           comprovante_extrato=comprovante, texto=None)
 
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-01',
@@ -457,7 +483,9 @@ def test_status_periodo_sem_pendencias(
     periodo_2020_1 = periodo_factory.create(data_inicio_realizacao_despesas=datetime(2020, 1, 1),
                                             data_fim_realizacao_despesas=datetime(2020, 5, 30))
     observacao_conciliacao_factory.create(data_extrato=periodo_2020_1.data_fim_realizacao_despesas, saldo_extrato=1000,
-                                          periodo=periodo_2020_1, associacao=associacao, conta_associacao=conta_associacao,
+                                          periodo=periodo_2020_1,
+                                          associacao=associacao,
+                                          conta_associacao=conta_associacao,
                                           comprovante_extrato=comprovante)
 
     response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/status-periodo/?data=2020-01-01',
@@ -477,8 +505,11 @@ def test_status_periodo_com_conta_encerrada_com_saldo(
     solicitacao_encerramento_conta_pendente,
     receita_conta_encerrada
 ):
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{conta_associacao_encerramento_conta.associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
-                                              content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{conta_associacao_encerramento_conta.associacao.uuid}/status-periodo/'
+        f'?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
@@ -495,8 +526,11 @@ def test_status_periodo_anterior_com_conta_encerrada_com_saldo(
     solicitacao_encerramento_conta_pendente,
     receita_conta_encerrada
 ):
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{conta_associacao_encerramento_conta.associacao.uuid}/status-periodo/?data={periodo_aberto.data_inicio_realizacao_despesas}',
-                                              content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{conta_associacao_encerramento_conta.associacao.uuid}/status-periodo/'
+        f'?data={periodo_aberto.data_inicio_realizacao_despesas}',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
@@ -511,10 +545,37 @@ def test_status_periodo_com_conta_encerrada_sem_saldo(
     conta_associacao_encerramento_conta,
     solicitacao_encerramento_conta_aprovada,
 ):
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{conta_associacao_encerramento_conta.associacao.uuid}/status-periodo/?data={periodo_2020_1.data_inicio_realizacao_despesas}',
-                                              content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{conta_associacao_encerramento_conta.associacao.uuid}/status-periodo/'
+        f'?data={periodo_2020_1.data_inicio_realizacao_despesas}',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
     assert 'tem_conta_encerrada_com_saldo' in result
     assert result['tem_conta_encerrada_com_saldo'] is False
+
+
+@freeze_time('2020-07-10 10:20:00')
+def test_status_periodo_em_analise_com_ata_retificacao_existente(
+    jwt_authenticated_client_a,
+    associacao,
+    prestacao_conta_2020_1_conciliada,
+    ata_2020_1_retificacao,
+):
+    prestacao_conta_2020_1_conciliada.status = PrestacaoConta.STATUS_EM_ANALISE
+    prestacao_conta_2020_1_conciliada.save()
+
+    periodo = prestacao_conta_2020_1_conciliada.periodo
+
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/status-periodo/?data={periodo.data_inicio_realizacao_despesas}',
+        content_type='application/json',
+    )
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert result['prestacao_contas_status']['status_prestacao'] == PrestacaoConta.STATUS_EM_ANALISE
+    assert result['prestacao_contas_status']['requer_retificacao'] is False
+    assert result['prestacao_contas_status']['possui_ata_retificacao'] is True

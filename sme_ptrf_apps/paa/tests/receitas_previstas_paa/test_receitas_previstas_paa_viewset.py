@@ -11,7 +11,8 @@ def flag_paa():
 
 
 @pytest.mark.django_db
-def test_lista_receita_prevista_paa(jwt_authenticated_client_sme, acao_associacao_factory, paa_factory, periodo_paa_1, flag_paa):
+def test_lista_receita_prevista_paa(
+        jwt_authenticated_client_sme, acao_associacao_factory, paa_factory, periodo_paa_1, flag_paa):
 
     for index in range(50):
         ReceitaPrevistaPaaFactory.create(

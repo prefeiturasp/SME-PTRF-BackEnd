@@ -53,51 +53,38 @@
     </article>
 
 
-    <article class="col-12 pl-0">
-      <p class="titulo-tabelas pl-3">
-        a) <span class="titulo-tabelas-aprovadas"><strong>APROVAR</strong></span> as prestações de contas das
-        Associações das unidades abaixo relacionadas,
-        analisadas sob aspecto de exatidão numérica e obediência à legislação, conforme inciso
-        I do art. 36 da Portaria SME nº 6.634/2021:
-      </p>
+    <article class="col-12 pl-0 pl-3 mb-1 titulo-tabelas">
+      {{ dados.dados_texto_da_ata.letra_a|safe }}
     </article>
   </section>
 
-<article class="col-12 pl-0">
-    {# Incluindo tabela de Aprovadas, passando dados como parametro #}
-    {% include "./partials/talela-aprovadas.html" with dados=dados %}
-</article>
-
-  <article class="col-12 pl-0">
-    <p class="titulo-tabelas mt-4">
-      b) <span class="titulo-tabelas-aprovadas"><strong>APROVAR COM RESSALVAS</strong></span> as prestações de
-      contas das Associações das unidades abaixo relacionadas,
-      analisadas sob aspecto de exatidão numérica e obediência à legislação, conforme inciso
-      II do art. 36 da Portaria SME nº 6.634/2021:
-    </p>
+  <article class="col-12 pl-0 mt-2">
+      {# Incluindo tabela de Aprovadas, passando dados como parametro #}
+      {% include "./partials/talela-aprovadas.html" with dados=dados %}
   </article>
 
-  <article class="col-12 pl-0">
+  {% if dados.dados_texto_da_ata.habilita_aprovacao_com_ressalvas %}
+  <article class="col-12 pl-0 titulo-tabelas mb-1 mt-4">
+    {{ dados.dados_texto_da_ata.letra_b|safe }}
+  </article>
+
+  <article class="col-12 pl-0 mt-2">
     {# Incluindo tabela de Aprovadas com Ressalvas, passando dados como parametro #}
     {% include "./partials/tabela-aprovada-com-ressalvas.html" with dados=dados %}
   </article>
+  {% endif %}
 
-  <article class="col-12 pl-0">
-    <p class="titulo-tabelas mt-4">
-      c) <span class="titulo-tabelas-reprovadas"><strong>REJEITAR</strong></span> as prestações de contas das
-      Associações das unidades abaixo relacionadas,
-      conforme inciso III do art. 36 da Portaria SME nº 6.634/2021:
-    </p>
+  <article class="col-12 pl-0 titulo-tabelas mb-1 mt-4">
+    {{ dados.dados_texto_da_ata.letra_c|safe }}
 
     {# Incluindo tabela de Reprovadas, passando dados como parametro #}
     {% include "./partials/tabela-rejeitadas.html" with dados=dados %}
   </article>
 
-  <article class="col-12 pl-0">
-    <p class="mt-4 titulo-assinaturas font-12">
-      d) Submeter ao Sr. Diretor Regional de Educação, a presente Ata, com o parecer conclusivo desta Comissão atendendo
-      ao inciso IV, do art. 34 da Portaria SME nº 6.634/2021, manter sob custódia até a publicação do despacho no DOC.
-    </p>
+  <article class="col-12 pl-0 mt-4 titulo-assinaturas font-12">
+    {% if dados.dados_texto_da_ata.letra_d %}
+      {{ dados.dados_texto_da_ata.letra_d|safe }}
+    {% endif %}
 
     {% if dados.dados_texto_da_ata.comentarios %}
       <p class="mt-3 titulo-assinaturas font-12 mb-0"><strong>Comentários</strong></p>

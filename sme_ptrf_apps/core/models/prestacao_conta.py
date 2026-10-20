@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.db import transaction
 from django.db.models.aggregates import Sum
 
-from sme_ptrf_apps.core.models import Ata, ContaAssociacao
+from sme_ptrf_apps.core.models import Ata
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.dre.models import Atribuicao
 
@@ -46,7 +46,7 @@ class PrestacaoConta(ModeloBase):
         STATUS_DEVOLVIDA_RECEBIDA: 'Recebida após acertos',
         STATUS_APROVADA: 'Aprovada',
         STATUS_APROVADA_RESSALVA: 'Aprovada com ressalvas',
-        STATUS_REPROVADA: 'Reprovada',
+        STATUS_REPROVADA: 'Rejeitada',
         STATUS_EM_PROCESSAMENTO: 'Em processamento',
         STATUS_A_PROCESSAR: 'A processar',
         STATUS_CALCULADA: 'PC calculada. Gerando relatórios',
@@ -91,7 +91,7 @@ class PrestacaoConta(ModeloBase):
 
     motivos_reprovacao = models.ManyToManyField('dre.MotivoReprovacao', blank=True)
 
-    outros_motivos_reprovacao = models.TextField('Outros motivos para reprovação pela DRE', blank=True, default='')
+    outros_motivos_reprovacao = models.TextField('Outros motivos para rejeição pela DRE', blank=True, default='')
 
     motivos_aprovacao_ressalva = models.ManyToManyField('dre.MotivoAprovacaoRessalva', blank=True)
 
@@ -121,6 +121,15 @@ class PrestacaoConta(ModeloBase):
         default=None
     )
 
+    def _get_instance_text_document_consolidado_pc(self):
+        from sme_ptrf_apps.dre.services.consolidado_dre_service import TextDocumentConsolidadoPC
+
+        recurso = self.periodo.recurso
+        habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+        text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+
+        return text_document_consolidado_pc
+
     @property
     def devolvida_para_acertos(self):
         return self.status == PrestacaoConta.STATUS_DEVOLVIDA
@@ -140,8 +149,9 @@ class PrestacaoConta(ModeloBase):
 
     @property
     def total_devolucao_ao_tesouro_str(self):
-        return f'{self.total_devolucao_ao_tesouro:.2f}'.replace('.',
-                                                                ',') if self.devolucoes_ao_tesouro_da_prestacao.count() > 0 else 'Não'
+        if self.devolucoes_ao_tesouro_da_prestacao.count() > 0:
+            return f'{self.total_devolucao_ao_tesouro:.2f}'.replace('.', ',')
+        return 'Não'
 
     @property
     def em_retificacao(self):
@@ -172,8 +182,11 @@ class PrestacaoConta(ModeloBase):
 
     @property
     def get_tooltip_nao_pode_retificar(self):
+        text_document_consolidado_pc = self._get_instance_text_document_consolidado_pc()
+        text_other = text_document_consolidado_pc.text_other(case="lower")
+
         if self.em_retificacao:
-            return "Esta PC foi retificada em outra publicação."
+            return f"Esta PC foi retificada em {text_other}."
         else:
             return None
 
@@ -223,10 +236,19 @@ class PrestacaoConta(ModeloBase):
 
     @property
     def get_mensagem_consolidado_tipo_original(self):
-        tipo_relatorio = "Única" if self.consolidado_dre.sequencia_de_publicacao == 0 \
-            else f'Parcial #{self.consolidado_dre.sequencia_de_publicacao}'
+        text_document_consolidado_pc = self._get_instance_text_document_consolidado_pc()
 
-        mensagem = f"Essa PC consta da Publicação {tipo_relatorio}"
+        if self.consolidado_dre.sequencia_de_publicacao == 0:
+            tipo_relatorio = text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE
+        else:
+            tipo_relatorio = text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL
+
+        text_consolidado_pc = text_document_consolidado_pc.text_possessive_with_type_and_sequency(
+            publication_type=tipo_relatorio,
+            sequency_number=self.consolidado_dre.sequencia_de_publicacao
+        )
+
+        mensagem = f"Essa PC consta {text_consolidado_pc}"
 
         return mensagem
 
@@ -234,20 +256,37 @@ class PrestacaoConta(ModeloBase):
     def get_mensagem_consolidado_tipo_retificacao(self):
         mensagem = ""
 
-        if self.status == self.STATUS_RECEBIDA or self.status == self.STATUS_EM_ANALISE:
-            tipo_relatorio = "Única" if self.consolidado_dre.consolidado_retificado.sequencia_de_publicacao == 0 \
-                else f'Parcial #{self.consolidado_dre.consolidado_retificado.sequencia_de_publicacao}'
+        text_document_consolidado_pc = self._get_instance_text_document_consolidado_pc()
+        text_possessive_document_consolidado_pc = text_document_consolidado_pc.possessive()
 
-            mensagem = f"Essa PC consta da Publicação {tipo_relatorio}"
+        if self.status == self.STATUS_RECEBIDA or self.status == self.STATUS_EM_ANALISE:
+            consolidado_retificado = self.consolidado_dre.consolidado_retificado
+            if consolidado_retificado.sequencia_de_publicacao == 0:
+                tipo_relatorio = text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE
+            else:
+                tipo_relatorio = text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL
+
+            text_consolidado_pc = text_document_consolidado_pc.text_possessive_with_type_and_sequency(
+                publication_type=tipo_relatorio,
+                sequency_number=self.consolidado_dre.consolidado_retificado.sequencia_de_publicacao
+            )
+
+            mensagem = f"Essa PC consta {text_consolidado_pc}"
 
         elif self.pc_concluida:
             data_publicacao = self.consolidado_dre.get_data_publicacao_do_consolidado_original
             data_publicacao_formatada = data_publicacao.strftime('%d/%m/%Y') if data_publicacao else ""
 
             if self.publicada:
-                mensagem = f"Essa PC consta da Retificação da publicação de {data_publicacao_formatada}"
+                mensagem = (
+                    f"Essa PC consta da Retificação {text_possessive_document_consolidado_pc} "
+                    f"de {data_publicacao_formatada}"
+                )
             else:
-                mensagem = f"Essa PC constará da Retificação da publicação de {data_publicacao_formatada}"
+                mensagem = (
+                    f"Essa PC constará da Retificação {text_possessive_document_consolidado_pc} "
+                    f"de {data_publicacao_formatada}"
+                )
 
         return mensagem
 
@@ -255,23 +294,40 @@ class PrestacaoConta(ModeloBase):
     def get_mensagem_consolidado_tipo_retificacao_da_retificacao(self):
         mensagem = ""
 
+        text_document_consolidado_pc = self._get_instance_text_document_consolidado_pc()
+        text_possessive_document_consolidado_pc = text_document_consolidado_pc.possessive(case="lower")
+
         if self.status == self.STATUS_RECEBIDA or self.status == self.STATUS_EM_ANALISE:
             data_publicacao = self.consolidado_dre.consolidado_retificado.get_data_publicacao_do_consolidado_original
             data_publicacao_formatada = data_publicacao.strftime('%d/%m/%Y') if data_publicacao else ""
 
-            mensagem = f"Essa PC consta da publicação retificadora de {data_publicacao_formatada}"
+            mensagem = (
+                f"Essa PC consta {text_possessive_document_consolidado_pc} "
+                f"retificadora de {data_publicacao_formatada}"
+            )
 
         elif self.pc_concluida:
             if self.publicada:
                 data_publicacao = self.consolidado_dre.get_data_publicacao_do_consolidado_original
-                data_publicacao_formatada = data_publicacao.strftime('%d/%m/%Y') if data_publicacao else ""
+                data_publicacao_formatada = (
+                    data_publicacao.strftime('%d/%m/%Y') if data_publicacao else ""
+                )
 
-                mensagem = f"Essa PC consta da publicação retificadora de {data_publicacao_formatada}"
+                mensagem = (
+                    f"Essa PC consta {text_possessive_document_consolidado_pc} "
+                    f"retificadora de {data_publicacao_formatada}"
+                )
             else:
-                data_publicacao = self.consolidado_dre.consolidado_retificado.get_data_publicacao_do_consolidado_original
-                data_publicacao_formatada = data_publicacao.strftime('%d/%m/%Y') if data_publicacao else ""
+                consolidado_retificado = self.consolidado_dre.consolidado_retificado
+                data_publicacao = consolidado_retificado.get_data_publicacao_do_consolidado_original
+                data_publicacao_formatada = (
+                    data_publicacao.strftime('%d/%m/%Y') if data_publicacao else ""
+                )
 
-                mensagem = f"Essa PC constará da retificação da publicação retificadora de {data_publicacao_formatada}"
+                mensagem = (
+                    f"Essa PC constará da retificação {text_possessive_document_consolidado_pc} "
+                    f"retificadora de {data_publicacao_formatada}"
+                )
 
         return mensagem
 
@@ -420,9 +476,11 @@ class PrestacaoConta(ModeloBase):
 
     def atualizar_comentarios_de_analise_sem_pc(self):
         from sme_ptrf_apps.core.models import ComentarioAnalisePrestacao
-        comentarios_de_analise_relacionados_sem_pc = ComentarioAnalisePrestacao.objects.filter(Q(associacao=self.associacao) &
-                                                                                               Q(periodo=self.periodo) &
-                                                                                               Q(prestacao_conta__isnull=True))
+        comentarios_de_analise_relacionados_sem_pc = ComentarioAnalisePrestacao.objects.filter(
+            Q(associacao=self.associacao) &
+            Q(periodo=self.periodo) &
+            Q(prestacao_conta__isnull=True)
+        )
         comentarios_de_analise_relacionados_sem_pc.update(prestacao_conta=self, associacao=None, periodo=None)
 
     def get_contas_com_movimento(self, add_sem_movimento_com_saldo=False):
@@ -542,7 +600,7 @@ class PrestacaoConta(ModeloBase):
 
                 if data_devolucao > hoje:
                     raise ValueError("Data de devolução não pode ser futura")
-    
+
             if devolucao_uuid:
                 registro_devolucao = DevolucaoAoTesouro.objects.get(uuid=devolucao_uuid)
 
@@ -608,21 +666,31 @@ class PrestacaoConta(ModeloBase):
     @transaction.atomic
     def devolver(self, data_limite_ue):
         from ..services.notificacao_services import notificar_prestacao_de_contas_devolvida_para_acertos
-        from ..models import DevolucaoPrestacaoConta
+        from ..models import DevolucaoPrestacaoConta, AnalisePrestacaoConta
+
         devolucao = DevolucaoPrestacaoConta.objects.create(
             prestacao_conta=self,
             data=date.today(),
             data_limite_ue=data_limite_ue
         )
 
-        if self.analise_atual:
-            self.analise_atual.devolucao_prestacao_conta = devolucao
-            self.analise_atual.status = self.STATUS_DEVOLVIDA
-            self.analise_atual.save()
+        analise_id = self.analise_atual_id
 
-        self.analise_atual = None
+        if analise_id:
+            AnalisePrestacaoConta.objects.filter(
+                id=analise_id
+            ).update(
+                devolucao_prestacao_conta=devolucao,
+                status=self.STATUS_DEVOLVIDA
+            )
+
+        self.analise_atual_id = None
         self.justificativa_pendencia_realizacao = ""
-        self.save()
+
+        self.save(update_fields=[
+            "analise_atual",
+            "justificativa_pendencia_realizacao"
+        ])
 
         notificar_prestacao_de_contas_devolvida_para_acertos(self, data_limite_ue)
         return self
@@ -694,7 +762,8 @@ class PrestacaoConta(ModeloBase):
                 return True
 
         pode_rebrir_pc = not self.associacao.fechamentos_associacao.filter(
-            periodo__referencia__gt=self.periodo.referencia
+            periodo__referencia__gt=self.periodo.referencia,
+            periodo__recurso=self.periodo.recurso
         ).exists()
         return pode_rebrir_pc
 
@@ -735,6 +804,7 @@ class PrestacaoConta(ModeloBase):
                 ata_da_pc.previa = True
                 ata_da_pc.arquivo_pdf = None
                 ata_da_pc.status_geracao_pdf = Ata.STATUS_NAO_GERADO
+                ata_da_pc.pdf_gerado_previamente = False
                 ata_da_pc.save()
 
             prestacao_de_conta.apaga_fechamentos()
@@ -743,7 +813,7 @@ class PrestacaoConta(ModeloBase):
             prestacao_de_conta.delete()
             logger.info(f'Prestação de contas de uuid {uuid} foi apagada.')
             return True
-        except:
+        except Exception:
             logger.error(f'Houve algum erro ao tentar apagar a PC de uuid {uuid}.')
             return False
 
@@ -798,7 +868,8 @@ class PrestacaoConta(ModeloBase):
 
         :param apenas_nao_publicadas: True para retornar apenas as prestações de contas que não foram publicadas.
 
-        :param add_reprovadas_nao_apresentacao: True para retornar também as PCs do Modelo PrestacaoContaReprovadaNaoApresentacao.
+        :param add_reprovadas_nao_apresentacao: True para retornar também as PCs do
+            Modelo PrestacaoContaReprovadaNaoApresentacao.
         """
         from ..models import Associacao, Periodo, Unidade
 
@@ -811,7 +882,7 @@ class PrestacaoConta(ModeloBase):
             cls.STATUS_EM_ANALISE: "Prestações de contas em análise",
             cls.STATUS_DEVOLVIDA: "Prestações de conta devolvidas para acertos",
             cls.STATUS_APROVADA: "Prestações de contas aprovadas",
-            cls.STATUS_REPROVADA: "Prestações de contas reprovadas",
+            cls.STATUS_REPROVADA: "Prestações de contas rejeitadas",
         }
 
         if add_aprovado_ressalva:
@@ -826,14 +897,16 @@ class PrestacaoConta(ModeloBase):
 
         quantidade_pcs_apresentadas = 0
         for status, titulo in titulos_por_status.items():
+
             if status == cls.STATUS_NAO_RECEBIDA:
                 continue
 
             quantidade_status = qs.filter(status=status).count()
 
+            # Este código atualmente não deve ser considerado, portanto, está sendo comentado
             # Tratativa PrestacaoContaReprovadaNaoApresentacao
-            if status == cls.STATUS_REPROVADA and add_reprovadas_nao_apresentacao:
-                quantidade_status += cls.retorna_quantidade_pcs_reprovadas_nao_apresentacao(periodo_uuid, dre_uuid)
+            #if status == cls.STATUS_REPROVADA and add_reprovadas_nao_apresentacao:
+            #    quantidade_status += cls.retorna_quantidade_pcs_reprovadas_nao_apresentacao(periodo_uuid, dre_uuid)
 
             if status == cls.STATUS_APROVADA and not add_aprovado_ressalva:
                 quantidade_status += qs.filter(status=cls.STATUS_APROVADA_RESSALVA).count()
@@ -915,7 +988,7 @@ class PrestacaoConta(ModeloBase):
     @classmethod
     def quantidade_por_status_por_dre(cls, periodo_uuid, numero_bruto_nao_apresentadas=False):
 
-        from ..models import Unidade, Associacao, Periodo, Associacao
+        from ..models import Unidade, Associacao, Periodo
         periodo = Periodo.by_uuid(periodo_uuid)
 
         qtd_por_status_dre = []
@@ -933,17 +1006,26 @@ class PrestacaoConta(ModeloBase):
                 'TOTAL_UNIDADES': 0
             }
 
-            qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__unidade__dre__uuid=dre.uuid)
+            associacoes_ativas = Associacao.get_associacoes_ativas_no_periodo(
+                periodo=periodo, dre=dre)
+
+            qs = cls.objects.filter(periodo__uuid=periodo_uuid, associacao__in=associacoes_ativas)
 
             quantidade_pcs_apresentadas = 0
-            qtd_por_status['TOTAL_UNIDADES'] = Associacao.get_associacoes_ativas_no_periodo(
-                periodo=periodo, dre=dre).count()
+            qtd_por_status['TOTAL_UNIDADES'] = associacoes_ativas.count()
 
             for status in qtd_por_status.keys():
-                if status == 'TOTAL_UNIDADES' or status == cls.STATUS_NAO_APRESENTADA:
+                if status in ['TOTAL_UNIDADES', cls.STATUS_NAO_APRESENTADA]:
                     continue
 
                 quantidade_status = qs.filter(status=status).count()
+
+                # Considera na soma de quantidade pois será utilizada para deduzir do valor total de unidades
+                # obtendo assim, o valor real de PCs não apresentadas
+                if status == cls.STATUS_DEVOLVIDA:
+                    quantidade_pcs_apresentadas += qs.filter(
+                        status__in=[cls.STATUS_DEVOLVIDA_RETORNADA, cls.STATUS_DEVOLVIDA_RECEBIDA]).count()
+
                 quantidade_pcs_apresentadas += quantidade_status
                 qtd_por_status[status] = quantidade_status
 
@@ -988,19 +1070,20 @@ class PrestacaoConta(ModeloBase):
         return result
 
     @classmethod
-    def status_conclusao_pc_to_json(cls):
+    def status_conclusao_pc_to_json(cls, habilita_aprovacao_com_ressalvas=True):
         selecionaveis = [
             cls.STATUS_APROVADA,
-            cls.STATUS_APROVADA_RESSALVA,
-            cls.STATUS_REPROVADA
+            cls.STATUS_REPROVADA,
         ]
 
-        result = [{
-            'id': choice[0],
-            'nome': choice[1]
-        } for choice in cls.STATUS_CHOICES if choice[0] in selecionaveis]
+        if habilita_aprovacao_com_ressalvas:
+            selecionaveis.insert(1, cls.STATUS_APROVADA_RESSALVA)
 
-        return result
+        return [
+            {'id': choice[0], 'nome': choice[1]}
+            for choice in cls.STATUS_CHOICES
+            if choice[0] in selecionaveis
+        ]
 
     @classmethod
     def filter_by_recurso(cls, queryset, recurso):

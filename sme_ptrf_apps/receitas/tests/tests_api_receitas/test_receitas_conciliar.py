@@ -45,6 +45,8 @@ def test_api_conciliar_receita_com_periodo(jwt_authenticated_client_p, receita_n
     result_esperado['acao_associacao']['acao']['recurso'] = f'{result_esperado["acao_associacao"]["acao"]["recurso"]}'
     result_esperado['repasse']['acao_associacao']['acao']['recurso'] = \
         f'{result_esperado["repasse"]["acao_associacao"]["acao"]["recurso"]}'
+    if result_esperado['tipo_receita']['recurso']:
+        result_esperado['tipo_receita']['recurso'] = f'{result_esperado["tipo_receita"]["recurso"]}'
 
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado

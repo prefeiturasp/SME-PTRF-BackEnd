@@ -2,7 +2,6 @@ import pytest
 from datetime import date
 
 from django.contrib.admin.sites import site
-from rest_framework.test import APIClient
 
 from sme_ptrf_apps.paa.admin import (
     PeriodoPaaAdmin, PaaAdmin, ParametroPaaAdmin

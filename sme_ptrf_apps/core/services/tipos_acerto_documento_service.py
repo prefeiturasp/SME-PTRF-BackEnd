@@ -4,9 +4,10 @@ from ...utils.choices_to_json import choices_to_json
 
 class TipoAcertoDocumentoAgrupadoPorCategoria:
 
-    def __init__(self, choices, tipos_documento_prestacao__uuid):
+    def __init__(self, choices, tipos_documento_prestacao__uuid, recurso=None):
         self.choices = choices
         self.tipos_documento_prestacao__uuid = tipos_documento_prestacao__uuid
+        self.recurso = recurso
         self.__set_agrupamento()
 
     def __set_agrupamento(self):
@@ -18,6 +19,9 @@ class TipoAcertoDocumentoAgrupadoPorCategoria:
 
             tipos_acertos_documentos = TipoAcertoDocumento.objects.filter(
                 categoria=categoria_id).filter(ativo=True).values("nome", "uuid")
+
+            if self.recurso is not None:
+                tipos_acertos_documentos = tipos_acertos_documentos.filter(recurso=self.recurso)
 
             if self.tipos_documento_prestacao__uuid is not None:
                 tipos_acertos_documentos = tipos_acertos_documentos.filter(
@@ -83,9 +87,9 @@ class TipoAcertoDocumentoCategorias:
 class TipoAcertoDocumentoService:
 
     @classmethod
-    def agrupado_por_categoria(cls, choices, tipos_documento_prestacao__uuid=None):
+    def agrupado_por_categoria(cls, choices, tipos_documento_prestacao__uuid=None, recurso=None):
         return TipoAcertoDocumentoAgrupadoPorCategoria(
-            choices=choices, tipos_documento_prestacao__uuid=tipos_documento_prestacao__uuid
+            choices=choices, tipos_documento_prestacao__uuid=tipos_documento_prestacao__uuid, recurso=recurso
         ).agrupamento
 
     @classmethod

@@ -7,6 +7,7 @@ from sme_ptrf_apps.users.models import Grupo
 from django.contrib.contenttypes.models import ContentType
 from datetime import date
 from sme_ptrf_apps.dre.models import ConsolidadoDRE
+from sme_ptrf_apps.dre.fixtures.factories import ComissaoFactory
 
 @pytest.fixture
 def tecnico_dre(dre):
@@ -330,6 +331,7 @@ def verificacao_regularidade_associacao_documento_cnpj(
     )
 
 @pytest.fixture
+@freeze_time('2020-07-01 10:00:00')
 def consolidado_dre_ata_parecer_tecnico(periodo, dre):
     return baker.make(
         'ConsolidadoDRE',
@@ -339,6 +341,7 @@ def consolidado_dre_ata_parecer_tecnico(periodo, dre):
     )
 
 @pytest.fixture
+@freeze_time('2020-07-01 10:00:00')
 def ata_parecer_tecnico(dre, periodo, consolidado_dre_ata_parecer_tecnico):
     return baker.make(
         'AtaParecerTecnico',
@@ -352,3 +355,10 @@ def ata_parecer_tecnico(dre, periodo, consolidado_dre_ata_parecer_tecnico):
         comentarios='Teste',
         consolidado_dre=consolidado_dre_ata_parecer_tecnico
     )
+
+# Comissão
+
+@pytest.fixture
+def comissao_teste_factory():
+    return ComissaoFactory(nome="Comissão Teste")
+

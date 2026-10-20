@@ -1,0 +1,28 @@
+<table class="table table-bordered lauda-table">
+  <thead>
+  <tr>
+    <th scope="col" class="lauda-col-ordem">Ordem</th>
+    <th scope="col" class="lauda-col-eol">Cód EOL</th>
+    <th scope="col" class="lauda-col-unidade">Unidade</th>
+    <th scope="col" class="lauda-col-moeda lauda-col-saldo lauda-th-saldo">{{ dados.col_saldo_inicial }}</th>
+    <th scope="col" class="lauda-col-moeda lauda-col-valor-menor lauda-th-valor-menor">Repasses</th>
+    <th scope="col" class="lauda-col-moeda lauda-col-valor-menor lauda-th-valor-menor">Outros Créditos</th>
+    <th scope="col" class="lauda-col-moeda lauda-col-valor-menor lauda-th-valor-menor">Despesas</th>
+    <th scope="col" class="lauda-col-moeda lauda-col-saldo lauda-th-saldo">{{ dados.col_saldo_final }}</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for row in linhas %}
+    <tr>
+      <td class="lauda-col-ordem">{{ row.ordem }}</td>
+      <td class="lauda-col-eol">{{ row.codigo_eol }}</td>
+      <td>{{ row.unidade }}</td>
+      <td class="lauda-col-moeda lauda-col-saldo">{{ row.saldo_inicial }}</td>
+      <td class="lauda-col-moeda lauda-col-valor-menor">{{ row.repasses }}</td>
+      <td class="lauda-col-moeda lauda-col-valor-menor">{{ row.outros_creditos }}</td>
+      <td class="lauda-col-moeda lauda-col-valor-menor">{{ row.despesas }}</td>
+      <td class="lauda-col-moeda lauda-col-saldo">{{ row.saldo_final }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>

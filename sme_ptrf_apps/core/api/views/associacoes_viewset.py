@@ -2,6 +2,7 @@ import datetime
 import logging
 from io import BytesIO
 
+from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse
 from django.template.loader import render_to_string
@@ -15,8 +16,9 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from weasyprint import HTML, CSS
+from drf_spectacular.utils import extend_schema_view
 
-from sme_ptrf_apps.paa.models import PeriodoPaa
+from sme_ptrf_apps.paa.models import Paa, PeriodoPaa
 from sme_ptrf_apps.paa.api.serializers import PaaSerializer
 
 from sme_ptrf_apps.users.permissoes import (
@@ -26,7 +28,6 @@ from sme_ptrf_apps.users.permissoes import (
     PermissaoAPIApenasDreComGravacao,
     PermissaoAPIApenasDreComLeituraOuGravacao
 )
-from ....despesas.models import Despesa
 
 from ....dre.services import (
     get_verificacao_regularidade_associacao,
@@ -34,7 +35,7 @@ from ....dre.services import (
     atualiza_itens_verificacao,
 )
 from ...models import Associacao, ContaAssociacao, Periodo, PrestacaoConta, Unidade, Ata, AnalisePrestacaoConta, \
-    FechamentoPeriodo, Recurso
+    Recurso, PeriodoInicialAssociacao
 from ...services import (
     atualiza_dados_unidade,
     gerar_planilha,
@@ -44,7 +45,8 @@ from ...services import (
     get_status_presidente,
     update_status_presidente,
     get_implantacao_de_saldos_da_associacao,
-    retorna_repasses_pendentes_periodos_ate_agora
+    retorna_repasses_pendentes_periodos_ate_agora,
+    get_periodo_corte,
 )
 from ..serializers.associacao_serializer import (
     AssociacaoCompletoSerializer,
@@ -63,13 +65,14 @@ from ..serializers.processo_associacao_serializer import ProcessoAssociacaoRetri
 from ..serializers.ata_serializer import AtaLookUpSerializer
 
 from sme_ptrf_apps.core.services.prestacao_contas_services import pc_requer_geracao_documentos, lancamentos_da_prestacao
-from ....receitas.models import Receita
-from ...choices import FiltroInformacoesAssociacao
 from waffle import flag_is_active
+from .docs.associacoes_docs import DOCS
+
 
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class AssociacoesViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated & PermissaoApiUe]
     lookup_field = 'uuid'
@@ -99,14 +102,29 @@ class AssociacoesViewSet(ModelViewSet):
 
         obj = self.get_object()
 
-        try:
-            self.perform_destroy(obj)
-        except ProtectedError:
-            content = {
-                'erro': 'ProtectedError',
-                'mensagem': 'Não é possível excluir essa associação porque ela já possui movimentação (despesas, receitas, etc.)'
-            }
-            return Response(content, status=status.HTTP_400_BAD_REQUEST)
+        with transaction.atomic():
+            try:
+                self.perform_destroy(obj)
+            except ProtectedError as e:
+                objects_protected = list(e.protected_objects)
+
+                somente_periodos_iniciais = all(
+                    isinstance(obj_protected, PeriodoInicialAssociacao)
+                    for obj_protected in objects_protected
+                )
+
+                if not somente_periodos_iniciais:
+                    content = {
+                        'erro': 'ProtectedError',
+                        'mensagem': (
+                            'Não é possível excluir essa associação porque ela já possui '
+                            'movimentação (despesas, receitas, etc.)'
+                        )
+                    }
+                    return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+                obj.periodos_iniciais.all().delete()
+                self.perform_destroy(obj)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -132,13 +150,24 @@ class AssociacoesViewSet(ModelViewSet):
                 if Associacao.TAG_ENCERRADA['key'] in filtro_informacoes_list and associacao.foi_encerrada():
                     excluir_associacao_da_listagem = False
 
-                if Associacao.TAG_ENCERRAMENTO_DE_CONTA['key'] in filtro_informacoes_list and associacao.tem_solicitacao_conta_pendente():
+                encerramento_na_lista = (
+                    Associacao.TAG_ENCERRAMENTO_DE_CONTA['key'] in filtro_informacoes_list
+                )
+                if encerramento_na_lista and associacao.tem_solicitacao_conta_pendente():
                     excluir_associacao_da_listagem = False
 
                 if excluir_associacao_da_listagem:
                     ids_para_excluir_da_listagem.append(associacao.id)
 
             qs = qs.exclude(id__in=ids_para_excluir_da_listagem)
+
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+        if recurso_uuid:
+            try:
+                recurso = Recurso.objects.get(uuid=recurso_uuid)
+                qs = Associacao.filter_by_recurso(qs, recurso)
+            except Recurso.DoesNotExist:
+                return Response({"mensagem": "Recurso não encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
         return qs
 
@@ -247,7 +276,9 @@ class AssociacoesViewSet(ModelViewSet):
         if prestacao_conta:
             gerar_previas = pc_requer_geracao_documentos(prestacao_conta)
 
-        pendencias_dados = associacao.pendencias_dados_da_associacao(periodo.recurso if periodo else self.request.recurso)
+        pendencias_dados = associacao.pendencias_dados_da_associacao(
+            periodo.recurso if periodo else self.request.recurso
+        )
 
         contas_pendentes = associacao.pendencias_conciliacao_bancaria_por_periodo_para_geracao_de_documentos(
             periodo)
@@ -267,7 +298,9 @@ class AssociacoesViewSet(ModelViewSet):
         else:
             pendencias_cadastrais = None
 
-        from sme_ptrf_apps.core.services.conta_associacao_service import checa_se_tem_conta_encerrada_com_saldo_no_periodo
+        from sme_ptrf_apps.core.services.conta_associacao_service import (
+            checa_se_tem_conta_encerrada_com_saldo_no_periodo,
+        )
 
         tem_conta_encerrada_com_saldo, tipos_das_contas_encerradas = checa_se_tem_conta_encerrada_com_saldo_no_periodo(
             associacao, periodo, data)
@@ -295,14 +328,17 @@ class AssociacoesViewSet(ModelViewSet):
 
         associacao = self.get_object()
 
-        result = associacao_pode_implantar_saldo(associacao=associacao)
+        result = associacao_pode_implantar_saldo(associacao=associacao, recurso=self.request.recurso)
 
         return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, url_path='implantacao-saldos', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def implantacao_saldos(self, request, uuid=None):
-        result = get_implantacao_de_saldos_da_associacao(associacao=self.get_object())
+        result = get_implantacao_de_saldos_da_associacao(
+            associacao=self.get_object(),
+            recurso=self.request.recurso
+        )
         return Response(result['conteudo'], result['status_code'])
 
     @action(detail=True, url_path='implanta-saldos', methods=['post'],
@@ -320,12 +356,17 @@ class AssociacoesViewSet(ModelViewSet):
             }
             return Response(result_error, status=status.HTTP_400_BAD_REQUEST)
 
-        resultado_implantacao = implanta_saldos_da_associacao(associacao=associacao, saldos=saldos)
+        resultado_implantacao = implanta_saldos_da_associacao(
+            associacao=associacao,
+            saldos=saldos,
+            recurso=self.request.recurso
+        )
 
         if resultado_implantacao['saldo_implantado']:
+            periodo_implantacao = resultado_implantacao.get("periodo")
             result = {
                 'associacao': f'{uuid}',
-                'periodo': PeriodoLookUpSerializer(associacao.periodo_inicial).data,
+                'periodo': PeriodoLookUpSerializer(periodo_implantacao).data if periodo_implantacao else None,
                 'saldos': saldos,
             }
             status_code = status.HTTP_200_OK
@@ -357,12 +398,13 @@ class AssociacoesViewSet(ModelViewSet):
                     'mensagem': f"Não foi encontrado o objeto periodo para o uuid {periodo_uuid}"
                 }
                 return Response(erro, status=status.HTTP_404_NOT_FOUND)
-            
+
             contas = ContaAssociacao.objects.filter(
                 Q(status=ContaAssociacao.STATUS_ATIVA) |
                 (Q(status=ContaAssociacao.STATUS_INATIVA) &
                  Q(solicitacao_encerramento__isnull=False) &
-                 Q(solicitacao_encerramento__data_de_encerramento_na_agencia__gte=periodo.data_inicio_realizacao_despesas)),
+                 Q(solicitacao_encerramento__data_de_encerramento_na_agencia__gte=(
+                     periodo.data_inicio_realizacao_despesas))),
                 associacao=associacao,
                 tipo_conta__recurso=self.request.recurso
             )
@@ -416,7 +458,10 @@ class AssociacoesViewSet(ModelViewSet):
         except (ValidationError, Exception):
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} "
+                    "não foi encontrado na base."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -467,7 +512,10 @@ class AssociacoesViewSet(ModelViewSet):
         except (ValidationError, Exception):
             erro = {
                 'erro': 'Objeto não encontrado.',
-                'mensagem': f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} não foi encontrado na base."
+                'mensagem': (
+                    f"O objeto analise-prestacao-conta para o uuid {analise_prestacao_uuid} "
+                    "não foi encontrado na base."
+                )
             }
             logger.info('Erro: %r', erro)
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -516,7 +564,10 @@ class AssociacoesViewSet(ModelViewSet):
             except ContaAssociacao.DoesNotExist:
                 resultado = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto conta-associação para o uuid {dado_conta['uuid']} não foi encontrado na base."
+                    'mensagem': (
+                        f"O objeto conta-associação para o uuid {dado_conta['uuid']} "
+                        "não foi encontrado na base."
+                    )
                 }
                 status_code = status.HTTP_404_NOT_FOUND
                 logger.info('Erro: %r', resultado)
@@ -548,21 +599,25 @@ class AssociacoesViewSet(ModelViewSet):
         result = {
             'tipos_unidade': Unidade.tipos_unidade_to_json(),
             'dres': Unidade.dres_to_json(),
-            'filtro_informacoes': Associacao.filtro_informacoes_dre_to_json() if filtros_informacoes_associacao_dre else Associacao.filtro_informacoes_to_json()
+            'filtro_informacoes': (
+                Associacao.filtro_informacoes_dre_to_json()
+                if filtros_informacoes_associacao_dre
+                else Associacao.filtro_informacoes_to_json()
+            )
         }
         return Response(result)
 
     @staticmethod
-    def _gerar_planilha(associacao_uuid):
+    def _gerar_planilha(associacao_uuid, request=None):
         associacao = Associacao.by_uuid(associacao_uuid)
-        xlsx = gerar_planilha(associacao)
+        xlsx = gerar_planilha(associacao, request=request)
         return xlsx
 
     @action(detail=True, methods=['get'], url_path='exportar',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def exportar(self, _, uuid=None):
+    def exportar(self, request, uuid=None):
 
-        xlsx = self._gerar_planilha(uuid)
+        xlsx = self._gerar_planilha(uuid, request)
 
         result = BytesIO(save_virtual_workbook(xlsx))
 
@@ -582,7 +637,11 @@ class AssociacoesViewSet(ModelViewSet):
         data_atual = datetime.date.today().strftime("%d-%m-%Y")
         usuario_logado = self.request.user
         associacao = Associacao.by_uuid(uuid)
-        contas = list(ContaAssociacao.objects.filter(associacao=associacao).select_related('tipo_conta', 'tipo_conta__recurso').all())
+        contas = list(
+            ContaAssociacao.objects.filter(associacao=associacao).select_related(
+                'tipo_conta', 'tipo_conta__recurso'
+            ).all()
+        )
         atualiza_dados_unidade(associacao)
 
         dados_template = {
@@ -594,8 +653,8 @@ class AssociacoesViewSet(ModelViewSet):
             'base_static_url': staticfiles_storage.location
         }
 
-        if flag_is_active(self.request, "historico-de-membros"):
-            dados_template['dados_presidente'] = associacao.dados_presidente_composicao_vigente()
+        from ...services.ficha_cadastral_service import dados_presidente_ficha_para_usuario
+        dados_template['dados_presidente'] = dados_presidente_ficha_para_usuario(associacao, self.request)
 
         html_string = render_to_string(
             'pdf/associacoes/exportarpdf/pdf.html',
@@ -626,7 +685,19 @@ class AssociacoesViewSet(ModelViewSet):
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def periodos_ate_agora_fora_implantacao(self, request, uuid=None):
         associacao = self.get_object()
+        solicitacao_dre = self.request.query_params.get('solicitacao_dre', 'false').lower() == 'true'
         periodos = associacao.periodos_ate_agora_fora_implantacao(self.request.recurso)
+
+        if solicitacao_dre:
+            periodo_corte_dre = get_periodo_corte(recurso=self.request.recurso)
+
+            if not periodo_corte_dre:
+                periodos = periodos.none()
+            else:
+                periodos = periodos.filter(
+                    data_inicio_realizacao_despesas__gte=periodo_corte_dre.data_inicio_realizacao_despesas
+                )
+
         return Response(PeriodoLookUpSerializer(periodos, many=True).data)
 
     @action(detail=True, url_path='status-prestacoes', methods=['get'],
@@ -659,26 +730,57 @@ class AssociacoesViewSet(ModelViewSet):
     @action(detail=True, url_path='processos', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def processos_da_associacao(self, request, uuid=None):
-        recurso_uuid = request.query_params.get('recurso_uuid')
         associacao = self.get_object()
         processos = associacao.processos.all()
+        recurso_legado = Recurso.objects.filter(legado=True).first()
 
-        # Filtragem por recurso se flag estiver ativa
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
         if recurso_uuid and flag_is_active(self.request, "premio-excelencia-processo-sei"):
-            processos = processos.filter(recurso__uuid=recurso_uuid)
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
+            if recurso is None:
+                return Response({"mensagem": "Recurso não encontrado."}, status=status.HTTP_404_NOT_FOUND)
         else:
-            recurso_legado = Recurso.objects.filter(legado=True).first()
-            processos = processos.filter(recurso__uuid=recurso_legado.uuid)
+            recurso = recurso_legado
+
+        if recurso:
+            processos = processos.filter(recurso=recurso)
 
         return Response(ProcessoAssociacaoRetrieveSerializer(processos, many=True).data)
 
     @action(detail=False, methods=['get'], url_path='eol',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
-    def consulta_unidade(self, request):
+    def consulta_unidade_associacao(self, request):
         codigo_eol = self.request.query_params.get('codigo_eol')
         result = consulta_unidade(codigo_eol)
         status_code = status.HTTP_400_BAD_REQUEST if 'erro' in result.keys() else status.HTTP_200_OK
         return Response(result, status=status_code)
+
+    @action(detail=False, methods=['get'], url_path='verifica-cnpj-existente',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def verifica_cnpj_existente(self, request):
+        cnpj = self.request.query_params.get('cnpj')
+        associacao = Associacao.objects.filter(cnpj=cnpj).first()
+        result = None
+
+        if associacao:
+            result = {
+                'erro': 'cnpj_existente',
+                'mensagem': f"O CNPJ {cnpj} já está cadastrado na base."
+            }
+
+        status_code = status.HTTP_409_CONFLICT if result else status.HTTP_200_OK
+        return Response(result, status=status_code)
+
+    @action(detail=False, methods=['get'], url_path='opcoes-status-valores-reprogramados',
+            permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
+    def opcoes_status_valores_reprogramados(self, request):
+        result = [
+            {'key': key, 'value': value}
+            for key, value
+            in PeriodoInicialAssociacao.STATUS_VALORES_REPROGRAMADOS_CHOICES
+        ]
+
+        return Response(result, status=status.HTTP_200_OK)
 
     @action(detail=True, url_path='status-presidente', methods=['get'],
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
@@ -860,7 +962,10 @@ class AssociacoesViewSet(ModelViewSet):
             except Periodo.DoesNotExist:
                 erro = {
                     'erro': 'Objeto não encontrado.',
-                    'mensagem': f"O objeto período inicial para o uuid {periodo_inicial_uuid} não foi encontrado na base."
+                    'mensagem': (
+                        f"O objeto período inicial para o uuid {periodo_inicial_uuid} "
+                        "não foi encontrado na base."
+                    )
                 }
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
@@ -924,7 +1029,7 @@ class AssociacoesViewSet(ModelViewSet):
         periodo_paa_vigente = PeriodoPaa.periodo_vigente()
         try:
             paa = associacao.paa_set.get(periodo_paa=periodo_paa_vigente)
-        except:
+        except Paa.DoesNotExist:
             return Response(status=status.HTTP_404_NOT_FOUND)
 
         serialized = PaaSerializer(paa, many=False)

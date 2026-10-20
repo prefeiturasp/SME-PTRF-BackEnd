@@ -6,9 +6,15 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-def test_url_authorized(jwt_authenticated_client_d):
-    response = jwt_authenticated_client_d.get('/api/despesas/')
+def test_url_authorized(jwt_authenticated_client_d, associacao):
+    response = jwt_authenticated_client_d.get(f'/api/despesas/?associacao__uuid={associacao.uuid}')
     assert response.status_code == status.HTTP_200_OK
+
+
+def test_list_sem_associacao_uuid_retorna_400(jwt_authenticated_client_d):
+    response = jwt_authenticated_client_d.get('/api/despesas/')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()['erro'] == 'parametros_requerido'
 
 
 def test_url_tabelas(associacao, jwt_authenticated_client_d):

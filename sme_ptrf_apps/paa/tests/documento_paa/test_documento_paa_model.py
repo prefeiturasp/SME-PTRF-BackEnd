@@ -102,4 +102,4 @@ def test_create_documento_paa():
 
 @pytest.mark.django_db
 def test_str_representation(documento_paa):
-    assert f'Documento PAA {DocumentoPaa.VersaoChoices(documento_paa.versao).label} gerado dia' in str(documento_paa)
+    assert f'Documento {DocumentoPaa.VersaoChoices(documento_paa.versao).label} gerado em' in str(documento_paa)

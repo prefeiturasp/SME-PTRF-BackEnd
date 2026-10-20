@@ -91,10 +91,16 @@ def test_api_get_especificacoes_sem_filtro(jwt_authenticated_client, json_especi
     assert result == esperado
 
 
-def test_api_get_especificacoes_com_filtro_capital(jwt_authenticated_client, json_especificacao_custeio_material_eletrico,
-                                                   json_especificacao_custeio_servico_instalacao_eletrica,
-                                                   json_especificacao_capital_ar_condicionado):
-    response = jwt_authenticated_client.get('/api/especificacoes/?aplicacao_recurso=CAPITAL', content_type='application/json')
+def test_api_get_especificacoes_com_filtro_capital(
+    jwt_authenticated_client,
+    json_especificacao_custeio_material_eletrico,
+    json_especificacao_custeio_servico_instalacao_eletrica,
+    json_especificacao_capital_ar_condicionado,
+):
+    response = jwt_authenticated_client.get(
+        '/api/especificacoes/?aplicacao_recurso=CAPITAL',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     esperado = [
@@ -106,10 +112,16 @@ def test_api_get_especificacoes_com_filtro_capital(jwt_authenticated_client, jso
     assert result == esperado
 
 
-def test_api_get_especificacoes_com_filtro_custeio(jwt_authenticated_client, json_especificacao_custeio_material_eletrico,
-                                                   json_especificacao_custeio_servico_instalacao_eletrica,
-                                                   json_especificacao_capital_ar_condicionado):
-    response = jwt_authenticated_client.get('/api/especificacoes/?aplicacao_recurso=CUSTEIO', content_type='application/json')
+def test_api_get_especificacoes_com_filtro_custeio(
+    jwt_authenticated_client,
+    json_especificacao_custeio_material_eletrico,
+    json_especificacao_custeio_servico_instalacao_eletrica,
+    json_especificacao_capital_ar_condicionado,
+):
+    response = jwt_authenticated_client.get(
+        '/api/especificacoes/?aplicacao_recurso=CUSTEIO',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     esperado = [
@@ -121,12 +133,18 @@ def test_api_get_especificacoes_com_filtro_custeio(jwt_authenticated_client, jso
     assert result == esperado
 
 
-def test_api_get_especificacoes_com_filtro_custeio_servico(jwt_authenticated_client, json_especificacao_custeio_material_eletrico,
-                                                           json_especificacao_custeio_servico_instalacao_eletrica,
-                                                           json_especificacao_capital_ar_condicionado,
-                                                           tipo_custeio_servico):
-    response = jwt_authenticated_client.get(f'/api/especificacoes/?aplicacao_recurso=CUSTEIO&tipo_custeio={tipo_custeio_servico.id}',
-                          content_type='application/json')
+def test_api_get_especificacoes_com_filtro_custeio_servico(
+    jwt_authenticated_client,
+    json_especificacao_custeio_material_eletrico,
+    json_especificacao_custeio_servico_instalacao_eletrica,
+    json_especificacao_capital_ar_condicionado,
+    tipo_custeio_servico,
+):
+    url = (
+        '/api/especificacoes/?aplicacao_recurso=CUSTEIO'
+        f'&tipo_custeio={tipo_custeio_servico.id}'
+    )
+    response = jwt_authenticated_client.get(url, content_type='application/json')
     result = json.loads(response.content)
 
     esperado = [
@@ -135,3 +153,27 @@ def test_api_get_especificacoes_com_filtro_custeio_servico(jwt_authenticated_cli
 
     assert response.status_code == status.HTTP_200_OK
     assert result == esperado
+
+
+def test_api_get_especificacoes_por_aplicacao(
+    jwt_authenticated_client,
+    json_especificacao_custeio_material_eletrico,
+    json_especificacao_custeio_servico_instalacao_eletrica,
+    json_especificacao_capital_ar_condicionado,
+    tipo_custeio_material,
+    tipo_custeio_servico,
+):
+    response = jwt_authenticated_client.get(
+        '/api/especificacoes/por-aplicacao/',
+        content_type='application/json',
+    )
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert 'custeio_por_tipo' in result
+    assert 'capital' in result
+
+    custeio = result['custeio_por_tipo']
+    assert custeio[str(tipo_custeio_material.id)] == [json_especificacao_custeio_material_eletrico]
+    assert custeio[str(tipo_custeio_servico.id)] == [json_especificacao_custeio_servico_instalacao_eletrica]
+    assert result['capital'] == [json_especificacao_capital_ar_condicionado]

@@ -24,7 +24,10 @@ def test_action_painel_acoes(
     despesa_fora_periodo,
     rateio_fora_periodo_50_custeio,
 ):
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/', content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/painel-acoes/',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     esperado = {
@@ -78,6 +81,7 @@ def test_action_painel_acoes(
             'texto_status': 'Período finalizado. Documentos pendentes de geração.',
             'prestacao_de_contas_uuid': None,
             'requer_retificacao': False,
+            'possui_ata_retificacao': False,
             'tem_acertos_pendentes': False,
             'requer_acertos_em_extrato': False
 
@@ -104,8 +108,10 @@ def test_action_painel_acoes_por_periodo(
     despesa_fora_periodo,
     rateio_fora_periodo_50_custeio,
 ):
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/?periodo_uuid={periodo_anterior.uuid}',
-                          content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/painel-acoes/?periodo_uuid={periodo_anterior.uuid}',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     esperado = {
@@ -159,6 +165,7 @@ def test_action_painel_acoes_por_periodo(
             'texto_status': 'Período finalizado. Documentos pendentes de geração.',
             'prestacao_de_contas_uuid': None,
             'requer_retificacao': False,
+            'possui_ata_retificacao': False,
             'tem_acertos_pendentes': False,
             'requer_acertos_em_extrato': False
         },
@@ -179,7 +186,10 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
     receita_100_no_periodo,
     receita_100_no_periodo_acao_de_destaque,
 ):
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/', content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/painel-acoes/',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     esperado = {
@@ -191,8 +201,8 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
         'ultima_atualizacao': f'{datetime.datetime(2020, 4, 18, 10, 11, 12)}',
         'info_acoes': [
             {
-                'acao_associacao_uuid': f'{acao_associacao_de_destaque.uuid}',
-                'acao_associacao_nome': acao_associacao_de_destaque.acao.nome,
+                'acao_associacao_uuid': f'{acao_associacao.uuid}',
+                'acao_associacao_nome': acao_associacao.acao.nome,
 
                 'saldo_reprogramado': 0,
                 'saldo_reprogramado_capital': 0,
@@ -222,11 +232,10 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
 
             },
             {
-                'acao_associacao_uuid': f'{acao_associacao.uuid}',
-                'acao_associacao_nome': acao_associacao.acao.nome,
+                'acao_associacao_uuid': f'{acao_associacao_de_destaque.uuid}',
+                'acao_associacao_nome': acao_associacao_de_destaque.acao.nome,
 
                 'saldo_reprogramado': 0,
-
                 'saldo_reprogramado_capital': 0,
                 'saldo_reprogramado_custeio': 0,
                 'saldo_reprogramado_livre': 0,
@@ -265,6 +274,7 @@ def test_action_painel_acoes_deve_atender_a_ordem_das_acoes(
             'texto_status': 'Período finalizado. Documentos pendentes de geração.',
             'prestacao_de_contas_uuid': None,
             'requer_retificacao': False,
+            'possui_ata_retificacao': False,
             'tem_acertos_pendentes': False,
             'requer_acertos_em_extrato': False
         },

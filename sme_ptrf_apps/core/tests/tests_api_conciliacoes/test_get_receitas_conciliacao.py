@@ -1,4 +1,5 @@
 import json
+from uuid import uuid4
 
 import pytest
 from django.contrib.auth.models import Permission
@@ -10,6 +11,69 @@ from sme_ptrf_apps.users.models import Grupo
 from ....receitas.api.serializers import ReceitaListaSerializer
 
 pytestmark = pytest.mark.django_db
+
+
+def test_api_get_receitas_sem_periodo(jwt_authenticated_client_a, acao_associacao_role_cultural, conta_associacao_cartao):
+    url = f'/api/conciliacoes/receitas/?conta_associacao={conta_associacao_cartao.uuid}&acao_associacao={acao_associacao_role_cultural.uuid}&conferido=True'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_get_receitas_periodo_nao_encontrado(jwt_authenticated_client_a, acao_associacao_role_cultural, conta_associacao_cartao):
+    url = f'/api/conciliacoes/receitas/?periodo={uuid4()}&conta_associacao={conta_associacao_cartao.uuid}&acao_associacao={acao_associacao_role_cultural.uuid}&conferido=True'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_api_get_receitas_sem_conta_associacao(jwt_authenticated_client_a, acao_associacao_role_cultural, periodo_2020_1):
+    url = f'/api/conciliacoes/receitas/?periodo={periodo_2020_1.uuid}&acao_associacao={acao_associacao_role_cultural.uuid}&conferido=True'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_get_receitas_conta_associacao_nao_encontrada(jwt_authenticated_client_a, acao_associacao_role_cultural, periodo_2020_1):
+    url = f'/api/conciliacoes/receitas/?periodo={periodo_2020_1.uuid}&conta_associacao={uuid4()}&acao_associacao={acao_associacao_role_cultural.uuid}&conferido=True'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_api_get_receitas_sem_acao_associacao(jwt_authenticated_client_a, periodo_2020_1, conta_associacao_cartao):
+    url = f'/api/conciliacoes/receitas/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_associacao_cartao.uuid}&conferido=True'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requerido'
+
+
+def test_api_get_receitas_acao_associacao_nao_encontrada(jwt_authenticated_client_a, periodo_2020_1, conta_associacao_cartao):
+    url = f'/api/conciliacoes/receitas/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_associacao_cartao.uuid}&acao_associacao={uuid4()}&conferido=True'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_api_get_receitas_sem_conferido(jwt_authenticated_client_a, acao_associacao_role_cultural, periodo_2020_1, conta_associacao_cartao):
+    url = f'/api/conciliacoes/receitas/?periodo={periodo_2020_1.uuid}&conta_associacao={conta_associacao_cartao.uuid}&acao_associacao={acao_associacao_role_cultural.uuid}'
+
+    response = jwt_authenticated_client_a.get(url, content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requerido'
 
 
 def test_api_get_receitas_conferidas(jwt_authenticated_client_a,

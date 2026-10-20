@@ -36,3 +36,4 @@ from .solicitacao_encerramento_conta_associacao_viewset import SolicitacaoEncerr
 from .motivo_rejeicao_encerramento_conta_associacao_viewset import MotivoRejeicaoEncerramentoContaAssociacaoViewset
 from .feature_flags_view import feature_flags
 from .parametrizacoes_acoes_associacoes import ParametrizacoesAcoesAssociacaoViewSet
+from .fique_de_olho_viewset import FiqueDeOlhoViewSet

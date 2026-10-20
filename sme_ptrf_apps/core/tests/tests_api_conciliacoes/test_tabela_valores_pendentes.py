@@ -1,9 +1,42 @@
 import json
 from decimal import Decimal
+from uuid import uuid4
 
 import pytest
+from rest_framework import status
 
 pytestmark = pytest.mark.django_db
+
+
+def test_tabela_valores_pendentes_sem_conta_associacao(jwt_authenticated_client_a, periodo_2020_1):
+    response = jwt_authenticated_client_a.get(f'/api/conciliacoes/tabela-valores-pendentes/?periodo={periodo_2020_1.uuid}')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_tabela_valores_pendentes_sem_periodo(jwt_authenticated_client_a, conta_associacao_cartao):
+    response = jwt_authenticated_client_a.get(
+        f'/api/conciliacoes/tabela-valores-pendentes/?conta_associacao={conta_associacao_cartao.uuid}')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_tabela_valores_pendentes_conta_associacao_nao_encontrada(jwt_authenticated_client_a, periodo_2020_1):
+    response = jwt_authenticated_client_a.get(
+        f'/api/conciliacoes/tabela-valores-pendentes/?periodo={periodo_2020_1.uuid}&conta_associacao={uuid4()}')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_tabela_valores_pendentes_periodo_nao_encontrado(jwt_authenticated_client_a, conta_associacao_cartao):
+    response = jwt_authenticated_client_a.get(
+        f'/api/conciliacoes/tabela-valores-pendentes/?periodo={uuid4()}&conta_associacao={conta_associacao_cartao.uuid}')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
 
 
 def test_tabela_valores_pendentes(

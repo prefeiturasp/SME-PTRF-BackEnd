@@ -143,7 +143,7 @@ MIDDLEWARE = [
     "sme_ptrf_apps.jwt_middleware.JWTAuthenticationMiddleware",
     "auditlog.middleware.AuditlogMiddleware",
     "waffle.middleware.WaffleMiddleware",
-    "allauth.account.middleware.AccountMiddleware",  # Requerido na versão 0.56.1 do django-allauth, necessária para o Django 4
+    "allauth.account.middleware.AccountMiddleware",  # Requerido na versão 0.56.1 do django-allauth, necessária para o Django 4  # noqa
     # Middleware usado para captar e validar o recurso selecionado
     "sme_ptrf_apps.tenant_middleware.TenantFromHeaderMiddleware"
 ]
@@ -322,7 +322,8 @@ SPECTACULAR_SETTINGS = {
 # ------------------------------------------------------------------------------
 SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('JWT',),
-    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(hours=100),
+    'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': datetime.timedelta(hours=12),
 }
 
 # CORS SETTINGS
@@ -423,3 +424,11 @@ CKEDITOR_CONFIGS = {
 # DEFAULT_AUTO_FIELD: Resolve warnings após update para Django 3.2
 # -------------------------------------------------------------------------------
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+
+# ************* Integração API Accountability Banco do Brasil *************
+BB_CLIENT_ID = env('BB_CLIENT_ID', default='')
+BB_CLIENT_SECRET = env('BB_CLIENT_SECRET', default='')
+BB_APP_KEY = env('BB_APP_KEY', default='')
+BB_OAUTH_URL = env('BB_OAUTH_URL', default='')
+BB_API_BASE_URL = env('BB_API_BASE_URL', default='')

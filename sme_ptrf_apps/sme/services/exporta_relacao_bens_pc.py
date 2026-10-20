@@ -19,19 +19,19 @@ from tempfile import NamedTemporaryFile
 logger = logging.getLogger(__name__)
 
 CABECALHO_RELACAO_BENS = [
-        ('Código EOL', 'conta_associacao__associacao__unidade__codigo_eol'),
-        ('Nome Unidade', 'conta_associacao__associacao__unidade__nome'),
-        ('Nome Associação', 'conta_associacao__associacao__nome'),
-        ('DRE', 'conta_associacao__associacao__unidade__dre__nome'),
-        ('Recurso', 'conta_associacao__tipo_conta__recurso__nome'),
-        ('Referência do Período da PC', 'prestacao_conta__periodo__referencia'),
-        ('Status da PC', 'prestacao_conta__status'),
-        ('Nome do tipo de Conta', 'conta_associacao__tipo_conta__nome'),
-        ('URL do arquivo PDF', 'arquivo_pdf'),
-        ('Status', 'status'),
-        ('Versão', 'versao'),
-        ('Data e hora de criação', 'criado_em'),
-        ('Data e hora da última atualização', 'alterado_em'),
+    ('Código EOL', 'conta_associacao__associacao__unidade__codigo_eol'),
+    ('Nome Unidade', 'conta_associacao__associacao__unidade__nome'),
+    ('Nome Associação', 'conta_associacao__associacao__nome'),
+    ('DRE', 'conta_associacao__associacao__unidade__dre__nome'),
+    ('Recurso', 'conta_associacao__tipo_conta__recurso__nome'),
+    ('Referência do Período da PC', 'prestacao_conta__periodo__referencia'),
+    ('Status da PC', 'prestacao_conta__status'),
+    ('Nome do tipo de Conta', 'conta_associacao__tipo_conta__nome'),
+    ('URL do arquivo PDF', 'arquivo_pdf'),
+    ('Status', 'status'),
+    ('Versão', 'versao'),
+    ('Data e hora de criação', 'criado_em'),
+    ('Data e hora da última atualização', 'alterado_em'),
 ]
 
 
@@ -103,11 +103,11 @@ class ExportacoesDadosRelacaoBensService:
     def monta_dados(self):
         linhas_vertical = []
 
-        for instance in self.queryset:
-            logger.info(f"Iniciando extração de dados de relação de bens : {instance.id}.")
+        logger.info("Iniciando extração de dados de relação de bens.")
+        for instance in self.queryset.iterator(chunk_size=1000):
 
             if not RelacaoBens.objects.filter(id=instance.id).exists():
-                logger.info(f"Este registro não existe mais na base de dados, portanto será pulado")
+                logger.info("Este registro não existe mais na base de dados, portanto será pulado")
                 continue
 
             linha_horizontal = []
@@ -172,9 +172,8 @@ class ExportacoesDadosRelacaoBensService:
                 campo = get_recursive_attr(instance, campo)
                 linha_horizontal.append(campo)
 
-            logger.info(f"Escrevendo linha {linha_horizontal} de relação de bens : {instance.id}.")
             linhas_vertical.append(linha_horizontal)
-            logger.info(f"Finalizado extração de dados de relação de bens : {instance.id}.")
+        logger.info("Finalizando extração de dados de relação de bens.")
 
         return linhas_vertical
 
@@ -204,7 +203,7 @@ class ExportacoesDadosRelacaoBensService:
         return self.queryset
 
     def cria_registro_central_download(self):
-        logger.info(f"Criando registro na central de download")
+        logger.info("Criando registro na central de download")
         obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo,

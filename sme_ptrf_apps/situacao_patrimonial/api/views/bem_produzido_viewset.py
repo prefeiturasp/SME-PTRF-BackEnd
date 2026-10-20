@@ -7,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.request import Request
 
 from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
@@ -16,9 +17,14 @@ from sme_ptrf_apps.situacao_patrimonial.api.serializers import BemProduzidoSeria
 from sme_ptrf_apps.situacao_patrimonial.services import BemProduzidoService
 from sme_ptrf_apps.despesas.models import Despesa
 
+from .docs.bem_produzido_docs import DOCS_BEM_PRODUZIDO
+from .docs.bem_produzido_rascunho_docs import DOCS_BEM_PRODUZIDO_RASCUNHO
+
+from drf_spectacular.utils import extend_schema_view
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS_BEM_PRODUZIDO)
 class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "situacao-patrimonial"
     permission_classes = [IsAuthenticated & PermissaoApiUe]
@@ -27,15 +33,25 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
     serializer_class = BemProduzidoSerializer
     pagination_class = CustomPagination
     http_method_names = ['get', 'post', 'put', 'patch', 'delete']
+    BEM_PRODUZIDO_TITLE = "Bem Produzido"
 
     def get_queryset(self):
-        qs = self.queryset
+        recurso = self.request.recurso
+        qs = self.queryset.filter(recurso=recurso)
         associacao = self.request.query_params.get('associacao_uuid', None)
 
         if associacao is not None:
             qs = qs.filter(associacao__uuid=associacao)
 
         return qs
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+
+        if self.action == "create":
+            context["recurso"] = self.request.recurso
+
+        return context
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'partial_update']:
@@ -55,6 +71,15 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
             bem_produzido=bem_produzido
         )
 
+        from sme_ptrf_apps.situacao_patrimonial.validators import (
+            SituacaoPatrimonialValidationError,
+        )
+
+        try:
+            BemProduzidoService.validacoes_edicao_bem_produzido(bem_produzido)
+        except SituacaoPatrimonialValidationError as exc:
+            return Response(exc.detail, status=status.HTTP_409_CONFLICT)
+
         quantidade = despesas_remover.count()
         despesas_remover.delete()
 
@@ -70,7 +95,7 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
     def verificar_se_pode_informar_valores(self, request, *args, **kwargs):
         """
         Verifica se há pelo menos uma despesa que permite informar valores em situação patrimonial.
-        
+
         Regra:
         - Se TODAS as despesas são de períodos finalizados com PC entregue: não permite (retorna False)
         - Se há pelo menos uma despesa de período não finalizado OU período finalizado sem PC entregue: permite (retorna True)
@@ -100,7 +125,116 @@ class BemProduzidoViewSet(WaffleFlagMixin, ModelViewSet):
 
         return Response(resultado, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['get'], url_path='status-delecao-bem-produzido',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def status_delecao_bem_produzido(self, request: Request, *args, **kwargs) -> Response:
+        """
+        Verifica se um bem produzido pode ser excluído.
 
+        Recupera o bem produzido pelo identificador informado, executa as
+        validações de negócio necessárias para a exclusão e retorna uma mensagem
+        indicando se a operação é permitida.
+
+        Returns:
+            Response: Resposta HTTP contendo o resultado da validação.
+                - 200: O bem produzido pode ser excluído.
+                - 404: O bem produzido não foi encontrado.
+                - 409: O bem produzido não atende às regras de negócio para exclusão.
+        """
+        from sme_ptrf_apps.situacao_patrimonial.validators import (
+            SituacaoPatrimonialValidationError,
+        )
+
+        try:
+            bem_produzido = self.get_object()
+        except Exception:
+            return Response(
+                {
+                    "titulo": self.BEM_PRODUZIDO_TITLE,
+                    "mensagem": 'O bem produzido não foi encontrado.',
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            BemProduzidoService.verificar_se_pode_excluir_bem_produzido(bem_produzido)
+        except SituacaoPatrimonialValidationError as exc:
+            return Response(exc.detail, status=status.HTTP_409_CONFLICT)
+        except Exception as exc:
+            return Response(
+                {"mensagem": str(exc)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['get'], url_path='modo-visualizacao',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def modo_visualizacao(self, request: Request, *args, **kwargs) -> Response:
+        """
+        Informa se o bem produzido deve ser exibido somente para visualização.
+
+        A decisão usa a despesa mais recente da composição: período fechado
+        (PC gerada) implica modo visualização.
+        """
+        try:
+            bem_produzido = self.get_object()
+        except Exception:
+            return Response(
+                {
+                    "titulo": self.BEM_PRODUZIDO_TITLE,
+                    "mensagem": 'O bem produzido não foi encontrado.',
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(
+            {
+                "modo_visualizacao": BemProduzidoService.bem_produzido_em_modo_visualizacao(
+                    bem_produzido
+                )
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    def destroy(self, request: Request, *args, **kwargs) -> Response:
+        """
+        Exclui um bem produzido.
+
+        Recupera o bem produzido pelo identificador informado, executa as
+        validações de negócio necessárias e, caso todas sejam satisfeitas,
+        realiza a exclusão do registro.
+
+        Returns:
+            Response: Resposta HTTP contendo o resultado da operação.
+                - 200: Bem produzido excluído com sucesso.
+                - 404: O bem produzido não foi encontrado.
+                - 409: O bem produzido não pode ser excluído devido às regras de negócio.
+                - 500: Ocorreu um erro inesperado durante a exclusão.
+        """
+        from sme_ptrf_apps.situacao_patrimonial.validators import (
+            SituacaoPatrimonialValidationError,
+        )
+
+        try:
+            bem_produzido = self.get_object()
+        except Exception:
+            return Response(
+                {
+                    "titulo": self.BEM_PRODUZIDO_TITLE,
+                    "mensagem": 'O bem produzido não foi encontrado.',
+                }, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            BemProduzidoService.excluir_bem_produzido(bem_produzido)
+        except SituacaoPatrimonialValidationError as exc:
+            return Response(exc.detail, status=status.HTTP_409_CONFLICT)
+        except Exception as exc:
+            return Response(
+                {"mensagem": str(exc)},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@extend_schema_view(**DOCS_BEM_PRODUZIDO_RASCUNHO)
 class BemProduzidoRascunhoViewSet(WaffleFlagMixin, ModelViewSet):
     waffle_flag = "situacao-patrimonial"
     permission_classes = [IsAuthenticated & PermissaoApiUe]
@@ -108,3 +242,11 @@ class BemProduzidoRascunhoViewSet(WaffleFlagMixin, ModelViewSet):
     serializer_class = BemProduzidoSaveRacunhoSerializer
     http_method_names = ['post', 'patch']
     lookup_field = 'uuid'
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+
+        if self.action == "create":
+            context["recurso"] = self.request.recurso
+
+        return context

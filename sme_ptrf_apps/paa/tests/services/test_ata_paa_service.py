@@ -7,13 +7,14 @@ from model_bakery import baker
 from sme_ptrf_apps.paa.models import AtaPaa
 
 
+from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.services.ata_paa_service import (
     gerar_arquivo_ata_paa,
     unidade_precisa_professor_gremio,
     verifica_precisa_professor_gremio,
     validar_geracao_ata_paa,
 )
-from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
+from sme_ptrf_apps.paa.services.validacao_edicao_ata_paa_service import validar_edicao_ata_paa
 
 pytestmark = pytest.mark.django_db
 
@@ -80,8 +81,8 @@ def test_verifica_precisa_professor_gremio_sem_tipo_configurado(ata_paa, paramet
     assert verifica_precisa_professor_gremio(ata_paa) is False
 
 
-def test_verifica_precisa_professor_gremio_com_tipo_configurado_sem_despesas(ata_paa, parametros):
-    """Testa se verifica_precisa_professor_gremio retorna False quando tipo está configurado mas não há despesas"""
+def test_verifica_precisa_professor_gremio_com_tipo_configurado_sem_receita_prevista(ata_paa, parametros):
+    """Testa se verifica_precisa_professor_gremio retorna False quando tipo está configurado mas não há receitas previstas"""
     tipo_unidade = ata_paa.paa.associacao.unidade.tipo_unidade
     parametros.tipos_unidades_professor_gremio = [tipo_unidade]
     parametros.save()
@@ -89,38 +90,25 @@ def test_verifica_precisa_professor_gremio_com_tipo_configurado_sem_despesas(ata
     assert verifica_precisa_professor_gremio(ata_paa) is False
 
 
-def test_verifica_precisa_professor_gremio_com_despesas_completas_gremio_no_periodo(
-    ata_paa, parametros, acao_factory, acao_associacao_factory, despesa_factory, rateio_despesa_factory
+def test_verifica_precisa_professor_gremio_receita_prevista_gremio(
+    ata_paa, parametros, acao_factory, acao_associacao_factory, receita_prevista_paa_factory
 ):
-    """Testa se verifica_precisa_professor_gremio retorna True quando há despesas completas com
+    """Testa se verifica_precisa_professor_gremio retorna True quando há receita previstas com
         ação grêmio no período"""
     tipo_unidade = ata_paa.paa.associacao.unidade.tipo_unidade
     parametros.tipos_unidades_professor_gremio = [tipo_unidade]
     parametros.save()
 
-    # Cria ação "Orçamento Grêmio Estudantil"
+
     acao_gremio = acao_factory.create(nome='Orçamento Grêmio Estudantil')
+
     acao_associacao_gremio = acao_associacao_factory.create(
         associacao=ata_paa.paa.associacao,
         acao=acao_gremio,
         status='ATIVA'
     )
 
-    # Cria despesa completa no período do PAA
-    periodo_paa = ata_paa.paa.periodo_paa
-    despesa = despesa_factory.create(
-        associacao=ata_paa.paa.associacao,
-        data_transacao=periodo_paa.data_inicial + timedelta(days=1),
-        status=STATUS_COMPLETO
-    )
-
-    # Cria rateio completo com a ação do grêmio
-    rateio_despesa_factory.create(
-        despesa=despesa,
-        associacao=ata_paa.paa.associacao,
-        acao_associacao=acao_associacao_gremio
-    )
-
+    receita_prevista_paa_factory.create(paa=ata_paa.paa, acao_associacao=acao_associacao_gremio)
     assert verifica_precisa_professor_gremio(ata_paa) is True
 
 
@@ -129,40 +117,6 @@ def test_verifica_precisa_professor_gremio_sem_acao_gremio(ata_paa, parametros):
     tipo_unidade = ata_paa.paa.associacao.unidade.tipo_unidade
     parametros.tipos_unidades_professor_gremio = [tipo_unidade]
     parametros.save()
-
-    assert verifica_precisa_professor_gremio(ata_paa) is False
-
-
-def test_verifica_precisa_professor_gremio_com_despesas_fora_do_periodo(
-    ata_paa, parametros, acao_factory, acao_associacao_factory, despesa_factory, rateio_despesa_factory
-):
-    """Testa se verifica_precisa_professor_gremio retorna False quando há despesas fora do período"""
-    tipo_unidade = ata_paa.paa.associacao.unidade.tipo_unidade
-    parametros.tipos_unidades_professor_gremio = [tipo_unidade]
-    parametros.save()
-
-    # Cria ação "Orçamento Grêmio Estudantil"
-    acao_gremio = acao_factory.create(nome='Orçamento Grêmio Estudantil')
-    acao_associacao_gremio = acao_associacao_factory.create(
-        associacao=ata_paa.paa.associacao,
-        acao=acao_gremio,
-        status='ATIVA'
-    )
-
-    # Cria despesa completa FORA do período do PAA (antes do período)
-    periodo_paa = ata_paa.paa.periodo_paa
-    despesa = despesa_factory.create(
-        associacao=ata_paa.paa.associacao,
-        data_transacao=periodo_paa.data_inicial - timedelta(days=1),
-        status=STATUS_COMPLETO
-    )
-
-    # Cria rateio completo com a ação do grêmio
-    rateio_despesa_factory.create(
-        despesa=despesa,
-        associacao=ata_paa.paa.associacao,
-        acao_associacao=acao_associacao_gremio
-    )
 
     assert verifica_precisa_professor_gremio(ata_paa) is False
 
@@ -255,14 +209,9 @@ class TestGerarArquivoAtaPaa:
 
 
 @pytest.fixture
-def paa_com_documento_concluido(paa):
+def paa_com_documento_concluido(paa, documento_paa_factory):
     """Fixture para PAA com documento final concluído"""
-    baker.make(
-        'DocumentoPaa',
-        paa=paa,
-        status_geracao='CONCLUIDO',
-        versao='FINAL'
-    )
+    documento_paa_factory.create(paa=paa)
     return paa
 
 
@@ -391,3 +340,85 @@ class TestValidarGeracaoAtaPaa:
         assert 'mensagem' in resultado, resultado
         assert 'A ata já está sendo gerada' in resultado['mensagem']
         assert resultado['is_valid'] is False
+
+
+@pytest.mark.django_db
+class TestValidarEdicaoAtaPaa:
+    """Testes para validar_edicao_ata_paa"""
+
+    def test_bloqueia_edicao_ata_apresentacao_quando_paa_gerado_e_pdf_concluido(
+        self, paa_com_documento_concluido, ata_paa_factory,
+    ):
+        paa_com_documento_concluido.status = PaaStatusEnum.GERADO.name
+        paa_com_documento_concluido.save()
+        ata = ata_paa_factory.create(
+            paa=paa_com_documento_concluido,
+            tipo_ata=AtaPaa.ATA_APRESENTACAO,
+            status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        )
+
+        resultado = validar_edicao_ata_paa(ata)
+
+        assert resultado['is_valid'] is False
+        assert 'retificação' in resultado['mensagem'].lower()
+
+    def test_permite_edicao_ata_apresentacao_quando_paa_gerado_sem_pdf(
+        self, paa_com_documento_concluido, ata_paa_factory,
+    ):
+        paa_com_documento_concluido.status = PaaStatusEnum.GERADO.name
+        paa_com_documento_concluido.save()
+        ata = ata_paa_factory.create(
+            paa=paa_com_documento_concluido,
+            tipo_ata=AtaPaa.ATA_APRESENTACAO,
+            status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO,
+        )
+
+        resultado = validar_edicao_ata_paa(ata)
+
+        assert resultado['is_valid'] is True
+
+    def test_permite_edicao_ata_retificacao_durante_retificacao(
+        self, paa_com_documento_concluido, ata_paa_factory,
+    ):
+        paa_com_documento_concluido.status = PaaStatusEnum.EM_RETIFICACAO.name
+        paa_com_documento_concluido.save()
+        ata_ret = ata_paa_factory.create(
+            paa=paa_com_documento_concluido,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            status_geracao_pdf=AtaPaa.STATUS_NAO_GERADO,
+        )
+
+        resultado = validar_edicao_ata_paa(ata_ret)
+
+        assert resultado['is_valid'] is True
+
+    def test_permite_reeditar_ata_retificacao_mesmo_com_pdf_para_regerar(
+        self, paa_com_documento_concluido, ata_paa_factory,
+    ):
+        paa_com_documento_concluido.status = PaaStatusEnum.EM_RETIFICACAO.name
+        paa_com_documento_concluido.save()
+        ata_ret = ata_paa_factory.create(
+            paa=paa_com_documento_concluido,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        )
+
+        resultado = validar_edicao_ata_paa(ata_ret)
+
+        assert resultado['is_valid'] is True
+
+    def test_bloqueia_edicao_ata_apresentacao_durante_retificacao(
+        self, paa_com_documento_concluido, ata_paa_factory,
+    ):
+        paa_com_documento_concluido.status = PaaStatusEnum.EM_RETIFICACAO.name
+        paa_com_documento_concluido.save()
+        ata_apresentacao = ata_paa_factory.create(
+            paa=paa_com_documento_concluido,
+            tipo_ata=AtaPaa.ATA_APRESENTACAO,
+            status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+        )
+
+        resultado = validar_edicao_ata_paa(ata_apresentacao)
+
+        assert resultado['is_valid'] is False
+        assert 'apenas a ata de retificação' in resultado['mensagem'].lower()

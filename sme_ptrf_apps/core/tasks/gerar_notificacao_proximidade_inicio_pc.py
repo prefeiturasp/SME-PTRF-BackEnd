@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
     time_limet=600,
-    soft_time_limit=300
+    soft_time_limit=600
 )
 def gerar_notificacao_proximidade_inicio_periodo_prestacao_conta_async():
     from sme_ptrf_apps.core.services.notificacao_services import notificar_proximidade_inicio_periodo_prestacao_conta

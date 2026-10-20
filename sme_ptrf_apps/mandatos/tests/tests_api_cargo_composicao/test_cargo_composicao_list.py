@@ -41,7 +41,7 @@ def teste_get_cargo_composicao(
     result = json.loads(response.content)
 
     assert response.status_code == status.HTTP_200_OK
-    assert result['cargo_associacao'] == 'Presidente da diretoria executiva'
+    assert result['cargo_associacao'] == 'Presidente da Diretoria Executiva'
     assert result['ocupante_do_cargo']['nome'] == 'Ollyver Ottoboni'
 
 

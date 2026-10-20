@@ -6,7 +6,7 @@ from ..serializers.tipo_acerto_documento_serializer import (
     TipoAcertoDocumentoSerializer,
     TipoAcertoDocumentoListaSerializer
 )
-from ...models import TipoAcertoDocumento, TipoDocumentoPrestacaoConta
+from ...models import TipoAcertoDocumento, TipoDocumentoPrestacaoConta, Recurso
 from sme_ptrf_apps.users.permissoes import PermissaoApiDre
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -98,6 +98,11 @@ class TiposAcertoDocumentoViewSet(mixins.ListModelMixin,
         if documento_list:
             qs = qs.filter(tipos_documento_prestacao__id__in=documento_list)
 
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+        if recurso_uuid is not None:
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
+            qs = TipoAcertoDocumento.filter_by_recurso(qs, recurso)
+
         return qs.order_by('id')
 
     def destroy(self, request, *args, **kwargs):
@@ -120,10 +125,12 @@ class TiposAcertoDocumentoViewSet(mixins.ListModelMixin,
             permission_classes=[IsAuthenticated & PermissaoApiDre])
     def tabelas(self, request):
         tipos_documento_prestacao__uuid = self.request.query_params.get('tipos_documento_prestacao__uuid', None)
+        recurso_uuid = self.request.query_params.get('recurso_uuid', None)
+        recurso = Recurso.objects.filter(uuid=recurso_uuid).first() if recurso_uuid else None
 
         result = {
             "categorias": TipoAcertoDocumento.categorias(),
-            "agrupado_por_categorias": TipoAcertoDocumento.agrupado_por_categoria(tipos_documento_prestacao__uuid),
+            "agrupado_por_categorias": TipoAcertoDocumento.agrupado_por_categoria(tipos_documento_prestacao__uuid, recurso=recurso),
             "documentos": TipoDocumentoPrestacaoConta.lista_documentos(),
         }
 

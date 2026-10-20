@@ -1,8 +1,10 @@
 import json
 import pytest
 from rest_framework import status
+from datetime import date
+from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
 from freezegun import freeze_time
-from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido
+from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido, BemProduzidoDespesa, BemProduzidoItem, BemProduzidoRateio
 
 pytestmark = pytest.mark.django_db
 
@@ -84,17 +86,17 @@ def test_patch_bem_produzido_remove_itens_nao_enviados(
         "associacao": f"{associacao_1.uuid}"
     }
 
-    response_inicial = jwt_authenticated_client_sme.patch(f'/api/bens-produzidos/{bem_produzido_1.uuid}/', 
+    response_inicial = jwt_authenticated_client_sme.patch(f'/api/bens-produzidos/{bem_produzido_1.uuid}/',
                                                         data=json.dumps(payload_inicial),
                                                         content_type='application/json')
-    
+
     assert response_inicial.status_code == status.HTTP_200_OK
-    
+
     # Verificar que existem 2 itens
     from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoItem
     itens_iniciais = BemProduzidoItem.objects.filter(bem_produzido=bem_produzido_1)
     assert itens_iniciais.count() == 2
-    
+
     # Agora enviar um patch com apenas 1 item (o primeiro)
     payload_atualizado = {
         "despesas": [f"{despesa_2025_1.uuid}"],
@@ -116,12 +118,12 @@ def test_patch_bem_produzido_remove_itens_nao_enviados(
         "associacao": f"{associacao_1.uuid}"
     }
 
-    response_atualizado = jwt_authenticated_client_sme.patch(f'/api/bens-produzidos/{bem_produzido_1.uuid}/', 
+    response_atualizado = jwt_authenticated_client_sme.patch(f'/api/bens-produzidos/{bem_produzido_1.uuid}/',
                                                            data=json.dumps(payload_atualizado),
                                                            content_type='application/json')
-    
+
     assert response_atualizado.status_code == status.HTTP_200_OK
-    
+
     # Verificar que agora existe apenas 1 item
     itens_finais = BemProduzidoItem.objects.filter(bem_produzido=bem_produzido_1)
     assert itens_finais.count() == 1
@@ -168,12 +170,12 @@ def test_patch_bem_produzido_com_especificacao_objeto(
         "associacao": f"{associacao_1.uuid}"
     }
 
-    response = jwt_authenticated_client_sme.patch(f'/api/bens-produzidos-rascunho/{bem_produzido_1.uuid}/', 
+    response = jwt_authenticated_client_sme.patch(f'/api/bens-produzidos-rascunho/{bem_produzido_1.uuid}/',
                                                 data=json.dumps(payload),
                                                 content_type='application/json')
-    
+
     assert response.status_code == status.HTTP_200_OK
-    
+
     # Verificar se o item foi criado corretamente
     from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoItem
     itens = BemProduzidoItem.objects.filter(bem_produzido=bem_produzido_1)
@@ -298,9 +300,11 @@ def test_post_bem_produzido_com_validacao_itens(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
-def test_post_bem_produzido_rascunho(
+def test_post_bem_produzido_rascunho_recurso_ptrf(
     jwt_authenticated_client_sme,
     flag_situacao_patrimonial,
+    recurso_ptrf,
+    recurso_premium,
     associacao_1, despesa_factory,
     rateio_despesa_factory,
     especificacao_material_servico_1
@@ -328,6 +332,7 @@ def test_post_bem_produzido_rascunho(
     }
 
     response = jwt_authenticated_client_sme.post('/api/bens-produzidos-rascunho/', data=json.dumps(payload),
+                                                 HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
                                                  content_type='application/json')
     content = json.loads(response.content)
 
@@ -335,6 +340,58 @@ def test_post_bem_produzido_rascunho(
     assert content['associacao']
     assert content['status'] == BemProduzido.STATUS_INCOMPLETO
     assert response.status_code == status.HTTP_201_CREATED
+
+    bem_produzido_criado = BemProduzido.objects.get(uuid=content['uuid'])
+
+    assert bem_produzido_criado.recurso == recurso_ptrf
+    assert bem_produzido_criado.recurso != recurso_premium
+
+
+def test_post_bem_produzido_rascunho_recurso_premium(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    recurso_ptrf,
+    recurso_premium,
+    associacao_1, despesa_factory,
+    rateio_despesa_factory,
+    especificacao_material_servico_1
+):
+    despesa_2025_1 = despesa_factory(associacao=associacao_1, data_documento='2025-01-01', nome_fornecedor='teste')
+    rateio_1 = rateio_despesa_factory(associacao=associacao_1, despesa=despesa_2025_1, valor_rateio=200)
+
+    payload = {
+        "despesas": [f"{despesa_2025_1.uuid}"],
+        "rateios": [
+            {
+                "uuid": f"{rateio_1.uuid}",
+                "valor_utilizado": 200
+            },
+        ],
+        "itens": [
+            {
+                "num_processo_incorporacao": 985734857456873,
+                "quantidade": 1,
+                "valor_individual": 200,
+                "especificacao_do_bem": f"{especificacao_material_servico_1.uuid}"
+            }
+        ],
+        "associacao": f"{associacao_1.uuid}"
+    }
+
+    response = jwt_authenticated_client_sme.post('/api/bens-produzidos-rascunho/', data=json.dumps(payload),
+                                                 HTTP_X_RECURSO_SELECIONADO=str(recurso_premium.uuid),
+                                                 content_type='application/json')
+    content = json.loads(response.content)
+
+    assert content['uuid']
+    assert content['associacao']
+    assert content['status'] == BemProduzido.STATUS_INCOMPLETO
+    assert response.status_code == status.HTTP_201_CREATED
+
+    bem_produzido_criado = BemProduzido.objects.get(uuid=content['uuid'])
+
+    assert bem_produzido_criado.recurso == recurso_premium
+    assert bem_produzido_criado.recurso != recurso_ptrf
 
 
 def test_post_bem_produzido_rascunho_campos_vazios(
@@ -359,6 +416,115 @@ def test_post_bem_produzido_rascunho_campos_vazios(
     assert content['associacao']
     assert content['status'] == BemProduzido.STATUS_INCOMPLETO
     assert response.status_code == status.HTTP_201_CREATED
+
+
+def test_post_bem_produzido_rascunho_cria_vinculo_quando_rateio_nao_esta_na_lista_de_despesas(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    associacao_1,
+    despesa_factory,
+    rateio_despesa_factory,
+):
+    despesa = despesa_factory(
+        associacao=associacao_1,
+        data_documento='2025-01-01',
+        nome_fornecedor='teste',
+        valor_recursos_proprios=100,
+    )
+    rateio = rateio_despesa_factory(associacao=associacao_1, despesa=despesa, valor_rateio=200)
+
+    payload = {
+        "despesas": [],
+        "rateios": [
+            {
+                "uuid": f"{rateio.uuid}",
+                "valor_utilizado": 50,
+            },
+        ],
+        "recursos_proprios": [
+            {
+                "despesa": f"{despesa.uuid}",
+                "valor_recurso_proprio_utilizado": 10,
+            },
+        ],
+        "itens": [],
+        "associacao": f"{associacao_1.uuid}",
+    }
+
+    response = jwt_authenticated_client_sme.post(
+        '/api/bens-produzidos-rascunho/',
+        data=json.dumps(payload),
+        content_type='application/json',
+    )
+    content = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_201_CREATED, response.content
+
+    bem_produzido = BemProduzido.objects.get(uuid=content['uuid'])
+    bem_produzido_despesa = BemProduzidoDespesa.objects.get(bem_produzido=bem_produzido, despesa=despesa)
+
+    assert bem_produzido_despesa.valor_recurso_proprio_utilizado == 10
+    assert BemProduzidoRateio.objects.filter(
+        bem_produzido_despesa=bem_produzido_despesa,
+        rateio=rateio,
+        valor_utilizado=50,
+    ).exists()
+
+
+def test_patch_rascunho_com_nova_despesa_mantem_item_na_listagem(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    associacao_1,
+    despesa_factory,
+):
+    despesa_inicial = despesa_factory(associacao=associacao_1, data_documento='2025-01-01', nome_fornecedor='teste')
+    despesa_adicional = despesa_factory(associacao=associacao_1, data_documento='2025-02-01', nome_fornecedor='outra')
+
+    payload_criacao = {
+        "despesas": [f"{despesa_inicial.uuid}"],
+        "rateios": [],
+        "itens": [],
+        "associacao": f"{associacao_1.uuid}",
+    }
+    response = jwt_authenticated_client_sme.post(
+        '/api/bens-produzidos-rascunho/',
+        data=json.dumps(payload_criacao),
+        content_type='application/json',
+    )
+    assert response.status_code == status.HTTP_201_CREATED, response.content
+    bem_uuid = json.loads(response.content)['uuid']
+    item = BemProduzidoItem.objects.get(bem_produzido__uuid=bem_uuid)
+
+    payload_edicao = {
+        "despesas": [f"{despesa_inicial.uuid}", f"{despesa_adicional.uuid}"],
+        "rateios": [],
+        "recursos_proprios": [],
+        "itens": [
+            {
+                "uuid": str(item.uuid),
+                "num_processo_incorporacao": "",
+                "quantidade": 0,
+                "valor_individual": "0.00",
+                "especificacao_do_bem": None,
+            }
+        ],
+    }
+    response = jwt_authenticated_client_sme.patch(
+        f'/api/bens-produzidos-rascunho/{bem_uuid}/',
+        data=json.dumps(payload_edicao),
+        content_type='application/json',
+    )
+    assert response.status_code == status.HTTP_200_OK, response.content
+
+    assert BemProduzidoItem.objects.filter(uuid=item.uuid, bem_produzido__uuid=bem_uuid).exists()
+    assert BemProduzidoDespesa.objects.filter(bem_produzido__uuid=bem_uuid).count() == 2
+
+    listagem = jwt_authenticated_client_sme.get(
+        f'/api/bens-produzidos-e-adquiridos/?associacao_uuid={associacao_1.uuid}'
+    )
+    assert listagem.status_code == status.HTTP_200_OK
+    uuids_listados = [registro.get('bem_produzido_uuid') for registro in listagem.json()['results']]
+    assert bem_uuid in uuids_listados
 
 
 def test_patch_bem_produzido_rascunho(
@@ -809,7 +975,401 @@ def test_verificar_se_pode_informar_valores_todos_status_exceto_nao_apresentada_
     )
 
     content = json.loads(response.content)
-    
+
     assert response.status_code == status.HTTP_200_OK
     assert content['pode_informar_valores'] is False
     assert 'prestação de contas entregue' in content['mensagem'].lower()
+
+
+@freeze_time('2025-03-10')
+def test_deve_retornar_status_liberado_quando_bem_produzido_pode_ser_excluido(
+        jwt_authenticated_client_sme,
+        flag_situacao_patrimonial,
+        cenario_recurso_ptrf,
+        periodo_factory,
+        associacao_1,
+        prestacao_conta_factory
+):
+    recurso_ptrf, bem_ptrf, _ = cenario_recurso_ptrf
+
+    periodo = periodo_factory.create(
+        referencia='2025.1',
+        data_inicio_realizacao_despesas=date(2025, 1, 1),
+        data_fim_realizacao_despesas=date(2025, 2, 28),
+        recurso=recurso_ptrf
+    )
+
+    prestacao_conta_factory.create(
+        associacao=associacao_1,
+        periodo=periodo,
+        status=PrestacaoConta.STATUS_NAO_APRESENTADA,
+    )
+
+    response = jwt_authenticated_client_sme.get(
+        f"/api/bens-produzidos/{bem_ptrf.uuid}/status-delecao-bem-produzido/",
+        HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
+    )
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@freeze_time("2025-03-10")
+def test_deve_retornar_status_liberado_quando_periodo_nao_estiver_encerrado(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    cenario_recurso_ptrf,
+    periodo_factory,
+):
+    recurso_ptrf, bem_ptrf, _ = cenario_recurso_ptrf
+
+    periodo_factory.create(
+        referencia="2025.1",
+        data_inicio_realizacao_despesas=date(2025, 1, 1),
+        data_fim_realizacao_despesas=date(2025, 12, 31),
+        recurso=recurso_ptrf,
+    )
+
+    response = jwt_authenticated_client_sme.get(
+        f"/api/bens-produzidos/{bem_ptrf.uuid}/status-delecao-bem-produzido/",
+        HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
+    )
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@freeze_time("2025-03-10")
+def test_deve_retornar_status_de_exclusao_quando_bem_produzido_nao_pode_ser_excluido(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    associacao_1,
+    cenario_recurso_ptrf,
+    periodo_factory,
+    prestacao_conta_factory,
+):
+    recurso_ptrf, bem_ptrf, _ = cenario_recurso_ptrf
+
+    periodo = periodo_factory.create(
+        referencia="2025.1",
+        data_inicio_realizacao_despesas=date(2025, 1, 1),
+        data_fim_realizacao_despesas=date(2025, 2, 28),
+        recurso=recurso_ptrf,
+    )
+
+    prestacao_conta_factory.create(
+        associacao=associacao_1,
+        periodo=periodo,
+        status=PrestacaoConta.STATUS_APROVADA,
+    )
+
+    response = jwt_authenticated_client_sme.get(
+        f"/api/bens-produzidos/{bem_ptrf.uuid}/status-delecao-bem-produzido/",
+        HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
+    )
+
+    content = response.json()
+
+    assert response.status_code == status.HTTP_409_CONFLICT
+    assert content["titulo"] == "Período fechado"
+    assert content["mensagem"] == (
+        "O período está bloqueado para realização de alterações."
+    )
+
+
+@freeze_time('2025-03-10')
+def test_deve_retornar_bem_produzido_nao_encontrado(
+        jwt_authenticated_client_sme,
+        flag_situacao_patrimonial,
+        cenario_recurso_ptrf
+):
+
+    recurso_ptrf, _, _ = cenario_recurso_ptrf
+
+    response = jwt_authenticated_client_sme.get(
+        f'/api/bens-produzidos/{"b4358ab7-8c01-4ebe-8c88-ddd8ad76e109"}/status-delecao-bem-produzido/',
+        HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
+    )
+
+    content = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+    assert content['titulo'] == 'Bem Produzido'
+    assert content['mensagem'] == 'O bem produzido não foi encontrado.'
+
+
+@freeze_time("2025-03-10")
+def test_deve_excluir_bem_produzido_com_sucesso(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    cenario_recurso_ptrf,
+    periodo_factory,
+    associacao_1,
+    prestacao_conta_factory,
+):
+    recurso_ptrf, bem_ptrf, _ = cenario_recurso_ptrf
+
+    periodo = periodo_factory.create(
+        referencia="2025.1",
+        data_inicio_realizacao_despesas=date(2025, 1, 1),
+        data_fim_realizacao_despesas=date(2025, 2, 28),
+        recurso=recurso_ptrf,
+    )
+
+    prestacao_conta_factory.create(
+        associacao=associacao_1,
+        periodo=periodo,
+        status=PrestacaoConta.STATUS_NAO_APRESENTADA,
+    )
+
+    assert BemProduzido.objects.filter(uuid=bem_ptrf.uuid).exists()
+    assert BemProduzidoDespesa.objects.filter(bem_produzido=bem_ptrf).exists()
+    assert BemProduzidoItem.objects.filter(bem_produzido=bem_ptrf).exists()
+
+    response = jwt_authenticated_client_sme.delete(
+        f"/api/bens-produzidos/{bem_ptrf.uuid}/",
+        HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
+    )
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    assert not BemProduzido.objects.filter(uuid=bem_ptrf.uuid).exists()
+    assert not BemProduzidoDespesa.objects.filter(bem_produzido=bem_ptrf).exists()
+    assert not BemProduzidoItem.objects.filter(bem_produzido=bem_ptrf).exists()
+
+
+@freeze_time("2025-03-10")
+def test_deve_permitir_exclusao_quando_houver_uma_despesa_em_periodo_bloqueado_e_outra_em_periodo_liberado(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    associacao_1,
+    recurso_ptrf,
+    bem_produzido_factory,
+    bem_produzido_item_factory,
+    bem_produzido_despesa_factory,
+    despesa_factory,
+    especificacao_material_servico_1,
+    periodo_factory,
+    prestacao_conta_factory,
+):
+    despesa_janeiro = despesa_factory.create(
+        associacao=associacao_1,
+        recurso=recurso_ptrf,
+        data_documento=date(2025, 1, 15),
+        data_transacao=date(2025, 1, 15),
+    )
+
+    despesa_marco = despesa_factory.create(
+        associacao=associacao_1,
+        recurso=recurso_ptrf,
+        data_documento=date(2025, 3, 5),
+        data_transacao=date(2025, 3, 5),
+    )
+
+    bem = bem_produzido_factory.create(
+        associacao=associacao_1,
+        recurso=recurso_ptrf,
+        status=BemProduzido.STATUS_COMPLETO,
+    )
+
+    bem_produzido_despesa_factory.create(
+        bem_produzido=bem,
+        despesa=despesa_janeiro,
+    )
+
+    bem_produzido_despesa_factory.create(
+        bem_produzido=bem,
+        despesa=despesa_marco,
+    )
+
+    bem_produzido_item_factory.create(
+        bem_produzido=bem,
+        especificacao_do_bem=especificacao_material_servico_1,
+    )
+
+    periodo_janeiro = periodo_factory.create(
+        referencia="2025.1",
+        data_inicio_realizacao_despesas=date(2025, 1, 1),
+        data_fim_realizacao_despesas=date(2025, 2, 28),
+        recurso=recurso_ptrf,
+    )
+
+    periodo_marco = periodo_factory.create(
+        referencia="2025.2",
+        data_inicio_realizacao_despesas=date(2025, 3, 1),
+        data_fim_realizacao_despesas=date(2025, 5, 31),
+        recurso=recurso_ptrf,
+    )
+
+    prestacao_conta_factory.create(
+        associacao=associacao_1,
+        periodo=periodo_janeiro,
+        status=PrestacaoConta.STATUS_APROVADA,
+    )
+
+    prestacao_conta_factory.create(
+        associacao=associacao_1,
+        periodo=periodo_marco,
+        status=PrestacaoConta.STATUS_NAO_APRESENTADA,
+    )
+
+    response = jwt_authenticated_client_sme.get(
+        f"/api/bens-produzidos/{bem.uuid}/status-delecao-bem-produzido/",
+        HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
+    )
+
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+
+
+@freeze_time('2025-03-10')
+def test_modo_visualizacao_true_quando_despesa_mais_recente_esta_em_periodo_fechado(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    associacao_1,
+    recurso_ptrf,
+    periodo_factory,
+    despesa_factory,
+    prestacao_conta_factory,
+    bem_produzido_factory,
+    bem_produzido_despesa_factory,
+):
+    periodo = periodo_factory.create(
+        referencia='2025.1',
+        data_inicio_realizacao_despesas=date(2025, 1, 1),
+        data_fim_realizacao_despesas=date(2025, 2, 28),
+        recurso=recurso_ptrf,
+    )
+    despesa = despesa_factory.create(
+        associacao=associacao_1,
+        recurso=recurso_ptrf,
+        data_transacao=date(2025, 1, 20),
+        data_documento=date(2025, 1, 20),
+    )
+    prestacao_conta_factory.create(
+        associacao=associacao_1,
+        periodo=periodo,
+        status=PrestacaoConta.STATUS_APROVADA,
+    )
+    bem = bem_produzido_factory.create(
+        associacao=associacao_1,
+        recurso=recurso_ptrf,
+        status=BemProduzido.STATUS_COMPLETO,
+    )
+    bem_produzido_despesa_factory.create(bem_produzido=bem, despesa=despesa)
+
+    response = jwt_authenticated_client_sme.get(
+        f"/api/bens-produzidos/{bem.uuid}/modo-visualizacao/",
+        HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['modo_visualizacao'] is True
+
+
+@freeze_time('2025-03-10')
+def test_modo_visualizacao_false_quando_periodo_esta_aberto(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    associacao_1,
+    recurso_ptrf,
+    periodo_factory,
+    despesa_factory,
+    prestacao_conta_factory,
+    bem_produzido_factory,
+    bem_produzido_despesa_factory,
+):
+    periodo = periodo_factory.create(
+        referencia='2025.1',
+        data_inicio_realizacao_despesas=date(2025, 1, 1),
+        data_fim_realizacao_despesas=date(2025, 6, 30),
+        recurso=recurso_ptrf,
+    )
+    despesa = despesa_factory.create(
+        associacao=associacao_1,
+        recurso=recurso_ptrf,
+        data_transacao=date(2025, 3, 1),
+        data_documento=date(2025, 3, 1),
+    )
+    prestacao_conta_factory.create(
+        associacao=associacao_1,
+        periodo=periodo,
+        status=PrestacaoConta.STATUS_NAO_APRESENTADA,
+    )
+    bem = bem_produzido_factory.create(
+        associacao=associacao_1,
+        recurso=recurso_ptrf,
+        status=BemProduzido.STATUS_COMPLETO,
+    )
+    bem_produzido_despesa_factory.create(bem_produzido=bem, despesa=despesa)
+
+    response = jwt_authenticated_client_sme.get(
+        f"/api/bens-produzidos/{bem.uuid}/modo-visualizacao/",
+        HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.json()['modo_visualizacao'] is False
+
+
+@freeze_time('2025-03-10')
+def test_patch_bem_produzido_bloqueado_quando_periodo_da_despesa_mais_recente_esta_fechado(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    associacao_1,
+    recurso_ptrf,
+    periodo_factory,
+    despesa_factory,
+    rateio_despesa_factory,
+    prestacao_conta_factory,
+    bem_produzido_factory,
+    bem_produzido_despesa_factory,
+    especificacao_material_servico_1,
+):
+    periodo = periodo_factory.create(
+        referencia='2025.1',
+        data_inicio_realizacao_despesas=date(2025, 1, 1),
+        data_fim_realizacao_despesas=date(2025, 2, 28),
+        recurso=recurso_ptrf,
+    )
+    despesa = despesa_factory.create(
+        associacao=associacao_1,
+        recurso=recurso_ptrf,
+        data_transacao=date(2025, 1, 20),
+        data_documento=date(2025, 1, 20),
+    )
+    rateio = rateio_despesa_factory.create(
+        associacao=associacao_1,
+        despesa=despesa,
+        valor_rateio=100,
+    )
+    prestacao_conta_factory.create(
+        associacao=associacao_1,
+        periodo=periodo,
+        status=PrestacaoConta.STATUS_APROVADA,
+    )
+    bem = bem_produzido_factory.create(
+        associacao=associacao_1,
+        recurso=recurso_ptrf,
+        status=BemProduzido.STATUS_COMPLETO,
+    )
+    bem_produzido_despesa_factory.create(bem_produzido=bem, despesa=despesa)
+
+    payload = {
+        "despesas": [str(despesa.uuid)],
+        "rateios": [{"uuid": str(rateio.uuid), "valor_utilizado": 100}],
+        "itens": [{
+            "num_processo_incorporacao": "1234567890123456",
+            "quantidade": 1,
+            "valor_individual": 100,
+            "especificacao_do_bem": str(especificacao_material_servico_1.uuid),
+        }],
+        "associacao": str(associacao_1.uuid),
+    }
+
+    response = jwt_authenticated_client_sme.patch(
+        f"/api/bens-produzidos/{bem.uuid}/",
+        data=json.dumps(payload),
+        content_type='application/json',
+        HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
+    )
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.json()['titulo'] == 'Período fechado'

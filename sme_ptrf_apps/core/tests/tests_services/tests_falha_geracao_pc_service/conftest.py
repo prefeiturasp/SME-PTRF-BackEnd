@@ -108,7 +108,6 @@ def parametros_teste_falha_geracao_pc_service():
     return baker.make(
         'Parametros',
         tempo_aguardar_conclusao_pc=1,
-        permite_saldo_conta_negativo=True,
         quantidade_tentativas_concluir_pc=3,
     )
 

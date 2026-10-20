@@ -179,7 +179,7 @@ def test_get_receitas(
 ):
     response = jwt_authenticated_client_p.get(
         f'/api/receitas/?associacao_uuid={associacao.uuid}', content_type='application/json')
-    result = json.loads(response.content)
+    result = json.loads(response.content).get('results', [])
 
     uuids_esperado = [f'{receita.uuid}']
 

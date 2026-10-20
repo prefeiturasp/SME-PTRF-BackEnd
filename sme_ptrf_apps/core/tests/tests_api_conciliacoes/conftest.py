@@ -35,13 +35,13 @@ def periodo_2020_1(periodo_factory, periodo_2019_2):
 
 
 @pytest.fixture
-def tipo_receita_repasse():
-    return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
+def tipo_receita_repasse(tipo_receita_factory):
+    return tipo_receita_factory.create(nome='Repasse', e_repasse=True)
 
 
 @pytest.fixture
-def tipo_receita_outras():
-    return baker.make('TipoReceita', nome='Outras')
+def tipo_receita_outras(tipo_receita_factory):
+    return tipo_receita_factory.create(nome='Outras')
 
 
 @pytest.fixture

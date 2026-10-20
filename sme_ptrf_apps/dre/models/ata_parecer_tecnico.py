@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from django.db import models
 from django.db.models.signals import pre_save
@@ -14,6 +14,11 @@ logger = logging.getLogger(__name__)
 
 
 class AtaParecerTecnico(ModeloBase):
+    # Data fixa utilizada como marco para separar o comportamento legado das novas nomenclaturas.
+    # A partir desta data (deploy da melhoria em produção, realizado após o término da sprint 40),
+    # as atas passam a utilizar o novo texto de publicação da portaria.
+    DATA_CORTE_PORTARIA = date(2026, 9, 3)
+
     history = AuditlogHistoryField()
 
     # Status Choice
@@ -129,6 +134,20 @@ class AtaParecerTecnico(ModeloBase):
         self.save(update_fields=['consolidado_dre'])
         return self
 
+    def portaria_publicada(self) -> str:
+        if not self.data_portaria:
+            return ""
+
+        data_portaria = self.data_portaria.strftime("%d/%m/%Y")
+
+        if self.criado_em.date() >= self.DATA_CORTE_PORTARIA:
+            return f"publicada em {data_portaria}"
+
+        return f"de {data_portaria}"
+
+    def eh_portaria_publicada(self) -> bool:
+        return self.criado_em.date() >= self.DATA_CORTE_PORTARIA
+
 
 @receiver(pre_save, sender=AtaParecerTecnico)
 def ata_pre_save(instance, **kwargs):
@@ -138,4 +157,3 @@ def ata_pre_save(instance, **kwargs):
 
 
 auditlog.register(AtaParecerTecnico)
-

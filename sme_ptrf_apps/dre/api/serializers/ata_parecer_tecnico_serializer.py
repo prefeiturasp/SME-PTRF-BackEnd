@@ -5,6 +5,8 @@ from sme_ptrf_apps.core.models import Periodo, Unidade
 from ...api.serializers.presentes_ata_dre_serializer import PresentesAtaDreSerializer, PresentesAtaDreCreateSerializer
 from sme_ptrf_apps.core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
 from sme_ptrf_apps.core.api.serializers.unidade_serializer import UnidadeLookUpSerializer
+from sme_ptrf_apps.dre.models import MembroComissao
+from django.db.models import Exists, OuterRef, Q
 
 
 class AtaParecerTecnicoLookUpSerializer(serializers.ModelSerializer):
@@ -37,13 +39,18 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
 
     periodo = PeriodoLookUpSerializer(many=False)
 
-    presentes_na_ata = PresentesAtaDreSerializer(many=True)
+    presentes_na_ata = serializers.SerializerMethodField()
 
     versao = serializers.SerializerMethodField('get_versao')
 
     motivo_retificacao = serializers.SerializerMethodField('get_motivo_retificacao')
 
     eh_retificacao = serializers.SerializerMethodField('get_eh_retificacao')
+
+    portaria_publicada = serializers.SerializerMethodField()
+
+    eh_portaria_publicada = serializers.SerializerMethodField()
+
 
     def get_hora_reuniao(self, obj):
         return obj.hora_reuniao.strftime('%H:%M')
@@ -66,6 +73,42 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
 
         return False
 
+    def get_portaria_publicada(self, obj):
+        return obj.portaria_publicada()
+
+    def get_eh_portaria_publicada(self, obj):
+        return obj.eh_portaria_publicada()
+
+    def get_presentes_na_ata(self, obj):
+        request = self.context.get('request')
+        recurso = getattr(request, 'recurso', None)
+
+        presentes = obj.presentes_na_ata.all()
+
+        if recurso:
+            membro_comissao = MembroComissao.objects.filter(
+                dre=obj.dre,
+                rf=OuterRef('rf'),
+            )
+
+            membro_comissao_recurso = membro_comissao.filter(
+                comissoes__recursos=recurso,
+                comissoes__responsavel_analise_pc=True,
+            )
+
+            presentes = presentes.annotate(
+                eh_membro_comissao=Exists(membro_comissao),
+                pertence_ao_recurso=Exists(membro_comissao_recurso),
+            ).filter(
+                Q(eh_membro_comissao=False) | Q(pertence_ao_recurso=True)
+            )
+
+        return PresentesAtaDreSerializer(
+            presentes,
+            many=True,
+            context=self.context,
+        ).data
+
     class Meta:
         model = AtaParecerTecnico
         fields = (
@@ -85,7 +128,9 @@ class AtaParecerTecnicoSerializer(serializers.ModelSerializer):
             'data_portaria',
             'versao',
             'motivo_retificacao',
-            'eh_retificacao'
+            'eh_retificacao',
+            'portaria_publicada',
+            'eh_portaria_publicada'
         )
 
 
@@ -116,7 +161,7 @@ class AtaParecerTecnicoCreateSerializer(serializers.ModelSerializer):
 
         if motivo_retificacao:
             ata.consolidado_dre.motivo_retificacao = motivo_retificacao
-            ata.consolidado_dre.save()
+            ata.consolidado_dre.save(update_fields=['motivo_retificacao', 'alterado_em'])
 
         presentes_lista = []
         for presente in presentes_na_ata:
@@ -138,10 +183,10 @@ class AtaParecerTecnicoCreateSerializer(serializers.ModelSerializer):
         if validated_data.get("consolidado_dre__motivo_retificacao"):
             motivo_retificacao = validated_data.pop('consolidado_dre__motivo_retificacao')
             instance.consolidado_dre.motivo_retificacao = motivo_retificacao
-            instance.consolidado_dre.save()
+            instance.consolidado_dre.save(update_fields=['motivo_retificacao', 'alterado_em'])
         elif instance.consolidado_dre:
             instance.consolidado_dre.motivo_retificacao = None
-            instance.consolidado_dre.save()
+            instance.consolidado_dre.save(update_fields=['motivo_retificacao', 'alterado_em'])
 
         update_instance_from_dict(instance, validated_data)
         instance.presentes_na_ata.set(presentes_lista)

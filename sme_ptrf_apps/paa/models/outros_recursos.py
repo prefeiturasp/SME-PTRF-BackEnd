@@ -1,12 +1,13 @@
+"""Modelo para representar recursos adicionais disponíveis para uso no PAA."""
 from django.db import models
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
 
-def gerar_cor():
+def gerar_cor() -> str:
     """
-    Gera uma cor aleatória no formato '#rrggbb', tendendo às cores em tonalidades frias.
+    Gera uma cor aleatória.
 
     Retorna uma string com a cor no formato hexadecimal.
     """
@@ -18,6 +19,12 @@ def gerar_cor():
 
 
 class OutroRecurso(ModeloIdNome):
+    """
+    Representa um recurso adicional disponível para uso no PAA.
+
+    Essa model armazena informações sobre recursos adicionais, incluindo o nome do recurso,
+    os tipos de aplicação aceitos e a cor associada ao recurso.
+    """
     history = AuditlogHistoryField()
 
     aceita_capital = models.BooleanField('Aceita capital?', default=False)
@@ -26,7 +33,8 @@ class OutroRecurso(ModeloIdNome):
 
     cor = models.CharField(max_length=10, blank=True, null=True, default=gerar_cor)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Retorna o nome do recurso para representação textual."""
         return self.nome
 
     class Meta:

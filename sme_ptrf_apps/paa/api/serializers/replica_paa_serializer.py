@@ -4,10 +4,12 @@ from sme_ptrf_apps.paa.models import ReplicaPaa, Paa
 
 
 class HistoricoObjetivoSerializer(serializers.Serializer):
+    """Serializer para os objetivos do histórico do PAA."""
     nome = serializers.CharField()
 
 
 class HistoricoReceitaSerializer(serializers.Serializer):
+    """Serializer para as receitas do histórico do PAA."""
     previsao_valor_capital = serializers.CharField(required=False)
     previsao_valor_custeio = serializers.CharField(required=False)
     previsao_valor_livre = serializers.CharField(required=False)
@@ -20,6 +22,7 @@ class HistoricoReceitaSerializer(serializers.Serializer):
 
 
 class HistoricoPrioridadeSerializer(serializers.Serializer):
+    """Serializer para as prioridades do histórico do PAA."""
     recurso = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     prioridade = serializers.IntegerField(required=False, allow_null=True)
     tipo_aplicacao = serializers.CharField(required=False, allow_blank=True, allow_null=True)
@@ -33,6 +36,10 @@ class HistoricoPrioridadeSerializer(serializers.Serializer):
 
 
 class HistoricoPaaSerializer(serializers.Serializer):
+    """
+    Serializer responsável por validar e serializar os dados do histórico do PAA.
+
+    """
     CAMPOS_OBRIGATORIOS = {
         'texto_introducao', 'texto_conclusao', 'objetivos',
         'receitas_ptrf', 'receitas_pdde', 'receitas_outros_recursos', 'prioridades',
@@ -46,7 +53,8 @@ class HistoricoPaaSerializer(serializers.Serializer):
     receitas_outros_recursos = serializers.DictField(child=HistoricoReceitaSerializer(), required=True)
     prioridades = serializers.DictField(child=HistoricoPrioridadeSerializer(), required=True)
 
-    def validate(self, data):
+    def validate(self, data: dict) -> dict:
+        """Valida se todos os campos obrigatórios estão presentes no histórico do PAA."""
         ausentes = self.CAMPOS_OBRIGATORIOS - set(data.keys())
         if ausentes:
             raise serializers.ValidationError(
@@ -54,7 +62,8 @@ class HistoricoPaaSerializer(serializers.Serializer):
             )
         return data
 
-    def validate_objetivos(self, value):
+    def validate_objetivos(self, value: dict) -> dict:
+        """Valida se cada objetivo no histórico do PAA contém o campo 'nome'."""
         for uuid_key, dados in value.items():
             if not isinstance(dados, dict) or 'nome' not in dados:
                 raise serializers.ValidationError(
@@ -62,16 +71,20 @@ class HistoricoPaaSerializer(serializers.Serializer):
                 )
         return value
 
-    def validate_receitas_ptrf(self, value):
+    def validate_receitas_ptrf(self, value: dict) -> dict:
+        """Valida se cada receita ptrf no histórico do PAA contém os campos obrigatórios."""
         return self._validar_receitas(value, 'receitas_ptrf')
 
-    def validate_receitas_pdde(self, value):
+    def validate_receitas_pdde(self, value: dict) -> dict:
+        """Valida se cada receita pdde no histórico do PAA contém os campos obrigatórios."""
         return self._validar_receitas(value, 'receitas_pdde')
 
-    def validate_receitas_outros_recursos(self, value):
+    def validate_receitas_outros_recursos(self, value: dict) -> dict:
+        """Valida se cada receita outros recursos no histórico do PAA contém os campos obrigatórios."""
         return self._validar_receitas(value, 'receitas_outros_recursos')
 
-    def _validar_receitas(self, value, campo):
+    def _validar_receitas(self, value: dict, campo: str) -> dict:
+        """Valida se cada receita no histórico do PAA contém os campos obrigatórios."""
         campos_receita = {
             'previsao_valor_capital', 'previsao_valor_custeio', 'previsao_valor_livre'
         }
@@ -89,6 +102,10 @@ class HistoricoPaaSerializer(serializers.Serializer):
 
 
 class ReplicaPaaSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por validar, criar e serializar
+    os dados de uma ReplicaPaa.
+    """
     paa = serializers.SlugRelatedField(queryset=Paa.objects.all(), slug_field='uuid')
     historico = HistoricoPaaSerializer()
 
@@ -97,12 +114,14 @@ class ReplicaPaaSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'paa', 'historico', 'criado_em', 'alterado_em')
         read_only_fields = ('uuid', 'criado_em', 'alterado_em')
 
-    def validate_historico(self, value):
+    def validate_historico(self, value: dict) -> dict:
+        """Valida o histórico do PAA usando o HistoricoPaaSerializer."""
         serializer = HistoricoPaaSerializer(data=value)
         if not serializer.is_valid():
             raise serializers.ValidationError(serializer.errors)
         return value
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict) -> ReplicaPaa:
+        """Cria uma instância de ReplicaPaa com o histórico validado."""
         historico_data = validated_data.pop('historico')
         return ReplicaPaa.objects.create(historico=historico_data, **validated_data)

@@ -144,8 +144,11 @@ def get_recurso(recurso):
 def vincular_periodo_inicial_associacao(associacao, periodo_inicial, recurso):
     PeriodoInicialAssociacao.objects.update_or_create(
         associacao=associacao,
-        periodo_inicial=periodo_inicial,
-        recurso=recurso
+        recurso=recurso,
+        defaults={
+            "periodo_inicial": periodo_inicial,
+            "status_valores_reprogramados": associacao.status_valores_reprogramados,
+        }
     )
 
 

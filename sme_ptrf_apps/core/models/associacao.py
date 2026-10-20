@@ -6,7 +6,7 @@ from sme_ptrf_apps.core.models.conta_associacao import ContaAssociacao
 from sme_ptrf_apps.core.models.solicitacao_encerramento_conta_associacao import SolicitacaoEncerramentoContaAssociacao
 
 from sme_ptrf_apps.core.models_abstracts import ModeloIdNome
-from .validators import cnpj_validation
+from .validators import cnpj_validation, normalize_cnpj
 from ..choices import MembroEnum, FiltroInformacoesAssociacao, FiltroInformacoesAssociacaoDre
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
@@ -169,8 +169,13 @@ class Associacao(ModeloIdNome):
 
         return tags
 
-    def apaga_implantacoes_de_saldo(self):
-        self.fechamentos_associacao.filter(status='IMPLANTACAO').delete()
+    def apaga_implantacoes_de_saldo(self, recurso=None, periodo=None):
+        qs = self.fechamentos_associacao.filter(status='IMPLANTACAO')
+        if periodo:
+            qs = qs.filter(periodo=periodo)
+        elif recurso:
+            qs = qs.filter(periodo__recurso=recurso)
+        qs.delete()
 
     def primeiro_periodo_ativo_por_recurso(self, recurso):
         periodo_inicial = self.periodos_iniciais.filter(recurso=recurso).first()
@@ -229,7 +234,9 @@ class Associacao(ModeloIdNome):
     def encerrada(self):
         return self.data_de_encerramento is not None
 
-    def periodos_com_prestacao_de_contas(self, ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=False, recurso=None):
+    def periodos_com_prestacao_de_contas(
+        self, ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=False, recurso=None
+    ):
         from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
         periodos = set()
 
@@ -244,7 +251,7 @@ class Associacao(ModeloIdNome):
 
         for prestacao in prestacoes_da_associacao.all():
             if ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos:
-                if prestacao.analise_atual and prestacao.analise_atual.requer_alteracao_em_lancamentos == True:
+                if prestacao.analise_atual and prestacao.analise_atual.requer_alteracao_em_lancamentos is True:
                     continue
             periodos.add(prestacao.periodo)
 
@@ -269,7 +276,11 @@ class Associacao(ModeloIdNome):
         ultimo_periodo_com_prestacao = ultima_prestacao_feita.periodo if ultima_prestacao_feita else None
         if ultimo_periodo_com_prestacao:
             periodo_seguinte = ultimo_periodo_com_prestacao.periodo_seguinte.first()
-            if not self.encerrada or (self.encerrada and periodo_seguinte and periodo_seguinte.data_inicio_realizacao_despesas <= self.data_de_encerramento):
+            if not self.encerrada or (
+                self.encerrada and
+                periodo_seguinte and
+                periodo_seguinte.data_inicio_realizacao_despesas <= self.data_de_encerramento
+            ):
                 return periodo_seguinte
             else:
                 return None
@@ -278,7 +289,11 @@ class Associacao(ModeloIdNome):
 
     def periodos_para_prestacoes_de_conta(self, ignorar_devolvidas=False, recurso=None):
         periodos = set(
-            self.periodos_com_prestacao_de_contas(ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=True, recurso=recurso))
+            self.periodos_com_prestacao_de_contas(
+                ignorar_pcs_com_acertos_que_demandam_exclusoes_e_fechamentos=True,
+                recurso=recurso,
+            )
+        )
 
         proximo_periodo = self.proximo_periodo_de_prestacao_de_contas(ignorar_devolvidas, recurso=recurso)
         if proximo_periodo:
@@ -301,7 +316,9 @@ class Associacao(ModeloIdNome):
 
         if primeiro_periodo_ativo:
             qry_periodos = qry_periodos.filter(
-                data_inicio_realizacao_despesas__gte=primeiro_periodo_ativo.periodo_anterior.data_fim_realizacao_despesas
+                data_inicio_realizacao_despesas__gte=(
+                    primeiro_periodo_ativo.periodo_anterior.data_fim_realizacao_despesas
+                )
             )
 
         if self.data_de_encerramento:
@@ -321,11 +338,60 @@ class Associacao(ModeloIdNome):
     @classmethod
     def acoes_da_associacao(cls, associacao_uuid):
         associacao = cls.objects.filter(uuid=associacao_uuid).first()
-        return associacao.acoes.all().order_by('acao__posicao_nas_pesquisas') if associacao else []
+        return associacao.acoes.all().order_by('acao__ordem_exibicao') if associacao else []
 
-    def altera_status_valor_reprogramado(self, status):
-        self.status_valores_reprogramados = status
-        self.save()
+    def get_periodo_inicial_associacao(self, recurso=None):
+        if recurso:
+            return self.periodos_iniciais.filter(recurso=recurso).first()
+
+        periodo_inicial_associacao_legado = self.periodos_iniciais.filter(recurso__legado=True).first()
+        if periodo_inicial_associacao_legado:
+            return periodo_inicial_associacao_legado
+
+        if self.periodo_inicial:
+            periodo_inicial_associacao = self.periodos_iniciais.filter(
+                periodo_inicial=self.periodo_inicial
+            ).first()
+            if periodo_inicial_associacao:
+                return periodo_inicial_associacao
+
+        return self.periodos_iniciais.first()
+
+    def get_status_valores_reprogramados(self, recurso=None):
+        if not recurso:
+            return self.status_valores_reprogramados
+
+        periodo_inicial_associacao = self.get_periodo_inicial_associacao(recurso=recurso)
+        if periodo_inicial_associacao:
+            return periodo_inicial_associacao.status_valores_reprogramados
+        return self.status_valores_reprogramados
+
+    def altera_status_valor_reprogramado(self, status, recurso=None):
+        if status is None:
+            return
+
+        if not recurso:
+            self.status_valores_reprogramados = status
+            self.save(update_fields=["status_valores_reprogramados", "alterado_em"])
+            return
+
+        periodo_inicial_associacao = self.get_periodo_inicial_associacao(recurso=recurso)
+        if periodo_inicial_associacao:
+            periodo_inicial_associacao.status_valores_reprogramados = status
+            periodo_inicial_associacao.save(update_fields=["status_valores_reprogramados", "alterado_em"])
+
+        if recurso.legado:
+            self.status_valores_reprogramados = status
+            self.save(update_fields=["status_valores_reprogramados", "alterado_em"])
+
+    def popular_status_valores_reprogramados_por_recurso(self):
+        atualizado = 0
+        for periodo_inicial_associacao in self.periodos_iniciais.all():
+            if periodo_inicial_associacao.status_valores_reprogramados != self.status_valores_reprogramados:
+                periodo_inicial_associacao.status_valores_reprogramados = self.status_valores_reprogramados
+                periodo_inicial_associacao.save(update_fields=["status_valores_reprogramados", "alterado_em"])
+                atualizado += 1
+        return atualizado
 
     @property
     def pode_editar_periodo_inicial(self):
@@ -378,8 +444,11 @@ class Associacao(ModeloIdNome):
 
         contas = ContaAssociacao.filter_by_recurso(self.contas.all(), recurso)
 
-        pendencia_contas = contas.filter(Q(banco_nome__exact='') | Q(agencia__exact='') | Q(numero_conta__exact='',
-                                                                                            status=ContaAssociacao.STATUS_ATIVA)).exists()
+        pendencia_contas = contas.filter(
+            Q(banco_nome__exact='') |
+            Q(agencia__exact='') |
+            Q(numero_conta__exact='', status=ContaAssociacao.STATUS_ATIVA)
+        ).exists()
         if pendencia_cadastro or pendencia_membros or pendencia_contas or pendencia_novo_mandato:
             pendencias = {
                 'pendencia_cadastro': pendencia_cadastro,
@@ -517,6 +586,58 @@ class Associacao(ModeloIdNome):
 
         return dados_presidente
 
+    def dados_presidente_composicao_vigente_vacancia(self):
+        from datetime import date
+
+        from sme_ptrf_apps.mandatos.choices import CargoComposicaoVacanciaChoices
+        from sme_ptrf_apps.mandatos.models import CargoComposicaoVacancia, ComposicaoVacancia
+        from sme_ptrf_apps.mandatos.services.mandato_vacancia_service import ServicoMandatoVigenteVacancia
+
+        dados_presidente = {
+            "nome": "",
+            "cargo_educacao": "",
+            "telefone": "",
+            "email": "",
+            "endereco": "",
+            "complemento": "",
+            "bairro": "",
+            "cep": "",
+            "municipio": "",
+            "uf": ""
+        }
+
+        mandato_vigente = ServicoMandatoVigenteVacancia().get_mandato_vigente()
+        if not mandato_vigente:
+            return dados_presidente
+
+        composicao = ComposicaoVacancia.objects.filter(
+            associacao=self,
+            mandato=mandato_vigente,
+        ).first()
+        if not composicao:
+            return dados_presidente
+
+        hoje = date.today()
+        registro = CargoComposicaoVacancia.objects.filter(
+            composicao=composicao,
+            cargo_associacao=CargoComposicaoVacanciaChoices.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA,
+            data_inicio_no_cargo__lte=hoje,
+            data_fim_no_cargo__gte=hoje,
+            ocupante_do_cargo__isnull=False,
+        ).select_related('ocupante_do_cargo').first()
+
+        if registro and registro.ocupante_do_cargo:
+            ocupante = registro.ocupante_do_cargo
+            dados_presidente["nome"] = ocupante.nome
+            dados_presidente["cargo_educacao"] = ocupante.cargo_educacao
+            dados_presidente["telefone"] = ocupante.telefone
+            dados_presidente["email"] = ocupante.email
+            dados_presidente["endereco"] = ocupante.endereco
+            dados_presidente["bairro"] = ocupante.bairro
+            dados_presidente["cep"] = ocupante.cep
+
+        return dados_presidente
+
     objects = models.Manager()  # Manager Padrão
     ativas = AssociacoesAtivasManager()
 
@@ -525,18 +646,33 @@ class Associacao(ModeloIdNome):
         verbose_name_plural = "07.0) Associações"
 
     def clean(self):
-        data_fim_realizacao_despesas = self.periodo_inicial.data_fim_realizacao_despesas if self.periodo_inicial and self.periodo_inicial.data_fim_realizacao_despesas else None
+        data_fim_realizacao_despesas = (
+            self.periodo_inicial.data_fim_realizacao_despesas
+            if self.periodo_inicial and self.periodo_inicial.data_fim_realizacao_despesas
+            else None
+        )
 
         if self.data_de_encerramento and self.data_de_encerramento > datetime.date.today():
             raise ValidationError(
                 {'data_de_encerramento': "Data de encerramento não pode ser maior que a data de Hoje"})
 
-        if data_fim_realizacao_despesas and self.data_de_encerramento and self.data_de_encerramento < data_fim_realizacao_despesas:
+        if (
+            data_fim_realizacao_despesas and
+            self.data_de_encerramento and
+            self.data_de_encerramento < data_fim_realizacao_despesas
+        ):
             raise ValidationError(
                 {
-                    'data_de_encerramento': "Data de encerramento não pode ser menor que data_fim_realizacao_despesas do período inicial"})
+                    'data_de_encerramento': (
+                        "Data de encerramento não pode ser menor que "
+                        "data_fim_realizacao_despesas do período inicial"
+                    )
+                }
+            )
 
     def save(self, *args, **kwargs):
+        if self.cnpj:
+            self.cnpj = normalize_cnpj(self.cnpj)
         self.clean()
         return super().save(*args, **kwargs)
 
@@ -596,6 +732,7 @@ class Associacao(ModeloIdNome):
             filtro_recurso |= filtro_legado
 
         return queryset.filter(filtro_recurso).distinct()
+
 
 def tag_informacao(tipo_de_tag, hint):
     return {

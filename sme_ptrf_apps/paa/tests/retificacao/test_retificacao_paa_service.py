@@ -28,6 +28,10 @@ class TestGerarSnapshot:
         assert 'receitas_recurso_proprio' in snapshot
         assert 'receitas_outros_recursos' in snapshot
         assert 'prioridades' in snapshot
+        assert 'documento_original' in snapshot
+        assert 'documento_retificado' in snapshot
+        assert 'ata_original' in snapshot
+        assert 'ata_retificada' in snapshot
 
     def test_snapshot_captura_texto_introducao(self, paa_retificacao):
         snapshot = _service(paa_retificacao).gerar_snapshot()
@@ -118,11 +122,11 @@ class TestCriarAtaRetificacao:
 
         assert ata.tipo_ata == AtaPaa.ATA_RETIFICACAO
 
-    def test_ata_salva_justificativa(self, paa_retificacao):
-        justificativa = 'Justificativa detalhada para a retificação.'
-        ata = _service(paa_retificacao).criar_ata_retificacao(justificativa)
+    def test_ata_salva_justificativa_retificacao(self, paa_retificacao):
+        justificativa_retificacao = 'Justificativa detalhada para a retificação.'
+        ata = _service(paa_retificacao).criar_ata_retificacao(justificativa_retificacao)
 
-        assert ata.justificativa == justificativa
+        assert ata.justificativa_retificacao == justificativa_retificacao
 
     def test_ata_associada_ao_paa(self, paa_retificacao):
         ata = _service(paa_retificacao).criar_ata_retificacao('Justificativa.')
@@ -158,10 +162,10 @@ class TestIniciarRetificacao:
             versao=DocumentoPaa.VersaoChoices.FINAL,
             status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
         )
-        assert paa_retificacao.status == PaaStatusEnum.GERADO.name
+        assert paa_retificacao.status_gerado
         _service(paa_retificacao).iniciar_retificacao('Justificativa.')
         paa_retificacao.refresh_from_db()
-        assert paa_retificacao.status == PaaStatusEnum.EM_RETIFICACAO.name
+        assert paa_retificacao.status_em_retificacao
         assert ReplicaPaa.objects.filter(paa=paa_retificacao).exists()
 
     def test_cria_ata_de_retificacao_no_banco(self, paa_factory, flag_paa_retificacao,
@@ -209,7 +213,7 @@ class TestIniciarRetificacao:
 
         assert AtaPaa.objects.filter(
             paa=paa_retificacao, tipo_ata=AtaPaa.ATA_RETIFICACAO
-        ).first().justificativa == justificativa
+        ).first().justificativa_retificacao == justificativa
 
 
 class TestIdentificarAlteracoes:

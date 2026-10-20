@@ -27,6 +27,8 @@ class PeriodoFactory(DjangoModelFactory):
         lambda obj: obj.data_inicio_realizacao_despesas.strftime("%Y.1")
     )
 
+    notificacao_inicio_periodo_pc_realizada = False
+
     recurso = LazyFunction(lambda: Recurso.objects.get(legado=True))
 
 

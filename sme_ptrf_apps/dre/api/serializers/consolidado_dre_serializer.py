@@ -6,6 +6,7 @@ from .analise_consolidado_dre_serializer import AnaliseConsolidadoDreSerializer
 from ..serializers.relatorio_consolidado_dre_serializer import RelatorioConsolidadoDreSerializer
 from ..serializers.ata_parecer_tecnico_serializer import AtaParecerTecnicoLookUpSerializer
 from ...models import ConsolidadoDRE, AnaliseConsolidadoDre, AnaliseDocumentoConsolidadoDre
+from sme_ptrf_apps.dre.services.consolidado_dre_service import TextDocumentConsolidadoPC
 
 
 class ConsolidadoDreSerializer(serializers.ModelSerializer):
@@ -86,6 +87,9 @@ class ConsolidadoDreDetalhamentoSerializer(serializers.ModelSerializer):
                 return False
 
     def get_botoes_avancar_e_retroceder(self, obj):
+        recurso = obj.periodo.recurso
+        text_action_female_single_in_past = TextDocumentConsolidadoPC(recurso.habilita_exibicao_de_lauda).text_action_female_single_in_past()
+
         obj_botoes = {
             "texto_botao_avancar": None,
             "habilita_botao_avancar": False,
@@ -111,7 +115,7 @@ class ConsolidadoDreDetalhamentoSerializer(serializers.ModelSerializer):
             obj_botoes = {
                 "texto_botao_avancar": 'Concluir',
                 "habilita_botao_avancar": pode_concluir,
-                "texto_botao_retroceder": "Voltar para Publicado no D.O.",
+                "texto_botao_retroceder": f"Voltar para {text_action_female_single_in_past}.",
                 "habilita_botao_retroceder": True,
             }
         elif obj.status_sme == obj.STATUS_SME_DEVOLVIDO:

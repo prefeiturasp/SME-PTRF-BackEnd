@@ -9,6 +9,37 @@ from auditlog.registry import auditlog
 class PeriodoInicialAssociacao(ModeloBase):
     history = AuditlogHistoryField()
 
+    STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO = "NAO_FINALIZADO"
+    STATUS_VALORES_REPROGRAMADOS_EM_CONFERENCIA_DRE = "EM_CONFERENCIA_DRE"
+    STATUS_VALORES_REPROGRAMADOS_EM_CORRECAO_UE = "EM_CORRECAO_UE"
+    STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS = "VALORES_CORRETOS"
+
+    STATUS_VALORES_REPROGRAMADOS_NOMES = {
+        STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO: "Não finalizado",
+        STATUS_VALORES_REPROGRAMADOS_EM_CONFERENCIA_DRE: "Em conferência DRE",
+        STATUS_VALORES_REPROGRAMADOS_EM_CORRECAO_UE: "Em correção UE",
+        STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS: "Valores corretos",
+    }
+
+    STATUS_VALORES_REPROGRAMADOS_CHOICES = (
+        (
+            STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO,
+            STATUS_VALORES_REPROGRAMADOS_NOMES[STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO],
+        ),
+        (
+            STATUS_VALORES_REPROGRAMADOS_EM_CONFERENCIA_DRE,
+            STATUS_VALORES_REPROGRAMADOS_NOMES[STATUS_VALORES_REPROGRAMADOS_EM_CONFERENCIA_DRE],
+        ),
+        (
+            STATUS_VALORES_REPROGRAMADOS_EM_CORRECAO_UE,
+            STATUS_VALORES_REPROGRAMADOS_NOMES[STATUS_VALORES_REPROGRAMADOS_EM_CORRECAO_UE],
+        ),
+        (
+            STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS,
+            STATUS_VALORES_REPROGRAMADOS_NOMES[STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS],
+        ),
+    )
+
     associacao = models.ForeignKey(
         "Associacao",
         on_delete=models.PROTECT,
@@ -33,6 +64,28 @@ class PeriodoInicialAssociacao(ModeloBase):
         null=False, blank=False,
         help_text="O período inicial informado é uma referência e indica que o período a ser habilitado para a associação será o período posterior ao período informado."
     )
+
+    status_valores_reprogramados = models.CharField(
+        "Status dos valores reprogramados",
+        max_length=20,
+        choices=STATUS_VALORES_REPROGRAMADOS_CHOICES,
+        default=STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS,
+    )
+
+
+    @staticmethod
+    def filter_by_recurso(queryset, recurso):
+        return queryset.filter(recurso=recurso)
+
+    @classmethod
+    def sincronizar_status_por_recurso_a_partir_do_status_global(cls, associacao):
+        atualizado = 0
+        for periodo_inicial_associacao in cls.objects.filter(associacao=associacao):
+            if periodo_inicial_associacao.status_valores_reprogramados != associacao.status_valores_reprogramados:
+                periodo_inicial_associacao.status_valores_reprogramados = associacao.status_valores_reprogramados
+                periodo_inicial_associacao.save(update_fields=["status_valores_reprogramados", "alterado_em"])
+                atualizado += 1
+        return atualizado
 
     class Meta:
         verbose_name = "Período Inicial de Associação"

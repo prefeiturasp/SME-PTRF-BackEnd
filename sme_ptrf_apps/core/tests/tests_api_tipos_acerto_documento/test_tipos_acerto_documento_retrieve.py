@@ -31,7 +31,8 @@ def test_retrieve_tipo_acerto_documento(
                 'nome': tipo_documento_prestacao_conta_relacao_bens.nome,
                 'uuid': f'{tipo_documento_prestacao_conta_relacao_bens.uuid}'
             }
-        ]
+        ],
+        'recurso': f'{tipo_acerto_documento_01.recurso.uuid}'
     }
 
     assert response.status_code == status.HTTP_200_OK
