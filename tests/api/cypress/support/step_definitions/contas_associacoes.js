@@ -4,7 +4,7 @@ let token
 
 Before(function () {
   cy.gerar_token().then((token) => {
-    cy.wrap(token).as('token')
+    cy.wrap(token, { log: false }).as('token')
   })
 })
 
