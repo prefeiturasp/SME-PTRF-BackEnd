@@ -2,9 +2,9 @@
 Funcionalidade: Excluir Tipo de Conta
 
   Contexto:
-    Dado eu acesso o sistema com a visualização "<visualizacao>"
+    Dado eu acesso o sistema com a visualização "web"
     E realizo login no sistema PTRF com perfil "SME"
-@ignore
+
   Esquema do Cenário: Validar exclusâo de tipo conta:<caso>
     E excluo o tipo conta com o nome 'teste automatizado' via API
     E crio o tipo conta com o nome 'teste automatizado' via API
@@ -15,9 +15,10 @@ Funcionalidade: Excluir Tipo de Conta
     E clico no botao "Apagar tipo de conta" da tela tipo de conta
     E sistema apresenta a "<mensagem_de_confirmacao_de_erro>" para afirmacao da exclusao do tipo de conta
     Quando clico no botao "Excluir" da tela tipo de conta
-    Entao sistema apresenta a '<mensagem>' na tela
+    E sistema apresenta a '<mensagem>' na tela
+    Entao confirmo que o tipo conta com o nome 'teste automatizado' não existe via API
 
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao | mensagem                                                       | caso        | mensagem_de_confirmacao_de_erro               | dados_da_pesquisa   |
-      | web          | Tipo                        |  O tipo de conta foi removido do sistema com sucesso.          | com sucesso | Deseja realmente excluir este Tipo de Conta?  | teste automatizado  |
+      | web          | Tipo                        |  O tipo de conta foi removido do sistema com sucesso.          | com sucesso | Deseja realmente excluir este tipo de conta?  | teste automatizado  |

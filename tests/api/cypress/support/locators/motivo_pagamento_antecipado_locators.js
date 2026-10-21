@@ -30,7 +30,7 @@ class Motivo_Pagamento_Antecipado_Localizadores {
     return '[data-qa="tabela-motivos-pagamento-antecipado"]';
   };
   btn_editar_motivo_pagamento_antecipado = () => {
-    return '[data-qa="botao-editar-motivo-pagamento-antecipado"]';
+    return "tbody tr button";
   };
   btn_apagar_motivo_pagamento_antecipado = () => {
     return '[data-qa="botao-confirmar-apagar-motivo-pagamento-antecipado"]';

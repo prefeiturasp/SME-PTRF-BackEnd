@@ -2,20 +2,21 @@
 Funcionalidade: Excluir tipo de documento
 
   Contexto:
-    Dado eu acesso o sistema com a visualização "<visualizacao>"
+    Dado eu acesso o sistema com a visualização "web"
     E realizo login no sistema PTRF com perfil "SME"
 
   Esquema do Cenário: Validar exclusão de tipo de documento :<caso>
-    E excluo o tipo de documento com o nome de "teste automatizado" do banco de dados
-    E crio o tipo de documento com o nome de "teste automatizado" do banco de dados
+    E excluo o tipo de documento com o nome de "teste automatizado" via API
+    E crio o tipo de documento com o nome de "teste automatizado" via API
     E clico na opcao "<opcao_painel_parametrizacao>"
     E informo dado nos campos "<filtrar_por_nome>" da tela tipo de documento
     E clico no botao "Filtrar" da tela tipo de documento
-    # E clico no botao "Editar" da tela tipo de documento
-    # E clico no botao "Excluir" da tela tipo de documento
-    # E sistema apresenta a '<mensagem_confirmacao_exclusao>' na tela
-    # Quando clico no botao "Confirmar Excluir" da tela tipo de documento
-    # Entao sistema apresenta a '<mensagem>' na tela
+    E clico no botao "Editar" da tela tipo de documento
+    E clico no botao "Excluir" da tela tipo de documento
+    E sistema apresenta a '<mensagem_confirmacao_exclusao>' na tela
+    Quando clico no botao "Confirmar Excluir" da tela tipo de documento
+    E sistema apresenta a '<mensagem>' na tela
+    Entao confirmo que o tipo de documento com o nome de "teste automatizado" não existe via API
 
     Exemplos:
       | visualizacao | opcao_painel_parametrizacao | filtrar_por_nome       | mensagem                                                           |mensagem_confirmacao_exclusao                         | caso                         |
