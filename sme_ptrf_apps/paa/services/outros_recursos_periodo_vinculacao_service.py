@@ -29,7 +29,8 @@ class OutroRecursoPeriodoPaaVinculoUnidadeService(OutroRecursoPeriodoBaseService
     Este service centraliza todas as operações de vínculo, desvínculo de unidades e validações.
     """
 
-    def __init__(self, outro_recurso_periodo: OutroRecursoPeriodoPaa):
+    def __init__(self, outro_recurso_periodo: OutroRecursoPeriodoPaa) -> None:
+        """Inicializa o service com a instância do recurso de período."""
         super().__init__(outro_recurso_periodo)
 
     def _validar_recurso_ativo(self) -> None:

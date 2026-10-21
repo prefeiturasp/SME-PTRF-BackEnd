@@ -118,7 +118,7 @@ def test_exclusao_especificacao_despesas_vinculadas(
     assert 'mensagem' in response.data
     assert response.data['erro'] == 'ProtectedError', response.data['erro']
     assert response.data['mensagem'] == ('Essa operação não pode ser realizada. ' +
-                                         'Há despesas vinculadas à esta especificação')
+                                         'Há registros vinculados a esta especificação')
 
 
 def test_alteracao_especificacao_sem_alteracao_aplicacao(jwt_authenticated_client, especificacao_material_servico):

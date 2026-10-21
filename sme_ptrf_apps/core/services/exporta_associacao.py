@@ -4,8 +4,9 @@ import os
 from django.contrib.staticfiles.storage import staticfiles_storage
 from openpyxl import load_workbook
 
+from waffle import flag_is_active
+
 from ..choices.membro_associacao import RepresentacaoCargo
-from waffle import get_waffle_flag_model
 
 LOGGER = logging.getLogger(__name__)
 
@@ -55,19 +56,38 @@ TIPO = 3
 AGENCIA = 4
 NUMERO = 5
 
+ROTULOS_CARGO_SEM_NUMERO = {
+    'VOGAL_1': 'Vogal',
+    'VOGAL_2': 'Vogal',
+    'VOGAL_3': 'Vogal',
+    'VOGAL_4': 'Vogal',
+    'VOGAL_5': 'Vogal',
+    'CONSELHEIRO_1': 'Conselheiro',
+    'CONSELHEIRO_2': 'Conselheiro',
+    'CONSELHEIRO_3': 'Conselheiro',
+    'CONSELHEIRO_4': 'Conselheiro',
+}
 
-def gerar_planilha(associacao):
+DOMINIO_EMAIL_VISIVEL = 'sme.prefeitura.sp.gov.br'
+
+
+def gerar_planilha(associacao, request=None):
     LOGGER.info(f'EXPORTANDO DADOS DA ASSOCIACAO {associacao.nome}...')
 
     path = os.path.join(os.path.basename(staticfiles_storage.location), 'modelos')
     nome_arquivo = os.path.join(path, 'modelo_exportacao_associacao.xlsx')
     workbook = load_workbook(nome_arquivo)
 
-    flags = get_waffle_flag_model()
-
     dados_basicos(workbook, associacao)
 
-    if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+    rows_membros = list(workbook.worksheets[MEMBROS].rows)
+    rows_membros[0][EMAIL_MEMBRO].value = 'E-mail'
+    for cargo, rotulo in ROTULOS_CARGO_SEM_NUMERO.items():
+        rows_membros[CARGOS[cargo]][CARGO].value = rotulo
+
+    if flag_is_active(request, 'historico-de-membros-v2'):
+        membros_historico(workbook, associacao)
+    elif flag_is_active(request, 'historico-de-membros'):
         membros_v2(workbook, associacao)
     else:
         membros(workbook, associacao)
@@ -95,10 +115,10 @@ def membros(workbook, associacao):
     for membro in membros:
         linha = CARGOS[membro.cargo_associacao]
         rows[linha][NOME_MEMBRO].value = membro.nome
-        rows[linha][REPRESENTACAO].value = RepresentacaoCargo[membro.representacao].value
+        rows[linha][REPRESENTACAO].value = _representacao_para_planilha(membro.representacao)
         rows[linha][RF_EOL].value = membro.codigo_identificacao
         rows[linha][CARGO_EDUCACAO].value = membro.cargo_educacao
-        rows[linha][EMAIL_MEMBRO].value = membro.email
+        rows[linha][EMAIL_MEMBRO].value = _email_para_planilha(membro.email)
 
 
 def membros_v2(workbook, associacao):
@@ -136,15 +156,95 @@ def membros_v2(workbook, associacao):
             "email": cargo["ocupante_do_cargo"]["email"]
         })
 
+    _escrever_membros(workbook, membros_da_composicao)
+
+
+def membros_historico(workbook, associacao):
+    from sme_ptrf_apps.mandatos.models import ComposicaoVacancia
+    from sme_ptrf_apps.mandatos.services import (
+        ServicoHistoricoCargoComposicao,
+        ServicoMandatoVigenteVacancia,
+    )
+
+    mandato_vigente = ServicoMandatoVigenteVacancia().get_mandato_vigente()
+    if not mandato_vigente:
+        LOGGER.info('EXPORTAÇÃO DE MEMBROS: flag historico-de-membros-v2 ativa, sem mandato vigente.')
+        return
+
+    composicao = ComposicaoVacancia.objects.filter(
+        associacao=associacao,
+        mandato=mandato_vigente,
+    ).first()
+    if not composicao:
+        LOGGER.info(
+            'EXPORTAÇÃO DE MEMBROS: flag historico-de-membros-v2 ativa, '
+            'sem composição de histórico para a associação %s.',
+            associacao.uuid,
+        )
+        return
+
+    cargos_da_composicao = ServicoHistoricoCargoComposicao.monta_cargos_da_composicao(
+        composicao_vacancia=composicao,
+        data=None,
+    )
+    _escrever_membros(workbook, _membros_ocupados(cargos_da_composicao))
+
+
+def _membros_ocupados(cargos_da_composicao):
+    membros_da_composicao = []
+    for grupo in ('diretoria_executiva', 'conselho_fiscal'):
+        for cargo in cargos_da_composicao.get(grupo, []):
+            ocupante = cargo.get('ocupante_do_cargo') or {}
+            if not ocupante.get('nome'):
+                continue
+            membros_da_composicao.append({
+                'cargo_associacao': cargo['cargo_associacao'],
+                'nome': ocupante.get('nome'),
+                'representacao': ocupante.get('representacao'),
+                'codigo_identificacao': ocupante.get('codigo_identificacao'),
+                'cargo_educacao': ocupante.get('cargo_educacao'),
+                'email': ocupante.get('email'),
+            })
+    return membros_da_composicao
+
+
+def _escrever_membros(workbook, membros_da_composicao):
     worksheet = workbook.worksheets[MEMBROS]
     rows = list(worksheet.rows)
     for membro_composicao in membros_da_composicao:
-        linha = CARGOS[membro_composicao["cargo_associacao"]]
-        rows[linha][NOME_MEMBRO].value = membro_composicao["nome"]
-        rows[linha][REPRESENTACAO].value = RepresentacaoCargo[membro_composicao["representacao"]].value if membro_composicao["representacao"] else ''
-        rows[linha][RF_EOL].value = membro_composicao["codigo_identificacao"]
-        rows[linha][CARGO_EDUCACAO].value = membro_composicao["cargo_educacao"]
-        rows[linha][EMAIL_MEMBRO].value = membro_composicao["email"]
+        cargo = membro_composicao.get('cargo_associacao')
+        if cargo not in CARGOS:
+            continue
+        linha = CARGOS[cargo]
+        rows[linha][NOME_MEMBRO].value = membro_composicao.get('nome') or ''
+        rows[linha][REPRESENTACAO].value = _representacao_para_planilha(
+            membro_composicao.get('representacao')
+        )
+        rows[linha][RF_EOL].value = membro_composicao.get('codigo_identificacao') or ''
+        rows[linha][CARGO_EDUCACAO].value = membro_composicao.get('cargo_educacao') or ''
+        rows[linha][EMAIL_MEMBRO].value = _email_para_planilha(membro_composicao.get('email'))
+
+
+def _representacao_para_planilha(representacao):
+    if not representacao:
+        return ''
+    try:
+        texto = RepresentacaoCargo[representacao].value
+    except KeyError:
+        texto = representacao
+    return texto.replace('_', ' ')
+
+
+def _email_para_planilha(email):
+    if not email:
+        return ''
+    email = email.strip()
+    dominio = email.rsplit('@', 1)[-1].lower() if '@' in email else ''
+    if dominio == DOMINIO_EMAIL_VISIVEL:
+        return email
+    if len(email) <= 4:
+        return 'X' * len(email)
+    return f'{email[:2]}{"X" * (len(email) - 4)}{email[-2:]}'
 
 
 def contas(workbook, associacao):

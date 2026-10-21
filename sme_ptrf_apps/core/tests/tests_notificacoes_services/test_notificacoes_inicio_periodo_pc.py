@@ -9,7 +9,7 @@ pytestmark = pytest.mark.django_db
 
 
 @freeze_time("2021-06-17")
-def test_deve_notificar_usuarios(periodo_2021_3_pc_2021_06_12_a_2021_06_17, usuario_notificavel):
+def test_deve_notificar_usuarios(periodo_2021_3_pc_2021_06_12_a_2021_06_17, usuario_notificavel, associacao_a):
     assert not Notificacao.objects.exists()
     notificar_inicio_periodo_prestacao_de_contas(enviar_email=False)
     assert Notificacao.objects.count() == 1
@@ -30,7 +30,8 @@ def test_nao_deve_notificar_usuarios_periodo_invalido(periodo_2021_4_pc_2021_06_
 
 
 @freeze_time("2021-06-17")
-def test_deve_flagar_periodo_como_notificado(periodo_2021_3_pc_2021_06_12_a_2021_06_17, usuario_notificavel):
+def test_deve_flagar_periodo_como_notificado(periodo_2021_3_pc_2021_06_12_a_2021_06_17, usuario_notificavel,
+                                             associacao_a):
     assert not periodo_2021_3_pc_2021_06_12_a_2021_06_17.notificacao_inicio_periodo_pc_realizada
     notificar_inicio_periodo_prestacao_de_contas(enviar_email=False)
     periodo = Periodo.objects.get(referencia="2021.3")

@@ -56,19 +56,19 @@ def test_salvar_valores_reprogramados(
 
 def test_salvar_valores_reprogramados_sem_periodo_inicial(
     jwt_authenticated_client_a,
-    associacao,
+    associacao_d,
     conta_associacao,
     acao_associacao
 ):
-    periodo = associacao.periodo_inicial
+    periodo = associacao_d.periodo_inicial
     visao_selecionada = "UE"
 
-    associacao.periodo_inicial = None
+    associacao_d.periodo_inicial = None
 
     dados = {
         "associacao": {
-            "status_valores_reprogramados": associacao.status_valores_reprogramados,
-            "uuid": f"{associacao.uuid}"
+            "status_valores_reprogramados": associacao_d.status_valores_reprogramados,
+            "uuid": f"{associacao_d.uuid}"
         },
         "contas": [{
             "conta": {
@@ -94,7 +94,7 @@ def test_salvar_valores_reprogramados_sem_periodo_inicial(
         'mensagem': 'Período inicial não foi definido para essa associação. Verifique com o administrador.',
     }
 
-    retorno = salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_selecionada)
+    retorno = salvar_e_concluir_valores_reprogramados(associacao_d, periodo, dados, visao_selecionada)
 
     assert retorno == resultado_esperado
 
@@ -172,19 +172,19 @@ def test_concluir_valores_reprogramados(
 
 def test_concluir_valores_reprogramados_sem_periodo_inicial(
     jwt_authenticated_client_a,
-    associacao,
+    associacao_d,
     conta_associacao,
     acao_associacao
 ):
-    periodo = associacao.periodo_inicial
+    periodo = associacao_d.periodo_inicial
     visao_selecionada = "DRE"
 
-    associacao.periodo_inicial = None
+    associacao_d.periodo_inicial = None
 
     dados = {
         "associacao": {
-            "status_valores_reprogramados": associacao.status_valores_reprogramados,
-            "uuid": f"{associacao.uuid}"
+            "status_valores_reprogramados": associacao_d.status_valores_reprogramados,
+            "uuid": f"{associacao_d.uuid}"
         },
         "contas": [{
             "conta": {
@@ -210,7 +210,7 @@ def test_concluir_valores_reprogramados_sem_periodo_inicial(
         'mensagem': 'Período inicial não foi definido para essa associação. Verifique com o administrador.',
     }
 
-    retorno = salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_selecionada)
+    retorno = salvar_e_concluir_valores_reprogramados(associacao_d, periodo, dados, visao_selecionada)
 
     assert retorno == resultado_esperado
 

@@ -6,11 +6,12 @@ from sme_ptrf_apps.core.models import Tag
 pytestmark = pytest.mark.django_db
 
 
-def test_create_tag(jwt_authenticated_client_a):
+def test_create_tag(jwt_authenticated_client_a, recurso_legado):
 
     payload_nova_tag = {
         'nome': "Tag Nova",
-        'status': "ATIVO"
+        'status': "ATIVO",
+        'recurso': f'{recurso_legado.uuid}'
     }
 
     response = jwt_authenticated_client_a.post(
@@ -22,10 +23,11 @@ def test_create_tag(jwt_authenticated_client_a):
     assert Tag.objects.filter(uuid=result['uuid']).exists()
 
 
-def test_create_tag_nome_igual(jwt_authenticated_client_a, tag_c):
+def test_create_tag_nome_igual(jwt_authenticated_client_a, tag_c, recurso_legado):
     payload_tag_nova = {
         'nome': 'TagXpto',
-        'status': 'ATIVO'
+        'status': 'ATIVO',
+        'recurso': f'{tag_c.recurso.uuid}'
     }
 
     response = jwt_authenticated_client_a.post(
@@ -36,8 +38,7 @@ def test_create_tag_nome_igual(jwt_authenticated_client_a, tag_c):
     result = json.loads(response.content)
 
     assert result == {
-      "non_field_errors": [
-        "The fields nome must make a unique set."
-      ]
+        "non_field_errors": [
+            "Já existe uma tag com este nome para este recurso."
+        ]
     }
-

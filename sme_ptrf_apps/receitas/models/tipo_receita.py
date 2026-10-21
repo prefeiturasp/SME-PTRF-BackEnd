@@ -25,6 +25,12 @@ class TipoReceita(ModeloIdNome):
     detalhes = models.ManyToManyField(DetalheTipoReceita, blank=True)
     unidades = models.ManyToManyField('core.Unidade', blank=True)
 
+    recurso = models.ForeignKey(
+        "core.Recurso",
+        verbose_name="Recurso",
+        on_delete=models.PROTECT,
+    )
+
     class Meta:
         verbose_name = 'Tipo de receita'
         verbose_name_plural = 'Tipos de receita'
@@ -67,6 +73,10 @@ class TipoReceita(ModeloIdNome):
             return True
         else:
             return False
+
+    @classmethod
+    def filter_by_recurso(cls, queryset, recurso):
+        return queryset.filter(recurso=recurso)
 
 
 auditlog.register(TipoReceita)

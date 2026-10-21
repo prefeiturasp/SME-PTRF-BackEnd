@@ -28,7 +28,8 @@ def test_publicar_consolidado_dre_ata_preenchida_deve_passar(
     unidade_teste_api_consolidado_dre_01,
     associacao_teste_api_consolidado_dre_01,
     unidade_teste_api_consolidado_dre_02,
-    associacao_teste_api_consolidado_dre_02
+    associacao_teste_api_consolidado_dre_02,
+    comissao_exame_contas_publicar_consolidado
 ):
     response = jwt_authenticated_client_dre.post(
         '/api/consolidados-dre/publicar/',
@@ -54,7 +55,8 @@ def test_publicar_consolidado_dre_ata_nao_prenchida(
     unidade_teste_api_consolidado_dre_01,
     associacao_teste_api_consolidado_dre_01,
     unidade_teste_api_consolidado_dre_02,
-    associacao_teste_api_consolidado_dre_02
+    associacao_teste_api_consolidado_dre_02,
+    comissao_exame_contas_publicar_consolidado
 ):
     response = jwt_authenticated_client_dre.post(
         '/api/consolidados-dre/publicar/',
@@ -65,9 +67,9 @@ def test_publicar_consolidado_dre_ata_nao_prenchida(
     result = json.loads(response.content)
 
     resultado_esperado = {
-                'erro': 'Ata não preenchida',
-                'mensagem': f"Para fazer a publicação você precisa preencher as informações da ata."
-            }
+        'erro': 'Ata não preenchida',
+        'mensagem': "Para fazer a publicação você precisa preencher as informações da ata."
+    }
 
     assert result == resultado_esperado
 

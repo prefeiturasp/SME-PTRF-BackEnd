@@ -48,7 +48,8 @@ from sme_ptrf_apps.core.api.views import (
     SolicitacaoEncerramentoContaAssociacaoViewset,
     MotivoRejeicaoEncerramentoContaAssociacaoViewset,
     RecursoViewSet,
-    feature_flags
+    feature_flags,
+    FiqueDeOlhoViewSet
 )
 from sme_ptrf_apps.core.api.views.prestacoes_contas_reprovadas_nao_apresentacao_viewset import \
     PrestacaoContaReprovadaNaoApresentacaoViewSet
@@ -71,7 +72,9 @@ from sme_ptrf_apps.dre.api.views import (
     MotivoAprovacaoRessalvaViewSet,
     MotivoAprovacaoRessalvaParametrizacaoViewSet,
     MotivoReprovacaoViewSet,
+    MotivoReprovacaoParametrizacaoViewSet,
     ComissoesViewSet,
+    ComissoesParametrizacaoViewSet,
     MembrosComissoesViewSet,
     AnosAnaliseRegularidadeViewSet,
     AtaParecerTecnicoViewset,
@@ -93,7 +96,8 @@ from sme_ptrf_apps.receitas.api.views import (
     ReceitaViewSet,
     RepasseViewSet,
     MotivosEstornoViewSet,
-    TipoReceitaViewSet
+    TipoReceitaViewSet,
+    DetalheTipoReceitaParametrizacaoViewSet,
 )
 from sme_ptrf_apps.paa.api.views import (
     PeriodoPaaViewSet,
@@ -115,11 +119,14 @@ from sme_ptrf_apps.paa.api.views import (
     PresentesAtaPaaViewSet,
     OutrosRecursosPaaViewSet,
     OutrosRecursosPeriodoPaaViewSet,
-    ModelosCargasPaaViewSet
+    ModelosCargasPaaViewSet,
+    DocumentoPaaViewSet
 )
+from rest_framework_simplejwt.views import TokenRefreshView
 from sme_ptrf_apps.users.api.views import (
     EsqueciMinhaSenhaViewSet,
     LoginView,
+    MeView,
     RedefinirSenhaViewSet,
     UserViewSet,  # TODO - Remover ao fim da implantação da nova gestão de usuários
     UsuariosViewSet,
@@ -135,9 +142,12 @@ from sme_ptrf_apps.situacao_patrimonial.api.views import (
 
 from sme_ptrf_apps.mandatos.api.views import (
     MandatosViewSet,
+    MandatosVacanciaViewSet,
     ComposicoesViewSet,
     OcupantesCargosViewSet,
-    CargosComposicoesViewSet
+    OcupantesCargosVacanciaViewSet,
+    CargosComposicoesViewSet,
+    CargosComposicoesVacanciaViewSet
 )
 
 from sme_ptrf_apps.logging.simulador_de_logs.simulador_de_logs_view import (
@@ -178,6 +188,8 @@ router.register("especificacoes-materiais-servicos", ParametrizacaoEspecificacoe
 router.register("rateios-despesas", RateiosDespesasViewSet, basename="rateios-despesas")
 router.register("receitas", ReceitaViewSet, basename="receitas")
 router.register("tipos-receitas", TipoReceitaViewSet, basename="tipos-receitas")
+router.register("detalhes-tipos-receitas-parametrizacao",
+                DetalheTipoReceitaParametrizacaoViewSet, basename="detalhes-tipos-receitas-parametrizacao")
 router.register("fornecedores", FornecedoresViewSet, basename="fornecedores")
 router.register("associacoes", AssociacoesViewSet, basename="associacoes")
 router.register("parametrizacoes-associacoes", ParametrizacoesAssociacoesViewSet,
@@ -187,6 +199,7 @@ router.register("periodos", PeriodosViewSet, basename="periodos")
 router.register("prestacoes-contas", PrestacoesContasViewSet, basename="prestacoes-contas")
 router.register("demonstrativo-financeiro", DemonstrativoFinanceiroViewSet, basename="demonstrativo-financeiro")
 router.register("relacao-bens", RelacaoBensViewSet, basename="relacao-bens")
+router.register("fique-de-olho", FiqueDeOlhoViewSet, basename="fique-de-olho")
 router.register("atas-associacao", AtasViewSet, basename="atas-associacao")
 router.register("membros-associacao", MembroAssociacaoViewSet, basename="membros-associacao")
 router.register("esqueci-minha-senha", EsqueciMinhaSenhaViewSet, basename="esqueci-minha-senha")
@@ -213,6 +226,8 @@ router.register("motivos-aprovacao-ressalva", MotivoAprovacaoRessalvaViewSet, ba
 router.register("motivos-aprovacao-ressalva-parametrizacao", MotivoAprovacaoRessalvaParametrizacaoViewSet,
                 basename="motivos-aprovacao-ressalva-parametrizacao")
 router.register("motivos-reprovacao", MotivoReprovacaoViewSet, basename="motivos-reprovacao")
+router.register("motivos-reprovacao-parametrizacao",
+                MotivoReprovacaoParametrizacaoViewSet, basename="motivos-reprovacao-parametrizacao")
 router.register("acoes-associacoes", AcaoAssociacaoViewSet, basename="acoes-associacoes")
 router.register("contas-associacoes", ContasAssociacoesViewSet, basename="contas-associacoes")
 router.register("parametrizacoes-acoes-associacoes", ParametrizacoesAcoesAssociacaoViewSet,
@@ -240,6 +255,7 @@ router.register("analises-lancamento-prestacao-conta", AnaliseLancamentoPrestaca
 router.register("analises-documento-prestacao-conta", AnaliseDocumentoPrestacaoContaViewSet,
                 basename="analises-documento-prestacao-conta")
 router.register("comissoes", ComissoesViewSet, basename="comissoes")
+router.register("comissoes-parametrizacao", ComissoesParametrizacaoViewSet, basename="comissoes-parametrizacao")
 router.register("membros-comissoes", MembrosComissoesViewSet, basename="membros-comissoes")
 router.register("anos-analise-regularidade", AnosAnaliseRegularidadeViewSet, basename="anos-analise-regularidade")
 router.register("ata-parecer-tecnico", AtaParecerTecnicoViewset, basename="ata-parecer-tecnico")
@@ -270,9 +286,13 @@ router.register("receitas-previstas-outros-recursos-periodo", ReceitaPrevistaOut
 router.register("receitas-previstas-paa", ReceitaPrevistaPaaViewSet, basename="receitas-previstas-paa")
 router.register("receitas-previstas-pdde", ReceitaPrevistaPddeViewSet, basename="receitas-previstas-pdde")
 router.register("mandatos", MandatosViewSet, basename="mandatos")
+router.register("mandatos-vacancia", MandatosVacanciaViewSet, basename="mandatos-vacancia")
 router.register("composicoes", ComposicoesViewSet, basename="composicoes")
 router.register("ocupantes-cargos", OcupantesCargosViewSet, basename="ocupantes-cargos")
+OcupantesCargosVacanciaViewSet,
+router.register("ocupantes-cargos-vacancia", OcupantesCargosVacanciaViewSet, basename="ocupantes-cargos-vacancia")
 router.register("cargos-composicao", CargosComposicoesViewSet, basename="cargos-composicao")
+router.register("cargos-composicao-vacancia", CargosComposicoesVacanciaViewSet, basename="cargos-composicao-vacancia")
 router.register("prestacoes-contas-reprovadas-nao-apresentacao", PrestacaoContaReprovadaNaoApresentacaoViewSet,
                 basename="prestacoes-contas-reprovadas-nao-apresentacao")
 router.register("paa", PaaViewSet, basename='paa')
@@ -288,6 +308,7 @@ router.register("prioridades-paa-relatorio", PrioridadePaaRelatorioViewSet, base
 router.register("objetivos-paa", ObjetivoPaaViewSet, basename='objetivos-paa')
 router.register("atividades-estatutarias", AtividadeEstatutariaViewSet, basename='atividades-estatutarias')
 router.register("atas-paa", AtaPaaViewSet, basename='atas-paa')
+router.register("documentos-paa", DocumentoPaaViewSet, basename='documentos-paa')
 router.register("presentes-ata-paa", PresentesAtaPaaViewSet, basename='presentes-ata-paa')
 router.register("outros-recursos-paa", OutrosRecursosPaaViewSet, basename='outros-recursos-paa')
 router.register("modelos-cargas-paa", ModelosCargasPaaViewSet, basename="modelos-cargas-paa")
@@ -305,6 +326,8 @@ urlpatterns += [
     path("versao", versao),
     path("teste-flag", teste_flag_view),
     path("login", LoginView.as_view()),
+    path("token/refresh", TokenRefreshView.as_view()),
+    path("me", MeView.as_view()),
     path("feature-flags", feature_flags),
     path("simular-logs", SimuladorDeLogsView.as_view()),
     path("simular-logs-sec", SimuladorDeLogsSecudarioView.as_view()),

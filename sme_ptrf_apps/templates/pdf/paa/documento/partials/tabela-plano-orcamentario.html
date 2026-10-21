@@ -31,7 +31,14 @@
             <tbody class="nao-quebra-linha">
                 {% for receita in dados.receitas_previstas.items %}
                 <tr class="tr-zebra-{{ receita.zebra_classe }}">
-                    <td>{{ receita.nome }}</td>
+                    <td>
+                        <div>
+                            <div>{{ receita.nome }}</div>
+                            {% if receita.retificado %}
+                                <div class="tag-retificacao">{{ dados.etiqueta_retificacao }}</div>
+                            {% endif %}
+                        </div>
+                    </td>
                     <td>
                         <ul style="list-style: none; padding-left: 0">
                             {% if receita.exibirCusteio != False %}<li>Custeio (R$)</li>{% endif %}
@@ -101,7 +108,16 @@
                 {% for receita in dados.receitas_previstas_pdde.items %}
                 {% for linha in receita.linhas %}
                 <tr class="tr-zebra-{{ receita.zebra_classe }}">
-                    {% if forloop.first %}<td rowspan="{{ receita.linhas|length }}" style="vertical-align: top;">{{ receita.nome }}</td>{% endif %}
+                    {% if forloop.first %}
+                    <td rowspan="{{ receita.linhas|length }}" style="vertical-align: top;">
+                        <div>
+                            <div>{{ receita.nome }}</div>
+                            {% if receita.retificado %}
+                                <div class="tag-retificacao">{{ dados.etiqueta_retificacao }}</div>
+                            {% endif %}
+                        </div>
+                    </td>
+                    {% endif %}
                     <td>{{ linha.label }}</td>
                     <td class="text-right">{{ linha.receita|formata_valor }}</td>
                     <td class="text-right">{% if linha.label == "Livre Aplicação (R$)" %}{{ linha.despesa|formata_valor_vazio }}{% else %}{{ linha.despesa|formata_valor }}{% endif %}</td>
@@ -148,7 +164,14 @@
                 {% for outro_recurso in dados.recursos_proprios.items_outros_recursos %}
                 {% for linha in outro_recurso.linhas %}
                 <tr class="tr-zebra-{{ outro_recurso.zebra_classe }}">
-                    {% if forloop.first %}<td rowspan="{{ outro_recurso.linhas|length }}" style="vertical-align: top;">{{ outro_recurso.nome }}</td>{% endif %}
+                    {% if forloop.first %}
+                    <td rowspan="{{ outro_recurso.linhas|length }}" style="vertical-align: top;">
+                        <div>{{ outro_recurso.nome }}</div>
+                        {% if outro_recurso.retificado %}
+                            <div class="tag-retificacao">{{ dados.etiqueta_retificacao }}</div>
+                        {% endif %}
+                    </td>
+                    {% endif %}
                     <td>{{ linha.label }}</td>
                     <td class="text-right">
                         {% if outro_recurso.key and outro_recurso.key == "RECURSO_PROPRIO" and linha.label != "Livre Aplicação (R$)" %}

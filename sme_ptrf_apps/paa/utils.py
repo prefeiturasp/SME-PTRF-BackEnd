@@ -2,6 +2,8 @@ from decimal import Decimal, InvalidOperation
 from datetime import date
 from calendar import monthrange
 from typing import List
+from uuid import UUID
+from rest_framework.exceptions import ValidationError
 
 
 def ajustar_data_inicial_e_final(data_inicial: date, data_final: date) -> List[date]:
@@ -49,3 +51,28 @@ def numero_decimal(valor: str) -> Decimal:
         return Decimal(valor)
     except (TypeError, InvalidOperation):
         return Decimal("0")
+
+
+def validar_lista_uuids(lista_uuids = []):
+    """
+    Valida uma lista de UUIDs.
+
+    Lança ValidationError caso algum dos valores informados
+    não seja um UUID válido.
+    """
+      
+    uuids_invalidos = []
+
+    for uuid_str in lista_uuids:
+        try:
+            UUID(str(uuid_str))
+        except (ValueError, TypeError):
+            uuids_invalidos.append(uuid_str)
+
+    if uuids_invalidos:
+        raise ValidationError({
+            "mensagem": (
+                f"Os seguintes UUIDs são inválidos: "
+                f"{', '.join(map(str, uuids_invalidos))}"
+            )
+        })

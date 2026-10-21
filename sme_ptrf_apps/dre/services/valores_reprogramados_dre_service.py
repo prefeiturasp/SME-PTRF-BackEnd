@@ -1,4 +1,3 @@
-from ..models import ParametrosDre
 from ...core.models import ContaAssociacao, AcaoAssociacao, ValoresReprogramados, FechamentoPeriodo, Associacao
 from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import \
     APLICACAO_CAPITAL, APLICACAO_CUSTEIO, APLICACAO_LIVRE
@@ -7,19 +6,37 @@ from django.db.models import F
 from ...core.services import associacao_pode_implantar_saldo
 
 
-def salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_selecionada, concluir=False):
+def get_periodo_inicial_por_recurso(associacao, recurso=None):
+    periodo_inicial_associacao = associacao.get_periodo_inicial_associacao(recurso=recurso)
+    if periodo_inicial_associacao:
+        return periodo_inicial_associacao.periodo_inicial
+
+    if recurso and recurso.legado and associacao.periodo_inicial:
+        if associacao.periodo_inicial.recurso_id == recurso.id:
+            return associacao.periodo_inicial
+
+    if not recurso and associacao.periodo_inicial:
+        return associacao.periodo_inicial
+
+    return None
+
+
+def salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_selecionada, recurso=None, concluir=False):
     msg = {
         'saldo_salvo': True,
         'codigo_erro': None,
         'mensagem': 'Saldo salvo com sucesso'
     }
 
-    if not associacao.periodo_inicial:
+    periodo_inicial = get_periodo_inicial_por_recurso(associacao, recurso=recurso)
+    if not periodo_inicial:
         return {
             'saldo_salvo': False,
             'codigo_erro': 'periodo_inicial_nao_definido',
             'mensagem': 'Período inicial não foi definido para essa associação. Verifique com o administrador.',
         }
+
+    periodo = periodo_inicial
 
     contas = dados.get('contas', None)
 
@@ -29,6 +46,7 @@ def salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_se
             'codigo_erro': 'contas_nao_informadas',
             'mensagem': 'É necessário informar as contas'
         }
+        return msg
 
     for conta in contas:
         try:
@@ -36,21 +54,35 @@ def salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_se
             obj_conta = ContaAssociacao.objects.get(uuid=conta["conta"]["uuid"])
 
         except ContaAssociacao.DoesNotExist:
-            msg = {
+            return {
                 'saldo_salvo': False,
                 'codigo_erro': 'conta_nao_encontrada',
                 'mensagem': f'O objeto ContaAssociacao para o uuid {uuid_conta_associacao} não foi encontrado na base'
+            }
+
+        if recurso and obj_conta.tipo_conta.recurso_id != recurso.id:
+            return {
+                'saldo_salvo': False,
+                'codigo_erro': 'conta_nao_pertence_recurso',
+                'mensagem': f'A conta {uuid_conta_associacao} não pertence ao recurso selecionado.'
             }
 
         for acao in conta["conta"]["acoes"]:
             try:
                 uuid_acao_associacao = acao["uuid"]
                 obj_acao_associacao = AcaoAssociacao.objects.get(uuid=acao["uuid"])
-            except ContaAssociacao.DoesNotExist:
-                msg = {
+            except AcaoAssociacao.DoesNotExist:
+                return {
                     'saldo_salvo': False,
                     'codigo_erro': 'acao_nao_encontrada',
                     'mensagem': f'O objeto AcaoAssociacao para o uuid {uuid_acao_associacao} não foi encontrado na base'
+                }
+
+            if recurso and obj_acao_associacao.acao.recurso_id != recurso.id:
+                return {
+                    'saldo_salvo': False,
+                    'codigo_erro': 'acao_nao_pertence_recurso',
+                    'mensagem': f'A ação {uuid_acao_associacao} não pertence ao recurso selecionado.'
                 }
 
             custeio = acao.get('custeio', None)
@@ -64,7 +96,7 @@ def salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_se
                 )
 
                 if concluir:
-                    implantar_saldos(valores_reprogramados, visao_selecionada)
+                    implantar_saldos(valores_reprogramados, visao_selecionada, periodo=periodo)
 
             capital = acao.get('capital', None)
             if capital:
@@ -76,7 +108,7 @@ def salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_se
                 )
 
                 if concluir:
-                    implantar_saldos(valores_reprogramados, visao_selecionada)
+                    implantar_saldos(valores_reprogramados, visao_selecionada, periodo=periodo)
 
             livre = acao.get('livre', None)
             if livre:
@@ -88,28 +120,34 @@ def salvar_e_concluir_valores_reprogramados(associacao, periodo, dados, visao_se
                 )
 
                 if concluir:
-                    implantar_saldos(valores_reprogramados, visao_selecionada)
+                    implantar_saldos(valores_reprogramados, visao_selecionada, periodo=periodo)
 
     if concluir:
-        novo_status = calcula_novo_status(associacao, visao_selecionada)
-        associacao.altera_status_valor_reprogramado(novo_status)
+        novo_status = calcula_novo_status(associacao, visao_selecionada, recurso=recurso)
+        associacao.altera_status_valor_reprogramado(novo_status, recurso=recurso)
 
     return msg
 
 
-def implantar_saldos(valores_reprogramados, visao_selecionada):
+def implantar_saldos(valores_reprogramados, visao_selecionada, periodo=None):
     saldo = valores_reprogramados.valor_ue if visao_selecionada == "UE" \
         else valores_reprogramados.valor_dre
+
+    if saldo is None:
+        return
+
+    periodo_implantacao = periodo or valores_reprogramados.periodo
 
     FechamentoPeriodo.implanta_saldo(
         acao_associacao=valores_reprogramados.acao_associacao,
         conta_associacao=valores_reprogramados.conta_associacao,
         aplicacao=valores_reprogramados.aplicacao_recurso,
-        saldo=Decimal(saldo)
+        saldo=Decimal(saldo),
+        periodo=periodo_implantacao
     )
 
 
-def calcula_novo_status(associacao, visao_selecionada):
+def calcula_novo_status(associacao, visao_selecionada, recurso=None):
     """
         Documentacao troca de status
 
@@ -127,8 +165,8 @@ def calcula_novo_status(associacao, visao_selecionada):
         DRE     | Valores corretos      | Diferentes        | Em correção UE
     """
 
-    valores_iguais = possui_diferenca(associacao)
-    status_atual = associacao.status_valores_reprogramados
+    valores_iguais = possui_diferenca(associacao, recurso=recurso)
+    status_atual = associacao.get_status_valores_reprogramados(recurso=recurso)
     novo_status = None
 
     if visao_selecionada == "UE":
@@ -152,10 +190,10 @@ def calcula_novo_status(associacao, visao_selecionada):
             else:
                 novo_status = Associacao.STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS
 
-    return novo_status
+    return novo_status or status_atual
 
 
-def possui_diferenca(associacao):
+def possui_diferenca(associacao, recurso=None):
     """
         Com essa logica, é possivel saber se cada registro de valor reprogramado da associacao
         está com valores iguais nos campos de valor_ue e valor_dre.
@@ -163,24 +201,44 @@ def possui_diferenca(associacao):
         Caso todos sejam iguais, as listas terão o mesmo tamanho
     """
 
-    valores_reprogramados = ValoresReprogramados.objects.filter(associacao=associacao).all()
+    valores_reprogramados = ValoresReprogramados.objects.filter(associacao=associacao)
+    if recurso:
+        valores_reprogramados = valores_reprogramados.filter(periodo__recurso=recurso)
+
     busca_valores_iguais = valores_reprogramados.filter(valor_ue=F('valor_dre')).all()
 
-    todos_valores_iguais = True if len(valores_reprogramados) == len(busca_valores_iguais) else False
+    todos_valores_iguais = valores_reprogramados.count() == busca_valores_iguais.count()
 
     return todos_valores_iguais
 
 
-def monta_estrutura_valores_reprogramados(associacao):
+def monta_estrutura_valores_reprogramados(associacao, recurso=None):
     lista_contas = []
 
-    for conta_associacao in associacao.contas.all():
-        if not conta_associacao.ativa_no_periodo(associacao.periodo_inicial):
+    contas_da_associcacao = associacao.contas.all()
+
+    periodo_inicial = get_periodo_inicial_por_recurso(associacao, recurso=recurso)
+    if not periodo_inicial:
+        return lista_contas
+
+    if recurso:
+        contas_da_associcacao = ContaAssociacao.filter_by_recurso(queryset=contas_da_associcacao, recurso=recurso)
+
+    for conta_associacao in contas_da_associcacao:
+        if not conta_associacao.ativa_no_periodo(periodo_inicial):
             continue
 
         acoes = []
+        valores_reprogramados_da_conta = ValoresReprogramados.objects.filter(
+            associacao=associacao,
+            periodo=periodo_inicial,
+            conta_associacao=conta_associacao,
+        )
 
-        for acao_associacao in associacao.acoes.exclude(acao__e_recursos_proprios=True):
+        acoes_associacao = associacao.acoes.exclude(acao__e_recursos_proprios=True)
+        acoes_associacao = AcaoAssociacao.filter_by_recurso(queryset=acoes_associacao, recurso=recurso) if recurso else acoes_associacao
+
+        for acao_associacao in acoes_associacao:
             dados_acao = {
                 "nome": acao_associacao.acao.nome,
                 "uuid": f"{acao_associacao.uuid}"
@@ -188,7 +246,8 @@ def monta_estrutura_valores_reprogramados(associacao):
 
             # Pegando todos os registros para essa conta e acao
             valores_reprogramados = ValoresReprogramados.objects.filter(associacao=associacao).filter(
-                conta_associacao=conta_associacao).filter(acao_associacao=acao_associacao).all()
+                periodo=periodo_inicial
+            ).filter(conta_associacao=conta_associacao).filter(acao_associacao=acao_associacao).all()
 
             if acao_associacao.acao.aceita_custeio:
                 dados_acao["custeio"] = monta_dados_acao(valores_reprogramados, APLICACAO_CUSTEIO)
@@ -206,7 +265,7 @@ def monta_estrutura_valores_reprogramados(associacao):
                 "uuid": f"{conta_associacao.uuid}",
                 "tipo_conta": conta_associacao.tipo_conta.nome,
                 "acoes": acoes,
-                "bloquear_campos_valor": True if conta_associacao.data_encerramento and not valores_reprogramados.exists() else False
+                "bloquear_campos_valor": True if conta_associacao.data_encerramento and not valores_reprogramados_da_conta.exists() else False
             }
         }
 
@@ -248,17 +307,19 @@ def monta_dados_acao(valores_reprogramados, aplicacao):
     return dados_acao
 
 
-def monta_estrutura_associacao(associacao):
+def monta_estrutura_associacao(associacao, recurso=None):
+    periodo_inicial_por_recurso = get_periodo_inicial_por_recurso(associacao, recurso=recurso)
+
     dados_associacao = {
         "associacao": {
             "uuid": f"{associacao.uuid}",
-            "status_valores_reprogramados": associacao.status_valores_reprogramados,
+            "status_valores_reprogramados": associacao.get_status_valores_reprogramados(recurso=recurso),
             "nome": associacao.nome,
             "codigo_eol": associacao.unidade.codigo_eol,
             "periodo_inicial": {
-                "referencia": associacao.periodo_inicial.referencia,
-                "data_inicio_realizacao_despesas": associacao.periodo_inicial.data_inicio_realizacao_despesas,
-                "data_fim_realizacao_despesas": associacao.periodo_inicial.data_fim_realizacao_despesas
+                "referencia": periodo_inicial_por_recurso.referencia if periodo_inicial_por_recurso else None,
+                "data_inicio_realizacao_despesas": periodo_inicial_por_recurso.data_inicio_realizacao_despesas if periodo_inicial_por_recurso else None,
+                "data_fim_realizacao_despesas": periodo_inicial_por_recurso.data_fim_realizacao_despesas if periodo_inicial_por_recurso else None
             }
         }
     }
@@ -266,7 +327,7 @@ def monta_estrutura_associacao(associacao):
     return dados_associacao
 
 
-def barra_status(associacao):
+def barra_status(associacao, recurso=None):
     """
         cor 1 = Cinza
         cor 2 = Laranja
@@ -280,22 +341,24 @@ def barra_status(associacao):
         "periodo_fechado": None
     }
 
-    if associacao.status_valores_reprogramados == Associacao.STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO:
+    status_valores_reprogramados = associacao.get_status_valores_reprogramados(recurso=recurso)
+
+    if status_valores_reprogramados == Associacao.STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO:
         status["texto"] = "Não finalizado pela Associação"
         status["cor"] = 1
-    elif associacao.status_valores_reprogramados == Associacao.STATUS_VALORES_REPROGRAMADOS_EM_CONFERENCIA_DRE:
+    elif status_valores_reprogramados == Associacao.STATUS_VALORES_REPROGRAMADOS_EM_CONFERENCIA_DRE:
         status["texto"] = "Aguardando conferência da DRE"
         status["cor"] = 2
-    elif associacao.status_valores_reprogramados == Associacao.STATUS_VALORES_REPROGRAMADOS_EM_CORRECAO_UE:
+    elif status_valores_reprogramados == Associacao.STATUS_VALORES_REPROGRAMADOS_EM_CORRECAO_UE:
         status["texto"] = "Aguardando correção pela Associação"
         status["cor"] = 3
-    elif associacao.status_valores_reprogramados == Associacao.STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS:
+    elif status_valores_reprogramados == Associacao.STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS:
         status["texto"] = "Análise concluída: valores corretos"
         status["cor"] = 4
 
-    pode_implantar_saldo = associacao_pode_implantar_saldo(associacao)
+    pode_implantar_saldo = associacao_pode_implantar_saldo(associacao, recurso=recurso)
 
-    if not pode_implantar_saldo["permite_implantacao"]:
+    if status["texto"] and not pode_implantar_saldo["permite_implantacao"]:
         texto = " **Período fechado**"
         status["texto"] += texto
         status["periodo_fechado"] = True
@@ -303,11 +366,16 @@ def barra_status(associacao):
     return status
 
 
-def lista_valores_reprogramados(associacoes_dre):
+def lista_valores_reprogramados(associacoes_dre, recurso=None):
     valores_reprogramados = []
     for associacao in associacoes_dre.all():
-        total_conta_um = calcula_total_conta_um(associacao)
-        total_conta_dois = calcula_total_conta_dois(associacao)
+        periodo_inicial = get_periodo_inicial_por_recurso(associacao, recurso=recurso)
+        if not periodo_inicial:
+            continue
+
+        recurso_atual = recurso or periodo_inicial.recurso
+        total_conta_um = calcula_total_conta_um(associacao, periodo_inicial, recurso_atual)
+        total_conta_dois = calcula_total_conta_dois(associacao, periodo_inicial, recurso_atual)
 
         if total_conta_um is None and total_conta_dois is None:
             return "Nenhum tipo de conta definida em Parâmetro DRE"
@@ -317,7 +385,7 @@ def lista_valores_reprogramados(associacoes_dre):
                 "uuid": f"{associacao.uuid}",
                 "nome": associacao.nome,
                 "cnpj": associacao.cnpj,
-                "status_valores_reprogramados": associacao.status_valores_reprogramados,
+                "status_valores_reprogramados": associacao.get_status_valores_reprogramados(recurso=recurso),
                 "unidade": {
                     "uuid": f"{associacao.unidade.uuid}",
                     "codigo_eol": associacao.unidade.codigo_eol,
@@ -326,16 +394,16 @@ def lista_valores_reprogramados(associacoes_dre):
                 }
             },
             "periodo": {
-                "uuid": f"{associacao.periodo_inicial.uuid}",
-                "referencia": associacao.periodo_inicial.referencia,
-                "data_inicio_realizacao_despesas": associacao.periodo_inicial.data_inicio_realizacao_despesas,
-                "data_fim_realizacao_despesas": associacao.periodo_inicial.data_fim_realizacao_despesas,
-                "referencia_por_extenso": associacao.periodo_inicial.referencia_por_extenso
+                "uuid": f"{periodo_inicial.uuid}",
+                "referencia": periodo_inicial.referencia,
+                "data_inicio_realizacao_despesas": periodo_inicial.data_inicio_realizacao_despesas,
+                "data_fim_realizacao_despesas": periodo_inicial.data_fim_realizacao_despesas,
+                "referencia_por_extenso": periodo_inicial.referencia_por_extenso
             },
             "total_conta_um": total_conta_um,
-            "nome_conta_um": nome_conta("conta_um"),
+            "nome_conta_um": nome_conta("conta_um", recurso_atual),
             "total_conta_dois": total_conta_dois,
-            "nome_conta_dois": nome_conta("conta_dois"),
+            "nome_conta_dois": nome_conta("conta_dois", recurso_atual),
         }
 
         valores_reprogramados.append(dados)
@@ -343,69 +411,59 @@ def lista_valores_reprogramados(associacoes_dre):
     return valores_reprogramados
 
 
-def calcula_total_conta_um(associacao):
-    uuid_conta_um = None
+def calcula_total_conta_um(associacao, periodo_inicial, recurso):
+    tipo_conta_um = recurso.tipo_conta_um if recurso else None
     total_conta_um = 0
 
-    if ParametrosDre.objects.all():
-        if ParametrosDre.get().tipo_conta_um:
-            uuid_conta_um = ParametrosDre.get().tipo_conta_um.uuid
-    else:
+    if not tipo_conta_um:
         return None
 
-    if uuid_conta_um is not None:
-        valores_reprogramados = ValoresReprogramados.objects.filter(associacao=associacao).filter(
-            periodo=associacao.periodo_inicial).filter(conta_associacao__tipo_conta__uuid=uuid_conta_um)
+    valores_reprogramados = ValoresReprogramados.objects.filter(
+        associacao=associacao,
+        periodo=periodo_inicial,
+        conta_associacao__tipo_conta=tipo_conta_um
+    )
 
-        if valores_reprogramados:
-            for valor in valores_reprogramados:
-                if valor.valor_ue:
-                    total_conta_um = total_conta_um + valor.valor_ue
+    if valores_reprogramados:
+        for valor in valores_reprogramados:
+            if valor.valor_ue:
+                total_conta_um = total_conta_um + valor.valor_ue
 
-            return total_conta_um
-        else:
-            return "-"
-
+        return total_conta_um
     else:
         return "-"
 
 
-def calcula_total_conta_dois(associacao):
-    uuid_conta_dois = None
+def calcula_total_conta_dois(associacao, periodo_inicial, recurso):
+    tipo_conta_dois = recurso.tipo_conta_dois if recurso else None
     total_conta_dois = 0
 
-    if ParametrosDre.objects.all():
-        if ParametrosDre.get().tipo_conta_dois:
-            uuid_conta_dois = ParametrosDre.get().tipo_conta_dois.uuid
-    else:
+    if not tipo_conta_dois:
         return None
 
-    if uuid_conta_dois is not None:
-        valores_reprogramados = ValoresReprogramados.objects.filter(associacao=associacao).filter(
-            periodo=associacao.periodo_inicial).filter(conta_associacao__tipo_conta__uuid=uuid_conta_dois)
+    valores_reprogramados = ValoresReprogramados.objects.filter(
+        associacao=associacao,
+        periodo=periodo_inicial,
+        conta_associacao__tipo_conta=tipo_conta_dois
+    )
 
-        if valores_reprogramados:
-            for valor in valores_reprogramados:
-                if valor.valor_ue:
-                    total_conta_dois = total_conta_dois + valor.valor_ue
+    if valores_reprogramados:
+        for valor in valores_reprogramados:
+            if valor.valor_ue:
+                total_conta_dois = total_conta_dois + valor.valor_ue
 
-            return total_conta_dois
-        else:
-            return "-"
-
+        return total_conta_dois
     else:
         return "-"
 
 
-def nome_conta(conta):
+def nome_conta(conta, recurso):
     if conta == "conta_um":
-        if ParametrosDre.objects.all():
-            if ParametrosDre.get().tipo_conta_um:
-                return ParametrosDre.get().tipo_conta_um.nome
+        if recurso and recurso.tipo_conta_um:
+            return recurso.tipo_conta_um.nome
 
     elif conta == "conta_dois":
-        if ParametrosDre.objects.all():
-            if ParametrosDre.get().tipo_conta_dois:
-                return ParametrosDre.get().tipo_conta_dois.nome
+        if recurso and recurso.tipo_conta_dois:
+            return recurso.tipo_conta_dois.nome
 
     return None

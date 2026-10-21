@@ -12,7 +12,8 @@ def test_deve_notificar_usuario_solicitacao_encerramento_conta_que_eh_membro_com
     parametro_comissao_exame_conta,
     membro_jaozin_comissao_a,
     usuario_notificavel_que_nao_pertence_a_comissao_contas,
-    membro_pedrin_comissao_b
+    membro_pedrin_comissao_b,
+    associacao_a
 ):
     # Apenas o membro_jaozin_comissao_a pertence a comissao de contas
 
@@ -21,10 +22,15 @@ def test_deve_notificar_usuario_solicitacao_encerramento_conta_que_eh_membro_com
     assert Notificacao.objects.count() == 1
     notificacao = Notificacao.objects.first()
 
-    descricao = f"A Associação da {conta_associacao_encerramento_conta.associacao.unidade.nome_com_tipo} " \
-                f"solicitou o encerramento da conta bancária " \
-                f"{conta_associacao_encerramento_conta.tipo_conta.nome}. " \
-                f"Acesse a página da Associação na Consulta de Associações para validar."
+    recurso = conta_associacao_encerramento_conta.tipo_conta.recurso
+
+    descricao = (
+        f"A Associação da {conta_associacao_encerramento_conta.associacao.unidade.nome_com_tipo} "
+        f"solicitou o encerramento da conta bancária "
+        f"{conta_associacao_encerramento_conta.tipo_conta.nome}. "
+        f"Acesse a página da Associação na Consulta de Associações para validar.\n\n"
+        f"Recurso: {recurso.nome}\n"
+    )
 
     assert notificacao.tipo == Notificacao.TIPO_NOTIFICACAO_AVISO
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_ENCERRAMENTO_CONTA_BANCARIA

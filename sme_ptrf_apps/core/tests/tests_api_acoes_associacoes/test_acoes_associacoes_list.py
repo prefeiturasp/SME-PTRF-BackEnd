@@ -11,7 +11,8 @@ def test_api_list_acoes_associacoes_todas(
     jwt_authenticated_client_a,
     acao_associacao_charli_bravo_000086_x,
     acao_associacao_charli_bravo_000086_y,
-    acao_associacao_eco_delta_000087_x
+    acao_associacao_eco_delta_000087_x,
+    recurso_esperado
 ):
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/', content_type='application/json')
     result = json.loads(response.content)
@@ -46,7 +47,8 @@ def test_api_list_acoes_associacoes_todas(
                         'nome_com_tipo': acao_associacao.associacao.unidade.nome_com_tipo,
                         'nome_dre': acao_associacao.associacao.unidade.nome_dre
                     },
-                    'cnpj': acao_associacao.associacao.cnpj
+                    'cnpj': acao_associacao.associacao.cnpj,
+                    'recursos': [],
                 },
                 'data_de_encerramento_associacao': None,
                 'tooltip_associacao_encerrada': None,
@@ -55,17 +57,18 @@ def test_api_list_acoes_associacoes_todas(
                     'uuid': f'{acao_associacao.acao.uuid}',
                     'nome': acao_associacao.acao.nome,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios,
-                    'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
                     "aceita_capital": acao_associacao.acao.aceita_capital,
                     "aceita_custeio": acao_associacao.acao.aceita_custeio,
                     "aceita_livre": acao_associacao.acao.aceita_livre,
                     "exibir_paa": True,
                     "tem_receitas_previstas_paa_em_elaboracao": False,
                     "tem_prioridades_paa_em_elaboracao": False,
-                    "recurso": f'{acao_associacao.acao.recurso.uuid}'
+                    "recurso": f'{acao_associacao.acao.recurso.uuid}',
+                    "ordem_exibicao": acao_associacao.acao.ordem_exibicao,
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
+                'recurso': recurso_esperado(acao_associacao.acao.recurso)
             }
         )
 
@@ -76,7 +79,8 @@ def test_api_list_acoes_associacoes_todas(
 def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
                                                    acao_associacao_charli_bravo_000086_x,
                                                    acao_associacao_charli_bravo_000086_y,
-                                                   acao_associacao_eco_delta_000087_x
+                                                   acao_associacao_eco_delta_000087_x,
+                                                   recurso_esperado
                                                    ):
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/?nome=char', content_type='application/json')
     result = json.loads(response.content)
@@ -110,7 +114,8 @@ def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
                         'nome_com_tipo': acao_associacao.associacao.unidade.nome_com_tipo,
                         'nome_dre': acao_associacao.associacao.unidade.nome_dre
                     },
-                    'cnpj': acao_associacao.associacao.cnpj
+                    'cnpj': acao_associacao.associacao.cnpj,
+                    'recursos': [],
                 },
                 'data_de_encerramento_associacao': None,
                 'tooltip_associacao_encerrada': None,
@@ -119,17 +124,18 @@ def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
                     'uuid': f'{acao_associacao.acao.uuid}',
                     'nome': acao_associacao.acao.nome,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios,
-                    'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
                     "aceita_capital": acao_associacao.acao.aceita_capital,
                     "aceita_custeio": acao_associacao.acao.aceita_custeio,
                     "aceita_livre": acao_associacao.acao.aceita_livre,
                     "exibir_paa": True,
                     "tem_receitas_previstas_paa_em_elaboracao": False,
                     "tem_prioridades_paa_em_elaboracao": False,
-                    "recurso": f'{acao_associacao.acao.recurso.uuid}'
+                    "recurso": f'{acao_associacao.acao.recurso.uuid}',
+                    "ordem_exibicao": acao_associacao.acao.ordem_exibicao,
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
+                'recurso': recurso_esperado(acao_associacao.acao.recurso)
             }
         )
     assert response.status_code == status.HTTP_200_OK
@@ -139,7 +145,8 @@ def test_api_list_associacoes_pelo_nome_associacao(jwt_authenticated_client_a,
 def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
                                                acao_associacao_charli_bravo_000086_x,
                                                acao_associacao_charli_bravo_000086_y,
-                                               acao_associacao_eco_delta_000087_x
+                                               acao_associacao_eco_delta_000087_x,
+                                               recurso_esperado
                                                ):
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/?nome=brav', content_type='application/json')
     result = json.loads(response.content)
@@ -173,7 +180,8 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
                         'nome_com_tipo': acao_associacao.associacao.unidade.nome_com_tipo,
                         'nome_dre': acao_associacao.associacao.unidade.nome_dre
                     },
-                    'cnpj': acao_associacao.associacao.cnpj
+                    'cnpj': acao_associacao.associacao.cnpj,
+                    'recursos': [],
                 },
                 'data_de_encerramento_associacao': None,
                 'tooltip_associacao_encerrada': None,
@@ -182,17 +190,18 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
                     'uuid': f'{acao_associacao.acao.uuid}',
                     'nome': acao_associacao.acao.nome,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios,
-                    'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
                     "aceita_capital": acao_associacao.acao.aceita_capital,
                     "aceita_custeio": acao_associacao.acao.aceita_custeio,
                     "aceita_livre": acao_associacao.acao.aceita_livre,
                     "exibir_paa": True,
                     "tem_receitas_previstas_paa_em_elaboracao": False,
                     "tem_prioridades_paa_em_elaboracao": False,
-                    "recurso": f'{acao_associacao.acao.recurso.uuid}'
+                    "recurso": f'{acao_associacao.acao.recurso.uuid}',
+                    "ordem_exibicao": acao_associacao.acao.ordem_exibicao,
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
+                'recurso': recurso_esperado(acao_associacao.acao.recurso)
             }
         )
     assert response.status_code == status.HTTP_200_OK
@@ -202,7 +211,8 @@ def test_api_list_associacoes_pelo_nome_escola(jwt_authenticated_client_a,
 def test_api_list_associacoes_pelo_eol_escola(jwt_authenticated_client_a,
                                               acao_associacao_charli_bravo_000086_x,
                                               acao_associacao_charli_bravo_000086_y,
-                                              acao_associacao_eco_delta_000087_x
+                                              acao_associacao_eco_delta_000087_x,
+                                              recurso_esperado
                                               ):
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/?nome=86', content_type='application/json')
     result = json.loads(response.content)
@@ -235,7 +245,8 @@ def test_api_list_associacoes_pelo_eol_escola(jwt_authenticated_client_a,
                         'nome_com_tipo': acao_associacao.associacao.unidade.nome_com_tipo,
                         'nome_dre': acao_associacao.associacao.unidade.nome_dre
                     },
-                    'cnpj': acao_associacao.associacao.cnpj
+                    'cnpj': acao_associacao.associacao.cnpj,
+                    'recursos': [],
                 },
                 'data_de_encerramento_associacao': None,
                 'tooltip_associacao_encerrada': None,
@@ -244,17 +255,18 @@ def test_api_list_associacoes_pelo_eol_escola(jwt_authenticated_client_a,
                     'uuid': f'{acao_associacao.acao.uuid}',
                     'nome': acao_associacao.acao.nome,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios,
-                    'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
                     "aceita_capital": acao_associacao.acao.aceita_capital,
                     "aceita_custeio": acao_associacao.acao.aceita_custeio,
                     "aceita_livre": acao_associacao.acao.aceita_livre,
                     "exibir_paa": True,
                     "tem_receitas_previstas_paa_em_elaboracao": False,
                     "tem_prioridades_paa_em_elaboracao": False,
-                    "recurso": f'{acao_associacao.acao.recurso.uuid}'
+                    "recurso": f'{acao_associacao.acao.recurso.uuid}',
+                    "ordem_exibicao": acao_associacao.acao.ordem_exibicao,
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
+                'recurso': recurso_esperado(acao_associacao.acao.recurso)
             }
         )
     assert response.status_code == status.HTTP_200_OK
@@ -265,7 +277,8 @@ def test_api_list_associacoes_por_acao(jwt_authenticated_client_a,
                                        acao_associacao_charli_bravo_000086_x,
                                        acao_associacao_charli_bravo_000086_y,
                                        acao_associacao_eco_delta_000087_x,
-                                       acao_x
+                                       acao_x,
+                                       recurso_esperado
                                        ):
     response = jwt_authenticated_client_a.get(f'/api/acoes-associacoes/?acao__uuid={acao_x.uuid}',
                                               content_type='application/json')
@@ -299,7 +312,8 @@ def test_api_list_associacoes_por_acao(jwt_authenticated_client_a,
                         'nome_com_tipo': acao_associacao.associacao.unidade.nome_com_tipo,
                         'nome_dre': acao_associacao.associacao.unidade.nome_dre
                     },
-                    'cnpj': acao_associacao.associacao.cnpj
+                    'cnpj': acao_associacao.associacao.cnpj,
+                    'recursos': [],
                 },
                 'data_de_encerramento_associacao': None,
                 'tooltip_associacao_encerrada': None,
@@ -308,17 +322,18 @@ def test_api_list_associacoes_por_acao(jwt_authenticated_client_a,
                     'uuid': f'{acao_associacao.acao.uuid}',
                     'nome': acao_associacao.acao.nome,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios,
-                    'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
                     "aceita_capital": acao_associacao.acao.aceita_capital,
                     "aceita_custeio": acao_associacao.acao.aceita_custeio,
                     "aceita_livre": acao_associacao.acao.aceita_livre,
                     "exibir_paa": True,
                     "tem_receitas_previstas_paa_em_elaboracao": False,
                     "tem_prioridades_paa_em_elaboracao": False,
-                    "recurso": f'{acao_associacao.acao.recurso.uuid}'
+                    "recurso": f'{acao_associacao.acao.recurso.uuid}',
+                    "ordem_exibicao": acao_associacao.acao.ordem_exibicao,
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
+                'recurso': recurso_esperado(acao_associacao.acao.recurso)
             }
         )
     assert response.status_code == status.HTTP_200_OK
@@ -329,7 +344,8 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
                                          acao_associacao_charli_bravo_000086_x,
                                          acao_associacao_charli_bravo_000086_y,
                                          acao_associacao_eco_delta_000087_x,
-                                         acao_associacao_eco_delta_000087_y_inativa
+                                         acao_associacao_eco_delta_000087_y_inativa,
+                                         recurso_esperado
                                          ):
 
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/?status=INATIVA',
@@ -364,7 +380,8 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
                         'nome_com_tipo': acao_associacao.associacao.unidade.nome_com_tipo,
                         'nome_dre': acao_associacao.associacao.unidade.nome_dre
                     },
-                    'cnpj': acao_associacao.associacao.cnpj
+                    'cnpj': acao_associacao.associacao.cnpj,
+                    'recursos': [],
                 },
                 'data_de_encerramento_associacao': None,
                 'tooltip_associacao_encerrada': None,
@@ -373,17 +390,18 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
                     'uuid': f'{acao_associacao.acao.uuid}',
                     'nome': acao_associacao.acao.nome,
                     'e_recursos_proprios': acao_associacao.acao.e_recursos_proprios,
-                    'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
                     "aceita_capital": acao_associacao.acao.aceita_capital,
                     "aceita_custeio": acao_associacao.acao.aceita_custeio,
                     "aceita_livre": acao_associacao.acao.aceita_livre,
                     "exibir_paa": True,
                     "tem_receitas_previstas_paa_em_elaboracao": False,
                     "tem_prioridades_paa_em_elaboracao": False,
-                    "recurso": f'{acao_associacao.acao.recurso.uuid}'
+                    "recurso": f'{acao_associacao.acao.recurso.uuid}',
+                    "ordem_exibicao": acao_associacao.acao.ordem_exibicao,
                 },
                 'status': acao_associacao.status,
                 'criado_em': acao_associacao.criado_em.isoformat("T"),
+                'recurso': recurso_esperado(acao_associacao.acao.recurso)
             }
         )
     assert response.status_code == status.HTTP_200_OK
@@ -393,7 +411,8 @@ def test_api_list_associacoes_por_status(jwt_authenticated_client_a,
 def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_authenticated_client_a,
                                                                           acao_associacao_charli_bravo_000086_x,
                                                                           acao_associacao_charli_bingo_000086_x,
-                                                                          acao_x
+                                                                          acao_x,
+                                                                          recurso_esperado
                                                                           ):
 
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/?filtro_informacoes=ENCERRADAS,NAO_ENCERRADAS',
@@ -424,7 +443,8 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
                     'nome_com_tipo': acao_associacao_charli_bingo_000086_x.associacao.unidade.nome_com_tipo,
                     'nome_dre': acao_associacao_charli_bingo_000086_x.associacao.unidade.nome_dre
                 },
-                'cnpj': acao_associacao_charli_bingo_000086_x.associacao.cnpj
+                'cnpj': acao_associacao_charli_bingo_000086_x.associacao.cnpj,
+                'recursos': [],
             },
             'data_de_encerramento_associacao': acao_associacao_charli_bingo_000086_x.associacao.data_de_encerramento.strftime("%Y-%m-%d"),  # noqa
             'tooltip_associacao_encerrada': acao_associacao_charli_bingo_000086_x.associacao.tooltip_data_encerramento,
@@ -433,17 +453,18 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
                 'uuid': f'{acao_associacao_charli_bingo_000086_x.acao.uuid}',
                 'nome': acao_associacao_charli_bingo_000086_x.acao.nome,
                 'e_recursos_proprios': acao_associacao_charli_bingo_000086_x.acao.e_recursos_proprios,
-                'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
                 "aceita_capital": acao_associacao_charli_bingo_000086_x.acao.aceita_capital,
                 "aceita_custeio": acao_associacao_charli_bingo_000086_x.acao.aceita_custeio,
                 "aceita_livre": acao_associacao_charli_bingo_000086_x.acao.aceita_livre,
                 "exibir_paa": True,
                 "tem_receitas_previstas_paa_em_elaboracao": False,
                 "tem_prioridades_paa_em_elaboracao": False,
-                "recurso": f'{acao_associacao_charli_bingo_000086_x.acao.recurso.uuid}'
+                "recurso": f'{acao_associacao_charli_bingo_000086_x.acao.recurso.uuid}',
+                "ordem_exibicao": acao_associacao_charli_bingo_000086_x.acao.ordem_exibicao,
             },
             'status': acao_associacao_charli_bingo_000086_x.status,
             'criado_em': acao_associacao_charli_bingo_000086_x.criado_em.isoformat("T"),
+            'recurso': recurso_esperado(acao_associacao_charli_bingo_000086_x.acao.recurso)
         },
         {
             'uuid': f'{acao_associacao_charli_bravo_000086_x.uuid}',
@@ -468,7 +489,8 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
                     'nome_com_tipo': acao_associacao_charli_bravo_000086_x.associacao.unidade.nome_com_tipo,
                     'nome_dre': acao_associacao_charli_bravo_000086_x.associacao.unidade.nome_dre
                 },
-                'cnpj': acao_associacao_charli_bravo_000086_x.associacao.cnpj
+                'cnpj': acao_associacao_charli_bravo_000086_x.associacao.cnpj,
+                'recursos': [],
             },
             'data_de_encerramento_associacao': None,
             'tooltip_associacao_encerrada': None,
@@ -477,17 +499,18 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
                 'uuid': f'{acao_associacao_charli_bravo_000086_x.acao.uuid}',
                 'nome': acao_associacao_charli_bravo_000086_x.acao.nome,
                 'e_recursos_proprios': acao_associacao_charli_bravo_000086_x.acao.e_recursos_proprios,
-                'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
                 "aceita_capital": acao_associacao_charli_bravo_000086_x.acao.aceita_capital,
                 "aceita_custeio": acao_associacao_charli_bravo_000086_x.acao.aceita_custeio,
                 "aceita_livre": acao_associacao_charli_bravo_000086_x.acao.aceita_livre,
                 "exibir_paa": True,
                 "tem_receitas_previstas_paa_em_elaboracao": False,
                 "tem_prioridades_paa_em_elaboracao": False,
-                "recurso": f'{acao_associacao_charli_bravo_000086_x.acao.recurso.uuid}'
+                "recurso": f'{acao_associacao_charli_bravo_000086_x.acao.recurso.uuid}',
+                "ordem_exibicao": acao_associacao_charli_bravo_000086_x.acao.ordem_exibicao,
             },
             'status': acao_associacao_charli_bravo_000086_x.status,
             'criado_em': acao_associacao_charli_bravo_000086_x.criado_em.isoformat("T"),
+            'recurso': recurso_esperado(acao_associacao_charli_bravo_000086_x.acao.recurso)
         },
     ]
     assert response.status_code == status.HTTP_200_OK
@@ -496,7 +519,8 @@ def test_api_list_associacoes_por_associacoes_encerradas_e_nao_encerradas(jwt_au
 
 def test_api_list_associacoes_por_associacoes_somente_encerradas(jwt_authenticated_client_a,
                                                                  acao_associacao_charli_bingo_000086_x,
-                                                                 acao_x
+                                                                 acao_x,
+                                                                 recurso_esperado
                                                                  ):
 
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/?filtro_informacoes=ENCERRADAS',
@@ -527,7 +551,8 @@ def test_api_list_associacoes_por_associacoes_somente_encerradas(jwt_authenticat
                     'nome_com_tipo': acao_associacao_charli_bingo_000086_x.associacao.unidade.nome_com_tipo,
                     'nome_dre': acao_associacao_charli_bingo_000086_x.associacao.unidade.nome_dre
                 },
-                'cnpj': acao_associacao_charli_bingo_000086_x.associacao.cnpj
+                'cnpj': acao_associacao_charli_bingo_000086_x.associacao.cnpj,
+                'recursos': [],
             },
             'data_de_encerramento_associacao': acao_associacao_charli_bingo_000086_x.associacao.data_de_encerramento.strftime("%Y-%m-%d"),  # noqa
             'tooltip_associacao_encerrada': acao_associacao_charli_bingo_000086_x.associacao.tooltip_data_encerramento,
@@ -536,17 +561,18 @@ def test_api_list_associacoes_por_associacoes_somente_encerradas(jwt_authenticat
                 'uuid': f'{acao_associacao_charli_bingo_000086_x.acao.uuid}',
                 'nome': acao_associacao_charli_bingo_000086_x.acao.nome,
                 'e_recursos_proprios': acao_associacao_charli_bingo_000086_x.acao.e_recursos_proprios,
-                'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
                 "aceita_capital": acao_associacao_charli_bingo_000086_x.acao.aceita_capital,
                 "aceita_custeio": acao_associacao_charli_bingo_000086_x.acao.aceita_custeio,
                 "aceita_livre": acao_associacao_charli_bingo_000086_x.acao.aceita_livre,
                 "exibir_paa": True,
                 "tem_receitas_previstas_paa_em_elaboracao": False,
                 "tem_prioridades_paa_em_elaboracao": False,
-                "recurso": f'{acao_associacao_charli_bingo_000086_x.acao.recurso.uuid}'
+                "recurso": f'{acao_associacao_charli_bingo_000086_x.acao.recurso.uuid}',
+                "ordem_exibicao": acao_associacao_charli_bingo_000086_x.acao.ordem_exibicao,
             },
             'status': acao_associacao_charli_bingo_000086_x.status,
             'criado_em': acao_associacao_charli_bingo_000086_x.criado_em.isoformat("T"),
+            'recurso': recurso_esperado(acao_associacao_charli_bingo_000086_x.acao.recurso)
         }
     ]
     assert response.status_code == status.HTTP_200_OK
@@ -555,7 +581,8 @@ def test_api_list_associacoes_por_associacoes_somente_encerradas(jwt_authenticat
 
 def test_api_list_associacoes_por_associacoes_somente_nao_encerradas(jwt_authenticated_client_a,
                                                                      acao_associacao_charli_bravo_000086_x,
-                                                                     acao_x
+                                                                     acao_x,
+                                                                     recurso_esperado
                                                                      ):
 
     response = jwt_authenticated_client_a.get('/api/acoes-associacoes/?filtro_informacoes=NAO_ENCERRADAS',
@@ -586,7 +613,8 @@ def test_api_list_associacoes_por_associacoes_somente_nao_encerradas(jwt_authent
                     'nome_com_tipo': acao_associacao_charli_bravo_000086_x.associacao.unidade.nome_com_tipo,
                     'nome_dre': acao_associacao_charli_bravo_000086_x.associacao.unidade.nome_dre
                 },
-                'cnpj': acao_associacao_charli_bravo_000086_x.associacao.cnpj
+                'cnpj': acao_associacao_charli_bravo_000086_x.associacao.cnpj,
+                'recursos': [],
             },
             'data_de_encerramento_associacao': None,
             'tooltip_associacao_encerrada': None,
@@ -595,17 +623,18 @@ def test_api_list_associacoes_por_associacoes_somente_nao_encerradas(jwt_authent
                 'uuid': f'{acao_associacao_charli_bravo_000086_x.acao.uuid}',
                 'nome': acao_associacao_charli_bravo_000086_x.acao.nome,
                 'e_recursos_proprios': acao_associacao_charli_bravo_000086_x.acao.e_recursos_proprios,
-                'posicao_nas_pesquisas': 'ZZZZZZZZZZ',
                 "aceita_capital": acao_associacao_charli_bravo_000086_x.acao.aceita_capital,
                 "aceita_custeio": acao_associacao_charli_bravo_000086_x.acao.aceita_custeio,
                 "aceita_livre": acao_associacao_charli_bravo_000086_x.acao.aceita_livre,
                 "exibir_paa": True,
                 "tem_receitas_previstas_paa_em_elaboracao": False,
                 "tem_prioridades_paa_em_elaboracao": False,
-                "recurso": f'{acao_associacao_charli_bravo_000086_x.acao.recurso.uuid}'
+                "recurso": f'{acao_associacao_charli_bravo_000086_x.acao.recurso.uuid}',
+                "ordem_exibicao": acao_associacao_charli_bravo_000086_x.acao.ordem_exibicao,
             },
             'status': acao_associacao_charli_bravo_000086_x.status,
             'criado_em': acao_associacao_charli_bravo_000086_x.criado_em.isoformat("T"),
+            'recurso': recurso_esperado(acao_associacao_charli_bravo_000086_x.acao.recurso)
         },
     ]
     assert response.status_code == status.HTTP_200_OK

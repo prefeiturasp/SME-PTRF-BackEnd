@@ -5,6 +5,9 @@ from .outros_recursos_serializer import OutroRecursoSerializer
 
 
 class OutrosRecursosPeriodoPaaSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por serializar os dados do outro recurso do período do PAA.
+    """
     uso_associacao = serializers.CharField(read_only=True)
     outro_recurso_objeto = OutroRecursoSerializer(read_only=True, many=False, source='outro_recurso')
     periodo_paa = serializers.SlugRelatedField(

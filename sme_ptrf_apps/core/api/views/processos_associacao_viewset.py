@@ -31,6 +31,16 @@ class ProcessosAssociacaoViewSet(mixins.RetrieveModelMixin,
         else:
             return ProcessoAssociacaoCreateSerializer
 
+    def _get_recurso_para_processo(self, recurso_uuid=None):
+        recurso_legado = Recurso.objects.filter(legado=True).first()
+
+        if flag_is_active(self.request, "premio-excelencia-processo-sei"):
+            if recurso_uuid:
+                return Recurso.objects.filter(uuid=recurso_uuid).first() or getattr(self.request, 'recurso', None) or recurso_legado
+            return getattr(self.request, 'recurso', None) or recurso_legado
+
+        return recurso_legado
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
 
@@ -71,42 +81,22 @@ class ProcessosAssociacaoViewSet(mixins.RetrieveModelMixin,
             return Response({"erro": "Os parâmetros 'associacao_uuid' e 'ano' são obrigatórios."}, status=400)
 
         periodos_query = Periodo.objects.filter(referencia__startswith=ano)
-        
-        if not recurso_uuid:
-            recurso_legado = Recurso.objects.filter(legado=True).first()
+        recurso = self._get_recurso_para_processo(recurso_uuid)
 
-        # Filtra por recurso se o recurso_uuid for fornecido e a flag estiver ativa,
-        # caso contrário, filtra pelo recurso legado
-        if recurso_uuid and flag_is_active(self.request, "premio-excelencia-processo-sei"):
-            recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
-            periodos_query = Periodo.filter_by_recurso(periodos_query, recurso)
-        else:
-            periodos_query = Periodo.filter_by_recurso(periodos_query, recurso_legado)
+        periodos_query = Periodo.filter_by_recurso(periodos_query, recurso)
 
         # Identifica todos os períodos já vinculados a processos para a associação especificada,
         # Excluindo o próprio processo se um UUID foi fornecido.
         processos_associacao_query = ProcessoAssociacao.objects.filter(associacao__uuid=associacao_uuid)
+        processos_associacao_query = ProcessoAssociacao.filter_by_recurso(
+            processos_associacao_query,
+            recurso
+        )
 
-        if recurso_uuid and flag_is_active(self.request, "premio-excelencia-processo-sei"):
-            processos_associacao_query = ProcessoAssociacao.filter_by_recurso(
-                processos_associacao_query,
-                Recurso.objects.filter(uuid=recurso_uuid).first()
-            )
-
-            periodo_inicial_assoc = PeriodoInicialAssociacao.objects.filter(
-                associacao__uuid=associacao_uuid,
-                recurso__uuid=recurso_uuid
-            ).first()
-        else:
-            processos_associacao_query = ProcessoAssociacao.filter_by_recurso(
-                processos_associacao_query,
-                recurso_legado
-            )
-
-            periodo_inicial_assoc = PeriodoInicialAssociacao.objects.filter(
-                associacao__uuid=associacao_uuid,
-                recurso=recurso_legado
-            ).first()
+        periodo_inicial_assoc = PeriodoInicialAssociacao.objects.filter(
+            associacao__uuid=associacao_uuid,
+            recurso=recurso
+        ).first()
 
         if processo_uuid:
             processos_associacao_query = processos_associacao_query.exclude(uuid=processo_uuid)

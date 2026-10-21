@@ -4,13 +4,20 @@ from sme_ptrf_apps.paa.models import ProgramaPdde
 
 
 class ProgramaPddeSimplesSerializer(serializers.ModelSerializer):
-
+    """
+    Serializer responsável por serializar o Programa PDDE Simples.
+    """
     class Meta:
         model = ProgramaPdde
         fields = ('uuid', 'nome')
 
 
 class ProgramaPddeSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por serializar o Programa PDDE.
+
+    Além dos campos do modelo, expõe campos calculados para apresentação.
+    """
     pode_ser_excluida = serializers.SerializerMethodField()
 
     class Meta:
@@ -44,5 +51,8 @@ class TotalGeralSerializer(serializers.Serializer):
 
 
 class ProgramasPddeSomatorioTotalSerializer(serializers.Serializer):
+    """
+    Serializer responsável por serializar o Programa PDDE Somatório Total.
+    """
     programas = ProgramaPddeComTotaisSerializer(many=True, read_only=True)
     total = TotalGeralSerializer(read_only=True)

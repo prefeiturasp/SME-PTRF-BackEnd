@@ -1,11 +1,16 @@
 import logging
-from datetime import datetime
-
-from datetime import date
+from itertools import zip_longest
+from collections import defaultdict
+from datetime import date, datetime
 
 from sme_ptrf_apps.core.choices import MembroEnum
 
-from sme_ptrf_apps.core.models import (MembroAssociacao, RelatorioRelacaoBens, ItemRelatorioRelacaoDeBens)
+from sme_ptrf_apps.core.models import (
+    MembroAssociacao,
+    RelatorioRelacaoBens,
+    ItemRelatorioRelacaoDeBens,
+    ItemRelatorioBemProduzidoRateio
+)
 from sme_ptrf_apps.mandatos.models.cargo_composicao import CargoComposicao
 from sme_ptrf_apps.mandatos.services.composicao_service import ServicoComposicaoVigente
 from sme_ptrf_apps.mandatos.services.mandato_service import ServicoMandatoVigente
@@ -15,14 +20,14 @@ from waffle import get_waffle_flag_model
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_dados_relacao_de_bens(conta_associacao=None, periodo=None, rateios=None, usuario=None, previa=False):
+def gerar_dados_relacao_de_bens(conta_associacao=None, periodo=None, rateios=None, bens_produzidos=None, usuario=None, previa=False):
 
     try:
         LOGGER.info("GERANDO DADOS RELAÇÃO DE BENS...")
 
         cabecalho = cria_cabecalho(periodo, conta_associacao)
         identificacao_apm = cria_identificacao_apm(conta_associacao)
-        relacao_de_bens_adquiridos_ou_produzidos = cria_relacao_de_bens_adquiridos_ou_produzidos(rateios)
+        relacao_de_bens_adquiridos_ou_produzidos = cria_relacao_de_bens_adquiridos_ou_produzidos(rateios, bens_produzidos)
         data_geracao_documento = cria_data_geracao_documento(previa=previa, usuario=usuario)
         data_geracao = date.today().strftime("%d/%m/%Y")
 
@@ -45,6 +50,7 @@ def cria_cabecalho(periodo, conta_associacao):
 
     cabecalho = {
         "recurso": periodo.recurso.nome,
+        "recurso_nome_exibicao": periodo.recurso.nome_exibicao,
         "periodo_referencia": periodo.referencia,
         "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas),
         "periodo_data_fim": formata_data(periodo.data_fim_realizacao_despesas),
@@ -121,36 +127,146 @@ def cria_identificacao_apm(conta_associacao):
     return identificacao_apm
 
 
-def cria_relacao_de_bens_adquiridos_ou_produzidos(rateios):
-    """ BLOCO 2 - IDENTIFICAÇÃO DOS BENS ADQUIRIDOS OU PRODUZIDOS DOCUMENTO EM PDF RELACAO DE BENS """
-    if not rateios:
+def cria_relacao_de_bens_adquiridos_ou_produzidos(rateios, bens_produzidos):
+    """ BLOCO 2 - IDENTIFICAÇÃO DOS BENS ADQUIRIDOS E/OU PRODUZIDOS DOCUMENTO EM PDF RELACAO DE BENS """
+    if not rateios and not bens_produzidos:
         return
 
-    valor_total = sum(r.valor_rateio for r in rateios)
+    valor_total_adquirido = sum(
+        rateio.valor_rateio for rateio in rateios
+    )
 
-    linhas = []
-    for _, rateio in enumerate(rateios):
-        tipo_documento = rateio.despesa.tipo_documento.nome if rateio.despesa.tipo_documento else ''
-        numero_documento = rateio.despesa.numero_documento
-        data_documento = rateio.despesa.data_documento if rateio.despesa.data_documento else ''
-        especificacao_material = \
-            rateio.especificacao_material_servico.descricao if rateio.especificacao_material_servico else ''
-        numero_documento_incorporacao = rateio.numero_processo_incorporacao_capital
-        quantidade = rateio.quantidade_itens_capital
-        valor_item = rateio.valor_item_capital
-        valor_rateio = rateio.valor_rateio
+    valor_total = valor_total_adquirido
 
-        linha = {
-            "tipo_documento": tipo_documento,
-            "numero_documento": numero_documento,
-            "especificacao_material": especificacao_material,
-            "numero_documento_incorporacao": numero_documento_incorporacao,
-            "quantidade": quantidade,
-            "data_documento": formata_data(data_documento),
-            "valor_item": valor_item,
-            "valor_rateio": valor_rateio
+    linhas_adquiridos = []
+
+    for rateio in rateios:
+        despesa = rateio.despesa
+
+        linhas_adquiridos.append({
+            "tipo_bem": ItemRelatorioRelacaoDeBens.TipoBem.ADQUIRIDO.value,
+            "tipo_bem_label": ItemRelatorioRelacaoDeBens.TipoBem.ADQUIRIDO.label,
+            "acao": (
+                rateio.acao_associacao.acao.nome
+                if rateio.acao_associacao
+                else ""
+            ),
+            "tipo_documento": (
+                despesa.tipo_documento.nome
+                if despesa.tipo_documento
+                else ""
+            ),
+            "numero_documento": despesa.numero_documento,
+            "especificacao_material": (
+                rateio.especificacao_material_servico.descricao
+                if rateio.especificacao_material_servico
+                else ""
+            ),
+            "numero_documento_incorporacao": (
+                rateio.numero_processo_incorporacao_capital
+            ),
+            "quantidade": rateio.quantidade_itens_capital,
+            "data_documento": formata_data(
+                despesa.data_documento
+            ),
+            "valor_item": rateio.valor_item_capital,
+            "valor_rateio": rateio.valor_rateio,
+            "_data_ordenacao": despesa.data_documento,
+        })
+
+    # Sem flag situacao-patrimonial, retorna apenas os bens adquiridos
+    flags = get_waffle_flag_model()
+    if not flags.objects.filter(name='situacao-patrimonial', everyone=True).exists():
+        return {
+            "linhas": linhas_adquiridos,
+            "valor_total": valor_total
         }
-        linhas.append(linha)
+
+    valor_total_produzido = sum(
+        bem.valor_total_utilizado(False)
+        for bem in bens_produzidos
+    )
+
+    valor_total += valor_total_produzido
+    
+    linhas_produzidos = []
+
+    for bem_produzido in bens_produzidos:
+        items = []
+
+        for item_bem in bem_produzido.items.all():
+            items.append({
+                "especificacao_material": (
+                    item_bem.especificacao_do_bem.descricao
+                    if item_bem.especificacao_do_bem
+                    else ""
+                ),
+                "numero_documento_incorporacao": (
+                    item_bem.num_processo_incorporacao
+                ),
+                "quantidade": item_bem.quantidade,
+                "valor_item": item_bem.valor_individual,
+                "valor_rateio": item_bem.valor_total,
+            })
+
+        rateios_bem = []
+
+        for despesa_bem in bem_produzido.despesas.all().order_by("-despesa__data_documento"):
+            for rateio_bem in despesa_bem.rateios.all():
+                rateio = rateio_bem.rateio
+                acao_associacao = (
+                    rateio.acao_associacao
+                    if rateio
+                    else None
+                )
+
+                rateios_bem.append({
+                    "tipo_documento": (
+                        despesa_bem.despesa.tipo_documento.nome
+                        if despesa_bem.despesa.tipo_documento
+                        else ""
+                    ),
+                    "numero_documento": despesa_bem.despesa.numero_documento,
+                    "data_documento": formata_data(
+                        despesa_bem.despesa.data_documento
+                    ),
+                    "acao": (
+                        acao_associacao.acao.nome
+                        if acao_associacao
+                        else ""
+                    ),
+                    "valor_rateio": rateio.valor_rateio,
+                })
+
+        datas_documentos = [
+            d.despesa.data_documento
+            for d in bem_produzido.despesas.all()
+            if d.despesa.data_documento
+        ]
+
+        data_ordenacao = max(datas_documentos, default=None)
+
+        linhas_tabela = list(zip_longest(items, rateios_bem))
+
+        linhas_produzidos.append({
+            "tipo_bem": ItemRelatorioRelacaoDeBens.TipoBem.PRODUZIDO.value,
+            "tipo_bem_label": ItemRelatorioRelacaoDeBens.TipoBem.PRODUZIDO.label,
+            "bem_produzido_id": bem_produzido.id,
+            "items": items,
+            "rateios": rateios_bem,
+            "linhas_tabela": linhas_tabela,
+            "_data_ordenacao": data_ordenacao,
+        })
+
+    linhas = linhas_produzidos + linhas_adquiridos
+
+    linhas.sort(
+        key=lambda linha: linha["_data_ordenacao"] or date.min,
+        reverse=True,
+    )
+
+    for linha in linhas:
+        linha.pop("_data_ordenacao")
 
     despesas = {
         "linhas": linhas,
@@ -188,7 +304,7 @@ def formata_data(data):
     return f'{data_formatada}'
 
 
-def persistir_dados_relacao_bens(periodo, conta_associacao, rateios, relacao_bens, usuario):
+def persistir_dados_relacao_bens(periodo, conta_associacao, rateios, bens_produzidos, relacao_bens, usuario):
     associacao = conta_associacao.associacao
     status_presidente_associacao = associacao.status_presidente
     cargo_substituto_presidente_ausente_name = associacao.cargo_substituto_presidente_ausente
@@ -239,8 +355,13 @@ def persistir_dados_relacao_bens(periodo, conta_associacao, rateios, relacao_ben
     tipo_unidade = associacao.unidade.tipo_unidade
     nome_unidade = associacao.unidade.nome
 
-    valor_total = sum(r.valor_rateio for r in rateios)
+    valor_total_adquirido = sum(r.valor_rateio for r in rateios)
+    valor_total_produzido = sum(b.valor_total_utilizado(False) for b in bens_produzidos)
+
+    valor_total = valor_total_adquirido + valor_total_produzido
+
     print(valor_total)
+
     relatorio = RelatorioRelacaoBens.objects.create(
         relacao_bens=relacao_bens,
         usuario=usuario,
@@ -263,6 +384,7 @@ def persistir_dados_relacao_bens(periodo, conta_associacao, rateios, relacao_ben
         valor_total=valor_total
     )
 
+    # Bens adquiridos
     for _, rateio in enumerate(rateios):
         tipo_documento = rateio.despesa.tipo_documento.nome if rateio.despesa.tipo_documento else ''
         numero_documento = rateio.despesa.numero_documento
@@ -273,8 +395,11 @@ def persistir_dados_relacao_bens(periodo, conta_associacao, rateios, relacao_ben
         quantidade = rateio.quantidade_itens_capital
         valor_item = rateio.valor_item_capital
         valor_rateio = rateio.valor_rateio
+        acao_rateio = rateio.acao_associacao.acao.nome if rateio.acao_associacao else ''
 
         ItemRelatorioRelacaoDeBens.objects.create(
+            tipo_bem=ItemRelatorioRelacaoDeBens.TipoBem.ADQUIRIDO,
+            acao=acao_rateio,
             relatorio=relatorio,
             tipo_documento=tipo_documento,
             numero_documento=numero_documento,
@@ -286,27 +411,176 @@ def persistir_dados_relacao_bens(periodo, conta_associacao, rateios, relacao_ben
             valor_rateio=valor_rateio
         )
 
+    # Bens produzidos
+    for bem_produzido in bens_produzidos:
+        for item_bem in bem_produzido.items.all():
+            especificacao_material = item_bem.especificacao_do_bem.descricao if item_bem.especificacao_do_bem else ''
+            numero_documento_incorporacao = item_bem.num_processo_incorporacao
+            quantidade = item_bem.quantidade
+            valor_item = item_bem.valor_individual
+            valor_rateio = item_bem.valor_total
+            
+
+            ItemRelatorioRelacaoDeBens.objects.create(
+                tipo_bem=ItemRelatorioRelacaoDeBens.TipoBem.PRODUZIDO,
+                relatorio=relatorio,
+                bem_produzido_id=bem_produzido.id,
+                especificacao_material=especificacao_material,
+                numero_documento_incorporacao=numero_documento_incorporacao,           
+                quantidade=quantidade,
+                valor_item=valor_item,
+                valor_rateio=valor_rateio
+            )
+
+        for despesa_bem in bem_produzido.despesas.all():
+            for rateio_bem in despesa_bem.rateios.all():
+                acao_associacao = (
+                    rateio_bem.rateio.acao_associacao
+                    if rateio_bem.rateio
+                    else None
+                )
+                acao_rateio = (
+                    acao_associacao.acao.nome
+                    if acao_associacao
+                    else ''
+                )
+                despesa = despesa_bem.despesa
+                tipo_documento = despesa.tipo_documento.nome if despesa.tipo_documento else ''
+                numero_documento = despesa.numero_documento
+                valor_rateio = rateio_bem.rateio.valor_rateio
+
+                ItemRelatorioBemProduzidoRateio.objects.create(
+                    relatorio=relatorio,
+                    bem_produzido_id=bem_produzido.id,
+                    tipo_documento=tipo_documento,
+                    numero_documento=numero_documento,
+                    data_documento=despesa.data_documento if despesa.data_documento else '',
+                    acao=acao_rateio,
+                    valor_rateio=valor_rateio,
+                )
+    
+        
     LOGGER.info(f'Dados da relação bens persistidos {relatorio} com sucesso.')
 
 
-def formatar_e_retornar_dados_relatorio_relacao_bens(relatorio):
-    linhas = []
+def formatar_e_retornar_dados_relatorio_relacao_bens(relatorio, recurso_nome, recurso_nome_exibicao):
+    linhas_adquiridos = []
+    linhas_produzidos_por_id = {}
 
-    for item in relatorio.bens.all():
-        linha = {
+    itens_relatorio = list(relatorio.bens.all())
+
+    bens_adquiridos = [
+        item
+        for item in itens_relatorio
+        if not item.tipo_bem or item.tipo_bem == ItemRelatorioRelacaoDeBens.TipoBem.ADQUIRIDO
+    ]
+
+    bens_produzidos = [
+        item
+        for item in itens_relatorio
+        if item.tipo_bem == ItemRelatorioRelacaoDeBens.TipoBem.PRODUZIDO
+    ]
+
+    for item in bens_adquiridos:
+        linhas_adquiridos.append({
+            "acao": item.acao,
+            "tipo_bem": item.tipo_bem,
+            "tipo_bem_label": item.tipo_bem_label,
             "tipo_documento": item.tipo_documento,
             "numero_documento": item.numero_documento,
             "especificacao_material": item.especificacao_material,
-            "numero_documento_incorporacao": item.numero_documento_incorporacao,
+            "numero_documento_incorporacao": (
+                item.numero_documento_incorporacao
+            ),
             "quantidade": item.quantidade,
             "data_documento": formata_data(item.data_documento),
             "valor_item": formata_valor(item.valor_item),
-            "valor_rateio": formata_valor(item.valor_rateio)
+            "valor_rateio": formata_valor(item.valor_rateio),
+            "_data_ordenacao": item.data_documento,
+        })
+
+    todas_linhas = linhas_adquiridos
+
+    # Com flag situacao-patrimonial, retorna bens produzidos
+    flags = get_waffle_flag_model()
+    if flags.objects.filter(name='situacao-patrimonial', everyone=True).exists():
+       
+    
+        bem_produzido_ids = {
+            item.bem_produzido_id
+            for item in bens_produzidos
         }
-        linhas.append(linha)
+
+        rateios_por_bem = defaultdict(list)
+        data_mais_recente_por_bem = {}
+
+        itens_rateio = ItemRelatorioBemProduzidoRateio.objects.filter(
+            relatorio=relatorio,
+            bem_produzido_id__in=bem_produzido_ids,
+        ).order_by("-data_documento")
+
+        for item_rateio in itens_rateio:
+            bem_id = item_rateio.bem_produzido_id
+            data_documento = item_rateio.data_documento
+            
+            rateios_por_bem[bem_id].append({
+                "tipo_documento": item_rateio.tipo_documento,
+                "numero_documento": item_rateio.numero_documento,
+                "data_documento": formata_data(data_documento),
+                "acao": item_rateio.acao,
+                "valor_rateio": formata_valor(item_rateio.valor_rateio),
+            })
+
+            if data_documento and (
+                bem_id not in data_mais_recente_por_bem
+                or data_documento > data_mais_recente_por_bem[bem_id]
+            ):
+                data_mais_recente_por_bem[bem_id] = data_documento
+
+        for item in bens_produzidos:
+            bem_id = item.bem_produzido_id
+
+            if bem_id not in linhas_produzidos_por_id:
+                linhas_produzidos_por_id[bem_id] = {
+                    "tipo_bem": item.tipo_bem,
+                    "tipo_bem_label": item.tipo_bem_label,
+                    "bem_produzido_id": bem_id,
+                    "items": [],
+                    "rateios": rateios_por_bem[bem_id],
+                    "_data_ordenacao": data_mais_recente_por_bem.get(bem_id),
+                }
+
+            linhas_produzidos_por_id[bem_id]["items"].append({
+                "tipo_documento": item.tipo_documento,
+                "numero_documento": item.numero_documento,
+                "especificacao_material": item.especificacao_material,
+                "numero_documento_incorporacao": (
+                    item.numero_documento_incorporacao
+                ),
+                "quantidade": item.quantidade,
+                "valor_item": formata_valor(item.valor_item),
+                "valor_rateio": formata_valor(item.valor_rateio),
+            })
+
+        linhas_produzidos = list(linhas_produzidos_por_id.values())
+
+        for linha in linhas_produzidos:
+            linha["linhas_tabela"] = list(zip_longest(linha["items"], linha["rateios"]))
+
+        todas_linhas = linhas_produzidos + linhas_adquiridos
+
+    todas_linhas.sort(
+        key=lambda linha: linha["_data_ordenacao"] or date.min,
+        reverse=True,
+    )
+
+    for linha in todas_linhas:
+        linha.pop("_data_ordenacao")
 
     dados_relacao_de_bens = {
         "cabecalho": {
+            "recurso": recurso_nome,
+            "recurso_nome_exibicao": recurso_nome_exibicao,
             "periodo_referencia": relatorio.periodo_referencia,
             "periodo_data_inicio": formata_data(relatorio.periodo_data_inicio),
             "periodo_data_fim": formata_data(relatorio.periodo_data_fim),
@@ -325,7 +599,7 @@ def formatar_e_retornar_dados_relatorio_relacao_bens(relatorio):
         "data_geracao": formata_data(relatorio.data_geracao.date()),
         "relacao_de_bens_adquiridos_ou_produzidos": {
             "valor_total": formata_valor(relatorio.valor_total),
-            "linhas": linhas
+            "linhas": todas_linhas
         },
         "data_geracao_documento": cria_data_geracao_documento(relatorio.usuario, relatorio.relacao_bens.previa, relatorio.data_geracao),
         "previa": relatorio.relacao_bens.previa

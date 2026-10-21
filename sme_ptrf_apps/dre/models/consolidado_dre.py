@@ -233,10 +233,17 @@ class ConsolidadoDRE(ModeloBase):
 
     @property
     def referencia(self):
+        from ..services.consolidado_dre_service import TextDocumentConsolidadoPC
+
+        recurso = self.periodo.recurso
+        habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+        text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+        text_possessive_document_consolidado_pc = text_document_consolidado_pc.possessive()
+
         if self.eh_retificacao:
-            return f"Retificação da publicação de {self.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y') if self.consolidado_retificado.data_publicacao else ''}"
+            return f"Retificação {text_possessive_document_consolidado_pc} de {self.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y') if self.consolidado_retificado.data_publicacao else ''}"
         else:
-            return "Única" if self.sequencia_de_publicacao == 0 else f'Parcial #{self.sequencia_de_publicacao}'
+            return text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE if self.sequencia_de_publicacao == 0 else f'{text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL} #{self.sequencia_de_publicacao}'
 
 
     @property
@@ -270,22 +277,22 @@ class ConsolidadoDRE(ModeloBase):
 
     def passar_para_status_em_processamento(self):
         self.status = self.STATUS_EM_PROCESSAMENTO
-        self.save()
+        self.save(update_fields=['status', 'alterado_em'])
         return self
 
     def passar_para_status_gerado(self, parcial):
         self.status = self.STATUS_GERADOS_TOTAIS if not parcial else self.STATUS_GERADOS_PARCIAIS
-        self.save()
+        self.save(update_fields=['status', 'alterado_em'])
         return self
 
     def atribuir_versao(self, previa):
         self.versao = self.VERSAO_PREVIA if previa else self.VERSAO_FINAL
-        self.save()
+        self.save(update_fields=['versao', 'alterado_em'])
         return self
 
     def atribuir_se_eh_parcial(self, parcial):
         self.eh_parcial = parcial
-        self.save()
+        self.save(update_fields=['eh_parcial', 'alterado_em'])
         return self
 
     def get_valor_status_choice(self):
@@ -295,7 +302,10 @@ class ConsolidadoDRE(ModeloBase):
         self.desfazer_analise_atual()
         self.status_sme = self.STATUS_SME_PUBLICADO
         self.data_publicacao = data_publicacao
-        self.pagina_publicacao = pagina_publicacao
+
+        if pagina_publicacao:
+            self.pagina_publicacao = pagina_publicacao
+
         self.data_de_inicio_da_analise = None
         self.responsavel_pela_analise = None
         self.save()

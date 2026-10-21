@@ -3,6 +3,9 @@ from sme_ptrf_apps.paa.models import OutroRecurso
 
 
 class OutroRecursoSerializer(serializers.ModelSerializer):
+    """
+    Serializer responsável por serializar os dados do outro recurso.
+    """
     nome = serializers.CharField(
         error_messages={
             'null': 'Nome do Recurso não foi informado.',

@@ -1,4 +1,5 @@
 import json
+from uuid import uuid4
 
 import pytest
 
@@ -11,8 +12,49 @@ from rest_framework import status
 from sme_ptrf_apps.users.models import Grupo
 
 from ...models import ObservacaoConciliacao
+from ...models.solicitacao_encerramento_conta_associacao import SolicitacaoEncerramentoContaAssociacao
 
 pytestmark = pytest.mark.django_db
+
+
+def test_api_salva_observacoes_sem_periodo(jwt_authenticated_client_a, conta_associacao_cartao):
+    payload = {'conta_associacao_uuid': f'{conta_associacao_cartao.uuid}'}
+
+    response = jwt_authenticated_client_a.patch(
+        '/api/conciliacoes/salvar-observacoes/', data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_salva_observacoes_periodo_nao_encontrado(jwt_authenticated_client_a, conta_associacao_cartao):
+    payload = {'periodo_uuid': f'{uuid4()}', 'conta_associacao_uuid': f'{conta_associacao_cartao.uuid}'}
+
+    response = jwt_authenticated_client_a.patch(
+        '/api/conciliacoes/salvar-observacoes/', data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
+
+
+def test_api_salva_observacoes_sem_conta_associacao(jwt_authenticated_client_a, periodo):
+    payload = {'periodo_uuid': f'{periodo.uuid}'}
+
+    response = jwt_authenticated_client_a.patch(
+        '/api/conciliacoes/salvar-observacoes/', data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'parametros_requeridos'
+
+
+def test_api_salva_observacoes_conta_associacao_nao_encontrada(jwt_authenticated_client_a, periodo):
+    payload = {'periodo_uuid': f'{periodo.uuid}', 'conta_associacao_uuid': f'{uuid4()}'}
+
+    response = jwt_authenticated_client_a.patch(
+        '/api/conciliacoes/salvar-observacoes/', data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert json.loads(response.content)['erro'] == 'Objeto não encontrado.'
 
 
 def test_api_salva_observacoes_conciliacao_justificativa(jwt_authenticated_client_a, periodo, conta_associacao_cartao):
@@ -37,8 +79,9 @@ def test_api_salva_observacoes_conciliacao_justificativa(jwt_authenticated_clien
     assert obj.texto == "Teste observações."
 
 
-def test_api_salva_observacoes_conciliacao_extrato_bancario(jwt_authenticated_client_a, periodo, conta_associacao_cartao):
-    url = f'/api/conciliacoes/salvar-observacoes/'
+def test_api_salva_observacoes_conciliacao_extrato_bancario(jwt_authenticated_client_a, periodo,
+                                                            conta_associacao_cartao):
+    url = '/api/conciliacoes/salvar-observacoes/'
 
     payload = {
         "periodo_uuid": f'{periodo.uuid}',
@@ -55,7 +98,36 @@ def test_api_salva_observacoes_conciliacao_extrato_bancario(jwt_authenticated_cl
     assert ObservacaoConciliacao.objects.exists()
 
     obj = ObservacaoConciliacao.objects.first()
-    assert obj.data_extrato == date(2021, 1, 1)
+    assert obj.data_extrato == periodo.data_fim_realizacao_despesas
+    assert obj.saldo_extrato == 1000.0
+
+
+def test_api_salva_observacoes_extrato_bancario_com_solicitacao_encerramento(
+        jwt_authenticated_client_a,
+        periodo_2019_1,
+        conta_associacao,
+        solicitacao_encerramento_conta_associacao_factory):
+
+    solicitacao_encerramento_conta_associacao_factory.create(
+        conta_associacao=conta_associacao,
+        status=SolicitacaoEncerramentoContaAssociacao.STATUS_APROVADA,
+        data_de_encerramento_na_agencia=date(2019, 5, 1),
+    )
+    url = "/api/conciliacoes/salvar-observacoes/"
+    payload = {
+        'periodo_uuid': f'{periodo_2019_1.uuid}',
+        'conta_associacao_uuid': f'{conta_associacao.uuid}',
+        'data_extrato': '2021-01-01',
+        'saldo_extrato': 1000.00,
+        'justificativa_ou_extrato_bancario': 'EXTRATO_BANCARIO',
+    }
+
+    response = jwt_authenticated_client_a.patch(url, data=json.dumps(payload), content_type='application/json')
+
+    assert response.status_code == status.HTTP_200_OK
+
+    obj = ObservacaoConciliacao.objects.get()
+    assert obj.data_extrato == date(2019, 5, 1)
     assert obj.saldo_extrato == 1000.0
 
 

@@ -106,11 +106,10 @@ class ExportacaoDadosRepassesService:
     def monta_dados(self):
         linhas_vertical = []
 
-        for instance in self.queryset:
-            logger.info(f"Iniciando extração de dados de repasses, id: {instance.id}.")
+        logger.info("Iniciando extração de dados de repasses.")
+        for instance in self.queryset.iterator(chunk_size=2000):
 
             if not Repasse.objects.filter(id=instance.id).exists():
-                logger.info(f"Este registro não existe mais na base de dados, portanto será pulado")
                 continue
 
             linha_horizontal = []
@@ -190,9 +189,8 @@ class ExportacaoDadosRepassesService:
                 campo = get_recursive_attr(instance, campo)
                 linha_horizontal.append(campo)
 
-            logger.info(f"Escrevendo linha {linha_horizontal} de repasses, repasse id: {instance.id}.")
             linhas_vertical.append(linha_horizontal)
-            logger.info(f"Finalizando extração de dados de repasses, repasse id: {instance.id}.")
+        logger.info("Finalizando extração de dados de repasses.")
 
         return linhas_vertical
 
@@ -222,7 +220,7 @@ class ExportacaoDadosRepassesService:
         return self.queryset
 
     def cria_registro_central_download(self):
-        logger.info(f"Criando registro na central de download")
+        logger.info("Criando registro na central de download")
 
         obj = gerar_arquivo_download(
             self.user,

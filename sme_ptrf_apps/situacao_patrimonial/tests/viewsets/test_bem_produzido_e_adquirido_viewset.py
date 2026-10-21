@@ -20,6 +20,69 @@ def test_get_lista_adquiridos_e_produzidos(jwt_authenticated_client_sme, flag_si
 
 
 @freeze_time('2025-01-01')
+def test_listagem_por_recurso_ptrf(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    associacao_1,
+    cenario_recurso_ptrf,
+    cenario_recurso_premium
+):
+    """Testa se a listagem retorna exatamente os 3 itens do recurso PTRF."""
+
+    recurso_ptrf, _, _ = cenario_recurso_ptrf
+    _, bem_premium, despesa_premium = cenario_recurso_premium
+
+    response = jwt_authenticated_client_sme.get(
+        f'/api/bens-produzidos-e-adquiridos/?associacao_uuid={associacao_1.uuid}',
+        HTTP_X_RECURSO_SELECIONADO=str(recurso_ptrf.uuid),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    content = json.loads(response.content)
+    assert len(content["results"]) == 3
+
+    result_uuids = {
+        item.get("uuid") or item.get("bem_produzido_uuid") or item.get("despesa_uuid")
+        for item in content["results"]
+    }
+
+    assert str(bem_premium.uuid) not in result_uuids
+    assert str(despesa_premium.uuid) not in result_uuids
+
+
+def test_listagem_por_recurso_premium(
+    jwt_authenticated_client_sme,
+    flag_situacao_patrimonial,
+    associacao_1,
+    cenario_recurso_ptrf,
+    cenario_recurso_premium
+):
+    """Testa se a listagem retorna exatamente os 2 itens do recurso Premium."""
+
+    recurso_premium, _, _ = cenario_recurso_premium
+    _, bem_ptrf, despesa_ptrf = cenario_recurso_ptrf
+
+    response = jwt_authenticated_client_sme.get(
+        f'/api/bens-produzidos-e-adquiridos/?associacao_uuid={associacao_1.uuid}',
+        HTTP_X_RECURSO_SELECIONADO=str(recurso_premium.uuid),
+    )
+
+    assert response.status_code == status.HTTP_200_OK
+
+    content = json.loads(response.content)
+    assert len(content["results"]) == 2
+
+    result_uuids = {
+        item.get("uuid") or item.get("bem_produzido_uuid") or item.get("despesa_uuid")
+        for item in content["results"]
+    }
+
+    assert str(bem_ptrf.uuid) not in result_uuids
+    assert str(despesa_ptrf.uuid) not in result_uuids
+
+
+@freeze_time('2025-01-01')
 def test_get_lista_adquiridos_e_produzidos_com_filtro_acao_e_conta(jwt_authenticated_client_sme, flag_situacao_patrimonial, associacao_1, despesa_factory, rateio_despesa_factory, conta_associacao_factory, acao_associacao_factory):
     conta_associacao = conta_associacao_factory(associacao=associacao_1)
     acao_associacao = acao_associacao_factory(associacao=associacao_1)

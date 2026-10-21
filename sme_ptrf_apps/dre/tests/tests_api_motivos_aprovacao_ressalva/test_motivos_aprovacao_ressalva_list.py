@@ -14,10 +14,12 @@ def test_api_list_motivos_todos(jwt_authenticated_client, motivo_aprovacao_ressa
         {
             "uuid": f'{motivo_aprovacao_ressalva_x.uuid}',
             "motivo": f'{motivo_aprovacao_ressalva_x.motivo}',
+            "recurso": f'{motivo_aprovacao_ressalva_x.recurso.uuid}' if motivo_aprovacao_ressalva_x.recurso else None
         },
         {
             "uuid": f'{motivo_aprovacao_ressalva_y.uuid}',
             "motivo": f'{motivo_aprovacao_ressalva_y.motivo}',
+            "recurso": f'{motivo_aprovacao_ressalva_y.recurso.uuid}' if motivo_aprovacao_ressalva_y.recurso else None
         }
     ]
 

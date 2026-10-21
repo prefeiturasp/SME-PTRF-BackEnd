@@ -8,7 +8,7 @@ pytestmark = pytest.mark.django_db
 def test_retrieve_motivo_estorno(jwt_authenticated_client_p, motivo_estorno_01):
     response = jwt_authenticated_client_p.get(
         f'/api/motivos-estorno/{motivo_estorno_01.uuid}/',
-        content_type='applicaton/json'
+        content_type='application/json'
     )
 
     result = json.loads(response.content)
@@ -16,7 +16,8 @@ def test_retrieve_motivo_estorno(jwt_authenticated_client_p, motivo_estorno_01):
     resultado_esperado = {
         'id': motivo_estorno_01.id,
         'uuid': f'{motivo_estorno_01.uuid}',
-        'motivo': 'Motivo de estorno 01'
+        'motivo': 'Motivo de estorno 01',
+        'recurso': f'{motivo_estorno_01.recurso.uuid}'
     }
 
     assert response.status_code == status.HTTP_200_OK

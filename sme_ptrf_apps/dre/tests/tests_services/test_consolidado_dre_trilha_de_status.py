@@ -63,7 +63,7 @@ def test_retorna_trilha_de_status_pc_aprovada_ressalvas_retificada(
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'REPROVADA',
-            'titulo': 'Reprovadas'
+            'titulo': 'Rejeitadas'
         }
     ]
 
@@ -129,7 +129,7 @@ def test_retorna_trilha_de_status_pc_reprovada_retificada(
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'REPROVADA',
-            'titulo': 'Reprovadas'
+            'titulo': 'Rejeitadas'
         }
     ]
 
@@ -195,7 +195,7 @@ def test_retorna_trilha_de_status_pc_aprovada_retificada(
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'REPROVADA',
-            'titulo': 'Reprovadas'
+            'titulo': 'Rejeitadas'
         }
     ]
 
@@ -258,7 +258,7 @@ def test_retorna_trilha_de_status_sem_nenhuma_pc(
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'REPROVADA',
-            'titulo': 'Reprovadas'
+            'titulo': 'Rejeitadas'
         }
     ]
     assert result == resultado_esperado
@@ -322,7 +322,7 @@ def test_retorna_trilha_de_status_uma_pc_aprovada_e_uma_concluida(
             'estilo_css': 0,
             'quantidade_prestacoes': 0,
             'status': 'REPROVADA',
-            'titulo': 'Reprovadas'
+            'titulo': 'Rejeitadas'
         }
     ]
 
@@ -366,7 +366,7 @@ def test_retorna_trilha_de_status_uma_pc_reprovada_uma_concluida_e_uma_publicada
             'estilo_css': 0,
             'quantidade_prestacoes': 1,
             'status': 'REPROVADA',
-            'titulo': 'Reprovadas'
+            'titulo': 'Rejeitadas'
         }
     
     assert result[4] == concluidos

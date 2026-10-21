@@ -1,7 +1,5 @@
 import pytest
 
-from django.db import IntegrityError, transaction
-
 from sme_ptrf_apps.paa.models import AtividadeEstatutaria
 from sme_ptrf_apps.paa.choices import StatusChoices, Mes
 from sme_ptrf_apps.paa.enums import TipoAtividadeEstatutariaEnum
@@ -130,7 +128,7 @@ def test_mes_pode_ser_1_a_12(atividade_estatutaria_factory):
 
 
 @pytest.mark.django_db
-def test_nome_mes_tipo_devem_ser_unico(atividade_estatutaria_factory):
+def test_nome_mes_tipo_nao_devem_ser_unico(atividade_estatutaria_factory):
     atividade_estatutaria_factory.create(
         nome="Único",
         mes=Mes.JANEIRO,
@@ -143,21 +141,17 @@ def test_nome_mes_tipo_devem_ser_unico(atividade_estatutaria_factory):
         tipo=TipoAtividadeEstatutariaEnum.EXTRAORDINARIA.name,
         paa=None)
 
-    with pytest.raises(IntegrityError):
-        with transaction.atomic():
-            atividade_estatutaria_factory.create(
-                nome="Único",
-                mes=Mes.JANEIRO,
-                tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name,
-                paa=None)
+    atividade_estatutaria_factory.create(
+        nome="Único",
+        mes=Mes.JANEIRO,
+        tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name,
+        paa=None)
 
-    with pytest.raises(IntegrityError):
-        with transaction.atomic():
-            atividade_estatutaria_factory.create(
-                nome="Único",
-                mes=Mes.FEVEREIRO,
-                tipo=TipoAtividadeEstatutariaEnum.EXTRAORDINARIA.name,
-                paa=None)
+    atividade_estatutaria_factory.create(
+        nome="Único",
+        mes=Mes.FEVEREIRO,
+        tipo=TipoAtividadeEstatutariaEnum.EXTRAORDINARIA.name,
+        paa=None)
 
-    assert AtividadeEstatutaria.objects.filter(tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name).count() == 1
-    assert AtividadeEstatutaria.objects.filter(tipo=TipoAtividadeEstatutariaEnum.EXTRAORDINARIA.name).count() == 1
+    assert AtividadeEstatutaria.objects.filter(tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name).count() == 2
+    assert AtividadeEstatutaria.objects.filter(tipo=TipoAtividadeEstatutariaEnum.EXTRAORDINARIA.name).count() == 2

@@ -132,8 +132,8 @@ class ExportacoesAtasService:
     def monta_dados(self):
         linhas_vertical = []
 
-        for instance in self.queryset:
-            logger.info(f"Iniciando extração de dados de atas, ata id: {instance.id}.")
+        logger.info("Iniciando extração de dados de atas.")
+        for instance in self.queryset.iterator(chunk_size=2000):
             linha_horizontal = []
 
             for _, campo in self.cabecalho:
@@ -141,9 +141,8 @@ class ExportacoesAtasService:
                 campo_valor = self.formata_dado(campo_valor)
                 linha_horizontal.append(campo_valor)
 
-            logger.info(f"Escrevendo linha {linha_horizontal} de atas, ata id: {instance.id}.")
             linhas_vertical.append(linha_horizontal)
-            logger.info(f"Finalizando extração de dados de atas, ata id: {instance.id}.")
+        logger.info("Finalizando extração de dados de atas.")
 
         return linhas_vertical
 
@@ -171,7 +170,7 @@ class ExportacoesAtasService:
         return self.queryset
 
     def cria_registro_central_download(self):
-        logger.info(f"Criando registro na central de download")
+        logger.info("Criando registro na central de download")
         obj = gerar_arquivo_download(
             self.user,
             self.nome_arquivo,

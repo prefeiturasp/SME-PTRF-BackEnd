@@ -22,10 +22,12 @@ class RecuperaDadosDemoFinanceiro:
     def retorna_dados_cabecalho(self):
         cabecalho = {
             "recurso": self.demonstrativo.prestacao_conta.periodo.recurso.nome,
+            "recurso_nome_exibicao": self.demonstrativo.prestacao_conta.periodo.recurso.nome_exibicao,
             "periodo_referencia": self.dados.periodo_referencia,
             "periodo_data_inicio": self.formata_data(self.dados.periodo_data_inicio),
             "periodo_data_fim": self.formata_data(self.dados.periodo_data_fim),
             "conta": self.dados.conta_associacao,
+            "existe_saldo_reprogramado": self.demonstrativo.prestacao_conta.periodo.recurso.existe_saldo_reprogramado
         }
 
         return cabecalho

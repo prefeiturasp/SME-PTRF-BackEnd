@@ -49,15 +49,17 @@ def gerar_relacao_bens_async(self, id_task, prestacao_conta_uuid, username=""):
         rel_bens_logger.info(f'Iniciando task gerar_relacao_bens_async, tentativa {tentativa}.')
 
         if not pc_service.requer_gerar_documentos:
-            rel_bens_logger.info(f'PC não requer geração de documentos. Relação de bens não gerada.')
+            rel_bens_logger.info('PC não requer geração de documentos. Relação de bens não gerada.')
             return
 
         prestacao = pc_service.prestacao
+        recurso_nome = prestacao.periodo.recurso.nome
+        recurso_nome_exibicao = prestacao.periodo.recurso.nome_exibicao
 
         relacao_bens = prestacao.relacoes_de_bens_da_prestacao.filter(versao=RelacaoBens.VERSAO_FINAL)
 
         for relacao in relacao_bens:
-            dados = _retornar_dados_relatorio_relacao_de_bens(relacao)
+            dados = _retornar_dados_relatorio_relacao_de_bens(relacao, recurso_nome, recurso_nome_exibicao)
 
             if dados:
                 gerar_arquivo_relacao_de_bens_pdf(dados, relacao)
@@ -65,7 +67,7 @@ def gerar_relacao_bens_async(self, id_task, prestacao_conta_uuid, username=""):
                 rel_bens_logger.info(f'Arquivo relação bens PDF gerado para a conta {relacao.conta_associacao}.')
             else:
                 rel_bens_logger.warning(
-                    f'Dados persistidos da relação de bens não encontrados.',
+                    'Dados persistidos da relação de bens não encontrados.',
                     extra={'observacao': f'relacao: {relacao}'}
                 )
 

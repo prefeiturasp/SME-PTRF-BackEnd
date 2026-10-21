@@ -2,6 +2,7 @@ from datetime import date, datetime, timedelta
 from freezegun import freeze_time
 import pytest
 from model_bakery import baker
+from sme_ptrf_apps.dre.fixtures.factories.comissao_factory import ComissaoFactory
 from sme_ptrf_apps.dre.models import ConsolidadoDRE, TecnicoDre
 from django.contrib.auth.models import Permission
 from sme_ptrf_apps.users.models import Grupo
@@ -152,8 +153,8 @@ def comentario_analise_consolidado_dre_03(consolidado_dre_teste_api_comentario_a
 
 
 @pytest.fixture
-def comissao_exame_contas_teste_service():
-    return baker.make('Comissao', nome='Exame de Contas')
+def comissao_exame_contas_teste_service(recurso_legado):
+    return ComissaoFactory(nome="Exame de Contas do PTRF", responsavel_analise_pc=True, recursos=[recurso_legado])
 
 
 @pytest.fixture

@@ -77,8 +77,8 @@ def df_conta_associacao_cartao(associacao, df_tipo_conta_cartao):
 
 
 @pytest.fixture
-def df_tipo_receita_repasse():
-    return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
+def df_tipo_receita_repasse(tipo_receita_factory):
+    return tipo_receita_factory.create(nome='Repasse', e_repasse=True)
 
 
 @pytest.fixture

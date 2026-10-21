@@ -22,21 +22,21 @@ pytestmark = pytest.mark.django_db
 def arquivo():
     return SimpleUploadedFile(
         f'arquivo.csv',
-        bytes(f"""Código eol,Conta,Ação,Referência Período, Valor capital,Valor custeio,Valor livre aplicacao\n93238,Cheque,Role Cultural,2020.u,99000.98,99000.98,""", encoding="utf-8"))
+        bytes(f"""Código eol,Conta,Ação,Referência Período, Valor capital,Valor custeio,Valor livre aplicacao,Recurso\n93238,Cheque,Role Cultural,2020.u,99000.98,99000.98,,Programa de Transferência de Recursos Financeiros - PTRF""", encoding="utf-8"))
 
 
 @pytest.fixture
 def arquivo_processado():
     return SimpleUploadedFile(
         f'arquivo1.csv',
-        bytes(f"""Código eol,Conta,Ação,Referência Período, Valor capital,Valor custeio,Valor livre aplicacao\n123456,Cheque,PTRF,2019.2,99000.98,99000.98,\n93238,Cheque,Role Cultural,2020.u,99000.98,99000.98,""", encoding="utf-8"))
+        bytes(f"""Código eol,Conta,Ação,Referência Período, Valor capital,Valor custeio,Valor livre aplicacao,Recurso\n123456,Cheque,PTRF,2019.2,99000.98,99000.98,,Programa de Transferência de Recursos Financeiros - PTRF\n93238,Cheque,Role Cultural,2020.u,99000.98,99000.98,,Programa de Transferência de Recursos Financeiros - PTRF""", encoding="utf-8"))
 
 
 @pytest.fixture
 def arquivo_processado_com_duas_acoes():
     return SimpleUploadedFile(
         f'arquivo2.csv',
-        bytes(f"""Código eol,Conta,Ação,Referência Período, Valor capital,Valor custeio,Valor livre aplicacao\n123456,Cheque,PTRF,2019.2,99000.98,99000.98,\n123456,Cheque,Rolê Cultural,2019.2,1000,2000,""", encoding="utf-8"))
+        bytes(f"""Código eol,Conta,Ação,Referência Período, Valor capital,Valor custeio,Valor livre aplicacao,Recurso\n123456,Cheque,PTRF,2019.2,99000.98,99000.98,,Programa de Transferência de Recursos Financeiros - PTRF\n123456,Cheque,Rolê Cultural,2019.2,1000,2000,,Programa de Transferência de Recursos Financeiros - PTRF""", encoding="utf-8"))
 
 
 @pytest.fixture

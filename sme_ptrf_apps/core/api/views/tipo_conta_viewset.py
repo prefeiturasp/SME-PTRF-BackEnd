@@ -5,6 +5,8 @@ from rest_framework.response import Response
 
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
+from sme_ptrf_apps.core.models.recurso import Recurso
+
 from ..serializers.tipo_conta_serializer import TipoContaSerializer
 from ...models import TipoConta
 from ...models import ContaAssociacao
@@ -25,15 +27,23 @@ class TiposContaViewSet(mixins.ListModelMixin,
         qs = TipoConta.objects.all()
 
         nome = self.request.query_params.get('nome')
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
 
         if nome is not None:
             qs = qs.filter(nome__unaccent__icontains=nome)
+
+        if recurso_uuid is not None:
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
+            if recurso:
+                qs = TipoConta.filter_by_recurso(qs, recurso)
 
         return qs.order_by('nome')
 
     @extend_schema(
         parameters=[
             OpenApiParameter(name='nome', description='Nome', required=False,
+                             type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
+            OpenApiParameter(name='recurso_uuid', description='UUID do recurso', required=False,
                              type=OpenApiTypes.STR, location=OpenApiParameter.QUERY),
         ],
         responses={200: TipoContaSerializer(many=True)},

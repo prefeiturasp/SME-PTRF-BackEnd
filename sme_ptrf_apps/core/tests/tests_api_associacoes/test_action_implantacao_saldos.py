@@ -122,7 +122,7 @@ def test_get_permite_implantacao_com_prestacao_contas_devolvida_periodo_posterio
 
 
 def test_retrieve_implanta_saldos_saldos_ainda_nao_implantados(
-    jwt_authenticated_client_a, associacao, periodo_anterior
+    jwt_authenticated_client_a, associacao, periodo_anterior, recurso_esperado,
 ):
     response = jwt_authenticated_client_a.get(
         f"/api/associacoes/{associacao.uuid}/implantacao-saldos/",
@@ -133,11 +133,13 @@ def test_retrieve_implanta_saldos_saldos_ainda_nao_implantados(
     esperado = {
         "associacao": f"{associacao.uuid}",
         "periodo": {
+            "id": periodo_anterior.id,
+            "uuid": f"{periodo_anterior.uuid}",
             "referencia": "2019.1",
             "data_inicio_realizacao_despesas": "2019-01-01",
             "data_fim_realizacao_despesas": "2019-08-31",
             "referencia_por_extenso": "1° repasse de 2019",
-            "uuid": f"{periodo_anterior.uuid}",
+            "recurso": recurso_esperado(periodo_anterior.recurso),
         },
         "saldos": [],
     }
@@ -294,6 +296,7 @@ def test_post_implanta_saldos_sem_prestacao_contas(
     periodo_anterior,
     acao_associacao_role_cultural,
     conta_associacao,
+    recurso_esperado,
 ):
     payload = {
         "saldos": [
@@ -322,11 +325,13 @@ def test_post_implanta_saldos_sem_prestacao_contas(
     esperado = {
         "associacao": f"{associacao.uuid}",
         "periodo": {
+            "id": periodo_anterior.id,
+            "uuid": f"{periodo_anterior.uuid}",
             "data_fim_realizacao_despesas": "2019-08-31",
             "data_inicio_realizacao_despesas": "2019-01-01",
             "referencia": "2019.1",
             "referencia_por_extenso": "1° repasse de 2019",
-            "uuid": f"{periodo_anterior.uuid}",
+            "recurso": recurso_esperado(periodo_anterior.recurso),
         },
         "saldos": [
             {
@@ -365,6 +370,7 @@ def test_post_implanta_saldos_ja_existente(
     acao_associacao_role_cultural,
     conta_associacao,
     fechamento_periodo_anterior_role_implantado,
+    recurso_esperado,
 ):
     payload = {
         "saldos": [
@@ -387,11 +393,13 @@ def test_post_implanta_saldos_ja_existente(
     esperado = {
         "associacao": f"{associacao.uuid}",
         "periodo": {
+            "id": periodo_anterior.id,
+            "uuid": f"{periodo_anterior.uuid}",
             "data_fim_realizacao_despesas": "2019-08-31",
             "data_inicio_realizacao_despesas": "2019-01-01",
             "referencia": "2019.1",
             "referencia_por_extenso": "1° repasse de 2019",
-            "uuid": f"{periodo_anterior.uuid}",
+            "recurso": recurso_esperado(periodo_anterior.recurso),
         },
         "saldos": [
             {
@@ -490,6 +498,7 @@ def test_post_implanta_saldos_sem_prestacao_contas_com_livre_utilizacao(
     periodo_anterior,
     acao_associacao_role_cultural,
     conta_associacao,
+    recurso_esperado,
 ):
     payload = {
         "saldos": [
@@ -524,11 +533,13 @@ def test_post_implanta_saldos_sem_prestacao_contas_com_livre_utilizacao(
     esperado = {
         "associacao": f"{associacao.uuid}",
         "periodo": {
+            "id": periodo_anterior.id,
+            "uuid": f"{periodo_anterior.uuid}",
             "data_fim_realizacao_despesas": "2019-08-31",
             "data_inicio_realizacao_despesas": "2019-01-01",
             "referencia": "2019.1",
             "referencia_por_extenso": "1° repasse de 2019",
-            "uuid": f"{periodo_anterior.uuid}",
+            "recurso": recurso_esperado(periodo_anterior.recurso),
         },
         "saldos": [
             {

@@ -27,8 +27,9 @@ CABECALHO = [
     ('Status da PC', 'status'),
     ('Descrição do motivo aprovação com ressalvas', 'motivos_aprovacao_ressalva'),
     ('Recomendações da aprovação com resalvas', 'recomendacoes'),
-    ('Descrição do motivo de reprovação', 'motivos_reprovacao'),
+    ('Descrição do motivo de rejeição', 'motivos_reprovacao'),
 ],
+
 
 def get_informacoes_download(data_inicio, data_final):
     """
@@ -48,6 +49,7 @@ def get_informacoes_download(data_inicio, data_final):
         return f"Filtro aplicado: Até {data_final} (data de criação do registro)"
 
     return ""
+
 
 class ExportacoesStatusPrestacoesContaService:
 
@@ -101,13 +103,12 @@ class ExportacoesStatusPrestacoesContaService:
 
     def monta_dados(self):
         linhas_vertical = []
-
-        for instance in self.queryset:
+        logger.info("Iniciando extração de status de prestação de conta.")
+        for instance in self.queryset.iterator(chunk_size=2000):
 
             linha_horizontal = []
 
             if not PrestacaoConta.objects.filter(id=instance.id).exists():
-                logger.info(f"Este fechamento não existe mais na base de dados, portanto será pulado")
                 continue
 
             for _, campo in self.cabecalho:
@@ -120,10 +121,10 @@ class ExportacoesStatusPrestacoesContaService:
                     linha_horizontal.append('')
 
                 if campo == 'motivos_aprovacao_ressalva' and getattr(instance, 'status') == 'APROVADA_RESSALVA':
-                    motivosAprovacaoRessalva = instance.motivos_aprovacao_ressalva.values_list('motivo', flat=True)
+                    motivos_aprovacao_ressalva = [m.motivo for m in instance.motivos_aprovacao_ressalva.all()]
 
-                    if len(motivosAprovacaoRessalva) > 0:
-                        motivos_concatenados = '; '.join(motivosAprovacaoRessalva)
+                    if len(motivos_aprovacao_ressalva) > 0:
+                        motivos_concatenados = '; '.join(motivos_aprovacao_ressalva)
 
                     outros_motivos = getattr(instance, 'outros_motivos_aprovacao_ressalva')
                     if outros_motivos.strip():
@@ -132,10 +133,10 @@ class ExportacoesStatusPrestacoesContaService:
                     linha_horizontal[7] = motivos_concatenados
 
                 if campo == 'motivos_reprovacao' and getattr(instance, 'status') == 'REPROVADA':
-                    motivosReprovacao = instance.motivos_reprovacao.values_list('motivo', flat=True)
+                    motivos_reprovacao = [m.motivo for m in instance.motivos_reprovacao.all()]
 
-                    if len(motivosReprovacao) > 0:
-                        motivos_concatenados = '; '.join(motivosReprovacao)
+                    if len(motivos_reprovacao) > 0:
+                        motivos_concatenados = '; '.join(motivos_reprovacao)
 
                     outros_motivos = getattr(instance, 'outros_motivos_reprovacao')
                     if outros_motivos.strip():
@@ -143,9 +144,8 @@ class ExportacoesStatusPrestacoesContaService:
 
                     linha_horizontal[9] = motivos_concatenados
 
-            logger.info(
-                f"Escrevendo linha {linha_horizontal} de status de prestação de conta de custeio {instance.id}.")
             linhas_vertical.append(linha_horizontal)
+        logger.info("Finalizando extração de status de prestação de conta.")
 
         return linhas_vertical
 
@@ -160,6 +160,8 @@ class ExportacoesStatusPrestacoesContaService:
 
         dados_pcs_nao_apresentadas = []
 
+        logger.info("Iniciando extração de status de prestação de conta não apresentada de associação no período.")
+
         for associacao in associacoes_com_periodo_inicial:
             for periodo in self.periodos:
 
@@ -173,10 +175,13 @@ class ExportacoesStatusPrestacoesContaService:
                             data_fim_realizacao_despesas__gte=associacao.data_de_encerramento
                         ).proximo_periodo
 
-                        if periodo_encerramento and periodo.data_fim_realizacao_despesas > periodo_encerramento.data_inicio_realizacao_despesas:
+                        if (
+                            periodo_encerramento and periodo.data_fim_realizacao_despesas and
+                            periodo_encerramento.data_inicio_realizacao_despesas and
+                            periodo.data_fim_realizacao_despesas > periodo_encerramento.data_inicio_realizacao_despesas
+                        ):
                             # associacao encerrada nesse periodo
                             continue
-
 
                     # Verifica se não tem PC nesse periodo, se não existir é uma "PC não entregue"
                     if not PrestacaoConta.objects.filter(associacao=associacao, periodo=periodo).exists():
@@ -196,8 +201,10 @@ class ExportacoesStatusPrestacoesContaService:
                             elif campo == 'status':
                                 linha_horizontal.append('NAO_APRESENTADA')
 
-                        logger.info(f"Escrevendo linha {linha_horizontal} de status de prestação de conta não apresentada da associacao {associacao.id} do periodo {periodo}.")
                         dados_pcs_nao_apresentadas.append(linha_horizontal)
+        logger.info(
+            "Finalizando extração de status de prestação de conta não apresentada de associação no período."
+        )
 
         return dados_pcs_nao_apresentadas
 
@@ -227,14 +234,27 @@ class ExportacoesStatusPrestacoesContaService:
     def define_periodos_selecionados_no_range_do_filtro_de_data(self):
         if self.data_inicio and self.data_final:
             periodos = Periodo.objects.filter(
-                Q(data_inicio_realizacao_despesas__lte=self.data_inicio, data_fim_realizacao_despesas__gte=self.data_inicio) |
-                Q(data_inicio_realizacao_despesas__lte=self.data_final, data_fim_realizacao_despesas__gte=self.data_final) |
-                Q(data_inicio_realizacao_despesas__gte=self.data_inicio, data_fim_realizacao_despesas__lte=self.data_final)
+                Q(
+                    data_inicio_realizacao_despesas__lte=self.data_inicio,
+                    data_fim_realizacao_despesas__gte=self.data_inicio
+                ) |
+                Q(
+                    data_inicio_realizacao_despesas__lte=self.data_final,
+                    data_fim_realizacao_despesas__gte=self.data_final
+                ) |
+                Q(
+                    data_inicio_realizacao_despesas__gte=self.data_inicio,
+                    data_fim_realizacao_despesas__lte=self.data_final
+                )
             ).order_by('data_inicio_realizacao_despesas')
         elif self.data_inicio and not self.data_final:
-            periodos = Periodo.objects.filter(data_fim_realizacao_despesas__gte=self.data_inicio).order_by('data_inicio_realizacao_despesas')
+            periodos = Periodo.objects.filter(
+                data_fim_realizacao_despesas__gte=self.data_inicio
+            ).order_by('data_inicio_realizacao_despesas')
         elif self.data_final and not self.data_inicio:
-            periodos = Periodo.objects.filter(data_inicio_realizacao_despesas__lte=self.data_final).order_by('data_inicio_realizacao_despesas')
+            periodos = Periodo.objects.filter(
+                data_inicio_realizacao_despesas__lte=self.data_final
+            ).order_by('data_inicio_realizacao_despesas')
         else:
             periodos = Periodo.objects.all().order_by('data_inicio_realizacao_despesas')
 
@@ -243,7 +263,7 @@ class ExportacoesStatusPrestacoesContaService:
         return periodos
 
     def cria_registro_central_download(self):
-        logger.info(f"Criando registro na central de download")
+        logger.info("Criando registro na central de download")
 
         obj = gerar_arquivo_download(
             self.user,

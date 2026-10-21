@@ -1,7 +1,9 @@
 import logging
 from datetime import datetime
+from typing import Optional
 from django.db.models import Sum
 from sme_ptrf_apps.paa.utils import numero_decimal
+from sme_ptrf_apps.paa.models import Paa, PeriodoPaa
 from sme_ptrf_apps.paa.models.atividade_estatutaria import AtividadeEstatutaria
 from sme_ptrf_apps.paa.models.prioridade_paa import PrioridadePaa
 from sme_ptrf_apps.paa.models.parametro_paa import ParametroPaa
@@ -21,12 +23,21 @@ MESES_PT = [
 
 LOGGER = logging.getLogger(__name__)
 
+DATE_FORMAT = "%d/%m/%Y"
 
-def _secao_plano_para_documento_receitas(secao):
+
+def _secao_plano_para_documento_receitas(secao: Optional[dict]) -> dict:
     """
     Converte uma seção do plano orçamentário (PTRF ou PDDE) para o formato
     esperado pelo documento PAA: items + total_receitas, total_despesas, total_saldo.
     Usa as mesmas regras do PlanoOrcamentarioService (saldo congelado, déficit em livre, etc.).
+
+    Args:
+        secao: Seção do plano orçamentário que será convertida.
+
+    Returns:
+        Dicionário com os itens visíveis e os totais de receitas, despesas e
+        saldo da seção.
     """
     if not secao or not secao.get("linhas"):
         return {"items": [], "total_receitas": 0, "total_despesas": 0, "total_saldo": 0}
@@ -90,6 +101,7 @@ def _secao_plano_para_documento_receitas(secao):
             "saldo_custeio": s.get("custeio", 0),
             "saldo_capital": s.get("capital", 0),
             "saldo_livre": s.get("livre", 0),
+            "retificado": bool(linha.get("historicos")),
         })
 
     return {
@@ -100,21 +112,58 @@ def _secao_plano_para_documento_receitas(secao):
     }
 
 
-def gerar_dados_documento_paa(paa, usuario, previa=False):
+def gerar_dados_documento_paa(
+    paa: Paa,
+    usuario: str,
+    previa: bool = False,
+    alteracoes: Optional[dict] = None,
+    gerado_em: Optional[datetime] = None,
+    **kwargs,
+) -> dict:
+    """Monta os dados usados na geração do documento PAA.
+
+    Args:
+        paa: PAA que fornecerá os dados do documento.
+        usuario: Identificação do usuário responsável pela geração.
+        previa: Indica se o documento é uma prévia.
+        alteracoes: Alterações da retificação que devem ser sinalizadas nos
+            dados gerados.
+        gerado_em: Data e hora da geração, quando previamente definida.
+        **kwargs: Opções adicionais de retificação e versão do documento.
+
+    Returns:
+        Dicionário com cabeçalho, identificação, dados financeiros, atividades,
+        prioridades e textos do documento PAA.
+    """
     plano = PlanoOrcamentarioService(paa).construir_plano_orcamentario()
     parametros_paa = ParametroPaa.objects.all().first()
     secoes_por_key = {s["key"]: s for s in plano["secoes"]}
+    eh_retificacao = kwargs.get("retificacao", False)
+    px_versao_raw = kwargs.get("px_versao", None)
+    px_versao = f"#{px_versao_raw:02d}" if px_versao_raw is not None else None
 
     cabecalho = cria_cabecalho(paa.periodo_paa)
     identificacao_associacao = criar_identificacao_associacao(paa)
-    data_geracao_documento = cria_data_geracao_documento(usuario, previa)
-    grupos_prioridades = criar_grupos_prioridades(paa)
-    atividades_estatutarias = criar_atividades_estatutarias(paa)
-    recursos_proprios = criar_recursos_proprios(paa, secoes_por_key.get("outros_recursos"))
+    data_geracao_documento = cria_data_geracao_documento(usuario, previa, gerado_em)
+    grupos_prioridades = criar_grupos_prioridades(paa, alteracoes=alteracoes)
+    atividades_estatutarias = criar_atividades_estatutarias(paa, alteracoes=alteracoes)
+    recursos_proprios = criar_recursos_proprios(paa, secoes_por_key.get("outros_recursos"), alteracoes=alteracoes)
     receitas_previstas = _secao_plano_para_documento_receitas(secoes_por_key.get("ptrf"))
     receitas_previstas_pdde = _secao_plano_para_documento_receitas(secoes_por_key.get("pdde"))
     presidente_diretoria_executiva = cria_presidente_diretoria_executiva(paa.associacao)
 
+    objetivos_alterados = set()
+    if alteracoes:
+        objetivos_alterados.update(alteracoes.get('objetivos_paa', {}).keys())
+        objetivos_alterados.update(alteracoes.get('objetivos_globais', {}).keys())
+
+    retificado_introducao = bool(alteracoes and 'texto_introducao' in alteracoes)
+    retificado_conclusao = bool(alteracoes and 'texto_conclusao' in alteracoes)
+    retificado_objetivos = bool(objetivos_alterados)
+
+    # Exibe data de retificacao apenas se houver alteracoes e a geração não for prévia
+    data_retificacao = datetime.now().strftime(DATE_FORMAT) if alteracoes and not previa else None
+    etiqueta_retificacao = f"Retificado em: {data_retificacao}" if data_retificacao else "Em retificação"
     return {
         "cabecalho": cabecalho,
         "identificacao_associacao": identificacao_associacao,
@@ -130,11 +179,27 @@ def gerar_dados_documento_paa(paa, usuario, previa=False):
         "texto_conclusao": paa.texto_conclusao if paa.texto_conclusao else "",
         "texto_pos_conclusao": parametros_paa.conclusao_do_paa_ue_2 if parametros_paa else "",
         "presidente_diretoria_executiva": presidente_diretoria_executiva,
-        "previa": previa
+        "previa": previa,
+        "etiqueta_retificacao": etiqueta_retificacao,
+        "retificado_introducao": retificado_introducao,
+        "retificado_conclusao": retificado_conclusao,
+        "retificado_objetivos": retificado_objetivos,
+        "eh_retificacao": eh_retificacao,
+        "px_versao": px_versao,
     }
 
 
-def cria_presidente_diretoria_executiva(associacao):
+def cria_presidente_diretoria_executiva(associacao: object) -> object:
+    """Obtém o presidente vigente da diretoria executiva da associação.
+
+    Args:
+        associacao: Associação vinculada ao PAA, usada para consultar o
+            presidente atual do quadro de membros.
+
+    Returns:
+        Instância do membro que ocupa o cargo de presidente da diretoria
+        executiva da associação, conforme a configuração ativa.
+    """
     flags = get_waffle_flag_model()
 
     LOGGER.info("Verificando se a flag <historico-de-membros> está ativa...")
@@ -150,24 +215,37 @@ def cria_presidente_diretoria_executiva(associacao):
     return presidente_diretoria_executiva
 
 
-def criar_recursos_proprios(paa, secao_outros_recursos=None):
+def criar_recursos_proprios(paa: Paa, secao_outros_recursos: Optional[dict] = None,
+                            alteracoes: Optional[dict] = None) -> dict:
     """
     Monta dados de recursos próprios e outros recursos para o documento PAA.
     Quando secao_outros_recursos é informada (vinda do PlanoOrcamentarioService),
     usa as mesmas regras do plano (saldo, déficit em livre, filtros, etc.).
+
+    Args:
+        paa: PAA que fornecerá os recursos e prioridades.
+        secao_outros_recursos: Seção de outros recursos do plano orçamentário.
+        alteracoes: Alterações da retificação usadas para marcar os itens.
+
+    Returns:
+        Dicionário com itens, totais de recursos próprios e dados de outros
+        recursos.
     """
+    alteracoes_recurso_proprio = (alteracoes or {}).get('receitas_recurso_proprio', {})
+
     recursos = []
     for recurso in paa.recursopropriopaa_set.all():
         recursos.append({
-            "data_prevista": recurso.data_prevista.strftime("%d/%m/%Y"),
+            "data_prevista": recurso.data_prevista.strftime(DATE_FORMAT),
             "fonte_recurso": recurso.fonte_recurso.nome,
             "descricao": recurso.descricao,
             "valor": recurso.valor,
+            "retificado": str(recurso.uuid) in alteracoes_recurso_proprio,
         })
 
     if secao_outros_recursos and secao_outros_recursos.get("linhas"):
         linhas = secao_outros_recursos["linhas"]
-        # key_recursos_proprios = RecursoOpcoesEnum.RECURSO_PROPRIO.name
+
         key_total = "outros-recursos-total"
 
         total_recursos_proprios = 0
@@ -237,6 +315,7 @@ def criar_recursos_proprios(paa, secao_outros_recursos=None):
                     "saldo_custeio": s.get("custeio", 0),
                     "saldo_capital": s.get("capital", 0),
                     "saldo_livre": s.get("livre", 0),
+                    "retificado": bool(linha.get("historicos")),
                 })
 
         return {
@@ -272,7 +351,22 @@ def criar_recursos_proprios(paa, secao_outros_recursos=None):
     }
 
 
-def criar_atividades_estatutarias(paa):
+def criar_atividades_estatutarias(paa: Paa, alteracoes: Optional[dict] = None) -> list:
+    """Monta as atividades estatutárias previstas para o documento PAA.
+
+    Args:
+        paa: PAA que fornecerá o período e as atividades previstas.
+        alteracoes: Alterações da retificação usadas para marcar as atividades.
+
+    Returns:
+        Lista de dicionários com atividade, data prevista e indicação de
+        retificação.
+    """
+    atividades_alteradas = set()
+    if alteracoes:
+        atividades_alteradas.update(alteracoes.get('atividades_estatutarias_globais', {}).keys())
+        atividades_alteradas.update(alteracoes.get('atividades_estatutarias_paa', {}).keys())
+
     items = []
 
     atividades = AtividadeEstatutaria.disponiveis_ordenadas(paa)
@@ -293,24 +387,62 @@ def criar_atividades_estatutarias(paa):
 
         items.append({
             "tipo_atividade": atividade.get_tipo_display(),
-            "data": atividade_paa.data.strftime("%d/%m/%Y") if atividade_paa else "",
+            "data": atividade_paa.data.strftime(DATE_FORMAT) if atividade_paa else "",
             "atividades_previstas": atividade.nome,
             "mes_ano": mes_ano,
+            "retificado": str(atividade.uuid) in atividades_alteradas,
         })
 
     return items
 
 
-def criar_grupos_prioridades(paa):
+def criar_grupos_prioridades(paa: Paa, alteracoes: Optional[dict] = None) -> list:
+    """Agrupa as prioridades do PAA por recurso e classificação.
 
-    def ordenar_recursos(prioridades):
-        def chave(i):
+    Args:
+        paa: PAA que fornecerá as prioridades.
+        alteracoes: Alterações da retificação usadas para marcar as prioridades.
+
+    Returns:
+        Lista de grupos de prioridades com seus itens e totais calculados.
+    """
+    prioridades_alteradas = set(alteracoes.get('prioridades', {}).keys()) if alteracoes else set()
+
+    def ordenar_recursos(prioridades: list[dict]) -> list[dict]:
+        """Ordena os itens de prioridade pelo tipo de recurso.
+
+        Args:
+            prioridades: Lista de prioridades que será ordenada.
+
+        Returns:
+            Lista de prioridades ordenada, mantendo recursos próprios antes dos demais.
+        """
+
+        def chave(i: dict) -> tuple[bool, str]:
+            """Define a chave de ordenação do recurso.
+
+            Args:
+                i: Item de prioridade com o campo de recurso.
+
+            Returns:
+                Tupla usada para ordenar os itens por recurso.
+            """
             eh_proprio = i["recurso"] == "Recursos Próprios"
             return (not eh_proprio, i["recurso"])
 
         return sorted(prioridades, key=chave)
 
-    def filtrar_prioridade(prioridades, prioridade, recurso):
+    def filtrar_prioridade(prioridades: list[dict], prioridade: bool, recurso: str | list[str]) -> list[dict]:
+        """Filtra prioridades por valor booleano e tipo de recurso.
+
+        Args:
+            prioridades: Lista de prioridades a ser filtrada.
+            prioridade: Indicador de prioridade da item.
+            recurso: Tipo de recurso ou lista de tipos de recurso usados no filtro.
+
+        Returns:
+            Lista de prioridades filtradas e, quando necessário, ordenadas.
+        """
         if isinstance(recurso, str):
             recurso = [recurso]
 
@@ -325,7 +457,15 @@ def criar_grupos_prioridades(paa):
 
         return lista_filtrada
 
-    def calcular_total_grupo(items):
+    def calcular_total_grupo(items: list[dict]) -> float:
+        """Calcula o total de um grupo de prioridades.
+
+        Args:
+            items: Itens do grupo cujos valores serão somados.
+
+        Returns:
+            Soma dos valores do campo ``valor_total`` do grupo.
+        """
         total = 0
         for item in items:
             try:
@@ -347,27 +487,64 @@ def criar_grupos_prioridades(paa):
             "tipo_aplicacao": prioridade.get_tipo_aplicacao_display(),
             "tipo_despesa_custeio": prioridade.tipo_despesa_custeio.nome if prioridade.tipo_despesa_custeio else "-",
             "especificacao_material": prioridade.especificacao_material.descricao,
-            "valor_total": prioridade.valor_total
+            "descricao": prioridade.descricao or "-",
+            "valor_total": prioridade.valor_total,
+            "retificado": str(prioridade.uuid) in prioridades_alteradas,
         })
 
     grupos = [
-        {"titulo": "Prioridades PTRF", "items": filtrar_prioridade(items, True, "PTRF")},
-        {"titulo": "Prioridades PDDE", "items": filtrar_prioridade(items, True, "PDDE")},
-        {"titulo": "Prioridades Outros Recursos",
-            "items": filtrar_prioridade(items, True, ["RECURSO_PROPRIO", "OUTRO_RECURSO"])},
-        {"titulo": "Não Prioridades PTRF", "items": filtrar_prioridade(items, False, "PTRF")},
-        {"titulo": "Não Prioridades PDDE", "items": filtrar_prioridade(items, False, "PDDE")},
-        {"titulo": "Não Prioridades Outros Recursos",
-            "items": filtrar_prioridade(items, False, ["RECURSO_PROPRIO", "OUTRO_RECURSO"])},
+        {
+            "key": "prioridades_ptrf",
+            "titulo": "Prioridades PTRF",
+            "items": filtrar_prioridade(items, True, "PTRF")
+        },
+        {
+            "key": "prioridades_pdde",
+            "titulo": "Prioridades PDDE",
+            "items": filtrar_prioridade(items, True, "PDDE")
+        },
+        {
+            "key": "prioridades_outros_recursos",
+            "titulo": "Prioridades Outros Recursos",
+            "items": filtrar_prioridade(items, True, ["RECURSO_PROPRIO", "OUTRO_RECURSO"])
+        },
+        {
+            "key": "nao_prioridades_ptrf",
+            "titulo": "Não Prioridades PTRF",
+            "items": filtrar_prioridade(items, False, "PTRF")
+        },
+        {
+            "key": "nao_prioridades_pdde",
+            "titulo": "Não Prioridades PDDE",
+            "items": filtrar_prioridade(items, False, "PDDE")
+        },
+        {
+            "key": "nao_prioridades_outros_recursos",
+            "titulo": "Não Prioridades Outros Recursos",
+            "items": filtrar_prioridade(items, False, ["RECURSO_PROPRIO", "OUTRO_RECURSO"])
+        },
     ]
 
+    flags = get_waffle_flag_model()
+    flag_paa_receitas_prevista = flags.objects.filter(
+        name='paa-receitas-prevista', everyone=True).exists()
+
     for grupo in grupos:
+        grupo['flag_ativas'] = ['paa-receitas-prevista'] if flag_paa_receitas_prevista else []
         grupo["total"] = calcular_total_grupo(grupo["items"])
 
     return grupos
 
 
-def criar_identificacao_associacao(paa):
+def criar_identificacao_associacao(paa: Paa) -> dict:
+    """Monta os dados de identificação da associação vinculada ao PAA.
+
+    Args:
+        paa: PAA que fornecerá a associação e sua unidade.
+
+    Returns:
+        Dicionário com nome, CNPJ, código EOL e DRE da associação.
+    """
     nome_associacao = paa.associacao.nome
     cnpj_associacao = paa.associacao.cnpj
     codigo_eol_associacao = paa.associacao.unidade.codigo_eol or ""
@@ -381,7 +558,15 @@ def criar_identificacao_associacao(paa):
     }
 
 
-def cria_cabecalho(periodo_paa):
+def cria_cabecalho(periodo_paa: PeriodoPaa) -> dict:
+    """Monta o cabeçalho com o período e a referência do PAA.
+
+    Args:
+        periodo_paa: Período que será apresentado no cabeçalho.
+
+    Returns:
+        Dicionário com os meses inicial e final, o ano e a referência.
+    """
     cabecalho = {
         "mes_ano_inicio": periodo_paa.data_inicial.strftime("%m/%Y"),
         "mes_ano_fim": periodo_paa.data_final.strftime("%m/%Y"),
@@ -392,8 +577,25 @@ def cria_cabecalho(periodo_paa):
     return cabecalho
 
 
-def cria_data_geracao_documento(usuario, previa=False):
-    data_geracao = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+def cria_data_geracao_documento(
+    usuario: str,
+    previa: bool = False,
+    gerado_em: Optional[datetime] = None,
+) -> str:
+    """Cria o texto que informa quando e por quem o documento foi gerado.
+
+    Args:
+        usuario: Identificação do usuário responsável pela geração.
+        previa: Indica se o documento é uma prévia.
+        gerado_em: Data e hora da geração, quando previamente definida.
+
+    Returns:
+        Texto formatado com o tipo, responsável e data da geração.
+    """
+    data_geracao = (
+        gerado_em or datetime.now()
+    ).strftime("%d/%m/%Y %H:%M:%S")
+
     tipo_texto = "parcial" if previa else "final"
     quem_gerou = "" if usuario == "" else f"pelo usuário {usuario}, "
     texto = f"Documento {tipo_texto} gerado {quem_gerou}via SIG - Escola, em: {data_geracao}"

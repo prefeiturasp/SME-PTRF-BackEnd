@@ -4,9 +4,8 @@ import datetime
 
 from text_unidecode import unidecode
 
-from brazilnum.cnpj import validate_cnpj, format_cnpj
-
 from ..models import Associacao, Unidade
+from ..models.validators import format_cnpj, is_cnpj_valid
 from ..models.arquivo import (
     DELIMITADOR_PONTO_VIRGULA,
     DELIMITADOR_VIRGULA,
@@ -68,7 +67,7 @@ class CargaAssociacoesService:
         nome = linha_conteudo[self.__NOME_ASSOCIACAO].strip()
         cnpj = linha_conteudo[self.__CNPJ_ASSOCIACAO].strip()
 
-        if cnpj and not validate_cnpj(cnpj):
+        if cnpj and not is_cnpj_valid(cnpj):
             raise CargaAssociacaoException(f'CNPJ inválido ({cnpj}). Associação não criada.')
 
         cnpj = format_cnpj(cnpj) if cnpj else ""
@@ -147,7 +146,9 @@ class CargaAssociacoesService:
         dados_dre = None
         dados_ue = None
         try:
-            result_api_eol = SmeIntegracaoService.get_dados_unidade_eol(codigo_eol=self.__dados_associacao['eol_unidade'])
+            result_api_eol = SmeIntegracaoService.get_dados_unidade_eol(
+                codigo_eol=self.__dados_associacao['eol_unidade']
+            )
             result_api_eol = result_api_eol.json()
             if result_api_eol:
 
@@ -158,19 +159,23 @@ class CargaAssociacoesService:
                 }
 
                 if dados_dre["codigoDRE"] is None:
+                    eol_unidade = self.__dados_associacao['eol_unidade']
                     raise CargaAssociacaoException(
-                        f"A API do EOL não retornou as informações da DRE da UE {self.__dados_associacao['eol_unidade']}.")
+                        f"A API do EOL não retornou as informações da DRE da UE {eol_unidade}."
+                    )
 
+                tipo_logradouro = result_api_eol.get('tipoLogradouro')
+                sigla_tipo_escola = result_api_eol.get('siglaTipoEscola')
                 dados_ue = {
                     'nome': result_api_eol.get('nome').strip() if result_api_eol.get('nome') else '',
                     'email': result_api_eol.get('email') or '',
                     'telefone': result_api_eol.get('telefone').strip()[:20] if result_api_eol.get('telefone') else '',
                     'numero': result_api_eol.get('numero').strip() if result_api_eol.get('numero') else '',
-                    'tipo_logradouro': result_api_eol.get('tipoLogradouro').strip() if result_api_eol.get('tipoLogradouro') else '',
+                    'tipo_logradouro': tipo_logradouro.strip() if tipo_logradouro else '',
                     'logradouro': result_api_eol.get('logradouro').strip() if result_api_eol.get('logradouro') else '',
                     'bairro': result_api_eol.get('bairro').strip() if result_api_eol.get('bairro') else '',
                     'cep': f"{result_api_eol['cep']:0>8}" or '',
-                    'tipo_unidade': result_api_eol.get('siglaTipoEscola').strip() if result_api_eol.get('siglaTipoEscola') else 'CEU'
+                    'tipo_unidade': sigla_tipo_escola.strip() if sigla_tipo_escola else 'CEU'
                 }
             else:
                 raise CargaAssociacaoException(
@@ -180,7 +185,11 @@ class CargaAssociacoesService:
             logger.info("Erro ao Atualizar dados pessoais da unidade %s", err)
 
         if (dados_ue['tipo_unidade'], dados_ue['tipo_unidade']) not in TIPOS_CHOICE:
-            msg_erro = f'Tipo de unidade inválido ({dados_ue["tipo_unidade"]}) na linha {self.__linha_index}. Trocado para EMEF.'
+            tipo_unidade = dados_ue['tipo_unidade']
+            msg_erro = (
+                f'Tipo de unidade inválido ({tipo_unidade}) na linha {self.__linha_index}. '
+                'Trocado para EMEF.'
+            )
             self.loga_erro_carga_associacao(mensagem_erro=msg_erro, linha=self.__linha_index)
             dados_ue['tipo_unidade'] = 'EMEF'
 

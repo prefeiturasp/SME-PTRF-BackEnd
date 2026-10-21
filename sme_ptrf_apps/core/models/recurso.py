@@ -7,6 +7,9 @@ from sme_ptrf_apps.core.models_abstracts import ModeloIdNome, TemAtivo
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 
+from sme_ptrf_apps.utils.recurso_texto_ata import fixed_text_introducao_ata, fixed_text_texto_letra, \
+    process_texto_letra_d, process_texto_introducao
+
 
 class Recurso(ModeloIdNome, TemAtivo):
     history = AuditlogHistoryField()
@@ -22,7 +25,8 @@ class Recurso(ModeloIdNome, TemAtivo):
         verbose_name='Nome exibição', help_text='Será usado no seletor de recursos do site.', max_length=160)
 
     icone = models.FileField(
-        verbose_name='Ícone', help_text='Será usado no menu lateral e modal de escolha de recurso.', blank=True, null=True)
+        verbose_name='Ícone', help_text='Será usado no menu lateral e modal de escolha de recurso.',
+        blank=True, null=True)
 
     cor = models.CharField(
         max_length=7,
@@ -33,14 +37,96 @@ class Recurso(ModeloIdNome, TemAtivo):
     legado = models.BooleanField(verbose_name="Legado?",
                                  help_text='Em caso de flag inativa, esse recurso será utilizado nos filtros. '
                                            'No caso da SME/SP, o recurso legado refere-se ao PTRF.',
-                                 default=False
-                                )
+                                 default=False)
 
     exibe_valores_reprogramados = models.BooleanField(
-        verbose_name="Exibir valores reprogramados?",
+        verbose_name="Exibir valores reprogramados iniciais?",
+        help_text="Os valores reprogramados iniciais, quando necessário, são indicados no período inicial de referência.",
         default=False,
         null=False,
         blank=False
+    )
+
+    habilita_aprovacao_com_ressalvas = models.BooleanField(
+        verbose_name="Habilitar Aprovação com ressalvas",
+        help_text="Define se o recurso exibe a opção de aprovação com ressalvas.",
+        default=False,
+    )
+
+    permite_saldo_conta_negativo = models.BooleanField('Permite saldo negativo em contas?', default=False)
+
+    permite_saldo_acoes_negativo = models.BooleanField('Permite saldo negativo em ações?', default=False)
+
+    tipo_conta_um = models.ForeignKey(
+        "core.TipoConta",
+        on_delete=models.CASCADE,
+        related_name="recurso_tipo_conta_um",
+        null=True,
+        blank=True,
+        default=None,
+    )
+
+    tipo_conta_dois = models.ForeignKey(
+        "core.TipoConta",
+        on_delete=models.CASCADE,
+        related_name="recurso_tipo_conta_dois",
+        null=True,
+        blank=True,
+        default=None,
+    )
+
+    habilita_exibicao_de_lauda = models.BooleanField(
+        verbose_name="Habilitar exibição de lauda?",
+        help_text=(
+            "Define se o recurso deve exibir o documento de Lauda no Consolidado das PCs. "
+            "Caso não esteja marcado, o documento de Lauda não será exibido e a nomenclatura utilizada é Relatório."
+        ),
+        default=False,
+    )
+
+    texto_ata_introducao = models.CharField(
+        verbose_name='Introdução',
+        help_text=f'Este texto é exibido antes do texto complementar: {fixed_text_introducao_ata()}',
+        max_length=256,
+        blank=True,
+        default=""
+    )
+
+    texto_ata_letra_a = models.CharField(
+        verbose_name='Texto PCs aprovadas',
+        help_text=f'Este texto é exibido antes do texto complementar: {fixed_text_texto_letra("A")}',
+        max_length=256,
+        blank=True,
+        default=""
+    )
+
+    texto_ata_letra_b = models.CharField(
+        verbose_name='Texto PCs aprovadas com ressalvas',
+        help_text=f'Este texto é exibido antes do texto complementar: {fixed_text_texto_letra("B")}',
+        max_length=256,
+        blank=True,
+        default=""
+    )
+
+    texto_ata_letra_c = models.CharField(
+        verbose_name='Texto PCs rejeitadas',
+        help_text=f'Este texto é exibido antes do texto complementar: {fixed_text_texto_letra("C")}',
+        max_length=256,
+        blank=True,
+        default=""
+    )
+
+    texto_ata_letra_d = models.CharField(
+        verbose_name='Item complementar',
+        max_length=256,
+        blank=True,
+        default=""
+    )
+
+    existe_saldo_reprogramado = models.BooleanField(
+        verbose_name="O recurso possui saldo reprogramado?",
+        help_text="Caso a opção seja marcada, será considerada a nomenclatura Saldo reprogramado para exibição e indica que o saldo será reprogramado para os próximos períodos. Caso não seja marcada, a nomenclatura de exibição será Saldo.",
+        default=False,
     )
 
     class Meta:
@@ -57,6 +143,33 @@ class Recurso(ModeloIdNome, TemAtivo):
 
     def __str__(self):
         return self.nome
+
+    @property
+    def get_text_valores_reprogramados_ata(self):
+        if self.nome == "Prêmio Excelência Educacional" or not self.existe_saldo_reprogramado:
+            return "valores estes que serão tratados conforme a legislação vigente"
+
+        return "valores estes que foram reprogramados"
+
+    def get_fixed_text_texto_letra(self, letter="A"):
+        if letter not in ["A", "B", "C", "D"]:
+            return ""
+
+        if letter == "D":
+            return process_texto_letra_d(self.texto_ata_letra_d, self.habilita_aprovacao_com_ressalvas)
+
+        return fixed_text_texto_letra(
+            letter,
+            getattr(self, f'texto_ata_letra_{letter.lower()}', ''),
+            self.habilita_aprovacao_com_ressalvas
+        )
+
+    def get_parameterized_text_introducao(self):
+        return process_texto_introducao(self.texto_ata_introducao)
+
+    @staticmethod
+    def get_fixed_text_introducao_ata():
+        return fixed_text_introducao_ata()
 
 
 @receiver(models.signals.post_delete, sender=Recurso)

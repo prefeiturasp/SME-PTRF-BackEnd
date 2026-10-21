@@ -5,6 +5,7 @@ from waffle.testutils import override_flag
 
 from ...models import PrestacaoConta, Associacao, Periodo, Ata
 
+
 pytestmark = pytest.mark.django_db
 
 
@@ -175,6 +176,56 @@ def test_completa_sem_campos_com_flag_ativa(ata_prestacao_conta_iniciada, associ
     
     assert ata_prestacao_conta_iniciada.completa is False
 
+@pytest.mark.django_db
+def test_completa_com_campos_e_com_flag_desativada_e_pc_nao_recebida(
+    ata_prestacao_conta_iniciada,
+    associacao,
+    periodo,
+    repasse_factory,
+):
+    from waffle.models import Flag
+
+    ata_prestacao_conta_iniciada.prestacao_conta.status = PrestacaoConta.STATUS_NAO_RECEBIDA
+    ata_prestacao_conta_iniciada.prestacao_conta.save()
+
+    repasse_factory(
+        associacao=ata_prestacao_conta_iniciada.prestacao_conta.associacao,
+        periodo=ata_prestacao_conta_iniciada.prestacao_conta.periodo,
+        carga_origem=None,
+        status='PENDENTE',
+        carga_origem_linha_id=1,
+        realizado_capital=False,
+        realizado_custeio=False,
+        realizado_livre=False,
+    )
+
+    # Flag desativada
+    Flag.objects.create(name='historico-de-membros', everyone=False)
+
+    ata_prestacao_conta_iniciada.presidente_reuniao = 'Presidente Legado'
+    ata_prestacao_conta_iniciada.cargo_presidente_reuniao = 'Cargo Presidente'
+    ata_prestacao_conta_iniciada.secretario_reuniao = 'Secretario Legado'
+    ata_prestacao_conta_iniciada.cargo_secretaria_reuniao = 'Cargo Secretario'
+
+    ata_prestacao_conta_iniciada.tipo_ata = Ata.ATA_APRESENTACAO
+    ata_prestacao_conta_iniciada.tipo_reuniao = Ata.REUNIAO_ORDINARIA
+    ata_prestacao_conta_iniciada.convocacao = Ata.CONVOCACAO_PRIMEIRA
+    ata_prestacao_conta_iniciada.data_reuniao = date(2024, 1, 1)
+    ata_prestacao_conta_iniciada.local_reuniao = 'Local Teste'
+    ata_prestacao_conta_iniciada.hora_reuniao = time(10, 0)
+
+    ata_prestacao_conta_iniciada.save()
+
+    # adiciona presidente e secretário como presentes
+    ata_prestacao_conta_iniciada.presentes_na_ata.create(
+        nome='Presidente Legado'
+    )
+
+    ata_prestacao_conta_iniciada.presentes_na_ata.create(
+        nome='Secretario Legado'
+    )
+
+    assert ata_prestacao_conta_iniciada.completa is True
 
 def test_precisa_professor_gremio_retorna_bool(ata_prestacao_conta_iniciada):
     """Testa se precisa_professor_gremio retorna um booleano"""

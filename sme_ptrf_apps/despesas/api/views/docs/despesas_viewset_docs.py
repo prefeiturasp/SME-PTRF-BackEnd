@@ -11,10 +11,6 @@ from ...serializers.despesa_serializer import (
     DespesaListComRateiosSerializer,
 )
 
-# ---------------------------------------------------------------------------
-# Parâmetros de filtro – lista
-# ---------------------------------------------------------------------------
-
 PARAM_SEARCH = {
     "name": "search",
     "description": "Busca por descrição de especificação de material/serviço (sem acento, parcial).",
@@ -26,9 +22,9 @@ PARAM_SEARCH = {
 
 PARAM_ASSOCIACAO_UUID = {
     "name": "associacao__uuid",
-    "description": "Filtra pelo UUID da associação.",
-    "required": False,
-    "allow_blank": True,
+    "description": "UUID da associação. Obrigatório no list; a UE da associação precisa ser acessível ao perfil.",
+    "required": True,
+    "allow_blank": False,
     "type": OpenApiTypes.UUID,
     "location": OpenApiParameter.QUERY,
 }
@@ -176,10 +172,6 @@ PARAM_FILTRO_INFORMACOES = {
     "location": OpenApiParameter.QUERY,
 }
 
-# ---------------------------------------------------------------------------
-# Parâmetros de ordenação
-# ---------------------------------------------------------------------------
-
 PARAM_ORDENAR_POR_NUMERO_DO_DOCUMENTO = {
     "name": "ordenar_por_numero_do_documento",
     "description": "Ordena pelo número do documento. Valores aceitos: `crescente`, `decrescente`.",
@@ -219,10 +211,6 @@ PARAM_ORDENAR_POR_IMPOSTO = {
     "location": OpenApiParameter.QUERY,
 }
 
-# ---------------------------------------------------------------------------
-# Parâmetros de paginação
-# ---------------------------------------------------------------------------
-
 PARAM_PAGE = {
     "name": "page",
     "description": "Número da página dentro do conjunto de resultados paginados.",
@@ -241,15 +229,14 @@ PARAM_PAGE_SIZE = {
     "location": OpenApiParameter.QUERY,
 }
 
-# ---------------------------------------------------------------------------
-# Schemas dos métodos CRUD
-# ---------------------------------------------------------------------------
-
 SCHEMA_LIST = extend_schema(
     description=(
         "Retorna a lista paginada de despesas ativas (excluindo status `INATIVO`), "
         "ordenada por padrão por `-data_documento`.\n\n"
-        "**Requer autenticação.** Apenas usuários com vínculo a unidades escolares (UE) podem acessar."
+        "Exige `associacao__uuid`. Sem esse parâmetro a API responde 400 "
+        "(não lista o PTRF inteiro). Apenas despesas da associação cuja UE o "
+        "perfil pode acessar são devolvidas.\n\n"
+        "**Requer autenticação.** Usuários com permissão de UE, DRE ou SME podem acessar."
     ),
     tags=["Despesas"],
     parameters=[
@@ -279,6 +266,7 @@ SCHEMA_LIST = extend_schema(
     ],
     responses={
         200: DespesaListComRateiosSerializer(many=True),
+        400: OpenApiResponse(description="associacao__uuid obrigatório ausente."),
         401: OpenApiResponse(description="Authentication credentials were not provided."),
         403: OpenApiResponse(description="You do not have permission to perform this action."),
     },
@@ -288,7 +276,10 @@ SCHEMA_RETRIEVE = extend_schema(
     description=(
         "Retorna os detalhes completos de uma despesa identificada pelo UUID, "
         "incluindo rateios, impostos e motivos de pagamento antecipado.\n\n"
-        "**Requer autenticação.** Apenas usuários com vínculo a unidades escolares (UE) podem acessar."
+        "Só devolve a despesa se o usuário puder acessar a UE da associação "
+        "(visão UE: unidades do usuário; DRE: UEs da DRE; SME/suporte: unidades "
+        "do perfil). Caso contrário responde 404, sem confirmar que o UUID existe.\n\n"
+        "**Requer autenticação.** Usuários com permissão de UE, DRE ou SME podem acessar."
     ),
     tags=["Despesas"],
     responses={
@@ -317,7 +308,8 @@ SCHEMA_CREATE = extend_schema(
 SCHEMA_UPDATE = extend_schema(
     description=(
         "Atualiza completamente uma despesa identificada pelo UUID.\n\n"
-        "**Requer autenticação.** Apenas usuários com vínculo a unidades escolares (UE) podem acessar."
+        "Responde 404 se a UE da despesa não for acessível ao perfil.\n\n"
+        "**Requer autenticação.** Usuários com permissão de UE, DRE ou SME podem acessar."
     ),
     tags=["Despesas"],
     request=DespesaCreateSerializer,
@@ -333,7 +325,8 @@ SCHEMA_UPDATE = extend_schema(
 SCHEMA_PARTIAL_UPDATE = extend_schema(
     description=(
         "Atualiza parcialmente uma despesa identificada pelo UUID.\n\n"
-        "**Requer autenticação.** Apenas usuários com vínculo a unidades escolares (UE) podem acessar."
+        "Responde 404 se a UE da despesa não for acessível ao perfil.\n\n"
+        "**Requer autenticação.** Usuários com permissão de UE, DRE ou SME podem acessar."
     ),
     tags=["Despesas"],
     request=DespesaCreateSerializer,
@@ -352,7 +345,8 @@ SCHEMA_DESTROY = extend_schema(
         "Quando a despesa possui o flag `inativar_em_vez_de_excluir` ativo, ela é marcada como inativa "
         "em vez de ser removida fisicamente do banco de dados. "
         "Despesas com rateios vinculados a contas-associação inativas não podem ser excluídas.\n\n"
-        "**Requer autenticação.** Apenas usuários com vínculo a unidades escolares (UE) podem acessar."
+        "Responde 404 se a UE da despesa não for acessível ao perfil.\n\n"
+        "**Requer autenticação.** Usuários com permissão de UE, DRE ou SME podem acessar."
     ),
     tags=["Despesas"],
     responses={
@@ -364,10 +358,6 @@ SCHEMA_DESTROY = extend_schema(
         404: OpenApiResponse(description="No Despesa matches the given query."),
     },
 )
-
-# ---------------------------------------------------------------------------
-# Schemas das actions customizadas
-# ---------------------------------------------------------------------------
 
 SCHEMA_TABELAS = extend_schema(
     description=(
@@ -539,10 +529,6 @@ SCHEMA_VALIDA_DATA_DA_DESPESA = extend_schema(
         403: OpenApiResponse(description="You do not have permission to perform this action."),
     },
 )
-
-# ---------------------------------------------------------------------------
-# Mapa de schemas para uso com @extend_schema_view
-# ---------------------------------------------------------------------------
 
 DOCS = dict(
     list=SCHEMA_LIST,

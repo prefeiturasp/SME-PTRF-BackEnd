@@ -2,12 +2,12 @@ import datetime
 import logging
 from sme_ptrf_apps.core.models import PrestacaoConta
 from django.db import transaction
-from sme_ptrf_apps.dre.models import PresenteAtaDre, AtaParecerTecnicoSnapshot, AtaParecerTecnico
+from sme_ptrf_apps.dre.models import PresenteAtaDre, AtaParecerTecnicoSnapshot, AtaParecerTecnico, MembroComissao
 from sme_ptrf_apps.dre.services.ata_pdf_parecer_tecnico_service import gerar_arquivo_ata_parecer_tecnico_pdf
 from sme_ptrf_apps.core.services.ata_dados_service import data_por_extenso
 from sme_ptrf_apps.core.services.dados_demo_financeiro_service import formata_data
 from sme_ptrf_apps.utils.numero_por_extenso import real
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 
 LOGGER = logging.getLogger(__name__)
 
@@ -76,6 +76,7 @@ def obter_payload_ata(
     usar_snapshot=True,
     congelar_snapshot=False,
     origem=AtaParecerTecnicoSnapshot.ORIGEM_TELA,
+    recurso=None
 ):
     snapshot = None
     if usar_snapshot and ata_de_parecer_tecnico:
@@ -90,6 +91,7 @@ def obter_payload_ata(
         ata_de_parecer_tecnico=ata_de_parecer_tecnico,
         usuario=usuario,
         parcial=parcial,
+        recurso=recurso,
     )
 
     if congelar_snapshot and ata_de_parecer_tecnico:
@@ -142,12 +144,22 @@ def gerar_arquivo_ata_parecer_tecnico(
         return None
 
 
-def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre(dre, periodo, ata_de_parecer_tecnico=None, usuario=None, parcial=None):
+def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre(dre, periodo, ata_de_parecer_tecnico=None, usuario=None, parcial=None, recurso=None):
+    from sme_ptrf_apps.dre.services.consolidado_dre_service import TextDocumentConsolidadoPC
+    from sme_ptrf_apps.dre.models import Comissao
+
     lista_contas_aprovadas = []  # PCs aprovadas precisam ser separadas por conta
     lista_contas_aprovadas_ressalva = []  # PCs aprovadas com ressalva precisam ser separadas por conta
     lista_contas_reprovadas = []  # PCs reprovadas precisam ser separadas por conta
     lista_motivos_aprovadas_ressalva = []
     lista_motivos_reprovacao = []
+
+    recurso = periodo.recurso
+    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda if recurso else False
+    text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+
+    comissao = Comissao.get_comissao_responsavel_analise_pc_por_recurso(recurso)
+    comissao_nome = comissao.nome if comissao else "-"
 
     titulo_sequencia_publicacao = None
     if parcial:
@@ -156,9 +168,14 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
 
         if eh_parcial == "Parcial":
-            titulo_sequencia_publicacao = f'Publicação Parcial #{sequencia_de_publicacao}'
+            titulo_sequencia_publicacao = text_document_consolidado_pc.text_sequencial(
+                publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL,
+                sequence_number=sequencia_de_publicacao
+            )
         else:
-            titulo_sequencia_publicacao = "Publicação Única"
+            titulo_sequencia_publicacao = text_document_consolidado_pc.text_with_type_document(
+                publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE,
+            )
 
     motivo_retificacao = None
     eh_retificacao = False
@@ -168,7 +185,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
             motivo_retificacao = ata_de_parecer_tecnico.consolidado_dre.motivo_retificacao
             publicacao_parcial_que_gerou_a_retificacao = ata_de_parecer_tecnico.consolidado_dre.consolidado_retificado
             data_publicacao = publicacao_parcial_que_gerou_a_retificacao.data_publicacao if publicacao_parcial_que_gerou_a_retificacao and publicacao_parcial_que_gerou_a_retificacao.data_publicacao else ''
-            titulo_sequencia_publicacao = f"Retificação da publicação de {data_publicacao.strftime('%d/%m/%Y')}"
+            titulo_sequencia_publicacao = f"Retificação {text_document_consolidado_pc.possessive(case='lower')} de {data_publicacao.strftime('%d/%m/%Y')}"
 
     cabecalho = {
         "titulo": periodo.recurso.nome,
@@ -180,6 +197,7 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         "numero_portaria": ata_de_parecer_tecnico.numero_portaria if ata_de_parecer_tecnico and ata_de_parecer_tecnico.numero_portaria else "--",
         "data_portaria": ata_de_parecer_tecnico.data_portaria if ata_de_parecer_tecnico and ata_de_parecer_tecnico.data_portaria else "--",
         "titulo_sequencia_publicacao": titulo_sequencia_publicacao,
+        "portaria_publicada": ata_de_parecer_tecnico.portaria_publicada()
     }
     dados_texto_da_ata = {
         "data_reuniao_por_extenso": data_por_extenso(ata_de_parecer_tecnico.data_reuniao) if ata_de_parecer_tecnico and ata_de_parecer_tecnico.data_reuniao else "---",
@@ -189,10 +207,17 @@ def informacoes_execucao_financeira_unidades_ata_parecer_tecnico_consolidado_dre
         "periodo_data_inicio": formata_data(periodo.data_inicio_realizacao_despesas),
         "periodo_data_fim": formata_data(periodo.data_fim_realizacao_despesas),
         "comentarios": ata_de_parecer_tecnico.comentarios,
-        "motivo_retificacao": motivo_retificacao
+        "motivo_retificacao": motivo_retificacao,
+        "comissao_responsavel_pc": comissao_nome,
+        "introducao": recurso.get_parameterized_text_introducao(),
+        "habilita_aprovacao_com_ressalvas": recurso.habilita_aprovacao_com_ressalvas,
+        "letra_a": recurso.get_fixed_text_texto_letra("A"),
+        "letra_b": recurso.get_fixed_text_texto_letra("B"),
+        "letra_c": recurso.get_fixed_text_texto_letra("C"),
+        "letra_d": recurso.get_fixed_text_texto_letra("D")
     }
     presentes_na_ata = {
-        "presentes": get_presentes_na_ata(ata_de_parecer_tecnico)
+        "presentes": get_presentes_na_ata(ata_de_parecer_tecnico, recurso, dre)
     }
 
     lista_aprovadas = []  # Lista usada para separar por status aprovada
@@ -330,18 +355,46 @@ def informacoes_pcs_aprovadas_aprovadas_com_ressalva_reprovadas_consolidado_dre(
     return resultado
 
 
-def get_presentes_na_ata(ata):
+def get_presentes_na_ata(ata, recurso=None, dre=None):
     ata_id = ata.id if ata and ata.id else None
+
     presentes_na_ata = []
 
     if ata_id:
-        queryset_presentes_na_ata = PresenteAtaDre.objects.filter(ata=ata_id)
+        queryset_presentes_na_ata = PresenteAtaDre.objects.filter(
+            ata=ata_id
+        )
+
+        if recurso:
+
+            """ 
+                Participantes que não pertencem a nenhuma comissão devem ser mantidos na listagem.
+                Para membros de comissão, a filtragem considera apenas aqueles vinculados ao recurso selecionado.
+            """
+            membro_comissao = MembroComissao.objects.filter(
+                dre=dre,
+                rf=OuterRef('rf'),
+            )
+
+            membro_comissao_recurso = membro_comissao.filter(
+                comissoes__recursos=recurso,
+                comissoes__responsavel_analise_pc=True,
+            )
+
+            queryset_presentes_na_ata = queryset_presentes_na_ata.annotate(
+                eh_membro_comissao=Exists(membro_comissao),
+                pertence_ao_recurso=Exists(membro_comissao_recurso),
+            ).filter(
+                Q(eh_membro_comissao=False) | Q(pertence_ao_recurso=True)
+            )
+
         for presente in queryset_presentes_na_ata:
             dados_presentes = {
                 "nome": presente.nome if presente.nome else "",
                 "rf": presente.rf if presente.rf else "",
-                "cargo": presente.cargo if presente.cargo else ""
+                "cargo": presente.cargo if presente.cargo else "",
             }
+
             presentes_na_ata.append(dados_presentes)
 
     return presentes_na_ata

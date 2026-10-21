@@ -41,6 +41,7 @@ from .models import (
     PrevisaoRepasseSme,
     Censo,
     ParametroFiqueDeOlhoPc,
+    FiqueDeOlho,
     ModeloCarga,
     Ambiente,
     ArquivoDownload,
@@ -87,7 +88,7 @@ from django.db.models import Count
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html
 
-admin.site.register(ParametroFiqueDeOlhoPc)
+# admin.site.register(ParametroFiqueDeOlhoPc)
 admin.site.register(ModeloCarga)
 admin.site.register(MotivoRejeicaoEncerramentoContaAssociacao)
 
@@ -103,7 +104,16 @@ def custom_titled_filter(title):
 
 @admin.register(Recurso)
 class RecursoAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'nome_exibicao', 'legado', 'ativo', 'exibe_valores_reprogramados', 'cor_preview')
+    list_display = (
+        'nome',
+        'nome_exibicao',
+        'legado',
+        'ativo',
+        'exibe_valores_reprogramados',
+        'habilita_aprovacao_com_ressalvas',
+        'habilita_exibicao_de_lauda',
+        'cor_preview'
+    )
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
     search_fields = ('uuid', 'nome', 'nome_exibicao',)
 
@@ -114,6 +124,69 @@ class RecursoAdmin(admin.ModelAdmin):
         )
 
     cor_preview.short_description = "Cor"
+
+    fieldsets = (
+        ('Tema', {
+            'fields': (
+                'nome',
+                'ativo',
+                'nome_exibicao',
+                'icone',
+                'cor',
+                'legado',
+            ),
+            'classes': ('wide',),
+        }),
+        ('Contas e Ações', {
+            'fields': (
+                'permite_saldo_conta_negativo',
+                'permite_saldo_acoes_negativo',
+            )
+        }),
+        ('Análise de Prestação de Contas', {
+            'fields': (
+                'habilita_aprovacao_com_ressalvas',
+            )
+        }),
+        ('Consolidado das PCs', {
+            'fields': (
+                'habilita_exibicao_de_lauda',
+            )
+        }),
+        ('', {
+            'description':
+            '<span style="color: black; font-size: 16px;">Ata de apresentação do Parecer Técnico Conclusivo</span>'
+            '<span style="display: block; margin-bottom: 12px;">Permite definir texto parametrizável para cada parte da'
+            ' ata de apresentação do Parecer Técnico Conclusivo.</span>',
+            'fields': (
+                'texto_ata_introducao',
+                'texto_ata_letra_a',
+                'texto_ata_letra_b',
+                'texto_ata_letra_c',
+                'texto_ata_letra_d'
+            )
+        }),
+        ('Valores Reprogramados', {
+            'fields': (
+                'exibe_valores_reprogramados',
+                'tipo_conta_um',
+                'tipo_conta_dois',
+            )
+        }),
+        ('Saldo Reprogramado', {
+            'fields': (
+                'existe_saldo_reprogramado',
+            )
+        }),
+        ('Informações Internas', {
+            'fields': (
+                'uuid',
+                'id',
+                'criado_em',
+                'alterado_em',
+            )
+        }),
+    )
 
 
 class AcaoAdminForm(ModelForm):
@@ -135,7 +208,9 @@ class AcaoAdmin(admin.ModelAdmin):
     form = AcaoAdminForm
     search_fields = ('nome', 'recurso__nome')
     list_display = (
-        'nome', 'recurso', 'aceita_custeio', 'aceita_capital', 'aceita_livre', 'exibir_paa', 'e_recursos_proprios')
+        'nome', 'recurso', 'aceita_custeio', 'aceita_capital', 'aceita_livre',
+        'exibir_paa', 'e_recursos_proprios', 'ordem_exibicao'
+    )
     readonly_fields = ('uuid', 'id')
     list_filter = (
         ('recurso__nome', custom_titled_filter('Recurso')),
@@ -250,6 +325,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
     )
     readonly_fields = ('uuid', 'id')
     list_display_links = ('nome', 'cnpj')
+    exclude = ('status_valores_reprogramados',)
 
     actions = ['define_status_nao_finalizado_valores_reprogramados', 'migrar_valores_reprogramados']
 
@@ -257,29 +333,43 @@ class AssociacaoAdmin(admin.ModelAdmin):
 
     def define_status_nao_finalizado_valores_reprogramados(self, request, queryset):
         for associacao in queryset.all():
-            implantacao = associacao_pode_implantar_saldo(associacao=associacao)
+            for periodo_inicial_associacao in associacao.periodos_iniciais.select_related("recurso").all():
+                implantacao = associacao_pode_implantar_saldo(
+                    associacao=associacao,
+                    recurso=periodo_inicial_associacao.recurso
+                )
 
-            if implantacao["permite_implantacao"]:
-                associacao.status_valores_reprogramados = Associacao.STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO
-                associacao.save()
+                if implantacao["permite_implantacao"]:
+                    associacao.altera_status_valor_reprogramado(
+                        Associacao.STATUS_VALORES_REPROGRAMADOS_NAO_FINALIZADO,
+                        recurso=periodo_inicial_associacao.recurso
+                    )
 
         self.message_user(request, "Status definido com sucesso!")
 
     def migrar_valores_reprogramados(self, request, queryset):
         for associacao in queryset.all():
-            if associacao.status_valores_reprogramados == Associacao.STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS:
-                # caso ja exista valores reprogramados para essa associação, nada deve ser feito
-                if associacao.valores_reprogramados_associacao.all():
+            for periodo_inicial_associacao in associacao.periodos_iniciais.select_related("recurso", "periodo_inicial").all():  # noqa
+                if periodo_inicial_associacao.status_valores_reprogramados != Associacao.STATUS_VALORES_REPROGRAMADOS_VALORES_CORRETOS:  # noqa
                     continue
 
-                if not associacao.periodo_inicial:
+                if associacao.valores_reprogramados_associacao.filter(
+                    periodo=periodo_inicial_associacao.periodo_inicial,
+                    conta_associacao__tipo_conta__recurso=periodo_inicial_associacao.recurso
+                ).exists():
                     continue
 
-                for conta_associacao in associacao.contas.all():
-                    for acao_associacao in associacao.acoes.exclude(acao__e_recursos_proprios=True):
+                contas = associacao.contas.filter(tipo_conta__recurso=periodo_inicial_associacao.recurso)
+                acoes = associacao.acoes.exclude(acao__e_recursos_proprios=True).filter(acao__recurso=periodo_inicial_associacao.recurso)  # noqa
+
+                for conta_associacao in contas:
+                    for acao_associacao in acoes:
                         fechamento_implantacao = associacao.fechamentos_associacao.filter(
-                            conta_associacao=conta_associacao).filter(
-                            acao_associacao=acao_associacao).filter(status="IMPLANTACAO").first()
+                            periodo=periodo_inicial_associacao.periodo_inicial,
+                            conta_associacao=conta_associacao,
+                            acao_associacao=acao_associacao,
+                            status="IMPLANTACAO"
+                        ).first()
 
                         if acao_associacao.acao.aceita_custeio:
                             ValoresReprogramados.criar_valor_reprogramado_custeio(
@@ -311,7 +401,7 @@ class AssociacaoAdmin(admin.ModelAdmin):
 @admin.register(ContaAssociacao)
 class ContaAssociacaoAdmin(admin.ModelAdmin):
     list_display = ('associacao', 'tipo_conta', 'status', 'data_inicio')
-    search_fields = ('uuid', 'associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
+    search_fields = ('associacao__unidade__codigo_eol', 'associacao__unidade__nome', 'associacao__nome')
     list_filter = ('status', 'tipo_conta', 'associacao__unidade__tipo_unidade',
                    'associacao__unidade__dre', ('data_inicio', DateRangeFilter), RecursoContasAssociacaoListFilter)
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
@@ -374,12 +464,14 @@ class PeriodoAdmin(admin.ModelAdmin):
 
 @admin.register(Unidade)
 class UnidadeAdmin(admin.ModelAdmin):
+    list_select_related = ('dre',)
     list_display = ('nome', 'tipo_unidade', 'codigo_eol', 'sigla', 'dre', 'qtd_alunos')
     ordering = ('nome',)
     search_fields = ('nome', 'codigo_eol', 'sigla')
     list_filter = ('tipo_unidade', 'dre')
     list_display_links = ('nome', 'codigo_eol')
     readonly_fields = ('uuid',)
+    raw_id_fields = ('dre',)
 
     fieldsets = (
         ('Dados da Unidade', {
@@ -543,7 +635,7 @@ class PrestacaoContaAdmin(admin.ModelAdmin):
     def get_relatorio_referencia(self, obj):
         return obj.consolidado_dre.referencia if obj.consolidado_dre else ""
 
-    get_relatorio_referencia.short_description = 'Publicação'
+    get_relatorio_referencia.short_description = 'Publicação/Relatório'
 
     def get_periodo_referencia(self, obj):
         return obj.periodo.referencia if obj.periodo else ""
@@ -673,9 +765,9 @@ class ArquivoAdmin(admin.ModelAdmin):
 
 @admin.register(Tag)
 class TagAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'status']
+    list_display = ['nome', 'status', 'recurso']
     search_fields = ['nome', ]
-    list_filter = ['status', ]
+    list_filter = ['status', 'recurso']
     readonly_fields = ('uuid', id)
 
 
@@ -740,6 +832,9 @@ class ObservacaoConciliacaoAdmin(admin.ModelAdmin):
 
 @admin.register(Notificacao)
 class NotificacaoAdmin(admin.ModelAdmin):
+
+    list_select_related = ('unidade', 'prestacao_conta', 'usuario', 'periodo', 'prestacao_conta__periodo',)
+
     def get_codigo_eol(self, obj):
         if obj and obj.unidade:
             return obj.unidade.codigo_eol
@@ -760,9 +855,12 @@ class NotificacaoAdmin(admin.ModelAdmin):
     readonly_fields = ('uuid', 'id', 'criado_em', "hora")
     list_filter = (
         ('criado_em', DateRangeFilter),
-        "remetente", "categoria",
-        "tipo", "usuario",
-        "unidade", "prestacao_conta",
+        "remetente",
+        "categoria",
+        "tipo",
+        "usuario",
+        "periodo",
+        "unidade",
         "lido",
     )
     search_fields = ("titulo", "unidade__nome", "usuario__name", "unidade__codigo_eol", "descricao",
@@ -1040,7 +1138,6 @@ class ParametrosAdmin(admin.ModelAdmin):
 
     list_display = [
         '__str__',
-        'permite_saldo_conta_negativo',
         'get_tempo_notificar_nao_demonstrados',
         'get_dias_antes_inicio_periodo_pc_para_notificacao',
         'get_dias_antes_fim_periodo_pc_para_notificacao',
@@ -1053,8 +1150,6 @@ class ParametrosAdmin(admin.ModelAdmin):
         ('Associação', {
             'fields':
                 (
-                    'permite_saldo_conta_negativo',
-                    'permite_saldo_acoes_negativo',
                     'tempo_aguardar_conclusao_pc',
                     'quantidade_tentativas_concluir_pc',
                     'periodo_de_tempo_tentativas_concluir_pc',
@@ -1242,7 +1337,9 @@ class RelacaoBensAdmin(admin.ModelAdmin):
     def gerar_pdf(self, request, queryset):
         from .services.relacao_bens import gerar_arquivo_relacao_de_bens_dados_persistidos
         for item in queryset:
-            gerar_arquivo_relacao_de_bens_dados_persistidos(item)
+            recurso_nome = item.conta_associacao.tipo_conta.recurso.nome
+            recurso_nome_exibicao = item.conta_associacao.tipo_conta.recurso.nome_exibicao
+            gerar_arquivo_relacao_de_bens_dados_persistidos(item, recurso_nome, recurso_nome_exibicao)
 
 
 class ItemRelatorioRelacaoDeBensInline(admin.TabularInline):
@@ -1587,9 +1684,9 @@ class AnaliseLancamentoPrestacaoContaAdmin(admin.ModelAdmin):
 
 @admin.register(TipoAcertoLancamento)
 class TipoAcertoLancamentoAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'categoria', 'ativo']
+    list_display = ['nome', 'categoria', 'recurso', 'ativo']
     search_fields = ['nome', 'categoria']
-    list_filter = ['nome', 'categoria', 'ativo']
+    list_filter = ['nome', 'categoria', 'ativo', 'recurso']
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
 
@@ -1635,7 +1732,8 @@ class SolicitacaoAcertoLancamentoAdmin(admin.ModelAdmin):
         'analise_lancamento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'analise_lancamento__tipo_lancamento',
         'tipo_acerto',
-        'copiado'
+        'copiado',
+        'analise_lancamento__analise_prestacao_conta__prestacao_conta__periodo__recurso',
     ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em')
 
@@ -1669,9 +1767,9 @@ class TipoDocumentoPrestacaoContaAdmin(admin.ModelAdmin):
 
 @admin.register(TipoAcertoDocumento)
 class TipoAcertoDocumentoAdmin(admin.ModelAdmin):
-    list_display = ['nome', 'categoria', 'ativo']
+    list_display = ['nome', 'categoria', 'ativo', 'recurso']
     search_fields = ['nome']
-    list_filter = ['tipos_documento_prestacao', 'categoria', 'ativo']
+    list_filter = ['tipos_documento_prestacao', 'categoria', 'ativo', 'recurso']
     readonly_fields = ('uuid', 'id',)
 
 
@@ -1732,7 +1830,7 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
         return f'#{obj.analise_documento.analise_prestacao_conta.pk}' if obj and obj.analise_documento.analise_prestacao_conta else ''  # noqa
 
     get_analise_pc.short_description = 'Análise PC'
-    list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_acerto', 'copiado',]
+    list_display = ['get_unidade', 'get_periodo', 'get_analise_pc', 'tipo_acerto', 'tipo_acerto_id', 'copiado',]
     search_fields = [
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__codigo_eol',
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__nome',
@@ -1742,7 +1840,8 @@ class SolicitacaoAcertoDocumentoAdmin(admin.ModelAdmin):
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__tipo_unidade',
         'analise_documento__analise_prestacao_conta__prestacao_conta__associacao__unidade__dre',
         'tipo_acerto',
-        'copiado'
+        'copiado',
+        'analise_documento__analise_prestacao_conta__prestacao_conta__periodo__recurso',
     ]
     readonly_fields = ('uuid', 'id', 'criado_em', 'alterado_em',)
 
@@ -1807,7 +1906,7 @@ class ValoresReprogramadosAdmin(admin.ModelAdmin):
         'associacao__unidade',
         'associacao__unidade__tipo_unidade',
         'associacao__unidade__dre',
-        'associacao__status_valores_reprogramados',
+        'associacao__periodos_iniciais__status_valores_reprogramados',
         'associacao__periodo_inicial',
         'conta_associacao__tipo_conta',
         'acao_associacao__acao',
@@ -2140,3 +2239,17 @@ class LogEntryAdminCustom(LogEntryAdmin):
         fuso_horario_local = get_current_timezone()
         data_hora_aware = make_aware(obj.timestamp, fuso_horario_local)
         return localtime(data_hora_aware)
+
+
+@admin.register(FiqueDeOlho)
+class FiqueDeOlhoAdmin(admin.ModelAdmin):
+    list_display = ('texto_preview', 'tipo_texto', 'recurso')
+    list_filter = (
+        'tipo_texto',
+        'recurso',
+    )
+
+    def texto_preview(self, obj):
+        return obj.get_short_texto()
+
+    texto_preview.short_description = "Texto"

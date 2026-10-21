@@ -86,6 +86,7 @@ class PaaStatusAndamentoEnum(Enum):
     GERADO = "Gerado"
     GERADO_PARCIALMENTE = "Gerado parcialmente"
     EM_ELABORACAO = "Em elaboração"
+    EM_RETIFICACAO = "Retificação iniciada"
     NAO_INICIADO = "Não iniciado"
     FORA_FLUXO = "Status fora do fluxo"
 

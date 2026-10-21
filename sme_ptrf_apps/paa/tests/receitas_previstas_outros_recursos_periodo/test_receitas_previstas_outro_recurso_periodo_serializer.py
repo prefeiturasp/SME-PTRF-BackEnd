@@ -1,4 +1,5 @@
 import pytest
+from unittest.mock import patch
 
 from sme_ptrf_apps.paa.api.serializers import ReceitaPrevistaOutroRecursoPeriodoSerializer
 
@@ -77,23 +78,102 @@ def test_receita_prevista_outro_recurso_serializer_bloqueia_edicao_com_documento
 ):
     """Testa que não é possível editar receita prevista de outros recursos quando documento final está concluído"""
     from sme_ptrf_apps.paa.fixtures.factories.documento_paa_factory import DocumentoPaaFactory
-    
+
     DocumentoPaaFactory.create(
         paa=receita_prevista_outro_recurso_periodo.paa,
         versao="FINAL",
         status_geracao="CONCLUIDO"
     )
-    
+
     payload = {
         "previsao_valor_custeio": "1000.00",
     }
-    
+
     serializer = ReceitaPrevistaOutroRecursoPeriodoSerializer(
         instance=receita_prevista_outro_recurso_periodo,
         data=payload,
         partial=True
     )
-    
+
     assert not serializer.is_valid()
     assert 'mensagem' in serializer.errors
-    assert 'Não é possível editar receitas previstas de outros recursos após a geração do documento final do PAA.' in serializer.errors['mensagem']
+    assert (
+        'Não é possível editar receitas previstas de outros recursos após a '
+        'geração do documento final do PAA.') in serializer.errors['mensagem']
+
+
+def test_validate_paa_string_uuid_nao_encontrado(receita_prevista_outro_recurso_periodo):
+    serializer = ReceitaPrevistaOutroRecursoPeriodoSerializer()
+    with pytest.raises(Exception) as exc_info:
+        serializer.validate({
+            "paa": "00000000-0000-0000-0000-000000000000",
+            "outro_recurso_periodo": receita_prevista_outro_recurso_periodo.outro_recurso_periodo,
+        })
+    assert exc_info.value.detail["mensagem"] == "PAA não encontrado!"
+
+
+def test_update_sem_confirmar_limpeza_nao_chama_limpar_prioridades(receita_prevista_outro_recurso_periodo):
+    payload = {"previsao_valor_custeio": "999.00"}
+    serializer = ReceitaPrevistaOutroRecursoPeriodoSerializer(
+        instance=receita_prevista_outro_recurso_periodo, data=payload, partial=True
+    )
+    with patch.object(
+        ReceitaPrevistaOutroRecursoPeriodoSerializer, '_verificar_prioridades_paa_impactadas'
+    ):
+        with patch.object(
+            ReceitaPrevistaOutroRecursoPeriodoSerializer, '_limpar_prioridades_paa'
+        ) as mock_limpar:
+            assert serializer.is_valid(), serializer.errors
+            serializer.save()
+            mock_limpar.assert_not_called()
+
+
+def test_update_com_confirmar_limpeza_chama_limpar_prioridades(receita_prevista_outro_recurso_periodo):
+    payload = {
+        "previsao_valor_custeio": "999.00",
+        "confirmar_limpeza_prioridades_paa": True,
+    }
+    serializer = ReceitaPrevistaOutroRecursoPeriodoSerializer(
+        instance=receita_prevista_outro_recurso_periodo, data=payload, partial=True
+    )
+    with patch.object(
+        ReceitaPrevistaOutroRecursoPeriodoSerializer, '_verificar_prioridades_paa_impactadas'
+    ):
+        with patch.object(
+            ReceitaPrevistaOutroRecursoPeriodoSerializer, '_limpar_prioridades_paa'
+        ) as mock_limpar:
+            assert serializer.is_valid(), serializer.errors
+            serializer.save()
+            mock_limpar.assert_called_once()
+
+
+def test_create_remove_flag_confirmacao_do_validated_data(paa, outro_recurso_periodo):
+    payload = {
+        "paa": str(paa.uuid),
+        "outro_recurso_periodo": str(outro_recurso_periodo.uuid),
+        "previsao_valor_custeio": "50.00",
+        "confirmar_limpeza_prioridades_paa": True,
+    }
+    serializer = ReceitaPrevistaOutroRecursoPeriodoSerializer(data=payload)
+    with patch.object(
+        ReceitaPrevistaOutroRecursoPeriodoSerializer, '_verificar_prioridades_paa_impactadas'
+    ):
+        assert serializer.is_valid(), serializer.errors
+        instance = serializer.save()
+        assert instance.pk is not None
+
+
+def test_prioridades_impactadas_sem_confirmar_levanta_erro(receita_prevista_outro_recurso_periodo):
+    from sme_ptrf_apps.paa.services import PrioridadesPaaImpactadasReceitasPrevistasOutroRecursoPeriodoService
+
+    payload = {"previsao_valor_custeio": "1.00"}
+    serializer = ReceitaPrevistaOutroRecursoPeriodoSerializer(
+        instance=receita_prevista_outro_recurso_periodo, data=payload, partial=True
+    )
+    with patch.object(
+        PrioridadesPaaImpactadasReceitasPrevistasOutroRecursoPeriodoService,
+        'verificar_prioridades_impactadas',
+        return_value=[{'uuid': 'x'}]
+    ):
+        assert not serializer.is_valid()
+        assert 'confirmar' in serializer.errors

@@ -120,7 +120,7 @@ class AcompanhamentoPcPagina {
         AcompanhamentoPC.botaoFiltrar().click();
         AcompanhamentoPC.campoAcoesEmAnalise().click();
         AcompanhamentoPC.botaoConcluirAnalise().click();
-        AcompanhamentoPC.modalConclusao().select('Reprovada');
+        AcompanhamentoPC.modalConclusao().select('Rejeitada');
         AcompanhamentoPC.motivoConclusao().click();
         AcompanhamentoPC.motivoCampoConclusaoReprovar().click();
         AcompanhamentoPC.motivoConclusao().click();

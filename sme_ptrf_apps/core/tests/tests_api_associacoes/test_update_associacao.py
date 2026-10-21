@@ -13,10 +13,16 @@ pytestmark = pytest.mark.django_db
 def test_api_update_associacao(jwt_authenticated_client_a, associacao):
     payload = {
         "nome": "Nome alterado",
-        "processo_regularidade": "123456"
+        "processo_regularidade": "123456",
+        "periodos_iniciais": [{
+            'uuid': '12345678-1234-1234-1234-123456789012',
+            'periodo': str(associacao.periodo_inicial.uuid),
+            'recurso': str(associacao.periodo_inicial.recurso.uuid),
+            'valores_reprogramados': 'VALORES_CORRETOS'
+        }],
     }
     response = jwt_authenticated_client_a.put(f'/api/associacoes/{associacao.uuid}/', data=json.dumps(payload),
-                          content_type='application/json')
+                                              content_type='application/json')
 
     registro_alterado = Associacao.objects.get(uuid=associacao.uuid)
 
@@ -36,6 +42,12 @@ def test_api_update_associacao_deve_gerar_erro_data_de_encerramento_maior_que_pe
             "processo_regularidade": "123456",
             "periodo_inicial": str(periodo_anterior.uuid),
             "data_de_encerramento": "2019-08-29",
+            "periodos_iniciais": [{
+                'uuid': '12345678-1234-1234-1234-123456789012',
+                'periodo': str(periodo_anterior.uuid),
+                'recurso': str(periodo_anterior.recurso.uuid),
+                'valores_reprogramados': 'VALORES_CORRETOS'
+            }],
         }
         response = jwt_authenticated_client_a.put(f'/api/associacoes/{associacao.uuid}/', data=json.dumps(payload),
                               content_type='application/json')
@@ -57,6 +69,12 @@ def test_api_update_associacao_deve_gerar_erro_data_de_encerramento_maior_que_da
             "processo_regularidade": "123456",
             "periodo_inicial": str(periodo_anterior.uuid),
             "data_de_encerramento": "2023-04-19",
+            "periodos_iniciais": [{
+                'uuid': '12345678-1234-1234-1234-123456789012',
+                'periodo': str(periodo_anterior.uuid),
+                'recurso': str(periodo_anterior.recurso.uuid),
+                'valores_reprogramados': 'VALORES_CORRETOS'
+            }],
         }
         response = jwt_authenticated_client_a.put(f'/api/associacoes/{associacao.uuid}/', data=json.dumps(payload),
                               content_type='application/json')
@@ -71,6 +89,12 @@ def test_api_update_associacao_erro_cnpj_invalido(jwt_authenticated_client_a, as
         "nome": "Nome alterado",
         "processo_regularidade": "123456",
         "cnpj": '52.302.275/0001-82',
+        "periodos_iniciais": [{
+            'uuid': '12345678-1234-1234-1234-123456789012',
+            'periodo': str(associacao.periodo_inicial.uuid),
+            'recurso': str(associacao.periodo_inicial.recurso.uuid),
+            'valores_reprogramados': 'VALORES_CORRETOS'
+        }],
     }
     response = jwt_authenticated_client_a.put(f'/api/associacoes/{associacao.uuid}/', data=json.dumps(payload),
                           content_type='application/json')

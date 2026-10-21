@@ -2,7 +2,6 @@ from rest_framework import serializers
 from ....core.models import FechamentoPeriodo
 from ....core.api.serializers.associacao_serializer import AssociacaoListSerializer
 from ....core.api.serializers.periodo_serializer import PeriodoLookUpSerializer
-from ...models import ParametrosDre
 
 
 class ValoresReprogramadosListSerializer(serializers.ModelSerializer):
@@ -12,41 +11,42 @@ class ValoresReprogramadosListSerializer(serializers.ModelSerializer):
     total_conta_cheque = serializers.SerializerMethodField('get_total_conta_cheque')
     total_conta_cartao = serializers.SerializerMethodField('get_total_conta_cartao')
 
-    def get_total_conta_cheque(self, obj):
-        uuid_conta_cheque = None
+    def _get_recurso(self, obj):
+        request = self.context.get("request")
+        if request and hasattr(request, "recurso") and request.recurso:
+            return request.recurso
+        if obj and obj.periodo and obj.periodo.recurso:
+            return obj.periodo.recurso
+        return None
+
+    def _get_total_por_tipo_conta(self, obj, tipo_conta):
+        if not tipo_conta:
+            return 0
+
+        recurso = self._get_recurso(obj)
+        todos_fechamentos = obj.associacao.fechamentos_associacao.filter(
+            status='IMPLANTACAO',
+            conta_associacao__tipo_conta=tipo_conta,
+        )
+
+        if recurso:
+            todos_fechamentos = todos_fechamentos.filter(periodo__recurso=recurso)
+
         total = 0
-
-        if ParametrosDre.objects.all():
-            if ParametrosDre.get().tipo_conta_um:
-                uuid_conta_cheque = ParametrosDre.get().tipo_conta_um.uuid
-
-        if uuid_conta_cheque is not None:
-            todos_fechamentos = obj.associacao.fechamentos_associacao.filter(
-                status='IMPLANTACAO').filter(conta_associacao__tipo_conta__uuid=uuid_conta_cheque).exclude(
-                associacao__periodo_inicial=None)
-
-            for fechamentos in todos_fechamentos:
-                total = total + fechamentos.saldo_reprogramado
+        for fechamento in todos_fechamentos:
+            total += fechamento.saldo_reprogramado
 
         return total
+
+    def get_total_conta_cheque(self, obj):
+        recurso = self._get_recurso(obj)
+        tipo_conta_um = recurso.tipo_conta_um if recurso else None
+        return self._get_total_por_tipo_conta(obj, tipo_conta_um)
 
     def get_total_conta_cartao(self, obj):
-        uuid_conta_cartao = None
-        total = 0
-
-        if ParametrosDre.objects.all():
-            if ParametrosDre.get().tipo_conta_dois:
-                uuid_conta_cartao = ParametrosDre.get().tipo_conta_dois.uuid
-
-        if uuid_conta_cartao is not None:
-            todos_fechamentos = obj.associacao.fechamentos_associacao.filter(
-                status='IMPLANTACAO').filter(conta_associacao__tipo_conta__uuid=uuid_conta_cartao).exclude(
-                associacao__periodo_inicial=None)
-
-            for fechamentos in todos_fechamentos:
-                total = total + fechamentos.saldo_reprogramado
-
-        return total
+        recurso = self._get_recurso(obj)
+        tipo_conta_dois = recurso.tipo_conta_dois if recurso else None
+        return self._get_total_por_tipo_conta(obj, tipo_conta_dois)
 
     class Meta:
         model = FechamentoPeriodo

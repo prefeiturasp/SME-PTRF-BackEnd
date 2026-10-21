@@ -27,11 +27,17 @@ def test_deve_notificar_usuarios_5_dias_antes(
 
     notificacao = Notificacao.objects.first()
 
+    recurso = periodo_notifica_proximidade_fim_pc.recurso
+
     assert notificacao.tipo == Notificacao.TIPO_NOTIFICACAO_INFORMACAO
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_ELABORACAO_PC
     assert notificacao.remetente == Notificacao.REMETENTE_NOTIFICACAO_SISTEMA
     assert notificacao.titulo == f"Últimos dias para enviar a PC {periodo_notifica_proximidade_fim_pc.referencia}"
-    assert notificacao.descricao == f"Faltam apenas 5 dia(s) para o término do período de prestações de contas. Envie a sua prestação de contas."
+    assert notificacao.descricao == (
+        f"Faltam apenas 5 dia(s) para o término do período de prestações de contas. "
+        f"Envie a sua prestação de contas.\n\n"
+        f"Recurso: {recurso.nome}\n"
+    )
     assert notificacao.usuario == usuario_notificavel
 
 

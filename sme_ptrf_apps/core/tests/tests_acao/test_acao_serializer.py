@@ -2,9 +2,29 @@ import pytest
 from unittest.mock import patch
 
 from sme_ptrf_apps.core.models import Recurso
-from ...api.serializers.acao_serializer import AcaoSerializer
+from ...api.serializers.acao_serializer import AcaoSerializer, AcaoLookUpSerializer
 
 pytestmark = pytest.mark.django_db
+
+
+def test_serializer_lookup(acao):
+
+    serializer = AcaoLookUpSerializer(acao)
+
+    assert serializer.data is not None
+    assert 'id' in serializer.data
+    assert 'uuid' in serializer.data
+    assert 'nome' in serializer.data
+    assert 'e_recursos_proprios' in serializer.data
+    assert 'aceita_capital' in serializer.data
+    assert 'aceita_custeio' in serializer.data
+    assert 'aceita_livre' in serializer.data
+    assert 'exibir_paa' in serializer.data
+    assert 'recurso' in serializer.data
+    assert 'ordem_exibicao' in serializer.data
+
+    assert 'tem_receitas_previstas_paa_em_elaboracao' not in serializer.data
+    assert 'tem_prioridades_paa_em_elaboracao' not in serializer.data
 
 
 def test_serializer(acao):
@@ -16,7 +36,6 @@ def test_serializer(acao):
     assert serializer.data['nome']
     assert not serializer.data['e_recursos_proprios']
     assert serializer.data['uuid']
-    assert serializer.data['posicao_nas_pesquisas'] is not None
 
 
 def test_serializer_create_valido():
@@ -28,7 +47,6 @@ def test_serializer_create_valido():
         'aceita_custeio': False,
         'aceita_livre': True,
         'e_recursos_proprios': False,
-        'posicao_nas_pesquisas': 'AAAA',
         'exibir_paa': True,
     }
     serializer = AcaoSerializer(data=data)

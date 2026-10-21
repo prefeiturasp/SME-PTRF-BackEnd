@@ -1,7 +1,9 @@
 from rest_framework import mixins, status
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import ValidationError
 from ...models import MotivoEstorno
+from sme_ptrf_apps.core.models import Recurso
 from ..serializers import MotivoEstornoSerializer
 from rest_framework.response import Response
 
@@ -27,6 +29,13 @@ class MotivosEstornoViewSet(mixins.ListModelMixin,
         motivo = self.request.query_params.get('motivo')
         if motivo is not None:
             qs = qs.filter(motivo__unaccent__icontains=motivo)
+
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+        if recurso_uuid:
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
+            if recurso is None:
+                raise ValidationError({'detail': 'Recurso não encontrado.'})
+            qs = MotivoEstorno.filter_by_recurso(qs, recurso=recurso)
 
         return qs.order_by('motivo')
 

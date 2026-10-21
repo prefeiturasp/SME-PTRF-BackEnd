@@ -1,5 +1,5 @@
 import csv
-import datetime, time
+import datetime
 import logging
 
 from tempfile import NamedTemporaryFile
@@ -18,6 +18,8 @@ from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (
 )
 from sme_ptrf_apps.utils.built_in_custom import get_recursive_attr
 from sme_ptrf_apps.core.models.ambiente import Ambiente
+from sme_ptrf_apps.core.models.periodo import Periodo
+
 
 CABECALHO_RECEITA = [
         ('Código EOL', 'associacao__unidade__codigo_eol'),
@@ -28,6 +30,7 @@ CABECALHO_RECEITA = [
         ('ID do crédito', 'id'),
         ('Data do crédito', 'data'),
         ('Valor do crédito', 'valor'),
+        ('Período de lançamento', 'PERIODO_RECEITA_CACHED'),
         ('ID da Conta Associação', 'conta_associacao__id'),
         ('ID do tipo de Conta', 'conta_associacao__tipo_conta__id'),
         ('Nome do tipo de Conta', 'conta_associacao__tipo_conta__nome'),
@@ -146,8 +149,24 @@ class ExportacoesDadosCreditosService:
         self.filtra_range_data('data')
         self.exporta_credito_csv()
 
+
+    def obtem_todos_periodos(self) -> dict:
+        periodos = Periodo.objects.all().order_by("pk")
+
+        periodos_dict = {}
+        for p in periodos:
+            periodos_dict[p.id] = {
+                'data_inicio_realizacao_despesas': p.data_inicio_realizacao_despesas,
+                'data_fim_realizacao_despesas': p.data_fim_realizacao_despesas,
+                'referencia': p.referencia,
+                'recurso': p.recurso_id
+            }
+
+        return periodos_dict
+
     def exporta_credito_csv(self) -> BinaryIO:
         linha = []
+        periodos_dict = self.obtem_todos_periodos()
         with NamedTemporaryFile(
             mode="r+",
             newline='',
@@ -158,7 +177,7 @@ class ExportacoesDadosCreditosService:
             write = csv.writer(tmp.file, delimiter=";")
             write.writerow([cabecalho[0] for cabecalho in self.cabecalho])
 
-            for instance in self.queryset:
+            for instance in self.queryset.iterator(chunk_size=2000):
 
                 motivos = list(instance.motivos_estorno.all())
 
@@ -217,6 +236,36 @@ class ExportacoesDadosCreditosService:
                         campo = str(getattr(instance, campo)).replace(".", ",")
                         linha.append(campo)
 
+                    elif campo == 'PERIODO_RECEITA_CACHED':
+                        receita = instance
+                        referencia = ""
+
+                        if receita and receita.data:
+                            data_transacao = receita.data
+
+                            periodo_filtrado = next(
+                                (
+                                    periodo
+                                    for periodo in periodos_dict.values()
+                                    if (
+                                        periodo['data_inicio_realizacao_despesas'] <= data_transacao
+                                        and (
+                                            periodo['data_fim_realizacao_despesas'] is None
+                                            or periodo['data_fim_realizacao_despesas'] >= data_transacao
+                                        )
+                                    )
+                                ),
+                                None
+                            )
+
+                            referencia = (
+                                periodo_filtrado['referencia']
+                                if periodo_filtrado else ""
+                            )
+
+                        linha.append(referencia)
+                        continue
+
                     elif campo == 'outros_motivos_estorno':
                         motivo_string = '; '.join(str(motivo) for motivo in motivos)
                         if(len(motivo_string)):
@@ -228,7 +277,7 @@ class ExportacoesDadosCreditosService:
                     elif isinstance(campo, tuple) and campo[1] == 'categoria_receita':
                         linha.append(campo[0][getattr(instance, campo[1])])
 
-                    elif type(campo) == tuple and getattr(instance, campo[1]).__class__.__name__ == 'ManyRelatedManager':
+                    elif type(campo) == tuple and getattr(instance, campo[1]).__class__.__name__ == 'ManyRelatedManager':  # noqa
                         for instance_m2m in getattr(instance, campo[1]).all():
                             linha.append(getattr(instance, campo[0]))
                             linha.append(getattr(instance_m2m, self.cabecalho[1][1]))
@@ -273,7 +322,7 @@ class ExportacoesDadosCreditosService:
         return self.queryset
 
     def cria_registro_central_download(self):
-        logger.info(f"Criando registro na central de download")
+        logger.info("Criando registro na central de download")
 
         obj = gerar_arquivo_download(
             self.user,

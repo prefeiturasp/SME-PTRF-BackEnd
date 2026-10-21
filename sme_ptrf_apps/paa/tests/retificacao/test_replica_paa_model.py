@@ -97,3 +97,32 @@ def test_relacionamento_reverse(paa_factory):
     )
 
     assert paa.replica == replica
+
+
+@pytest.mark.django_db
+def test_formatted_json_replica_com_dados(paa_factory):
+    paa = paa_factory()
+    replica = ReplicaPaa.objects.create(
+        paa=paa,
+        historico={'texto_introducao': 'Intro', 'objetivos': []}
+    )
+    resultado = replica.formatted_json_replica()
+    assert '<pre>' in resultado
+    assert 'texto_introducao' in resultado
+
+
+@pytest.mark.django_db
+def test_formatted_json_replica_historico_vazio_retorna_pre(paa_factory):
+    paa = paa_factory()
+    replica = ReplicaPaa.objects.create(paa=paa, historico={})
+    resultado = replica.formatted_json_replica()
+    assert '<pre>' in resultado
+
+
+@pytest.mark.django_db
+def test_formatted_json_replica_historico_none_retorna_hifen(paa_factory):
+    paa = paa_factory()
+    replica = ReplicaPaa.objects.create(paa=paa, historico={})
+    replica.historico = None
+    resultado = replica.formatted_json_replica()
+    assert resultado == '-'

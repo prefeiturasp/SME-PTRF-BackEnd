@@ -16,8 +16,7 @@ from sme_ptrf_apps.receitas.api.serializers import (
     TipoReceitaCreateSerializer,
     DetalheTipoReceitaSerializer
 )
-from sme_ptrf_apps.core.models import TipoConta
-from sme_ptrf_apps.core.models import Unidade
+from sme_ptrf_apps.core.models import TipoConta, Recurso, Unidade
 from sme_ptrf_apps.receitas.models import TipoReceita, DetalheTipoReceita
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
@@ -61,6 +60,14 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         unidade_filtrada = Unidade.objects.filter(uuid=unidade_uuid)
 
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+        if recurso_uuid:
+            try:
+                recurso = Recurso.objects.get(uuid=recurso_uuid)
+                qs = qs.filter(recurso=recurso)
+            except Recurso.DoesNotExist:
+                return Response({"mensagem": "Recurso não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
         if nome:
             qs = qs.filter(nome__icontains=nome)
 
@@ -90,6 +97,15 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def filtros(self, request, *args, **kwargs):
 
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+        recurso = None
+
+        if recurso_uuid:
+            try:
+                recurso = Recurso.objects.get(uuid=recurso_uuid)
+            except Recurso.DoesNotExist:
+                return Response({"mensagem": "Recurso não encontrado."}, status=status.HTTP_404_NOT_FOUND)
+
         tipos = [
             {"field_name": "e_repasse", "name": "Repasse"},
             {"field_name": "e_rendimento", "name": "Rendimento"},
@@ -101,8 +117,13 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             {"field_name": "aceita_custeio", "name": "Custeio"},
             {"field_name": "aceita_livre", "name": "Livre aplicação"}
         ]
+
+        tipos_contas_qs = TipoConta.objects.all()
+        if recurso:
+            tipos_contas_qs = tipos_contas_qs.filter(recurso=recurso)
+
         result = {
-            "tipos_contas": TipoContaSerializer(TipoConta.objects.all(), many=True).data,
+            "tipos_contas": TipoContaSerializer(tipos_contas_qs, many=True).data,
             "tipos": tipos,
             "aceita": aceita,
             "detalhes": DetalheTipoReceitaSerializer(DetalheTipoReceita.objects.order_by('nome'), many=True).data,
@@ -173,14 +194,25 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def unidades_nao_vinculadas(self, request, *args, **kwargs):
         from sme_ptrf_apps.core.models.unidade import Unidade
+
         uuid_dre = self.request.query_params.get('dre')
         nome_ou_codigo = self.request.query_params.get('nome_ou_codigo')
         tipo_unidade = self.request.query_params.get('tipo_unidade')
+
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+        recurso = None
 
         instance = self.get_object()
 
         todas_unidades = Unidade.objects.select_related('dre', 'dre__dre').all()
         unidades_nao_vinculadas = todas_unidades.exclude(uuid__in=instance.unidades.values_list('uuid', flat=True))
+
+        # Filtrar pelo recurso se fornecido
+        if recurso_uuid:
+            try:
+                recurso = Recurso.objects.get(uuid=recurso_uuid)
+            except Recurso.DoesNotExist:
+                return Response({"mensagem": "Recurso não encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
         if uuid_dre:
             unidades_nao_vinculadas = unidades_nao_vinculadas.filter(dre__uuid=uuid_dre)
@@ -191,6 +223,11 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
         if nome_ou_codigo:
             unidades_nao_vinculadas = unidades_nao_vinculadas.filter(
                 Q(codigo_eol=nome_ou_codigo) | Q(nome__unaccent__icontains=nome_ou_codigo))
+
+        if recurso:
+            unidades_nao_vinculadas = unidades_nao_vinculadas.filter(
+                associacoes__periodos_iniciais__recurso=recurso
+            )
 
         serializer = UnidadeLookUpSerializer(unidades_nao_vinculadas, many=True)
 
@@ -231,12 +268,12 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return Response(resultado, status=status.HTTP_200_OK)
 
         except UnidadeNaoEncontradaException as e:
-            logger.error(str(e), exc_info=True)
+            logger.exception(str(e), exc_info=True)
             return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
         except Exception as e:
             msg_erro = f"Erro inesperado ao desvincular unidade: {unidade_uuid}. {str(e)}"
-            logger.error(msg_erro, exc_info=True)
+            logger.exception(msg_erro, exc_info=True)
             return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
@@ -272,36 +309,36 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return Response(resultado, status=status.HTTP_200_OK)
 
         except UnidadeNaoEncontradaException as e:
-            logger.error(str(e), exc_info=True)
+            logger.exception(str(e), exc_info=True)
             return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
         except ValidacaoVinculoException as e:
-            logger.error(str(e), exc_info=True)
+            logger.exception(str(e), exc_info=True)
             return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             msg_erro = "Erro ao desvincular em lote"
-            logger.error(f'{msg_erro} - {str(e)}', exc_info=True)
+            logger.exception(f'{msg_erro} - {str(e)}', exc_info=True)
             return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['POST'], url_path='unidade/(?P<unidade_uuid>[^/.]+)/vincular',
             permission_classes=[IsAuthenticated & PermissaoAPIApenasSmeComLeituraOuGravacao])
     def vincular_unidade(self, request, unidade_uuid, *args, **kwargs):
-        service = self._get_service_tipo_receita_vinculo_unidade()     
+        service = self._get_service_tipo_receita_vinculo_unidade()
 
         try:
             service.vincular_unidades([unidade_uuid])
-            return Response({"mensagem": "Unidade vinculada com sucesso!"}, status=status.HTTP_200_OK)       
+            return Response({"mensagem": "Unidade vinculada com sucesso!"}, status=status.HTTP_200_OK)
 
-        except UnidadeNaoEncontradaException as e:   
+        except UnidadeNaoEncontradaException as e:
             return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
-        except ValidacaoVinculoException as e:         
+        except ValidacaoVinculoException as e:
             return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             msg_erro = "Erro ao vincular"
-            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            logger.exception(f"{msg_erro} {str(e)}", exc_info=True)
             return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['POST'], url_path='vincular-em-lote',
@@ -312,17 +349,17 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
 
         try:
             service.vincular_unidades(unidade_uuids)
-            return Response({"mensagem": "Unidades vinculadas com sucesso!"}, status=status.HTTP_200_OK)       
+            return Response({"mensagem": "Unidades vinculadas com sucesso!"}, status=status.HTTP_200_OK)
 
-        except UnidadeNaoEncontradaException as e:   
+        except UnidadeNaoEncontradaException as e:
             return Response({"mensagem": str(e)}, status=status.HTTP_404_NOT_FOUND)
 
-        except ValidacaoVinculoException as e:         
+        except ValidacaoVinculoException as e:
             return Response({"mensagem": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         except Exception as e:
             msg_erro = "Erro ao vincular"
-            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            logger.exception(f"{msg_erro} {str(e)}", exc_info=True)
             return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @extend_schema(
@@ -362,7 +399,7 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return Response(resultado, status=status.HTTP_200_OK)
         except Exception as e:
             msg_erro = "Erro ao vincular todas as unidades."
-            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            logger.exception(f"{msg_erro} {str(e)}", exc_info=True)
             return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=True, methods=['POST'], url_path='desvincular-todas-unidades',
@@ -376,5 +413,5 @@ class TipoReceitaViewSet(mixins.CreateModelMixin,
             return Response(resultado, status=status.HTTP_200_OK)
         except Exception as e:
             msg_erro = "Erro ao desvincular todas as unidades."
-            logger.error(f"{msg_erro} {str(e)}", exc_info=True)
+            logger.exception(f"{msg_erro} {str(e)}", exc_info=True)
             return Response({"mensagem": msg_erro}, status=status.HTTP_400_BAD_REQUEST)

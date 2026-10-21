@@ -10,11 +10,16 @@ logger = logging.getLogger(__name__)
 @shared_task(
     retry_backoff=2,
     retry_kwargs={'max_retries': 8},
-    time_limet=600,
-    soft_time_limit=30000
+    time_limit=7400,
+    soft_time_limit=7200
 )
 def exportar_saldos_bancarios_async(data_inicio, data_final, username, dre_uuid=None):
     logger.info("Exportando csv em processamento...")
+    SELECT_RELATED = (
+        'associacao__unidade__dre',
+        'periodo__recurso',
+        'conta_associacao__tipo_conta',
+    )
 
     dre_codigo_eol = None
     if dre_uuid:
@@ -24,12 +29,14 @@ def exportar_saldos_bancarios_async(data_inicio, data_final, username, dre_uuid=
             dre_codigo_eol = dre.codigo_eol
         except Unidade.DoesNotExist:
             logger.warning(f"DRE com uuid {dre_uuid} não encontrada")
-        
+
         queryset = ObservacaoConciliacao.objects.filter(
             associacao__unidade__dre__uuid=dre_uuid,
         )
     else:
         queryset = ObservacaoConciliacao.objects.all()
+
+    queryset = queryset.select_related(*SELECT_RELATED).order_by('id')
 
     try:
         logger.info("Criando arquivo %s saldo_bancario_unidades.csv")

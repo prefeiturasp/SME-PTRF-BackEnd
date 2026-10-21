@@ -29,10 +29,15 @@ def test_api_post_associacao(jwt_authenticated_client_a, periodo_anterior):
             'bairro': 'Ferreira',
             'cep': '05524160',
             'nome_dre': 'DRE Existente 1'
-        }
+        },
+        'periodos_iniciais': [{
+            'periodo_inicial': str(periodo_anterior.uuid),
+            'recurso': str(periodo_anterior.recurso.uuid),
+            'status_valores_reprogramados': 'VALORES_CORRETOS'
+        }]
     }
     response = jwt_authenticated_client_a.post(f'/api/associacoes/', data=json.dumps(payload),
-                          content_type='application/json')
+                                               content_type='application/json')
 
     registro_alterado = Associacao.objects.first()
 
@@ -65,7 +70,13 @@ def test_api_post_associacao_deve_gerar_erro_data_de_encerramento_maior_que_peri
                 'bairro': 'Ferreira',
                 'cep': '05524160',
                 'nome_dre': 'DRE Existente 2'
-            }
+            },
+            'periodos_iniciais': [{
+                'uuid': '',
+                'periodo_inicial': str(periodo_anterior.uuid),
+                'recurso': str(periodo_anterior.recurso.uuid),
+                'status_valores_reprogramados': 'VALORES_CORRETOS'
+            }]
         }
         response = jwt_authenticated_client_a.post(f'/api/associacoes/', data=json.dumps(payload),
                                                    content_type='application/json')
@@ -99,7 +110,13 @@ def test_api_post_associacao_deve_gerar_erro_data_de_encerramento_maior_que_data
                 'bairro': 'Ferreira',
                 'cep': '05524160',
                 'nome_dre': 'DRE Existente 3'
-            }
+            },
+            "periodos_iniciais": [{
+                'uuid': '',
+                'periodo_inicial': str(periodo_anterior.uuid),
+                'recurso': str(periodo_anterior.recurso.uuid),
+                'status_valores_reprogramados': 'VALORES_CORRETOS'
+            }]
         }
         response = jwt_authenticated_client_a.post(f'/api/associacoes/', data=json.dumps(payload),
                                                    content_type='application/json')
@@ -133,7 +150,13 @@ def test_api_post_associacao_deve_gerar_erro_cnpj_invalido(
             'bairro': 'Ferreira',
             'cep': '05524160',
             'nome_dre': 'DRE Existente 4'
-        }
+        },
+        "periodos_iniciais": [{
+            'uuid': '',
+            'periodo_inicial': str(periodo_anterior.uuid),
+            'recurso': str(periodo_anterior.recurso.uuid),
+            'status_valores_reprogramados': 'VALORES_CORRETOS'
+        }]
     }
     response = jwt_authenticated_client_a.post(f'/api/associacoes/', data=json.dumps(payload),
                                                content_type='application/json')

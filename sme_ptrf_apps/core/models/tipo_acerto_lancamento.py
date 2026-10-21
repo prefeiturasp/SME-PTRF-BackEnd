@@ -48,8 +48,15 @@ class TipoAcertoLancamento(ModeloIdNome):
 
     ativo = models.BooleanField('Ativo', default=True)
 
+    recurso = models.ForeignKey(
+        "core.Recurso",
+        verbose_name="Recurso",
+        on_delete=models.PROTECT,
+        null=False
+    )
+
     @classmethod
-    def agrupado_por_categoria(cls, aplicavel_despesas_periodos_anteriores=False, is_repasse=False):
+    def agrupado_por_categoria(cls, aplicavel_despesas_periodos_anteriores=False, is_repasse=False, recurso=None):
         from sme_ptrf_apps.core.services import TipoAcertoLancamentoService
 
         categorias_a_ignorar = None
@@ -70,12 +77,16 @@ class TipoAcertoLancamento(ModeloIdNome):
                 TipoAcertoLancamento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO
             ]
 
-        return TipoAcertoLancamentoService.agrupado_por_categoria(cls.CATEGORIA_CHOICES, categorias_a_ignorar)
+        return TipoAcertoLancamentoService.agrupado_por_categoria(cls.CATEGORIA_CHOICES, categorias_a_ignorar, recurso=recurso)
 
     @classmethod
     def categorias(cls):
         from sme_ptrf_apps.core.services import TipoAcertoLancamentoService
         return TipoAcertoLancamentoService.categorias(cls.CATEGORIA_CHOICES)
+
+    @classmethod
+    def filter_by_recurso(cls, queryset, recurso):
+        return queryset.filter(recurso=recurso)
 
     class Meta:
         verbose_name = "Tipo de acerto em lançamentos"

@@ -16,11 +16,18 @@ def test_deve_notificar_usuarios(prestacao_notifica_pc_devolvida_para_acertos, u
     assert Notificacao.objects.count() == 1
     notificacao = Notificacao.objects.first()
 
+    periodo = prestacao_notifica_pc_devolvida_para_acertos.periodo
+    recurso = periodo.recurso
+
     assert notificacao.tipo == Notificacao.TIPO_NOTIFICACAO_ALERTA
     assert notificacao.categoria == Notificacao.CATEGORIA_NOTIFICACAO_DEVOLUCAO_PC
     assert notificacao.remetente == Notificacao.REMETENTE_NOTIFICACAO_DRE
     assert notificacao.titulo == f"Ajustes necessários na PC | Prazo: {formata_data_dd_mm_yyyy(data_limite_ue)}"
-    assert notificacao.descricao == f"A DRE solicitou alguns ajustes em sua prestação de contas do período {prestacao_notifica_pc_devolvida_para_acertos.periodo.referencia}. O seu prazo para envio das mudanças é {formata_data_dd_mm_yyyy(data_limite_ue)}"
+    assert notificacao.descricao == (
+        f"A DRE solicitou alguns ajustes em sua prestação de contas do período {periodo.referencia}. "
+        f"O seu prazo para envio das mudanças é {formata_data_dd_mm_yyyy(data_limite_ue)}\n\n"
+        f"Recurso: {recurso.nome}\n"
+    )
     assert notificacao.usuario == usuario_notificavel
 
 

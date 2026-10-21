@@ -72,7 +72,7 @@ def prestacao_conta_02(periodo, associacao, motivo_aprovacao_ressalva_x, motivo_
 @pytest.fixture
 @freeze_time('2022-06-25 13:59:00')
 def arquivo_gerado_ata_apresentacao_pc():
-    return SimpleUploadedFile(f'arquivo.txt', bytes(f'CONTEUDO TESTE TESTE TESTE', encoding="utf-8"))
+    return SimpleUploadedFile('arquivo.txt', bytes('CONTEUDO TESTE TESTE TESTE', encoding="utf-8"))
 
 
 @pytest.fixture
@@ -90,6 +90,7 @@ def ata_teste_reabrir_pc_nao_apaga_ata(
         tipo_reuniao='ORDINARIA',
         convocacao='PRIMEIRA',
         status_geracao_pdf='CONCLUIDO',
+        pdf_gerado_previamente=True,
         data_reuniao=datetime.date(2020, 7, 1),
         local_reuniao='Escola Teste',
         presidente_reuniao='José',
@@ -118,6 +119,7 @@ def test_api_reabre_prestacao_conta_e_nao_apaga_ata(
     assert not ata.previa
     assert ata.arquivo_pdf == arquivo_gerado_ata_apresentacao_pc
     assert ata.status_geracao_pdf == 'CONCLUIDO'
+    assert ata.pdf_gerado_previamente
 
     url = f'/api/prestacoes-contas/{uuid_pc}/reabrir/'
 
@@ -129,6 +131,7 @@ def test_api_reabre_prestacao_conta_e_nao_apaga_ata(
     assert ata.previa
     assert not ata.arquivo_pdf
     assert ata.status_geracao_pdf == 'NAO_GERADO'
+    assert not ata.pdf_gerado_previamente
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
@@ -157,7 +160,11 @@ def test_api_nao_reabre_prestacao_conta_pc_posterior(jwt_authenticated_client_a,
         'uuid': f'{prestacao_conta_01.uuid}',
         'erro': 'prestacao_de_contas_posteriores',
         'operacao': 'reabrir',
-        'mensagem': 'Essa prestação de contas não pode ser devolvida, ou reaberta porque há prestação de contas dessa associação de um período posterior. Se necessário, reabra ou devolva primeiro a prestação de contas mais recente.'
+        'mensagem': (
+            'Essa prestação de contas não pode ser devolvida, ou reaberta porque há prestação '
+            'de contas dessa associação de um período posterior. Se necessário, reabra ou '
+            'devolva primeiro a prestação de contas mais recente.'
+        )
     }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST

@@ -3,6 +3,7 @@ import logging
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, status
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from waffle import get_waffle_flag_model
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class LoginView(TokenObtainPairView):
     """
-    POST auth/login/
+    POST api/login/
     """
 
     permission_classes = (permissions.AllowAny,)
@@ -47,7 +48,7 @@ class LoginView(TokenObtainPairView):
     #
     #                 if not user.is_active:
     #                     logger.info("Usuário %s inativo no Admin do sistema.", login)
-    #                     return Response({'detail': 'Você está sem autorização de acesso à aplicação no momento. Entre em contato com o administrador do Sig.Escola.'},
+    #                     return Response({'detail': 'Você está sem autorização de acesso à aplicação no momento. Entre em contato com o administrador do Sig.Escola.'},  # noqa
     #                                     status=status.HTTP_401_UNAUTHORIZED)
     #
     #                 request._full_data = {'username': user_dict['login'], 'password': senha}
@@ -111,7 +112,7 @@ class LoginView(TokenObtainPairView):
                             user.email = user_dict['email']
                             user.set_password(senha)
                             user.save()
-                        except User.DoesNotExist as e:
+                        except User.DoesNotExist:
                             logger.info("Usuário %s não encontrado.", login)
                             return Response({'data': {'detail': 'Usuário não encontrado.'}},
                                             status=status.HTTP_401_UNAUTHORIZED)
@@ -119,17 +120,20 @@ class LoginView(TokenObtainPairView):
                         if not user.is_active:
                             logger.info("Usuário %s inativo no Admin do sistema.", login)
                             return Response({
-                                'detail': 'Você está sem autorização de acesso à aplicação no momento. Entre em contato com o administrador do Sig.Escola.'},
+                                'detail': (
+                                    'Você está sem autorização de acesso à aplicação no momento. '
+                                    'Entre em contato com o administrador do Sig.Escola.')},
                                 status=status.HTTP_401_UNAUTHORIZED)
 
                         request._full_data = {'username': user_dict['login'], 'password': senha}
                         resp = super().post(request, *args, **kwargs)
 
                         gestao_usuario = GestaoUsuarioService(usuario=user)
-                        
+
                         if novo_suporte_unidades:
-                            login_service = LoginUsuarioService(usuario=user, gestao_usuario=gestao_usuario, suporte=suporte)
-                            
+                            login_service = LoginUsuarioService(
+                                usuario=user, gestao_usuario=gestao_usuario, suporte=suporte)
+
                             if suporte:
                                 user_dict['visoes'].remove('SME')
                         else:
@@ -139,7 +143,9 @@ class LoginView(TokenObtainPairView):
 
                         if not unidades:
                             return Response({
-                                'detail': 'Você não possui mais acesso ao sistema. Favor entrar em contato com sua escola ou com a DRE.'},
+                                'detail': (
+                                    'Você não possui mais acesso ao sistema. '
+                                    'Favor entrar em contato com sua escola ou com a DRE.')},
                                 status=status.HTTP_401_UNAUTHORIZED)
 
                         associacao = Associacao.objects.filter(unidade__uuid=unidades[0]['uuid']).first()
@@ -161,7 +167,7 @@ class LoginView(TokenObtainPairView):
                         user_dict['associacao'] = associacao_dict
                         user_dict['unidades'] = unidades
                         user_dict['feature_flags'] = feature_flags
-                        
+
                         if novo_suporte_unidades:
                             user_dict['permissoes'] = self.get_user_permissions(user, suporte)
                         else:
@@ -200,7 +206,7 @@ class LoginView(TokenObtainPairView):
                             user.email = user_dict['email']
                             user.set_password(senha)
                             user.save()
-                        except User.DoesNotExist as e:
+                        except User.DoesNotExist:
                             logger.info("Usuário %s não encontrado.", login)
                             return Response({'data': {'detail': 'Usuário não encontrado.'}},
                                             status=status.HTTP_401_UNAUTHORIZED)
@@ -208,12 +214,14 @@ class LoginView(TokenObtainPairView):
                         if not user.is_active:
                             logger.info("Usuário %s inativo no Admin do sistema.", login)
                             return Response({
-                                'detail': 'Você está sem autorização de acesso à aplicação no momento. Entre em contato com o administrador do Sig.Escola.'},
+                                'detail': (
+                                    'Você está sem autorização de acesso à aplicação no momento. '
+                                    'Entre em contato com o administrador do Sig.Escola.')},
                                 status=status.HTTP_401_UNAUTHORIZED)
 
                         request._full_data = {'username': user_dict['login'], 'password': senha}
                         resp = super().post(request, *args, **kwargs)
-                        
+
                         if novo_suporte_unidades:
                             unidades = get_unidades_do_usuario(user, suporte)
                         else:
@@ -241,7 +249,7 @@ class LoginView(TokenObtainPairView):
                         user_dict['associacao'] = associacao_dict
                         user_dict['unidades'] = unidades
                         user_dict['feature_flags'] = feature_flags
-                        
+
                         if novo_suporte_unidades:
                             user_dict['permissoes'] = self.get_user_permissions(user, suporte)
                         else:
@@ -255,15 +263,15 @@ class LoginView(TokenObtainPairView):
                 return Response(response.json(), response.status_code)
             except Exception as e:
                 return Response({'data': {'detail': f'ERROR - {e}'}}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-  
+
     def get_user_permissions(self, user, suporte=False):
         flags = get_waffle_flag_model()
-        
+
         novo_suporte_unidades = flags.objects.filter(name='novo-suporte-unidades', everyone=True).exists()
-        
+
         if novo_suporte_unidades:
             perms = []
-            
+
             if suporte:
                 groups_suporte = user.groups.filter(grupo__suporte=True)
                 for group in groups_suporte:
@@ -279,7 +287,7 @@ class LoginView(TokenObtainPairView):
             for group in user.groups.all():
                 for permission in group.permissions.all():
                     perms.append(permission.codename)
-                    
+
         return perms
 
     def get_feature_flags_ativas(self, user):
@@ -295,3 +303,26 @@ class LoginView(TokenObtainPairView):
             flag.name for flag in Flag.get_all()
             if flag.is_active(request_com_user)
         ]
+
+
+class MeView(APIView):
+    """
+    GET api/me/
+
+    retorna sempre {} (200 OK, só exige autenticação).
+
+    Classe disponível para obtenção de dados customizados.
+
+    Em desuso após a inviabilidade de atualizar unidades, permissões e features flags
+    devido ao acoplamento atual no fluxo de Login, em relação às integrações e verificações
+    de unidades do usuário. O fluxo do Service de Gestão de Usuário não é apenas de leitura,
+    mas esse fluxo aplica alterações nos relacionamento de usuários e unidades.
+    Devido a isso, se houver qualquer instabilidade em uma das integrações, pode refletir com falsos
+    negativos (considerando um exemplo em que ocorra alguma falha na requisição de unidades, e, falsamente retornaria
+    como Unidade inexistente no usuário), entre inúmeros outros pontos...
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        return Response({}, status=status.HTTP_200_OK)

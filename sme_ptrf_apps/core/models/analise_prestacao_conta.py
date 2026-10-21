@@ -29,7 +29,7 @@ class AnalisePrestacaoConta(ModeloBase):
         STATUS_DEVOLVIDA: 'Devolvida para acertos',
         STATUS_APROVADA: 'Aprovada',
         STATUS_APROVADA_RESSALVA: 'Aprovada com ressalvas',
-        STATUS_REPROVADA: 'Reprovada',
+        STATUS_REPROVADA: 'Rejeitada',
     }
 
     STATUS_CHOICES = (

@@ -81,6 +81,10 @@ class ProcessoAssociacaoCreateSerializer(serializers.ModelSerializer):
                         "periodos": f"O período {periodo.referencia} já está associado a outro ProcessoAssociacao para a associação {associacao}."
                     })
 
+        if not data.get('recurso'):
+            recurso = Recurso.objects.filter(legado=True).first()
+            data['recurso'] = recurso
+
         return data
 
     class Meta:

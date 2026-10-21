@@ -3,6 +3,8 @@ from django.db import transaction
 from waffle import get_waffle_flag_model
 from sme_ptrf_apps.paa.models import Paa
 from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
+from sme_ptrf_apps.paa.models.documento_paa import DocumentoPaa
+from sme_ptrf_apps.paa.models.ata_paa import AtaPaa
 
 
 class ValidacaoRetificacao(Exception):
@@ -150,6 +152,101 @@ class RetificacaoPaaService:
             }
         return result
 
+    def _snapshot_documento_original(self):
+        documento_original = self.paa.documentopaa_set.filter(
+            versao=DocumentoPaa.VersaoChoices.FINAL,
+            retificacao=False,
+        ).only('uuid').first()
+
+        return {
+            'uuid': str(documento_original.uuid) if documento_original else None,
+            'versao_documento': documento_original.versao_documento if documento_original else None,
+            'versao': documento_original.versao if documento_original else None,
+        }
+
+    def _snapshot_documento_retificado(self) -> dict:
+        """Gera o snapshot do documento final retificado mais recente.
+
+        Returns:
+            Dicionário com uuid e versao_documento do documento, ou None quando
+            não há documento retificado.
+        """
+        documento_retificado = (
+            self.paa.documentopaa_set.filter(
+                versao=DocumentoPaa.VersaoChoices.FINAL,
+                retificacao=True,
+            )
+            .order_by('-versao_documento')  # garantir a última versão
+            .only('uuid', 'versao_documento')
+            .first()
+        )
+
+        return {
+            'uuid': str(documento_retificado.uuid) if documento_retificado else None,
+            'versao_documento': documento_retificado.versao_documento if documento_retificado else None,
+            'versao': documento_retificado.versao if documento_retificado else None,
+        }
+
+    def _snapshot_ata_original(self):
+        ata_original = self.paa.atas_da_paa.filter(
+            tipo_ata=AtaPaa.ATA_APRESENTACAO,
+            previa=False,
+        ).only('uuid').first()
+
+        return {
+            'uuid': str(ata_original.uuid) if ata_original else None,
+            'tipo_ata': ata_original.tipo_ata if ata_original else None,
+            'tipo_reuniao': ata_original.tipo_reuniao if ata_original else None,
+            'convocacao': ata_original.convocacao if ata_original else None,
+            'data_reuniao': str(ata_original.data_reuniao) if ata_original else None,
+            'local_reuniao': ata_original.local_reuniao if ata_original else None,
+            'presidente_reuniao': ata_original.presidente_reuniao if ata_original else None,
+            'cargo_presidente_reuniao': ata_original.cargo_presidente_reuniao if ata_original else None,
+            'secretario_reuniao': ata_original.secretario_reuniao if ata_original else None,
+            'cargo_secretaria_reuniao': ata_original.cargo_secretaria_reuniao if ata_original else None,
+            'comentarios': ata_original.comentarios if ata_original else None,
+            'parecer_conselho': ata_original.parecer_conselho if ata_original else None,
+            'preenchida_em': str(ata_original.preenchida_em) if ata_original else None,
+            'hora_reuniao': str(ata_original.hora_reuniao) if ata_original else None,
+            'justificativa': ata_original.justificativa if ata_original else None,
+        }
+
+    def _snapshot_ata_retificada(self) -> dict:
+        """Gera o snapshot da ata de retificação mais recente.
+
+        Returns:
+            Dicionário com o uuid da ata, ou None quando não há ata de retificação concluída.
+        """
+        ata_retificada = (
+            self.paa.atas_da_paa
+            .filter(
+                tipo_ata=AtaPaa.ATA_RETIFICACAO,
+                previa=False,
+            )
+            .order_by('-pk')
+            .only('uuid')
+            .first()
+        )
+
+        return {
+            'uuid': str(ata_retificada.uuid) if ata_retificada else None,
+            'tipo_ata': ata_retificada.tipo_ata if ata_retificada else None,
+            'tipo_reuniao': ata_retificada.tipo_reuniao if ata_retificada else None,
+            'convocacao': ata_retificada.convocacao if ata_retificada else None,
+            'data_reuniao': str(ata_retificada.data_reuniao) if ata_retificada else None,
+            'local_reuniao': ata_retificada.local_reuniao if ata_retificada else None,
+            'presidente_reuniao': ata_retificada.presidente_reuniao if ata_retificada else None,
+            'cargo_presidente_reuniao': ata_retificada.cargo_presidente_reuniao if ata_retificada else None,
+            'secretario_reuniao': ata_retificada.secretario_reuniao if ata_retificada else None,
+            'cargo_secretaria_reuniao': ata_retificada.cargo_secretaria_reuniao if ata_retificada else None,
+            'comentarios': ata_retificada.comentarios if ata_retificada else None,
+            'parecer_conselho': ata_retificada.parecer_conselho if ata_retificada else None,
+            'preenchida_em': str(ata_retificada.preenchida_em) if ata_retificada else None,
+            'hora_reuniao': str(ata_retificada.hora_reuniao) if ata_retificada else None,
+            'justificativa': ata_retificada.justificativa if ata_retificada else None,
+            'justificativa_retificacao': ata_retificada.justificativa_retificacao if ata_retificada else None,
+        }
+
     def gerar_snapshot(self):
         self.logger.info(f'Gerando snapshot do PAA {self.paa.uuid}...')
         snapshot = {
@@ -164,6 +261,10 @@ class RetificacaoPaaService:
             'receitas_recurso_proprio': self._snapshot_receitas_recurso_proprio(),
             'receitas_outros_recursos': self._snapshot_receitas_outros_recursos(),
             'prioridades': self._snapshot_prioridades(),
+            'documento_original': self._snapshot_documento_original(),
+            'documento_retificado': self._snapshot_documento_retificado(),
+            'ata_original': self._snapshot_ata_original(),
+            'ata_retificada': self._snapshot_ata_retificada(),
         }
         self.logger.info('Snapshot gerado com sucesso.')
         return snapshot
@@ -183,16 +284,31 @@ class RetificacaoPaaService:
             self.logger.info(f'Réplica já existente retornada sem alteração (uuid={replica.uuid}).')
         return replica
 
+    def remove_atas_previas_retificacao(self):
+        from sme_ptrf_apps.paa.models import AtaPaa
+
+        AtaPaa.objects.filter(
+            paa=self.paa,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            previa=True,
+        ).delete()
+
     def criar_ata_retificacao(self, justificativa):
         if not justificativa:
             raise ValidacaoRetificacao('A justificativa para iniciar a retificação deve ser informada!')
         from sme_ptrf_apps.paa.models import AtaPaa
 
         self.logger.info(f'Criando Ata de Retificação para o PAA {self.paa.uuid}...')
+
+        # Situação encontrada quando há manipulação via admin e a ata não é removida, resultando na possibilidade
+        # de criar mais de uma ata de retificação.
+        self.remove_atas_previas_retificacao()
+
         ata = AtaPaa.objects.create(
             paa=self.paa,
             tipo_ata=AtaPaa.ATA_RETIFICACAO,
-            justificativa=justificativa,
+            previa=True,
+            justificativa_retificacao=justificativa,
         )
         self.logger.info(f'Ata de Retificação criada com sucesso (uuid={ata.uuid}).')
         return ata
@@ -280,11 +396,9 @@ class RetificacaoPaaService:
     def valida_pode_retificar(self):
         flags = get_waffle_flag_model()
         if not flags.objects.filter(name='paa-retificacao', everyone=True).exists():
-            self.logger.info('Flag paa-retificacao não habilitada.')
             raise ValidacaoRetificacao('Funcionalidade de retificação não está disponível.')
 
         if self.paa.get_status_andamento() != PaaStatusAndamentoEnum.GERADO.name:
-            self.logger.info(f'Status de andamento do PAA é {self.paa.get_status_andamento()}.')
             raise ValidacaoRetificacao('Apenas PAA`s gerados podem ser retificados.')
 
     @transaction.atomic

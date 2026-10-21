@@ -11,8 +11,10 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture
-def tipo_receita_estorno_motivos(tipo_conta):
-    return baker.make('TipoReceita', nome='Estorno', e_estorno=True, tipos_conta=[tipo_conta])
+def tipo_receita_estorno_motivos(tipo_receita_factory, tipo_conta):
+    tipo_rec = tipo_receita_factory.create(nome='Estorno', e_estorno=True)
+    tipo_rec.tipos_conta.set([tipo_conta])
+    return tipo_rec
 
 
 @pytest.fixture
@@ -234,7 +236,7 @@ def test_put_receita_com_motivos_estorno_e_outros_motivos_estorno(
 
     result = json.loads(response.content)
 
-    assert result['motivos_estorno'] == [motivo_estorno_01.id, motivo_estorno_02.id]
+    assert sorted(result['motivos_estorno']) == sorted([motivo_estorno_01.id, motivo_estorno_02.id])
     assert result['outros_motivos_estorno'] == "Outros motivos estorno"
 
 

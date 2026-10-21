@@ -25,8 +25,10 @@ def test_action_painel_acoes_de_uma_conta(
     rateio_fora_periodo_50_custeio,
     conta_associacao
 ):
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/?conta={conta_associacao.uuid}',
-                          content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/painel-acoes/?conta={conta_associacao.uuid}',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     esperado = {
@@ -110,6 +112,7 @@ def test_action_painel_acoes_de_uma_conta(
             'texto_status': 'Período finalizado. Documentos pendentes de geração.',
             'prestacao_de_contas_uuid': None,
             'requer_retificacao': False,
+            'possui_ata_retificacao': False,
             'tem_acertos_pendentes': False,
             'requer_acertos_em_extrato': False
         },
@@ -138,8 +141,10 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
     conta_associacao_cartao,
     rateio_no_periodo_1500_capital_outra_conta
 ):
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/?conta={conta_associacao.uuid}',
-                          content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/painel-acoes/?conta={conta_associacao.uuid}',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     esperado = {
@@ -223,6 +228,7 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
             'texto_status': 'Período finalizado. Documentos pendentes de geração.',
             'prestacao_de_contas_uuid': None,
             'requer_retificacao': False,
+            'possui_ata_retificacao': False,
             'tem_acertos_pendentes': False,
             'requer_acertos_em_extrato': False
         },
@@ -249,8 +255,10 @@ def test_action_painel_acoes_de_uma_conta_invalida(
     rateio_fora_periodo_50_custeio,
     conta_associacao
 ):
-    response = jwt_authenticated_client_a.get(f'/api/associacoes/{associacao.uuid}/painel-acoes/?conta=NAOEXISTE',
-                          content_type='application/json')
+    response = jwt_authenticated_client_a.get(
+        f'/api/associacoes/{associacao.uuid}/painel-acoes/?conta=NAOEXISTE',
+        content_type='application/json',
+    )
     result = json.loads(response.content)
 
     esperado = {'erro': 'UUID da conta inválido.'}

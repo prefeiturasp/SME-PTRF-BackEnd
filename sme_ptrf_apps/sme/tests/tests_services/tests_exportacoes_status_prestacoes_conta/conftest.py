@@ -96,6 +96,10 @@ def ambiente():
 def queryset_ordered(prestacao_conta_aprovada_com_ressalva, prestacao_conta_reprovada):
     return PrestacaoConta.objects.all().order_by('criado_em')
 
+@pytest.fixture
+def queryset_ordered_status_pc(prestacao_conta_aprovada_com_ressalva, prestacao_conta_reprovada):
+    return PrestacaoConta.objects.all().order_by('criado_em')
+
 
 @pytest.fixture
 def queryset_ordered_dre_sem_pcs(prestacao_conta_aprovada_com_ressalva, prestacao_conta_reprovada, dre_ipiranga):

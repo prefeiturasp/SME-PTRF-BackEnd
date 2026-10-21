@@ -62,7 +62,8 @@ from sme_ptrf_apps.paa.fixtures.factories import (
     ReceitaPrevistaPddeFactory, PrioridadePaaFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory,
     AtaPaaFactory, ParticipanteAtaPaaFactory, AtividadeEstatutariaPaaFactory,
     OutroRecursoFactory, DocumentoPaaFactory, OutroRecursoPeriodoFactory,
-    ReceitaPrevistaOutroRecursoPeriodoFactory, ModeloCargaPaaFactory, ReplicaPaaFactory
+    ReceitaPrevistaOutroRecursoPeriodoFactory, ModeloCargaPaaFactory, ReplicaPaaFactory,
+    LogReplicaPaaFactory
 )
 from sme_ptrf_apps.situacao_patrimonial.fixtures.factories import (
     BemProduzidoFactory,
@@ -70,6 +71,7 @@ from sme_ptrf_apps.situacao_patrimonial.fixtures.factories import (
     BemProduzidoRateioFactory,
     BemProduzidoItemFactory
 )
+from sme_ptrf_apps.dre.fixtures.factories import ComissaoFactory
 
 factories_to_register = [
     DreFactory, UnidadeFactory, AssociacaoFactory, AssociacaoFactoryComPeriodoInicial, ContaAssociacaoFactory,
@@ -96,7 +98,7 @@ factories_to_register = [
     PDFFactory, ObjetivoPaaFactory, AtividadeEstatutariaFactory, AtaPaaFactory, ParticipanteAtaPaaFactory,
     AtividadeEstatutariaPaaFactory, OutroRecursoFactory, DocumentoPaaFactory, OutroRecursoPeriodoFactory,
     ReceitaPrevistaOutroRecursoPeriodoFactory, RecursoFactory, PeriodoInicialAssociacaoFactory,
-    ModeloCargaPaaFactory, ReplicaPaaFactory,
+    ModeloCargaPaaFactory, ReplicaPaaFactory, ComissaoFactory, LogReplicaPaaFactory
 ]
 
 for factory in factories_to_register:
@@ -113,6 +115,9 @@ def _garantir_recurso_legado(db):
             "nome": "Programa de Transferência de Recursos Financeiros - PTRF",
             "nome_exibicao": "PTRF",
             "cor": "#01585E",
+            "permite_saldo_conta_negativo": False,
+            "permite_saldo_acoes_negativo": True,
+            "habilita_exibicao_de_lauda": True,
         },
     )
 
@@ -235,7 +240,6 @@ def acao_ptrf(acao):
 def acao_de_destaque(acao_factory):
     return acao_factory(
         nome="ZZZZZ",
-        posicao_nas_pesquisas="AAAAAAAAAA",
     )
 
 
@@ -397,6 +401,28 @@ def unidade(dre):
 
 
 @pytest.fixture
+def periodo_inicial_associacao_a():
+    return PeriodoFactory()
+
+
+@pytest.fixture
+def associacao_unidade_a(unidade, periodo_inicial_associacao_a):
+    associacao = AssociacaoFactory(
+        nome='Associacao 271170',
+        cnpj='62.738.735/0001-74',
+        unidade=unidade,
+        periodo_inicial=periodo_inicial_associacao_a
+    )
+
+    PeriodoInicialAssociacaoFactory(
+        periodo_inicial=periodo_inicial_associacao_a,
+        associacao=associacao,
+    )
+
+    return associacao
+
+
+@pytest.fixture
 def outra_unidade(dre):
     return baker.make(
         'Unidade',
@@ -446,15 +472,33 @@ def associacao_com_data_de_encerramento(unidade, periodo_anterior):
 
 @pytest.fixture
 def associacao(unidade, periodo_anterior):
-    return baker.make(
-        'Associacao',
+    associacao = AssociacaoFactory(
         nome='Escola Teste',
         cnpj='52.302.275/0001-83',
         unidade=unidade,
         periodo_inicial=periodo_anterior,
         ccm='0.000.00-0',
         email="ollyverottoboni@gmail.com",
-        processo_regularidade='123456'
+        processo_regularidade='123456',
+    )
+
+    PeriodoInicialAssociacaoFactory(
+        periodo_inicial=periodo_anterior,
+        associacao=associacao,
+    )
+
+    return associacao
+
+
+@pytest.fixture
+def associacao_d(unidade):
+    return AssociacaoFactory(
+        nome='Escola Teste',
+        cnpj='52.302.275/0001-83',
+        unidade=unidade,
+        ccm='0.000.00-0',
+        email="ollyverottoboni@gmail.com",
+        processo_regularidade='123456',
     )
 
 
@@ -984,7 +1028,8 @@ def motivo_aprovacao_ressalva_x():
 def motivo_reprovacao_x():
     return baker.make(
         'dre.MotivoReprovacao',
-        motivo='X'
+        motivo='X',
+        recurso=Recurso.objects.get(legado=True)
     )
 
 
@@ -992,7 +1037,8 @@ def motivo_reprovacao_x():
 def motivo_reprovacao_y():
     return baker.make(
         'dre.MotivoReprovacao',
-        motivo='Y'
+        motivo='Y',
+        recurso=Recurso.objects.get(legado=True)
     )
 
 
@@ -1470,13 +1516,13 @@ def fechamento_periodo(periodo, associacao, conta_associacao, acao_associacao, f
 
 
 @pytest.fixture
-def tipo_receita():
-    return baker.make('TipoReceita', nome='Estorno')
+def tipo_receita(tipo_receita_factory):
+    return tipo_receita_factory.create(nome='Estorno')
 
 
 @pytest.fixture
-def tipo_receita_repasse():
-    return baker.make('TipoReceita', nome='Repasse', e_repasse=True)
+def tipo_receita_repasse(tipo_receita_factory):
+    return tipo_receita_factory.create(nome='Repasse', e_repasse=True)
 
 
 @pytest.fixture
@@ -1943,7 +1989,6 @@ def rateio_fora_periodo_50_custeio(associacao, despesa_fora_periodo, conta_assoc
 def parametros():
     return baker.make(
         'Parametros',
-        permite_saldo_conta_negativo=True,
         fique_de_olho='',
         fique_de_olho_relatorio_dre='',
         tempo_aguardar_conclusao_pc=1,
@@ -1976,7 +2021,6 @@ def parametro_fique_de_olho_pc_texto_abc():
 def parametros_aceita_saldo_negativo_em_conta():
     return baker.make(
         'Parametros',
-        permite_saldo_conta_negativo=True
     )
 
 
@@ -1984,7 +2028,6 @@ def parametros_aceita_saldo_negativo_em_conta():
 def parametros_nao_aceita_saldo_negativo_em_conta():
     return baker.make(
         'Parametros',
-        permite_saldo_conta_negativo=False
     )
 
 
@@ -2246,20 +2289,22 @@ def observacao(acao_associacao, prestacao_conta):
 
 
 @pytest.fixture
-def tag():
+def tag(recurso_legado):
     return baker.make(
         'Tag',
         nome="COVID-19",
-        status=StatusTag.INATIVO.name
+        status=StatusTag.INATIVO.name,
+        recurso=recurso_legado
     )
 
 
 @pytest.fixture
-def tag_ativa():
+def tag_ativa(recurso_legado):
     return baker.make(
         'Tag',
         nome="COVID-19",
-        status=StatusTag.ATIVO.name
+        status=StatusTag.ATIVO.name,
+        recurso=recurso_legado
     )
 
 
@@ -3183,3 +3228,33 @@ def receita_prevista_paa(acao_associacao, paa):
         previsao_valor_capital=2000.0,
         previsao_valor_livre=3000.0
     )
+
+
+@pytest.fixture
+def recurso_esperado():
+    def _recurso_esperado(recurso):
+        return {
+            "id": recurso.id,
+            "uuid": f"{recurso.uuid}",
+            "nome": recurso.nome,
+            "nome_exibicao": recurso.nome_exibicao,
+            "criado_em": recurso.criado_em.isoformat() if recurso.criado_em else None,
+            "alterado_em": recurso.alterado_em.isoformat() if recurso.alterado_em else None,
+            "cor": recurso.cor,
+            "icone": recurso.icone if recurso.icone else None,
+            "ativo": recurso.ativo,
+            "legado": recurso.legado,
+            "exibe_valores_reprogramados": recurso.exibe_valores_reprogramados,
+            "habilita_aprovacao_com_ressalvas": recurso.habilita_aprovacao_com_ressalvas,
+            "habilita_exibicao_de_lauda": recurso.habilita_exibicao_de_lauda,
+            "textos_ata": {
+                "introducao": recurso.texto_ata_introducao,
+                "letra_a": recurso.get_fixed_text_texto_letra("A"),
+                "letra_b": recurso.get_fixed_text_texto_letra("B"),
+                "letra_c": recurso.get_fixed_text_texto_letra("C"),
+                "letra_d": recurso.get_fixed_text_texto_letra("D"),
+            },
+            "existe_saldo_reprogramado": recurso.existe_saldo_reprogramado
+        }
+
+    return _recurso_esperado

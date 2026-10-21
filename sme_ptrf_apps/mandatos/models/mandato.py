@@ -19,7 +19,6 @@ class Mandato(ModeloBase):
     def __str__(self):
         return self.referencia_mandato
 
-
     def clean(self):
         super().clean()
 
@@ -90,6 +89,128 @@ class Mandato(ModeloBase):
             for cargo_composicao in composicao.cargos_da_composicao_da_composicao.all():
                 cargo_composicao.data_fim_no_cargo = nova_data
                 cargo_composicao.save()
+
+    def att_data_inicio_composicao_vacancia(self, data_inicial_antiga: date, nova_data: date) -> None:
+        """Propaga a nova data inicial do mandato aos registros da v2 (Histórico de Membros v2).
+
+        Equivalente a att_data_inicio_composicoes_e_cargos_composicoes, mas não reflete nos
+        dados do Histórico de Membros (flag) antigo. Como a v2 guarda vigentes e encerrados
+        na mesma composição, o filtro é por igualdade exata à data antiga, nunca "empurra
+        tudo que for anterior à nova data". Só deve ser chamado após
+        possui_cargo_vacancia_incompativel_com_nova_data_inicial confirmar que não há conflito.
+
+        Args:
+            data_inicial_antiga: valor de data_inicial do mandato antes da edição.
+            nova_data: novo valor de data_inicial do mandato.
+        """
+        from .cargo_composicao_vacancia import CargoComposicaoVacancia
+
+        # Atualiza data inicio no cargo do CargoComposicao
+        CargoComposicaoVacancia.objects.filter(
+            composicao__mandato=self,
+            data_inicio_no_cargo=data_inicial_antiga,
+        ).update(data_inicio_no_cargo=nova_data)
+
+    def att_data_fim_composicao_vacancia(self, data_final_antiga: date, nova_data: date) -> None:
+        """Propaga a nova data final do mandato aos registros da v2 (Histórico de Membros v2).
+
+        Equivalente a att_data_fim_composicoes_e_cargos_composicoes. Atualiza data_fim_no_cargo
+        só de quem hoje acompanha o "vigente" (data_fim_no_cargo == data_final antiga do
+        mandato), ocupados e vagos. Registros encerrados no meio do mandato mantêm a data
+        histórica intacta. Só deve ser chamado após
+        possui_cargo_vacancia_incompativel_com_nova_data_final confirmar que não há conflito.
+
+        Args:
+            data_final_antiga: valor de data_final do mandato antes da edição.
+            nova_data: novo valor de data_final do mandato.
+        """
+        # Atualiza data fim no cargo do CargoComposicao
+        from .cargo_composicao_vacancia import CargoComposicaoVacancia
+        CargoComposicaoVacancia.objects.filter(
+            composicao__mandato=self,
+            data_fim_no_cargo=data_final_antiga,
+        ).update(data_fim_no_cargo=nova_data)
+
+    def possui_cargo_vacancia_incompativel_com_nova_data_inicial(self, nova_data_inicial: date) -> bool:
+        """Indica se adiar o início do mandato deixaria algum registro da v2 inválido.
+
+        Incompatível quando, com nova_data_inicial:
+        - um registro (ocupado ou vago) começaria antes da nova data inicial;
+        - um registro encerrado cuja saída já aconteceu antes da nova data inicial
+          (deixaria início > fim).
+
+        Args:
+            nova_data_inicial: novo valor de data_inicial proposto para o mandato.
+
+        Returns:
+            True se a edição deixaria algum registro da v2 com intervalo inválido.
+        """
+        from .cargo_composicao_vacancia import CargoComposicaoVacancia
+
+        comeca_antes_do_novo_inicio = CargoComposicaoVacancia.objects.filter(
+            composicao__mandato=self,
+            data_inicio_no_cargo__lt=nova_data_inicial,
+        ).exclude(data_inicio_no_cargo=self.data_inicial)
+
+        termina_antes_do_novo_inicio = CargoComposicaoVacancia.objects.filter(
+            composicao__mandato=self,
+            data_fim_no_cargo__lte=nova_data_inicial,
+        )
+
+        return comeca_antes_do_novo_inicio.exists() or termina_antes_do_novo_inicio.exists()
+
+    def possui_cargo_vacancia_incompativel_com_nova_data_final(self, nova_data_final: date) -> bool:
+        """Indica se encolher o mandato deixaria algum registro da v2 inválido.
+
+        Incompatível quando, com nova_data_final:
+        - um registro encerrado teria a saída depois da nova data final;
+        - qualquer registro (mesmo vigente) teve a entrada depois da nova data final.
+
+        Args:
+            nova_data_final: data final proposta para o mandato.
+
+        Returns:
+            True se a edição deixaria algum registro com intervalo inválido.
+        """
+        from .cargo_composicao_vacancia import CargoComposicaoVacancia
+
+        termina_depois_do_novo_fim = CargoComposicaoVacancia.objects.filter(
+            composicao__mandato=self,
+            data_fim_no_cargo__gt=nova_data_final,
+        ).exclude(data_fim_no_cargo=self.data_final)
+
+        # não permitir nova data final igual a data inicial do cargo, considerando o D-1 para a saída de um membro
+        # é necessário estar no cargo pelo menos 1 dia
+        comeca_depois_do_novo_fim = CargoComposicaoVacancia.objects.filter(
+            composicao__mandato=self,
+            data_inicio_no_cargo__gte=nova_data_final,
+        )
+
+        return termina_depois_do_novo_fim.exists() or comeca_depois_do_novo_fim.exists()
+
+    def eh_mandato_vacancia_vigente(self) -> bool:
+        """Retorna True se o mandato é o vigente, False caso contrário."""
+        from ..services import ServicoMandatoVigenteVacancia
+        servico_mandato_vigente = ServicoMandatoVigenteVacancia()
+        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+        return self == mandato_vigente
+
+    def eh_mandato_vacancia_futuro(self) -> bool:
+        """Retorna True se o mandato é futuro, False caso contrário."""
+        from ..services import ServicoMandatoVigenteVacancia
+        servico_mandato_vigente = ServicoMandatoVigenteVacancia()
+        mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
+
+        if mandato_vigente:
+            return self.data_inicial > mandato_vigente.data_final
+        else:
+            data_atual = date.today()
+            return self.data_inicial > data_atual
+
+    def possui_composicao_vacancia(self) -> bool:
+        """Retorna True se o mandato possui composição de vacância, False caso contrário."""
+        return self.composicoes_vacancia_do_mandato.exists()
 
 
 auditlog.register(Mandato)

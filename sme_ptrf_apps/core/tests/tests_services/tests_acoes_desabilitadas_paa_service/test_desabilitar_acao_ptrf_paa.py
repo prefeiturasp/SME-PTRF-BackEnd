@@ -51,9 +51,7 @@ def receita_prevista_paa_vinculada(receita_prevista_paa_factory, paa_em_elaborac
     )
 
 
-# ---------------------------------------------------------------------------
 # Testes — ação habilitada (exibir_paa=True)
-# ---------------------------------------------------------------------------
 
 def test_retorna_acao_quando_exibir_paa_true(acao_habilitada):
     resultado = desabilitar_acao_ptrf_paa(acao_habilitada)
@@ -91,9 +89,7 @@ def test_nao_exclui_receitas_quando_acao_habilitada(
     assert ReceitaPrevistaPaa.objects.filter(pk=receita.pk).exists()
 
 
-# ---------------------------------------------------------------------------
 # Testes — ação desabilitada (exibir_paa=False)
-# ---------------------------------------------------------------------------
 
 def test_retorna_acao_quando_exibir_paa_false(acao_desabilitada):
     resultado = desabilitar_acao_ptrf_paa(acao_desabilitada)

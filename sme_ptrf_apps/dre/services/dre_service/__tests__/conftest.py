@@ -2,6 +2,8 @@ import pytest
 from model_bakery import baker
 from django.contrib.auth import get_user_model
 
+from sme_ptrf_apps.dre.fixtures.factories import ComissaoFactory
+
 User = get_user_model()
 
 
@@ -28,8 +30,8 @@ def outra_dre():
 
 
 @pytest.fixture
-def comissao_contas():
-    return baker.make('Comissao', nome='Exame de Contas')
+def comissao_contas(recurso_legado):
+    return ComissaoFactory(nome="Exame de Contas", responsavel_analise_pc=True, recursos=[recurso_legado])
 
 
 @pytest.fixture

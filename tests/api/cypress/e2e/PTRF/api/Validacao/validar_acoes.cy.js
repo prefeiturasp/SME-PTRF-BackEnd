@@ -36,7 +36,6 @@ describe('Validar rotas de acoes da aplicação SigEscola', () => {
           expect(response.body.e_recursos_proprios).to.exist
           expect(response.body.id).to.exist
           expect(response.body.nome).to.exist
-          expect(response.body.posicao_nas_pesquisas).to.exist
           expect(response.body.uuid).to.eq(id)
         })
       })
@@ -58,7 +57,6 @@ describe('Validar rotas de acoes da aplicação SigEscola', () => {
       var body = {
         nome: "",
         e_recursos_proprios: true,
-        posicao_nas_pesquisas: "teste",
         aceita_capital: true,
         aceita_custeio: true,
         aceita_livre: true
@@ -70,28 +68,10 @@ describe('Validar rotas de acoes da aplicação SigEscola', () => {
       })
     })
 
-    it('Validar post no endpoint api/acoes com campo posicao_nas_pesquisas com mais de 10 posições', () => {
-      var body = {
-        nome: "teste automatizado",
-        e_recursos_proprios: true,
-        posicao_nas_pesquisas: "testetestee",
-        aceita_capital: true,
-        aceita_custeio: true,
-        aceita_livre: true
-      }
-
-      cy.cadastrar_acoes(body).then((response) => {
-        expect(response.status).to.eq(400)
-        expect(response.body.posicao_nas_pesquisas[0])
-          .to.eq('Ensure this field has no more than 10 characters.')
-      })
-    })
-
     it('Validar post no endpoint api/acoes com campos booleanos em branco', () => {
       var body = {
         nome: "teste automatizado",
         e_recursos_proprios: '',
-        posicao_nas_pesquisas: "teste",
         aceita_capital: '',
         aceita_custeio: '',
         aceita_livre: ''

@@ -2,9 +2,10 @@ from rest_framework import mixins, status, serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import GenericViewSet
 from ..serializers.tipo_acerto_lancamento_serializer import TipoAcertoLancamentoSerializer
-from ...models import TipoAcertoLancamento
+from ...models import TipoAcertoLancamento, Recurso
 from sme_ptrf_apps.users.permissoes import PermissaoApiDre
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
 from drf_spectacular.utils import (
     extend_schema,
@@ -78,6 +79,13 @@ class TiposAcertoLancamentoViewSet(mixins.ListModelMixin,
         if ativo is not None:
             qs = qs.filter(ativo=ativo)
 
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+        if recurso_uuid is not None:
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
+            if recurso is None:
+                raise ValidationError({'detail': 'Recurso não encontrado.'})
+            qs = TipoAcertoLancamento.filter_by_recurso(qs, recurso)
+
         return qs.order_by('id')
 
     def destroy(self, request, *args, **kwargs):
@@ -101,11 +109,19 @@ class TiposAcertoLancamentoViewSet(mixins.ListModelMixin,
     def tabelas(self, request):
         aplicavel_despesas_periodos_anteriores = request.query_params.get('aplicavel_despesas_periodos_anteriores')
         is_repasse = request.query_params.get('is_repasse')
+        recurso_uuid = request.query_params.get('recurso_uuid')
+        recurso = None
+
+        if recurso_uuid is not None:
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first()
+            if recurso is None:
+                raise ValidationError({'detail': 'Recurso não encontrado.'})
+
 
         result = {
             "categorias": TipoAcertoLancamento.categorias(),
             "agrupado_por_categorias": TipoAcertoLancamento.agrupado_por_categoria(
-                aplicavel_despesas_periodos_anteriores, is_repasse)
+                aplicavel_despesas_periodos_anteriores, is_repasse, recurso=recurso)
         }
 
         return Response(result, status=status.HTTP_200_OK)

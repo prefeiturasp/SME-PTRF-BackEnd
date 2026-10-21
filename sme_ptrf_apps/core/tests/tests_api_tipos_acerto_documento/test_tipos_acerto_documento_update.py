@@ -29,11 +29,13 @@ def test_update_tipo_acerto_documento(
 def test_update_tipo_acerto_documento_nome_igual(
     jwt_authenticated_client_a,
     tipo_acerto_documento_01,
-    tipo_acerto_documento_create
+    tipo_acerto_documento_create,
+    recurso_legado
 ):
     payload_novo_tipo_acerto = {
         "nome": "Teste nome igual",
-        "categoria": TipoAcertoDocumento.CATEGORIA_SOLICITACAO_ESCLARECIMENTO
+        "categoria": TipoAcertoDocumento.CATEGORIA_AJUSTES_EXTERNOS,
+        "recurso": f"{recurso_legado.uuid}",
     }
 
     response = jwt_authenticated_client_a.patch(
@@ -43,7 +45,7 @@ def test_update_tipo_acerto_documento_nome_igual(
 
     result = json.loads(response.content)
     resultado_esperado = {
-        'detail': 'Já existe um tipo de acerto de documento com esse nome.'
+        'non_field_errors': 'Já existe um tipo de acerto de documento com esse nome e categoria para esse recurso.'
     }
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST

@@ -98,6 +98,7 @@ def test_get_periodos_ate_agora_fora_implantacao_da_associacao(
     periodo_2019_2,
     periodo_2020_1,
     periodo_2020_2,
+    recurso_esperado
 ):
     response = jwt_authenticated_client_a.get(
         f'/api/associacoes/{associacao_teste.uuid}/periodos-ate-agora-fora-implantacao/',
@@ -107,23 +108,26 @@ def test_get_periodos_ate_agora_fora_implantacao_da_associacao(
 
     esperados = [
         {
+            'id': periodo_2020_1.id,
+            'uuid': f'{periodo_2020_1.uuid}',
             'data_fim_realizacao_despesas': f'{periodo_2020_1.data_fim_realizacao_despesas}',
             'data_inicio_realizacao_despesas': f'{periodo_2020_1.data_inicio_realizacao_despesas}',
             'referencia': '2020.1',
             'referencia_por_extenso': periodo_2020_1.referencia_por_extenso,
-            'uuid': f'{periodo_2020_1.uuid}'
+            "recurso": recurso_esperado(periodo_2020_1.recurso),
         },
         {
+            'id': periodo_2019_2.id,
+            'uuid': f'{periodo_2019_2.uuid}',
             'data_fim_realizacao_despesas': f'{periodo_2019_2.data_fim_realizacao_despesas}',
             'data_inicio_realizacao_despesas': f'{periodo_2019_2.data_inicio_realizacao_despesas}',
             'referencia': '2019.2',
             'referencia_por_extenso': periodo_2019_2.referencia_por_extenso,
-            'uuid': f'{periodo_2019_2.uuid}'
+            "recurso": recurso_esperado(periodo_2019_2.recurso),
         },
     ]
 
     assert response.status_code == status.HTTP_200_OK
-
     assert result == esperados
 
 
@@ -137,6 +141,7 @@ def test_get_periodos_ate_encerramento_da_associacao_e_fora_implantacao_da_assoc
     periodo_2019_2,
     periodo_2020_1,
     periodo_2020_2,
+    recurso_esperado,
 ):
     response = jwt_authenticated_client_a.get(
         f'/api/associacoes/{associacao_encerrada_teste.uuid}/periodos-ate-agora-fora-implantacao/',
@@ -146,11 +151,13 @@ def test_get_periodos_ate_encerramento_da_associacao_e_fora_implantacao_da_assoc
 
     esperados = [
         {
+            'id': periodo_2019_2.id,
+            'uuid': f'{periodo_2019_2.uuid}',
             'data_fim_realizacao_despesas': f'{periodo_2019_2.data_fim_realizacao_despesas}',
             'data_inicio_realizacao_despesas': f'{periodo_2019_2.data_inicio_realizacao_despesas}',
             'referencia': '2019.2',
             'referencia_por_extenso': periodo_2019_2.referencia_por_extenso,
-            'uuid': f'{periodo_2019_2.uuid}'
+            "recurso": recurso_esperado(periodo_2019_2.recurso),
         },
     ]
 

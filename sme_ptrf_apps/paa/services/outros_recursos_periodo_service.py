@@ -1,13 +1,20 @@
 import logging
 from django.db import models
 from sme_ptrf_apps.paa.models import OutroRecursoPeriodoPaa, Paa, ReceitaPrevistaOutroRecursoPeriodo
-from sme_ptrf_apps.paa.enums import PaaStatusEnum, PaaStatusAndamentoEnum
+from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
 
 logger = logging.getLogger(__name__)
 
 
 class OutroRecursoPeriodoBaseService:
-    def __init__(self, outro_recurso_periodo: OutroRecursoPeriodoPaa):
+    """Fornece operações compartilhadas para recursos de um período do PAA."""
+
+    def __init__(self, outro_recurso_periodo: OutroRecursoPeriodoPaa) -> None:
+        """Inicializa o service com a instância do recurso de período.
+
+        Args:
+            outro_recurso_periodo: Recurso de período usado nas operações.
+        """
         self.outro_recurso_periodo = outro_recurso_periodo
 
     def _tinha_todas_unidades(self) -> bool:
@@ -34,18 +41,33 @@ class OutroRecursoPeriodoBaseService:
         return paas
 
     def _paas_afetados_em_elaboracao(self) -> models.QuerySet:
+        """Retorna os PAAs afetados com status em elaboração.
+
+        Returns:
+            QuerySet dos PAAs em elaboração.
+        """
         return self._obtem_paas_afetados().paas_em_elaboracao()
 
     def _paas_afetados_gerado_retificado(self) -> models.QuerySet:
+        """Retorna os PAAs afetados com status gerado ou gerado parcialmente.
+
+        Returns:
+            QuerySet dos PAAs com status de geração ou retificação.
+        """
         paas_andamento_gerados = self._obtem_paas_afetados().filter(
             pk=models.OuterRef('id')).paas_gerados()
 
         paas_andamento_gerados_parcialmente = self._obtem_paas_afetados().filter(
             pk=models.OuterRef('id')).paas_gerados_parcialmente()
 
+        paas_em_retificacao = self._obtem_paas_afetados().filter(
+            pk=models.OuterRef('id')).paas_em_retificacao()
+
         return self._obtem_paas_afetados().filter(
             # É gerado quando o status andamento é Gerado ou Gerado parcialmente(inclui Retificado)
-            models.Exists(paas_andamento_gerados) | models.Exists(paas_andamento_gerados_parcialmente),
+            models.Exists(paas_andamento_gerados) |
+            models.Exists(paas_andamento_gerados_parcialmente) |
+            models.Exists(paas_em_retificacao),
         )
 
     def _paa_em_elaboracao(self, paa: Paa) -> bool:
@@ -72,7 +94,8 @@ class OutroRecursoPeriodoBaseService:
         """
         return paa.get_status_andamento() in [
             PaaStatusAndamentoEnum.GERADO.name,
-            PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name  # contempla status paa Em Retificação
+            PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name,
+            PaaStatusAndamentoEnum.EM_RETIFICACAO.name
         ]
 
     def _paa_retificado(self, paa: Paa) -> bool:
@@ -85,7 +108,7 @@ class OutroRecursoPeriodoBaseService:
         Returns:
             True se estiver em retificação
         """
-        em_retificacao = paa.status == PaaStatusEnum.EM_RETIFICACAO.name
+        em_retificacao = paa.status_em_retificacao
         return em_retificacao
 
     def _paa_gerado(self, paa: Paa) -> bool:
@@ -101,6 +124,14 @@ class OutroRecursoPeriodoBaseService:
         return paa.get_status_andamento() == PaaStatusAndamentoEnum.GERADO.name
 
     def _receitas_previstas_outro_recurso_periodo_afetadas(self, paa: Paa) -> models.QuerySet:
+        """Retorna as receitas previstas do PAA vinculadas ao recurso de período.
+
+        Args:
+            paa: PAA usado para filtrar as receitas.
+
+        Returns:
+            QuerySet das receitas previstas encontradas.
+        """
         logger.info(
             f"Buscando receitas previstas de outros recursos para PAA {paa.id} - {str(paa)} "
             f"e outro recurso período {self.outro_recurso_periodo.id} - {str(self.outro_recurso_periodo)}")
@@ -137,6 +168,14 @@ class OutroRecursoPeriodoBaseService:
             raise Exception(msg_erro)
 
     def _prioridades_afetadas(self, paa: Paa) -> models.QuerySet:
+        """Retorna as prioridades do PAA vinculadas ao recurso de período.
+
+        Args:
+            paa: PAA usado para filtrar as prioridades.
+
+        Returns:
+            QuerySet das prioridades encontradas.
+        """
         logger.info(
             f"Buscando prioridades de outros recursos para PAA {paa.id} - {str(paa)} "
             f"e outro recurso período {self.outro_recurso_periodo.id} - {str(self.outro_recurso_periodo)}")
@@ -162,4 +201,9 @@ class OutroRecursoPeriodoBaseService:
         return count
 
     def _outro_recurso_periodo_ativo(self) -> bool:
+        """Verifica se o recurso de período está ativo.
+
+        Returns:
+            True se o recurso estiver ativo; caso contrário, False.
+        """
         return self.outro_recurso_periodo.ativo

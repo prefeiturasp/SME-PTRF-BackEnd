@@ -46,19 +46,34 @@ class TipoAcertoDocumento(ModeloIdNome):
 
     ativo = models.BooleanField('Ativo', default=True)
 
+    recurso = models.ForeignKey(
+        "core.Recurso",
+        verbose_name="Recurso",
+        on_delete=models.PROTECT,
+        null=False
+    )
+
     def adiciona_tipos_documentos_prestacao(self, tipos_documentos_prestacao):
         self.tipos_documento_prestacao.set(tipos_documentos_prestacao)
         self.save()
 
     @classmethod
-    def agrupado_por_categoria(cls, tipos_documento_prestacao__uuid=None):
+    def agrupado_por_categoria(cls, tipos_documento_prestacao__uuid=None, recurso=None):
         from sme_ptrf_apps.core.services import TipoAcertoDocumentoService
-        return TipoAcertoDocumentoService.agrupado_por_categoria(cls.CATEGORIA_CHOICES, tipos_documento_prestacao__uuid)
+        return TipoAcertoDocumentoService.agrupado_por_categoria(
+            cls.CATEGORIA_CHOICES,
+            tipos_documento_prestacao__uuid,
+            recurso
+        )
 
     @classmethod
     def categorias(cls):
         from sme_ptrf_apps.core.services import TipoAcertoDocumentoService
         return TipoAcertoDocumentoService.categorias(cls.CATEGORIA_CHOICES)
+
+    @staticmethod
+    def filter_by_recurso(queryset, recurso):
+        return queryset.filter(recurso=recurso)
 
     class Meta:
         verbose_name = "Tipo de acerto em documentos"

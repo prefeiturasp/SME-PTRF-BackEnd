@@ -1,3 +1,9 @@
+from unittest.mock import MagicMock
+from django.test import RequestFactory
+from django.contrib.admin.sites import AdminSite
+
+from sme_ptrf_apps.receitas.admin import RecursoFilter
+from sme_ptrf_apps.receitas.models.receita import Receita
 from ...admin_filters import (
     ReceitaFilter,
 )
@@ -65,3 +71,63 @@ def test_receita_admin_raw_id_fields(receita_admin):
         'saida_do_recurso',
         'rateio_estornado',
     )
+
+
+def test_receita_admin_ordering(receita_admin):
+    assert receita_admin.ordering == ('-data',)
+
+
+def test_receita_admin_actions(receita_admin):
+    assert 'conciliar_receita' in receita_admin.actions
+    assert 'desconciliar_receita' in receita_admin.actions
+
+
+def test_conciliar_receita_action(receita_admin, receita_2020_1_role_repasse_capital_nao_conferida):
+    request = MagicMock()
+    queryset = Receita.objects.filter(pk=receita_2020_1_role_repasse_capital_nao_conferida.pk)
+    receita_admin.conciliar_receita(request, queryset)
+    receita_2020_1_role_repasse_capital_nao_conferida.refresh_from_db()
+    assert receita_2020_1_role_repasse_capital_nao_conferida.conferido is True
+
+
+def test_desconciliar_receita_action(receita_admin, receita_2020_1_role_repasse_capital_conferida):
+    request = MagicMock()
+    queryset = Receita.objects.filter(pk=receita_2020_1_role_repasse_capital_conferida.pk)
+    receita_admin.desconciliar_receita(request, queryset)
+    receita_2020_1_role_repasse_capital_conferida.refresh_from_db()
+    assert receita_2020_1_role_repasse_capital_conferida.conferido is False
+
+
+def _make_recurso_filter(value=None):
+    request = RequestFactory().get('/admin/')
+    params = {'recurso': str(value)} if value is not None else {}
+    return RecursoFilter(request, params, Receita, AdminSite())
+
+
+def test_recurso_filter_title():
+    assert RecursoFilter.title == 'Recurso'
+
+
+def test_recurso_filter_parameter_name():
+    assert RecursoFilter.parameter_name == 'recurso'
+
+
+def test_recurso_filter_lookups_retorna_recursos(recurso_legado):
+    filtro = _make_recurso_filter()
+    resultado = list(filtro.lookups(RequestFactory().get('/admin/'), None))
+    assert any(nome == recurso_legado.nome for _, nome in resultado)
+
+
+def test_recurso_filter_queryset_sem_valor():
+    filtro = _make_recurso_filter()
+    qs = MagicMock()
+    resultado = filtro.queryset(None, qs)
+    assert resultado is qs
+    qs.filter.assert_not_called()
+
+
+def test_recurso_filter_queryset_com_valor(recurso_legado):
+    filtro = _make_recurso_filter(str(recurso_legado.uuid))
+    qs = MagicMock()
+    filtro.queryset(None, qs)
+    qs.filter.assert_called_once_with(recurso__uuid=str(recurso_legado.uuid))

@@ -27,9 +27,13 @@ from sme_ptrf_apps.core.models.associacao import Associacao
 from sme_ptrf_apps.core.models.conta_associacao import ContaAssociacao
 from sme_ptrf_apps.sme.tasks.exportar_bens_produzidos_adquiridos import exportar_bens_produzidos_adquiridos_async
 
+from .docs.bem_produzido_item_docs import DOCS
+from drf_spectacular.utils import extend_schema_view
+
 logger = logging.getLogger(__name__)
 
 
+@extend_schema_view(**DOCS)
 class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
     waffle_flag = "situacao-patrimonial"
     permission_classes = [IsAuthenticated & PermissaoApiUe]
@@ -48,6 +52,7 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
         conta_uuid = request.query_params.get('conta_associacao_uuid')
         periodos_uuid = request.query_params.get('periodos_uuid')
         visao_dre = request.query_params.get('visao_dre', 'false').lower() == 'true'
+        recurso = request.recurso
 
         if periodos_uuid:
             try:
@@ -58,37 +63,38 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
         data_inicio = request.query_params.get('data_inicio')
         data_fim = request.query_params.get('data_fim')
 
-        bens_produzidos = BemProduzidoItem.objects.filter(bem_produzido__associacao__uuid=associacao_uuid)
-
+        bens_produzidos = BemProduzidoItem.objects.filter(bem_produzido__associacao__uuid=associacao_uuid,
+                                                          bem_produzido__recurso=recurso)
         # Na visão DRE, filtrar apenas bens completos
         if visao_dre:
             bens_produzidos = bens_produzidos.filter(bem_produzido__status=BemProduzido.STATUS_COMPLETO)
-        
+
         # Aplicar filtros a todos os bens produzidos (rascunhos e completos)
         bens_produzidos = self.filtrar_bens_produzidos(
             bens_produzidos, especificacao_bem, fornecedor, acao_uuid, conta_uuid, periodos_uuid, data_inicio, data_fim
         )
-        
+
         bens_produzidos_rascunho = bens_produzidos.exclude(bem_produzido__status=BemProduzido.STATUS_COMPLETO)
         bens_produzidos_completos = bens_produzidos.filter(bem_produzido__status=BemProduzido.STATUS_COMPLETO)
 
-        bens_adquiridos = RateioDespesa.rateios_completos_de_capital().filter(despesa__associacao__uuid=associacao_uuid)
+        bens_adquiridos = RateioDespesa.rateios_completos_de_capital().filter(despesa__associacao__uuid=associacao_uuid,
+                                                                              despesa__recurso=recurso)
         bens_adquiridos = self.filtrar_bens_adquiridos(
             bens_adquiridos, especificacao_bem, fornecedor, acao_uuid, conta_uuid, periodos_uuid, data_inicio, data_fim
         )
 
         bens_produzidos_rascunho = list(bens_produzidos_rascunho)
         bens_produzidos_completos = list(bens_produzidos_completos)
-        
+
         bens_misturados = bens_produzidos_completos + list(bens_adquiridos)
-        
+
         def get_data_aquisicao(item):
             if hasattr(item, 'despesa'):  # É RateioDespesa (bem adquirido)
                 return item.despesa.data_documento if item.despesa.data_documento else datetime.date.min
             else:  # É BemProduzidoItem (bem produzido)
                 datas = [d.despesa.data_documento for d in item.bem_produzido.despesas.all() if d.despesa.data_documento]
                 return max(datas) if datas else datetime.date.min
-        
+
         bens_misturados_ordenados = sorted(bens_misturados, key=get_data_aquisicao, reverse=True)
 
         combined = bens_produzidos_rascunho + bens_misturados_ordenados
@@ -96,6 +102,7 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
         paginator = CustomPagination()
         page = paginator.paginate_queryset(combined, request)
         serializer = BemProduzidoEAdquiridoSerializer(page, many=True)
+
         return paginator.get_paginated_response(serializer.data)
 
     def filtrar_bens_produzidos(self, queryset, especificacao_bem, fornecedor, acao_uuid, conta_uuid, periodos_uuid, data_inicio, data_fim):
@@ -185,9 +192,13 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
         data_inicio = request.query_params.get('data_inicio')
         data_fim = request.query_params.get('data_fim')
         identificacao_usuario = request.user.username
+        recurso = request.recurso
+        recurso_id = recurso.id
 
         filtros = []
-        
+
+        filtros.append(f"por recurso: {recurso}")
+
         if periodos_uuid:
             filtros.append(f"por período: {periodos_uuid}")
         if especificacao_bem:
@@ -225,13 +236,13 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
                     'erro': 'erro_interno',
                     'mensagem': 'Erro interno ao buscar a conta da associação.'
                 }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-                
+
         if data_inicio and data_fim:
             data_inicio_formatada = datetime.datetime.strptime(data_inicio, '%Y-%m-%d').strftime('%d/%m/%Y')
             data_fim_formatada = datetime.datetime.strptime(data_fim, '%Y-%m-%d').strftime('%d/%m/%Y')
-            
+
             filtros.append(f"por data do documento: {data_inicio_formatada} até {data_fim_formatada}")
-            
+
         filtros_str = '; '.join(filtros)
 
         # Processar periodos_uuid se fornecido
@@ -248,6 +259,7 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
             # Chamar task assíncrona de exportação
             task = exportar_bens_produzidos_adquiridos_async.delay(
                 associacao_uuid=associacao_uuid,
+                recurso=recurso_id,
                 especificacao_bem=especificacao_bem,
                 fornecedor=fornecedor,
                 acao_uuid=acao_associacao_uuid,

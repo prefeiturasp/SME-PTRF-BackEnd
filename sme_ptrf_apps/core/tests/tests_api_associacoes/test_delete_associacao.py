@@ -9,16 +9,16 @@ from model_bakery import baker
 pytestmark = pytest.mark.django_db
 
 
-def test_api_delete_associacao(jwt_authenticated_client_a, associacao):
+def test_api_delete_associacao(jwt_authenticated_client_a, associacao_d):
 
-    assert Associacao.objects.filter(uuid=associacao.uuid).exists()
+    assert Associacao.objects.filter(uuid=associacao_d.uuid).exists()
 
     response = jwt_authenticated_client_a.delete(
-        f'/api/associacoes/{associacao.uuid}/', content_type='application/json')
+        f'/api/associacoes/{associacao_d.uuid}/', content_type='application/json')
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
-    assert not Associacao.objects.filter(uuid=associacao.uuid).exists()
+    assert not Associacao.objects.filter(uuid=associacao_d.uuid).exists()
 
 
 def test_api_delete_associacao_ja_usada(

@@ -9,8 +9,8 @@ from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 
 from ..serializers.periodo_serializer import (PeriodoSerializer, PeriodoLookUpSerializer, PeriodoRetrieveSerializer,
                                               PeriodoCreateSerializer)
-from ...models import Periodo, PeriodoInicialAssociacao, Associacao
-from ...services import valida_datas_periodo
+from ...models import Periodo, PeriodoInicialAssociacao, Associacao, Recurso
+from ...services import valida_datas_periodo, get_periodo_corte_por_dre, get_periodo_corte
 
 
 class PeriodosViewSet(mixins.ListModelMixin,
@@ -50,12 +50,15 @@ class PeriodosViewSet(mixins.ListModelMixin,
         if associacao_uuid:
             qs = qs.filter(prestacoes_de_conta__associacao__uuid=associacao_uuid).distinct()
 
-        if self.request and hasattr(self.request, 'recurso') and self.request.recurso:
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+        if recurso_uuid:
+            qs = qs.filter(recurso__uuid=recurso_uuid)
+        elif self.request and getattr(self.request, 'recurso', None) and self.request.method not in ['DELETE', 'PATCH']:
             qs = Periodo.filter_by_recurso(qs, self.request.recurso)
 
         dre_uuid = self.request.query_params.get('dre_uuid')
         if dre_uuid:
-            periodo_corte = self.get_periodo_corte_por_dre(dre_uuid)
+            periodo_corte = get_periodo_corte_por_dre(dre_uuid=dre_uuid, recurso=self.request.recurso)
 
             if not periodo_corte:
                 qs = qs.none()
@@ -64,43 +67,18 @@ class PeriodosViewSet(mixins.ListModelMixin,
                     data_inicio_realizacao_despesas__gte=periodo_corte.data_inicio_realizacao_despesas
                 )
 
-        return qs.order_by('-referencia')
+        solicitacao_sme = self.request.query_params.get('solicitacao_sme', 'false').lower() == 'true'
+        if solicitacao_sme:
+            periodo_corte_sme = get_periodo_corte(recurso=self.request.recurso)
 
-    def get_periodo_corte_por_dre(self, dre_uuid):
-        recurso = getattr(self.request, 'recurso', None)
-        if not recurso:
-            return None
-
-        periodo_inicial_assoc = (
-            PeriodoInicialAssociacao.objects
-            .filter(
-                associacao__unidade__dre__uuid=dre_uuid,
-                recurso=recurso,
-            )
-            .select_related('periodo_inicial')
-            .order_by('periodo_inicial__data_inicio_realizacao_despesas')
-            .first()
-        )
-
-        if periodo_inicial_assoc and periodo_inicial_assoc.periodo_inicial:
-            return periodo_inicial_assoc.periodo_inicial.proximo_periodo
-
-        if recurso.legado:
-            associacao_legado = (
-                Associacao.objects
-                .filter(
-                    unidade__dre__uuid=dre_uuid,
-                    periodo_inicial__isnull=False,
+            if not periodo_corte_sme:
+                qs = qs.none()
+            else:
+                qs = qs.filter(
+                    data_inicio_realizacao_despesas__gte=periodo_corte_sme.data_inicio_realizacao_despesas
                 )
-                .select_related('periodo_inicial')
-                .order_by('periodo_inicial__data_inicio_realizacao_despesas')
-                .first()
-            )
 
-            if associacao_legado and associacao_legado.periodo_inicial:
-                return associacao_legado.periodo_inicial.proximo_periodo
-
-        return None
+        return qs.order_by('-referencia')
 
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -171,6 +149,11 @@ class PeriodosViewSet(mixins.ListModelMixin,
 
         data_fim_realizacao_despesas = request.query_params.get('data_fim_realizacao_despesas', None)
         periodo_anterior_uuid = request.query_params.get('periodo_anterior_uuid', None)
+        recurso_uuid = request.query_params.get('recurso_uuid', None)
+        recurso = None
+
+        if recurso_uuid is not None:
+            recurso = Recurso.objects.filter(uuid=recurso_uuid).first() or None
 
         if periodo_anterior_uuid:
             try:
@@ -192,7 +175,8 @@ class PeriodosViewSet(mixins.ListModelMixin,
             data_fim_realizacao_despesas=datetime.strptime(
                 data_fim_realizacao_despesas, '%Y-%m-%d').date() if data_fim_realizacao_despesas else None,
             periodo_anterior=periodo_anterior,
-            periodo_uuid=periodo_uuid
+            periodo_uuid=periodo_uuid,
+            recurso=recurso
         )
 
         return Response(result)

@@ -1,3 +1,8 @@
+"""
+Módulo de modelos do PAA (Plano Anual de Ação).
+
+Este módulo define a entidade responsável por representar o PAA e seus atributos de negócio.
+"""
 from django.db.models import Sum
 from django.db import models
 from datetime import datetime
@@ -13,6 +18,12 @@ from sme_ptrf_apps.paa.paa_querysets.paa_queryset import PaaManager
 
 
 class Paa(ModeloBase):
+    """
+    Representa um Plano Anual de Ação (PAA).
+
+    Essa model registra os dados do PAA, incluindo o período, a associação,
+    o status, os objetivos, as atividades estatutárias e os recursos disponíveis.
+    """
     objects = PaaManager()
 
     history = AuditlogHistoryField()
@@ -54,45 +65,182 @@ class Paa(ModeloBase):
         help_text='Outros Recursos (paa_outrorecurso) vinculados à unidade e período disponíveis na conclusão do PAA'
     )
 
-    def periodo_paa_objeto(self):
+    def periodo_paa_objeto(self) -> PeriodoPaa:
+        """Retorna o objeto período PAA relacionado ao PAA."""
         return self.periodo_paa
 
-    def set_congelar_saldo(self):
+    def set_congelar_saldo(self) -> None:
+        """
+        Congela o saldo do PAA, registrando a data e hora atual.
+        """
         self.saldo_congelado_em = datetime.now()
         self.save()
 
-    def set_paa_status_em_retificacao(self):
+    def set_paa_status_em_retificacao(self) -> None:
+        """
+        Define o status do PAA como "EM_RETIFICACAO".
+        """
         self.status = PaaStatusEnum.EM_RETIFICACAO.name
         self.save()
 
-    def set_paa_status_gerado(self):
+    def set_paa_status_gerado(self) -> None:
+        """
+        Define o status do PAA como "GERADO".
+        """
         self.status = PaaStatusEnum.GERADO.name
         self.save()
 
-    def set_descongelar_saldo(self):
+    def set_descongelar_saldo(self) -> None:
+        """
+        Descongela o saldo do PAA, removendo a data de congelamento.
+        """
         self.saldo_congelado_em = None
         self.save()
 
-    def get_total_recursos_proprios(self):
+    def get_atividades_previstas_preenchidas(self) -> bool:
+        """
+        Verifica se todas as atividades estatutárias previstas para o PAA possuem
+        data preenchida.
+
+        Returns:
+            bool: True se todas as atividades previstas estiverem com a data preenchida.
+        """
+        from sme_ptrf_apps.paa.models.atividade_estatutaria_paa import AtividadeEstatutariaPaa
+        return AtividadeEstatutariaPaa.todas_datas_preenchidas(self)
+
+    def get_total_recursos_proprios(self) -> float:
+        """
+        Retorna o total de recursos próprios do PAA.
+        """
         total = self.recursopropriopaa_set.aggregate(total=Sum('valor'))['total']
         return total or 0
 
     @property
     def documento_final(self):
-        if self.status == PaaStatusEnum.EM_RETIFICACAO.name:
+        """
+        Retorna o documento do PAA na versão "FINAL" considerando se o PAA está em retificação ou não.
+        """
+        if self.status_em_retificacao:
             return obter_documento_final_por_retificacao(self, True)
         return obter_documento_final_por_retificacao(self, False)
 
     @property
     def documento_previa(self):
-        return self.documentopaa_set.filter(versao="PREVIA").first()
+        """
+        Retorna o documento do PAA na versão "PREVIA" considerando se o PAA está em retificação ou não.
+        """
+        retificacao = self.status_em_retificacao
+        return (
+            self.documentopaa_set.filter(
+                versao="PREVIA",
+                retificacao=retificacao
+            )
+            .order_by('-pk')
+            .first()
+        )
 
     @property
-    def tem_documentos(self):
+    def tem_documentos(self) -> bool:
+        """
+        Verifica se o PAA possui documentos ou atas vinculadas.
+        """
         return (
             self.documentopaa_set.exists() or
             self.atas_da_paa.exists()
         )
+
+    def get_documentos(self) -> tuple:
+        """
+            Obtém os documentos e atas vinculados ao PAA.
+
+            Retorna os registros mais recentes com geração concluída,
+            desconsiderando versões prévias, na seguinte ordem:
+
+            1. Documento do PAA original (versão final não retificada);
+            2. Ata de apresentação do PAA;
+            3. Documento do PAA retificado (versão final retificada);
+            4. Ata de retificação do PAA.
+
+            Para cada item, é retornado o registro mais recente com base
+            no campo ``criado_em``. Caso não exista um documento ou ata
+            que atenda aos critérios, o respectivo valor será ``None``.
+        """
+
+        from sme_ptrf_apps.paa.models import (DocumentoPaa, AtaPaa)
+
+        doc_original = (
+            self.documentopaa_set
+            .filter(
+                versao=DocumentoPaa.VersaoChoices.FINAL,
+                retificacao=False,
+                status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO
+            )
+            .order_by('-criado_em')
+            .first()
+        )
+
+        ata_original = (
+            self.atas_da_paa
+            .filter(
+                tipo_ata=AtaPaa.ATA_APRESENTACAO,
+                status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+                previa=False
+            )
+            .order_by('-criado_em')
+            .first()
+        )
+
+        doc_retificado = (
+            self.documentopaa_set
+            .filter(
+                versao=DocumentoPaa.VersaoChoices.FINAL,
+                retificacao=True,
+                status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO
+            )
+            .order_by('-criado_em')
+            .first()
+        )
+
+        ata_retificacao = (
+            self.atas_da_paa
+            .filter(
+                tipo_ata=AtaPaa.ATA_RETIFICACAO,
+                status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+                previa=False,
+                pdf_gerado_previamente=True  # Documento gerado
+            )
+            .order_by('-criado_em')
+            .first()
+        )
+
+        return (
+            doc_original,
+            ata_original,
+            doc_retificado,
+            ata_retificacao
+        )
+
+    def get_condicao_status_andamento(self) -> str:
+        """
+        Retorna o status da condição do andamento do PAA.
+
+        Se o objeto já possui o campo anotado 'status_andamento'(PaaManager -> Queryset),
+        retorna-o diretamente. Caso contrário, recarrega o objeto do banco com as anotações.
+
+        Returns:
+            str: Nome do status da condição (CASE 1, CASE 2,...)
+        """
+        # Se já tem o campo anotado, retorne-o
+        if hasattr(self, '_debug_case'):
+            return self._debug_case
+
+        # Caso contrário, busque a versão anotada do banco
+        if self.pk:
+            paa_anotado = Paa.objects.get(pk=self.pk)
+            return paa_anotado._debug_case
+
+        # Se é um objeto novo (ainda não salvo), retorna padrão
+        return 'Condição #'
 
     def get_status_andamento(self) -> str:
         """
@@ -160,12 +308,48 @@ class Paa(ModeloBase):
         # Se é um objeto novo, retorna False
         return False
 
+    def get_ata_elaboracao(self):
+        """
+        Retorna as atas de apresentação (elaboração) do PAA.
+
+        Returns:
+            QuerySet: Atas do tipo ATA_APRESENTACAO
+        """
+        from sme_ptrf_apps.paa.models import AtaPaa
+        return self.atas_da_paa.filter(tipo_ata=AtaPaa.ATA_APRESENTACAO).first()
+
+    def get_ata_retificacao(self):
+        """
+        Retorna as atas de retificação do PAA.
+
+        Returns:
+            QuerySet: Atas do tipo ATA_RETIFICACAO
+        """
+        from sme_ptrf_apps.paa.models import AtaPaa
+        return self.atas_da_paa.filter(tipo_ata=AtaPaa.ATA_RETIFICACAO).first()
+
+    @property
+    def status_em_elaboracao(self) -> bool:
+        """ Verifica se o PAA está no status 'EM_ELABORACAO'."""
+        return self.status == PaaStatusEnum.EM_ELABORACAO.name
+
+    @property
+    def status_em_retificacao(self) -> bool:
+        """ Verifica se o PAA está no status 'EM_RETIFICACAO'."""
+        return self.status == PaaStatusEnum.EM_RETIFICACAO.name
+
+    @property
+    def status_gerado(self) -> bool:
+        """ Verifica se o PAA está no status 'GERADO'."""
+        return self.status == PaaStatusEnum.GERADO.name
+
     class Meta:
         verbose_name = 'PAA'
         verbose_name_plural = 'PAA`s'
         unique_together = ('periodo_paa', 'associacao')
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """Retorna uma representação textual do PAA com o período e a associação."""
         return f'{self.periodo_paa} - {self.associacao}'
 
 

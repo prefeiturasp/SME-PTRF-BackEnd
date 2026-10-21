@@ -5,20 +5,59 @@ from datetime import date
 
 from sme_ptrf_apps.dre.models import JustificativaRelatorioConsolidadoDRE, AnoAnaliseRegularidade, ConsolidadoDRE
 from sme_ptrf_apps.core.models import Associacao, PrestacaoConta, TipoConta, Unidade
-from sme_ptrf_apps.dre.models import ParametrosDre
+from sme_ptrf_apps.dre.models import ParametrosDre, Comissao
 
 from django.db.models import Max, Value, Count
 from django.db.models.functions import Coalesce
 
-from sme_ptrf_apps.dre.services.consolidado_dre_service import verifica_se_eh_relatorio_publicacoes_parciais
+from sme_ptrf_apps.dre.services.consolidado_dre_service import verifica_se_eh_relatorio_publicacoes_parciais, TextDocumentConsolidadoPC
+from sme_ptrf_apps.core.services.tipos_acerto_lancamento_service import TipoAcertoLancamentoService
 
 LOGGER = logging.getLogger(__name__)
+
+
+def retorna_indices_demo_execucao_fisico_financeira(existe_devolucao_ao_tesouro):
+    numero_base_bloco3 = 9 if existe_devolucao_ao_tesouro else 8
+    numero_base_bloco4 = 20 if existe_devolucao_ao_tesouro else 19
+
+    ordem_bloco3_execucao_fisica = {
+        "numeros_colunas": {
+            "ues_da_dre": numero_base_bloco3,
+            "ues_com_associacao": numero_base_bloco3 + 1,
+            "associacoes_regulares": numero_base_bloco3 + 2,
+            "aprovadas": numero_base_bloco3 + 3,
+            "aprovadas_com_ressalva": numero_base_bloco3 + 4,
+            "rejeitadas": numero_base_bloco3 + 5,
+            "em_analise": numero_base_bloco3 + 6,
+            "nao_apresentadas": numero_base_bloco3 + 7,
+            "ues_publicadas_anteriormente": numero_base_bloco3 + 8,
+            "total": numero_base_bloco3 + 9,
+            "ues_retificadas": numero_base_bloco3 + 10
+        }
+    }
+
+    ordem_bloco4_dados_fisico_financeiros = {
+        "numeros_colunas": {
+            "ordem": numero_base_bloco4,
+            "unidade": numero_base_bloco4 + 1,
+            "conta": numero_base_bloco4 + 2,
+            "reprogramado_do_periodo_anterior": numero_base_bloco4 + 3,
+            "transferido_pela_dre": numero_base_bloco4 + 4,
+            "outros_creditos": numero_base_bloco4 + 5,
+            "valor_total_disponivel": numero_base_bloco4 + 6,
+            "despesa_realizada": numero_base_bloco4 + 7,
+            "saldo_reprogramado_para_o_proximo_periodo": numero_base_bloco4 + 8,
+            "situacao_pc": numero_base_bloco4 + 9
+        }
+    }
+    return ordem_bloco3_execucao_fisica, ordem_bloco4_dados_fisico_financeiros
 
 
 def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, previa=False, apenas_nao_publicadas=False, eh_consolidado_de_publicacoes_parciais=False, consolidado_dre=None):
     try:
         LOGGER.info("Gerando relatório consolidado...")
 
+        text_document_consolidado_pc = retorna_dict_text_documento_consolidado_pc(periodo)
         cabecalho = cria_cabecalho(periodo, parcial, previa, consolidado_dre)
         bloco_consolidado_das_publicacoes_parciais = cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo) if eh_consolidado_de_publicacoes_parciais else None
         data_geracao_documento = cria_data_geracao_documento(usuario, dre, parcial, previa)
@@ -27,7 +66,7 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
         execucao_fisica = cria_execucao_fisica(dre, periodo, apenas_nao_publicadas, consolidado_dre, eh_consolidado_de_publicacoes_parciais)
         dados_fisicos_financeiros = cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_consolidado_de_publicacoes_parciais, consolidado_dre)
 
-        assinatura_dre = cria_assinaturas_dre(dre)
+        assinatura_dre = cria_assinaturas_dre(dre, periodo)
 
         """
             Mapeamento campos x pdf - Campos usados em cada um dos blocos do PDF:
@@ -51,7 +90,18 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
                 assinatura_dre
         """
 
+        existe_devolucao_ao_tesouro = TipoAcertoLancamentoService. \
+            checa_se_existe_lancamento_devolucao_ao_tesouro(
+                periodo=periodo
+            )
+
+        (
+            ordem_bloco3_execucao_fisica,
+            ordem_bloco4_dados_fisico_financeiros
+        ) = retorna_indices_demo_execucao_fisico_financeira(existe_devolucao_ao_tesouro)
+
         dados_demonstrativo = {
+            "text_document_consolidado_pc": text_document_consolidado_pc,
             "cabecalho": cabecalho,
             "bloco_consolidado_das_publicacoes_parciais": bloco_consolidado_das_publicacoes_parciais,
             "data_geracao_documento": data_geracao_documento,
@@ -61,7 +111,11 @@ def gerar_dados_demo_execucao_fisico_financeira(dre, periodo, usuario, parcial, 
             "dados_fisicos_financeiros": dados_fisicos_financeiros,
             "assinatura_dre": assinatura_dre,
             "versao_relatorio": "PARCIAL" if parcial else "FINAL",
-            "previa": previa
+            "previa": previa,
+            "existe_devolucao_ao_tesouro": existe_devolucao_ao_tesouro,
+            "ordem_bloco3_execucao_fisica": ordem_bloco3_execucao_fisica,
+            "ordem_bloco4_dados_fisico_financeiros": ordem_bloco4_dados_fisico_financeiros,
+            "existe_saldo_reprogramado": periodo.recurso.existe_saldo_reprogramado
         }
 
     finally:
@@ -74,6 +128,10 @@ def cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo):
     consolidados_dre = ConsolidadoDRE.objects.filter(dre=dre, periodo=periodo, versao="FINAL").order_by("sequencia_de_publicacao", "alterado_em")
     consolidado_das_publicacoes_parciais_list = []
 
+    recurso = periodo.recurso
+    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+    text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+
     for consolidado in consolidados_dre:
         numero_sequencia = consolidado.sequencia_de_publicacao if consolidado.sequencia_de_publicacao else ""
 
@@ -83,10 +141,10 @@ def cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo):
 
             if(consolidado_origem_retificacao.count() > 0 and consolidado_origem_retificacao[0].data_publicacao):
                 data_publicacao_consolidado_origem_retificacao = consolidado_origem_retificacao[0].data_publicacao.strftime("%d/%m/%Y")
-                titulo_parcial = f"Retificação da publicação de {data_publicacao_consolidado_origem_retificacao}"
+                titulo_parcial = f"Retificação {text_document_consolidado_pc.possessive(case='lower')} de {data_publicacao_consolidado_origem_retificacao}"
 
         elif(not consolidado.eh_parcial):
-            titulo_parcial = f"Única"
+            titulo_parcial = text_document_consolidado_pc.get_tranform_publication_type(text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE)
 
         else:
             titulo_parcial = f"Parcial #{numero_sequencia}"
@@ -104,8 +162,30 @@ def cria_bloco_consolidado_das_publicacoes_parciais(dre, periodo):
     return consolidado_das_publicacoes_parciais_list
 
 
+def retorna_dict_text_documento_consolidado_pc(periodo):
+    from sme_ptrf_apps.dre.services.consolidado_dre_service import TextDocumentConsolidadoPC
+
+    recurso = periodo.recurso
+    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+    text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+
+    response = {
+        'text_refer': text_document_consolidado_pc.text_with_refer(),
+        'text_in_past_and_plural': text_document_consolidado_pc.text_in_past_and_plural(),
+        'text_in': text_document_consolidado_pc.text_in(),
+        'text_possessive_plural': text_document_consolidado_pc.possessive_plural(),
+        'text_action': text_document_consolidado_pc.text_action(),
+    }
+
+    return response
+
+
 def cria_cabecalho(periodo, parcial, previa, consolidado_dre):
     LOGGER.info("Iniciando cabecalho...")
+
+    recurso = periodo.recurso
+    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+    text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
 
     eh_parcial = parcial['parcial']
     sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
@@ -114,18 +194,30 @@ def cria_cabecalho(periodo, parcial, previa, consolidado_dre):
     if previa and eh_retificacao:
         titulo_sequencia_publicacao = f'{consolidado_dre.referencia} (Prévia)'
     elif previa and eh_parcial:
-        titulo_sequencia_publicacao = f'Publicação Parcial #{sequencia_de_publicacao} (Prévia)'
+        text = text_document_consolidado_pc.text_sequencial(
+            publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL,
+            sequence_number=sequencia_de_publicacao
+        )
+        titulo_sequencia_publicacao = f'{text} (Prévia)'
     elif previa and not eh_parcial:
-        titulo_sequencia_publicacao = f'Publicação Única (Prévia)'
+        text = text_document_consolidado_pc.text_with_type_document(
+            publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE
+        )
+        titulo_sequencia_publicacao = f'{text} (Prévia)'
     elif not previa and eh_retificacao:
         titulo_sequencia_publicacao = f'{consolidado_dre.referencia}'
     elif not previa and eh_parcial:
-        titulo_sequencia_publicacao = f'Publicação Parcial #{sequencia_de_publicacao}'
+        titulo_sequencia_publicacao = text_document_consolidado_pc.text_sequencial(
+            publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL,
+            sequence_number=sequencia_de_publicacao
+        )
     elif not previa and not eh_parcial and sequencia_de_publicacao == 0:
-        titulo_sequencia_publicacao = 'Publicação Única'
+        titulo_sequencia_publicacao = text_document_consolidado_pc.text_with_type_document(
+            publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE
+        )
     else:
         # Nesse caso é o relatório do consolidado de publicações parciais
-        titulo_sequencia_publicacao = f'Relatório Consolidado'
+        titulo_sequencia_publicacao = 'Relatório Consolidado'
 
     cabecalho = {
         "recurso": periodo.recurso.nome,
@@ -152,7 +244,10 @@ def cria_identificacao_dre(dre):
 
 def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dre, eh_consolidado_de_publicacoes_parciais, previa):
     """BLOCO 2 - EXECUÇÃO FINANCEIRA"""
-    from .relatorio_consolidado_service import informacoes_execucao_financeira
+    from .relatorio_consolidado_service import (
+        informacoes_execucao_financeira,
+        total_devolucoes_ao_tesouro_sem_duplicidade,
+    )
 
     tipos_contas = TipoConta.objects.all()
     execucao_financeira_list = {
@@ -332,6 +427,7 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dr
                     "livre": rla,
                     "totais": totais,
                     "justificativa": justificativa.texto if justificativa else '',
+                    "existe_saldo_reprogramado": periodo.recurso.existe_saldo_reprogramado,
                 }
             else:
                 execucao_financeira = {
@@ -341,11 +437,23 @@ def cria_execucao_financeira(dre, periodo, apenas_nao_publicadas, consolidado_dr
                     "livre": rla,
                     "totais": totais,
                     "justificativa": obj_justificativas_list,
+                    "existe_saldo_reprogramado": periodo.recurso.existe_saldo_reprogramado,
                 }
 
             execucao_financeira_list['por_tipo_de_conta'].append(execucao_financeira)
 
-    execucao_financeira_list['total_todas_as_contas'].append(retorna_total_todas_as_contas_execucao_financeira(execucao_financeira_list['por_tipo_de_conta']))
+    total_devolucoes_ao_tesouro = total_devolucoes_ao_tesouro_sem_duplicidade(
+        dre=dre,
+        periodo=periodo,
+        apenas_nao_publicadas=apenas_nao_publicadas,
+        consolidado_dre=consolidado_dre,
+    )
+    execucao_financeira_list['total_todas_as_contas'].append(
+        retorna_total_todas_as_contas_execucao_financeira(
+            execucao_financeira_list['por_tipo_de_conta'],
+            total_devolucoes_ao_tesouro=total_devolucoes_ao_tesouro,
+        )
+    )
 
     return execucao_financeira_list
 
@@ -400,7 +508,10 @@ def retorna_objeto_totais_todas_as_contas_execucao_financeira_vazio():
     return totais_todas_as_contas
 
 
-def retorna_total_todas_as_contas_execucao_financeira(execucao_financeira_list):
+def retorna_total_todas_as_contas_execucao_financeira(
+    execucao_financeira_list,
+    total_devolucoes_ao_tesouro=None,
+):
 
     totais_todas_as_contas = retorna_objeto_totais_todas_as_contas_execucao_financeira_vazio()
 
@@ -445,6 +556,10 @@ def retorna_total_todas_as_contas_execucao_financeira(execucao_financeira_list):
        totais_todas_as_contas['totais']['saldo_reprogramado_proximo_periodo_total'] += converte_string_value_formatada_para_float(ex['totais']['saldo_reprogramado_proximo_periodo_total'])
        totais_todas_as_contas['totais']['devolucoes_ao_tesouro_no_periodo_total'] += converte_string_value_formatada_para_float(ex['totais']['devolucoes_ao_tesouro_no_periodo_total'])
        totais_todas_as_contas['totais']['outros_creditos'] += converte_string_value_formatada_para_float(ex['totais']['outros_creditos'])
+
+    if total_devolucoes_ao_tesouro is not None:
+        totais_todas_as_contas['totais']['devolucoes_ao_tesouro_no_periodo_total'] = total_devolucoes_ao_tesouro
+        totais_todas_as_contas['livre']['devolucoes_ao_tesouro_no_periodo_total'] = total_devolucoes_ao_tesouro
 
     # Formatando os valores após terem sido somados corretamente
     for chave, valor in totais_todas_as_contas.items():
@@ -851,16 +966,18 @@ def cria_dados_fisicos_financeiros(dre, periodo, apenas_nao_publicadas, eh_conso
     return informacoes
 
 
-def cria_assinaturas_dre(dre):
+def cria_assinaturas_dre(dre, periodo):
     """Bloco 5 - Autenticação: Parte de assinaturas"""
+
+    recurso = periodo.recurso
+    comissao = Comissao.get_comissao_responsavel_analise_pc_por_recurso(recurso)
 
     membros = []
 
-    if ParametrosDre.objects.all():
-        comissoes = ParametrosDre.get().comissao_exame_contas
-        membros = comissoes.membros.filter(dre=dre).values("rf", "nome", "cargo")
+    if comissao:
+        membros = comissao.membros.filter(dre=dre).values("rf", "nome", "cargo")
     else:
-        LOGGER.info(f"Não foi encontrado nenhum Parametro DRE, verificar no admin")
+        LOGGER.info("Não foi encontrado nenhuma comissão responsável pela análise de prestação de contas.")
 
     dados = {
         "membros": membros,

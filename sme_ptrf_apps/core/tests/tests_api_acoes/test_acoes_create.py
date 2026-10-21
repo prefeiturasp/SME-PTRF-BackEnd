@@ -31,11 +31,13 @@ def test_create_acao(
 
 def test_create_acao_nome_igual(
     jwt_authenticated_client_a,
-    acao_xpto
+    acao_xpto,
+    recurso_legado
 ):
     payload_acao_nova = {
         'nome': 'Xpto',
         'e_recursos_proprios': False,
+        'recurso': f"{recurso_legado.uuid}"
     }
     response = jwt_authenticated_client_a.post(
         '/api/acoes/', data=json.dumps(payload_acao_nova), content_type='application/json')
@@ -43,4 +45,4 @@ def test_create_acao_nome_igual(
     assert response.status_code == status.HTTP_400_BAD_REQUEST
 
     result = json.loads(response.content)
-    assert result == {'non_field_errors': ['The fields nome must make a unique set.']}
+    assert result == {'non_field_errors': ['Já existe uma ação com este nome para este recurso.']}

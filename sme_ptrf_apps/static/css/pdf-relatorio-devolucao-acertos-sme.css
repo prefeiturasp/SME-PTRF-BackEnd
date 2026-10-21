@@ -19,17 +19,20 @@
   src: url(../fonts/Roboto-Italic.ttf);
 }
 
-@page {
+@page :first {
   size: A4;
-  margin: 3cm -2mm 2cm -2mm;
-  padding: 0;
+  padding: 1cm 0 1cm 0;
+  margin: 3cm 1cm 1cm 3cm;
+  @top-center {
+    content: element(cabecalho);
+  }
 
   @bottom-right {
     color: #000;
     content: counter(page) "/" counter(pages);
-    font-size: 9pt;
+    font-size: 8pt;
     padding: 0 1cm;
-    margin: 1cm 0;
+    margin: -2mm -9mm 0 0;
     font-weight: bold;
   }
 
@@ -40,30 +43,28 @@
   @bottom-left {
     color: #000;
     content: element(data-geracao);
-    font-size: 9pt;
-    padding: 0 1cm;
-    margin: 0;
     font-style: normal;
     font-family: Roboto;
+    font-size: 9pt;
+    margin: 0 0 0 -2cm;
   }
+}
+
+@page {
+  size: A4;
+  padding: 1cm 0 1cm 0;
+  margin: 2cm 1cm 1cm 3cm;
 
   @top-center {
     content: element(heading);
   }
-}
-
-@page :first {
-  size: A4;
-  margin: -2mm;
-  margin-bottom: 2cm;
-  padding: 0;
 
   @bottom-right {
     color: #000;
     content: counter(page) "/" counter(pages);
-    font-size: 9pt;
+    font-size: 8pt;
     padding: 0 1cm;
-    margin: 1cm 0;
+    margin: -2mm -9mm 0 0;
     font-weight: bold;
   }
 
@@ -74,15 +75,10 @@
   @bottom-left {
     color: #000;
     content: element(data-geracao);
-    font-size: 9pt;
-    padding: 0 1cm;
-    margin: 0;
     font-style: normal;
     font-family: Roboto;
-  }
-
-  @top-center {
-    content: none;
+    font-size: 9pt;
+    margin: 0 0 0 -2cm;
   }
 }
 
@@ -105,12 +101,20 @@ body {
   font-style: normal;
 }
 
-html body section#cabecalho,
-header {
+#cabecalho {
+  position: running(cabecalho);
   background: #eeeeee;
-  margin: 0 0 0 -2cm;
-  padding: 0 2.5cm 0cm 2.5cm;
-  width: 100%;
+  width: 215mm;
+  padding: 1cm 1cm 0.5cm 0.5cm;
+  margin: 0;
+}
+
+header {
+  position: running(heading);
+  background: #eeeeee;
+  width: 215mm;
+  padding: 1cm 1cm 0.5cm 0.5cm;
+  margin: 0;
 }
 
 html body section#cabecalho .titulo,
@@ -125,13 +129,6 @@ html body section#cabecalho .subtitulo,
 html body header .subtitulo {
   font-family: Roboto, serif;
   font-style: normal;
-}
-
-header {
-  position: running(heading);
-  width: 215mm;
-  margin: 1cm 0.5cm 5.5cm 1cm;
-  padding: 5cm 0 0 0;
 }
 
 .font-18 {
@@ -184,24 +181,11 @@ header {
 }
 
 .conteudo {
-  margin: 0 1cm;
   width: 74%;
+  margin-left: -2.2cm; /* ajusta um pouco para compensar o aumento da largura */
+  margin-right: 0;
   font-family: Roboto, serif;
   font-style: normal;
-}
-
-#data-geracao-rodape {
-  position: running(data-geracao);
-  font-style: normal;
-  font-family: Roboto;
-}
-
-.titulo-bloco-sme {
-  color: #000000 !important;
-}
-
-.itens-bloco-sme {
-  color: #000000 !important;
 }
 
 html body .conteudo .tabela-resumo-por-acao {
@@ -211,10 +195,6 @@ html body .conteudo .tabela-resumo-por-acao {
 
 html body .conteudo .tabela-quebra-palavra {
   table-layout: fixed;
-}
-
-.nao-quebra-linha {
-  break-inside: avoid !important;
 }
 
 html body .conteudo .tabela-resumo-por-acao thead th,
@@ -236,16 +216,6 @@ html body .conteudo .tabela-resumo-por-acao thead th.fundo-th-cinza {
   color: #000000 !important;
 }
 
-html
-  body
-  .conteudo
-  .tabela-resumo-por-acao
-  thead
-  td.fundo-td-cinza-mais-escuro {
-  background-color: #eeeeee !important;
-  color: #000000 !important;
-}
-
 html body .conteudo .tabela-resumo-por-acao thead th.align-top {
   vertical-align: top;
 }
@@ -258,12 +228,8 @@ html body .conteudo .tabela-resumo-por-acao tbody td.sem-borda {
   border: none !important;
 }
 
-html body .conteudo .tabela-resumo-por-acao tbody td.fundo-cinza-sme {
+html body .conteudo .tabela-resumo-por-acao tbody td.fundo-cinza {
   background-color: #eeeeee !important;
-}
-
-html body .conteudo .tabela-resumo-por-acao tbody td.fundo-cinza-mais-claro {
-  background-color: #f5f6f8 !important;
 }
 
 html body .conteudo .tabela-resumo-por-acao tbody td {
@@ -272,6 +238,42 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
   word-break: normal !important;
   overflow-wrap: break-word !important;
   white-space: normal !important;
+}
+
+.titulo-conta {
+  font-weight: bold;
+  color: #2b7d83;
+}
+
+.item {
+  color: #2b7d83;
+}
+
+#data-geracao-rodape {
+  position: running(data-geracao);
+  font-style: normal;
+}
+
+.text-saldo-reprogramado {
+  color: #2b7d83 !important;
+}
+
+.titulo-bloco {
+  color: #2b7d83 !important;
+}
+
+/* checkbox */
+.checkbox-pdf {
+  margin-left: 40%;
+  text-align: center;
+  display: flex;
+  flex: 1;
+  max-width: 14px;
+  justify-content: center;
+  margin-bottom: 10px;
+  color: #ffffff;
+  background-color: #d8d8d8;
+  font-weight: 700;
 }
 
 .container-watermark {
@@ -294,4 +296,9 @@ html body .conteudo .tabela-resumo-por-acao tbody td {
   transform: translate(-50%, -50%);
   opacity: 0.5;
   z-index: 99;
+}
+
+.nao-quebra-linha {
+  break-after: avoid !important;
+  break-inside: avoid !important;
 }

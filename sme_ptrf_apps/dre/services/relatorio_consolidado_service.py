@@ -13,9 +13,11 @@ from sme_ptrf_apps.core.models import (
 from sme_ptrf_apps.dre.models import RelatorioConsolidadoDRE, ObsDevolucaoRelatorioConsolidadoDRE, \
     JustificativaRelatorioConsolidadoDRE, ConsolidadoDRE
 from sme_ptrf_apps.receitas.models import Receita
+from .consolidado_dre_service import TextDocumentConsolidadoPC
 
 from ..services.dados_demo_execucao_fisico_financeira_service import gerar_dados_demo_execucao_fisico_financeira
 from .demo_execucao_fisico_financeiro_pdf_service import gerar_arquivo_demonstrativo_execucao_fisico_financeiro_pdf
+from ...core.services.tipos_acerto_lancamento_service import TipoAcertoLancamentoService
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +80,11 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
     dre_uuid = dre.uuid
     periodo_uuid = periodo.uuid
 
+    recurso = periodo.recurso
+    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+    text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+    text_possessive_document_consolidado_pc = text_document_consolidado_pc.possessive()
+
     if eh_retificacao:
         eh_parcial = consolidado_dre.eh_parcial
         qtde_unidades = consolidado_dre.pcs_do_consolidado.all().count()
@@ -85,13 +92,15 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
         associacoes_do_consolidado = consolidado_dre.pcs_do_consolidado.values_list("associacao_id", flat=True).distinct()
 
         if consolidado_dre.consolidado_retificado and consolidado_dre.consolidado_retificado.data_publicacao:
-            titulo_parcial = f"Retificação da Publicação de {consolidado_dre.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y')} - {qtde_unidades} unidade(s)"
+            titulo_parcial = f"Retificação {text_possessive_document_consolidado_pc} de {consolidado_dre.consolidado_retificado.data_publicacao.strftime('%d/%m/%Y')} - {qtde_unidades} unidade(s)"
         else:
             titulo_parcial = ""
     else:
         parcial = verificar_se_status_parcial_ou_total_e_retornar_sequencia_de_publicacao(dre_uuid, periodo_uuid)
         eh_parcial = parcial['parcial']
         sequencia_de_publicacao = parcial['sequencia_de_publicacao_atual']
+
+        publication_type = text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL if eh_parcial else text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE
 
         # TODO Tratativa dos Bugs: 91797, 93549 e 93018 da Sprint 65
         # Gerava divergência em Tela do Relatório Consolidado em Tela
@@ -108,9 +117,22 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
             sequencia_de_publicacao_do_consolidado = consolidado_dre.sequencia_de_publicacao
 
             if sequencia_de_publicacao_do_consolidado > 0:
-                titulo_parcial = f"Publicação Parcial #{sequencia_de_publicacao_do_consolidado} - {qtde_unidades} unidade(s)" if eh_parcial else f"Publicação Única {qtde_unidades} unidade(s)"
+                if publication_type == text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL:
+                    titulo_parcial = text_document_consolidado_pc.text_sequencial_with_quantity(publication_type=publication_type,
+                                                                                           sequency_number=sequencia_de_publicacao_do_consolidado,
+                                                                                           quantity_unities=qtde_unidades,
+                                                                                           quantity_name_singular="unidade",
+                                                                                           quantity_name_plural="unidade(s)")
+
+                if publication_type == text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE:
+                    titulo_parcial = text_document_consolidado_pc.text_with_quantity(
+                        publication_type=publication_type,
+                        quantity=qtde_unidades,
+                        quantity_name_singular="unidade",
+                        quantity_name_plural="unidade(s)"
+                    )
             else:
-                titulo_parcial = "Publicação Única"
+                titulo_parcial = text_document_consolidado_pc.text_with_type_document(publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE)
         else:
             pcs = PrestacaoConta.objects.filter(
                 periodo=periodo,
@@ -124,10 +146,24 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
             associacoes_do_consolidado = pcs.values_list("associacao_id", flat=True).distinct()
 
             if sequencia_de_publicacao > 0:
-                titulo_parcial = f"Publicação Parcial #{sequencia_de_publicacao} - {qtde_unidades} unidade(s)" if eh_parcial else f"Publicação Única {qtde_unidades} unidade(s)"
-            else:
-                titulo_parcial = "Publicação Única"
+                if publication_type == text_document_consolidado_pc.PUBLICATION_TYPE_PARTIAL:
+                    titulo_parcial = text_document_consolidado_pc.text_sequencial_with_quantity(publication_type=publication_type,
+                                                                                           sequency_number=sequencia_de_publicacao,
+                                                                                           quantity_unities=qtde_unidades,
+                                                                                           quantity_name_singular="unidade",
+                                                                                           quantity_name_plural="unidade(s)")
 
+                if publication_type == text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE:
+                    titulo_parcial = text_document_consolidado_pc.text_with_quantity(
+                        publication_type=publication_type,
+                        quantity=qtde_unidades,
+                        quantity_name_singular="unidade",
+                        quantity_name_plural="unidade(s)"
+                    )
+            else:
+                titulo_parcial = text_document_consolidado_pc.text_with_type_document(publication_type=text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE)
+
+    existe_lancamentos = TipoAcertoLancamentoService.checa_se_existe_lancamento_devolucao_ao_tesouro(periodo)
 
     dados = {
         "periodo_referencia": periodo.referencia if periodo.referencia else "",
@@ -135,6 +171,7 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
         "periodo_data_fim_realizacao_despesas": periodo.data_fim_realizacao_despesas if periodo.data_fim_realizacao_despesas else "",
         "titulo_parcial": titulo_parcial,
         "eh_parcial": eh_parcial,
+        "existe_lancamentos_devolucao_ao_tesouro": existe_lancamentos
     }
 
     tipos_de_conta = TipoConta.objects.all()
@@ -223,6 +260,29 @@ def retorna_informacoes_execucao_financeira_todas_as_contas(dre, periodo, consol
             dados['por_tipo_de_conta'] = objeto_tipo_de_conta
 
     return dados
+
+
+def total_devolucoes_ao_tesouro_sem_duplicidade(
+    dre,
+    periodo,
+    apenas_nao_publicadas=False,
+    consolidado_dre=None
+):
+    """Soma cada devolução uma vez, independentemente dos tipos de conta da despesa."""
+    filtros = {
+        'prestacao_conta__periodo': periodo,
+        'prestacao_conta__associacao__unidade__dre': dre,
+        'prestacao_conta__status__in': ['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA'],
+    }
+
+    if consolidado_dre:
+        filtros['prestacao_conta__consolidado_dre'] = consolidado_dre
+    elif apenas_nao_publicadas:
+        filtros['prestacao_conta__publicada'] = False
+
+    return DevolucaoAoTesouro.objects.filter(**filtros).aggregate(
+        total=Sum('valor')
+    )['total'] or 0
 
 
 def informacoes_execucao_financeira(dre, periodo, tipo_conta, apenas_nao_publicadas=False, consolidado_dre=None):
@@ -573,7 +633,7 @@ def get_status_label(status):
     elif status == 'APROVADA_RESSALVA':
         status_label = 'Aprovada com ressalvas'
     elif status == 'REPROVADA':
-        status_label = 'Reprovada'
+        status_label = 'Rejeitada'
     elif status == 'NAO_RECEBIDA':
         status_label = 'Não recebida'
     elif status == 'RECEBIDA':
@@ -1128,6 +1188,10 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
             prestacoes_de_conta_da_associacao__status__in=['APROVADA', 'APROVADA_RESSALVA', 'REPROVADA']
         )
 
+    recurso = periodo.recurso
+    habilita_exibicao_de_lauda = recurso.habilita_exibicao_de_lauda
+    text_document_consolidado_pc = TextDocumentConsolidadoPC(habilita_exibicao_de_lauda)
+
     for associacao in associacoes_da_dre.all():
 
         prestacao_conta = associacao.prestacoes_de_conta_da_associacao.filter(periodo=periodo).first()
@@ -1140,10 +1204,10 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
 
             if(consolidado_origem_retificacao.count() > 0 and consolidado_origem_retificacao[0].data_publicacao):
                 data_publicacao_consolidado_origem_retificacao = consolidado_origem_retificacao[0].data_publicacao.strftime("%d/%m/%Y")
-                referencia_consolidado = f"Retificação da publicação de {data_publicacao_consolidado_origem_retificacao}"
+                referencia_consolidado = f"Retificação {text_document_consolidado_pc.possessive()} de {data_publicacao_consolidado_origem_retificacao}"
 
         elif(not prestacao_conta.consolidado_dre.eh_parcial):
-            referencia_consolidado = f"Única"
+            referencia_consolidado = text_document_consolidado_pc.get_tranform_publication_type(text_document_consolidado_pc.PUBLICATION_TYPE_UNIQUE)
 
         else:
             referencia_consolidado = f"Parcial #{prestacao_conta.consolidado_dre.sequencia_de_publicacao}"
@@ -1152,9 +1216,9 @@ def informacoes_execucao_financeira_unidades_do_consolidado_dre(
         objeto_tipo_de_conta = []
 
         contas_da_associacao = associacao.contas.all()
- 
+
         recurso = periodo.recurso if periodo.recurso else None
- 
+
         if recurso:
             contas_da_associacao = ContaAssociacao.filter_by_recurso(contas_da_associacao, recurso)
 
@@ -1292,7 +1356,7 @@ def dashboard_sme(periodo, unificar_pcs_apresentadas_nao_recebidas = False):
             PrestacaoConta.STATUS_DEVOLVIDA: "Prestações de conta devolvidas para acertos",
             PrestacaoConta.STATUS_APROVADA: "Prestações de contas aprovadas",
             PrestacaoConta.STATUS_APROVADA_RESSALVA: "Prestações de contas aprovadas com ressalvas",
-            PrestacaoConta.STATUS_REPROVADA: "Prestações de contas reprovadas",
+            PrestacaoConta.STATUS_REPROVADA: "Prestações de contas rejeitadas",
             'TOTAL_UNIDADES': "Total de unidades educacionais",
         }
         dashboard.append(

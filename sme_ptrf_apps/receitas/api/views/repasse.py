@@ -1,3 +1,4 @@
+from amqp import NotFound
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
@@ -5,12 +6,13 @@ from rest_framework.viewsets import GenericViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import mixins, status
 from django.db.models import Q
+from rest_framework.exceptions import ValidationError
 
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComLeituraOuGravacao, PermissaoApiSME
 
 from ...models import Repasse
 from ...models.repasse import StatusRepasse
-from ....core.models import Periodo, TipoConta, Acao
+from ....core.models import Periodo, TipoConta, Acao, Recurso
 
 from ..serializers import RepasseSerializer, RepasseCreateSerializer, RepasseListSerializer
 from ....core.api.serializers import (
@@ -23,6 +25,7 @@ from ....core.api.serializers import (
 from ....core.api.utils.pagination import CustomPagination
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiTypes
 from ...models.repasse import STATUS_CHOICES
+from ....core.services import get_periodo_corte
 
 
 class RepasseViewSet(
@@ -96,6 +99,18 @@ class RepasseViewSet(
         if status is not None and status != "":
             qs = qs.filter(status=status)
 
+        recurso_uuid = self.request.query_params.get('recurso_uuid')
+        if recurso_uuid is not None and recurso_uuid != "":
+            try:
+                recurso = Recurso.objects.get(uuid=recurso_uuid)
+                qs = Repasse.filter_by_recurso(qs, recurso)
+            except Recurso.DoesNotExist:
+                raise NotFound({"mensagem": "Recurso não encontrado."})
+            except ValidationError:
+                raise ValidationError({"mensagem": "UUID de recurso inválido."})
+            except Exception:
+                raise ValidationError({"mensagem": "Erro ao processar a solicitação."})
+
         return qs
 
     def destroy(self, request, *args, **kwargs):
@@ -156,8 +171,37 @@ class RepasseViewSet(
     @action(detail=False, methods=['GET'], url_path='tabelas',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def tabelas(self, request):
-
         periodos_ordenados = Periodo.objects.all().order_by('-referencia')
+        recurso = getattr(self.request, 'recurso', None)
+
+        recurso_uuid = request.query_params.get('recurso_uuid')
+        if recurso_uuid is not None and recurso_uuid != "":
+            try:
+                recurso = Recurso.objects.get(uuid=recurso_uuid)
+                periodos_ordenados = Periodo.filter_by_recurso(periodos_ordenados, recurso)
+            except Recurso.DoesNotExist:
+                raise NotFound({"mensagem": "Recurso não encontrado."})
+
+        solicitacao_sme = self.request.query_params.get('solicitacao_sme', 'false').lower() == 'true'
+        if solicitacao_sme and recurso is not None:
+            periodo_corte_sme = get_periodo_corte(recurso=recurso)
+
+            if not periodo_corte_sme:
+                periodos_ordenados = periodos_ordenados.none()
+            else:
+                periodos_ordenados = periodos_ordenados.filter(
+                    data_inicio_realizacao_despesas__gte=periodo_corte_sme.data_inicio_realizacao_despesas
+                )
+
+        if recurso_uuid is not None and recurso_uuid != "":
+            result = {
+                "periodos": PeriodoSerializer(periodos_ordenados, many=True).data,
+                "tipos_contas": TipoContaSerializer(TipoConta.objects.filter(recurso=recurso), many=True).data,
+                "acoes": AcaoSerializer(Acao.objects.filter(recurso=recurso), many=True).data,
+                "status": Repasse.status_to_json()
+            }
+
+            return Response(result, status=status.HTTP_200_OK)
 
         result = {
             "periodos": PeriodoSerializer(periodos_ordenados, many=True).data,
@@ -180,6 +224,7 @@ class RepasseViewSet(
     def tabelas_por_associacao(self, request):
 
         associacao_uuid = request.query_params.get('associacao_uuid')
+        recurso_uuid = request.query_params.get('recurso_uuid')
 
         if associacao_uuid is None:
             erro = {
@@ -187,14 +232,29 @@ class RepasseViewSet(
                 'mensagem': 'É necessário enviar o uuid da associação (associacao_uuid) como parâmetro.'
             }
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
+        
+        if recurso_uuid is None:
+            erro = {
+                'erro': 'parametros_requerido',
+                'mensagem': 'É necessário enviar o uuid do recurso (recurso_uuid) como parâmetro.'
+            }
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        def get_valores_from(serializer, associacao_uuid):
+        def get_valores_from(serializer, associacao_uuid, recurso):
             valores = serializer.Meta.model.get_valores(user=request.user, associacao_uuid=associacao_uuid)
+            if valores:
+                # Filtrar pelo recurso através do relacionamento apropriado
+                valores = serializer.Meta.model.filter_by_recurso(valores, recurso)
             return serializer(valores, many=True).data if valores else []
 
+        try:
+            recurso = Recurso.objects.get(uuid=recurso_uuid)
+        except Recurso.DoesNotExist:
+            raise NotFound({"mensagem": "Recurso não encontrado."})
+
         result = {
-            'acoes_associacao': get_valores_from(AcaoAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid),
-            'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid),
+            'acoes_associacao': get_valores_from(AcaoAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid, recurso=recurso),
+            'contas_associacao': get_valores_from(ContaAssociacaoLookUpSerializer, associacao_uuid=associacao_uuid, recurso=recurso),
         }
 
         return Response(result)
