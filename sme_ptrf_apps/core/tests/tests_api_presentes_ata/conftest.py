@@ -78,3 +78,44 @@ def membro_associacao_presidente_valido(associacao):
         codigo_identificacao='12345',
         cpf='148.712.970-04',
     )
+
+
+@pytest.fixture
+def presente_ata_membro_com_data_inicio_no_cargo(ata_2020_1_teste):
+    return baker.make(
+        'Participante',
+        ata=ata_2020_1_teste,
+        identificacao="0001",
+        nome="Arnaldo",
+        cargo="Presidente",
+        membro=True,
+        data_inicio_no_cargo=date(2023, 1, 10),
+        vago=False,
+    )
+
+
+@pytest.fixture
+def presente_ata_membro_sem_data_inicio_no_cargo(ata_2020_1_teste):
+    return baker.make(
+        'Participante',
+        ata=ata_2020_1_teste,
+        identificacao="0002",
+        nome="Benedito",
+        cargo="Secretário",
+        membro=True,
+        vago=False,
+    )
+
+
+@pytest.fixture
+def presente_ata_membro_cargo_vago(ata_2020_1_teste):
+    return baker.make(
+        'Participante',
+        ata=ata_2020_1_teste,
+        identificacao="",
+        nome="",
+        cargo="Vogal",
+        membro=True,
+        data_inicio_no_cargo=date(2024, 3, 25),
+        vago=True,
+    )
