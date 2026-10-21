@@ -3,7 +3,7 @@ import { Given, When, Then } from 'cypress-cucumber-preprocessor/steps'
 Given('que possuo um token de acesso', function () {
   return cy.gerar_token().then((token) => {
     expect(token).to.exist
-    cy.wrap(token).as('token')
+    cy.wrap(token, { log: false }).as('token')
   })
 })
 
