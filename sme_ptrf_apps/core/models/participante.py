@@ -3,6 +3,9 @@ from django.db import models
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
+from waffle import get_waffle_flag_model
+
+from sme_ptrf_apps.mandatos.models import CargoComposicaoVacancia
 
 
 class Participante(ModeloBase):
@@ -13,6 +16,8 @@ class Participante(ModeloBase):
     nome = models.CharField('Nome', max_length=200, blank=True, default='')
     cargo = models.CharField('Cargo', max_length=200, blank=True, default='')
     membro = models.BooleanField('Membro ?', default=False)
+    data_inicio_no_cargo = models.DateField('Data de início no cargo', blank=True, null=True)
+    vago = models.BooleanField('Vago ?', default=False)
     conselho_fiscal = models.BooleanField('Pertence ao conselho fiscal ?', default=False)
     presente = models.BooleanField('Presente ?', default=True)
     professor_gremio = models.BooleanField('Professor do grêmio ?', default=False)
@@ -65,6 +70,10 @@ class Participante(ModeloBase):
     @staticmethod
     def ordenar_por_cargo(participante):
         from sme_ptrf_apps.mandatos.models import CargoComposicao
+
+        flags = get_waffle_flag_model()
+        if flags.objects.filter(name='historico-de-membros-v2', everyone=True).exists():
+            return CargoComposicaoVacancia.ordenar_por_cargo(participante)
 
         return CargoComposicao.ordenar_por_cargo(participante)
 
