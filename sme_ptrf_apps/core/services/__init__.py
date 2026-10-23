@@ -1,3 +1,4 @@
+# flake8: noqa
 from .conciliacao_services import (
     despesas_conciliadas_por_conta_e_acao_na_conciliacao,
     despesas_nao_conciliadas_por_conta_e_acao_no_periodo,
@@ -67,3 +68,4 @@ from .persistencia_dados_demo_financeiro_service import PersistenciaDadosDemoFin
 from .recuperacao_dados_persistindos_demo_financeiro_service import RecuperaDadosDemoFinanceiro
 from .prestacao_conta_service import PrestacaoContaService
 from .relacao_bens import RelacaoBensService
+from .alerta_pagina_service import AlertaPaginaService

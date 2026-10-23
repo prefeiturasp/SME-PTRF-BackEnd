@@ -1,4 +1,6 @@
+# flake8: noqa
 from .membro_associacao import RepresentacaoCargo, MembroEnum
 from .tags import StatusTag
 from .filtro_informacoes_associacao import FiltroInformacoesAssociacao
 from .filtro_informacoes_associacao_dre import FiltroInformacoesAssociacaoDre
+from .alerta_pagina_categoria import AlertaPaginaCategoriaChoices

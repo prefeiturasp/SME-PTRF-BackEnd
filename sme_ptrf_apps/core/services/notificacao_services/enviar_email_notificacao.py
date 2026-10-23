@@ -24,7 +24,11 @@ def enviar_email_nova_notificacao(usuario=None, titulo=None, descricao=None):
                 enviar_email_nova_notificacao_async(email=result['email'], username=usuario.username, nome=usuario.name,
                                                     titulo=titulo, descricao=descricao)
                 logger.info(f'Enviado email de notificação para o usuário: {usuario}')
+                return True
             except Exception as err:
                 logger.error("Erro ao enviar email: %s", str(err))
         else:
-            logger.warning(f'O usuário {usuario} não tem e-mail cadastrado no CoreSSO. E-mail de notificação não enviado.')
+            logger.warning(
+                f'O usuário {usuario} não tem e-mail cadastrado no CoreSSO. E-mail de notificação não enviado.')
+
+    return False

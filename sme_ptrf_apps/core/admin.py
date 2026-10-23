@@ -4,9 +4,13 @@ from django import forms
 from django.contrib.admin.widgets import FilteredSelectMultiple
 from django.forms import ModelForm, ValidationError
 from django.utils.timezone import localtime, make_aware, get_current_timezone
+from django.contrib.admin import helpers
+from django.template.response import TemplateResponse
+from .forms import AlertaPaginaForm, SimulacaoEnvioEmailForm
 from auditlog.models import LogEntry
 from auditlog.admin import LogEntryAdmin
 from rangefilter.filters import DateRangeFilter
+from sme_ptrf_apps.core.services.alerta_pagina_email_service import AlertaPaginaEmailService
 from sme_ptrf_apps.core.services.processa_cargas import processa_cargas
 from sme_ptrf_apps.core.services import associacao_pode_implantar_saldo
 from sme_ptrf_apps.core.tasks.regerar_demonstrativos_financeiros import regerar_demonstrativo_financeiro_async
@@ -40,7 +44,6 @@ from .models import (
     ComentarioAnalisePrestacao,
     PrevisaoRepasseSme,
     Censo,
-    ParametroFiqueDeOlhoPc,
     FiqueDeOlho,
     ModeloCarga,
     Ambiente,
@@ -67,7 +70,8 @@ from .models import (
     ItemDespesa,
     PrestacaoContaReprovadaNaoApresentacao,
     Recurso,
-    PeriodoInicialAssociacao
+    PeriodoInicialAssociacao,
+    AlertaPagina,
 )
 
 from .admin_filters import (
@@ -88,7 +92,6 @@ from django.db.models import Count
 from django.utils.safestring import mark_safe
 from django.utils.html import format_html
 
-# admin.site.register(ParametroFiqueDeOlhoPc)
 admin.site.register(ModeloCarga)
 admin.site.register(MotivoRejeicaoEncerramentoContaAssociacao)
 
@@ -2253,3 +2256,66 @@ class FiqueDeOlhoAdmin(admin.ModelAdmin):
         return obj.get_short_texto()
 
     texto_preview.short_description = "Texto"
+
+
+@admin.register(AlertaPagina)
+class AlertaPaginaAdmin(admin.ModelAdmin):
+    form = AlertaPaginaForm
+    list_display = (
+        "categoria",
+        "recurso",
+        "data_disparo",
+        "ativo",
+        "enviar_email"
+    )
+    list_filter = (
+        "categoria",
+        "recurso",
+        "data_disparo",
+        "ativo",
+        "enviar_email",
+    )
+    list_select_related = ("recurso",)
+    filter_horizontal = ("grupos_email",)
+    readonly_fields = ('ultimo_envio_email_em', 'criado_em', 'alterado_em')
+    actions = ('simular_envio_email',)
+
+    def has_simular_envio_permission(self, request):
+        return request.user.has_perm('core.change_alertapagina')
+
+    @admin.action(description='Simular envio de e-mail (dry-run)', permissions=['simular_envio'])
+    def simular_envio_email(self, request, queryset):
+        """Prévia dos e-mails dos alertas selecionados, sem enviar e-mails nem gravar dados."""
+        form = SimulacaoEnvioEmailForm(
+            request.POST if 'simular' in request.POST else None)
+        data_simulada = self._data_simulada(form)
+
+        resultados = []
+        if data_simulada:
+            alertas = (
+                queryset
+                .select_related('recurso')
+                .prefetch_related('grupos_email')
+            )
+            resultados = [
+                AlertaPaginaEmailService.simular_disparo_do_alerta(a, data_simulada)
+                for a in alertas
+            ]
+
+        contexto = {
+            **self.admin_site.each_context(request),
+            'title': 'Simular envio de e-mail',
+            'opts': self.model._meta,
+            'form': form,
+            'resultados': resultados,
+            'alertas_selecionados': queryset,
+            'action_checkbox_name': helpers.ACTION_CHECKBOX_NAME,
+        }
+        return TemplateResponse(request, 'admin/core/alertapagina/simular_envio_email.html', contexto)
+
+    @staticmethod
+    def _data_simulada(form):
+        from .services import AlertaPaginaService
+        if not form.is_bound:
+            return AlertaPaginaService.data_de_hoje()
+        return form.cleaned_data['data'] if form.is_valid() else None
