@@ -1,7 +1,6 @@
 # flake8: noqa
 from .concluir_prestacao_de_contas import concluir_prestacao_de_contas_async
 from .processa_carga import processa_carga_async
-from .log_teste_carga import log_teste_carga_async
 from .gerar_previa_demonstrativo_financeiro import gerar_previa_demonstrativo_financeiro_async
 from .gerar_previa_relacao_de_bens import gerar_previa_relacao_de_bens_async
 from .gerar_arquivo_ata import gerar_arquivo_ata_async
