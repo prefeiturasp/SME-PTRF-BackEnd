@@ -1,0 +1,47 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+  <a href="{% url 'admin:index' %}">Início</a> &rsaquo;
+  <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a> &rsaquo;
+  <a href="{% url opts|admin_urlname:'changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a> &rsaquo;
+  Simular envio de e-mail
+</div>
+{% endblock %}
+
+{% block content %}
+<p>Prévia do disparo de e-mails. <strong>Nenhum e-mail é enviado e nada é gravado.</strong></p>
+
+<form method="post">
+  {% csrf_token %}
+  {% for alerta in alertas_selecionados %}
+    <input type="hidden" name="{{ action_checkbox_name }}" value="{{ alerta.pk }}">
+  {% endfor %}
+  <input type="hidden" name="action" value="simular_envio_email">
+  <input type="hidden" name="simular" value="1">
+  {{ form.as_p }}
+  <input type="submit" class="default" value="Simular">
+  <a href="{% url opts|admin_urlname:'changelist' %}" class="default">Voltar</a>
+</form>
+
+{% for resultado in resultados %}
+<fieldset class="module aligned">
+  <h2>Alerta #{{ resultado.alerta.pk }}: {{ resultado.alerta }}</h2>
+  <div class="form-row">
+    <label>Situação:</label>
+    {% if resultado.dispara %}<strong>DISPARA</strong>{% else %}<strong>NÃO DISPARA</strong> — {{ resultado.motivo_nao_disparo }}{% endif %}
+  </div>
+  <div class="form-row"><label>Assunto:</label> {{ resultado.assunto }}</div>
+  <div class="form-row"><label>Grupos:</label> {{ resultado.grupos|join:", "|default:"-" }}</div>
+  <div class="form-row"><label>Destinatários elegíveis:</label> {{ resultado.total_destinatarios }}</div>
+  <div class="form-row"><label>Amostra de logins:</label> {{ resultado.amostra_logins|join:", "|default:"-" }}</div>
+  <div class="form-row">
+    <label>Corpo do e-mail:</label>
+    <div style="width: 400px; padding: 10px">
+      {{ resultado.corpo_html }}
+    </div>
+  </div>
+</fieldset>
+{% endfor %}
+{% endblock %}
