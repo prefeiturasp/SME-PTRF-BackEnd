@@ -1,3 +1,4 @@
+# flake8: noqa
 from .unidade_factory import *
 from .processo_associacao_factory import *
 from .periodo_factory import *
@@ -32,3 +33,4 @@ from .pdf_factory import *
 from .recurso_factory import *
 from .periodo_inicial_associacao_factory import *
 from .fique_de_olho_factory import *
+from .alerta_pagina_factory import *

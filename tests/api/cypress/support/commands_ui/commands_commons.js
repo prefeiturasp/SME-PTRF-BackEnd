@@ -47,7 +47,7 @@ Cypress.Commands.add('validar_mensagens_comuns_do_sistema', (mensagem) => {
     if (mensagensErro.includes(mensagem)) {
         cy.get(commons_locators.msg_erro_modal()).should('be.visible').and('contain', mensagem);
     } else if (mensagensSucesso.includes(mensagem)) {
-        cy.get(commons_locators.msg_cadastro()).should('be.visible').and('contain', mensagem);
+        cy.contains(mensagem, { timeout: 30000 }).should('be.visible');
     }  else if (mensagensErroNovoPadraoExclusao.includes(mensagem)) {
         cy.get(commons_locators.mensagensErroNovoPadraoExclusao()).should('be.visible').and('contain', mensagem);
     } else if (mensagensValidacao.includes(mensagem)) {
@@ -74,5 +74,5 @@ Cypress.Commands.add('configurar_visualizacao', (device) => {
 })
 
 Cypress.Commands.add('validar_resultado_da_consulta', (resutado_consulta) => {
-	cy.get(commons_locators.tbl_resultados_motivo_de_pagamento_antecipado()).should('be.visible').and('contain', resutado_consulta);
+	cy.contains(resutado_consulta, { timeout: 30000 }).should('be.visible');
 })

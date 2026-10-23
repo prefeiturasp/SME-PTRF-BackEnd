@@ -52,7 +52,7 @@ class Tipo_De_Documento_Localizadores {
 
   // tela Edição tipo documento
   btn_editar_tipo_documento = () => {
-    return '[data-qa="botao-editar-tipo-documento"]';
+    return "tbody tr button";
   };
 
   // tela exclusao tipo documento

@@ -89,3 +89,4 @@ from .prestacao_conta_reprovada_nao_apresentacao import PrestacaoContaReprovadaN
 from .recurso import Recurso
 from .periodo_inicial_associacao import PeriodoInicialAssociacao
 from .fique_de_olho import FiqueDeOlho, TipoTextoFiqueDeOlhoChoices
+from .alerta_pagina import AlertaPagina
