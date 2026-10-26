@@ -69,3 +69,4 @@ from .recuperacao_dados_persistindos_demo_financeiro_service import RecuperaDado
 from .prestacao_conta_service import PrestacaoContaService
 from .relacao_bens import RelacaoBensService
 from .alerta_pagina_service import AlertaPaginaService
+from .ata_membros_service import ServicoAtualizacaoMembrosAtas
