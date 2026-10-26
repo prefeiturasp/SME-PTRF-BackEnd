@@ -29,15 +29,15 @@ class ServicoAtualizacaoMembrosAtas:
         data_fim: date,
     ) -> None:
 
+        if data_inicio > data_fim:
+            return
+
         historico_v2 = cls.flags.objects.filter(
             name="historico-de-membros-v2",
             everyone=True,
         ).exists()
 
         if not historico_v2:
-            return
-
-        if data_inicio > data_fim:
             return
 
         atas = Ata.objects.filter(
