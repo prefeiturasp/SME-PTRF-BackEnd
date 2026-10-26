@@ -158,14 +158,18 @@ class ServicoAtualizacaoMembrosAtas:
 
             # Legado: limpa os campos textuais correspondentes
             if usa_campos_legados:
+                ata_presidente_reuniao = (ata.presidente_reuniao or "").lower()
+                ata_secretario_reuniao = (ata.secretario_reuniao or "").lower()
+
+                ata_cargo_presidente = (ata.cargo_presidente_reuniao or "").lower()
+                ata_cargo_secretaria = (ata.cargo_secretaria_reuniao or "").lower()
                 
                 for membro in membros:
                     membro_cargo = (membro.cargo or "").lower()
-                    ata_cargo_presidente = (ata.cargo_presidente_reuniao or "").lower()
-                    ata_cargo_secretaria = (ata.cargo_secretaria_reuniao or "").lower()
+                    membro_nome = (membro.nome or "").lower()
 
                     if (
-                        ata.presidente_reuniao == membro.nome
+                        ata_presidente_reuniao == membro_nome
                         and ata_cargo_presidente == membro_cargo
                     ):
                         ata.presidente_reuniao = ""
@@ -177,7 +181,7 @@ class ServicoAtualizacaoMembrosAtas:
                         ])
                     
                     if (
-                        ata.secretario_reuniao == membro.nome
+                        ata_secretario_reuniao == membro_nome
                         and ata_cargo_secretaria == membro_cargo
                     ):
                         ata.secretario_reuniao = ""
@@ -203,6 +207,7 @@ class ServicoAtualizacaoMembrosAtas:
 
         # Caso haja um não-membro com mesmo identificador, apaga-o.
         Participante.objects.filter(
+            ata=ata,
             membro=False,
             identificacao=codigo_identificacao
         ).delete()
