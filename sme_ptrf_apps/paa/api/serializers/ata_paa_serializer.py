@@ -225,6 +225,10 @@ class AtaPaaCreateSerializer(serializers.ModelSerializer):
         Returns:
             AtaPaa: Instância criada da ata do PAA.
         """
+        flags = get_waffle_flag_model()
+        v1_ativa = flags.objects.filter(name='historico-de-membros', everyone=True).exists()
+        v2_ativa = flags.objects.filter(name='historico-de-membros-v2', everyone=True).exists()
+
         with transaction.atomic():
             presentes_na_ata_paa = validated_data.pop('presentes_na_ata_paa', [])
             ata_paa = AtaPaa.objects.create(**validated_data)
@@ -233,8 +237,29 @@ class AtaPaaCreateSerializer(serializers.ModelSerializer):
             presidente_participante = None
             secretario_participante = None
 
-            flags = get_waffle_flag_model()
-            if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+            if v2_ativa:
+                for presente in presentes_na_ata_paa:
+                    presidente = presente.get('presidente_da_reuniao', False)
+                    secretario = presente.get('secretario_da_reuniao', False)
+                    ata_paa.composicao = None
+
+                    presente_sem_cargos = presente.copy()
+                    presente_sem_cargos.pop('presidente_da_reuniao', None)
+                    presente_sem_cargos.pop('secretario_da_reuniao', None)
+
+                    presente_sem_cargos['ata_paa'] = ata_paa.uuid
+                    presente_serializer = PresentesAtaPaaCreateSerializer(data=presente_sem_cargos)
+                    presente_serializer.is_valid(raise_exception=True)
+                    presente_object = presente_serializer.save()
+
+                    if presidente:
+                        presidente_participante = presente_object
+                    elif secretario:
+                        secretario_participante = presente_object
+
+                    presente_object.eh_conselho_fiscal()
+                    presentes_lista.append(presente_object)
+            elif v1_ativa:
                 if validated_data and validated_data.get("data_reuniao"):
                     servico_composicao = ServicoRecuperaComposicaoPorData()
                     composicao = servico_composicao.get_composicao_por_data_e_associacao(
@@ -311,8 +336,12 @@ class AtaPaaCreateSerializer(serializers.ModelSerializer):
             AtaPaa: Instância atualizada da ata do PAA.
         """
         self._checar_permite_edicao_ata(instance)
+        flags = get_waffle_flag_model()
+        v1_ativa = flags.objects.filter(name='historico-de-membros', everyone=True).exists()
+        v2_ativa = flags.objects.filter(name='historico-de-membros-v2', everyone=True).exists()
 
         with transaction.atomic():
+
             presentes_json = validated_data.pop('presentes_na_ata_paa', [])
 
             if instance.presidente_da_reuniao:
@@ -326,8 +355,29 @@ class AtaPaaCreateSerializer(serializers.ModelSerializer):
             presidente_participante = None
             secretario_participante = None
 
-            flags = get_waffle_flag_model()
-            if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+            if v2_ativa:
+                for presente in presentes_json:
+                    presidente = presente.get('presidente_da_reuniao', False)
+                    secretario = presente.get('secretario_da_reuniao', False)
+                    instance.composicao = None
+
+                    presente_sem_cargos = presente.copy()
+                    presente_sem_cargos.pop('presidente_da_reuniao', None)
+                    presente_sem_cargos.pop('secretario_da_reuniao', None)
+
+                    presente_sem_cargos['ata_paa'] = instance.uuid
+                    presente_serializer = PresentesAtaPaaCreateSerializer(data=presente_sem_cargos)
+                    presente_serializer.is_valid(raise_exception=True)
+                    presente_object = presente_serializer.save()
+
+                    if presidente or validated_data['presidente_reuniao'] == presente['nome']:
+                        presidente_participante = presente_object
+                    elif secretario or validated_data['secretario_reuniao'] == presente['nome']:
+                        secretario_participante = presente_object
+
+                    presente_object.eh_conselho_fiscal()
+                    presentes_lista.append(presente_object)
+            elif v1_ativa:
                 if validated_data and validated_data.get("data_reuniao"):
                     servico_composicao = ServicoRecuperaComposicaoPorData()
                     composicao = servico_composicao.get_composicao_por_data_e_associacao(
