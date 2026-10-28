@@ -8,7 +8,7 @@ pytestmark = pytest.mark.django_db
 
 def test_notificar_deve_enviar_email(usuario_notificavel, monkeypatch):
     monkeypatch.setenv('SERVER_NAME', 'sig-escola.sme.prefeitura.sp.gov.br')
-    path = 'sme_ptrf_apps.core.services.notificacao_services.enviar_email_notificacao.enviar_email_nova_notificacao'
+    path = 'sme_ptrf_apps.core.services.notificacao_services.enviar_email_notificacao.enviar_email_nova_notificacao_v2'
 
     with patch(path) as mock_enviar_email:
         Notificacao.notificar(
@@ -26,7 +26,7 @@ def test_notificar_deve_enviar_email(usuario_notificavel, monkeypatch):
 
 def test_nao_notificar_deve_enviar_email_se_estiver_fora_de_ambiente_de_producao(usuario_notificavel, monkeypatch):
     monkeypatch.setenv('SERVER_NAME', 'um_server_name_qualquer')
-    path = 'sme_ptrf_apps.core.services.notificacao_services.enviar_email_notificacao.enviar_email_nova_notificacao'
+    path = 'sme_ptrf_apps.core.services.notificacao_services.enviar_email_notificacao.enviar_email_nova_notificacao_v2'
 
     with patch(path) as mock_enviar_email:
         Notificacao.notificar(
