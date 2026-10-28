@@ -65,7 +65,7 @@ def test_action_data_invalida_nao_simula(cliente_admin, alerta):
 def test_action_nao_envia_nem_grava(cliente_admin, alerta, criar_usuario, grupo, unidade_ue):
     criar_usuario(grupo, [unidade_ue])
 
-    with patch(f'{SERVICO}.enviar_email_nova_notificacao') as mock_envio:
+    with patch(f'{SERVICO}.enviar_email_nova_notificacao_v2') as mock_envio:
         _postar(cliente_admin, alerta, simular=1, data='2026-11-15')
 
     mock_envio.assert_not_called()

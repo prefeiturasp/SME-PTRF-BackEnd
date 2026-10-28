@@ -34,3 +34,4 @@ from .recurso_factory import *
 from .periodo_inicial_associacao_factory import *
 from .fique_de_olho_factory import *
 from .alerta_pagina_factory import *
+from .recebimento_email_alerta_pagina_factory import *
