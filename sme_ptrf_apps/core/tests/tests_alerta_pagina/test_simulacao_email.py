@@ -109,7 +109,7 @@ def test_simulacao_usa_amostra_padrao_de_cinco_logins(alerta, criar_usuario, gru
 def test_simulacao_nao_envia_nem_grava(alerta, criar_usuario, grupo, unidade_ue):
     criar_usuario(grupo, [unidade_ue])
 
-    with patch(f'{SERVICO}.enviar_email_nova_notificacao') as mock_envio, \
+    with patch(f'{SERVICO}.enviar_email_nova_notificacao_v2') as mock_envio, \
             patch(f'{TASK}.enviar_email_alerta_pagina_usuario_async.delay') as mock_delay:
         _simular(alerta)
 

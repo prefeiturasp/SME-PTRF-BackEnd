@@ -1,6 +1,6 @@
 import logging
 from sme_ptrf_apps.users.services import SmeIntegracaoService, SmeIntegracaoException
-from sme_ptrf_apps.users.tasks import enviar_email_nova_notificacao_async
+from sme_ptrf_apps.users.tasks import enviar_email_nova_notificacao_async, enviar_email_nova_notificacao_v2_async
 
 from django.contrib.auth import get_user_model
 
@@ -22,6 +22,31 @@ def enviar_email_nova_notificacao(usuario=None, titulo=None, descricao=None):
         if result['email']:
             try:
                 enviar_email_nova_notificacao_async(email=result['email'], username=usuario.username, nome=usuario.name,
+                                                    titulo=titulo, descricao=descricao)
+                logger.info(f'Enviado email de notificação para o usuário: {usuario}')
+                return True
+            except Exception as err:
+                logger.error("Erro ao enviar email: %s", str(err))
+        else:
+            logger.warning(
+                f'O usuário {usuario} não tem e-mail cadastrado no CoreSSO. E-mail de notificação não enviado.')
+
+    return False
+
+
+def enviar_email_nova_notificacao_v2(usuario=None, titulo=None, descricao=None):
+    logger.info(f'Iniciando envio de email nova notificação service para o usuário: {usuario}')
+
+    try:
+        result = SmeIntegracaoService.informacao_usuario_sgp(usuario.username)
+    except SmeIntegracaoException as err:
+        result = None
+        logger.info("SmeIntegracaoService.informacao_usuario_sgp: Não foi possível enviar e-mail: %s", err)
+
+    if result:
+        if result['email']:
+            try:
+                enviar_email_nova_notificacao_v2_async(email=result['email'], username=usuario.username, nome=usuario.name,
                                                     titulo=titulo, descricao=descricao)
                 logger.info(f'Enviado email de notificação para o usuário: {usuario}')
                 return True

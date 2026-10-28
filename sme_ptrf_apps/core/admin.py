@@ -72,6 +72,7 @@ from .models import (
     Recurso,
     PeriodoInicialAssociacao,
     AlertaPagina,
+    RecebimentoEmailAlertaPagina,
 )
 
 from .admin_filters import (
@@ -2319,3 +2320,14 @@ class AlertaPaginaAdmin(admin.ModelAdmin):
         if not form.is_bound:
             return AlertaPaginaService.data_de_hoje()
         return form.cleaned_data['data'] if form.is_valid() else None
+
+
+@admin.register(RecebimentoEmailAlertaPagina)
+class RecebimentoEmailAlertaPaginaAdmin(admin.ModelAdmin):
+    list_display = ('usuario', 'alerta', 'data_ocorrencia', 'enviado_em')
+    readonly_fields = ('enviado_em', 'criado_em', 'alterado_em')
+    list_filter = (
+        'data_ocorrencia',
+        'enviado_em',
+    )
+    

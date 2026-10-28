@@ -12,9 +12,9 @@ from sme_ptrf_apps.users.tasks.enviar_email_nova_notificacao import (
     TEMPLATE_EMAIL_NOVA_NOTIFICACAO,
     contexto_email_nova_notificacao,
 )
-from sme_ptrf_apps.core.models import AlertaPagina, Unidade
+from sme_ptrf_apps.core.models import AlertaPagina, Unidade, RecebimentoEmailAlertaPagina
 from sme_ptrf_apps.core.services.alerta_pagina_service import AlertaPaginaService
-from sme_ptrf_apps.core.services.notificacao_services import enviar_email_nova_notificacao
+from sme_ptrf_apps.core.services.notificacao_services import enviar_email_nova_notificacao_v2
 
 logger = logging.getLogger(__name__)
 User = get_user_model()
@@ -96,7 +96,7 @@ class AlertaPaginaEmailService:
         ).distinct()
 
     @classmethod
-    def registrar_disparos_do_dia(cls, hoje: date | None = None) -> list[tuple[int, int]]:
+    def registrar_disparos_do_dia(cls, hoje: date | None = None) -> list[tuple[int, int, str]]:
         hoje = hoje or AlertaPaginaService.data_de_hoje()
         disparos = []
 
@@ -111,37 +111,81 @@ class AlertaPaginaEmailService:
             for alerta in alertas:
                 ocorrencia, motivo_nao_disparo = cls.avaliar_disparo(alerta, hoje)
 
-                if motivo_nao_disparo:
+                if motivo_nao_disparo or ocorrencia is None:
                     continue
 
                 alerta.ultimo_envio_email_em = ocorrencia
                 alerta.save(update_fields=['ultimo_envio_email_em'])
 
-                disparos.extend((alerta.pk, usuario_id) for usuario_id in
+                disparos.extend((alerta.pk, usuario_id, ocorrencia.isoformat()) for usuario_id in
                                 cls.usuarios_destinatarios(alerta).values_list('id', flat=True))
             logger.info(f'{len(disparos)} alertas de email disparados para fila de envio.')
         return disparos
 
     @classmethod
-    def enviar_para_usuario(cls, alerta_id: int, usuario_id) -> bool:
-        """Enviar o e-mail do alerta para um usuário. Retorna ``False`` se alerta ou usuário não existirem."""
+    def enviar_para_usuario(
+        cls,
+        alerta_id: int,
+        usuario_id: int,
+        data_ocorrencia: date | str | None = None,
+    ) -> bool:
+        """Envia e-mail apenas se o usuário ainda não recebeu
+        o alerta na ocorrência informada.
+        """
         try:
-            alerta: AlertaPagina = AlertaPagina.objects.get(id=alerta_id)
-            usuario = User.objects.get(id=usuario_id)
-            # TODO: Checar se usuário/alerta já foram enviados na tabela de logs de envios
+            with transaction.atomic():
+                # Serializa envios concorrentes para o mesmo usuário.
+                usuario = User.objects.select_for_update().get(
+                    pk=usuario_id
+                )
+                alerta = AlertaPagina.objects.get(pk=alerta_id)
+
+                if isinstance(data_ocorrencia, str):
+                    data_ocorrencia = date.fromisoformat(data_ocorrencia)
+
+                ocorrencia = (
+                    data_ocorrencia
+                    or alerta.ultimo_envio_email_em
+                    or alerta.data_disparo
+                )
+
+                ja_enviado = RecebimentoEmailAlertaPagina.objects.filter(
+                    alerta=alerta,
+                    usuario=usuario,
+                    data_ocorrencia=ocorrencia,
+                ).exists()
+
+                if ja_enviado:
+                    logger.info(
+                        "Alerta %s já enviado ao usuário %s "
+                        "na ocorrência %s.",
+                        alerta_id,
+                        usuario_id,
+                        ocorrencia,
+                    )
+                    return False
+
+                enviado = enviar_email_nova_notificacao_v2(
+                    usuario=usuario,
+                    titulo=cls.assunto_do_email(alerta),
+                    descricao=cls.descricao_do_email(alerta),
+                )
+
+                if enviado:
+                    RecebimentoEmailAlertaPagina.objects.create(
+                        alerta=alerta,
+                        usuario=usuario,
+                        data_ocorrencia=ocorrencia,
+                    )
+
+                return bool(enviado)
+
         except (AlertaPagina.DoesNotExist, User.DoesNotExist):
-            logger.warning('Alerta %s ou usuário %s não encontrado para envio de e-mail.', alerta_id, usuario_id)
+            logger.warning(
+                "Alerta %s ou usuário %s não encontrado para o envio de e-mail.",
+                alerta_id,
+                usuario_id,
+            )
             return False
 
-        enviado = enviar_email_nova_notificacao(
-            usuario=usuario,
-            titulo=cls.assunto_do_email(alerta),
-            descricao=cls.descricao_do_email(alerta),
-        )
 
-        if enviado:
-            # TODO: Salvar em uma nova tabela de alertas enviados
-            # a ideia é contornar uma possível queda do serviço Celery e garantir a entrega
-            ...
-
-        return bool(enviado)
