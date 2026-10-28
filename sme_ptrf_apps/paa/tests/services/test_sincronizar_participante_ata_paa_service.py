@@ -446,6 +446,87 @@ def test_remove_nao_membro_pelo_nome_quando_ocupante_nao_tem_rf_nem_cpf(composic
     assert not ParticipanteAtaPaa.objects.filter(ata_paa=ata, membro=False).exists()
 
 
+@pytest.mark.parametrize('nome_na_ata', [
+    'PEDRO SILVA',
+    'pedro silva',
+    'pEdRo SiLvA',
+    '  Pedro Silva  ',
+    ' PEDRO SILVA',
+])
+def test_remove_nao_membro_pelo_nome_ignorando_maiusculas_e_espacos_nas_pontas(
+        composicao_vacancia, ocupante, nome_na_ata):
+    _registro(composicao_vacancia, INICIO_MANDATO, FIM_MANDATO, ocupante)
+    ata = _ata(composicao_vacancia.associacao, date(2026, 5, 10))
+    ParticipanteAtaPaaFactory(ata_paa=ata, membro=False, identificacao='5555555', nome=nome_na_ata)
+
+    _sincroniza(composicao_vacancia)
+
+    assert not ParticipanteAtaPaa.objects.filter(ata_paa=ata, membro=False).exists()
+
+
+def test_remove_nao_membro_pelo_nome_com_acento_em_caixa_diferente(composicao_vacancia):
+    ocupante = OcupanteCargoFactory(nome='João Ângelo', codigo_identificacao='', cpf_responsavel='')
+    _registro(composicao_vacancia, INICIO_MANDATO, FIM_MANDATO, ocupante)
+    ata = _ata(composicao_vacancia.associacao, date(2026, 5, 10))
+    ParticipanteAtaPaaFactory(ata_paa=ata, membro=False, identificacao='', nome='JOÃO ÂNGELO')
+
+    _sincroniza(composicao_vacancia)
+
+    assert not ParticipanteAtaPaa.objects.filter(ata_paa=ata, membro=False).exists()
+
+
+def test_remove_nao_membro_quando_nome_do_ocupante_tem_espacos_nas_pontas(composicao_vacancia):
+    ocupante = OcupanteCargoFactory(nome='  Ana Souza ', codigo_identificacao='', cpf_responsavel='')
+    _registro(composicao_vacancia, INICIO_MANDATO, FIM_MANDATO, ocupante)
+    ata = _ata(composicao_vacancia.associacao, date(2026, 5, 10))
+    ParticipanteAtaPaaFactory(ata_paa=ata, membro=False, identificacao='', nome='ANA SOUZA')
+
+    _sincroniza(composicao_vacancia)
+
+    assert not ParticipanteAtaPaa.objects.filter(ata_paa=ata, membro=False).exists()
+
+
+@pytest.mark.parametrize('nome_na_ata', [
+    'Pedro Silva Junior',
+    'Pedro',
+    'Pedro  Silva',
+    'Pédro Silva',
+])
+def test_nao_remove_nao_membro_com_nome_diferente_do_ocupante(composicao_vacancia, ocupante, nome_na_ata):
+    _registro(composicao_vacancia, INICIO_MANDATO, FIM_MANDATO, ocupante)
+    ata = _ata(composicao_vacancia.associacao, date(2026, 5, 10))
+    convidado = ParticipanteAtaPaaFactory(ata_paa=ata, membro=False, identificacao='5555555', nome=nome_na_ata)
+
+    _sincroniza(composicao_vacancia)
+
+    assert ParticipanteAtaPaa.objects.filter(id=convidado.id).exists()
+
+
+def test_ocupante_com_nome_so_de_espacos_nao_remove_nao_membro_sem_nome(composicao_vacancia):
+    ocupante = OcupanteCargoFactory(nome='   ', codigo_identificacao='', cpf_responsavel='')
+    _registro(composicao_vacancia, INICIO_MANDATO, FIM_MANDATO, ocupante)
+    ata = _ata(composicao_vacancia.associacao, date(2026, 5, 10))
+    convidado = ParticipanteAtaPaaFactory(ata_paa=ata, membro=False, identificacao='', nome='')
+
+    _sincroniza(composicao_vacancia)
+
+    assert ParticipanteAtaPaa.objects.filter(id=convidado.id).exists()
+
+
+def test_transfere_presidente_do_nao_membro_removido_pelo_nome_em_caixa_alta(composicao_vacancia, ocupante):
+    _registro(composicao_vacancia, INICIO_MANDATO, FIM_MANDATO, ocupante)
+    ata = _ata(composicao_vacancia.associacao, date(2026, 5, 10))
+    nao_membro = ParticipanteAtaPaaFactory(ata_paa=ata, membro=False, identificacao='5555555', nome='PEDRO SILVA')
+    ata.presidente_da_reuniao = nao_membro
+    ata.save()
+
+    _sincroniza(composicao_vacancia)
+
+    ata.refresh_from_db()
+    assert ata.presidente_da_reuniao == _participante_do_cargo(ata)
+    assert not ParticipanteAtaPaa.objects.filter(id=nao_membro.id).exists()
+
+
 def test_nao_remove_membro_de_outro_cargo_com_mesma_identificacao(composicao_vacancia, ocupante):
     _registro(composicao_vacancia, INICIO_MANDATO, FIM_MANDATO, ocupante)
     ata = _ata(composicao_vacancia.associacao, date(2026, 5, 10))

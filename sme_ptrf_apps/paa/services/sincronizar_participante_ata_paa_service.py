@@ -1,6 +1,7 @@
 from datetime import date
 
 from django.db.models import Q
+from django.db.models.functions import Trim
 
 from sme_ptrf_apps.paa.models.ata_paa import AtaPaa
 from sme_ptrf_apps.paa.models.participante_ata_paa import ParticipanteAtaPaa
@@ -156,19 +157,27 @@ class SincronizarParticipanteAtaPaaService:
 
         Se o registro removido era o presidente ou secretário da reunião, o vínculo é
         transferido para o participante do cargo.
+
+        O nome é comparado sem diferenciar maiúsculas/minúsculas e ignorando espaços nas
+        pontas, já que nas atas ele pode vir da API do servidor (caixa alta) ou digitado.
         """
         identificacoes = [i for i in (ocupante.codigo_identificacao, ocupante.cpf_responsavel) if i]
+        nome_ocupante = (ocupante.nome or '').strip()
 
         criterios = Q()
         if identificacoes:
             criterios |= Q(identificacao__in=identificacoes)
-        if ocupante.nome:
-            criterios |= Q(nome=ocupante.nome)
+        if nome_ocupante:
+            criterios |= Q(nome_sem_espacos__iexact=nome_ocupante)
 
         if not criterios:
             return
 
-        nao_membros = ata_paa.presentes_na_ata_paa.filter(criterios, membro=False)
+        nao_membros = (
+            ata_paa.presentes_na_ata_paa
+            .annotate(nome_sem_espacos=Trim('nome'))
+            .filter(criterios, membro=False)
+        )
         ids_nao_membros = set(nao_membros.values_list('id', flat=True))
 
         if not ids_nao_membros:
@@ -180,7 +189,7 @@ class SincronizarParticipanteAtaPaaService:
             ata_paa.secretario_da_reuniao = participante
 
         ata_paa.save(update_fields=['presidente_da_reuniao', 'secretario_da_reuniao'])
-        nao_membros.delete()
+        ata_paa.presentes_na_ata_paa.filter(id__in=ids_nao_membros).delete()
 
     @staticmethod
     def _dados_participante(registro: CargoComposicaoVacancia) -> dict:

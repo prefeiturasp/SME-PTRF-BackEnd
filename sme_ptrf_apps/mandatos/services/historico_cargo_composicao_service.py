@@ -53,6 +53,24 @@ class ServicoHistoricoCargoComposicao:
         )
 
     @staticmethod
+    def _atualizar_atas_paa(
+        composicao_vacancia,
+        cargo_associacao,
+        data_inicio,
+        data_fim,
+    ):
+        from sme_ptrf_apps.paa.services.sincronizar_participante_ata_paa_service import (
+            SincronizarParticipanteAtaPaaService,
+        )
+
+        SincronizarParticipanteAtaPaaService.sincroniza_participante_nas_atas_paa(
+            composicao_vacancia=composicao_vacancia,
+            cargo_associacao=cargo_associacao,
+            data_inicio=data_inicio,
+            data_fim=data_fim,
+        )
+
+    @staticmethod
     def get_or_create_composicao_vacancia(associacao: Associacao, mandato: Mandato) -> ComposicaoVacancia:
         """Retorna a ComposicaoVacancia do par (associacao, mandato), criando-a se não existir."""
         with transaction.atomic():
@@ -277,13 +295,7 @@ class ServicoHistoricoCargoComposicao:
             data_fim=mandato.data_final,
         )
 
-        # Atas com reunião a partir da data entrada e menor que a data saída passam a exibir
-        # o cargo com o novo registro
-        # import local: paa.services importa users.services, que importa mandatos.services (ciclo)
-        from sme_ptrf_apps.paa.services.sincronizar_participante_ata_paa_service import (
-            SincronizarParticipanteAtaPaaService,
-        )
-        SincronizarParticipanteAtaPaaService.sincroniza_participante_nas_atas_paa(
+        cls._atualizar_atas_paa(
             composicao_vacancia=novo_registro.composicao,
             cargo_associacao=novo_registro.cargo_associacao,
             data_inicio=novo_registro.data_inicio_no_cargo,
@@ -337,12 +349,7 @@ class ServicoHistoricoCargoComposicao:
             data_fim=mandato.data_final,
         )
 
-        # Atas com reunião a partir da saída passam a exibir o cargo como vago
-        # import local: paa.services importa users.services, que importa mandatos.services (ciclo)
-        from sme_ptrf_apps.paa.services.sincronizar_participante_ata_paa_service import (
-            SincronizarParticipanteAtaPaaService,
-        )
-        SincronizarParticipanteAtaPaaService.sincroniza_participante_nas_atas_paa(
+        cls._atualizar_atas_paa(
             composicao_vacancia=novo_registro_vago.composicao,
             cargo_associacao=novo_registro_vago.cargo_associacao,
             data_inicio=novo_registro_vago.data_inicio_no_cargo,
@@ -404,15 +411,10 @@ class ServicoHistoricoCargoComposicao:
             data_fim=mandato.data_final,
         )
 
-        # Atas com reunião a partir da entrada cancelada voltam a exibir quem estava antes (ou vago)
-        # import local: paa.services importa users.services, que importa mandatos.services (ciclo)
-        from sme_ptrf_apps.paa.services.sincronizar_participante_ata_paa_service import (
-            SincronizarParticipanteAtaPaaService,
-        )
-        SincronizarParticipanteAtaPaaService.sincroniza_participante_nas_atas_paa(
+        cls._atualizar_atas_paa(
             composicao_vacancia=cargo_composicao_vacancia.composicao,
             cargo_associacao=cargo_composicao_vacancia.cargo_associacao,
-            data_inicio=data_inicio_entrada_cancelada,
+            data_inicio=data_inicio_cancelada,
             data_fim=mandato.data_final,
         )
 
@@ -465,12 +467,7 @@ class ServicoHistoricoCargoComposicao:
             data_fim=mandato.data_final,
         )
 
-        # Atas com reunião no período que estava vago voltam a exibir o ocupante
-        # import local: paa.services importa users.services, que importa mandatos.services (ciclo)
-        from sme_ptrf_apps.paa.services.sincronizar_participante_ata_paa_service import (
-            SincronizarParticipanteAtaPaaService,
-        )
-        SincronizarParticipanteAtaPaaService.sincroniza_participante_nas_atas_paa(
+        cls._atualizar_atas_paa(
             composicao_vacancia=cargo_composicao_vacancia.composicao,
             cargo_associacao=cargo_composicao_vacancia.cargo_associacao,
             data_inicio=data_inicio_vacancia_removida,
