@@ -19,6 +19,7 @@ from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (
 from sme_ptrf_apps.utils.built_in_custom import get_recursive_attr
 from sme_ptrf_apps.core.models.ambiente import Ambiente
 from sme_ptrf_apps.core.models.periodo import Periodo
+from sme_ptrf_apps.core.models.recurso import Recurso
 
 
 CABECALHO_RECEITA = [
@@ -159,7 +160,7 @@ class ExportacoesDadosCreditosService:
                 'data_inicio_realizacao_despesas': p.data_inicio_realizacao_despesas,
                 'data_fim_realizacao_despesas': p.data_fim_realizacao_despesas,
                 'referencia': p.referencia,
-                'recurso': p.recurso_id
+                'recurso': str(p.recurso_id),
             }
 
         return periodos_dict
@@ -167,6 +168,8 @@ class ExportacoesDadosCreditosService:
     def exporta_credito_csv(self) -> BinaryIO:
         linha = []
         periodos_dict = self.obtem_todos_periodos()
+        recurso_legado = Recurso.objects.filter(legado=True).first()
+
         with NamedTemporaryFile(
             mode="r+",
             newline='',
@@ -240,7 +243,15 @@ class ExportacoesDadosCreditosService:
                         receita = instance
                         referencia = ""
 
-                        if receita and receita.data:
+                        recurso = (
+                            get_recursive_attr(
+                                instance,
+                                'conta_associacao__tipo_conta__recurso__id'
+                            )
+                            or str(recurso_legado.id)
+                        )
+
+                        if receita and receita.data and recurso:
                             data_transacao = receita.data
 
                             periodo_filtrado = next(
@@ -248,11 +259,10 @@ class ExportacoesDadosCreditosService:
                                     periodo
                                     for periodo in periodos_dict.values()
                                     if (
-                                        periodo['data_inicio_realizacao_despesas'] <= data_transacao
-                                        and (
-                                            periodo['data_fim_realizacao_despesas'] is None
-                                            or periodo['data_fim_realizacao_despesas'] >= data_transacao
-                                        )
+                                        periodo['recurso'] == str(recurso)
+                                        and periodo['data_inicio_realizacao_despesas']
+                                        <= data_transacao
+                                        <= periodo['data_fim_realizacao_despesas']
                                     )
                                 ),
                                 None
