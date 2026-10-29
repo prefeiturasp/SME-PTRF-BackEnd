@@ -370,9 +370,9 @@ class AtaPaaCreateSerializer(serializers.ModelSerializer):
                     presente_serializer.is_valid(raise_exception=True)
                     presente_object = presente_serializer.save()
 
-                    if presidente or validated_data['presidente_reuniao'] == presente['nome']:
+                    if presidente:
                         presidente_participante = presente_object
-                    elif secretario or validated_data['secretario_reuniao'] == presente['nome']:
+                    elif secretario:
                         secretario_participante = presente_object
 
                     presente_object.eh_conselho_fiscal()
