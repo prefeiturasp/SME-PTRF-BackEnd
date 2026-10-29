@@ -53,6 +53,24 @@ class ServicoHistoricoCargoComposicao:
         )
 
     @staticmethod
+    def _atualizar_atas_paa(
+        composicao_vacancia,
+        cargo_associacao,
+        data_inicio,
+        data_fim,
+    ):
+        from sme_ptrf_apps.paa.services.sincronizar_participante_ata_paa_service import (
+            SincronizarParticipanteAtaPaaService,
+        )
+
+        SincronizarParticipanteAtaPaaService.sincroniza_participante_nas_atas_paa(
+            composicao_vacancia=composicao_vacancia,
+            cargo_associacao=cargo_associacao,
+            data_inicio=data_inicio,
+            data_fim=data_fim,
+        )
+
+    @staticmethod
     def get_or_create_composicao_vacancia(associacao: Associacao, mandato: Mandato) -> ComposicaoVacancia:
         """Retorna a ComposicaoVacancia do par (associacao, mandato), criando-a se não existir."""
         with transaction.atomic():
@@ -277,6 +295,13 @@ class ServicoHistoricoCargoComposicao:
             data_fim=mandato.data_final,
         )
 
+        cls._atualizar_atas_paa(
+            composicao_vacancia=novo_registro.composicao,
+            cargo_associacao=novo_registro.cargo_associacao,
+            data_inicio=novo_registro.data_inicio_no_cargo,
+            data_fim=novo_registro.data_fim_no_cargo,
+        )
+
         return novo_registro
 
     @classmethod
@@ -302,7 +327,7 @@ class ServicoHistoricoCargoComposicao:
 
         # Sempre cria uma vacância aberta (inicia no dia seguinte ao fim da vacância anterior)
         data_inicio_vacancia_aberta = data_fim + timedelta(days=1)
-        CargoComposicaoVacancia.objects.create(
+        novo_registro_vago = CargoComposicaoVacancia.objects.create(
             composicao=cargo_composicao_vacancia.composicao,
             ocupante_do_cargo=None,  # (representa o vago)
             cargo_associacao=cargo_composicao_vacancia.cargo_associacao,
@@ -324,6 +349,13 @@ class ServicoHistoricoCargoComposicao:
             data_fim=mandato.data_final,
         )
 
+        cls._atualizar_atas_paa(
+            composicao_vacancia=novo_registro_vago.composicao,
+            cargo_associacao=novo_registro_vago.cargo_associacao,
+            data_inicio=novo_registro_vago.data_inicio_no_cargo,
+            data_fim=novo_registro_vago.data_fim_no_cargo,
+        )
+
         return cargo_composicao_vacancia
 
     @classmethod
@@ -335,6 +367,9 @@ class ServicoHistoricoCargoComposicao:
         (ocupante substituído ou vacância) ao estado anterior a esta entrada.
         """
         mandato = cargo_composicao_vacancia.composicao.mandato
+
+        # a timeline só muda a partir do início da entrada cancelada
+        data_inicio_entrada_cancelada = cargo_composicao_vacancia.data_inicio_no_cargo
 
         # reaproveita a mesma checagem de "é o vigente"
         ValidatorSaidaOcupanteVigente.validar(cargo_composicao_vacancia)
@@ -376,6 +411,13 @@ class ServicoHistoricoCargoComposicao:
             data_fim=mandato.data_final,
         )
 
+        cls._atualizar_atas_paa(
+            composicao_vacancia=cargo_composicao_vacancia.composicao,
+            cargo_associacao=cargo_composicao_vacancia.cargo_associacao,
+            data_inicio=data_inicio_cancelada,
+            data_fim=mandato.data_final,
+        )
+
     @classmethod
     @transaction.atomic
     def cancelar_saida(cls, cargo_composicao_vacancia: CargoComposicaoVacancia) -> CargoComposicaoVacancia:
@@ -395,6 +437,8 @@ class ServicoHistoricoCargoComposicao:
             cargo_composicao_vacancia.data_fim_no_cargo
             + timedelta(days=1)
         )
+        # a timeline só muda no período que estava vago (dia seguinte à saída em diante)
+        data_inicio_vacancia_removida = cargo_composicao_vacancia.data_fim_no_cargo + timedelta(days=1)
 
         # Remove a vacancia aberta associada - se os validators passaram então não há sucessor,
         # então, se existir vaga para esse cargo só pode ser a criada por essa saída.
@@ -420,6 +464,13 @@ class ServicoHistoricoCargoComposicao:
             composicao_vacancia=cargo_composicao_vacancia.composicao,
             cargo_associacao=cargo_composicao_vacancia.cargo_associacao,
             data_inicio=data_inicio_alteracao,
+            data_fim=mandato.data_final,
+        )
+
+        cls._atualizar_atas_paa(
+            composicao_vacancia=cargo_composicao_vacancia.composicao,
+            cargo_associacao=cargo_composicao_vacancia.cargo_associacao,
+            data_inicio=data_inicio_vacancia_removida,
             data_fim=mandato.data_final,
         )
 

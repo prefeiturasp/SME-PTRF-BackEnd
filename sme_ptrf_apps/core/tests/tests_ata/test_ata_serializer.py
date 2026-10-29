@@ -146,3 +146,78 @@ def test_update_serializer_remove_campos_quando_flag_desativada(ata_prestacao_co
         
         # Verifica que a ata foi atualizada corretamente
         assert ata == ata_prestacao_conta_iniciada
+
+
+FLAGS_HISTORICO_MEMBROS_V2 = pytest.mark.parametrize('flags_ativas', [
+    ['flag_historico_membros_v2'],
+    ['flag_historico_membros', 'flag_historico_membros_v2'],
+], ids=['somente_v2', 'v1_e_v2_prioriza_v2'])
+
+
+@FLAGS_HISTORICO_MEMBROS_V2
+def test_create_serializer_com_flag_historico_membros_v2(
+        request, flags_ativas, ata_prestacao_conta_iniciada, presentes_ata_com_presidente_e_secretario):
+    """Com a v2 ativa (sozinha ou junto da v1) a composição v1 não é buscada nem vinculada à ata"""
+    from unittest.mock import patch
+    from datetime import datetime
+
+    for flag in flags_ativas:
+        request.getfixturevalue(flag)
+
+    validated_data = {
+        'associacao': ata_prestacao_conta_iniciada.associacao,
+        'periodo': ata_prestacao_conta_iniciada.periodo,
+        'tipo_ata': 'APRESENTACAO',
+        'tipo_reuniao': 'ORDINARIA',
+        'convocacao': 'PRIMEIRA',
+        'data_reuniao': datetime(2020, 7, 1).date(),
+        'local_reuniao': 'Local',
+        'hora_reuniao': datetime(2020, 7, 1, 10, 0).time(),
+        'presentes_na_ata': presentes_ata_com_presidente_e_secretario(ata_prestacao_conta_iniciada)
+    }
+
+    with patch('sme_ptrf_apps.core.api.serializers.ata_serializer.ServicoRecuperaComposicaoPorData') as mock_servico:
+        ata = AtaCreateSerializer().create(validated_data)
+
+        mock_servico.assert_not_called()
+
+    ata.refresh_from_db()
+    assert ata.composicao is None
+    assert ata.presentes_na_ata.count() == 3
+    assert ata.presidente_da_reuniao.nome == 'João Silva'
+    assert ata.secretario_da_reuniao.nome == 'Maria Santos'
+    assert ata.presentes_na_ata.get(nome='Carlos Souza').conselho_fiscal is True
+
+
+@FLAGS_HISTORICO_MEMBROS_V2
+def test_update_serializer_com_flag_historico_membros_v2(
+        request, flags_ativas, ata_prestacao_conta_iniciada, presentes_ata_com_presidente_e_secretario,
+        composicao_factory):
+    """Com a v2 ativa (sozinha ou junto da v1) a composição v1 não é buscada e é desvinculada da ata"""
+    from unittest.mock import patch
+
+    for flag in flags_ativas:
+        request.getfixturevalue(flag)
+
+    ata_prestacao_conta_iniciada.composicao = composicao_factory.create()
+    ata_prestacao_conta_iniciada.save()
+    participante_antigo = baker.make('Participante', ata=ata_prestacao_conta_iniciada, nome='Antigo')
+
+    validated_data = {
+        'local_reuniao': 'Novo Local',
+        'presentes_na_ata': presentes_ata_com_presidente_e_secretario(ata_prestacao_conta_iniciada)
+    }
+
+    with patch('sme_ptrf_apps.core.api.serializers.ata_serializer.ServicoRecuperaComposicaoPorData') as mock_servico:
+        ata = AtaCreateSerializer().update(ata_prestacao_conta_iniciada, validated_data)
+
+        mock_servico.assert_not_called()
+
+    ata.refresh_from_db()
+    assert ata.composicao is None
+    assert ata.local_reuniao == 'Novo Local'
+    assert ata.presentes_na_ata.count() == 3
+    assert not Participante.objects.filter(id=participante_antigo.id).exists()
+    assert ata.presidente_da_reuniao.nome == 'João Silva'
+    assert ata.secretario_da_reuniao.nome == 'Maria Santos'
+    assert ata.presentes_na_ata.get(nome='Carlos Souza').conselho_fiscal is True

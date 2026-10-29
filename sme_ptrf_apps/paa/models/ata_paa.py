@@ -10,6 +10,7 @@ from django.db.models.signals import post_delete
 from django.dispatch import receiver
 from auditlog.models import AuditlogHistoryField
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
+from sme_ptrf_apps.paa.paa_querysets.ata_paa_queryset import AtaPaaManager
 from waffle import get_waffle_flag_model
 from datetime import datetime
 
@@ -22,6 +23,7 @@ class AtaPaa(ModeloBase):
     o status de geração do PDF e demais informações necessárias para
     compor a documentação oficial do PAA.
     """
+    objects = AtaPaaManager()
     history = AuditlogHistoryField()
 
     ATA_APRESENTACAO = 'APRESENTACAO'

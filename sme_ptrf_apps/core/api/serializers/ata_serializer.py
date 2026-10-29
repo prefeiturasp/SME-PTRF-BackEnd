@@ -110,13 +110,33 @@ class AtaCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'mensagem': validacao.get('mensagem')})
 
     def create(self, validated_data):
+        flags = get_waffle_flag_model()
+        v1_ativa = flags.objects.filter(name='historico-de-membros', everyone=True).exists()
+        v2_ativa = flags.objects.filter(name='historico-de-membros-v2', everyone=True).exists()
+
         presentes_na_ata = validated_data.pop('presentes_na_ata')
         ata = Ata.objects.create(**validated_data)
 
         presentes_lista = []
 
-        flags = get_waffle_flag_model()
-        if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+        if v2_ativa:
+            for presente in presentes_na_ata:
+                presidente = presente.pop('presidente_da_reuniao', None)
+                secretario = presente.pop('secretario_da_reuniao', None)
+                ata.composicao = None
+
+                presente_object = PresentesAtaCreateSerializer().create(presente)
+                presente_object.save()
+
+                if presidente:
+                    ata.presidente_da_reuniao = presente_object
+
+                elif secretario:
+                    ata.secretario_da_reuniao = presente_object
+
+                presente_object.eh_conselho_fiscal()
+                presentes_lista.append(presente_object)
+        elif v1_ativa:
             if validated_data and validated_data["data_reuniao"]:
                 servico_composicao = ServicoRecuperaComposicaoPorData()
                 composicao = servico_composicao.get_composicao_por_data_e_associacao(
@@ -158,6 +178,10 @@ class AtaCreateSerializer(serializers.ModelSerializer):
         return ata
 
     def update(self, instance, validated_data):
+        flags = get_waffle_flag_model()
+        v1_ativa = flags.objects.filter(name='historico-de-membros', everyone=True).exists()
+        v2_ativa = flags.objects.filter(name='historico-de-membros-v2', everyone=True).exists()
+
         self._checar_permite_edicao_ata(instance)
 
         presentes_json = validated_data.pop('presentes_na_ata')
@@ -171,8 +195,24 @@ class AtaCreateSerializer(serializers.ModelSerializer):
         instance.presentes_na_ata.all().delete()
         presentes_lista = []
 
-        flags = get_waffle_flag_model()
-        if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+        if v2_ativa:
+            for presente in presentes_json:
+                presidente = presente.pop('presidente_da_reuniao', None)
+                secretario = presente.pop('secretario_da_reuniao', None)
+                instance.composicao = None
+
+                presente_object = PresentesAtaCreateSerializer().create(presente)
+                presente_object.save()
+
+                if presidente:
+                    instance.presidente_da_reuniao = presente_object
+
+                elif secretario:
+                    instance.secretario_da_reuniao = presente_object
+
+                presente_object.eh_conselho_fiscal()
+                presentes_lista.append(presente_object)
+        elif v1_ativa:
             if validated_data and validated_data["data_reuniao"]:
                 servico_composicao = ServicoRecuperaComposicaoPorData()
                 composicao = servico_composicao.get_composicao_por_data_e_associacao(
