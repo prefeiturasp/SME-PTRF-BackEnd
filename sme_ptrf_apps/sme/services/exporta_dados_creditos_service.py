@@ -248,7 +248,7 @@ class ExportacoesDadosCreditosService:
                                 instance,
                                 'conta_associacao__tipo_conta__recurso__id'
                             )
-                            or recurso_legado
+                            or str(recurso_legado.id)
                         )
 
                         if receita and receita.data and recurso:
