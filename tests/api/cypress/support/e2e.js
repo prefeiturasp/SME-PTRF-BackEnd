@@ -20,6 +20,7 @@ import "./commands_ui/commands_resumo_dos_recursos";
 import "./commands_ui/commands_creditos_da_escola";
 
 import "./commands_api/commands_login";
+import "./commands_api/commands_usuarios_me";
 import "./commands_api/commands_tipos_conta";
 import "./commands_api/commands_fornecedores";
 import "./commands_api/commands_motivos_pagamento_antecipado";

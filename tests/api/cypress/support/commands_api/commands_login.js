@@ -34,6 +34,8 @@ const solicitarToken = (tentativasRestantes = 2) => {
       suporte: false
     },
     failOnStatusCode: false,
+    retryOnNetworkFailure: tentativasRestantes > 0,
+    retryOnStatusCodeFailure: false,
     log: false
   }).then((response) => {
     const erroTransitorio = [502, 503, 504].includes(response.status)
@@ -51,7 +53,7 @@ const solicitarToken = (tentativasRestantes = 2) => {
     expect(response.status).to.eq(200)
     const token = response.body.token || response.body.access
 
-    expect(token).to.exist
+    expect(Boolean(token), 'login forneceu token').to.eq(true)
     Cypress.env('token_api_sme', token)
     return token
   })
@@ -72,12 +74,12 @@ Cypress.Commands.add('autenticar_login', (usuario, senha) => {
 	})
   })
   
-Cypress.Commands.add('gerar_token', () => {
+Cypress.Commands.add('gerar_token', (tentativasRestantes = 2) => {
   const tokenEmCache = Cypress.env('token_api_sme')
 
   if (tokenValido(tokenEmCache)) {
     return cy.wrap(tokenEmCache, { log: false })
   }
 
-  return solicitarToken()
+  return solicitarToken(tentativasRestantes)
 })

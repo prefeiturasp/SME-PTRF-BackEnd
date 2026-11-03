@@ -8,8 +8,19 @@ module.exports = defineConfig({
     supportFile: "cypress/support/e2e.js",
 
     async setupNodeEvents(on, config) {
+      const usuariosMe = config.env.usuarios_me === true || config.env.usuarios_me === "true";
+
+      if (usuariosMe) {
+        config.supportFile = false;
+        config.retries = 0;
+        config.screenshotOnRunFailure = false;
+        config.env.allureAttachRequests = false;
+      }
+
       allureWriter(on, config);
-      require("./cypress/plugin/index")(on, config);
+      if (!usuariosMe) {
+        require("./cypress/plugin/index")(on, config);
+      }
       return cloudPlugin(on, config);
     },
 
