@@ -9,6 +9,7 @@ from django.core.files import File
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.core.models.ambiente import Ambiente
 from sme_ptrf_apps.despesas.models.rateio_despesa import RateioDespesa
+from sme_ptrf_apps.core.models.periodo import Periodo
 from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_NOMES
 from sme_ptrf_apps.core.services.arquivo_download_service import (
     gerar_arquivo_download
@@ -47,6 +48,7 @@ CABECALHO_RATEIOS = [
     ('Valor realizado', 'valor_rateio'),
     ('Status do rateio', 'despesa__status'),
     ('Conferido', 'conferido'),
+    ('Período de lançamento', 'PERIODO_DESPESA_CACHED'),
     ('Referência do período de conciliação', 'periodo_conciliacao__referencia'),
     ('Descrição da tag', 'tag__nome'),
     ('É saída de recurso externo?', 'saida_de_recurso_externo'),
@@ -132,8 +134,23 @@ class ExportacoesRateiosService:
         """
         return f'="{campo.replace(";", ",")}"'
 
+    def obtem_todos_periodos(self) -> dict:
+        periodos = Periodo.objects.all().order_by("pk")
+
+        periodos_dict = {}
+        for p in periodos:
+            periodos_dict[p.id] = {
+                'data_inicio_realizacao_despesas': p.data_inicio_realizacao_despesas,
+                'data_fim_realizacao_despesas': p.data_fim_realizacao_despesas,
+                'referencia': p.referencia,
+                'recurso': p.recurso_id
+            }
+
+        return periodos_dict
+
     def monta_dados(self):
         linhas_vertical = []
+        periodos_dict = self.obtem_todos_periodos()
 
         logger.info("Iniciando extração de dados de rateios.")
 
@@ -276,6 +293,38 @@ class ExportacoesRateiosService:
                     campo = get_recursive_attr(instance, campo)
                     conferido = "Sim" if campo else "Não"
                     linha_horizontal.append(conferido)
+                    continue
+
+                if campo == "PERIODO_DESPESA_CACHED":
+                    despesa = instance.despesa
+                    referencia = ""
+
+                    if despesa and despesa.data_transacao:
+                        data_transacao = despesa.data_transacao
+                        recurso_id = despesa.recurso_id
+
+                        periodo_filtrado = next(
+                            (
+                                periodo
+                                for periodo in periodos_dict.values()
+                                if (
+                                    periodo['recurso'] == recurso_id
+                                    and periodo['data_inicio_realizacao_despesas'] <= data_transacao
+                                    and (
+                                        periodo['data_fim_realizacao_despesas'] is None
+                                        or periodo['data_fim_realizacao_despesas'] >= data_transacao
+                                    )
+                                )
+                            ),
+                            None
+                        )
+
+                        referencia = (
+                            periodo_filtrado['referencia']
+                            if periodo_filtrado else ""
+                        )
+
+                    linha_horizontal.append(referencia)
                     continue
 
                 if campo == "saida_de_recurso_externo":

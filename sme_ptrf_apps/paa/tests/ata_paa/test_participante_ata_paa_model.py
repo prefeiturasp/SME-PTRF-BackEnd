@@ -4,6 +4,8 @@ from unittest.mock import patch
 from requests import ConnectTimeout, ReadTimeout
 
 from sme_ptrf_apps.paa.models import ParticipanteAtaPaa
+from sme_ptrf_apps.mandatos.choices import CargoComposicaoVacanciaChoices as Cargos
+from sme_ptrf_apps.mandatos.models import CargoComposicaoVacancia
 from sme_ptrf_apps.core.services import TerceirizadasException, SmeIntegracaoApiException
 
 pytestmark = pytest.mark.django_db
@@ -65,6 +67,37 @@ class TestOrdenarPorCargo:
         participante = {'cargo': cargo}
         assert ParticipanteAtaPaa.ordenar_por_cargo(participante) == posicao_esperada
 
+    def test_ordenar_por_cargo_com_flag_v1_usa_ordem_legada(self, flag_historico_membros):
+        assert ParticipanteAtaPaa.ordenar_por_cargo({'cargo': 'Conselheiro'}) == 7
+        assert ParticipanteAtaPaa.ordenar_por_cargo({'cargo': Cargos.CARGO_ASSOCIACAO_VOGAL_4.label}) == 8
+
+    @pytest.mark.parametrize("cargo,posicao_esperada", [
+        (Cargos.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA.label, 1),
+        (Cargos.CARGO_ASSOCIACAO_VICE_PRESIDENTE_DIRETORIA_EXECUTIVA.label, 2),
+        (Cargos.CARGO_ASSOCIACAO_SECRETARIO.label, 3),
+        (Cargos.CARGO_ASSOCIACAO_TESOUREIRO.label, 4),
+        (Cargos.CARGO_ASSOCIACAO_VOGAL_1.label, 5),
+        (Cargos.CARGO_ASSOCIACAO_VOGAL_5.label, 9),
+        (Cargos.CARGO_ASSOCIACAO_PRESIDENTE_CONSELHO_FISCAL.label, 10),
+        (Cargos.CARGO_ASSOCIACAO_CONSELHEIRO_1.label, 11),
+        (Cargos.CARGO_ASSOCIACAO_CONSELHEIRO_4.label, 14),
+        ('Cargo desconhecido', 99),
+    ])
+    @pytest.mark.parametrize('flags_ativas', [
+        ['flag_historico_membros_v2'],
+        ['flag_historico_membros', 'flag_historico_membros_v2'],
+    ], ids=['somente_v2', 'v1_e_v2_prioriza_v2'])
+    def test_ordenar_por_cargo_com_flag_v2_usa_ordem_do_historico_v2(
+            self, request, flags_ativas, cargo, posicao_esperada):
+        for flag in flags_ativas:
+            request.getfixturevalue(flag)
+
+        participante = {'cargo': cargo}
+
+        assert ParticipanteAtaPaa.ordenar_por_cargo(participante) == posicao_esperada
+        assert ParticipanteAtaPaa.ordenar_por_cargo(participante) == \
+            CargoComposicaoVacancia.ordenar_por_cargo(participante)
+
 
 class TestParticipantesOrdenadosPorCargo:
 
@@ -79,6 +112,26 @@ class TestParticipantesOrdenadosPorCargo:
         assert len(resultado) == 2
         assert resultado[0]['cargo'] == 'Presidente da diretoria executiva'
         assert resultado[1]['cargo'] == 'Tesoureiro'
+
+    def test_retorna_membros_ordenados_pelos_cargos_do_historico_v2(
+            self, participante_ata_paa_factory, ata_paa, flag_historico_membros_v2):
+        cargos_fora_de_ordem = [
+            Cargos.CARGO_ASSOCIACAO_CONSELHEIRO_2.label,
+            Cargos.CARGO_ASSOCIACAO_VOGAL_4.label,
+            Cargos.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA.label,
+            Cargos.CARGO_ASSOCIACAO_VOGAL_1.label,
+        ]
+        for cargo in cargos_fora_de_ordem:
+            participante_ata_paa_factory.create(ata_paa=ata_paa, cargo=cargo, membro=True)
+
+        resultado = ParticipanteAtaPaa.participantes_ordenados_por_cargo(ata_paa, membro=True)
+
+        assert [p['cargo'] for p in resultado] == [
+            Cargos.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA.label,
+            Cargos.CARGO_ASSOCIACAO_VOGAL_1.label,
+            Cargos.CARGO_ASSOCIACAO_VOGAL_4.label,
+            Cargos.CARGO_ASSOCIACAO_CONSELHEIRO_2.label,
+        ]
 
     def test_filtra_por_membro(self, participante_ata_paa_factory, ata_paa):
         participante_ata_paa_factory.create(ata_paa=ata_paa, cargo='Secretário', membro=True)

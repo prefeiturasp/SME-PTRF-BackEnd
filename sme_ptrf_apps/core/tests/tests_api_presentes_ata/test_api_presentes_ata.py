@@ -356,3 +356,46 @@ def test_get_participantes_ordenados_por_cargo_ata_nao_existe(jwt_authenticated_
 
     assert response.status_code == status.HTTP_404_NOT_FOUND
     assert result['erro'] == 'A ata especificada não existe'
+
+
+def test_get_participantes_ordenados_por_cargo_retorna_data_inicio_no_cargo_e_vago(
+    jwt_authenticated_client_a,
+    presente_ata_membro_com_data_inicio_no_cargo,
+    presente_ata_membro_sem_data_inicio_no_cargo,
+    presente_ata_membro_cargo_vago,
+):
+    ata_2020_1_teste = presente_ata_membro_com_data_inicio_no_cargo.ata
+
+    response = jwt_authenticated_client_a.get(
+        f'/api/presentes-ata/get-participantes-ordenados-por-cargo/?ata_uuid={ata_2020_1_teste.uuid}',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 3
+
+    por_cargo = {item['cargo']: item for item in result}
+
+    # Cargo ocupado (vago=False) pode ter ou não data de início no cargo
+    assert por_cargo['Presidente']['vago'] is False
+    assert por_cargo['Presidente']['data_inicio_no_cargo'] == '2023-01-10'
+    assert por_cargo['Secretário']['vago'] is False
+    assert por_cargo['Secretário']['data_inicio_no_cargo'] is None
+
+    # Cargo vago (vago=True) sempre tem data de início no cargo
+    assert por_cargo['Vogal']['vago'] is True
+    assert por_cargo['Vogal']['data_inicio_no_cargo'] == '2024-03-25'
+
+
+def test_get_participantes_ordenados_por_cargo_valores_padrao_data_inicio_no_cargo_e_vago(
+    jwt_authenticated_client_a, presente_ata_membro_arnaldo,
+):
+    response = jwt_authenticated_client_a.get(
+        f'/api/presentes-ata/get-participantes-ordenados-por-cargo/?ata_uuid={presente_ata_membro_arnaldo.ata.uuid}',
+        content_type='application/json')
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert len(result) == 1
+    assert result[0]['data_inicio_no_cargo'] is None
+    assert result[0]['vago'] is False

@@ -231,7 +231,11 @@ class Ata(ModeloBase):
         )
 
         flags = get_waffle_flag_model()
-        if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+        
+        historico_v1 = flags.objects.filter(name='historico-de-membros', everyone=True).exists()
+        historico_v2 = flags.objects.filter(name='historico-de-membros-v2', everyone=True).exists()
+
+        if historico_v1 or historico_v2:
             # Verifica campos básicos comuns
             esta_completa = bool(
                 self.tipo_ata

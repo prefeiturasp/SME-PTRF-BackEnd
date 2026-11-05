@@ -1,3 +1,4 @@
+# flake8: noqa
 from .concluir_prestacao_de_contas import concluir_prestacao_de_contas_async
 from .processa_carga import processa_carga_async
 from .gerar_previa_demonstrativo_financeiro import gerar_previa_demonstrativo_financeiro_async
@@ -22,3 +23,4 @@ from .terminar_processo_pc import terminar_processo_pc_async
 from .gerar_previa_relatorio_apos_acertos_v2 import gerar_previa_relatorio_apos_acertos_v2_async
 from .migra_campos_presidente_secretario_atas import migrar_campos_presidente_secretario_atas_async
 from .vincula_processo_sei_a_periodos import vincular_processos_async
+from .enviar_emails_alertas_paginas import enviar_emails_alertas_paginas_async, enviar_email_alerta_pagina_usuario_async

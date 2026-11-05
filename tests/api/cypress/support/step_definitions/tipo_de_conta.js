@@ -5,13 +5,6 @@ const Quando = When;
 const Entao = Then;
 
 Dado(
-  "clico no botao {string} da tela tipo de conta",
-  function (btn_tipo_conta) {
-    cy.clicar_btn_adicionar_tipo_de_conta(btn_tipo_conta);
-  }
-);
-
-Dado(
   "informo dado nos campos {string}, {string}, {string}, {string}, {string}, {string} e {string}",
   function (
     nome_do_tipo_de_conta,
@@ -37,7 +30,7 @@ Dado(
 Dado(
   "clico no botao {string} da tela tipo de conta",
   function (btn_tipo_conta, nome_tabela_edicao) {
-    cy.clicar_btn_adicionar_tipo_de_conta(btn_tipo_conta, nome_tabela_edicao);
+    return cy.clicar_btn_adicionar_tipo_de_conta(btn_tipo_conta, nome_tabela_edicao);
   }
 );
 

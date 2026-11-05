@@ -1,16 +1,9 @@
-import { Given, When, Then, Before } from 'cypress-cucumber-preprocessor/steps'
-
-let token
-
-Before(function () {
-  cy.gerar_token().then((token) => {
-    cy.wrap(token).as('token')
-  })
-})
+import { Given, When, Then } from 'cypress-cucumber-preprocessor/steps'
 
 Given('que possuo um token de acesso', function () {
-  cy.get('@token').then((token) => {
+  return cy.gerar_token().then((token) => {
     expect(token).to.exist
+    cy.wrap(token, { log: false }).as('token')
   })
 })
 

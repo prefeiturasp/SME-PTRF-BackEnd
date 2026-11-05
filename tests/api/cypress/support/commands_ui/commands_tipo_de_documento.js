@@ -14,7 +14,7 @@ Cypress.Commands.add(
     habilita_preenchimento_do_imposto,
     documento_relativo_ao_imposto_recolhido
   ) => {
-    cy.get(tipo_de_documento_locators.txt_nome_tipo_de_documento()).clear();
+    cy.get(tipo_de_documento_locators.txt_nome_tipo_de_documento(), { timeout: 30000 }).should("be.visible").clear();
     nome_tipo_do_documento
       ? cy
           .get(tipo_de_documento_locators.txt_nome_tipo_de_documento())
@@ -79,28 +79,32 @@ Cypress.Commands.add(
     switch (botao_tipo_de_documento) {
       case "Salvar":
         cy.get(
-          tipo_de_documento_locators.btn_salvar_tipo_de_documento()
-        ).click();
+          tipo_de_documento_locators.btn_salvar_tipo_de_documento(),
+          { timeout: 30000 }
+        ).should("be.visible").click();
         break;
       case "Filtrar":
         cy.get(
-          tipo_de_documento_locators.btn_filtrar_tipo_de_documento()
-        ).click();
+          tipo_de_documento_locators.btn_filtrar_tipo_de_documento(),
+          { timeout: 30000 }
+        ).should("be.visible").click();
         break;
       case "Editar":
         cy.get(
-          commons_locators.tbl_nome_todas_consultas_edicao(nome_tabela_edicao)
-        )
+          commons_locators.tbl_nome_todas_consultas_edicao(nome_tabela_edicao),
+          { timeout: 30000 }
+        ).should("be.visible")
           .find(tipo_de_documento_locators.btn_editar_tipo_documento())
           .click();
         break;
       case "Excluir":
-        cy.get(tipo_de_documento_locators.btn_excluir_tipo_documento()).click();
+        cy.get(tipo_de_documento_locators.btn_excluir_tipo_documento(), { timeout: 30000 }).should("be.visible").click();
         break;
       case "Confirmar Excluir":
         cy.get(
-          tipo_de_documento_locators.btn_confirmacao_excluir_tipo_documento()
-        ).click();
+          tipo_de_documento_locators.btn_confirmacao_excluir_tipo_documento(),
+          { timeout: 30000 }
+        ).should("be.visible").click();
         break;
 
       default:
@@ -113,7 +117,8 @@ Cypress.Commands.add(
   "informar_dados_filtro_por_nome_tipo_de_documento",
   (filtrar_por_nome) => {
     cy.get(
-      tipo_de_documento_locators.txt_filtrar_por_nome_tipo_de_documento()
-    ).type(filtrar_por_nome);
+      tipo_de_documento_locators.txt_filtrar_por_nome_tipo_de_documento(),
+      { timeout: 30000 }
+    ).should("be.visible").clear().type(filtrar_por_nome);
   }
 );

@@ -170,6 +170,7 @@ def test_quantidade_linha_individual_dados_extracao(rateios_despesa_queryset):
             Valor realizado
             Status do rateio
             Conferido
+            Período de lançamento
             Referência do período de conciliação
             Descrição da tag
             É saída de recurso externo?
@@ -181,7 +182,7 @@ def test_quantidade_linha_individual_dados_extracao(rateios_despesa_queryset):
             UUID do rateio
     """
 
-    assert len(linha_individual) == 35
+    assert len(linha_individual) == 36
 
 
 def test_resultado_esperado_dados_extracao(rateios_despesa_queryset):
@@ -221,6 +222,7 @@ def test_resultado_esperado_dados_extracao(rateios_despesa_queryset):
         str(getattr(primeiro_rateio, 'valor_rateio')).replace(".", ","),
         "Completo",
         "Sim",
+        primeiro_rateio.periodo_conciliacao.referencia,
         primeiro_rateio.periodo_conciliacao.referencia,
         "COVID-19",
         "Não",
@@ -269,6 +271,7 @@ def test_cabecalho(rateios_despesa_queryset):
         'Valor realizado',
         'Status do rateio',
         'Conferido',
+        'Período de lançamento',
         'Referência do período de conciliação',
         'Descrição da tag',
         'É saída de recurso externo?',

@@ -1,6 +1,6 @@
 import pytest
 from datetime import timedelta, date
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from sme_ptrf_apps.paa.api.serializers.ata_paa_serializer import (
     AtaPaaLookUpSerializer, AtaPaaSerializer, PresentesAtaPaaCreateSerializer, AtaPaaCreateSerializer)
@@ -175,14 +175,9 @@ def test_create_ata_paa_sem_presentes(paa):
 
 
 @patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.get_waffle_flag_model')
-def test_create_ata_paa_com_presentes(mock_waffle, paa):
+def test_create_ata_paa_com_presentes(mock_waffle, paa, mock_flag_model_com_flags_ativas):
     """Testa criação de ata PAA com participantes"""
-    mock_flag_model = MagicMock()
-    mock_flag = MagicMock()
-    mock_flag.name = 'historico-de-membros'
-    mock_flag.everyone = True
-    mock_flag_model.objects.filter.return_value.exists.return_value = True
-    mock_waffle.return_value = mock_flag_model
+    mock_waffle.return_value = mock_flag_model_com_flags_ativas('historico-de-membros')
     validated_data = {
         'paa': paa,
         'tipo_ata': AtaPaa.ATA_APRESENTACAO,
@@ -278,14 +273,9 @@ def test_create_ata_paa_define_secretario_da_reuniao(paa):
 
 
 @patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.get_waffle_flag_model')
-def test_create_ata_paa_define_presidente_da_reuniao_com_flag_historico(mock_waffle, paa):
+def test_create_ata_paa_define_presidente_da_reuniao_com_flag_historico(mock_waffle, paa, mock_flag_model_com_flags_ativas):
     """Testa criação de ata PAA com presidente da reunião"""
-    mock_flag_model = MagicMock()
-    mock_flag = MagicMock()
-    mock_flag.name = 'historico-de-membros'
-    mock_flag.everyone = True
-    mock_waffle.return_value = mock_flag_model
-    mock_flag_model.objects.filter.return_value.exists.return_value = True
+    mock_waffle.return_value = mock_flag_model_com_flags_ativas('historico-de-membros')
     validated_data = {
         'paa': paa,
         'tipo_ata': AtaPaa.ATA_APRESENTACAO,
@@ -317,14 +307,9 @@ def test_create_ata_paa_define_presidente_da_reuniao_com_flag_historico(mock_waf
 
 
 @patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.get_waffle_flag_model')
-def test_create_ata_paa_define_secretario_da_reuniao_com_flag_historico(mock_waffle, paa):
+def test_create_ata_paa_define_secretario_da_reuniao_com_flag_historico(mock_waffle, paa, mock_flag_model_com_flags_ativas):
     """Testa criação de ata PAA com secretário da reunião"""
-    mock_flag_model = MagicMock()
-    mock_flag = MagicMock()
-    mock_flag.name = 'historico-de-membros'
-    mock_flag.everyone = True
-    mock_flag_model.objects.filter.return_value.exists.return_value = True
-    mock_waffle.return_value = mock_flag_model
+    mock_waffle.return_value = mock_flag_model_com_flags_ativas('historico-de-membros')
     validated_data = {
         'paa': paa,
         'tipo_ata': AtaPaa.ATA_APRESENTACAO,
@@ -356,14 +341,10 @@ def test_create_ata_paa_define_secretario_da_reuniao_com_flag_historico(mock_waf
 
 
 @patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.get_waffle_flag_model')
-def test_create_ata_paa_com_waffle_flag_historico_membros_ativo(mock_waffle, paa, associacao, composicao_factory):
+def test_create_ata_paa_com_waffle_flag_historico_membros_ativo(
+        mock_waffle, paa, associacao, composicao_factory, mock_flag_model_com_flags_ativas):
     """Testa criação com waffle flag historico-de-membros ativo"""
-    mock_flag_model = MagicMock()
-    mock_flag = MagicMock()
-    mock_flag.name = 'historico-de-membros'
-    mock_flag.everyone = True
-    mock_flag_model.objects.filter.return_value.exists.return_value = True
-    mock_waffle.return_value = mock_flag_model
+    mock_waffle.return_value = mock_flag_model_com_flags_ativas('historico-de-membros')
     # Cria uma composição real
     composicao = composicao_factory.create()
 
@@ -387,6 +368,97 @@ def test_create_ata_paa_com_waffle_flag_historico_membros_ativo(mock_waffle, paa
         )
 
 
+@pytest.mark.parametrize('flags_ativas', [
+    ['flag_historico_membros_v2'],
+    ['flag_historico_membros', 'flag_historico_membros_v2'],
+], ids=['somente_v2', 'v1_e_v2_prioriza_v2'])
+def test_create_ata_paa_com_flag_historico_membros_v2(request, flags_ativas, paa):
+    """Com a v2 ativa (sozinha ou junto da v1) a composição v1 não é buscada nem vinculada"""
+    for flag in flags_ativas:
+        request.getfixturevalue(flag)
+
+    validated_data = {
+        'paa': paa,
+        'tipo_ata': AtaPaa.ATA_APRESENTACAO,
+        'data_reuniao': date(2025, 2, 5),
+        'presentes_na_ata_paa': [
+            {
+                'nome': 'João Silva',
+                'cargo': 'Presidente',
+                'identificacao': '12345678900',
+                'membro': True,
+                'presente': True,
+                'presidente_da_reuniao': True
+            },
+            {
+                'nome': 'Maria Santos',
+                'cargo': 'Secretária',
+                'identificacao': '98765432100',
+                'membro': True,
+                'presente': True,
+                'secretario_da_reuniao': True
+            }
+        ]
+    }
+
+    with patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.ServicoRecuperaComposicaoPorData') as mock_servico:
+        serializer = AtaPaaCreateSerializer()
+        ata_paa = serializer.create(validated_data)
+
+        mock_servico.assert_not_called()
+
+    assert ata_paa.composicao is None
+    assert ata_paa.presentes_na_ata_paa.count() == 2
+    assert ata_paa.presidente_da_reuniao.nome == 'João Silva'
+    assert ata_paa.secretario_da_reuniao.nome == 'Maria Santos'
+
+
+@pytest.mark.parametrize('flags_ativas', [
+    ['flag_historico_membros_v2'],
+    ['flag_historico_membros', 'flag_historico_membros_v2'],
+], ids=['somente_v2', 'v1_e_v2_prioriza_v2'])
+def test_update_ata_paa_com_flag_historico_membros_v2(request, flags_ativas, ata_paa, composicao_factory):
+    """Com a v2 ativa (sozinha ou junto da v1) a composição v1 não é buscada e é desvinculada da ata"""
+    for flag in flags_ativas:
+        request.getfixturevalue(flag)
+
+    ata_paa.composicao = composicao_factory.create()
+    ata_paa.save()
+
+    validated_data = {
+        'data_reuniao': date(2025, 2, 5),
+        'presidente_reuniao': 'João Silva',
+        'secretario_reuniao': 'Maria Santos',
+        'presentes_na_ata_paa': [
+            {
+                'nome': 'João Silva',
+                'cargo': 'Presidente',
+                'identificacao': '12345678900',
+                'membro': True,
+                'presente': True
+            },
+            {
+                'nome': 'Maria Santos',
+                'cargo': 'Secretária',
+                'identificacao': '98765432100',
+                'membro': True,
+                'presente': True
+            }
+        ]
+    }
+
+    with patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.ServicoRecuperaComposicaoPorData') as mock_servico:
+        serializer = AtaPaaCreateSerializer()
+        ata_paa_atualizada = serializer.update(ata_paa, validated_data)
+
+        mock_servico.assert_not_called()
+
+    assert ata_paa_atualizada.composicao is None
+    assert ata_paa_atualizada.presentes_na_ata_paa.count() == 2
+    assert ata_paa_atualizada.presidente_da_reuniao.nome == 'João Silva'
+    assert ata_paa_atualizada.secretario_da_reuniao.nome == 'Maria Santos'
+
+
 def test_update_ata_paa_sem_presentes(ata_paa):
     """Testa update de ata PAA sem alterar participantes"""
     validated_data = {
@@ -403,13 +475,8 @@ def test_update_ata_paa_sem_presentes(ata_paa):
 
 
 @patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.get_waffle_flag_model')
-def test_update_ata_paa_sem_presentes_com_flag_historico(mock_waffle, ata_paa):
-    mock_flag_model = MagicMock()
-    mock_flag = MagicMock()
-    mock_flag.name = 'historico-de-membros'
-    mock_flag.everyone = True
-    mock_flag_model.objects.filter.return_value.exists.return_value = True
-    mock_waffle.return_value = mock_flag_model
+def test_update_ata_paa_sem_presentes_com_flag_historico(mock_waffle, ata_paa, mock_flag_model_com_flags_ativas):
+    mock_waffle.return_value = mock_flag_model_com_flags_ativas('historico-de-membros')
     validated_data = {
         'local_reuniao': 'Nova Localização',
         'comentarios': 'Comentários atualizados',
@@ -480,13 +547,8 @@ def test_update_ata_paa_adiciona_novos_presentes_sem_flag_historico_membros(ata_
 
 
 @patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.get_waffle_flag_model')
-def test_update_ata_paa_adiciona_novos_presentes_com_flag_historico(mock_waffle, ata_paa):
-    mock_flag_model = MagicMock()
-    mock_flag = MagicMock()
-    mock_flag.name = 'historico-de-membros'
-    mock_flag.everyone = True
-    mock_flag_model.objects.filter.return_value.exists.return_value = True
-    mock_waffle.return_value = mock_flag_model
+def test_update_ata_paa_adiciona_novos_presentes_com_flag_historico(mock_waffle, ata_paa, mock_flag_model_com_flags_ativas):
+    mock_waffle.return_value = mock_flag_model_com_flags_ativas('historico-de-membros')
     """Testa que novos participantes são adicionados"""
     validated_data = {
         'presentes_na_ata_paa': [
@@ -534,13 +596,8 @@ def test_update_ata_paa_define_novo_presidente(ata_paa):
 
 
 @patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.get_waffle_flag_model')
-def test_update_ata_paa_define_novo_presidente_com_flag_historico(mock_waffle, ata_paa):
-    mock_flag_model = MagicMock()
-    mock_flag = MagicMock()
-    mock_flag.name = 'historico-de-membros'
-    mock_flag.everyone = True
-    mock_flag_model.objects.filter.return_value.exists.return_value = True
-    mock_waffle.return_value = mock_flag_model
+def test_update_ata_paa_define_novo_presidente_com_flag_historico(mock_waffle, ata_paa, mock_flag_model_com_flags_ativas):
+    mock_waffle.return_value = mock_flag_model_com_flags_ativas('historico-de-membros')
     """ Testa definição de novo presidente da reunião """
     validated_data = {
         'presentes_na_ata_paa': [
@@ -660,13 +717,8 @@ def test_validate_data_reuniao_nao_informada_valida(paa):
 
 
 @patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.get_waffle_flag_model')
-def test_update_ata_paa_define_novo_secretario_com_flag_historico(mock_waffle, ata_paa):
-    mock_flag_model = MagicMock()
-    mock_flag = MagicMock()
-    mock_flag.name = 'historico-de-membros'
-    mock_flag.everyone = True
-    mock_flag_model.objects.filter.return_value.exists.return_value = True
-    mock_waffle.return_value = mock_flag_model
+def test_update_ata_paa_define_novo_secretario_com_flag_historico(mock_waffle, ata_paa, mock_flag_model_com_flags_ativas):
+    mock_waffle.return_value = mock_flag_model_com_flags_ativas('historico-de-membros')
     """Testa definição de novo secretário da reunião"""
     validated_data = {
         'presentes_na_ata_paa': [

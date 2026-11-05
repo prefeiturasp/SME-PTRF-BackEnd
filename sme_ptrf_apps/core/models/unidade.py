@@ -14,12 +14,20 @@ class DresManager(models.Manager):
 
 
 class Unidade(ModeloBase, TemNome):
+    TIPOS_UNIDADES_NAO_PERTENCENTES_A_GRUPO_UE = ('ADM', 'DRE', 'IFSP', 'CMCT')
     history = AuditlogHistoryField()
 
     tipo_unidade = models.CharField(max_length=10, choices=TIPOS_CHOICE, default='ADM')
     codigo_eol = models.CharField(max_length=6, validators=[MinLengthValidator(6)], primary_key=True, unique=True)
 
-    observacao = models.TextField('Observação', max_length=600, help_text="Preencha este campo, se necessário, com informações relacionadas a unidade educacional.", blank=True, null=True, default='')
+    observacao = models.TextField(
+        'Observação',
+        max_length=600,
+        help_text="Preencha este campo, se necessário, com informações relacionadas a unidade educacional.",
+        blank=True,
+        null=True,
+        default=''
+    )
     dre = models.ForeignKey('Unidade', on_delete=models.PROTECT, related_name='unidades_da_dre', to_field="codigo_eol",
                             blank=True, null=True, limit_choices_to={'tipo_unidade': 'DRE'})
     sigla = models.CharField(max_length=4, blank=True, default='')
@@ -38,11 +46,12 @@ class Unidade(ModeloBase, TemNome):
     diretor_nome = models.CharField('Nome do diretor da unidade', max_length=160, blank=True, default='')
 
     dre_cnpj = models.CharField(
-        "CNPJ da DRE", max_length=20, validators=[cnpj_validation]
-        , blank=True, null=True, default=""
+        "CNPJ da DRE", max_length=20, validators=[cnpj_validation],
+        blank=True, null=True, default=""
     )
 
-    dre_diretor_regional_rf = models.CharField('RF do diretor regional ', max_length=10, blank=True, null=True, default="")
+    dre_diretor_regional_rf = models.CharField('RF do diretor regional ', max_length=10, blank=True,
+                                               null=True, default="")
 
     dre_diretor_regional_nome = models.CharField('Nome do diretor regional', max_length=160, blank=True, default='')
 
@@ -107,9 +116,7 @@ class Unidade(ModeloBase, TemNome):
             return ""
 
     def tipo_unidade_pertence_a_grupo_ue(self):
-        TIPOS_UNIDADES_NAO_PERTENCENTES_A_GRUPO_UE = ['ADM', 'DRE', 'IFSP', 'CMCT']
-
-        if self.tipo_unidade not in TIPOS_UNIDADES_NAO_PERTENCENTES_A_GRUPO_UE:
+        if self.tipo_unidade not in self.TIPOS_UNIDADES_NAO_PERTENCENTES_A_GRUPO_UE:
             return True
 
         return False

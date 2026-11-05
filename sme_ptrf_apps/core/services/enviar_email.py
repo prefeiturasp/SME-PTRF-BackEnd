@@ -27,7 +27,7 @@ def enviar_email_html(assunto, template, context, enviar_para):
         logger.info("Erro email: %s", str(err))
 
 
-def enviar_email_nova_notificacao_html(assunto, template, context, enviar_para):
+def enviar_email_nova_notificacao_html(assunto, template, context, enviar_para, raise_exception=False):
 
     logger.info('Enviando email de nova notificação para %s', enviar_para)
 
@@ -46,3 +46,5 @@ def enviar_email_nova_notificacao_html(assunto, template, context, enviar_para):
         email.send()
     except Exception as err:
         logger.info("Erro email: %s", str(err))
+        if raise_exception:
+            raise err
