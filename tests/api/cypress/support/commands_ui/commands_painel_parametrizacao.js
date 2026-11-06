@@ -9,11 +9,14 @@ Cypress.Commands.add(
     cy.contains(
       painel_Parametrizacao_Localizadores.opcao_painel_parametrizacao(
         opcao_painel_parametrizacao
-      )
-    ).click();
+      ),
+      { timeout: 30000 }
+    ).should("be.visible").click();
   }
 );
 
 Cypress.Commands.add("clicar_opcao_menu_sme", (opcao_menu) => {
-  cy.get(`[data-cy="${opcao_menu}"]`).click();
+  cy.get(`[data-cy="${opcao_menu}"]`, { timeout: 30000 })
+    .should("be.visible")
+    .click();
 });

@@ -346,7 +346,7 @@ def criar_paragrafos_introducao_elaboracao(dados_texto_da_ata: dict) -> list[str
             "escolar, procedendo-se à análise para consolidação das mesmas."
         ),
         (
-            "O (A) Presidente da Diretoria Executiva explicou que a Associação recebe a "
+            "O (A) Presidente explicou que a Associação recebe a "
             "verba do PTRF e conforme art. 3º, da Lei Municipal nº 13.991/2005, os recursos "
             "transferidos pelo Programa devem ser aplicados: I – na aquisição de material "
             "permanente; II – na aquisição de material de consumo necessário ao funcionamento "

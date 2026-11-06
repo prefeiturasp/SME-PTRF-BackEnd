@@ -9,6 +9,9 @@ from django.db import models
 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
+from waffle import get_waffle_flag_model
+
+from sme_ptrf_apps.mandatos.models import CargoComposicaoVacancia
 
 
 class ParticipanteAtaPaa(ModeloBase):
@@ -84,6 +87,12 @@ class ParticipanteAtaPaa(ModeloBase):
     @staticmethod
     def ordenar_por_cargo(participante) -> int:
         """Retorna um valor inteiro para ordenar os participantes pelo cargo."""
+        flags = get_waffle_flag_model()
+        v2_ativa = flags.objects.filter(name='historico-de-membros-v2', everyone=True).exists()
+
+        if v2_ativa:
+            return CargoComposicaoVacancia.ordenar_por_cargo(participante)
+
         cargos = {
             'Presidente da diretoria executiva': 1,
             'Presidente da Diretoria Executiva': 1,

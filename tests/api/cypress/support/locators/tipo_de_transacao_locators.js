@@ -30,7 +30,7 @@ class Tipo_De_Transacao_Localizadores {
   // tela Editar tipo transação
 
   btn_editar_tipo_transacao = () => {
-    return ".btn-editar-membro";
+    return "tbody tr button";
   };
   btn_apagar_tipo_transacao = () => {
     return ".flex-grow-1 > .btn";

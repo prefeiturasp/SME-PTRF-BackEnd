@@ -1,3 +1,4 @@
+# flake8: noqa
 from .associacoes_viewset import AssociacoesViewSet
 from .parametrizacoes_associacoes import ParametrizacoesAssociacoesViewSet
 from .atas_viewset import AtasViewSet
@@ -37,3 +38,4 @@ from .motivo_rejeicao_encerramento_conta_associacao_viewset import MotivoRejeica
 from .feature_flags_view import feature_flags
 from .parametrizacoes_acoes_associacoes import ParametrizacoesAcoesAssociacaoViewSet
 from .fique_de_olho_viewset import FiqueDeOlhoViewSet
+from .alerta_pagina_viewset import AlertaPaginaViewset
