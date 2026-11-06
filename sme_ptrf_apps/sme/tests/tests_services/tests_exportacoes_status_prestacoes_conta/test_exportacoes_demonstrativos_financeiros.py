@@ -4,7 +4,6 @@ import pytest
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
 from sme_ptrf_apps.sme.services.exporta_demonstrativos_financeiros_service import ExportaDemonstrativosFinanceirosService
 from tempfile import NamedTemporaryFile
-from decimal import Decimal
 
 pytestmark = pytest.mark.django_db
 
@@ -160,7 +159,7 @@ def test_resultado_esperado_dados_extracao(
         primeiro_demonstrativo_financeiro.prestacao_conta.periodo.referencia,
         primeiro_demonstrativo_financeiro.conta_associacao.tipo_conta.nome,
         datetime.date(2020, 7, 1),
-        Decimal('1000.00'),
+        '1.000,00',
         'Uma bela observação.',
         f"https://{ambiente.prefixo}.sme.prefeitura.sp.gov.br{primeiro_demonstrativo_financeiro.arquivo_pdf.url}",
         primeiro_demonstrativo_financeiro.status,

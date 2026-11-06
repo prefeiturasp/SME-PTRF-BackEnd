@@ -168,6 +168,17 @@ class ExportaDemonstrativosFinanceirosService:
 
         return observacao
 
+    @staticmethod
+    def formatar_decimal_br(valor):
+        if valor is None or valor == 0 or valor == '0':
+            return ''
+    
+        numero = format(valor, ",f")
+        parte_inteira, _, parte_decimal = numero.partition(".")
+        parte_inteira = parte_inteira.replace(",", ".")
+        parte_decimal = parte_decimal.rstrip("0").ljust(2, "0")
+        return f"{parte_inteira},{parte_decimal}"
+
     def monta_dados(self):
         linhas_vertical = []
 
@@ -245,7 +256,12 @@ class ExportaDemonstrativosFinanceirosService:
                     continue
 
                 if campo == 'SALDO_BANCARIO':
-                    saldo_extrato = observacao.saldo_extrato if observacao and observacao.saldo_extrato else ''
+                    saldo_extrato = (
+                        self.formatar_decimal_br(observacao.saldo_extrato)
+                        if observacao and observacao.saldo_extrato is not None
+                        else ''
+                    )
+
                     linha_horizontal.append(saldo_extrato)
                     continue
 
