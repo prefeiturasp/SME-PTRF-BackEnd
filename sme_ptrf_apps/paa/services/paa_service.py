@@ -295,8 +295,10 @@ class PaaService:
         logger.info(f'Concluindo PAA {paa.uuid}')
 
         with transaction.atomic():
-            paa.status = PaaStatusEnum.GERADO.name
-            paa.save()
+            if paa.status == PaaStatusEnum.EM_ELABORACAO.name:
+                paa.set_paa_status_gerado()
+            elif paa.status == PaaStatusEnum.EM_RETIFICACAO.name:
+                paa.set_paa_status_retificado()
 
         logger.info(f'Status do PAA {paa.uuid} atualizado para GERADO')
 

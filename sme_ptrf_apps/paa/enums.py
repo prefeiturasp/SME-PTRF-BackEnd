@@ -72,6 +72,7 @@ class PaaStatusEnum(Enum):
     EM_ELABORACAO = "Em elaboração"
     GERADO = "Gerado"
     EM_RETIFICACAO = "Em retificação"
+    RETIFICADO = "Retificado"
 
     @classmethod
     def choices(cls):
