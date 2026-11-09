@@ -4,8 +4,8 @@ from django.core.files.base import ContentFile
 from freezegun import freeze_time
 from rest_framework import status
 from sme_ptrf_apps.paa.choices import StatusChoices
-from sme_ptrf_apps.paa.enums import PaaStatusEnum
-from sme_ptrf_apps.paa.models import AtaPaa, DocumentoPaa
+from sme_ptrf_apps.paa.enums import PaaStatusEnum, PaaStatusAndamentoEnum
+from sme_ptrf_apps.paa.models import AtaPaa, DocumentoPaa, Paa
 
 pytestmark = pytest.mark.django_db
 
@@ -165,6 +165,92 @@ def test_get_paa_vigente_e_anteriores(
     assert result['anteriores'][0]['uuid'] == str(paa_2024.uuid)
     assert result['anteriores'][0]['referencia'] == 'Periodo 2024'
     assert result['anteriores'][0]['original']['ata']['apresenta_botoes_acao'] is False
+
+
+@freeze_time('2025-06-15')
+def test_get_paa_vigente_e_anteriores_vigente_retificado(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    paa_vigente_retificado_e_anterior_gerado,
+):
+    """PAA vigente RETIFICADO é retornado com os blocos original (gerado) e de retificação."""
+    paa_vigente = paa_vigente_retificado_e_anterior_gerado['paa_vigente']
+    paa_anterior = paa_vigente_retificado_e_anterior_gerado['paa_anterior']
+
+    # Status dos PAAs (campo status e status_andamento calculado pelo PaaManager)
+    paa_vigente_db = Paa.objects.get(pk=paa_vigente.pk)
+    assert paa_vigente_db.status == PaaStatusEnum.RETIFICADO.name
+    assert paa_vigente_db.status_andamento == PaaStatusAndamentoEnum.GERADO.name
+
+    paa_anterior_db = Paa.objects.get(pk=paa_anterior.pk)
+    assert paa_anterior_db.status == PaaStatusEnum.GERADO.name
+    assert paa_anterior_db.status_andamento == PaaStatusAndamentoEnum.GERADO.name
+
+    response = jwt_authenticated_client_sme.get(
+        f"/api/paa/paa-vigente-e-anteriores/?associacao_uuid={paa_vigente.associacao.uuid}"
+    )
+    result = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+
+    vigente = result['vigente']
+    assert vigente['uuid'] == str(paa_vigente.uuid)
+    assert vigente['referencia'] == 'Periodo 2025'
+    assert vigente['esta_em_retificacao'] is False
+    # Bloco do original (gerado)
+    assert vigente['original']['documento']['status']['status_geracao'] == 'CONCLUIDO'
+    assert vigente['original']['ata']['status']['status_geracao'] == AtaPaa.STATUS_CONCLUIDO
+    # Bloco da retificação
+    assert vigente['retificacao'] is not None
+    assert vigente['retificacao']['documento']['status']['status_geracao'] == 'CONCLUIDO'
+    assert vigente['retificacao']['ata']['status']['status_geracao'] == AtaPaa.STATUS_CONCLUIDO
+
+    assert len(result['anteriores']) == 1
+    assert result['anteriores'][0]['uuid'] == str(paa_anterior.uuid)
+    assert result['anteriores'][0]['retificacao'] is None
+
+
+@freeze_time('2025-06-15')
+def test_get_paa_vigente_e_anteriores_anterior_retificado(
+    jwt_authenticated_client_sme,
+    flag_paa,
+    paa_vigente_gerado_e_anterior_retificado,
+):
+    """PAA anterior RETIFICADO é listado em 'anteriores' com os blocos original (gerado) e de retificação."""
+    paa_vigente = paa_vigente_gerado_e_anterior_retificado['paa_vigente']
+    paa_anterior = paa_vigente_gerado_e_anterior_retificado['paa_anterior']
+
+    # Status dos PAAs (campo status e status_andamento calculado pelo PaaManager)
+    paa_vigente_db = Paa.objects.get(pk=paa_vigente.pk)
+    assert paa_vigente_db.status == PaaStatusEnum.GERADO.name
+    assert paa_vigente_db.status_andamento == PaaStatusAndamentoEnum.GERADO.name
+
+    paa_anterior_db = Paa.objects.get(pk=paa_anterior.pk)
+    assert paa_anterior_db.status == PaaStatusEnum.RETIFICADO.name
+    assert paa_anterior_db.status_andamento == PaaStatusAndamentoEnum.GERADO.name
+
+    response = jwt_authenticated_client_sme.get(
+        f"/api/paa/paa-vigente-e-anteriores/?associacao_uuid={paa_vigente.associacao.uuid}"
+    )
+    result = response.json()
+
+    assert response.status_code == status.HTTP_200_OK
+
+    assert result['vigente']['uuid'] == str(paa_vigente.uuid)
+    assert result['vigente']['retificacao'] is None
+
+    assert len(result['anteriores']) == 1
+    anterior = result['anteriores'][0]
+    assert anterior['uuid'] == str(paa_anterior.uuid)
+    assert anterior['referencia'] == 'Periodo 2024'
+    # Bloco do original (gerado)
+    assert anterior['original']['documento']['status']['status_geracao'] == 'CONCLUIDO'
+    assert anterior['original']['ata']['status']['status_geracao'] == AtaPaa.STATUS_CONCLUIDO
+    assert anterior['original']['ata']['apresenta_botoes_acao'] is False
+    # Bloco da retificação
+    assert anterior['retificacao'] is not None
+    assert anterior['retificacao']['documento']['status']['status_geracao'] == 'CONCLUIDO'
+    assert anterior['retificacao']['ata']['status']['status_geracao'] == AtaPaa.STATUS_CONCLUIDO
 
 
 @freeze_time('2025-06-15')
