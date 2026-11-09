@@ -895,116 +895,71 @@ class TestCancelamentoRetificacao:
 
     def test_executa_cancelamento_com_sucesso(
         self,
-        paa_retificacao,
-        replica_paa,
+        paa_em_retificacao_cancelamento,
         flag_paa_retificacao,
     ):
+        paa = paa_em_retificacao_cancelamento
 
-        paa_retificacao.status = (
-            PaaStatusEnum.EM_RETIFICACAO.name
-        )
+        _service(paa).iniciar_cancelamento_retificacao()
 
-        paa_retificacao.save()
+        paa.refresh_from_db()
 
-        service = _service(
-            paa_retificacao
-        )
-
-        service.iniciar_cancelamento_retificacao()
-
-        paa_retificacao.refresh_from_db()
-
-        assert (
-            paa_retificacao.status ==
-            PaaStatusEnum.GERADO.name
-        )
-
-        assert not (
-            ReplicaPaa.objects.filter(
-                paa=paa_retificacao
-            ).exists()
-        )
-
-        assert (
-            LogReplicaPaa.objects.filter(
-                paa=paa_retificacao,
-                origem=LogReplicaPaa.CANCELAMENTO,
-            ).exists()
-        )
+        assert paa.status == PaaStatusEnum.GERADO.name
+        assert not ReplicaPaa.objects.filter(paa=paa).exists()
+        assert LogReplicaPaa.objects.filter(
+            paa=paa,
+            origem=LogReplicaPaa.CANCELAMENTO,
+        ).exists()
 
     def test_cria_log_replica_no_cancelamento(
         self,
-        paa_retificacao,
-        replica_paa,
+        paa_em_retificacao_cancelamento,
         flag_paa_retificacao,
     ):
+        paa = paa_em_retificacao_cancelamento
 
-        paa_retificacao.status = (
-            PaaStatusEnum.EM_RETIFICACAO.name
-        )
+        _service(paa).iniciar_cancelamento_retificacao()
 
-        paa_retificacao.save()
-
-        service = _service(
-            paa_retificacao
-        )
-
-        service.iniciar_cancelamento_retificacao()
-
-        assert (
-            LogReplicaPaa.objects.filter(
-                paa=paa_retificacao,
-                origem=LogReplicaPaa.CANCELAMENTO,
-            ).count() == 1
-        )
+        assert LogReplicaPaa.objects.filter(
+            paa=paa,
+            origem=LogReplicaPaa.CANCELAMENTO,
+        ).count() == 1
 
     def test_remove_replica_apos_cancelamento(
         self,
-        paa_retificacao,
-        replica_paa,
+        paa_em_retificacao_cancelamento,
         flag_paa_retificacao,
     ):
+        paa = paa_em_retificacao_cancelamento
 
-        paa_retificacao.status = (
-            PaaStatusEnum.EM_RETIFICACAO.name
-        )
+        _service(paa).iniciar_cancelamento_retificacao()
 
-        paa_retificacao.save()
-
-        service = _service(
-            paa_retificacao
-        )
-
-        service.iniciar_cancelamento_retificacao()
-
-        assert not (
-            ReplicaPaa.objects.filter(
-                paa=paa_retificacao
-            ).exists()
-        )
+        assert not ReplicaPaa.objects.filter(paa=paa).exists()
 
     def test_retorna_status_para_gerado(
         self,
-        paa_retificacao,
-        replica_paa,
+        paa_em_retificacao_cancelamento,
         flag_paa_retificacao,
     ):
+        """Sem documento final de retificação, o PAA volta para GERADO."""
+        paa = paa_em_retificacao_cancelamento
 
-        paa_retificacao.status = (
-            PaaStatusEnum.EM_RETIFICACAO.name
-        )
+        _service(paa).iniciar_cancelamento_retificacao()
 
-        paa_retificacao.save()
+        paa.refresh_from_db()
 
-        service = _service(
-            paa_retificacao
-        )
+        assert paa.status == PaaStatusEnum.GERADO.name
 
-        service.iniciar_cancelamento_retificacao()
+    def test_retorna_status_para_retificado_quando_ha_doc_final_retificacao(
+        self,
+        paa_em_retificacao_cancelamento_com_doc_final_retificacao,
+        flag_paa_retificacao,
+    ):
+        """Com documento final de retificação (retificação anterior), o PAA volta para RETIFICADO."""
+        paa = paa_em_retificacao_cancelamento_com_doc_final_retificacao
 
-        paa_retificacao.refresh_from_db()
+        _service(paa).iniciar_cancelamento_retificacao()
 
-        assert (
-            paa_retificacao.status ==
-            PaaStatusEnum.GERADO.name
-        )
+        paa.refresh_from_db()
+
+        assert paa.status == PaaStatusEnum.RETIFICADO.name
