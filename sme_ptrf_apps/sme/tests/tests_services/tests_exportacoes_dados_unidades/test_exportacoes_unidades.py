@@ -114,7 +114,7 @@ def test_exporta_unidades_csv(mock_writer):
     cabecalho = [[
         'Código EOL', 'Tipo', 'Nome', 'CEP', 'Tipo Logradouro', 'Logradouro',
         'Bairro', 'Número', 'Complemento', 'Telefone', 'E-mail',
-        'Código EOL DRE', 'Nome DRE', 'Sigla DRE', 'Nome Diretor Unidade',
+        'Código EOL DRE', 'Nome DRE', 'Nome Diretor Unidade',
         'Data e hora de criação do registro',
         'Data e hora da última atualização do registro', ],
         ["Nome", "Descrição"]]
@@ -132,7 +132,7 @@ def test_exporta_unidades_csv(mock_writer):
     cabecalho_esperado = [
         'Código EOL', 'Tipo', 'Nome', 'CEP', 'Tipo Logradouro', 'Logradouro',
         'Bairro', 'Número', 'Complemento', 'Telefone', 'E-mail',
-        'Código EOL DRE', 'Nome DRE', 'Sigla DRE', 'Nome Diretor Unidade',
+        'Código EOL DRE', 'Nome DRE', 'Nome Diretor Unidade',
         'Data e hora de criação do registro',
         'Data e hora da última atualização do registro']
     mock_write.writerow.assert_any_call(cabecalho_esperado)
