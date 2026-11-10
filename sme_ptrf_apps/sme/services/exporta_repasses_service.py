@@ -102,7 +102,7 @@ class ExportacaoDadosRepassesService:
             data_receita = receita.data.strftime("%d/%m/%Y")
             return data_receita
 
-        return ''
+        return '-'
 
     def exporta_repasses(self):
         self.cria_registro_central_download()
@@ -310,6 +310,10 @@ class ExportacaoDadosRepassesService:
 
         data_hora_disponibilizado = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
         rodape.append(f"Arquivo disponibilizado em {data_hora_disponibilizado}")
+        write.writerow(rodape)
+        rodape.clear()
+
+        rodape.append(f"Legenda Status *: o status Realizado é atribuido após cadastro de todas as aplicações diferente de R$ 0,00")
         write.writerow(rodape)
         rodape.clear()
 
