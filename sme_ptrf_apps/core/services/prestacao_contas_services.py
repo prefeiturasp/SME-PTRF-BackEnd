@@ -1,7 +1,7 @@
 import logging
 
 from django.db import transaction
-from django.db.models import Q, Sum, Count, Max
+from django.db.models import Q, Sum, Count, Max, OuterRef, Subquery, Exists
 from django.forms import ValidationError
 
 from ..models import (
@@ -378,6 +378,85 @@ def informacoes_financeiras_para_atas(prestacao_contas):
     return info
 
 
+def buscar_associacoes_com_prestacoes_nao_recebidas(
+    dre,
+    periodo,
+    filtro_nome=None,
+    filtro_tipo_unidade=None,
+    filtro_status=None,
+):
+    filtro_status = filtro_status or []
+
+    associacoes = (
+        Associacao.get_associacoes_ativas_no_periodo(
+            periodo=periodo,
+            dre=dre,
+        )
+        .select_related("unidade")
+    )
+
+    if filtro_nome is not None:
+        associacoes = associacoes.filter(
+            Q(unidade__codigo_eol=filtro_nome)
+            | Q(nome__unaccent__icontains=filtro_nome)
+            | Q(unidade__nome__unaccent__icontains=filtro_nome)
+        )
+
+    if filtro_tipo_unidade is not None:
+        associacoes = associacoes.filter(
+            unidade__tipo_unidade=filtro_tipo_unidade
+        )
+
+    # Identifica a primeira prestação de cada associação
+    ordenacao = list(PrestacaoConta._meta.ordering) or ["pk"]
+
+    primeira_prestacao = (
+        PrestacaoConta.objects
+        .filter(
+            associacao_id=OuterRef("pk"),
+            periodo=periodo,
+        )
+        .order_by(*ordenacao)
+    )
+
+    associacoes = associacoes.annotate(
+        _pc_pk=Subquery(
+            primeira_prestacao.values("pk")[:1]
+        ),
+        _pc_status=Subquery(
+            primeira_prestacao.values("status")[:1]
+        ),
+    )
+
+    status_permitidos = [
+        PrestacaoConta.STATUS_NAO_APRESENTADA,
+        PrestacaoConta.STATUS_NAO_RECEBIDA,
+    ]
+
+    # Filtra antes de paginar
+    if filtro_status:
+        condicao = Q(_pc_status__in=filtro_status)
+
+        if PrestacaoConta.STATUS_NAO_APRESENTADA in filtro_status:
+            condicao |= Q(_pc_pk__isnull=True)
+
+    else:
+        condicao = (
+            Q(_pc_pk__isnull=True)
+            | Q(_pc_status__in=status_permitidos)
+        )
+
+    return (
+        associacoes
+        .filter(condicao)
+        .order_by(
+            "unidade__tipo_unidade",
+            "unidade__nome",
+            "pk",
+        )
+    )
+
+
 def lista_prestacoes_de_conta_nao_recebidas(
     dre,
     periodo,
@@ -444,6 +523,209 @@ def lista_prestacoes_de_conta_nao_recebidas(
     return prestacoes
 
 
+def lista_prestacoes_de_conta_nao_recebidas_v2(
+    associacoes,
+    periodo,
+    periodos_processo_sei=False,
+):
+    associacoes = list(associacoes)
+
+    if not associacoes:
+        return []
+
+    # Busca apenas prestações pertencentes à página
+    associacoes_ids = [a.pk for a in associacoes]
+
+    ordenacao = list(PrestacaoConta._meta.ordering) or ["pk"]
+
+    prestacoes_queryset = (
+        PrestacaoConta.objects
+        .filter(
+            associacao_id__in=associacoes_ids,
+            periodo=periodo,
+        )
+        .select_related(
+            "associacao__unidade",
+            "periodo",
+        )
+        .order_by("associacao_id", *ordenacao)
+    )
+
+    prestacoes_por_associacao = {}
+
+    for prestacao in prestacoes_queryset:
+        prestacoes_por_associacao.setdefault(
+            prestacao.associacao_id,
+            prestacao,
+        )
+
+    prestacoes = []
+
+    for associacao in associacoes:
+        prestacao_conta = prestacoes_por_associacao.get(
+            associacao.pk
+        )
+
+        if prestacao_conta:
+            processo_sei = get_processo_sei_da_prestacao(
+                prestacao_contas=prestacao_conta,
+                periodos_processo_sei=periodos_processo_sei,
+            )
+        else:
+            processo_sei = get_processo_sei_da_associacao_no_periodo(
+                associacao=associacao,
+                periodo=periodo,
+                periodos_processo_sei=periodos_processo_sei,
+            )
+
+        tecnico = (
+            prestacao_conta.tecnico_responsavel
+            if prestacao_conta
+            else None
+        )
+
+        info_prestacao = {
+            "periodo_uuid": str(periodo.uuid),
+            "data_recebimento": None,
+            "data_ultima_analise": (
+                prestacao_conta.data_ultima_analise
+                if prestacao_conta else None
+            ),
+            "processo_sei": processo_sei,
+            "status": (
+                prestacao_conta.status
+                if prestacao_conta
+                else PrestacaoConta.STATUS_NAO_APRESENTADA
+            ),
+            "tecnico_responsavel": (
+                tecnico.nome if tecnico else ""
+            ),
+            "unidade_eol": associacao.unidade.codigo_eol,
+            "unidade_nome": associacao.unidade.nome,
+            "unidade_tipo_unidade": associacao.unidade.tipo_unidade,
+            "uuid": (
+                str(prestacao_conta.uuid)
+                if prestacao_conta else ""
+            ),
+            "associacao_uuid": str(associacao.uuid),
+            "devolucao_ao_tesouro": (
+                prestacao_conta.total_devolucao_ao_tesouro_str
+                if prestacao_conta else "Não"
+            ),
+            "associacao": AssociacaoCompletoSerializer(
+                associacao,
+                many=False,
+            ).data,
+        }
+
+        prestacoes.append(info_prestacao)
+
+    return prestacoes
+
+
+def buscar_associacoes_com_prestacoes_todos_os_status(
+    dre,
+    periodo,
+    filtro_nome=None,
+    filtro_tipo_unidade=None,
+    filtro_por_devolucao_tesouro=None,
+    filtro_por_status=None,
+):
+    filtro_por_status = filtro_por_status or []
+
+    associacoes = (
+        Associacao.get_associacoes_ativas_no_periodo(
+            periodo=periodo,
+            dre=dre,
+        )
+        .select_related("unidade")
+    )
+
+    # Filtro por nome ou código EOL
+    if filtro_nome is not None:
+        associacoes = associacoes.filter(
+            Q(unidade__codigo_eol=filtro_nome)
+            | Q(nome__unaccent__icontains=filtro_nome)
+            | Q(unidade__nome__unaccent__icontains=filtro_nome)
+        )
+
+    # Filtro por tipo de unidade
+    if filtro_tipo_unidade is not None:
+        associacoes = associacoes.filter(
+            unidade__tipo_unidade=filtro_tipo_unidade
+        )
+
+    # Identifica a primeira prestação de contas
+    # de cada associação no período
+    ordenacao_pc = list(PrestacaoConta._meta.ordering or ["pk"])
+
+    primeira_prestacao = (
+        PrestacaoConta.objects
+        .filter(
+            associacao_id=OuterRef("pk"),
+            periodo=periodo,
+        )
+        .order_by(*ordenacao_pc)
+    )
+
+    associacoes = associacoes.annotate(
+        _pc_id=Subquery(
+            primeira_prestacao.values("pk")[:1]
+        ),
+        _pc_status=Subquery(
+            primeira_prestacao.values("status")[:1]
+        ),
+    )
+
+    # Aplica o filtro por status
+    if filtro_por_status:
+        condicao_status = Q(
+            _pc_status__in=filtro_por_status
+        )
+
+        if (
+            PrestacaoConta.STATUS_NAO_APRESENTADA
+            in filtro_por_status
+        ):
+            # Associações sem prestação de contas
+            condicao_status |= Q(_pc_id__isnull=True)
+
+        associacoes = associacoes.filter(
+            condicao_status
+        )
+
+    # Aplica o filtro por devolução ao Tesouro
+    if filtro_por_devolucao_tesouro in ("0", "1"):
+
+        # Verifica devoluções da prestação selecionada,
+        # não de qualquer prestação da associação
+        prestacoes_com_devolucao = (
+            PrestacaoConta.objects
+            .filter(
+                pk=OuterRef("_pc_id"),
+                devolucoes_ao_tesouro_da_prestacao__isnull=False,
+            )
+        )
+
+        associacoes = associacoes.annotate(
+            _pc_tem_devolucao=Exists(
+                prestacoes_com_devolucao
+            )
+        )
+
+        associacoes = associacoes.filter(
+            _pc_tem_devolucao=(
+                filtro_por_devolucao_tesouro == "1"
+            )
+        )
+
+    return associacoes.order_by(
+        "unidade__tipo_unidade",
+        "unidade__nome",
+        "pk",
+    )
+
+
 def lista_prestacoes_de_conta_todos_os_status(
     dre,
     periodo,
@@ -507,6 +789,104 @@ def lista_prestacoes_de_conta_todos_os_status(
             'associacao_uuid': f'{associacao.uuid}',
             'devolucao_ao_tesouro': prestacao_conta.total_devolucao_ao_tesouro_str if prestacao_conta else 'Não',
             'associacao': AssociacaoCompletoSerializer(associacao, many=False).data,
+        }
+
+        prestacoes.append(info_prestacao)
+
+    return prestacoes
+
+
+def lista_prestacoes_de_conta_todos_os_status_v2(
+    associacoes,
+    periodo,
+    periodos_processo_sei=False,
+):
+    associacoes = list(associacoes)
+
+    if not associacoes:
+        return []
+
+    prestacoes_ids = [
+        associacao._pc_id
+        for associacao in associacoes
+        if associacao._pc_id is not None
+    ]
+
+    prestacoes_queryset = (
+        PrestacaoConta.objects
+        .filter(pk__in=prestacoes_ids)
+        .select_related(
+            "associacao__unidade",
+            "periodo",
+        )
+    )
+
+    prestacoes_por_id = {
+        prestacao.pk: prestacao
+        for prestacao in prestacoes_queryset
+    }
+
+    prestacoes = []
+
+    for associacao in associacoes:
+        prestacao_conta = prestacoes_por_id.get(
+            associacao._pc_id
+        )
+
+        if prestacao_conta:
+            processo_sei = get_processo_sei_da_prestacao(
+                prestacao_contas=prestacao_conta,
+                periodos_processo_sei=periodos_processo_sei,
+            )
+        else:
+            processo_sei = get_processo_sei_da_associacao_no_periodo(
+                associacao=associacao,
+                periodo=periodo,
+                periodos_processo_sei=periodos_processo_sei,
+            )
+
+        # Evita acessar a property duas vezes
+        tecnico = (
+            prestacao_conta.tecnico_responsavel
+            if prestacao_conta
+            else None
+        )
+
+        info_prestacao = {
+            "periodo_uuid": str(periodo.uuid),
+            "data_recebimento": (
+                prestacao_conta.data_recebimento
+                if prestacao_conta else None
+            ),
+            "data_ultima_analise": (
+                prestacao_conta.data_ultima_analise
+                if prestacao_conta else None
+            ),
+            "processo_sei": processo_sei,
+            "status": (
+                prestacao_conta.status
+                if prestacao_conta
+                else PrestacaoConta.STATUS_NAO_APRESENTADA
+            ),
+            "tecnico_responsavel": (
+                tecnico.nome if tecnico else ""
+            ),
+            "unidade_eol": associacao.unidade.codigo_eol,
+            "unidade_nome": associacao.unidade.nome,
+            "unidade_tipo_unidade": associacao.unidade.tipo_unidade,
+            "uuid": (
+                str(prestacao_conta.uuid)
+                if prestacao_conta else ""
+            ),
+            "associacao_uuid": str(associacao.uuid),
+            "devolucao_ao_tesouro": (
+                prestacao_conta.total_devolucao_ao_tesouro_str
+                if prestacao_conta else "Não"
+            ),
+            "associacao": AssociacaoCompletoSerializer(
+                associacao,
+                many=False,
+            ).data,
         }
 
         prestacoes.append(info_prestacao)
