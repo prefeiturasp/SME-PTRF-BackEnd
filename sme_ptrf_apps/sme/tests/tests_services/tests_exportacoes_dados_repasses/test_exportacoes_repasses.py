@@ -58,15 +58,15 @@ def test_dados_repasses_esperados_csv(repasse_exportacao_csv, ambiente):
         repasse_exportacao_csv.conta_associacao.tipo_conta.nome,
         repasse_exportacao_csv.acao_associacao.acao.nome,
         "1000,00",
-        "",
+        "-",
         "Sim",
 
         "1000,00",
-        "",
+        "-",
         "Não",
 
         "0,00",        
-        "",
+        "-",
         "Não",
         "Previsto",
         None,
