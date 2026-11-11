@@ -688,3 +688,87 @@ def test_remove_nao_membro_por_cpf_responsavel(
         ata=ata, membro=True, cargo=Cargos(PRESIDENTE).label,
         identificacao="7654321",
     ).exists()
+
+
+def test_marca_ata_como_atualizada_pelo_historico_ao_sincronizar(
+    contexto_atas, historico_v2_ativo,
+):
+    criar_registro_cargo_ata(contexto_atas, nome="Maria")
+    ata = criar_ata(contexto_atas, date(2026, 3, 10))
+    criar_participante(ata, nome="João")
+    assert ata.atualizado_historico is False
+
+    sincronizar(contexto_atas)
+    ata.refresh_from_db()
+
+    assert ata.atualizado_historico is True
+
+
+def test_mantem_ata_marcada_como_atualizada_ao_sincronizar_novamente(
+    contexto_atas, historico_v2_ativo,
+):
+    criar_registro_cargo_ata(contexto_atas, nome="Maria")
+    ata = criar_ata(contexto_atas, date(2026, 3, 10), atualizado_historico=True)
+    criar_participante(ata, nome="João")
+
+    sincronizar(contexto_atas)
+    ata.refresh_from_db()
+
+    assert ata.atualizado_historico is True
+
+
+def test_nao_marca_ata_como_atualizada_quando_flag_historico_v2_desativada(contexto_atas):
+    definir_flag("historico-de-membros-v2", False)
+    criar_registro_cargo_ata(contexto_atas, nome="Maria")
+    ata = criar_ata(contexto_atas, date(2026, 3, 10))
+    criar_participante(ata, nome="João")
+
+    sincronizar(contexto_atas)
+    ata.refresh_from_db()
+
+    assert ata.atualizado_historico is False
+
+
+def test_nao_marca_ata_como_atualizada_quando_ata_nao_tem_membros(
+    contexto_atas, historico_v2_ativo,
+):
+    criar_registro_cargo_ata(contexto_atas, nome="Maria")
+    ata = criar_ata(contexto_atas, date(2026, 3, 10))
+    criar_participante(ata, nome="Convidado", membro=False)
+
+    sincronizar(contexto_atas)
+    ata.refresh_from_db()
+
+    assert ata.atualizado_historico is False
+
+
+def test_nao_marca_ata_como_atualizada_quando_nao_existe_registro_na_data(
+    contexto_atas, historico_v2_ativo,
+):
+    criar_registro_cargo_ata(contexto_atas, nome="Maria", data_inicio=date(2026, 4, 1))
+    ata = criar_ata(contexto_atas, date(2026, 3, 10))
+    criar_participante(ata, nome="João")
+
+    sincronizar(contexto_atas)
+    ata.refresh_from_db()
+
+    assert ata.atualizado_historico is False
+
+
+def test_nao_marca_ata_nao_elegivel_como_atualizada(
+    contexto_atas, historico_v2_ativo,
+):
+    criar_registro_cargo_ata(contexto_atas, nome="Maria")
+    ata_valida = criar_ata(contexto_atas, date(2026, 3, 10))
+    ata_pdf_concluido = criar_ata(
+        contexto_atas, date(2026, 3, 10), status_geracao_pdf=Ata.STATUS_CONCLUIDO,
+    )
+    for ata in (ata_valida, ata_pdf_concluido):
+        criar_participante(ata, nome="João")
+
+    sincronizar(contexto_atas)
+    ata_valida.refresh_from_db()
+    ata_pdf_concluido.refresh_from_db()
+
+    assert ata_valida.atualizado_historico is True
+    assert ata_pdf_concluido.atualizado_historico is False
