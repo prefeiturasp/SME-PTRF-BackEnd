@@ -1,3 +1,5 @@
+import os
+import sys
 import time
 import logging
 import pika
@@ -10,8 +12,13 @@ from datetime import datetime
 env = environ.Env()
 
 
+def _debug(msg):
+    # print em stderr; nunca usar logging aqui para evitar recursão
+    print(msg, file=sys.stderr)
+
+
 class RabbitMQHandler(logging.Handler):
-    def __init__(self, host, virtual_host, queue, username, password, max_retries=5, retry_delay=1):
+    def __init__(self, host, virtual_host, queue, username, password, max_retries=3, retry_delay=0.5):
         super().__init__()
         self.host = host
         self.virtual_host = virtual_host
@@ -20,71 +27,128 @@ class RabbitMQHandler(logging.Handler):
         self.password = password
         self.max_retries = max_retries
         self.retry_delay = retry_delay
+        self.connection = None
+        self.channel = None
+        self._pid = None
+
+    def _is_usable(self):
+        if self._pid != os.getpid():
+            self.connection = None
+            self.channel = None
+            return False
+        return (
+            self.connection is not None and self.connection.is_open
+            and self.channel is not None and self.channel.is_open
+        )
+
+    def _safe_close_connection(self):
+        conn = self.connection
+        self.connection = None
+        self.channel = None
+        if conn is None:
+            return
+        try:
+            if conn.is_open:
+                conn.close()
+        except Exception:
+            pass  # já fechada pelo broker / outro estado inválido
 
     def _establish_connection(self):
-        for _ in range(self.max_retries):
-            print(f"Tentando conectar ao RabbitMQ: {self.host} - {self.virtual_host} - {self.queue}. Tentativa {_ + 1}")
+        self._safe_close_connection()
+        delay = self.retry_delay
+        last_error = None
+
+        for attempt in range(1, self.max_retries + 1):
+            _debug(f"Tentando conectar ao RabbitMQ: {self.host} - {self.virtual_host} - {self.queue}. Tentativa {attempt}")
             try:
                 credentials = pika.PlainCredentials(self.username, self.password)
-                parameters = pika.ConnectionParameters(host=self.host, virtual_host=self.virtual_host,
-                                                       credentials=credentials)
+                parameters = pika.ConnectionParameters(
+                    host=self.host,
+                    virtual_host=self.virtual_host,
+                    credentials=credentials,
+                    heartbeat=0,  # handler não processa eventos; evita o broker derrubar por heartbeat
+                    socket_timeout=5,
+                    blocked_connection_timeout=10,
+                )
                 self.connection = pika.BlockingConnection(parameters)
                 self.channel = self.connection.channel()
                 self.channel.queue_declare(queue=self.queue, durable=True)
-                print(f"Conectado ao RabbitMQ: {self.host} - {self.virtual_host} - {self.queue}")
+                self._pid = os.getpid()
+                _debug(f"Conectado ao RabbitMQ: {self.host} - {self.virtual_host} - {self.queue}")
                 return
-            except pika.exceptions.AMQPConnectionError:
-                print(f"Não foi possível estabelecer conexão com o RabbitMQ. Tentando novamente em {self.retry_delay} segundos.")
-                time.sleep(self.retry_delay)
-                self.retry_delay *= 2  # Backoff exponencial
+            except pika.exceptions.AMQPError as e:
+                last_error = e
+                self._safe_close_connection()
+                if attempt < self.max_retries:
+                    time.sleep(delay)
+                    delay *= 2  # backoff exponencial
 
-        raise Exception("Não foi possível estabelecer conexão com o RabbitMQ após várias tentativas.")
+        raise ConnectionError(
+            f"Não foi possível estabelecer conexão com o RabbitMQ após {self.max_retries} tentativas: {last_error}"
+        )
+
+
+    def _build_body(self, record):
+        if record.exc_info:
+            exc_type, exc_value, exc_traceback = record.exc_info
+            exc_info_str = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+        else:
+            exc_info_str = None
+
+        return json.dumps({
+            'timestamp': datetime.fromtimestamp(record.created).strftime('%Y-%m-%d %H:%M:%S,%f')[:-3],
+            'level': record.levelname,
+            'message': record.getMessage(),
+            'logger_name': record.name,
+            'path_name': record.pathname,
+            'file_name': record.filename,
+            'func_name': record.funcName,
+            'line_number': record.lineno,
+            'module': record.module,
+            'process': record.process,
+            'process_name': record.processName,
+            'thread': record.thread,
+            'thread_name': record.threadName,
+            'exc_info': exc_info_str,
+            'stack_info': record.stack_info if record.stack_info else None,
+            'aplicacao': getattr(record, 'aplicacao', 'SigEscola.API'),
+            'task_id': getattr(record, 'task_id', None),
+            'ambiente': env('LOG_ENVIRONMENT', default='NAO_INFORMADO'),
+            'operacao_id': getattr(record, 'operacao_id', None),
+            'operacao': getattr(record, 'operacao', None),
+            'username': getattr(record, 'username', None),
+            'observacao': getattr(record, 'observacao', None),
+        })
+
+    def _publish(self, body):
+        if not self._is_usable():
+            self._establish_connection()
+        self.channel.basic_publish(exchange='', routing_key=self.queue, body=body)
 
     def emit(self, record):
+        # Nunca deixar falha de log propagar para a aplicação
         try:
-            if not hasattr(self, 'connection') or self.connection.is_closed:
-                self._establish_connection()
+            body = self._build_body(record)
 
-            if record.exc_info:
-                exc_type, exc_value, exc_traceback = record.exc_info
-                exc_info_str = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-            else:
-                exc_info_str = None
+            try:
+                self._publish(body)
 
-            stack_info_str = record.stack_info if record.stack_info else None
+            except ConnectionError:
+                raise
 
-            body = json.dumps({
-                'timestamp': datetime.fromtimestamp(record.created).strftime('%Y-%m-%d %H:%M:%S,%f')[:-3],
-                'level': record.levelname,
-                'message': record.getMessage(),
-                'logger_name': record.name,
-                'path_name': record.pathname,
-                'file_name': record.filename,
-                'func_name': record.funcName,
-                'line_number': record.lineno,
-                'module': record.module,
-                'process': record.process,
-                'process_name': record.processName,
-                'thread': record.thread,
-                'thread_name': record.threadName,
-                'exc_info': exc_info_str,
-                'stack_info': stack_info_str,
-                'aplicacao': record.aplicacao if hasattr(record, 'aplicacao') else 'SigEscola.API',
-                'task_id': record.task_id if hasattr(record, 'task_id') else None,
-                'ambiente': env('LOG_ENVIRONMENT', default='NAO_INFORMADO'),
-                'operacao_id': record.operacao_id if hasattr(record, 'operacao_id') else None,
-                'operacao': record.operacao if hasattr(record, 'operacao') else None,
-                'username': record.username if hasattr(record, 'username') else None,
-                'observacao': record.observacao if hasattr(record, 'observacao') else None,
-            })
-            self.channel.basic_publish(exchange='', routing_key=self.queue, body=body)
+            except (pika.exceptions.AMQPError, OSError):
+                self._safe_close_connection()
+                self._publish(body)
 
-        except (pika.exceptions.AMQPConnectionError, pika.exceptions.ChannelError) as e:
-            self._establish_connection()  # Tentar reconectar
-            self.emit(record)  # Tentar reenviar o log
+        except Exception:
+            self.handleError(record)
 
     def close(self):
-        if hasattr(self, 'connection'):
-            print(f"Fechando conexão com RabbitMQ: {self.host} - {self.virtual_host} - {self.queue}")
-            self.connection.close()
+        # Chamado pelo logging.shutdown / reconfiguração (ex.: Celery import_modules).
+        # Tem que ser tolerante a conexão já fechada.
+        self.acquire()
+        try:
+            self._safe_close_connection()
+        finally:
+            self.release()
         super().close()
