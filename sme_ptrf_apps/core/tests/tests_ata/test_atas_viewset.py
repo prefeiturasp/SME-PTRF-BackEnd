@@ -5,6 +5,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework import status
 from rest_framework.test import APIRequestFactory
 from rest_framework.test import force_authenticate
+from waffle.testutils import override_flag
 
 from ...api.views.atas_viewset import AtasViewSet
 from ...api.serializers import AtaSerializer, AtaCreateSerializer
@@ -136,6 +137,111 @@ def test_gerar_arquivo_ata_sucesso(usuario_permissao_associacao, prestacao_conta
         ata_uuid=str(ata.uuid),
         usuario=usuario_permissao_associacao.username,
     )
+
+
+@override_flag('historico-de-membros-v2', active=True)
+def test_gerar_arquivo_ata_v2_ativa_participantes_alterados_pelo_historico(
+    usuario_permissao_associacao, prestacao_conta_factory, ata_factory, gerar_arquivo_ata_com_campos_validos
+):
+    pc = prestacao_conta_factory()
+    ata = ata_factory(atualizado_historico=True)
+
+    response, mock_task = gerar_arquivo_ata_com_campos_validos(usuario_permissao_associacao, pc, ata)
+
+    assert response.status_code == status.HTTP_409_CONFLICT
+    assert response.data['erro'] == 'participantes_alterados_pelo_historico'
+    assert response.data['mensagem'] == (
+        'Os participantes da ata foram atualizados de acordo com o histórico de membros. '
+        'Revise a ata antes de gerar o documento.'
+    )
+    mock_task.delay.assert_not_called()
+
+    ata.refresh_from_db()
+    assert ata.atualizado_historico is False
+
+
+@override_flag('historico-de-membros-v2', active=True)
+def test_gerar_arquivo_ata_v2_ativa_aviso_exibido_apenas_uma_vez(
+    usuario_permissao_associacao, prestacao_conta_factory, ata_factory, gerar_arquivo_ata_com_campos_validos
+):
+    pc = prestacao_conta_factory()
+    ata = ata_factory(atualizado_historico=True)
+
+    primeira_response, primeiro_mock = gerar_arquivo_ata_com_campos_validos(usuario_permissao_associacao, pc, ata)
+    segunda_response, segundo_mock = gerar_arquivo_ata_com_campos_validos(usuario_permissao_associacao, pc, ata)
+
+    assert primeira_response.status_code == status.HTTP_409_CONFLICT
+    primeiro_mock.delay.assert_not_called()
+
+    assert segunda_response.status_code == status.HTTP_200_OK
+    assert segunda_response.data['mensagem'] == 'Arquivo na fila para processamento.'
+    segundo_mock.delay.assert_called_once_with(
+        prestacao_de_contas_uuid=str(pc.uuid),
+        ata_uuid=str(ata.uuid),
+        usuario=usuario_permissao_associacao.username,
+    )
+
+
+@override_flag('historico-de-membros-v2', active=True)
+def test_gerar_arquivo_ata_v2_ativa_sem_alteracao_pelo_historico(
+    usuario_permissao_associacao, prestacao_conta_factory, ata_factory, gerar_arquivo_ata_com_campos_validos
+):
+    pc = prestacao_conta_factory()
+    ata = ata_factory(atualizado_historico=False)
+
+    response, mock_task = gerar_arquivo_ata_com_campos_validos(usuario_permissao_associacao, pc, ata)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['mensagem'] == 'Arquivo na fila para processamento.'
+    mock_task.delay.assert_called_once_with(
+        prestacao_de_contas_uuid=str(pc.uuid),
+        ata_uuid=str(ata.uuid),
+        usuario=usuario_permissao_associacao.username,
+    )
+
+    ata.refresh_from_db()
+    assert ata.atualizado_historico is False
+
+
+@override_flag('historico-de-membros-v2', active=False)
+def test_gerar_arquivo_ata_v2_inativa_ignora_alteracao_pelo_historico(
+    usuario_permissao_associacao, prestacao_conta_factory, ata_factory, gerar_arquivo_ata_com_campos_validos
+):
+    pc = prestacao_conta_factory()
+    ata = ata_factory(atualizado_historico=True)
+
+    with patch(
+        'sme_ptrf_apps.core.api.views.atas_viewset.verifica_houve_alteracao_participantes_ata'
+    ) as mock_verifica:
+        response, mock_task = gerar_arquivo_ata_com_campos_validos(usuario_permissao_associacao, pc, ata)
+
+    assert response.status_code == status.HTTP_200_OK
+    mock_verifica.assert_not_called()
+    mock_task.delay.assert_called_once()
+
+    ata.refresh_from_db()
+    assert ata.atualizado_historico is True
+
+
+@override_flag('historico-de-membros-v2', active=True)
+def test_gerar_arquivo_ata_v2_ativa_campos_invalidos_nao_consome_aviso(
+    usuario_permissao_associacao, prestacao_conta_factory, ata_factory
+):
+    pc = prestacao_conta_factory()
+    ata = ata_factory(atualizado_historico=True)
+
+    with patch(
+        'sme_ptrf_apps.core.api.views.atas_viewset.validar_campos_ata',
+        return_value={'is_valid': False, 'campos': ['presidente_reuniao']},
+    ), patch('sme_ptrf_apps.core.api.views.atas_viewset.gerar_arquivo_ata_async') as mock_task:
+        response = _gerar_arquivo_ata(
+            usuario_permissao_associacao, **{'prestacao-de-conta-uuid': pc.uuid, 'ata-uuid': ata.uuid})
+
+    assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+    mock_task.delay.assert_not_called()
+
+    ata.refresh_from_db()
+    assert ata.atualizado_historico is True
 
 
 # download_arquivo_ata
