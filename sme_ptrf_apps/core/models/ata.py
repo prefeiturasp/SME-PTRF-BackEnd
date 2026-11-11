@@ -194,6 +194,12 @@ class Ata(ModeloBase):
         default='',
     )
 
+    atualizado_historico = models.BooleanField(
+        'Atualizado pelo histórico de membros',
+        default=False,
+        help_text='Os participantes da ata foram alterados pelo histórico de membros.',
+    )
+
     pdf_gerado_previamente = models.BooleanField(
         "PDF gerado previamente",
         blank=True,
@@ -357,6 +363,13 @@ class Ata(ModeloBase):
     def arquivo_pdf_nao_gerado(self):
         self.status_geracao_pdf = self.STATUS_NAO_GERADO
         self.save()
+
+    def marcar_como_atualizado_historico(self):
+        if self.atualizado_historico:
+            return
+
+        self.atualizado_historico = True
+        self.save(update_fields=['atualizado_historico'])
 
     class Meta:
         verbose_name = "Ata"

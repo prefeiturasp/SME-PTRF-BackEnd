@@ -2,8 +2,10 @@ import pytest
 from sme_ptrf_apps.core.services.ata_service import (
     validar_campos_ata,
     unidade_precisa_professor_gremio,
-    verifica_precisa_professor_gremio_ata
+    verifica_precisa_professor_gremio_ata,
+    verifica_houve_alteracao_participantes_ata
 )
+from sme_ptrf_apps.core.models import Ata
 
 
 @pytest.mark.django_db(transaction=False)
@@ -136,3 +138,34 @@ def test_verifica_precisa_professor_gremio_ata_sem_acao_gremio(ata_prestacao_con
     parametros.save()
 
     assert verifica_precisa_professor_gremio_ata(ata_prestacao_conta_iniciada) is False
+
+
+@pytest.mark.django_db
+def test_verifica_houve_alteracao_participantes_ata_sem_alteracao(ata_prestacao_conta_iniciada):
+    ata_prestacao_conta_iniciada.atualizado_historico = False
+    ata_prestacao_conta_iniciada.save(update_fields=['atualizado_historico'])
+
+    assert verifica_houve_alteracao_participantes_ata(ata_prestacao_conta_iniciada) is False
+
+    ata = Ata.by_id(ata_prestacao_conta_iniciada.id)
+    assert ata.atualizado_historico is False
+
+
+@pytest.mark.django_db
+def test_verifica_houve_alteracao_participantes_ata_com_alteracao(ata_prestacao_conta_iniciada):
+    ata_prestacao_conta_iniciada.atualizado_historico = True
+    ata_prestacao_conta_iniciada.save(update_fields=['atualizado_historico'])
+
+    assert verifica_houve_alteracao_participantes_ata(ata_prestacao_conta_iniciada) is True
+
+    ata = Ata.by_id(ata_prestacao_conta_iniciada.id)
+    assert ata.atualizado_historico is False
+
+
+@pytest.mark.django_db
+def test_verifica_houve_alteracao_participantes_ata_aviso_exibido_apenas_uma_vez(ata_prestacao_conta_iniciada):
+    ata_prestacao_conta_iniciada.atualizado_historico = True
+    ata_prestacao_conta_iniciada.save(update_fields=['atualizado_historico'])
+
+    assert verifica_houve_alteracao_participantes_ata(ata_prestacao_conta_iniciada) is True
+    assert verifica_houve_alteracao_participantes_ata(ata_prestacao_conta_iniciada) is False
