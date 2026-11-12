@@ -260,6 +260,40 @@ SCHEMA_CARGOS_DA_COMPOSICAO = extend_schema(
     },
 )
 
+SCHEMA_SUBSTITUTOS_PRESIDENTE = extend_schema(
+    description=(
+        "Lista os ocupantes da diretoria executiva que podem substituir o presidente ausente "
+        "na composição vigente de hoje. Não inclui o presidente nem cargos vagos. "
+        "Cada item traz id (chave do cargo), cargo (rótulo curto, Vogal sem número) e nome."
+    ),
+    tags=TAGS,
+    parameters=[
+        OpenApiParameter(**PARAM_ASSOCIACAO_UUID),
+    ],
+    responses={
+        200: OpenApiResponse(description="Lista de substitutos ocupados."),
+        400: OpenApiResponse(description="UUID da associação ausente."),
+        404: OpenApiResponse(description="Associação não encontrada ou flag inativa."),
+    },
+)
+
+SCHEMA_CONSELHEIROS_ASSINATURA = extend_schema(
+    description=(
+        "Lista os ocupantes do conselho fiscal na composição vigente de hoje, "
+        "incluindo o presidente do conselho e os conselheiros com nome preenchido. "
+        "Cada item traz id (chave do cargo) e nome."
+    ),
+    tags=TAGS,
+    parameters=[
+        OpenApiParameter(**PARAM_ASSOCIACAO_UUID),
+    ],
+    responses={
+        200: OpenApiResponse(description="Lista de conselheiros ocupados."),
+        400: OpenApiResponse(description="UUID da associação ausente."),
+        404: OpenApiResponse(description="Associação não encontrada ou flag inativa."),
+    },
+)
+
 SCHEMA_CANCELAR_ENTRADA = extend_schema(
     description=(
         "Desfaz uma entrada vigente (nenhum sucessor registrado depois dela) como se nunca tivesse "
@@ -294,4 +328,6 @@ DOCS = dict(
     cargos_da_composicao=SCHEMA_CARGOS_DA_COMPOSICAO,
     cancelar_entrada=SCHEMA_CANCELAR_ENTRADA,
     timeline_consolidada=SCHEMA_TIMELINE_CONSOLIDADA,
+    substitutos_presidente=SCHEMA_SUBSTITUTOS_PRESIDENTE,
+    conselheiros_assinatura=SCHEMA_CONSELHEIROS_ASSINATURA,
 )

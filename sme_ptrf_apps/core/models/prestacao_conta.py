@@ -113,6 +113,27 @@ class PrestacaoConta(ModeloBase):
     justificativa_pendencia_realizacao = models.TextField('Justificativa de pendências de realização de ajustes.',
                                                           blank=True, default='')
 
+    status_presidente = models.CharField(
+        'Status do presidente na conclusão',
+        max_length=15,
+        blank=True,
+        null=True,
+    )
+
+    cargo_substituto_presidente_ausente = models.CharField(
+        'Cargo substituto do presidente na conclusão',
+        max_length=65,
+        blank=True,
+        null=True,
+    )
+
+    cargo_conselheiro_assinatura = models.CharField(
+        'Conselheiro que assina na conclusão',
+        max_length=65,
+        blank=True,
+        null=True,
+    )
+
     status_anterior_a_retificacao = models.CharField(
         'Status anterior a retificacao',
         max_length=20,

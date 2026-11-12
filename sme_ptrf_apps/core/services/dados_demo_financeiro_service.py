@@ -145,12 +145,21 @@ def cria_identificacao_apm(acoes):
     _presidente_diretoria_executiva = ''
     presidente_conselho_fiscal = '-------'
     cargo_substituto_presidente_ausente_value = ''
+    cargo_conselheiro_assinatura = ''
+
+    from sme_ptrf_apps.core.services.associacoes_service import assinatura_membros_v2
 
     flags = get_waffle_flag_model()
 
     LOGGER.info("Verificando se a flag <historico-de-membros> está ativa...")
 
-    if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+    assinatura_v2 = assinatura_membros_v2(associacao)
+    if assinatura_v2:
+        presidente_diretoria_executiva = assinatura_v2['presidente_diretoria_executiva']
+        presidente_conselho_fiscal = assinatura_v2['presidente_conselho_fiscal']
+        cargo_substituto_presidente_ausente_value = assinatura_v2['cargo_substituto_presidente_ausente']
+        cargo_conselheiro_assinatura = assinatura_v2['cargo_conselheiro_assinatura']
+    elif flags.objects.filter(name='historico-de-membros', everyone=True).exists():
         LOGGER.info("A flag está ativa, as informações serão buscadas no Histórico de Membros")
 
         servico_mandato_vigente = ServicoMandatoVigente()
@@ -218,6 +227,7 @@ def cria_identificacao_apm(acoes):
         "presidente_diretoria_executiva": presidente_diretoria_executiva,
         "presidente_conselho_fiscal": presidente_conselho_fiscal,
         "cargo_substituto_presidente_ausente": cargo_substituto_presidente_ausente_value,
+        "cargo_conselheiro_assinatura": cargo_conselheiro_assinatura,
     }
 
     return identificacao_apm

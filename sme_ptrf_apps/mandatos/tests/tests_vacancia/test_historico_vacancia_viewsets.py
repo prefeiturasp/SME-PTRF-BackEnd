@@ -2,6 +2,7 @@ from datetime import date
 from uuid import uuid4
 
 import pytest
+from freezegun import freeze_time
 from rest_framework import status
 from rest_framework.test import APIRequestFactory, force_authenticate
 from waffle.testutils import override_flag
@@ -552,3 +553,44 @@ def test_editar_ocupante_bloqueado_em_cargo_vago_retorna_400(composicao_vacancia
     response = view(request, uuid=vago.uuid)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@override_flag(FLAG, active=True)
+@freeze_time('2026-06-15')
+def test_substitutos_presidente_lista_ocupados_da_diretoria_sem_presidente(
+        composicao_vacancia, associacao_teste, usuario_permissao_sme):
+    vice = OcupanteCargoFactory(nome='Ana Vice')
+    ServicoHistoricoCargoComposicao.registrar_entrada(
+        composicao_vacancia=composicao_vacancia,
+        ocupante_do_cargo=vice,
+        cargo_associacao=Cargo.CARGO_ASSOCIACAO_VICE_PRESIDENTE_DIRETORIA_EXECUTIVA,
+        data_entrada=date(2026, 1, 1),
+    )
+    vogal = OcupanteCargoFactory(nome='Bruno Vogal')
+    ServicoHistoricoCargoComposicao.registrar_entrada(
+        composicao_vacancia=composicao_vacancia,
+        ocupante_do_cargo=vogal,
+        cargo_associacao=Cargo.CARGO_ASSOCIACAO_VOGAL_3,
+        data_entrada=date(2026, 1, 1),
+    )
+    ServicoHistoricoCargoComposicao.registrar_entrada(
+        composicao_vacancia=composicao_vacancia,
+        ocupante_do_cargo=OcupanteCargoFactory(nome='Carlos Presidente'),
+        cargo_associacao=Cargo.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA,
+        data_entrada=date(2026, 1, 1),
+    )
+
+    request = APIRequestFactory().get('', {'associacao_uuid': str(associacao_teste.uuid)})
+    force_authenticate(request, user=usuario_permissao_sme)
+    view = CargosComposicoesVacanciaViewSet.as_view({'get': 'substitutos_presidente'})
+
+    response = view(request)
+
+    assert response.status_code == status.HTTP_200_OK
+    ids = [item['id'] for item in response.data]
+    assert 'PRESIDENTE_DIRETORIA_EXECUTIVA' not in ids
+    assert 'VICE_PRESIDENTE_DIRETORIA_EXECUTIVA' in ids
+    assert 'VOGAL_3' in ids
+    vogal_item = next(item for item in response.data if item['id'] == 'VOGAL_3')
+    assert vogal_item['cargo'] == 'Vogal'
+    assert vogal_item['nome'] == 'Bruno Vogal'

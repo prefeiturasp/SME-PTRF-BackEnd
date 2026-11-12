@@ -86,3 +86,37 @@ def test_update_status_presidente_para_presente(jwt_authenticated_client_a, asso
     assert response.status_code == status.HTTP_200_OK
     assert registro_alterado.status_presidente == 'PRESENTE'
     assert registro_alterado.cargo_substituto_presidente_ausente is None
+
+
+def test_update_status_presidente_presente_ignora_cargo_enviado(
+        jwt_authenticated_client_a, associacao_presidente_ausente):
+    payload = {
+        "status_presidente": "PRESENTE",
+        "cargo_substituto_presidente_ausente": "TESOUREIRO"
+    }
+
+    response = jwt_authenticated_client_a.patch(
+        f'/api/associacoes/{associacao_presidente_ausente.uuid}/update-status-presidente/',
+        data=json.dumps(payload),
+        content_type='application/json')
+
+    registro_alterado = Associacao.objects.get(uuid=associacao_presidente_ausente.uuid)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert registro_alterado.status_presidente == 'PRESENTE'
+    assert registro_alterado.cargo_substituto_presidente_ausente is None
+
+
+def test_update_status_presidente_rejeita_o_proprio_presidente(
+        jwt_authenticated_client_a, associacao_presidente_presente):
+    payload = {
+        "status_presidente": "AUSENTE",
+        "cargo_substituto_presidente_ausente": "PRESIDENTE_DIRETORIA_EXECUTIVA"
+    }
+
+    response = jwt_authenticated_client_a.patch(
+        f'/api/associacoes/{associacao_presidente_presente.uuid}/update-status-presidente/',
+        data=json.dumps(payload),
+        content_type='application/json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST

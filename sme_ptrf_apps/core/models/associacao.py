@@ -127,6 +127,13 @@ class Associacao(ModeloIdNome):
         choices=MembroEnum.diretoria_executiva_choices(),
         default=None)
 
+    cargo_conselheiro_assinatura = models.CharField(
+        'Conselheiro que assina o demonstrativo',
+        max_length=65,
+        blank=True,
+        null=True,
+        default=None)
+
     status_valores_reprogramados = models.CharField(
         'Status dos valores reprogramados',
         max_length=20,
