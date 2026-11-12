@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 from sme_ptrf_apps.logging.loggers import ContextualLogger
 from django.db import transaction
 from waffle import get_waffle_flag_model
@@ -6,13 +10,24 @@ from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
 from sme_ptrf_apps.paa.models.documento_paa import DocumentoPaa
 from sme_ptrf_apps.paa.models.ata_paa import AtaPaa
 
+if TYPE_CHECKING:
+    from sme_ptrf_apps.users.models import User
+    from sme_ptrf_apps.paa.models import ReplicaPaa
+
 
 class ValidacaoRetificacao(Exception):
     pass
 
 
 class RetificacaoPaaService:
-    def __init__(self, paa: Paa, usuario):
+    def __init__(self, paa: Paa, usuario: User | str | None) -> None:
+        """Inicializa o serviço de retificação para um PAA.
+
+        Args:
+            paa: PAA que será retificado ou comparado com sua réplica.
+            usuario: Usuário que executa a operação (objeto de usuário ou username). Usado
+                apenas para identificação nos logs; pode ser None.
+        """
         self.paa = paa
         self.usuario = usuario
         self.logger = ContextualLogger.get_logger(
@@ -21,7 +36,14 @@ class RetificacaoPaaService:
             username=getattr(usuario, 'username', str(usuario))
         )
 
-    def _snapshot_objetivos_globais(self):
+    def _snapshot_objetivos_globais(self) -> dict[str, dict[str, str]]:
+        """Gera o snapshot dos objetivos globais vinculados ao PAA.
+
+        Considera globais os objetivos vinculados ao PAA que não foram criados dentro dele.
+
+        Returns:
+            Dicionário indexado pelo uuid do objetivo, com o nome de cada objetivo.
+        """
         result = {}
         # Lista de objetivos criados dentro do PAA (diferencia dos objetivos globais)
         objs_paa = self.paa.objetivopaa_set.values_list('uuid', flat=True)
@@ -30,14 +52,27 @@ class RetificacaoPaaService:
             result[str(obj.uuid)] = {'nome': obj.nome}
         return result
 
-    def _snapshot_objetivos_paa(self):
+    def _snapshot_objetivos_paa(self) -> dict[str, dict[str, str]]:
+        """Gera o snapshot dos objetivos criados dentro do PAA.
+
+        Returns:
+            Dicionário indexado pelo uuid do objetivo, com o nome de cada objetivo.
+        """
         result = {
             str(obj.uuid): {'nome': obj.nome}
             for obj in self.paa.objetivopaa_set.all()
         }
         return result
 
-    def _snapshot_atividades_estatutarias_paa(self):
+    def _snapshot_atividades_estatutarias_paa(self) -> dict[str, dict[str, str]]:
+        """Gera o snapshot das atividades estatutárias criadas dentro do PAA.
+
+        Considera apenas as atividades estatutárias vinculadas a um PAA (`paa` preenchido).
+
+        Returns:
+            Dicionário indexado pelo uuid da atividade estatutária, com nome, tipo, ano, mês,
+            status e data prevista da atividade no PAA.
+        """
         result = {}
         # Atividade Estatutárias(Instância AtividadePrevista) Globais (Não relacionadasa nenhum PAA)
         _atvs_paa = self.paa.atividades_estatutarias.select_related('paa').filter(paa__isnull=False).all()
@@ -59,7 +94,15 @@ class RetificacaoPaaService:
             }
         return result
 
-    def _snapshot_atividades_estatutarias_globais(self):
+    def _snapshot_atividades_estatutarias_globais(self) -> dict[str, dict[str, str]]:
+        """Gera o snapshot das atividades estatutárias globais vinculadas ao PAA.
+
+        Considera globais as atividades estatutárias não relacionadas a nenhum PAA (`paa` vazio).
+
+        Returns:
+            Dicionário indexado pelo uuid da atividade estatutária, com nome, tipo, ano, mês,
+            status e data prevista da atividade no PAA.
+        """
         result = {}
         # Atividade Estatutárias Globais (Não relacionadas a nenhum PAA)
         _atvs_globais = self.paa.atividades_estatutarias.select_related('paa').filter(paa__isnull=True).all()
@@ -80,7 +123,13 @@ class RetificacaoPaaService:
             }
         return result
 
-    def _snapshot_receitas_ptrf(self):
+    def _snapshot_receitas_ptrf(self) -> dict[str, dict[str, str]]:
+        """Gera o snapshot das receitas previstas PTRF do PAA.
+
+        Returns:
+            Dicionário indexado pelo uuid da ação da associação, com os valores de previsão
+            e de saldo congelado (custeio, capital e livre aplicação).
+        """
         result = {}
         for receita in self.paa.receitaprevistapaa_set.select_related('acao_associacao').all():
             result[str(receita.acao_associacao.uuid)] = {
@@ -93,7 +142,13 @@ class RetificacaoPaaService:
             }
         return result
 
-    def _snapshot_receitas_pdde(self):
+    def _snapshot_receitas_pdde(self) -> dict[str, dict[str, str]]:
+        """Gera o snapshot das receitas previstas PDDE do PAA.
+
+        Returns:
+            Dicionário indexado pelo uuid da ação PDDE, com os valores de previsão e de saldo
+            (custeio, capital e livre aplicação).
+        """
         result = {}
         for receita in self.paa.receitaprevistapdde_set.select_related('acao_pdde').all():
             result[str(receita.acao_pdde.uuid)] = {
@@ -106,7 +161,13 @@ class RetificacaoPaaService:
             }
         return result
 
-    def _snapshot_receitas_outros_recursos(self):
+    def _snapshot_receitas_outros_recursos(self) -> dict[str, dict[str, str]]:
+        """Gera o snapshot das receitas previstas de outros recursos do PAA.
+
+        Returns:
+            Dicionário indexado pelo uuid do outro recurso no período, com os valores de
+            previsão e de saldo (custeio, capital e livre aplicação).
+        """
         result = {}
         for receita in self.paa.receitaprevistaoutrorecursoperiodo_set.select_related('outro_recurso_periodo').all():
             result[str(receita.outro_recurso_periodo.uuid)] = {
@@ -119,7 +180,13 @@ class RetificacaoPaaService:
             }
         return result
 
-    def _snapshot_receitas_recurso_proprio(self):
+    def _snapshot_receitas_recurso_proprio(self) -> dict[str, dict[str, str]]:
+        """Gera o snapshot das receitas de recursos próprios do PAA.
+
+        Returns:
+            Dicionário indexado pelo uuid do recurso próprio, com fonte de recurso, uuid da
+            associação, data prevista, descrição e valor.
+        """
         result = {}
         for receita in self.paa.recursopropriopaa_set.select_related('fonte_recurso', 'associacao').all():
             result[str(receita.uuid)] = {
@@ -131,7 +198,15 @@ class RetificacaoPaaService:
             }
         return result
 
-    def _snapshot_prioridades(self):
+    def _snapshot_prioridades(self) -> dict[str, dict[str, str | None]]:
+        """Gera o snapshot das prioridades do PAA.
+
+        Returns:
+            Dicionário indexado pelo uuid da prioridade, com recurso, prioridade, tipo de
+            aplicação, valor total e os uuids dos vínculos (ação da associação, programa PDDE,
+            ação PDDE, outro recurso, tipo de despesa de custeio e especificação de material),
+            que ficam None quando não informados.
+        """
         result = {}
         for prioridade in self.paa.prioridadepaa_set.all():
             result[str(prioridade.uuid)] = {
@@ -152,7 +227,13 @@ class RetificacaoPaaService:
             }
         return result
 
-    def _snapshot_documento_original(self):
+    def _snapshot_documento_original(self) -> dict[str, Any]:
+        """Gera o snapshot do documento final original (não retificado) do PAA.
+
+        Returns:
+            Dicionário com uuid, versao_documento e versao do documento. Os valores ficam None
+            quando não há documento final original.
+        """
         documento_original = self.paa.documentopaa_set.filter(
             versao=DocumentoPaa.VersaoChoices.FINAL,
             retificacao=False,
@@ -164,7 +245,7 @@ class RetificacaoPaaService:
             'versao': documento_original.versao if documento_original else None,
         }
 
-    def _snapshot_documento_retificado(self) -> dict:
+    def _snapshot_documento_retificado(self) -> dict[str, Any]:
         """Gera o snapshot do documento final retificado mais recente.
 
         Returns:
@@ -187,7 +268,14 @@ class RetificacaoPaaService:
             'versao': documento_retificado.versao if documento_retificado else None,
         }
 
-    def _snapshot_ata_original(self):
+    def _snapshot_ata_original(self) -> dict[str, Any]:
+        """Gera o snapshot da ata de apresentação (não prévia) do PAA.
+
+        Returns:
+            Dicionário com os dados da ata (uuid, tipo, reunião, presidente, secretário,
+            comentários, parecer, justificativa etc.). Os valores ficam None quando não há
+            ata de apresentação.
+        """
         ata_original = self.paa.atas_da_paa.filter(
             tipo_ata=AtaPaa.ATA_APRESENTACAO,
             previa=False,
@@ -211,7 +299,7 @@ class RetificacaoPaaService:
             'justificativa': ata_original.justificativa if ata_original else None,
         }
 
-    def _snapshot_ata_retificada(self) -> dict:
+    def _snapshot_ata_retificada(self) -> dict[str, Any]:
         """Gera o snapshot da ata de retificação mais recente.
 
         Returns:
@@ -247,7 +335,15 @@ class RetificacaoPaaService:
             'justificativa_retificacao': ata_retificada.justificativa_retificacao if ata_retificada else None,
         }
 
-    def gerar_snapshot(self):
+    def gerar_snapshot(self) -> dict[str, Any]:
+        """Gera o snapshot completo do estado atual do PAA.
+
+        Reúne textos de introdução e conclusão, atividades estatutárias, objetivos, receitas
+        (PTRF, PDDE, recursos próprios e outros recursos), prioridades, documentos e atas.
+
+        Returns:
+            Dicionário com uma chave por seção do PAA e os respectivos snapshots.
+        """
         self.logger.info(f'Gerando snapshot do PAA {self.paa.uuid}...')
         snapshot = {
             'texto_introducao': self.paa.texto_introducao or '',
@@ -269,7 +365,15 @@ class RetificacaoPaaService:
         self.logger.info('Snapshot gerado com sucesso.')
         return snapshot
 
-    def criar_replica(self):
+    def criar_replica(self) -> ReplicaPaa:
+        """Cria a réplica do PAA com o snapshot do estado atual.
+
+        Se o PAA já possui réplica, ela é retornada sem alteração (o histórico não é
+        sobrescrito).
+
+        Returns:
+            A réplica do PAA, criada agora ou já existente.
+        """
         from sme_ptrf_apps.paa.models import ReplicaPaa
 
         self.logger.info(f'Criando réplica do PAA {self.paa.uuid}...')
@@ -284,7 +388,8 @@ class RetificacaoPaaService:
             self.logger.info(f'Réplica já existente retornada sem alteração (uuid={replica.uuid}).')
         return replica
 
-    def remove_atas_previas_retificacao(self):
+    def remove_atas_previas_retificacao(self) -> None:
+        """Remove as atas de retificação prévias do PAA."""
         from sme_ptrf_apps.paa.models import AtaPaa
 
         AtaPaa.objects.filter(
@@ -293,7 +398,21 @@ class RetificacaoPaaService:
             previa=True,
         ).delete()
 
-    def criar_ata_retificacao(self, justificativa):
+    def criar_ata_retificacao(self, justificativa: str | None) -> AtaPaa:
+        """Cria a ata de retificação (prévia) do PAA com a justificativa informada.
+
+        Antes de criar, remove atas de retificação prévias existentes, evitando que o PAA
+        fique com mais de uma.
+
+        Args:
+            justificativa: Justificativa da retificação.
+
+        Returns:
+            A ata de retificação criada.
+
+        Raises:
+            ValidacaoRetificacao: Se a justificativa não for informada.
+        """
         if not justificativa:
             raise ValidacaoRetificacao('A justificativa para iniciar a retificação deve ser informada!')
         from sme_ptrf_apps.paa.models import AtaPaa
@@ -313,7 +432,19 @@ class RetificacaoPaaService:
         self.logger.info(f'Ata de Retificação criada com sucesso (uuid={ata.uuid}).')
         return ata
 
-    def _comparar_campos_texto(self, historico, snapshot_atual):
+    def _comparar_campos_texto(
+        self, historico: dict[str, Any], snapshot_atual: dict[str, Any]
+    ) -> dict[str, dict[str, str]]:
+        """Compara os textos de introdução e conclusão entre o histórico e o snapshot atual.
+
+        Args:
+            historico: Snapshot armazenado na réplica do PAA.
+            snapshot_atual: Snapshot do estado atual do PAA.
+
+        Returns:
+            Dicionário com os campos alterados, cada um com os valores `anterior` e `atual`.
+            Vazio se não houver alteração.
+        """
         alteracoes = {}
         for campo in ('texto_introducao', 'texto_conclusao'):
             anterior = str(historico.get(campo) or '')
@@ -322,7 +453,20 @@ class RetificacaoPaaService:
                 alteracoes[campo] = {'anterior': anterior, 'atual': atual}
         return alteracoes
 
-    def _comparar_secao_dict(self, anterior, atual):
+    def _comparar_secao_dict(
+        self, anterior: dict[str, Any], atual: dict[str, Any]
+    ) -> dict[str, dict[str, Any]]:
+        """Compara uma seção do snapshot, item a item, pelo uuid.
+
+        Args:
+            anterior: Itens da seção no histórico da réplica, indexados por uuid.
+            atual: Itens da seção no snapshot atual, indexados por uuid.
+
+        Returns:
+            Dicionário indexado por uuid com os itens alterados. Cada item tem a `acao`
+            (`adicionado`, `modificado` ou `removido`) e os dados correspondentes. Vazio se
+            não houver alteração.
+        """
         alteracoes = {}
         for uuid_key, dados_atual in atual.items():
             dados_anterior = anterior.get(uuid_key)
@@ -344,7 +488,7 @@ class RetificacaoPaaService:
 
         return alteracoes
 
-    def identificar_alteracoes(self):
+    def identificar_alteracoes(self) -> dict[str, Any]:
         """
         Compara o estado atual do PAA com o snapshot armazenado na réplica.
         Retorna um dict com os campos/seções que foram alterados.
@@ -390,10 +534,17 @@ class RetificacaoPaaService:
         )
         return alteracoes
 
-    def define_status_paa_em_retificacao(self):
+    def define_status_paa_em_retificacao(self) -> None:
+        """Atualiza o status do PAA para em retificação."""
         self.paa.set_paa_status_em_retificacao()
 
-    def valida_pode_retificar(self):
+    def valida_pode_retificar(self) -> None:
+        """Valida se o PAA pode ser retificado.
+
+        Raises:
+            ValidacaoRetificacao: Se a flag `paa-retificacao` não estiver ativa para todos ou
+                se o PAA não estiver com status de andamento GERADO.
+        """
         flags = get_waffle_flag_model()
         if not flags.objects.filter(name='paa-retificacao', everyone=True).exists():
             raise ValidacaoRetificacao('Funcionalidade de retificação não está disponível.')
@@ -402,7 +553,7 @@ class RetificacaoPaaService:
             raise ValidacaoRetificacao('Apenas PAA`s gerados podem ser retificados.')
 
     @transaction.atomic
-    def iniciar_retificacao(self, justificativa):
+    def iniciar_retificacao(self, justificativa: str | None) -> Paa:
         """
         Fluxo completo de retificação:
         1. Cria/atualiza réplica com snapshot do estado atual.
