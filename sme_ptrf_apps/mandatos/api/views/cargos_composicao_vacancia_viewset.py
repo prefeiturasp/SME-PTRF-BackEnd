@@ -3,6 +3,7 @@ from django.http import Http404
 from rest_framework import mixins, status, serializers
 from rest_framework.viewsets import GenericViewSet
 from rest_framework.decorators import action
+from rest_framework.request import Request
 from rest_framework.response import Response
 from waffle.mixins import WaffleFlagMixin
 from rest_framework.permissions import IsAuthenticated
@@ -219,3 +220,63 @@ class CargosComposicoesVacanciaViewSet(WaffleFlagMixin,
         resultado = ServicoHistoricoCargoComposicao.get_timeline_consolidada_da_composicao(composicao_vacancia)
 
         return Response(resultado, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='substitutos-presidente',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def substitutos_presidente(self, request: Request) -> Response:
+        """Ocupantes da diretoria executiva, exceto o presidente, que podem assiná-lo ausente.
+
+        Query params: associacao_uuid.
+
+        Returns:
+            Lista de substitutos ocupados, ou erro quando o uuid falta ou a associação não existe.
+        """
+        from django.core.exceptions import ValidationError
+
+        associacao_uuid = request.query_params.get('associacao_uuid')
+        if not associacao_uuid:
+            return Response(
+                {
+                    'erro': 'parametros_requeridos',
+                    'mensagem': 'É necessário enviar o uuid da associação.',
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            associacao = Associacao.by_uuid(associacao_uuid)
+        except (Associacao.DoesNotExist, ValidationError, ValueError):
+            return Response({'erro': 'Objeto não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+        substitutos = ServicoHistoricoCargoComposicao.listar_substitutos_do_presidente(associacao)
+        return Response(substitutos, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='conselheiros-assinatura',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def conselheiros_assinatura(self, request: Request) -> Response:
+        """Ocupantes do conselho fiscal que podem constar na assinatura dos documentos.
+
+        Query params: associacao_uuid.
+
+        Returns:
+            Lista de conselheiros ocupados, ou erro quando o uuid falta ou a associação não existe.
+        """
+        from django.core.exceptions import ValidationError
+
+        associacao_uuid = request.query_params.get('associacao_uuid')
+        if not associacao_uuid:
+            return Response(
+                {
+                    'erro': 'parametros_requeridos',
+                    'mensagem': 'É necessário enviar o uuid da associação.',
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            associacao = Associacao.by_uuid(associacao_uuid)
+        except (Associacao.DoesNotExist, ValidationError, ValueError):
+            return Response({'erro': 'Objeto não encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
+        conselheiros = ServicoHistoricoCargoComposicao.listar_conselheiros_para_assinatura(associacao)
+        return Response(conselheiros, status=status.HTTP_200_OK)

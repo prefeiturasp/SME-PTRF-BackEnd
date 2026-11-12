@@ -146,7 +146,16 @@ def retorna_status_prestacoes(periodos=None, status_pc=None, uuid=None):
         return lista_de_periodos
 
 
-def get_status_presidente(associacao):
+def get_status_presidente(associacao: Associacao | None) -> dict:
+    """Retorna o status do presidente e os cargos usados na assinatura.
+
+    Args:
+        associacao: associação consultada. Quando ausente, os campos voltam vazios.
+
+    Returns:
+        Dicionário com status_presidente, cargo substituto (chave e rótulo) e
+        cargo_conselheiro_assinatura.
+    """
     status_presidente = associacao.status_presidente if associacao else ""
     cargo_substituto_presidente_ausente = associacao.cargo_substituto_presidente_ausente if associacao else ""
     cargo_substituto_presidente_ausente_value = ""
@@ -159,13 +168,38 @@ def get_status_presidente(associacao):
     result = {
         'status_presidente': status_presidente,
         'cargo_substituto_presidente_ausente': cargo_substituto_presidente_ausente,
-        'cargo_substituto_presidente_ausente_value': cargo_substituto_presidente_ausente_value
+        'cargo_substituto_presidente_ausente_value': cargo_substituto_presidente_ausente_value,
+        'cargo_conselheiro_assinatura': associacao.cargo_conselheiro_assinatura if associacao else None,
     }
 
     return result
 
 
-def update_status_presidente(associacao, status_presidente, cargo_substituto_presidente_ausente):
+def update_status_presidente(
+    associacao: Associacao,
+    status_presidente: str,
+    cargo_substituto_presidente_ausente: str | None,
+    cargo_conselheiro_assinatura: str | None = None,
+) -> dict:
+    """Grava o status do presidente e, quando informado, o conselheiro da assinatura.
+
+    Com status PRESENTE, o cargo substituto é limpo. Com AUSENTE, o substituto é
+    obrigatório e não pode ser o próprio presidente.
+
+    Args:
+        associacao: associação cujo status será atualizado.
+        status_presidente: PRESENTE ou AUSENTE.
+        cargo_substituto_presidente_ausente: cargo da diretoria que assina no lugar
+            do presidente. Obrigatório quando o status é AUSENTE.
+        cargo_conselheiro_assinatura: cargo do conselho fiscal que assina os documentos.
+            Quando omitido, o valor já gravado na associação é mantido.
+
+    Returns:
+        Dicionário com o status e o cargo substituto persistidos.
+
+    Raises:
+        ValidationError: se o status ou algum cargo informado for inválido.
+    """
     if not status_presidente or status_presidente not in ['PRESENTE', 'AUSENTE']:
         result_error = {
             'erro': 'campo_requerido',
@@ -173,15 +207,28 @@ def update_status_presidente(associacao, status_presidente, cargo_substituto_pre
         }
         raise ValidationError(result_error)
 
-    if status_presidente == 'AUSENTE' and not cargo_diretoria_executiva_valido(cargo_substituto_presidente_ausente):
+    if status_presidente == 'PRESENTE':
+        cargo_substituto_presidente_ausente = None
+    elif (not cargo_substituto_presidente_ausente or
+          cargo_substituto_presidente_ausente == MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name or
+          not cargo_diretoria_executiva_valido(cargo_substituto_presidente_ausente)):
         result_error = {
             'erro': 'campo_requerido',
             'mensagem': 'É necessário enviar no payload um cargo_substituto_presidente_ausente válido.'
         }
         raise ValidationError(result_error)
 
+    if cargo_conselheiro_assinatura and not cargo_conselheiro_assinatura_valido(cargo_conselheiro_assinatura):
+        result_error = {
+            'erro': 'campo_requerido',
+            'mensagem': 'É necessário enviar no payload um cargo_conselheiro_assinatura válido.'
+        }
+        raise ValidationError(result_error)
+
     associacao.status_presidente = status_presidente
     associacao.cargo_substituto_presidente_ausente = cargo_substituto_presidente_ausente
+    if cargo_conselheiro_assinatura:
+        associacao.cargo_conselheiro_assinatura = cargo_conselheiro_assinatura
     associacao.save()
 
     result = {
@@ -192,10 +239,102 @@ def update_status_presidente(associacao, status_presidente, cargo_substituto_pre
     return result
 
 
-def cargo_diretoria_executiva_valido(cargo):
+def cargo_diretoria_executiva_valido(cargo: str) -> bool:
+    """Indica se o cargo pertence à diretoria executiva."""
     from sme_ptrf_apps.core.choices.membro_associacao import MembroEnum
     cargos_diretoria_executiva = [key[0] for key in MembroEnum.diretoria_executiva_choices()]
     return cargo in cargos_diretoria_executiva
+
+
+def cargo_conselheiro_assinatura_valido(cargo: str) -> bool:
+    """Indica se o cargo pertence ao conselho fiscal e pode assinar os documentos."""
+    cargos_conselho = {
+        MembroEnum.PRESIDENTE_CONSELHO_FISCAL.name,
+        MembroEnum.CONSELHEIRO_1.name,
+        MembroEnum.CONSELHEIRO_2.name,
+        MembroEnum.CONSELHEIRO_3.name,
+        MembroEnum.CONSELHEIRO_4.name,
+    }
+    return cargo in cargos_conselho
+
+
+def nome_ocupante_cargo_v2(associacao: Associacao, cargo_associacao: str) -> str | None:
+    """Nome do ocupante do cargo na composição vigente da v2, ou None.
+
+    Args:
+        associacao: associação cuja composição vigente será consultada.
+        cargo_associacao: chave do cargo no catálogo de vacância.
+
+    Returns:
+        Nome do ocupante na data de hoje, ou None se o cargo estiver vago
+        ou não houver mandato ou composição.
+    """
+    from datetime import date
+
+    from sme_ptrf_apps.mandatos.models import ComposicaoVacancia
+    from sme_ptrf_apps.mandatos.services import ServicoHistoricoCargoComposicao
+    from sme_ptrf_apps.mandatos.services.mandato_vacancia_service import ServicoMandatoVigenteVacancia
+
+    mandato = ServicoMandatoVigenteVacancia().get_mandato_vigente()
+    if not mandato:
+        return None
+
+    composicao = ComposicaoVacancia.objects.filter(
+        associacao=associacao,
+        mandato=mandato,
+    ).first()
+    if not composicao:
+        return None
+
+    registro = ServicoHistoricoCargoComposicao.get_ocupante_em_data(
+        composicao,
+        cargo_associacao,
+        date.today(),
+    )
+    if registro and registro.ocupante_do_cargo_id and registro.ocupante_do_cargo.nome:
+        return registro.ocupante_do_cargo.nome
+    return None
+
+
+def assinatura_membros_v2(associacao: Associacao | None) -> dict | None:
+    """Assinatura da diretoria e do conselho fiscal a partir da composição v2.
+
+    Args:
+        associacao: associação da composição consultada.
+
+    Returns:
+        Dicionário com nomes e rótulos dos cargos, ou None quando a associação
+        não foi informada ou a flag historico-de-membros-v2 não está ativa para todos.
+    """
+    from waffle import get_waffle_flag_model
+
+    flags = get_waffle_flag_model()
+    if not associacao or not flags.objects.filter(name='historico-de-membros-v2', everyone=True).exists():
+        return None
+
+    if associacao.status_presidente == 'AUSENTE' and associacao.cargo_substituto_presidente_ausente:
+        cargo_key = associacao.cargo_substituto_presidente_ausente
+    else:
+        cargo_key = MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name
+
+    cargo_conselheiro = associacao.cargo_conselheiro_assinatura or MembroEnum.PRESIDENTE_CONSELHO_FISCAL.name
+
+    try:
+        cargo_label = MembroEnum[cargo_key].value
+    except KeyError:
+        cargo_label = ''
+
+    try:
+        cargo_conselheiro_label = MembroEnum[cargo_conselheiro].value
+    except KeyError:
+        cargo_conselheiro_label = MembroEnum.PRESIDENTE_CONSELHO_FISCAL.value
+
+    return {
+        'presidente_diretoria_executiva': nome_ocupante_cargo_v2(associacao, cargo_key) or '-------',
+        'presidente_conselho_fiscal': nome_ocupante_cargo_v2(associacao, cargo_conselheiro) or '-------',
+        'cargo_substituto_presidente_ausente': cargo_label,
+        'cargo_conselheiro_assinatura': cargo_conselheiro_label,
+    }
 
 
 def associacao_pode_implantar_saldo(associacao, recurso=None):

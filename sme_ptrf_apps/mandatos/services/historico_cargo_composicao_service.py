@@ -772,3 +772,93 @@ class ServicoHistoricoCargoComposicao:
         ocupante.save()
 
         return cargo_composicao_vacancia
+
+    @classmethod
+    def listar_substitutos_do_presidente(
+        cls,
+        associacao: Associacao,
+        data_referencia: date | None = None,
+    ) -> list[dict]:
+        """Cargos ocupados da diretoria executiva que podem substituir o presidente.
+
+        Exclui o próprio presidente e cargos vagos. O rótulo curto segue o da aba de
+        membros: a primeira palavra do label, então Vogal 1..5 vira Vogal.
+
+        Args:
+            associacao: associação da composição vigente.
+            data_referencia: data do snapshot. Usa a data de hoje quando omitida.
+
+        Returns:
+            Lista de dicionários com id, cargo e nome. Lista vazia se não houver
+            mandato ou composição.
+        """
+        from sme_ptrf_apps.mandatos.services.mandato_vacancia_service import ServicoMandatoVigenteVacancia
+
+        data_referencia = data_referencia or date.today()
+        mandato = ServicoMandatoVigenteVacancia().get_mandato_vigente()
+        if not mandato:
+            return []
+
+        composicao = ComposicaoVacancia.objects.filter(
+            associacao=associacao,
+            mandato=mandato,
+        ).first()
+        if not composicao:
+            return []
+
+        snapshot = cls.get_snapshot_da_composicao_em_data(composicao, data_referencia)
+        substitutos = []
+        for cargo_associacao, label in list(Cargos.choices)[1:9]:
+            registro = snapshot.get(cargo_associacao)
+            ocupante = registro.ocupante_do_cargo if registro and registro.ocupante_do_cargo_id else None
+            if not ocupante or not ocupante.nome:
+                continue
+            substitutos.append({
+                'id': cargo_associacao,
+                'cargo': label.split(' ')[0],
+                'nome': ocupante.nome,
+            })
+        return substitutos
+
+    @classmethod
+    def listar_conselheiros_para_assinatura(
+        cls,
+        associacao: Associacao,
+        data_referencia: date | None = None,
+    ) -> list[dict]:
+        """Ocupantes do conselho fiscal que podem constar na assinatura do demonstrativo.
+
+        Args:
+            associacao: associação da composição vigente.
+            data_referencia: data do snapshot. Usa a data de hoje quando omitida.
+
+        Returns:
+            Lista de dicionários com id e nome. Lista vazia se não houver mandato
+            ou composição.
+        """
+        from sme_ptrf_apps.mandatos.services.mandato_vacancia_service import ServicoMandatoVigenteVacancia
+
+        data_referencia = data_referencia or date.today()
+        mandato = ServicoMandatoVigenteVacancia().get_mandato_vigente()
+        if not mandato:
+            return []
+
+        composicao = ComposicaoVacancia.objects.filter(
+            associacao=associacao,
+            mandato=mandato,
+        ).first()
+        if not composicao:
+            return []
+
+        snapshot = cls.get_snapshot_da_composicao_em_data(composicao, data_referencia)
+        conselheiros = []
+        for cargo_associacao, _label in list(Cargos.choices)[9:]:
+            registro = snapshot.get(cargo_associacao)
+            ocupante = registro.ocupante_do_cargo if registro and registro.ocupante_do_cargo_id else None
+            if not ocupante or not ocupante.nome:
+                continue
+            conselheiros.append({
+                'id': cargo_associacao,
+                'nome': ocupante.nome,
+            })
+        return conselheiros

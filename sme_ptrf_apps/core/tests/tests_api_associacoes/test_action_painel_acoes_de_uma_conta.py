@@ -114,7 +114,10 @@ def test_action_painel_acoes_de_uma_conta(
             'requer_retificacao': False,
             'possui_ata_retificacao': False,
             'tem_acertos_pendentes': False,
-            'requer_acertos_em_extrato': False
+            'requer_acertos_em_extrato': False,
+            'status_presidente': None,
+            'cargo_substituto_presidente_ausente': None,
+            'cargo_substituto_presidente_ausente_value': ''
         },
     }
 
@@ -230,7 +233,10 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
             'requer_retificacao': False,
             'possui_ata_retificacao': False,
             'tem_acertos_pendentes': False,
-            'requer_acertos_em_extrato': False
+            'requer_acertos_em_extrato': False,
+            'status_presidente': None,
+            'cargo_substituto_presidente_ausente': None,
+            'cargo_substituto_presidente_ausente_value': ''
         },
     }
 

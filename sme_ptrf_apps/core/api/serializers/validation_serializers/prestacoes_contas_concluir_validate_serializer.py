@@ -2,14 +2,39 @@ import logging
 
 from rest_framework import serializers
 from sme_ptrf_apps.core.models import Associacao, Periodo, PrestacaoConta
+from sme_ptrf_apps.mandatos.choices import CargoComposicaoVacanciaChoices
 
 logger = logging.getLogger(__name__)
+
+STATUS_PRESIDENTE_CHOICES = (
+    ('PRESENTE', 'Presente'),
+    ('AUSENTE', 'Ausente'),
+)
+
+# Oito cargos da diretoria executiva, sem o próprio presidente (índice 0).
+CARGOS_SUBSTITUTO_PRESIDENTE = CargoComposicaoVacanciaChoices.choices[1:9]
+CARGOS_CONSELHEIRO_ASSINATURA = CargoComposicaoVacanciaChoices.choices[9:]
 
 
 class PrestacoesContasConcluirValidateSerializer(serializers.Serializer):  # noqa
     associacao_uuid = serializers.UUIDField(required=True, allow_null=False)
     periodo_uuid = serializers.UUIDField(required=True, allow_null=False)
     justificativa_acertos_pendentes = serializers.CharField(required=False, allow_null=True, allow_blank=True)
+    status_presidente = serializers.ChoiceField(
+        choices=STATUS_PRESIDENTE_CHOICES,
+        required=False,
+        allow_null=True,
+    )
+    cargo_substituto_presidente_ausente = serializers.ChoiceField(
+        choices=CARGOS_SUBSTITUTO_PRESIDENTE,
+        required=False,
+        allow_null=True,
+    )
+    cargo_conselheiro_assinatura = serializers.ChoiceField(
+        choices=CARGOS_CONSELHEIRO_ASSINATURA,
+        required=False,
+        allow_null=True,
+    )
 
     def validate_associacao_uuid(self, value):  # noqa
         try:
@@ -29,10 +54,33 @@ class PrestacoesContasConcluirValidateSerializer(serializers.Serializer):  # noq
 
         return value
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict) -> dict:
+        """Valida a conclusão da prestação e o substituto do presidente ausente.
+
+        Com status PRESENTE, descarta o cargo substituto. Com AUSENTE, exige o cargo.
+
+        Args:
+            attrs: dados já validados campo a campo.
+
+        Returns:
+            Os mesmos dados, com associação, período e prestação resolvidos.
+
+        Raises:
+            serializers.ValidationError: se a prestação não puder ser concluída ou
+                o substituto do presidente ausente não for informado.
+        """
         from sme_ptrf_apps.core.services.periodo_services import (
             pc_tem_solicitacoes_de_acerto_pendentes,
         )
+
+        status_presidente = attrs.get('status_presidente')
+        cargo_substituto = attrs.get('cargo_substituto_presidente_ausente')
+        if status_presidente == 'PRESENTE':
+            attrs['cargo_substituto_presidente_ausente'] = None
+        elif status_presidente == 'AUSENTE' and not cargo_substituto:
+            raise serializers.ValidationError(
+                'É necessário informar o cargo substituto quando o presidente está ausente.'
+            )
 
         associacao = Associacao.by_uuid(attrs['associacao_uuid'])
         periodo = Periodo.by_uuid(attrs['periodo_uuid'])
