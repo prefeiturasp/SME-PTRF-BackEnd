@@ -237,8 +237,22 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         try:
             pc = pc_service.iniciar_tasks_de_conclusao_de_pc(
                 usuario=request.user,
-                justificativa_acertos_pendentes=serializer.validated_data.get("justificativa_acertos_pendentes", "")
+                justificativa_acertos_pendentes=serializer.validated_data.get("justificativa_acertos_pendentes", ""),
+                status_presidente=serializer.validated_data.get("status_presidente"),
+                cargo_substituto_presidente_ausente=serializer.validated_data.get(
+                    "cargo_substituto_presidente_ausente"
+                ),
+                cargo_conselheiro_assinatura=serializer.validated_data.get(
+                    "cargo_conselheiro_assinatura"
+                ),
             )
+        except ValidationError as e:
+            erro = {
+                'erro': 'erro_de_validacao',
+                'mensagem': f'{e}'
+            }
+            logger_pc.error('Erro de validação do status do presidente', stack_info=True, exc_info=True)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
         except IntegrityError:
             erro = {
                 'erro': 'prestacao_ja_iniciada',
@@ -317,6 +331,25 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         justificativa_acertos_pendentes = request.data.get('justificativa_acertos_pendentes', '')
+        status_presidente_informado = request.data.get('status_presidente')
+        cargo_substituto_informado = request.data.get('cargo_substituto_presidente_ausente')
+        cargo_conselheiro_informado = request.data.get('cargo_conselheiro_assinatura')
+
+        if status_presidente_informado:
+            from sme_ptrf_apps.core.services.associacoes_service import update_status_presidente
+            try:
+                cargo_para_gravar = None if status_presidente_informado == 'PRESENTE' else cargo_substituto_informado
+                update_status_presidente(
+                    associacao=associacao,
+                    status_presidente=status_presidente_informado,
+                    cargo_substituto_presidente_ausente=cargo_para_gravar,
+                    cargo_conselheiro_assinatura=cargo_conselheiro_informado,
+                )
+            except ValidationError as e:
+                return Response(
+                    {'erro': 'erro_de_validacao', 'mensagem': f'{e}'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         usuario = request.user
 
@@ -328,6 +361,19 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 monitoraPc=True,
             )
             prestacao_de_contas = dados["prestacao"]
+
+            if status_presidente_informado and prestacao_de_contas:
+                prestacao_de_contas.status_presidente = associacao.status_presidente
+                prestacao_de_contas.cargo_substituto_presidente_ausente = (
+                    associacao.cargo_substituto_presidente_ausente
+                )
+                prestacao_de_contas.cargo_conselheiro_assinatura = associacao.cargo_conselheiro_assinatura
+                prestacao_de_contas.save(update_fields=[
+                    'status_presidente',
+                    'cargo_substituto_presidente_ausente',
+                    'cargo_conselheiro_assinatura',
+                    'alterado_em',
+                ])
 
             erro_pc = dados["erro"]
             if erro_pc:

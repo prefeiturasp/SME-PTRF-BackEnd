@@ -3,6 +3,8 @@ from django.apps import apps
 from functools import lru_cache
 from django.db import models
 from datetime import timedelta
+from sme_ptrf_apps.core.choices import MembroEnum
+
 from ..models import Associacao, Periodo, PrestacaoConta, PeriodoInicialAssociacao
 
 
@@ -112,6 +114,15 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     pc_requer_conclusao = not prestacao or prestacao.status in (
         PrestacaoConta.STATUS_NAO_APRESENTADA, PrestacaoConta.STATUS_DEVOLVIDA)
 
+    status_presidente = prestacao.status_presidente if prestacao else None
+    cargo_substituto = prestacao.cargo_substituto_presidente_ausente if prestacao else None
+    cargo_substituto_value = ''
+    if cargo_substituto:
+        try:
+            cargo_substituto_value = MembroEnum[cargo_substituto].value
+        except KeyError:
+            cargo_substituto_value = ''
+
     status = {
         'periodo_encerrado': periodo.encerrado,
         'documentos_gerados': documentos_gerados,
@@ -125,6 +136,9 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         'possui_ata_retificacao': prestacao.ultima_ata_retificacao() is not None if prestacao else False,
         'tem_acertos_pendentes': pc_tem_solicitacoes_de_acerto_pendentes(prestacao),
         'requer_acertos_em_extrato': pc_requer_acertos_em_extrato(prestacao),
+        'status_presidente': status_presidente,
+        'cargo_substituto_presidente_ausente': cargo_substituto,
+        'cargo_substituto_presidente_ausente_value': cargo_substituto_value,
     }
 
     return status

@@ -36,7 +36,10 @@ def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, per
             'requer_retificacao': False,
             'possui_ata_retificacao': False,
             'tem_acertos_pendentes': False,
-            'requer_acertos_em_extrato': False
+            'requer_acertos_em_extrato': False,
+            'status_presidente': None,
+            'cargo_substituto_presidente_ausente': None,
+            'cargo_substituto_presidente_ausente_value': ''
         },
         'prestacao_conta': '',
         'pendencias_cadastrais': {
@@ -80,7 +83,10 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
             'requer_retificacao': False,
             'possui_ata_retificacao': False,
             'tem_acertos_pendentes': False,
-            'requer_acertos_em_extrato': False
+            'requer_acertos_em_extrato': False,
+            'status_presidente': None,
+            'cargo_substituto_presidente_ausente': None,
+            'cargo_substituto_presidente_ausente_value': ''
         },
         'prestacao_conta': '',
         'pendencias_cadastrais': {
@@ -175,7 +181,10 @@ def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prest
             'requer_retificacao': False,
             'possui_ata_retificacao': False,
             'tem_acertos_pendentes': False,
-            'requer_acertos_em_extrato': False
+            'requer_acertos_em_extrato': False,
+            'status_presidente': None,
+            'cargo_substituto_presidente_ausente': None,
+            'cargo_substituto_presidente_ausente_value': ''
         },
         'prestacao_conta': f'{prestacao_conta_2020_1_conciliada.uuid}',
         'pendencias_cadastrais': {
@@ -236,7 +245,10 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
             'requer_retificacao': False,
             'possui_ata_retificacao': False,
             'tem_acertos_pendentes': False,
-            'requer_acertos_em_extrato': False
+            'requer_acertos_em_extrato': False,
+            'status_presidente': None,
+            'cargo_substituto_presidente_ausente': None,
+            'cargo_substituto_presidente_ausente_value': ''
         },
         'prestacao_conta': f'{_prestacao_conta_devolvida.uuid}',
         'pendencias_cadastrais': {

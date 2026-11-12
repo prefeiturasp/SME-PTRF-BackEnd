@@ -3,6 +3,7 @@ import logging
 from celery import chain, group, Celery
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser
 from django.db import transaction
 
 from sme_ptrf_apps.core.models import (
@@ -422,7 +423,30 @@ class PrestacaoContaService:
             self.trata_falha_processo_pc()
             self.logger.warning('Feito o roll back do cálculo para a situação antes do início do processo de PC.')
 
-    def iniciar_tasks_de_conclusao_de_pc(self, usuario, justificativa_acertos_pendentes):
+    def iniciar_tasks_de_conclusao_de_pc(
+        self,
+        usuario: AbstractUser,
+        justificativa_acertos_pendentes: str,
+        status_presidente: str | None = None,
+        cargo_substituto_presidente_ausente: str | None = None,
+        cargo_conselheiro_assinatura: str | None = None,
+    ) -> PrestacaoConta:
+        """Dispara a cadeia de tasks da conclusão e grava o status do presidente na PC.
+
+        Args:
+            usuario: usuário que dispara a conclusão.
+            justificativa_acertos_pendentes: texto enviado quando ainda há acertos pendentes.
+            status_presidente: PRESENTE ou AUSENTE. Quando informado, atualiza a associação
+                e copia os cargos para a prestação de contas.
+            cargo_substituto_presidente_ausente: cargo que assina no lugar do presidente ausente.
+            cargo_conselheiro_assinatura: cargo do conselho fiscal que assina os documentos.
+
+        Returns:
+            Prestação de contas cuja conclusão foi iniciada.
+
+        Raises:
+            ValidationError: se o status ou algum cargo informado for inválido.
+        """
         from sme_ptrf_apps.core.tasks import (
             calcular_prestacao_de_contas_async,
             gerar_relatorio_apos_acertos_v2_async,
@@ -431,7 +455,28 @@ class PrestacaoContaService:
             terminar_processo_pc_async,
         )
 
+        if status_presidente:
+            from sme_ptrf_apps.core.services.associacoes_service import update_status_presidente
+            cargo_para_gravar = None if status_presidente == 'PRESENTE' else cargo_substituto_presidente_ausente
+            update_status_presidente(
+                associacao=self._associacao,
+                status_presidente=status_presidente,
+                cargo_substituto_presidente_ausente=cargo_para_gravar,
+                cargo_conselheiro_assinatura=cargo_conselheiro_assinatura,
+            )
+
         self._set_pc()
+
+        if status_presidente:
+            self._prestacao.status_presidente = self._associacao.status_presidente
+            self._prestacao.cargo_substituto_presidente_ausente = self._associacao.cargo_substituto_presidente_ausente
+            self._prestacao.cargo_conselheiro_assinatura = self._associacao.cargo_conselheiro_assinatura
+            self._prestacao.save(update_fields=[
+                'status_presidente',
+                'cargo_substituto_presidente_ausente',
+                'cargo_conselheiro_assinatura',
+                'alterado_em',
+            ])
 
         self.logger.info(f"Conclusão de PC V2. Período:{self._periodo.referencia} Associação:{self._associacao.nome}")
 

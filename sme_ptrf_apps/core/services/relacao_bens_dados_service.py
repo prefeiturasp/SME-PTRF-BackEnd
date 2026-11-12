@@ -72,8 +72,14 @@ def cria_identificacao_apm(conta_associacao):
     codigo_eol_associacao = associacao.unidade.codigo_eol or ""
     nome_dre_associacao = associacao.unidade.dre.nome if associacao.unidade.dre else ""
 
+    from sme_ptrf_apps.core.services.associacoes_service import assinatura_membros_v2
+
     flags = get_waffle_flag_model()
-    if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+    assinatura_v2 = assinatura_membros_v2(associacao)
+    if assinatura_v2:
+        presidente_diretoria_executiva = assinatura_v2['presidente_diretoria_executiva']
+        cargo_substituto_presidente_ausente_value = assinatura_v2['cargo_substituto_presidente_ausente']
+    elif flags.objects.filter(name='historico-de-membros', everyone=True).exists():
         servico_mandato_vigente = ServicoMandatoVigente()
         mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
         servico_composicao_vigente = ServicoComposicaoVigente(associacao=associacao, mandato=mandato_vigente)
@@ -314,8 +320,14 @@ def persistir_dados_relacao_bens(periodo, conta_associacao, rateios, bens_produz
     codigo_eol_associacao = associacao.unidade.codigo_eol or ""
     nome_dre_associacao = associacao.unidade.dre.nome if associacao.unidade.dre else ""
 
+    from sme_ptrf_apps.core.services.associacoes_service import assinatura_membros_v2
+
     flags = get_waffle_flag_model()
-    if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+    assinatura_v2 = assinatura_membros_v2(associacao)
+    if assinatura_v2:
+        presidente_diretoria_executiva = assinatura_v2['presidente_diretoria_executiva']
+        cargo_substituto_presidente_ausente_value = assinatura_v2['cargo_substituto_presidente_ausente']
+    elif flags.objects.filter(name='historico-de-membros', everyone=True).exists():
         servico_mandato_vigente = ServicoMandatoVigente()
         mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
         servico_composicao_vigente = ServicoComposicaoVigente(associacao=associacao, mandato=mandato_vigente)
