@@ -15,6 +15,7 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 
 import django_filters
+from django.db.models import ProtectedError
 
 from waffle.mixins import WaffleFlagMixin
 
@@ -120,8 +121,9 @@ class ProgramaPddeViewSet(WaffleFlagMixin, ModelViewSet):
         Exclua um programa do PDDE.
 
         A exclusão é permitida apenas quando o programa não possui ações
-        vinculadas. Caso existam vínculos, retorna uma resposta com erro
-        informando que a exclusão não pode ser realizada.
+        (ativas ou inativas) nem prioridades de PAA vinculadas. Caso existam
+        vínculos, retorna uma resposta com erro informando que a exclusão não
+        pode ser realizada.
 
         Args:
             request: Requisição HTTP.
@@ -130,19 +132,27 @@ class ProgramaPddeViewSet(WaffleFlagMixin, ModelViewSet):
 
         Returns:
             Response: Resposta HTTP com status 204 em caso de sucesso ou
-                400 quando o programa possui ações vinculadas.
+                400 quando o programa possui vínculos.
         """
         obj = self.get_object()
 
-        if obj.acaopdde_set.count() > 0:
+        if obj.acaopdde_set.exists():
             content = {
                 'erro': 'ProtectedError',
                 'mensagem': ("Não é possível excluir. " +
-                             "Este programa ainda está vinculado há alguma ação.")
+                             "Este programa ainda está vinculado a alguma ação.")
             }
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
-        self.perform_destroy(obj)
+        try:
+            self.perform_destroy(obj)
+        except ProtectedError:
+            content = {
+                'erro': 'ProtectedError',
+                'mensagem': ("Não é possível excluir. " +
+                             "Este programa está vinculado a um Plano Anual de Atividades (PAA).")
+            }
+            return Response(content, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 

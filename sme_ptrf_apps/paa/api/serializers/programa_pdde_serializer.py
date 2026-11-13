@@ -25,7 +25,8 @@ class ProgramaPddeSerializer(serializers.ModelSerializer):
         fields = ('id', 'uuid', 'nome', 'pode_ser_excluida')
 
     def get_pode_ser_excluida(self, obj):
-        return obj.acaopdde_set.count() == 0
+        """Programa só pode ser excluído sem ações e sem prioridades de PAA vinculadas."""
+        return not obj.acaopdde_set.exists() and not obj.prioridadepaa_set.exists()
 
 
 class ProgramaPddeComTotaisSerializer(serializers.Serializer):
