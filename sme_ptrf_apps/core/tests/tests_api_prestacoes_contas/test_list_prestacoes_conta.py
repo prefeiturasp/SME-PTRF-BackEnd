@@ -4,6 +4,9 @@ from datetime import date
 import pytest
 from model_bakery import baker
 from rest_framework import status
+from django.urls import resolve
+from urllib.parse import parse_qs, urlparse
+from waffle.testutils import override_flag
 
 pytestmark = pytest.mark.django_db
 
@@ -139,6 +142,30 @@ def _prestacao_conta_2020_1_unidade_b_dre2(periodo_2020_1, _unidade_b_dre_2, _as
         periodo=periodo_2020_1,
         associacao=_associacao_b_dre_2,
         data_recebimento=date(2020, 1, 2)
+    )
+
+
+@pytest.fixture
+def flag_dre_pcs_paginacao_ativa(db):
+    with override_flag("dre-pcs-paginacao", active=True):
+        yield
+
+
+@pytest.fixture
+def url_prestacoes_list_paginada(
+    _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
+    _prestacao_conta_2019_2_unidade_a_dre1,  # Não entra (período)
+    _prestacao_conta_2020_1_unidade_b_dre2,  # Não entra (DRE)
+    _dre_01,
+    periodo_2020_1,
+):
+    dre_uuid = _dre_01.uuid
+    periodo_uuid = periodo_2020_1.uuid
+
+    return (
+        "/api/prestacoes-contas/"
+        f"?associacao__unidade__dre__uuid={dre_uuid}"
+        f"&periodo__uuid={periodo_uuid}"
     )
 
 
@@ -508,3 +535,124 @@ def test_api_list_prestacoes_conta_por_status_recebida(
 
     assert response.status_code == status.HTTP_200_OK
     assert result == result_esperado
+
+def test_api_list_prestacoes_com_flag_paginacao_ativa(
+    jwt_authenticated_client_a,
+    flag_dre_pcs_paginacao_ativa,
+    url_prestacoes_list_paginada,
+    _prestacao_conta_2020_1_unidade_a_dre1,
+):
+    response = jwt_authenticated_client_a.get(
+        url_prestacoes_list_paginada,
+        content_type="application/json",
+    )
+
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+
+    # Deve retornar a estrutura paginada
+    assert isinstance(result, dict)
+    assert {
+        'links', 'count', 'page', 'page_size', 'total_pages', 'results'
+    }.issubset(result.keys())
+
+    # Apenas uma prestação pertence à DRE e período
+    assert result["count"] == 1
+    assert len(result["results"]) == 1
+
+    # Deve retornar a prestação esperada
+    assert result["results"][0]["uuid"] == str(
+        _prestacao_conta_2020_1_unidade_a_dre1.uuid
+    )
+
+    assert result["links"]["next"] is None
+    assert result["links"]["previous"] is None
+
+
+def test_api_list_prestacoes_pagina_1_e_2(
+    jwt_authenticated_client_a,
+    flag_dre_pcs_paginacao_ativa,
+    url_prestacoes_list_paginada,
+    _prestacao_conta_2020_1_unidade_a_dre1,
+    _prestacao_conta_2019_2_unidade_a_dre1,
+    monkeypatch,
+):
+    # Remove o filtro de período para obter as duas
+    # prestações existentes na mesma DRE.
+    url = url_prestacoes_list_paginada.split(
+        "&periodo__uuid="
+    )[0]
+
+    caminho = url.split("?")[0]
+    view_class = resolve(caminho).func.cls
+
+    # Configura temporariamente uma prestação por página
+    monkeypatch.setattr(
+        view_class.pagination_class,
+        "page_size",
+        1,
+    )
+
+    # Primeira página
+    response_1 = jwt_authenticated_client_a.get(
+        f"{url}&page=1",
+        content_type="application/json",
+    )
+
+    result_1 = json.loads(response_1.content)
+
+    assert response_1.status_code == status.HTTP_200_OK
+    assert result_1["count"] == 2
+    assert len(result_1["results"]) == 1
+    assert result_1["links"]["previous"] is None
+    assert result_1["links"]["next"] is not None
+
+    # Deve apontar para a página 2
+    parametros_next = parse_qs(
+        urlparse(result_1["links"]["next"]).query
+    )
+
+    assert parametros_next["page"] == ["2"]
+
+    # Deve preservar o filtro da DRE
+    parametros_originais = parse_qs(
+        urlparse(url).query
+    )
+
+    assert (
+        parametros_next["associacao__unidade__dre__uuid"]
+        == parametros_originais["associacao__unidade__dre__uuid"]
+    )
+
+    # Segunda página
+    response_2 = jwt_authenticated_client_a.get(
+        f"{url}&page=2",
+        content_type="application/json",
+    )
+
+    result_2 = json.loads(response_2.content)
+
+    assert response_2.status_code == status.HTTP_200_OK
+    assert result_2["count"] == 2
+    assert len(result_2["results"]) == 1
+    assert result_2["links"]["next"] is None
+    assert result_2["links"]["previous"] is not None
+
+    # Não pode repetir o mesmo registro nas páginas
+    uuid_pagina_1 = result_1["results"][0]["uuid"]
+    uuid_pagina_2 = result_2["results"][0]["uuid"]
+
+    assert uuid_pagina_1 != uuid_pagina_2
+
+    # Deve retornar exatamente as duas prestações da DRE
+    uuids_esperados = {
+        str(_prestacao_conta_2020_1_unidade_a_dre1.uuid),
+        str(_prestacao_conta_2019_2_unidade_a_dre1.uuid),
+    }
+
+    assert {
+        uuid_pagina_1,
+        uuid_pagina_2,
+    } == uuids_esperados
+
