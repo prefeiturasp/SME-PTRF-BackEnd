@@ -5,7 +5,7 @@ from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.fixtures.factories.receitas_previstas_pdde_factory import ReceitaPrevistaPddeFactory
 from ...models import AcaoPdde
 from sme_ptrf_apps.core.fixtures.factories import FlagFactory
-from sme_ptrf_apps.paa.fixtures.factories import AcaoPddeFactory
+from sme_ptrf_apps.paa.fixtures.factories import AcaoPddeFactory, ProgramaPddeFactory
 from sme_ptrf_apps.paa.fixtures.factories.periodo_paa import PeriodoPaaFactory
 from sme_ptrf_apps.paa.fixtures.factories.paa import (
     PaaFactory)
@@ -106,6 +106,64 @@ def test_altera_acao_pdde(jwt_authenticated_client_sme, acao_pdde, flag_paa):
     assert response.status_code == status.HTTP_200_OK, response.content
     acao_pdde.refresh_from_db()
     assert acao_pdde.nome == "Novo Nome"
+
+
+@pytest.mark.django_db
+def test_altera_acao_pdde_troca_programa(jwt_authenticated_client_sme, acao_pdde, flag_paa):
+    novo_programa = ProgramaPddeFactory(nome="Programa Destino")
+    data = {"nome": acao_pdde.nome, "programa": novo_programa.uuid}
+    response = jwt_authenticated_client_sme.patch(f"/api/acoes-pdde/{acao_pdde.uuid}/", data)
+
+    assert response.status_code == status.HTTP_200_OK, response.content
+    acao_pdde.refresh_from_db()
+    assert acao_pdde.programa == novo_programa
+    assert response.data["programa_objeto"]["nome"] == "Programa Destino"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("programa_uuid", ["00000000-0000-0000-0000-000000000000", "uuid-invalido"])
+def test_cria_acao_pdde_programa_inexistente(jwt_authenticated_client_sme, flag_paa, programa_uuid):
+    data = {"nome": "Nova Ação", "programa": programa_uuid}
+    response = jwt_authenticated_client_sme.post("/api/acoes-pdde/", data)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["programa"] == "O Programa PDDE informado não foi encontrado."
+    assert not AcaoPdde.objects.filter(nome="Nova Ação").exists()
+
+
+@pytest.mark.django_db
+def test_altera_acao_pdde_programa_inexistente(jwt_authenticated_client_sme, acao_pdde, flag_paa):
+    programa_original = acao_pdde.programa
+    data = {"nome": acao_pdde.nome, "programa": "00000000-0000-0000-0000-000000000000"}
+    response = jwt_authenticated_client_sme.patch(f"/api/acoes-pdde/{acao_pdde.uuid}/", data)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["programa"] == "O Programa PDDE informado não foi encontrado."
+    acao_pdde.refresh_from_db()
+    assert acao_pdde.programa == programa_original
+
+
+@pytest.mark.django_db
+def test_altera_acao_pdde_sem_programa(jwt_authenticated_client_sme, acao_pdde, flag_paa):
+    response = jwt_authenticated_client_sme.patch(f"/api/acoes-pdde/{acao_pdde.uuid}/", {"nome": "X"})
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["programa"] == "O Programa PDDE não foi informado."
+
+
+@pytest.mark.django_db
+def test_lista_acao_pdde_filtra_por_programa(jwt_authenticated_client_sme, flag_paa):
+    programa_a = ProgramaPddeFactory(nome="Programa A")
+    programa_b = ProgramaPddeFactory(nome="Programa B")
+    AcaoPddeFactory.create(nome="Ação A1", programa=programa_a)
+    AcaoPddeFactory.create(nome="Ação A2", programa=programa_a)
+    AcaoPddeFactory.create(nome="Ação B1", programa=programa_b)
+
+    response = jwt_authenticated_client_sme.get(f"/api/acoes-pdde/?programa__uuid={programa_a.uuid}")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["count"] == 2
+    assert {a["nome"] for a in response.data["results"]} == {"Ação A1", "Ação A2"}
 
 
 @pytest.mark.django_db
