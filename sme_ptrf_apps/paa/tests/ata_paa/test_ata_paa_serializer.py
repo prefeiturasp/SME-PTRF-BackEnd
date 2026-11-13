@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 from sme_ptrf_apps.paa.api.serializers.ata_paa_serializer import (
     AtaPaaLookUpSerializer, AtaPaaSerializer, PresentesAtaPaaCreateSerializer, AtaPaaCreateSerializer)
+from sme_ptrf_apps.core.api.serializers.associacao_serializer import AssociacaoInfoAtaSerializer
 from sme_ptrf_apps.paa.models import AtaPaa
-from sme_ptrf_apps.despesas.status_cadastro_completo import STATUS_COMPLETO
 
 pytestmark = pytest.mark.django_db
 
@@ -17,6 +17,39 @@ def test_lookup_serializer(ata_paa):
     assert serializer.data['uuid']
     assert serializer.data['nome']
     assert serializer.data['alterado_em'] is None
+
+
+def test_lookup_serializer_get_nome_ata(ata_paa, tipo_ata_e_nome_esperado):
+    """Testa se get_nome_ata retorna o nome da ata conforme o tipo de ata"""
+    tipo_ata, nome_esperado = tipo_ata_e_nome_esperado
+    ata_paa.tipo_ata = tipo_ata
+    ata_paa.save()
+
+    serializer = AtaPaaLookUpSerializer(ata_paa)
+
+    assert serializer.get_nome_ata(ata_paa) == nome_esperado
+    assert serializer.data['nome'] == nome_esperado
+
+
+def test_lookup_serializer_get_alterado_em(ata_paa, preenchida_em):
+    """Testa se get_alterado_em retorna a data de preenchimento/alteração da ata"""
+    ata_paa.preenchida_em = preenchida_em
+    ata_paa.save()
+
+    serializer = AtaPaaLookUpSerializer(ata_paa)
+
+    assert serializer.get_alterado_em(ata_paa) == preenchida_em
+    assert serializer.data['alterado_em'] == preenchida_em
+
+
+def test_lookup_serializer_get_completa(monkeypatch, ata_paa, ata_completa):
+    """Testa se get_completa retorna se a ata está completa"""
+    monkeypatch.setattr(AtaPaa, 'completa', property(lambda self: ata_completa))
+
+    serializer = AtaPaaLookUpSerializer(ata_paa)
+
+    assert serializer.get_completa(ata_paa) is ata_completa
+    assert serializer.data['completa'] is ata_completa
 
 
 def test_serializer(ata_paa):
@@ -38,6 +71,65 @@ def test_serializer(ata_paa):
     assert serializer.data['justificativa'] == ""
     assert 'precisa_professor_gremio' in serializer.data
     assert isinstance(serializer.data['precisa_professor_gremio'], bool)
+
+
+def test_serializer_get_nome_ata(ata_paa, tipo_ata_e_nome_esperado):
+    """Testa se get_nome_ata retorna o nome da ata conforme o tipo de ata"""
+    tipo_ata, nome_esperado = tipo_ata_e_nome_esperado
+    ata_paa.tipo_ata = tipo_ata
+    ata_paa.save()
+
+    serializer = AtaPaaSerializer(ata_paa)
+
+    assert serializer.get_nome_ata(ata_paa) == nome_esperado
+    assert serializer.data['nome'] == nome_esperado
+
+
+def test_serializer_get_hora_reuniao(ata_paa, hora_reuniao_e_esperado):
+    """Testa se get_hora_reuniao normaliza a hora da reunião para HH:MM em todas as condicionais"""
+    hora_reuniao, hora_esperada = hora_reuniao_e_esperado
+    ata_paa.hora_reuniao = hora_reuniao
+
+    serializer = AtaPaaSerializer(ata_paa)
+
+    assert serializer.get_hora_reuniao(ata_paa) == hora_esperada
+
+
+def test_serializer_get_associacao_com_associacao(ata_paa):
+    """Testa se get_associacao retorna os dados da associação vinculada ao PAA"""
+    serializer = AtaPaaSerializer(ata_paa)
+
+    associacao_esperada = AssociacaoInfoAtaSerializer(ata_paa.paa.associacao).data
+
+    assert serializer.get_associacao(ata_paa) == associacao_esperada
+    assert serializer.data['associacao'] == associacao_esperada
+
+
+def test_serializer_get_associacao_sem_associacao(ata_sem_associacao):
+    """Testa se get_associacao retorna None quando não há PAA ou o PAA não tem associação"""
+    serializer = AtaPaaSerializer()
+
+    assert serializer.get_associacao(ata_sem_associacao) is None
+
+
+def test_serializer_get_completa(monkeypatch, ata_paa, ata_completa):
+    """Testa se get_completa retorna se a ata está completa"""
+    monkeypatch.setattr(AtaPaa, 'completa', property(lambda self: ata_completa))
+
+    serializer = AtaPaaSerializer(ata_paa)
+
+    assert serializer.get_completa(ata_paa) is ata_completa
+    assert serializer.data['completa'] is ata_completa
+
+
+def test_serializer_get_precisa_professor_gremio(monkeypatch, ata_paa, precisa_professor_gremio):
+    """Testa se get_precisa_professor_gremio retorna o valor da propriedade da ata"""
+    monkeypatch.setattr(AtaPaa, 'precisa_professor_gremio', property(lambda self: precisa_professor_gremio))
+
+    serializer = AtaPaaSerializer(ata_paa)
+
+    assert serializer.get_precisa_professor_gremio(ata_paa) is precisa_professor_gremio
+    assert serializer.data['precisa_professor_gremio'] is precisa_professor_gremio
 
 
 def test_serializer_precisa_professor_gremio_true(
@@ -273,7 +365,8 @@ def test_create_ata_paa_define_secretario_da_reuniao(paa):
 
 
 @patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.get_waffle_flag_model')
-def test_create_ata_paa_define_presidente_da_reuniao_com_flag_historico(mock_waffle, paa, mock_flag_model_com_flags_ativas):
+def test_create_ata_paa_define_presidente_da_reuniao_com_flag_historico(mock_waffle, paa,
+                                                                        mock_flag_model_com_flags_ativas):
     """Testa criação de ata PAA com presidente da reunião"""
     mock_waffle.return_value = mock_flag_model_com_flags_ativas('historico-de-membros')
     validated_data = {
@@ -307,7 +400,8 @@ def test_create_ata_paa_define_presidente_da_reuniao_com_flag_historico(mock_waf
 
 
 @patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.get_waffle_flag_model')
-def test_create_ata_paa_define_secretario_da_reuniao_com_flag_historico(mock_waffle, paa, mock_flag_model_com_flags_ativas):
+def test_create_ata_paa_define_secretario_da_reuniao_com_flag_historico(mock_waffle, paa,
+                                                                        mock_flag_model_com_flags_ativas):
     """Testa criação de ata PAA com secretário da reunião"""
     mock_waffle.return_value = mock_flag_model_com_flags_ativas('historico-de-membros')
     validated_data = {
@@ -435,14 +529,16 @@ def test_update_ata_paa_com_flag_historico_membros_v2(request, flags_ativas, ata
                 'cargo': 'Presidente',
                 'identificacao': '12345678900',
                 'membro': True,
-                'presente': True
+                'presente': True,
+                'presidente_da_reuniao': True
             },
             {
                 'nome': 'Maria Santos',
                 'cargo': 'Secretária',
                 'identificacao': '98765432100',
                 'membro': True,
-                'presente': True
+                'presente': True,
+                'secretario_da_reuniao': True
             }
         ]
     }
@@ -547,7 +643,8 @@ def test_update_ata_paa_adiciona_novos_presentes_sem_flag_historico_membros(ata_
 
 
 @patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.get_waffle_flag_model')
-def test_update_ata_paa_adiciona_novos_presentes_com_flag_historico(mock_waffle, ata_paa, mock_flag_model_com_flags_ativas):
+def test_update_ata_paa_adiciona_novos_presentes_com_flag_historico(mock_waffle, ata_paa,
+                                                                    mock_flag_model_com_flags_ativas):
     mock_waffle.return_value = mock_flag_model_com_flags_ativas('historico-de-membros')
     """Testa que novos participantes são adicionados"""
     validated_data = {
@@ -596,7 +693,8 @@ def test_update_ata_paa_define_novo_presidente(ata_paa):
 
 
 @patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.get_waffle_flag_model')
-def test_update_ata_paa_define_novo_presidente_com_flag_historico(mock_waffle, ata_paa, mock_flag_model_com_flags_ativas):
+def test_update_ata_paa_define_novo_presidente_com_flag_historico(mock_waffle, ata_paa,
+                                                                  mock_flag_model_com_flags_ativas):
     mock_waffle.return_value = mock_flag_model_com_flags_ativas('historico-de-membros')
     """ Testa definição de novo presidente da reunião """
     validated_data = {
@@ -717,7 +815,8 @@ def test_validate_data_reuniao_nao_informada_valida(paa):
 
 
 @patch('sme_ptrf_apps.paa.api.serializers.ata_paa_serializer.get_waffle_flag_model')
-def test_update_ata_paa_define_novo_secretario_com_flag_historico(mock_waffle, ata_paa, mock_flag_model_com_flags_ativas):
+def test_update_ata_paa_define_novo_secretario_com_flag_historico(mock_waffle, ata_paa,
+                                                                  mock_flag_model_com_flags_ativas):
     mock_waffle.return_value = mock_flag_model_com_flags_ativas('historico-de-membros')
     """Testa definição de novo secretário da reunião"""
     validated_data = {
