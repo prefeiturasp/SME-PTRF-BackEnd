@@ -4,6 +4,8 @@ from datetime import date
 import pytest
 from model_bakery import baker
 from rest_framework import status
+from django.urls import resolve
+from urllib.parse import parse_qs, urlparse
 
 pytestmark = pytest.mark.django_db
 
@@ -140,6 +142,33 @@ def _prestacao_conta_2020_1_unidade_b_dre2(periodo_2020_1, _unidade_b_dre_2, _as
         associacao=_associacao_b_dre_2,
         data_recebimento=date(2020, 1, 2),
         status='NAO_RECEBIDA'
+    )
+
+@pytest.fixture
+def flag_dre_pcs_paginacao_ativa(flag_factory):
+    flag_factory.create(
+        name='dre-pcs-paginacao',
+        everyone=True,
+    )
+
+
+@pytest.fixture
+def url_prestacoes_nao_recebidas(
+    _prestacao_conta_2020_1_unidade_a_dre1,  # Entra
+    _prestacao_conta_2019_2_unidade_a_dre1,  # Não entra
+    _prestacao_conta_2020_1_unidade_b_dre2,  # Não entra
+    _dre_01,
+    _associacao_c_dre_1,  # Entra como NAO_APRESENTADA
+    periodo_2020_1,
+):
+    dre_uuid = _dre_01.uuid
+    periodo_uuid = periodo_2020_1.uuid
+
+    return (
+        "/api/prestacoes-contas/nao-recebidas/"
+        f"?associacao__unidade__dre__uuid={dre_uuid}"
+        f"&periodo__uuid={periodo_uuid}"
+        "&status=NAO_RECEBIDA,NAO_APRESENTADA"
     )
 
 
@@ -435,3 +464,105 @@ def test_api_list_prestacoes_conta_nao_recebidas_por_mais_de_um_status(
 
     # Não deve retornat status diferentes de NAO_APRESENTADA e NAO_RECEBIDA
     assert all(pc['status'] in ['NAO_APRESENTADA', 'NAO_RECEBIDA'] for pc in result)
+
+
+def test_api_list_prestacoes_nao_recebidas_com_flag_paginacao_ativa(
+    jwt_authenticated_client_a,
+    flag_dre_pcs_paginacao_ativa,
+    url_prestacoes_nao_recebidas,
+):
+    response = jwt_authenticated_client_a.get(
+        url_prestacoes_nao_recebidas,
+        content_type="application/json",
+    )
+
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+
+    # Deve retornar a estrutura paginada do DRF
+    assert isinstance(result, dict)
+    assert set(result.keys()) == {
+        'links', 'count', 'page', 'page_size', 'total_pages', 'results'
+    }
+
+    # Deve identificar os dois registros encontrados
+    assert result["count"] == 2
+
+    # Os registros devem estar dentro de results
+    assert isinstance(result["results"], list)
+    assert len(result["results"]) == 2
+
+    # Deve retornar somente os status solicitados
+    assert all(
+        pc["status"] in ["NAO_RECEBIDA", "NAO_APRESENTADA"]
+        for pc in result["results"]
+    )
+
+    # Ambos os status esperados devem estar presentes
+    assert {
+        pc["status"] for pc in result["results"]
+    } == {"NAO_RECEBIDA", "NAO_APRESENTADA"}
+
+    links = result['links']
+
+    # Como existem apenas dois registros,
+    # não deve haver outras páginas (page_size >= 2)
+    assert links["next"] is None
+    assert links["previous"] is None
+
+
+def test_api_list_prestacoes_nao_recebidas_pagina_1_e_2(
+    jwt_authenticated_client_a,
+    flag_dre_pcs_paginacao_ativa,
+    url_prestacoes_nao_recebidas,
+    monkeypatch,
+):
+    # Reduz o tamanho da página somente neste teste,
+    # para validar a navegação com as fixtures existentes.
+    caminho = url_prestacoes_nao_recebidas.split("?")[0]
+    view_class = resolve(caminho).func.cls
+
+    monkeypatch.setattr(
+        view_class.pagination_class,
+        "page_size",
+        1,
+    )
+
+    # Primeira página
+    response_1 = jwt_authenticated_client_a.get(
+        f"{url_prestacoes_nao_recebidas}&page=1",
+        content_type="application/json",
+    )
+
+    result_1 = json.loads(response_1.content)
+
+    assert response_1.status_code == status.HTTP_200_OK
+    assert result_1["count"] == 2
+    assert len(result_1["results"]) == 1
+    assert result_1["links"]["previous"] is None
+    assert result_1["links"]["next"] is not None
+
+    assert parse_qs(
+        urlparse(result_1["links"]["next"]).query
+    )["page"] == ["2"]
+
+    response_2 = jwt_authenticated_client_a.get(
+        f"{url_prestacoes_nao_recebidas}&page=2",
+        content_type="application/json",
+    )
+
+    result_2 = json.loads(response_2.content)
+
+    assert response_2.status_code == status.HTTP_200_OK
+    assert result_2["count"] == 2
+    assert len(result_2["results"]) == 1
+    assert result_2["links"]["next"] is None
+    assert result_2["links"]["previous"] is not None
+
+    assert result_1["results"][0] != result_2["results"][0]
+
+    assert {
+        result_1["results"][0]["status"],
+        result_2["results"][0]["status"],
+    } == {"NAO_RECEBIDA", "NAO_APRESENTADA"}
