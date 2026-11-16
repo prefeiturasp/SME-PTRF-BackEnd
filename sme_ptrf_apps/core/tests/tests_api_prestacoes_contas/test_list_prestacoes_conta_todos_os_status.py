@@ -4,6 +4,8 @@ from datetime import date
 import pytest
 from model_bakery import baker
 from rest_framework import status
+from django.urls import resolve
+from urllib.parse import parse_qs, urlparse
 
 pytestmark = pytest.mark.django_db
 
@@ -156,6 +158,32 @@ def _prestacao_conta_2020_1_unidade_a_dre1_em_analise(periodo_2020_1, _unidade_a
         associacao=_associacao_a_dre_1_todos_os_status,
         data_recebimento=date(2020, 1, 1),
         status='EM_ANALISE'
+    )
+
+
+@pytest.fixture
+def flag_dre_pcs_paginacao_ativa(flag_factory):
+    flag_factory.create(
+        name='dre-pcs-paginacao',
+        everyone=True,
+    )
+
+@pytest.fixture
+def url_prestacoes_todos_os_status(
+    _prestacao_conta_2020_1_unidade_a_dre1_todos_os_status,  # Entra
+    _prestacao_conta_2019_2_unidade_a_dre1_todos_os_status,  # Não entra
+    _prestacao_conta_2020_1_unidade_b_dre2_todos_os_status,  # Não entra
+    _dre_01_todos_os_status,
+    _associacao_c_dre_1_todos_os_status,  # Entra como NAO_APRESENTADA
+    periodo_2020_1,
+):
+    dre_uuid = _dre_01_todos_os_status.uuid
+    periodo_uuid = periodo_2020_1.uuid
+
+    return (
+        "/api/prestacoes-contas/todos-os-status/"
+        f"?associacao__unidade__dre__uuid={dre_uuid}"
+        f"&periodo__uuid={periodo_uuid}"
     )
 
 
@@ -449,3 +477,121 @@ def test_api_list_prestacoes_conta_todos_os_status_por_status_invalido(
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert result == result_esperado
+
+
+def test_api_list_prestacoes_todos_os_status_com_flag_paginacao_ativa(
+    jwt_authenticated_client_a,
+    flag_dre_pcs_paginacao_ativa,
+    url_prestacoes_todos_os_status,
+):
+    response = jwt_authenticated_client_a.get(
+        url_prestacoes_todos_os_status,
+        content_type="application/json",
+    )
+
+    result = json.loads(response.content)
+
+    assert response.status_code == status.HTTP_200_OK
+
+    # Deve retornar a estrutura paginada do DRF
+    assert isinstance(result, dict)
+    assert {
+        'links', 'count', 'page', 'page_size', 'total_pages', 'results'
+    }.issubset(result.keys())
+
+    # Deve encontrar os dois registros da DRE e período informados
+    assert result["count"] == 2
+    assert isinstance(result["results"], list)
+    assert len(result["results"]) == 2
+
+    # Deve incluir a prestação de contas não apresentada
+    assert any(
+        pc["status"] == "NAO_APRESENTADA"
+        for pc in result["results"]
+    )
+
+    # Não há páginas adicionais quando os dois registros
+    # cabem na mesma página
+    assert result["links"]["next"] is None
+    assert result["links"]["previous"] is None
+
+
+def test_api_list_prestacoes_todos_os_status_pagina_1_e_2(
+    jwt_authenticated_client_a,
+    flag_dre_pcs_paginacao_ativa,
+    url_prestacoes_todos_os_status,
+    monkeypatch,
+):
+    # Configura temporariamente a paginação para
+    # retornar apenas um registro por página
+    caminho = url_prestacoes_todos_os_status.split("?")[0]
+
+    view_class = resolve(caminho).func.cls
+
+    monkeypatch.setattr(
+        view_class.pagination_class,
+        "page_size",
+        1,
+    )
+
+    # Primeira página
+    response_1 = jwt_authenticated_client_a.get(
+        f"{url_prestacoes_todos_os_status}&page=1",
+        content_type="application/json",
+    )
+
+    result_1 = json.loads(response_1.content)
+
+    assert response_1.status_code == status.HTTP_200_OK
+    assert result_1["count"] == 2
+    assert len(result_1["results"]) == 1
+    assert result_1["links"]["previous"] is None
+    assert result_1["links"]["next"] is not None
+
+    # O link next deve apontar para a página 2
+    parametros_next = parse_qs(
+        urlparse(result_1["links"]["next"]).query
+    )
+
+    assert parametros_next["page"] == ["2"]
+
+    # Os filtros devem ser preservados no link
+    parametros_originais = parse_qs(
+        urlparse(url_prestacoes_todos_os_status).query
+    )
+
+    assert (
+        parametros_next["associacao__unidade__dre__uuid"]
+        == parametros_originais["associacao__unidade__dre__uuid"]
+    )
+
+    assert (
+        parametros_next["periodo__uuid"]
+        == parametros_originais["periodo__uuid"]
+    )
+
+    # Segunda página
+    response_2 = jwt_authenticated_client_a.get(
+        f"{url_prestacoes_todos_os_status}&page=2",
+        content_type="application/json",
+    )
+
+    result_2 = json.loads(response_2.content)
+
+    assert response_2.status_code == status.HTTP_200_OK
+    assert result_2["count"] == 2
+    assert len(result_2["results"]) == 1
+    assert result_2["links"]["next"] is None
+    assert result_2["links"]["previous"] is not None
+
+    # Não deve retornar o mesmo registro nas duas páginas
+    assert result_1["results"][0] != result_2["results"][0]
+
+    # Os registros das duas páginas devem incluir
+    # a prestação de contas não apresentada
+    registros = result_1["results"] + result_2["results"]
+
+    assert any(
+        pc["status"] == "NAO_APRESENTADA"
+        for pc in registros
+    )
