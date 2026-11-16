@@ -4,6 +4,7 @@ from celery import shared_task
 from sme_ptrf_apps.core.models import Associacao
 from sme_ptrf_apps.sme.services.exporta_consulta_bens_produzidos import ExportacaoConsultaBensProduzidosService
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoItem
+from sme_ptrf_apps.situacao_patrimonial.services import BemProduzidoService
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.core.models.periodo import Periodo
 from itertools import chain
@@ -73,19 +74,7 @@ def exportar_bens_produzidos_adquiridos_async(
                 bem_produzido__despesas__rateios__rateio__conta_associacao__uuid=conta_uuid
             ).distinct()
         if periodos_uuid:
-            periodos = Periodo.objects.filter(uuid__in=periodos_uuid)
-            periodo_filters = Q()
-            for periodo in periodos:
-                if periodo.data_inicio_realizacao_despesas and periodo.data_fim_realizacao_despesas:
-                    periodo_filters |= Q(
-                        criado_em__gte=periodo.data_inicio_realizacao_despesas,
-                        criado_em__lte=periodo.data_fim_realizacao_despesas
-                    )
-                elif periodo.data_inicio_realizacao_despesas:
-                    periodo_filters |= Q(
-                        criado_em__gte=periodo.data_inicio_realizacao_despesas,
-                    )
-            bens_produzidos = bens_produzidos.filter(periodo_filters)
+            bens_produzidos = BemProduzidoService.filtrar_itens_por_periodos(bens_produzidos, periodos_uuid)
         if data_inicio:
             bens_produzidos = bens_produzidos.filter(criado_em__gte=data_inicio)
         if data_fim:
