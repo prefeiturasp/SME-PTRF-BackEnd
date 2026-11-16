@@ -3,7 +3,7 @@ from datetime import date
 import pytest
 from django.db.models import Q
 
-from sme_ptrf_apps.paa.enums import PaaStatusEnum, PaaStatusAndamentoEnum
+from sme_ptrf_apps.paa.enums import PaaStatusEnum, PaaStatusAndamentoEnum, TipoAtividadeEstatutariaEnum
 from sme_ptrf_apps.paa.models import AtaPaa, DocumentoPaa
 from sme_ptrf_apps.paa.paa_querysets.status_andamento_cases import get_case_definitions
 
@@ -203,3 +203,68 @@ def titulo_label():
 def labels_case_definitions(case_definitions, titulo_label):
     """Títulos (primeira linha do label) das regras de status_andamento, na ordem de avaliação."""
     return [titulo_label(case.label) for case in case_definitions]
+
+
+@pytest.fixture
+def objetivo_do_paa(objetivo_paa_factory, paa):
+    """Objetivo criado pelo próprio PAA e vinculado a ele."""
+    objetivo = objetivo_paa_factory.create(nome='Objetivo do PAA', paa=paa)
+    paa.objetivos.add(objetivo)
+    return objetivo
+
+
+@pytest.fixture(params=['global', 'outro_paa'])
+def objetivo_nao_pertencente_ao_paa(request, objetivo_paa_factory, paa_factory):
+    """Objetivo que não pertence ao PAA: global (sem PAA) ou criado por outro PAA."""
+    paa_do_objetivo = None if request.param == 'global' else paa_factory.create()
+    return objetivo_paa_factory.create(nome='Objetivo Original', paa=paa_do_objetivo)
+
+
+@pytest.fixture(params=['Objetivo do PAA', 'objetivo do paa', 'OBJETIVO DO PAA'],
+                ids=['mesmo_nome', 'minusculo', 'maiusculo'])
+def nome_objetivo_duplicado(request):
+    """Variações de nome que conflitam (case-insensitive) com o objetivo_do_paa."""
+    return request.param
+
+
+@pytest.fixture
+def data_atividade():
+    """Data padrão de realização das atividades estatutárias nos testes."""
+    return date(2025, 3, 15)
+
+
+@pytest.fixture
+def atividade_do_paa(atividade_estatutaria_factory, atividade_estatutaria_paa_factory, paa, data_atividade):
+    """Atividade estatutária criada pelo próprio PAA e vinculada a ele na data_atividade."""
+    atividade = atividade_estatutaria_factory.create(
+        nome='Assembleia do PAA',
+        tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name,
+        mes=data_atividade.month,
+        paa=paa,
+    )
+    atividade_estatutaria_paa_factory.create(atividade_estatutaria=atividade, paa=paa, data=data_atividade)
+    return atividade
+
+
+@pytest.fixture(params=['global', 'outro_paa'])
+def atividade_nao_pertencente_ao_paa(request, atividade_estatutaria_factory, paa_factory):
+    """Atividade estatutária que não pertence ao PAA: global (sem PAA) ou criada por outro PAA."""
+    paa_da_atividade = None if request.param == 'global' else paa_factory.create()
+    return atividade_estatutaria_factory.create(
+        nome='Atividade Original',
+        tipo=TipoAtividadeEstatutariaEnum.ORDINARIA.name,
+        mes=1,
+        paa=paa_da_atividade,
+    )
+
+
+@pytest.fixture(params=['nome', 'tipo', 'data'], ids=['sem_nome', 'sem_tipo', 'sem_data'])
+def dados_nova_atividade_incompletos(request, data_atividade):
+    """Dados de nova atividade estatutária sem um dos campos obrigatórios (nome, tipo ou data)."""
+    dados = {
+        'nome': 'Nova Atividade',
+        'tipo': TipoAtividadeEstatutariaEnum.EXTRAORDINARIA.name,
+        'data': data_atividade,
+    }
+    dados.pop(request.param)
+    return dados

@@ -15,3 +15,19 @@ def modelo_carga_paa_admin():
 @pytest.fixture
 def modelo_carga_paa_plano_anual():
     return baker.make('ModeloCargaPaa', tipo_carga=TipoCargaPaaEnum.MODELO_PLANO_ANUAL.name)
+
+
+@pytest.fixture(params=[None, ""], ids=['none', 'string_vazia'])
+def tipo_carga_vazio(request):
+    """Valores de tipo_carga ausentes que devem resultar em erro 400 no download."""
+    return request.param
+
+
+@pytest.fixture(params=[
+    ("modelo_plano_anual.xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+    ("modelo_plano_anual.csv", "text/csv"),
+    ("modelo_plano_anual.extensao_desconhecida", "application/octet-stream"),
+], ids=['xlsx', 'csv', 'extensao_desconhecida'])
+def nome_arquivo_e_content_type_esperado(request):
+    """Retorna a tupla (nome_arquivo, content_type_esperado) para o download do modelo de carga."""
+    return request.param
