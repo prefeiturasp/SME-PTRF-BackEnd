@@ -63,6 +63,7 @@ class DadosDemonstrativoFinanceiroFactory(DjangoModelFactory):
     cargo_substituto_presidente_ausente = Sequence(lambda n: fake.unique.lexify(text="???", letters="ABCDEFGHIJK"))
     presidente_diretoria_executiva = Sequence(lambda n: fake.unique.lexify(text="???", letters="ABCDEFGHIJK"))
     presidente_conselho_fiscal = Sequence(lambda n: fake.unique.lexify(text="???", letters="ABCDEFGHIJK"))
+    cargo_conselheiro_assinatura = Sequence(lambda n: fake.unique.lexify(text="???", letters="ABCDEFGHIJK"))
 
     tipo_unidade = Sequence(lambda n: fake.unique.lexify(text="???", letters="ABCDEFGHIJK"))
     nome_unidade = Sequence(lambda n: fake.unique.lexify(text="???", letters="ABCDEFGHIJK"))

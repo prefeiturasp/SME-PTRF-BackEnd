@@ -141,7 +141,8 @@ def gerar_arquivo_relacao_de_bens(periodo, conta_associacao, usuario, prestacao=
             rateios=rateios,
             bens_produzidos=bens_produzidos,
             usuario=usuario,
-            previa=previa
+            previa=previa,
+            prestacao=prestacao,
         )
 
         if criar_arquivos:
@@ -194,7 +195,8 @@ def _persistir_arquivo_relacao_de_bens(periodo, conta_associacao, usuario, prest
             rateios=rateios,
             bens_produzidos=bens_produzidos,
             relacao_bens=relacao_bens,
-            usuario=usuario
+            usuario=usuario,
+            prestacao=prestacao,
         )
 
         return relacao_bens

@@ -39,7 +39,8 @@ def test_status_periodo_em_andamento(jwt_authenticated_client_a, associacao, per
             'requer_acertos_em_extrato': False,
             'status_presidente': None,
             'cargo_substituto_presidente_ausente': None,
-            'cargo_substituto_presidente_ausente_value': ''
+            'cargo_substituto_presidente_ausente_value': '',
+            'cargo_conselheiro_assinatura': None
         },
         'prestacao_conta': '',
         'pendencias_cadastrais': {
@@ -86,7 +87,8 @@ def test_status_periodo_pendente(jwt_authenticated_client_a, associacao, periodo
             'requer_acertos_em_extrato': False,
             'status_presidente': None,
             'cargo_substituto_presidente_ausente': None,
-            'cargo_substituto_presidente_ausente_value': ''
+            'cargo_substituto_presidente_ausente_value': '',
+            'cargo_conselheiro_assinatura': None
         },
         'prestacao_conta': '',
         'pendencias_cadastrais': {
@@ -184,7 +186,8 @@ def test_status_periodo_finalizado(jwt_authenticated_client_a, associacao, prest
             'requer_acertos_em_extrato': False,
             'status_presidente': None,
             'cargo_substituto_presidente_ausente': None,
-            'cargo_substituto_presidente_ausente_value': ''
+            'cargo_substituto_presidente_ausente_value': '',
+            'cargo_conselheiro_assinatura': None
         },
         'prestacao_conta': f'{prestacao_conta_2020_1_conciliada.uuid}',
         'pendencias_cadastrais': {
@@ -248,7 +251,8 @@ def test_status_periodo_devolvido_para_acertos(jwt_authenticated_client_a, assoc
             'requer_acertos_em_extrato': False,
             'status_presidente': None,
             'cargo_substituto_presidente_ausente': None,
-            'cargo_substituto_presidente_ausente_value': ''
+            'cargo_substituto_presidente_ausente_value': '',
+            'cargo_conselheiro_assinatura': None
         },
         'prestacao_conta': f'{_prestacao_conta_devolvida.uuid}',
         'pendencias_cadastrais': {

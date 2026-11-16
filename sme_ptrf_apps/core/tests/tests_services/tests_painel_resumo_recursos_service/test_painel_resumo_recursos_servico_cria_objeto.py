@@ -42,7 +42,8 @@ def test_obtem_painel_resumo_recursos_por_associacao_periodo_conta(
         'requer_acertos_em_extrato': False,
         'status_presidente': None,
         'cargo_substituto_presidente_ausente': None,
-        'cargo_substituto_presidente_ausente_value': ''
+        'cargo_substituto_presidente_ausente_value': '',
+        'cargo_conselheiro_assinatura': None
 
     }
 

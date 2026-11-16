@@ -722,7 +722,8 @@
           <div class="col ml-2 mr-0 pt-5">
             <p class="mb-0 text-center">
               __________________________________________________________________________________</p>
-            <p class="font-12 text-center mb-0">Assinatura do Presidente do Conselho Fiscal da Associação</p>
+            <p class="font-12 text-center mb-0">Assinatura
+              do {{ dados.identificacao_apm.cargo_conselheiro_assinatura|default:"Presidente do Conselho Fiscal" }} da Associação</p>
             <p class="text-center"><strong>{{ dados.identificacao_apm.presidente_conselho_fiscal }}</strong></p>
           </div>
         </div>

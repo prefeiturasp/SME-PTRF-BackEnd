@@ -2142,6 +2142,7 @@ class DadosDemonstrativoFinanceiroAdmin(admin.ModelAdmin):
                 "cargo_substituto_presidente_ausente",
                 "presidente_diretoria_executiva",
                 "presidente_conselho_fiscal",
+                "cargo_conselheiro_assinatura",
             ],
         }),
         ('Identificação da Associação', {

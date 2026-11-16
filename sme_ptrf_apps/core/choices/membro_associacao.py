@@ -51,3 +51,16 @@ class MembroEnum(Enum):
             diretoria_executiva.append((key.name, key.value))
         return diretoria_executiva
 
+    @classmethod
+    def conselho_fiscal_choices(cls):
+        conselho_fiscal = []
+        for key in cls:
+            if key.name in (
+                cls.PRESIDENTE_CONSELHO_FISCAL.name,
+                cls.CONSELHEIRO_1.name,
+                cls.CONSELHEIRO_2.name,
+                cls.CONSELHEIRO_3.name,
+                cls.CONSELHEIRO_4.name,
+            ):
+                conselho_fiscal.append((key.name, key.value))
+        return conselho_fiscal

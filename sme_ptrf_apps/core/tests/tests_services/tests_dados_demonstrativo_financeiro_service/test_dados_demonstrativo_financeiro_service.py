@@ -29,6 +29,7 @@ dados_demonstrativo = {
         "presidente_diretoria_executiva": 'PRESIDENTE',
         "presidente_conselho_fiscal": 'CONSELHO FISCAL',
         "cargo_substituto_presidente_ausente": 'SUBSTITUTO',
+        "cargo_conselheiro_assinatura": 'Conselheiro 1',
     },
     "identificacao_conta": {
         "banco": 'Banco de Brasil',
@@ -104,7 +105,10 @@ def test_persistir_relatorio_demonstrativo_financeiro(demonstrativo_financeiro_f
     PersistenciaDadosDemoFinanceiro(dados=dados_demonstrativo, demonstrativo=demonstrativo)
     relatorio = DadosDemonstrativoFinanceiro.objects.get(demonstrativo=demonstrativo)
 
-    assert relatorio
+    assert relatorio.presidente_diretoria_executiva == 'PRESIDENTE'
+    assert relatorio.cargo_substituto_presidente_ausente == 'SUBSTITUTO'
+    assert relatorio.presidente_conselho_fiscal == 'CONSELHO FISCAL'
+    assert relatorio.cargo_conselheiro_assinatura == 'Conselheiro 1'
 
 
 def test_deve_substituir_dados_de_relatorio_anterior_existente(demonstrativo_financeiro_factory):
@@ -147,6 +151,9 @@ def test_retorna_dados_formatados_identificacao_apm(demonstrativo_financeiro_fac
     assert 'cargo_substituto_presidente_ausente' in resultado['identificacao_apm']
     assert 'presidente_diretoria_executiva' in resultado['identificacao_apm']
     assert 'presidente_conselho_fiscal' in resultado['identificacao_apm']
+    assert resultado['identificacao_apm']['cargo_conselheiro_assinatura'] == (
+        dados_demonstrativo_financeiro.cargo_conselheiro_assinatura
+    )
     assert 'tipo_unidade' in resultado['identificacao_apm']
     assert 'nome_unidade' in resultado['identificacao_apm']
 
