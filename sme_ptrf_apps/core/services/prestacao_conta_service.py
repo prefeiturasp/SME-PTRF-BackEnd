@@ -439,7 +439,7 @@ class PrestacaoContaService:
             status_presidente: PRESENTE ou AUSENTE. Quando informado, atualiza a associação
                 e copia os cargos para a prestação de contas.
             cargo_substituto_presidente_ausente: cargo que assina no lugar do presidente ausente.
-            cargo_conselheiro_assinatura: cargo do conselho fiscal que assina os documentos.
+            cargo_conselheiro_assinatura: cargo do conselho fiscal que assina o demonstrativo.
 
         Returns:
             Prestação de contas cuja conclusão foi iniciada.
@@ -469,7 +469,9 @@ class PrestacaoContaService:
 
         if status_presidente:
             self._prestacao.status_presidente = self._associacao.status_presidente
-            self._prestacao.cargo_substituto_presidente_ausente = self._associacao.cargo_substituto_presidente_ausente
+            self._prestacao.cargo_substituto_presidente_ausente = (
+                self._associacao.cargo_substituto_presidente_ausente
+            )
             self._prestacao.cargo_conselheiro_assinatura = self._associacao.cargo_conselheiro_assinatura
             self._prestacao.save(update_fields=[
                 'status_presidente',

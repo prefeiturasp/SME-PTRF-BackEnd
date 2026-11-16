@@ -116,6 +116,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
 
     status_presidente = prestacao.status_presidente if prestacao else None
     cargo_substituto = prestacao.cargo_substituto_presidente_ausente if prestacao else None
+    cargo_conselheiro = prestacao.cargo_conselheiro_assinatura if prestacao else None
     cargo_substituto_value = ''
     if cargo_substituto:
         try:
@@ -139,6 +140,7 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
         'status_presidente': status_presidente,
         'cargo_substituto_presidente_ausente': cargo_substituto,
         'cargo_substituto_presidente_ausente_value': cargo_substituto_value,
+        'cargo_conselheiro_assinatura': cargo_conselheiro,
     }
 
     return status
