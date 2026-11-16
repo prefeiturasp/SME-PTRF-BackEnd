@@ -117,7 +117,8 @@ def test_action_painel_acoes_de_uma_conta(
             'requer_acertos_em_extrato': False,
             'status_presidente': None,
             'cargo_substituto_presidente_ausente': None,
-            'cargo_substituto_presidente_ausente_value': ''
+            'cargo_substituto_presidente_ausente_value': '',
+            'cargo_conselheiro_assinatura': None
         },
     }
 
@@ -236,7 +237,8 @@ def test_action_painel_acoes_de_uma_conta_tendo_outras_contas(
             'requer_acertos_em_extrato': False,
             'status_presidente': None,
             'cargo_substituto_presidente_ausente': None,
-            'cargo_substituto_presidente_ausente_value': ''
+            'cargo_substituto_presidente_ausente_value': '',
+            'cargo_conselheiro_assinatura': None
         },
     }
 

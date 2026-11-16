@@ -48,7 +48,7 @@ def gerar_dados_demonstrativo_financeiro(usuario, acoes, periodo, conta_associac
             conta_associacao=conta_associacao, periodo=periodo, conferido=True)
 
         cabecalho = cria_cabecalho(periodo, conta_associacao, previa)
-        identificacao_apm = cria_identificacao_apm(acoes)
+        identificacao_apm = cria_identificacao_apm(acoes, prestacao)
         identificacao_conta = cria_identificacao_conta(conta_associacao, observacao_conciliacao, periodo)
         resumo_por_acao = cria_resumo_por_acao(acoes, conta_associacao, periodo)
         creditos_demonstrados = cria_creditos_demonstrados(receitas_demonstradas)
@@ -129,7 +129,7 @@ def cria_cabecalho(periodo, conta_associacao, previa):
     return cabecalho
 
 
-def cria_identificacao_apm(acoes):
+def cria_identificacao_apm(acoes, prestacao=None):
     acao_associacao = acoes[0]
     associacao = acao_associacao.associacao
 
@@ -145,7 +145,7 @@ def cria_identificacao_apm(acoes):
     _presidente_diretoria_executiva = ''
     presidente_conselho_fiscal = '-------'
     cargo_substituto_presidente_ausente_value = ''
-    cargo_conselheiro_assinatura = ''
+    cargo_conselheiro_assinatura = MembroEnum.PRESIDENTE_CONSELHO_FISCAL.value
 
     from sme_ptrf_apps.core.services.associacoes_service import assinatura_membros_v2
 
@@ -153,7 +153,7 @@ def cria_identificacao_apm(acoes):
 
     LOGGER.info("Verificando se a flag <historico-de-membros> está ativa...")
 
-    assinatura_v2 = assinatura_membros_v2(associacao)
+    assinatura_v2 = assinatura_membros_v2(associacao, prestacao)
     if assinatura_v2:
         presidente_diretoria_executiva = assinatura_v2['presidente_diretoria_executiva']
         presidente_conselho_fiscal = assinatura_v2['presidente_conselho_fiscal']
