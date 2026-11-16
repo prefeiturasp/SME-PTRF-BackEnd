@@ -147,13 +147,14 @@ def test_get_lista_adquiridos_e_produzidos_com_filtro_especificacao(jwt_authenti
 
 
 @freeze_time('2025-01-01')
-def test_get_lista_adquiridos_e_produzidos_com_filtro_periodo(jwt_authenticated_client_sme, flag_situacao_patrimonial, associacao_1, bem_produzido_1, despesa_factory, bem_produzido_item_factory, rateio_despesa_factory, periodo_2025_1, periodo_2024_1):
+def test_get_lista_adquiridos_e_produzidos_com_filtro_periodo(jwt_authenticated_client_sme, flag_situacao_patrimonial, associacao_1, bem_produzido_1, despesa_factory, bem_produzido_item_factory, bem_produzido_despesa_factory, rateio_despesa_factory, periodo_2025_1, periodo_2024_1):
     _ = bem_produzido_item_factory(bem_produzido=bem_produzido_1)
     _ = bem_produzido_item_factory(bem_produzido=bem_produzido_1)
     _ = bem_produzido_item_factory(bem_produzido=bem_produzido_1)
 
-    despesa_2025_1 = despesa_factory(associacao=associacao_1, data_documento='2025-01-01')
-    despesa_2024_1 = despesa_factory(associacao=associacao_1, data_documento='2024-01-01')
+    despesa_2025_1 = despesa_factory(associacao=associacao_1, data_documento='2025-01-01', data_transacao='2025-01-01')
+    despesa_2024_1 = despesa_factory(associacao=associacao_1, data_documento='2024-01-01', data_transacao='2024-01-01')
+    bem_produzido_despesa_factory(bem_produzido=bem_produzido_1, despesa=despesa_2025_1)
     _ = rateio_despesa_factory(
         associacao=associacao_1, despesa=despesa_2025_1, aplicacao_recurso="CAPITAL")
     _ = rateio_despesa_factory(
@@ -170,6 +171,70 @@ def test_get_lista_adquiridos_e_produzidos_com_filtro_periodo(jwt_authenticated_
 
     assert len(content["results"]) == 5
     assert response.status_code == status.HTTP_200_OK
+
+
+def _uuids_produzidos(client, associacao, periodo):
+    response = client.get(
+        f'/api/bens-produzidos-e-adquiridos/?'
+        f'associacao_uuid={associacao.uuid}&'
+        f'periodos_uuid={periodo.uuid}'
+    )
+    assert response.status_code == status.HTTP_200_OK
+    content = json.loads(response.content)
+    return [item["uuid"] for item in content["results"] if item["tipo"] == "Produzido"]
+
+
+@freeze_time('2026-11-14')
+def test_filtro_periodo_bem_produzido_considera_despesas_e_nao_data_de_cadastro(jwt_authenticated_client_sme, flag_situacao_patrimonial, associacao_1, bem_produzido_1, despesa_factory, bem_produzido_item_factory, bem_produzido_despesa_factory, periodo_2024_1, periodo_2025_1):
+    # Bem cadastrado em 14/11/2026 com despesa paga em 2024.1: pertence ao 2024.1
+    despesa = despesa_factory(associacao=associacao_1, data_documento='2024-01-10', data_transacao='2024-01-10')
+    bem_produzido_despesa_factory(bem_produzido=bem_produzido_1, despesa=despesa)
+    item = bem_produzido_item_factory(bem_produzido=bem_produzido_1)
+
+    assert _uuids_produzidos(jwt_authenticated_client_sme, associacao_1, periodo_2024_1) == [str(item.uuid)]
+    assert _uuids_produzidos(jwt_authenticated_client_sme, associacao_1, periodo_2025_1) == []
+
+
+@freeze_time('2026-11-14')
+def test_filtro_periodo_bem_produzido_com_despesas_em_periodos_diferentes_usa_o_mais_recente(jwt_authenticated_client_sme, flag_situacao_patrimonial, associacao_1, bem_produzido_1, despesa_factory, bem_produzido_item_factory, bem_produzido_despesa_factory, periodo_2024_1, periodo_2025_1):
+    despesa_2024_1 = despesa_factory(associacao=associacao_1, data_documento='2024-02-01', data_transacao='2024-02-01')
+    despesa_2025_1 = despesa_factory(associacao=associacao_1, data_documento='2025-02-01', data_transacao='2025-02-01')
+    bem_produzido_despesa_factory(bem_produzido=bem_produzido_1, despesa=despesa_2024_1)
+    bem_produzido_despesa_factory(bem_produzido=bem_produzido_1, despesa=despesa_2025_1)
+    item = bem_produzido_item_factory(bem_produzido=bem_produzido_1)
+
+    assert _uuids_produzidos(jwt_authenticated_client_sme, associacao_1, periodo_2025_1) == [str(item.uuid)]
+    assert _uuids_produzidos(jwt_authenticated_client_sme, associacao_1, periodo_2024_1) == []
+
+
+@freeze_time('2026-11-14')
+def test_filtro_periodo_bem_produzido_sem_despesa_paga_nao_e_exibido(jwt_authenticated_client_sme, flag_situacao_patrimonial, associacao_1, bem_produzido_1, despesa_factory, bem_produzido_item_factory, bem_produzido_despesa_factory, periodo_2024_1):
+    despesa = despesa_factory(associacao=associacao_1, data_documento='2024-01-10', data_transacao=None)
+    bem_produzido_despesa_factory(bem_produzido=bem_produzido_1, despesa=despesa)
+    bem_produzido_item_factory(bem_produzido=bem_produzido_1)
+
+    assert _uuids_produzidos(jwt_authenticated_client_sme, associacao_1, periodo_2024_1) == []
+
+
+@freeze_time('2026-11-14')
+def test_filtro_periodo_bem_produzido_combinado_com_filtro_fornecedor(jwt_authenticated_client_sme, flag_situacao_patrimonial, associacao_1, bem_produzido_1, despesa_factory, bem_produzido_item_factory, bem_produzido_despesa_factory, periodo_2024_1, periodo_2025_1):
+    # O fornecedor está na despesa de 2024.1, mas o período do bem é o da despesa mais recente (2025.1)
+    despesa_2024_1 = despesa_factory(associacao=associacao_1, data_documento='2024-02-01', data_transacao='2024-02-01', nome_fornecedor='Fornecedor Antigo')
+    despesa_2025_1 = despesa_factory(associacao=associacao_1, data_documento='2025-02-01', data_transacao='2025-02-01', nome_fornecedor='Fornecedor Novo')
+    bem_produzido_despesa_factory(bem_produzido=bem_produzido_1, despesa=despesa_2024_1)
+    bem_produzido_despesa_factory(bem_produzido=bem_produzido_1, despesa=despesa_2025_1)
+    item = bem_produzido_item_factory(bem_produzido=bem_produzido_1)
+
+    response = jwt_authenticated_client_sme.get(
+        f'/api/bens-produzidos-e-adquiridos/?'
+        f'associacao_uuid={associacao_1.uuid}&'
+        f'periodos_uuid={periodo_2025_1.uuid}&'
+        f'fornecedor=Antigo'
+    )
+    content = json.loads(response.content)
+    produzidos = [r["uuid"] for r in content["results"] if r["tipo"] == "Produzido"]
+
+    assert produzidos == [str(item.uuid)]
 
 
 @freeze_time('2025-01-01')
@@ -670,7 +735,7 @@ def test_lista_rascunhos_com_filtro_periodo(
             associacao=associacao_1, 
             status=BemProduzido.STATUS_INCOMPLETO
         )
-        despesa_rascunho_2025 = despesa_factory(associacao=associacao_1, data_documento='2025-01-15')
+        despesa_rascunho_2025 = despesa_factory(associacao=associacao_1, data_documento='2025-01-15', data_transacao='2025-01-15')
         bem_produzido_despesa_factory.create(bem_produzido=bem_rascunho_2025, despesa=despesa_rascunho_2025)
         item_2025 = bem_produzido_item_factory.create(
             bem_produzido=bem_rascunho_2025,
@@ -683,7 +748,7 @@ def test_lista_rascunhos_com_filtro_periodo(
             associacao=associacao_1, 
             status=BemProduzido.STATUS_INCOMPLETO
         )
-        despesa_rascunho_2024 = despesa_factory(associacao=associacao_1, data_documento='2024-02-15')
+        despesa_rascunho_2024 = despesa_factory(associacao=associacao_1, data_documento='2024-02-15', data_transacao='2024-02-15')
         bem_produzido_despesa_factory.create(bem_produzido=bem_rascunho_2024, despesa=despesa_rascunho_2024)
         item_2024 = bem_produzido_item_factory.create(
             bem_produzido=bem_rascunho_2024,
@@ -696,7 +761,7 @@ def test_lista_rascunhos_com_filtro_periodo(
             associacao=associacao_1, 
             status=BemProduzido.STATUS_COMPLETO
         )
-        despesa_completo_2025 = despesa_factory(associacao=associacao_1, data_documento='2025-02-01')
+        despesa_completo_2025 = despesa_factory(associacao=associacao_1, data_documento='2025-02-01', data_transacao='2025-02-01')
         bem_produzido_despesa_factory.create(bem_produzido=bem_completo_2025, despesa=despesa_completo_2025)
         item_completo = bem_produzido_item_factory.create(
             bem_produzido=bem_completo_2025,
