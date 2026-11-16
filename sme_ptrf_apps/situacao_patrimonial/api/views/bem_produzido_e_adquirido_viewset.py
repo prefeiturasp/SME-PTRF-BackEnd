@@ -18,6 +18,7 @@ from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
 from sme_ptrf_apps.situacao_patrimonial.models import BemProduzidoItem
 from sme_ptrf_apps.situacao_patrimonial.models.bem_produzido import BemProduzido
+from sme_ptrf_apps.situacao_patrimonial.services import BemProduzidoService
 from sme_ptrf_apps.situacao_patrimonial.api.serializers import BemProduzidoEAdquiridoSerializer
 from sme_ptrf_apps.despesas.models import RateioDespesa
 from sme_ptrf_apps.core.models.periodo import Periodo
@@ -118,21 +119,7 @@ class BemAdquiridoProduzidoViewSet(WaffleFlagMixin, ViewSet):
             queryset = queryset.filter(
                 bem_produzido__despesas__rateios__rateio__conta_associacao__uuid=conta_uuid).distinct()
         if periodos_uuid:
-            periodos = Periodo.objects.filter(uuid__in=periodos_uuid)
-            periodo_filters = Q()
-
-            for periodo in periodos:
-                if periodo.data_inicio_realizacao_despesas and periodo.data_fim_realizacao_despesas:
-                    periodo_filters |= Q(
-                        criado_em__gte=periodo.data_inicio_realizacao_despesas,
-                        criado_em__lte=periodo.data_fim_realizacao_despesas
-                    )
-                elif periodo.data_inicio_realizacao_despesas:
-                    periodo_filters |= Q(
-                        criado_em__gte=periodo.data_inicio_realizacao_despesas,
-                    )
-
-            queryset = queryset.filter(periodo_filters)
+            queryset = BemProduzidoService.filtrar_itens_por_periodos(queryset, periodos_uuid)
         if data_inicio:
             queryset = queryset.filter(bem_produzido__despesas__despesa__data_documento__gte=data_inicio).distinct()
         if data_fim:
