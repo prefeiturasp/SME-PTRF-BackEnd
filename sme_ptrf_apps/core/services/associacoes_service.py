@@ -5,6 +5,7 @@ from .periodo_services import status_prestacao_conta_associacao
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from sme_ptrf_apps.core.choices import MembroEnum
+from sme_ptrf_apps.mandatos.choices import CargoComposicaoVacanciaChoices
 from sme_ptrf_apps.receitas.models.repasse import Repasse, StatusRepasse
 from ..models import PrestacaoConta, Associacao, SolicitacaoAcertoDocumento, FechamentoPeriodo
 from ...despesas.models import Despesa
@@ -196,7 +197,9 @@ def normalizar_assinatura_prestacao(
     if status_presidente == 'PRESENTE':
         cargo_substituto_presidente_ausente = None
     elif (not cargo_substituto_presidente_ausente or
-          cargo_substituto_presidente_ausente == MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name or
+          cargo_substituto_presidente_ausente == (
+              CargoComposicaoVacanciaChoices.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA
+          ) or
           not cargo_diretoria_executiva_valido(cargo_substituto_presidente_ausente)):
         raise ValidationError({
             'erro': 'campo_requerido',
@@ -246,20 +249,13 @@ def update_status_presidente(
 
 def cargo_diretoria_executiva_valido(cargo: str) -> bool:
     """Indica se o cargo pertence à diretoria executiva."""
-    from sme_ptrf_apps.core.choices.membro_associacao import MembroEnum
-    cargos_diretoria_executiva = [key[0] for key in MembroEnum.diretoria_executiva_choices()]
+    cargos_diretoria_executiva = [key for key, _label in CargoComposicaoVacanciaChoices.diretoria_executiva()]
     return cargo in cargos_diretoria_executiva
 
 
 def cargo_conselheiro_assinatura_valido(cargo: str) -> bool:
     """Indica se o cargo pertence ao conselho fiscal e pode assinar os documentos."""
-    cargos_conselho = {
-        MembroEnum.PRESIDENTE_CONSELHO_FISCAL.name,
-        MembroEnum.CONSELHEIRO_1.name,
-        MembroEnum.CONSELHEIRO_2.name,
-        MembroEnum.CONSELHEIRO_3.name,
-        MembroEnum.CONSELHEIRO_4.name,
-    }
+    cargos_conselho = {key for key, _label in CargoComposicaoVacanciaChoices.conselho_fiscal()}
     return cargo in cargos_conselho
 
 
@@ -320,25 +316,29 @@ def assinatura_membros_v2(associacao: Associacao | None, prestacao=None) -> dict
     if status_presidente == 'AUSENTE' and cargo_substituto:
         cargo_key = cargo_substituto
     else:
-        cargo_key = MembroEnum.PRESIDENTE_DIRETORIA_EXECUTIVA.name
+        cargo_key = CargoComposicaoVacanciaChoices.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA
 
-    cargo_conselheiro = cargo_conselheiro or MembroEnum.PRESIDENTE_CONSELHO_FISCAL.name
+    cargo_conselheiro = (
+        cargo_conselheiro or CargoComposicaoVacanciaChoices.CARGO_ASSOCIACAO_PRESIDENTE_CONSELHO_FISCAL
+    )
 
     if cargo_key.startswith('VOGAL_'):
         cargo_label = 'Vogal'
     else:
         try:
-            cargo_label = MembroEnum[cargo_key].value
-        except KeyError:
+            cargo_label = CargoComposicaoVacanciaChoices(cargo_key).label
+        except ValueError:
             cargo_label = ''
 
     if cargo_conselheiro.startswith('CONSELHEIRO_'):
         cargo_conselheiro_label = 'Conselheiro'
     else:
         try:
-            cargo_conselheiro_label = MembroEnum[cargo_conselheiro].value
-        except KeyError:
-            cargo_conselheiro_label = MembroEnum.PRESIDENTE_CONSELHO_FISCAL.value
+            cargo_conselheiro_label = CargoComposicaoVacanciaChoices(cargo_conselheiro).label
+        except ValueError:
+            cargo_conselheiro_label = (
+                CargoComposicaoVacanciaChoices.CARGO_ASSOCIACAO_PRESIDENTE_CONSELHO_FISCAL.label
+            )
 
     return {
         'presidente_diretoria_executiva': nome_ocupante_cargo_v2(associacao, cargo_key) or '-------',

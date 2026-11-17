@@ -7,8 +7,8 @@ from django.db.models import Q
 from django.db import transaction
 from django.db.models.aggregates import Sum
 
-from sme_ptrf_apps.core.choices import MembroEnum
 from sme_ptrf_apps.core.models import Ata
+from sme_ptrf_apps.mandatos.choices import CargoComposicaoVacanciaChoices
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.dre.models import Atribuicao
 
@@ -130,7 +130,7 @@ class PrestacaoConta(ModeloBase):
         max_length=65,
         blank=True,
         null=True,
-        choices=MembroEnum.diretoria_executiva_choices(),
+        choices=CargoComposicaoVacanciaChoices.diretoria_executiva(),
     )
 
     cargo_conselheiro_assinatura = models.CharField(
@@ -138,7 +138,7 @@ class PrestacaoConta(ModeloBase):
         max_length=65,
         blank=True,
         null=True,
-        choices=MembroEnum.conselho_fiscal_choices(),
+        choices=CargoComposicaoVacanciaChoices.conselho_fiscal(),
     )
 
     status_anterior_a_retificacao = models.CharField(
