@@ -17,6 +17,21 @@ class CargoComposicaoVacanciaChoices(models.TextChoices):
     CARGO_ASSOCIACAO_CONSELHEIRO_3 = 'CONSELHEIRO_3', 'Conselheiro 3'
     CARGO_ASSOCIACAO_CONSELHEIRO_4 = 'CONSELHEIRO_4', 'Conselheiro 4'
 
+    @classmethod
+    def diretoria_executiva(cls):
+        """Nove cargos da diretoria executiva, na ordem do catálogo."""
+        return cls.choices[:9]
+
+    @classmethod
+    def substitutos_do_presidente(cls):
+        """Diretoria executiva sem o próprio presidente."""
+        return cls.choices[1:9]
+
+    @classmethod
+    def conselho_fiscal(cls):
+        """Cinco cargos do conselho fiscal."""
+        return cls.choices[9:]
+
     # Obter o label
     # CargoComposicaoVacanciaChoices(cargo_associacao).label
 

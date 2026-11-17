@@ -1,0 +1,59 @@
+{
+  "dre_uuid": "d5fb851a-089b-4a1a-abf2-fc270a48a2d7",
+  "dre_nome": "DIRETORIA REGIONAL DE EDUCACAO PENHA",
+  "recurso_uuid": "3aa98008-b255-492c-9665-ed5e153cb82a",
+  "mary": {
+    "uuid": "135f5d37-c3f0-4a14-9c00-2d5279d6b293",
+    "nome": "APM DA EMEI MARY BUARQUE",
+    "status": "VALORES_CORRETOS",
+    "unidade_uuid": "a36c187f-a3d5-4451-9bec-83b22d893966",
+    "unidade_nome": "MARY BUARQUE",
+    "codigo_eol": "091391",
+    "tipo_unidade": "EMEI"
+  },
+  "gomes": {
+    "uuid": "10ba6e14-6bd2-4caf-b921-b2e22028cf23",
+    "nome": "APMESCOLA MUNEDUCINF INTENDENTE GOMES CARDIM",
+    "status": "EM_CONFERENCIA_DRE",
+    "unidade_uuid": "b897c8e8-e679-4c84-bd03-a5f58149020f",
+    "unidade_nome": "GOMES CARDIM, INTENDENTE",
+    "codigo_eol": "091278",
+    "tipo_unidade": "EMEI"
+  },
+  "rodrigo": {
+    "uuid": "24e30c8e-7df3-4522-96c8-a89eddd79d69",
+    "nome": "ASSOCIACAO DE PAIS E MESTRES DA EMEI RODRIGO SOARES JR",
+    "status": "EM_CONFERENCIA_DRE",
+    "unidade_uuid": "bbfedebf-4b39-4da4-be01-e01f91011043",
+    "unidade_nome": "RODRIGO SOARES JUNIOR",
+    "codigo_eol": "091413",
+    "tipo_unidade": "EMEI"
+  },
+  "assad": {
+    "uuid": "e063bcda-c39b-437e-91a1-3409af162484",
+    "nome": "APM DA EMEF ASSAD ABDALA",
+    "status": "VALORES_CORRETOS",
+    "unidade_uuid": "05b05126-6118-4062-895d-b22922200ce3",
+    "unidade_nome": "ASSAD ABDALA",
+    "codigo_eol": "000485",
+    "tipo_unidade": "EMEF"
+  },
+  "leila": {
+    "uuid": "3ed4c2e6-88c3-40d8-ba80-3ced54144611",
+    "nome": "ASSOCIACAO DE PAIS E MESTRES DA EMEI PROFESSORA LEILA MARIA FONTELES FARIAS",
+    "status": "VALORES_CORRETOS",
+    "unidade_uuid": "09b0e8e1-b2d4-45c6-8870-4496d7dbcd79",
+    "unidade_nome": "LEILA MARIA FONTELES FARIAS, PROFA",
+    "codigo_eol": "019342",
+    "tipo_unidade": "EMEI"
+  },
+  "manoel": {
+    "uuid": "22ef6a3e-f6d1-441c-8434-02ee6cc9fe22",
+    "nome": "ASSOCIACAO DE PAIS E MESTRES DO CEI PE MANOEL DA NOBREGA",
+    "status": "EM_CORRECAO_UE",
+    "unidade_uuid": "d9e90f1b-ff61-4818-b293-c5eb33cd78bc",
+    "unidade_nome": "MANOEL DA NOBREGA,PDE.",
+    "codigo_eol": "400170",
+    "tipo_unidade": "CEI DIRET"
+  }
+}

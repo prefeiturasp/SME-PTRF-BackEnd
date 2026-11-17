@@ -11,9 +11,8 @@ STATUS_PRESIDENTE_CHOICES = (
     ('AUSENTE', 'Ausente'),
 )
 
-# Oito cargos da diretoria executiva, sem o próprio presidente (índice 0).
-CARGOS_SUBSTITUTO_PRESIDENTE = CargoComposicaoVacanciaChoices.choices[1:9]
-CARGOS_CONSELHEIRO_ASSINATURA = CargoComposicaoVacanciaChoices.choices[9:]
+CARGOS_SUBSTITUTO_PRESIDENTE = CargoComposicaoVacanciaChoices.substitutos_do_presidente()
+CARGOS_CONSELHEIRO_ASSINATURA = CargoComposicaoVacanciaChoices.conselho_fiscal()
 
 
 class PrestacoesContasConcluirValidateSerializer(serializers.Serializer):  # noqa
