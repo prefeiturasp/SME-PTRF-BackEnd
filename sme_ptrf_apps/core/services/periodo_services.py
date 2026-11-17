@@ -3,7 +3,7 @@ from django.apps import apps
 from functools import lru_cache
 from django.db import models
 from datetime import timedelta
-from sme_ptrf_apps.core.choices import MembroEnum
+from sme_ptrf_apps.mandatos.choices import CargoComposicaoVacanciaChoices
 
 from ..models import Associacao, Periodo, PrestacaoConta, PeriodoInicialAssociacao
 
@@ -120,8 +120,8 @@ def status_prestacao_conta_associacao(periodo_uuid, associacao_uuid):
     cargo_substituto_value = ''
     if cargo_substituto:
         try:
-            cargo_substituto_value = MembroEnum[cargo_substituto].value
-        except KeyError:
+            cargo_substituto_value = CargoComposicaoVacanciaChoices(cargo_substituto).label
+        except ValueError:
             cargo_substituto_value = ''
 
     status = {
