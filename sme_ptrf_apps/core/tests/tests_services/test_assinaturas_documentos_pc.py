@@ -15,9 +15,10 @@ from sme_ptrf_apps.core.services.persistencia_dados_demo_financeiro_service impo
 from sme_ptrf_apps.core.services.relacao_bens_dados_service import (
     cria_identificacao_apm as cria_identificacao_relacao_bens,
 )
-from sme_ptrf_apps.core.tests.tests_services.tests_dados_demonstrativo_financeiro_service.test_dados_demonstrativo_financeiro_service import (
-    dados_demonstrativo,
-)
+from sme_ptrf_apps.core.tests.tests_services.tests_dados_demonstrativo_financeiro_service \
+    .test_dados_demonstrativo_financeiro_service import (
+        dados_demonstrativo,
+    )
 
 pytestmark = pytest.mark.django_db
 
@@ -59,11 +60,12 @@ def _composicao_com_tesoureiro_e_conselheiro(associacao):
         )
 
 
-def _marca_presidente_ausente(associacao):
-    associacao.status_presidente = 'AUSENTE'
-    associacao.cargo_substituto_presidente_ausente = 'TESOUREIRO'
-    associacao.cargo_conselheiro_assinatura = 'CONSELHEIRO_1'
-    associacao.save()
+def _prestacao_com_substituto():
+    return SimpleNamespace(
+        status_presidente='AUSENTE',
+        cargo_substituto_presidente_ausente='TESOUREIRO',
+        cargo_conselheiro_assinatura='CONSELHEIRO_1',
+    )
 
 
 def _contexto_relacao(identificacao):
@@ -96,10 +98,9 @@ def test_demonstrativo_grava_nome_e_cargo_do_substituto_e_do_conselheiro(
 ):
     _ativa_historico_v2()
     _composicao_com_tesoureiro_e_conselheiro(associacao)
-    _marca_presidente_ausente(associacao)
     acao = baker.make('AcaoAssociacao', associacao=associacao)
 
-    identificacao = cria_identificacao_demonstrativo([acao])
+    identificacao = cria_identificacao_demonstrativo([acao], _prestacao_com_substituto())
 
     assert identificacao['presidente_diretoria_executiva'] == 'Carlos Tesoureiro'
     assert identificacao['cargo_substituto_presidente_ausente'] == 'Tesoureiro'
@@ -157,10 +158,9 @@ def test_demonstrativo_mantem_cargo_de_presidente_do_conselho_quando_nao_ha_sele
 def test_relacao_de_bens_exibe_nome_e_cargo_do_substituto(associacao):
     _ativa_historico_v2()
     _composicao_com_tesoureiro_e_conselheiro(associacao)
-    _marca_presidente_ausente(associacao)
     conta = SimpleNamespace(associacao=associacao)
 
-    identificacao = cria_identificacao_relacao_bens(conta)
+    identificacao = cria_identificacao_relacao_bens(conta, _prestacao_com_substituto())
 
     assert identificacao['presidente_diretoria_executiva'] == 'Carlos Tesoureiro'
     assert identificacao['cargo_substituto_presidente_ausente'] == 'Tesoureiro'
