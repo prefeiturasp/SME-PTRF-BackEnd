@@ -119,6 +119,11 @@ class BemProduzidoEAdquiridoSerializer(serializers.Serializer):
     def to_representation(self, instance):
         """Normaliza os dados independente do model origem"""
         if hasattr(instance, 'despesa'):  # É RateioDespesa
+            data_documento_despesa = instance.despesa.data_documento
+            recurso_despesa = instance.despesa.recurso
+
+            periodo = Periodo.da_data_por_recurso(data_documento_despesa, recurso_despesa)
+
             return {
                 'uuid': instance.uuid,
                 'status': instance.status,
@@ -126,7 +131,7 @@ class BemProduzidoEAdquiridoSerializer(serializers.Serializer):
                 'especificacao_do_bem': instance.especificacao_material_servico.descricao if instance.especificacao_material_servico else None,
                 'data_aquisicao_producao': instance.despesa.data_documento,
                 'num_processo_incorporacao': instance.numero_processo_incorporacao_capital,
-                'periodo': Periodo.da_data(instance.despesa.data_documento).referencia if Periodo.da_data(instance.despesa.data_documento) else None,
+                'periodo': periodo.referencia if periodo else None,
                 'quantidade': instance.quantidade_itens_capital,
                 'valor_total': instance.valor_rateio,
                 'tipo': 'Adquirido',
