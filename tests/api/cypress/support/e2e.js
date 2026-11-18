@@ -40,6 +40,7 @@ import "./commands_api/commands_comentarios_de_analises";
 import "./commands_api/commands_composicoes";
 import "./commands_api/commands_contas_associacoes";
 import "./commands_api/commands_dres";
+import "./commands_api/commands_valores_reprogramados";
 import "./commands_api/commands_receitas_previstas_paa";
 import "./commands_api/commands_faq_categorias";
 

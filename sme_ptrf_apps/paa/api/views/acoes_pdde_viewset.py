@@ -14,14 +14,14 @@ from rest_framework.response import Response
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema, OpenApiParameter
 from django.http import Http404
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import ObjectDoesNotExist, ValidationError as DjangoValidationError
 from django.db.models.deletion import ProtectedError
 import django_filters
 from waffle.mixins import WaffleFlagMixin
 
 from sme_ptrf_apps.paa.services import AcoesReceitasPrevistasPaaService, AcoesPaaService, ResumoAcoesPddeService
 
-from sme_ptrf_apps.paa.models import AcaoPdde, Paa
+from sme_ptrf_apps.paa.models import AcaoPdde, Paa, ProgramaPdde
 from ..serializers.acao_pdde_serializer import AcaoPddeSerializer
 from sme_ptrf_apps.paa.services.acoes_pdde_service import ExcluirAcaoPDDEException
 from ....core.api.utils.pagination import CustomPagination
@@ -178,6 +178,14 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
         if not programa:
             raise serializers.ValidationError(
                 {"programa": "O Programa PDDE não foi informado."}
+            )
+        try:
+            programa_existe = ProgramaPdde.objects.filter(uuid=programa).exists()
+        except (DjangoValidationError, ValueError):
+            programa_existe = False
+        if not programa_existe:
+            raise serializers.ValidationError(
+                {"programa": "O Programa PDDE informado não foi encontrado."}
             )
         return nome, programa
 

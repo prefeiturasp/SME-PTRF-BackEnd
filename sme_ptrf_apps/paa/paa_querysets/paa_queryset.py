@@ -3,12 +3,13 @@ from __future__ import annotations
 from django.db.models import Case, When, Value, CharField, Exists, OuterRef, Q
 from django.db import models
 from sme_ptrf_apps.paa.enums import PaaStatusEnum, PaaStatusAndamentoEnum
+from sme_ptrf_apps.paa.paa_querysets.status_andamento_cases import get_case_definitions
 
 
 class PaaQuerySet(models.QuerySet):
 
     @staticmethod
-    def _make_when(condition: dict | Q, value: str) -> When:
+    def _make_when(condition: dict | Q | Exists, value: str) -> When:
         """
             Método utilizado para reaproveitar os Cases de status_andamento para _debug_case
             Cria um When para uso em expressões Case a partir de dict de kwargs ou expressão Q.
@@ -105,6 +106,16 @@ class PaaQuerySet(models.QuerySet):
             output_field=models.BooleanField(),
         )
 
+        # Anota se há documento final de retificação concluído (somente PAAs em retificação ou retificados)
+        tem_doc_final_retificacao = Case(
+            When(
+                status__in=[PaaStatusEnum.EM_RETIFICACAO.name, PaaStatusEnum.RETIFICADO.name],
+                then=doc_final_retificacao,
+            ),
+            default=Value(False),
+            output_field=models.BooleanField(),
+        )
+
         # Anota a ata correta conforme o status do PAA
         tem_ata_concluida = Case(
             When(status=PaaStatusEnum.EM_RETIFICACAO.name, then=ata_retificacao),
@@ -119,171 +130,29 @@ class PaaQuerySet(models.QuerySet):
             output_field=models.BooleanField(),
         )
 
-        # Cada entrada: (condição, valor_status_andamento, label_debug)
-        # Condição pode ser dict (kwargs) ou Q expression
-        # Facilitar a identificação das condições que possam ocorrer fora de fluxo
-        case_definitions: list[tuple[dict | Q, str, str]] = [
-            # Fora do Fluxo - Réplica existente no PAA em Elaboração
-            (
-                {'status': PaaStatusEnum.EM_ELABORACAO.name, 'replica__isnull': False},
-                PaaStatusAndamentoEnum.FORA_FLUXO.name,
-                """
-                    Em elaboração + com Réplica
-                    - Necessário remover a réplica
-                """,
-            ),
-            # Fora do Fluxo - Em Elaboração com ata gerada
-            (
-                {'status': PaaStatusEnum.EM_ELABORACAO.name, 'tem_ata_concluida': True},
-                PaaStatusAndamentoEnum.FORA_FLUXO.name,
-                """
-                    Em elaboração + com Ata gerada
-                    Necessário alterar os campos da ata:
-                    - Status Pdf: [Não gerado]
-                    - Documento gerado: [desmarcar]
-                """,
-            ),
-            # Fora de Fluxo - Réplica existente quando gerado
-            (
-                {
-                    'status': PaaStatusEnum.GERADO.name,
-                    'tem_documento_final_concluido': True,
-                    'tem_ata_concluida': True,
-                    'replica__isnull': False
-                },
-                PaaStatusAndamentoEnum.FORA_FLUXO.name,
-                """
-                    Gerado + Doc Final + Ata + Réplica
-                    - Necessário remover a réplica
-                    Obs: Verificar se a réplica foi registrada no log de réplicas
-                """,
-            ),
-            # Fora de Fluxo: é gerado, não tem documento
-            (
-                {
-                    'status': PaaStatusEnum.GERADO.name,
-                    'tem_documento_final_concluido': False
-                },
-                PaaStatusAndamentoEnum.FORA_FLUXO.name,
-                """
-                    Gerado + sem Documento final
-                    Necessário alterar o seguinte campo no PAA e gerar o documento final:
-                    - status: [Em elaboração]
-                """,
-            ),
-            # Fora de Fluxo: é gerado, não tem ata
-            (
-                {
-                    'status': PaaStatusEnum.GERADO.name,
-                    'tem_ata_concluida': False
-                },
-                PaaStatusAndamentoEnum.FORA_FLUXO.name,
-                """
-                    Gerado + sem Ata
-                    Necessário regerar a ata, após alterar os seguinte campo no PAA:
-                    - status: [Em elaboração]
-                """,
-            ),
-            # Fora de Fluxo - Retificação sem Ata iniciada
-            (
-                {
-                    'status': PaaStatusEnum.EM_RETIFICACAO.name,
-                    'tem_ata_iniciada': False
-                },
-                PaaStatusAndamentoEnum.FORA_FLUXO.name,
-                """
-                    Em retificação + sem Ata iniciada
-                    Recomendado cancelar a retificação e iniciá-la novamente
-                    Ou, criar uma nova ata de retificação via admin, com os seguintes campos:
-                    - Paa: [ referencia do PAA]
-                    - Tipo Ata: [Ata de Retificação]
-                    - justificativa da retificação: [informar a justificativa da retificação]
-                """,
-            ),
-            # Fora de Fluxo - Retificação sem Réplica
-            (
-                {
-                    'status': PaaStatusEnum.EM_RETIFICACAO.name,
-                    'tem_ata_iniciada': True,
-                    'replica__isnull': True
-                },
-                PaaStatusAndamentoEnum.FORA_FLUXO.name,
-                """
-                    Em retificação + sem Réplica
-                    Recomendado cancelar a retificação e iniciá-la novamente
-                    Obs: Sem réplica registrada não é possível registrar log ou realizar cancelamento seguro do
-                    que foi alterado no PAA
-                """,
-            ),
-            # Gerado completo - é gerado, tem documento e tem ata
-            (
-                {
-                    'status': PaaStatusEnum.GERADO.name,
-                    'tem_documento_final_concluido': True,
-                    'tem_ata_concluida': True
-                },
-                PaaStatusAndamentoEnum.GERADO.name,
-                'Gerado + Doc Final + Ata',
-            ),
-            # Retificação correta quando há uma Réplica
-            (
-                {
-                    'status': PaaStatusEnum.EM_RETIFICACAO.name,
-                    'replica__isnull': False,
-                    'tem_documento_final_concluido': True,
-                    'tem_ata_iniciada': True
-                },
-                PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name,
-                'Em retificação + com Réplica + Doc Retificação gerado + Ata iniciada',
-            ),
-            # Retificação correta quando há uma Réplica
-            (
-                {
-                    'status': PaaStatusEnum.EM_RETIFICACAO.name,
-                    'replica__isnull': False,
-                    'tem_ata_iniciada': True
-                },
-                PaaStatusAndamentoEnum.EM_RETIFICACAO.name,
-                'Em retificação + com Réplica + Ata iniciada',
-            ),
-            # Em Elaboração quando tem apenas documento final concluído
-            (
-                Q(status=PaaStatusEnum.EM_ELABORACAO.name) & tem_documento_final_concluido,
-                PaaStatusAndamentoEnum.GERADO_PARCIALMENTE.name,
-                'Em elaboração + Doc Final',
-            ),
-            # Em elaboração
-            (
-                {
-                    'status': PaaStatusEnum.EM_ELABORACAO.name,
-                    'tem_documento_final_concluido': False,
-                    'tem_ata_concluida': False
-                },
-                PaaStatusAndamentoEnum.EM_ELABORACAO.name,
-                'Em elaboração',
-            ),
-            # Fluxo não iniciado
-            (
-                {'status': PaaStatusEnum.NAO_INICIADO.name},
-                PaaStatusAndamentoEnum.FORA_FLUXO.name,
-                'PAA existente não pode ser \"Não iniciado\"',
-            ),
-        ]
+        case_definitions = get_case_definitions(
+            doc_final_original=doc_final_original,
+            doc_final_retificacao=doc_final_retificacao,
+            ata_apresentacao=ata_apresentacao,
+            ata_retificacao=ata_retificacao,
+            ata_retificacao_iniciada=ata_retificacao_iniciada,
+        )
 
         return self.annotate(
             tem_documento_final_concluido=tem_documento_final_concluido,
+            tem_doc_final_retificacao=tem_doc_final_retificacao,
             tem_ata_iniciada=tem_ata_iniciada,
             tem_ata_concluida=tem_ata_concluida,
             status_andamento=Case(
-                *[self._make_when(cond, status) for cond, status, _ in case_definitions],
+                *[self._make_when(case.condicao, case.status) for case in case_definitions],
                 default=Value(PaaStatusAndamentoEnum.EM_ELABORACAO.name),
                 output_field=CharField(),
             ),
             _debug_case=Case(
                 *[self._make_when(
-                    cond,
-                    f'Condição {index + 1}: {label}'
-                ) for index, (cond, _, label) in enumerate(case_definitions)],
+                    case.condicao,
+                    f'Condição {index + 1}: {case.label}'
+                ) for index, case in enumerate(case_definitions)],
                 default=Value('Condição padrão: Não mapeada'),
                 output_field=CharField(),
             ),

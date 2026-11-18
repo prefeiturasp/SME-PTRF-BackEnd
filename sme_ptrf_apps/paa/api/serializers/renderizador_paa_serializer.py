@@ -104,6 +104,7 @@ class RetificacaoAnteriorSerializer(serializers.Serializer):
 class RenderizadorPaaSerializer(serializers.Serializer):
     """Serializer para renderização do PAA com dados de documentação e atas."""
     uuid = serializers.UUIDField()
+    status = serializers.CharField(allow_blank=True)
     referencia = serializers.CharField(allow_blank=True)
     pode_retificar = serializers.BooleanField()
     esta_em_retificacao = serializers.BooleanField()
@@ -521,6 +522,7 @@ class RenderizadorPaaBuilder:
 
         dados = {
             'uuid': str(self.paa.uuid),
+            'status': self.paa.get_status_display() or '',
             'referencia': self.paa.periodo_paa.referencia if self.paa.periodo_paa else '',
             'pode_retificar': self._pode_retificar(),
             'esta_em_retificacao': self.paa.status_em_retificacao,

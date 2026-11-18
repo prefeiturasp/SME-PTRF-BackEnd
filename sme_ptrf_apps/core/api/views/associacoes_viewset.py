@@ -2,6 +2,7 @@ import datetime
 import logging
 from io import BytesIO
 
+from django.core.exceptions import ValidationError as DjangoValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse
@@ -806,7 +807,7 @@ class AssociacoesViewSet(ModelViewSet):
                 cargo_substituto_presidente_ausente=cargo_substituto_presidente_ausente
             )
             return Response(result)
-        except ValidationError as e:
+        except (ValidationError, DjangoValidationError) as e:
             result = {
                 'erro': 'Erro de validação.',
                 'mensagem': f'{e}'

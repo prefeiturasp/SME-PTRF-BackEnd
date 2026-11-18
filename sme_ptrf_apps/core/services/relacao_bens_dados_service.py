@@ -20,13 +20,21 @@ from waffle import get_waffle_flag_model
 LOGGER = logging.getLogger(__name__)
 
 
-def gerar_dados_relacao_de_bens(conta_associacao=None, periodo=None, rateios=None, bens_produzidos=None, usuario=None, previa=False):
+def gerar_dados_relacao_de_bens(
+    conta_associacao=None,
+    periodo=None,
+    rateios=None,
+    bens_produzidos=None,
+    usuario=None,
+    previa=False,
+    prestacao=None,
+):
 
     try:
         LOGGER.info("GERANDO DADOS RELAÇÃO DE BENS...")
 
         cabecalho = cria_cabecalho(periodo, conta_associacao)
-        identificacao_apm = cria_identificacao_apm(conta_associacao)
+        identificacao_apm = cria_identificacao_apm(conta_associacao, prestacao)
         relacao_de_bens_adquiridos_ou_produzidos = cria_relacao_de_bens_adquiridos_ou_produzidos(rateios, bens_produzidos)
         data_geracao_documento = cria_data_geracao_documento(previa=previa, usuario=usuario)
         data_geracao = date.today().strftime("%d/%m/%Y")
@@ -60,7 +68,7 @@ def cria_cabecalho(periodo, conta_associacao):
     return cabecalho
 
 
-def cria_identificacao_apm(conta_associacao):
+def cria_identificacao_apm(conta_associacao, prestacao=None):
     """BLOCO 1 - IDENTIFICAÇÃO DA APM/APMSUAC DA UNIDADE EDUCACIONAL DOCUMENTO EM PDF RELACAO DE BENS """
     associacao = conta_associacao.associacao
 
@@ -72,8 +80,14 @@ def cria_identificacao_apm(conta_associacao):
     codigo_eol_associacao = associacao.unidade.codigo_eol or ""
     nome_dre_associacao = associacao.unidade.dre.nome if associacao.unidade.dre else ""
 
+    from sme_ptrf_apps.core.services.associacoes_service import assinatura_membros_v2
+
     flags = get_waffle_flag_model()
-    if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+    assinatura_v2 = assinatura_membros_v2(associacao, prestacao)
+    if assinatura_v2:
+        presidente_diretoria_executiva = assinatura_v2['presidente_diretoria_executiva']
+        cargo_substituto_presidente_ausente_value = assinatura_v2['cargo_substituto_presidente_ausente']
+    elif flags.objects.filter(name='historico-de-membros', everyone=True).exists():
         servico_mandato_vigente = ServicoMandatoVigente()
         mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
         servico_composicao_vigente = ServicoComposicaoVigente(associacao=associacao, mandato=mandato_vigente)
@@ -304,7 +318,15 @@ def formata_data(data):
     return f'{data_formatada}'
 
 
-def persistir_dados_relacao_bens(periodo, conta_associacao, rateios, bens_produzidos, relacao_bens, usuario):
+def persistir_dados_relacao_bens(
+    periodo,
+    conta_associacao,
+    rateios,
+    bens_produzidos,
+    relacao_bens,
+    usuario,
+    prestacao=None,
+):
     associacao = conta_associacao.associacao
     status_presidente_associacao = associacao.status_presidente
     cargo_substituto_presidente_ausente_name = associacao.cargo_substituto_presidente_ausente
@@ -314,8 +336,14 @@ def persistir_dados_relacao_bens(periodo, conta_associacao, rateios, bens_produz
     codigo_eol_associacao = associacao.unidade.codigo_eol or ""
     nome_dre_associacao = associacao.unidade.dre.nome if associacao.unidade.dre else ""
 
+    from sme_ptrf_apps.core.services.associacoes_service import assinatura_membros_v2
+
     flags = get_waffle_flag_model()
-    if flags.objects.filter(name='historico-de-membros', everyone=True).exists():
+    assinatura_v2 = assinatura_membros_v2(associacao, prestacao)
+    if assinatura_v2:
+        presidente_diretoria_executiva = assinatura_v2['presidente_diretoria_executiva']
+        cargo_substituto_presidente_ausente_value = assinatura_v2['cargo_substituto_presidente_ausente']
+    elif flags.objects.filter(name='historico-de-membros', everyone=True).exists():
         servico_mandato_vigente = ServicoMandatoVigente()
         mandato_vigente = servico_mandato_vigente.get_mandato_vigente()
         servico_composicao_vigente = ServicoComposicaoVigente(associacao=associacao, mandato=mandato_vigente)

@@ -3,7 +3,8 @@ from rest_framework import status
 
 from sme_ptrf_apps.core.fixtures.factories import FlagFactory
 from sme_ptrf_apps.paa.fixtures.factories import ProgramaPddeFactory
-from sme_ptrf_apps.paa.models import ProgramaPdde
+from sme_ptrf_apps.paa.fixtures.factories.prioridade_paa_factory import PrioridadePaaFactory
+from sme_ptrf_apps.paa.models import AcaoPdde, ProgramaPdde
 
 
 @pytest.fixture
@@ -127,8 +128,35 @@ def test_exclui_programa_erro(jwt_authenticated_client_sme, acao_pdde, acao_pdde
     assert response.data["erro"] == "ProtectedError"
     assert response.data == {
         'erro': 'ProtectedError',
-        'mensagem': 'Não é possível excluir. Este programa ainda está vinculado há alguma ação.'
+        'mensagem': 'Não é possível excluir. Este programa ainda está vinculado a alguma ação.'
     }
+
+
+@pytest.mark.django_db
+def test_exclui_programa_com_acao_inativa_erro(jwt_authenticated_client_sme, acao_pdde, flag_paa):
+    acao_pdde.status = AcaoPdde.STATUS_INATIVA
+    acao_pdde.save()
+
+    response = jwt_authenticated_client_sme.delete(f"/api/programas-pdde/{acao_pdde.programa.uuid}/")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data["erro"] == "ProtectedError"
+    assert ProgramaPdde.objects.filter(uuid=acao_pdde.programa.uuid).exists()
+
+
+@pytest.mark.django_db
+def test_exclui_programa_vinculado_a_prioridade_paa_erro(jwt_authenticated_client_sme, programa_pdde_3, flag_paa):
+    PrioridadePaaFactory(programa_pdde=programa_pdde_3, acao_pdde=None)
+
+    response = jwt_authenticated_client_sme.delete(f"/api/programas-pdde/{programa_pdde_3.uuid}/")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert response.data == {
+        'erro': 'ProtectedError',
+        'mensagem': ('Não é possível excluir. Este programa está vinculado a um '
+                     'Plano Anual de Atividades (PAA).')
+    }
+    assert ProgramaPdde.objects.filter(uuid=programa_pdde_3.uuid).exists()
 
 
 @pytest.mark.django_db
@@ -138,6 +166,36 @@ def test_exclui_programa_sem_acao(jwt_authenticated_client_sme, acao_pdde, progr
 
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert not ProgramaPdde.objects.filter(uuid=programa_pdde_3.uuid).exists()
+
+
+@pytest.mark.django_db
+def test_lista_programa_filtra_por_nome(jwt_authenticated_client_sme, flag_paa):
+    ProgramaPddeFactory(nome="Equidade")
+    ProgramaPddeFactory(nome="Qualidade")
+    ProgramaPddeFactory(nome="Programa 1")
+
+    response = jwt_authenticated_client_sme.get("/api/programas-pdde/?nome=dade")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data["count"] == 2
+    assert [p["nome"] for p in response.data["results"]] == ["Equidade", "Qualidade"]
+
+
+@pytest.mark.django_db
+def test_lista_programa_pode_ser_excluida(jwt_authenticated_client_sme, acao_pdde, programa_pdde_3, flag_paa):
+    response = jwt_authenticated_client_sme.get("/api/programas-pdde/")
+
+    assert response.status_code == status.HTTP_200_OK
+    resultado = {p["uuid"]: p["pode_ser_excluida"] for p in response.data["results"]}
+    assert resultado[str(acao_pdde.programa.uuid)] is False
+    assert resultado[str(programa_pdde_3.uuid)] is True
+
+
+@pytest.mark.django_db
+def test_programa_sem_permissao_sme(jwt_authenticated_client_dre, flag_paa):
+    response = jwt_authenticated_client_dre.get("/api/programas-pdde/")
+
+    assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 @pytest.mark.django_db

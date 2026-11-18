@@ -1,11 +1,21 @@
+from __future__ import annotations
+
 from decimal import Decimal
+from typing import TYPE_CHECKING, Any
+
 from django.db.models import Q, Sum
 from rest_framework import serializers
 from sme_ptrf_apps.paa.enums import RecursoOpcoesEnum, TipoAplicacaoOpcoesEnum
 from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
 import logging
+
+if TYPE_CHECKING:
+    from django.db.models import QuerySet
+    from sme_ptrf_apps.paa.models import Paa, PrioridadePaa
+
 logger = logging.getLogger(__name__)
 
+VALOR_NUMERICO = Decimal | int | float
 
 LABEL_DESPESAS_PREVISTAS = 'Despesas Previstas'
 LABEL_RECEITAS_PREVISTAS = 'Receita'
@@ -18,23 +28,33 @@ class ValidacaoSaldoIndisponivel(serializers.ValidationError):
 
 
 class ResumoPrioridadesService:
-    def __init__(self, paa):
+    def __init__(self, paa: Paa) -> None:
+        """Inicializa o serviço de resumo de prioridades para um PAA.
+
+        Args:
+            paa: PAA cujas receitas previstas e prioridades serão consolidadas no resumo.
+        """
         self.paa = paa
         self._resumo_prioridades_cache = None
 
     @staticmethod
-    def _to_decimal_or_none(valor):
+    def _to_decimal_or_none(valor: VALOR_NUMERICO | str | None) -> Decimal | None:
         """Converte valor para Decimal, preservando None (saldo não congelado)."""
         if valor is None or valor == '':
             return None
         return Decimal(valor)
 
-    def calcular_saldos_congelado_atual_previsao(self, congelado, atual, previsao) -> Decimal:
+    def calcular_saldos_congelado_atual_previsao(
+        self,
+        congelado: VALOR_NUMERICO | None,
+        atual: VALOR_NUMERICO | None,
+        previsao: VALOR_NUMERICO | None,
+    ) -> Decimal:
         """
         Soma o saldo reprogramado com a previsão da receita.
 
         Quando o PAA está com saldo congelado, usa o valor congelado — inclusive zero.
-        
+
         - Decimal(0) é um congelamento válido e não deve cair para o saldo atual.
 
         - Sem congelamento (None), usa o saldo atual da ação.
@@ -47,17 +67,19 @@ class ResumoPrioridadesService:
 
         return saldo_atual + previsao_valor
 
-    def calcula_saldos(self, key, receitas, despesas) -> dict:
-        """
-            Calcula os saldos com base nas receitas e despesas.
+    def calcula_saldos(self, key: str, receitas: dict[str, Any], despesas: dict[str, Any]) -> dict[str, Any]:
+        """Calcula os saldos com base nas receitas e despesas.
 
-            Recebe um key para uso na chave do dicionário, e receitas e despesas
-            que são dicionários com informações de custeio, capital e livre aplicação.
+        Recebe um key para uso na chave do dicionário, e receitas e despesas
+        que são dicionários com informações de custeio, capital e livre aplicação.
 
-            :param key: chave para uso na chave do dicionário
-            :param receitas: dicionário com valores de custeio, capital e livre aplicação de receitas
-            :param despesas: dicionário com valores de custeio, capital e livre aplicação de despesas
-            :return: dicionário com os valores de saldo de custeio, capital e livre aplicação calculados na estrutura
+        Args:
+            key: chave para uso na chave do dicionário
+            receitas: dicionário com valores de custeio, capital e livre aplicação de receitas
+            despesas: dicionário com valores de custeio, capital e livre aplicação de despesas
+
+        Returns:
+            dicionário com os valores de saldo de custeio, capital e livre aplicação calculados na estrutura
             adequada para uso em tabela com expand em 3 níveis
         """
         # O valor total de custeio não deve exibir o saldo negativo (considerando que a diferença seja
@@ -94,7 +116,17 @@ class ResumoPrioridadesService:
             "livre_aplicacao": round(total_livre, 2)
         }
 
-    def calcula_node_ptrf(self) -> dict:
+    def calcula_node_ptrf(self) -> dict[str, Any]:
+        """Monta o Node 1 de PTRF do resumo de prioridades.
+
+        Para cada ação de associação PTRF do PAA, monta um Node 2 com os Nodes 3 de receita,
+        despesa e saldo, e soma os saldos de cada ação aos totais do Node 1.
+
+        Returns:
+            Dicionário do Node 1 (PTRF Total) com os totais de custeio, capital e livre aplicação,
+            a mensagem de saldo congelado (vazia se o saldo não estiver congelado) e a lista de
+            ações PTRF em `children`.
+        """
         from sme_ptrf_apps.core.api.serializers import AcaoAssociacaoRetrieveSerializer
         from sme_ptrf_apps.paa.services import AcoesPaaService
 
@@ -111,20 +143,26 @@ class ResumoPrioridadesService:
         # Dados Serializados
         acoes_associacoes_data = AcaoAssociacaoRetrieveSerializer(acoes_associacoes_qs, many=True).data
 
-        def calcula_receitas(item) -> dict:
-            """
-                Calcula os valores de receita de uma ação de associação do PAA.
-                Retorna um Node 3 de Receita com os valores de custeio, capital e livre.
-                :param item: Dado de uma ação de associação do PAA serializado
-                :return: Um dicionário com a estrutura necessária para exibição em tabela de frontend com expand
+        def calcula_receitas(item: dict[str, Any]) -> dict[str, Any]:
+            """Calcula os valores de receita de uma ação de associação do PAA.
+
+            Retorna um Node 3 de Receita com os valores de custeio, capital e livre.
+
+            Args:
+                item: Dado de uma ação de associação do PAA serializado
+
+            Returns:
+                Um dicionário com a estrutura necessária para exibição em tabela de frontend com expand
                 de 3 níveis de dados
             """
 
-            def get_receita_prevista_da_acao_associacao(acao_associacao_data) -> dict:
-                """
-                    Retorna o índice de receitas previstas em Acao Associacao para obtenção de valores
-                    de previsão ou saldo atual
-                    :param acao_associacao_data: Dado de uma Acao Associacao serializado
+            def get_receita_prevista_da_acao_associacao(acao_associacao_data: dict[str, Any]) -> dict[str, Any]:
+                """Retorna o índice de receitas previstas em Acao Associacao.
+
+                Usado para obtenção de valores de previsão ou saldo atual.
+
+                Args:
+                    acao_associacao_data: Dado de uma Acao Associacao serializado
                 """
                 qs_receitas_previstas_da_acao = self.paa.receitaprevistapaa_set.filter(
                     acao_associacao__acao__uuid=str(acao_associacao_data['acao']['uuid'])
@@ -134,13 +172,19 @@ class ResumoPrioridadesService:
                 receitas_previstas_paa = receitas_previstas_paa[0] if len(receitas_previstas_paa) else {}
                 return receitas_previstas_paa
 
-            def get_valor_custeio(acao_associacao_data, receitas_previstas_paa) -> Decimal:
-                """
-                    Retorna o cálculo de valor de custeio em uma acao_associacao_data.
-                    Procura nas receitas previstas em Acao Associacao, caso nao tenha, pega do saldo atual.
-                    :param acao_associacao_data: Dado de uma Acao Associacao serializada
-                    :param receitas_previstas_paa: Receita prevista da ação, já obtida (evita reconsultar)
-                    :return: Decimal com o valor de custeio
+            def get_valor_custeio(
+                acao_associacao_data: dict[str, Any], receitas_previstas_paa: dict[str, Any]
+            ) -> Decimal:
+                """Retorna o cálculo de valor de custeio em uma acao_associacao_data.
+
+                Procura nas receitas previstas em Acao Associacao, caso nao tenha, pega do saldo atual.
+
+                Args:
+                    acao_associacao_data: Dado de uma Acao Associacao serializada
+                    receitas_previstas_paa: Receita prevista da ação, já obtida (evita reconsultar)
+
+                Returns:
+                    Decimal com o valor de custeio
                 """
                 saldos = acao_associacao_data.get('saldos', {})
 
@@ -154,13 +198,19 @@ class ResumoPrioridadesService:
                     saldo_congelado, saldo_atual, previsao_valor
                 )
 
-            def get_valor_capital(acao_associacao_data, receitas_previstas_paa) -> Decimal:
-                """
-                    Retorna o cálculo de valor de capital em uma acao_associacao_data.
-                    Procura nas receitas previstas em Acao Associacao, caso nao tenha, pega do saldo atual.
-                    :param acao_associacao_data: Dado de uma Acao Associacao
-                    :param receitas_previstas_paa: Receita prevista da ação, já obtida (evita reconsultar)
-                    :return: Decimal com o valor de capital
+            def get_valor_capital(
+                acao_associacao_data: dict[str, Any], receitas_previstas_paa: dict[str, Any]
+            ) -> Decimal:
+                """Retorna o cálculo de valor de capital em uma acao_associacao_data.
+
+                Procura nas receitas previstas em Acao Associacao, caso nao tenha, pega do saldo atual.
+
+                Args:
+                    acao_associacao_data: Dado de uma Acao Associacao
+                    receitas_previstas_paa: Receita prevista da ação, já obtida (evita reconsultar)
+
+                Returns:
+                    Decimal com o valor de capital
                 """
                 saldos = acao_associacao_data.get('saldos', {})
 
@@ -174,13 +224,19 @@ class ResumoPrioridadesService:
                     saldo_congelado, saldo_atual, previsao_valor
                 )
 
-            def get_valor_livre(acao_associacao_data, receitas_previstas_paa) -> Decimal:
-                """
-                    Retorna o cálculo de valor de livre em uma acao_associacao_data.
-                    Procura nas receitas previstas em Acao Associacao, caso nao tenha, pega do saldo atual.
-                    :param acao_associacao_data: Dado de uma Acao Associacao
-                    :param receitas_previstas_paa: Receita prevista da ação, já obtida (evita reconsultar)
-                    :return: Decimal com o valor de livre
+            def get_valor_livre(
+                acao_associacao_data: dict[str, Any], receitas_previstas_paa: dict[str, Any]
+            ) -> Decimal:
+                """Retorna o cálculo de valor de livre em uma acao_associacao_data.
+
+                Procura nas receitas previstas em Acao Associacao, caso nao tenha, pega do saldo atual.
+
+                Args:
+                    acao_associacao_data: Dado de uma Acao Associacao
+                    receitas_previstas_paa: Receita prevista da ação, já obtida (evita reconsultar)
+
+                Returns:
+                    Decimal com o valor de livre
                 """
                 saldos = acao_associacao_data.get('saldos', {})
 
@@ -208,15 +264,17 @@ class ResumoPrioridadesService:
                 "livre_aplicacao": get_valor_livre(item, receitas_previstas_paa),
             }
 
-        def calcula_despesas(item) -> dict:
-            """
-                Retorna um Node 3 de Despesas previstas (Prioridades do PAA).
+        def calcula_despesas(item: dict[str, Any]) -> dict[str, Any]:
+            """Retorna um Node 3 de Despesas previstas (Prioridades do PAA).
 
-                Calcula a despesa de uma ação associação baseado nas prioridades do PAA.
-                A despesa considera as prioridades do PAA cadastradas com tipo CUSTEIO e CAPITAL.
+            Calcula a despesa de uma ação associação baseado nas prioridades do PAA.
+            A despesa considera as prioridades do PAA cadastradas com tipo CUSTEIO e CAPITAL.
 
-                :param item: Dado de uma Acao Associacao
-                :return: Node 3 de Despesa, com estrutura de um dicionário com os valores de custeio, capital e livre
+            Args:
+                item: Dado de uma Acao Associacao
+
+            Returns:
+                Node 3 de Despesa, com estrutura de um dicionário com os valores de custeio, capital e livre
                 necessários para utilização em tabela no frontend com expand de 3 níveis
             """
 
@@ -297,7 +355,17 @@ class ResumoPrioridadesService:
 
         return tipo_recurso_map
 
-    def calcula_node_pdde(self) -> dict:
+    def calcula_node_pdde(self) -> dict[str, Any]:
+        """Monta o Node 1 de PDDE do resumo de prioridades.
+
+        Para cada ação PDDE do PAA, soma saldo e previsão das receitas previstas PDDE (custeio,
+        capital e livre aplicação), monta um Node 2 com os Nodes 3 de receita, despesa e saldo,
+        e soma os saldos de cada ação aos totais do Node 1.
+
+        Returns:
+            Dicionário do Node 1 (PDDE Total) com os totais de custeio, capital e livre aplicação
+            e a lista de ações PDDE em `children`.
+        """
         from sme_ptrf_apps.paa.services import AcoesPaaService
         # Queryset Somente de Prioridades do PAA do recurso PDDE
         prioridades_pdde_qs = self.paa.prioridadepaa_set.filter(
@@ -306,18 +374,46 @@ class ResumoPrioridadesService:
         # Obtenção do Service de Programas PDDE
         acoes_pdde = AcoesPaaService(paa=self.paa).obter_pdde()
 
-        def calcula_receitas(item) -> dict:
-            def get_valor_capital(item) -> Decimal:
+        def calcula_receitas(item: dict[str, Any]) -> dict[str, Any]:
+            """Monta o Node 3 de receita de uma ação PDDE.
+
+            Args:
+                item: Dados da ação PDDE com os totais de receita já somados
+                    (`total_valor_custeio`, `total_valor_capital` e `total_valor_livre_aplicacao`).
+
+            Returns:
+                Dicionário do Node 3 de receita com os valores de custeio, capital e livre aplicação.
+            """
+            def get_valor_capital(item: dict[str, Any]) -> Decimal:
+                """Retorna o valor de capital de um item de PDDE.
+
+                Args:
+                    item: Dados da ação PDDE com o total de capital (`total_valor_capital`).
+
+                Returns:
+                    Valor total de capital, ou zero se não informado.
+                """
                 return Decimal(item.get('total_valor_capital') or 0)
 
-            def get_valor_custeio(item) -> Decimal:
+            def get_valor_custeio(item: dict[str, Any]) -> Decimal:
+                """Retorna o valor de custeio de um item de PDDE.
+
+                Args:
+                    item: Dados da ação PDDE com o total de custeio (`total_valor_custeio`).
+
+                Returns:
+                    Valor total de custeio, ou zero se não informado.
+                """
                 return Decimal(item.get('total_valor_custeio') or 0)
 
-            def get_valor_livre(item) -> Decimal:
-                """
-                    Retorna o valor de livre aplicação de um item de PDDE.
-                    :param item: Dado de um item de PDDE para obter o valor de livre aplicação
-                    :return: Decimal com o valor de livre aplicação
+            def get_valor_livre(item: dict[str, Any]) -> Decimal:
+                """Retorna o valor de livre aplicação de um item de PDDE.
+
+                Args:
+                    item: Dado de um item de PDDE para obter o valor de livre aplicação
+
+                Returns:
+                    Decimal com o valor de livre aplicação
                 """
                 return Decimal(item.get('total_valor_livre_aplicacao') or 0)
 
@@ -329,13 +425,17 @@ class ResumoPrioridadesService:
                 "livre_aplicacao": get_valor_livre(item),
             }
 
-        def calcula_despesas(item) -> dict:
-            """
-                Calcula as despesas previstas de um item de PDDE para montagem de tabela de
-                hierarquias no frontend.
-                :param item: Dado de um item de PDDE para compor o dict de retorno
-                :param receitas: Dicionário com informações de receitas previstas de PDDE
-                :return: Dicionário com a estrutura do Node 3 de "Despesas previstas".
+        def calcula_despesas(item: dict[str, Any]) -> dict[str, Any]:
+            """Calcula as despesas previstas de um item de PDDE.
+
+            Usado para montagem de tabela de hierarquias no frontend.
+
+            Args:
+                item: Dado de um item de PDDE para compor o dict de retorno
+                receitas: Dicionário com informações de receitas previstas de PDDE
+
+            Returns:
+                Dicionário com a estrutura do Node 3 de "Despesas previstas".
             """
 
             # Valores relacionados às "Prioridades do PAA" de uma ação PDDE, CUSTEIO e CAPITAL
@@ -438,7 +538,7 @@ class ResumoPrioridadesService:
 
         return tipo_recurso_map
 
-    def calcula_node_outros_recursos(self) -> dict:
+    def calcula_node_outros_recursos(self) -> dict[str, Any]:
         """
             Node Outros Recursos Total: (Recursos próprios + Outros Recursos)
 
@@ -477,7 +577,18 @@ class ResumoPrioridadesService:
             for item in outros_recursos_qs
         ]
 
-        def calcula_receitas_recursos_proprios(item) -> dict:
+        def calcula_receitas_recursos_proprios(item: dict[str, Any]) -> dict[str, Any]:
+            """Monta o Node 3 de receita de Recursos Próprios.
+
+            Recursos Próprios só têm receita de livre aplicação; custeio e capital são sempre zero.
+
+            Args:
+                item: Dados do item de Recursos Próprios, com o total em `total_recursos_proprios`.
+
+            Returns:
+                Dicionário do Node 3 de receita com custeio e capital zerados e o total de
+                Recursos Próprios em livre aplicação.
+            """
             return {
                 'key': item.get('uuid') + '_' + 'receita',
                 "recurso": LABEL_RECEITAS_PREVISTAS,
@@ -486,7 +597,22 @@ class ResumoPrioridadesService:
                 "livre_aplicacao": item.get("total_recursos_proprios", 0),
             }
 
-        def calcula_receitas_outros_recursos(item, receitas_previstas_qs) -> dict:
+        def calcula_receitas_outros_recursos(
+            item: dict[str, Any],
+            receitas_previstas_qs: QuerySet[ReceitaPrevistaOutroRecursoPeriodo],
+        ) -> dict[str, Any]:
+            """Monta o dict de receita de um Outro Recurso.
+
+            Para cada tipo de aplicação (custeio, capital e livre aplicação), soma a previsão e o
+            saldo de todas as receitas previstas do recurso no PAA.
+
+            Args:
+                item: Dados do Outro Recurso, usados para montar a chave do item (`uuid`).
+                receitas_previstas_qs: Receitas previstas do Outro Recurso no PAA.
+
+            Returns:
+                Dicionário de receita com os valores de custeio, capital e livre aplicação.
+            """
             valor_custeio = 0
             valor_capital = 0
             valor_livre = 0
@@ -504,13 +630,19 @@ class ResumoPrioridadesService:
                 "livre_aplicacao": valor_livre,
             }
 
-        def calcula_despesas_recursos_proprios(item, prioridades_qs) -> dict:
-            """
-                Calcula as despesas previstas de um item de Recursos Próprios para montagem de tabela de
-                hierarquias no frontend.
-                :param item: Dado de um item de Recursos Próprios para compor o dict de retorno
-                :param receitas: Dicionário com informações de despesas previstas de Recursos Próprios
-                :return: Dicionário com a estrutura do Node 3 de "Despesas previstas".
+        def calcula_despesas_recursos_proprios(
+            item: dict[str, Any], prioridades_qs: QuerySet[PrioridadePaa]
+        ) -> dict[str, Any]:
+            """Calcula as despesas previstas de um item de Recursos Próprios.
+
+            Usado para montagem de tabela de hierarquias no frontend.
+
+            Args:
+                item: Dado de um item de Recursos Próprios para compor o dict de retorno
+                receitas: Dicionário com informações de despesas previstas de Recursos Próprios
+
+            Returns:
+                Dicionário com a estrutura do Node 3 de "Despesas previstas".
             """
 
             # CUSTEIO e CAPITAL numa única query (antes: 2 queries de aggregate separadas)
@@ -532,13 +664,19 @@ class ResumoPrioridadesService:
                 "livre_aplicacao": 0,
             }
 
-        def calcula_despesas_outros_recursos(item, prioridades_qs) -> dict:
-            """
-                Calcula as despesas previstas de um item de Recursos Próprios para montagem de tabela de
-                hierarquias no frontend.
-                :param item: Dado de um item de Recursos Próprios para compor o dict de retorno
-                :param receitas: Dicionário com informações de despesas previstas de Recursos Próprios
-                :return: Dicionário com a estrutura do Node 3 de "Despesas previstas".
+        def calcula_despesas_outros_recursos(
+            item: dict[str, Any], prioridades_qs: QuerySet[PrioridadePaa]
+        ) -> dict[str, Any]:
+            """Calcula as despesas previstas de um item de Recursos Próprios.
+
+            Usado para montagem de tabela de hierarquias no frontend.
+
+            Args:
+                item: Dado de um item de Recursos Próprios para compor o dict de retorno
+                receitas: Dicionário com informações de despesas previstas de Recursos Próprios
+
+            Returns:
+                Dicionário com a estrutura do Node 3 de "Despesas previstas".
             """
 
             # CUSTEIO e CAPITAL numa única query (antes: 2 queries de aggregate separadas)
@@ -612,7 +750,7 @@ class ResumoPrioridadesService:
 
         return outros_recursos_total
 
-    def resumo_prioridades(self):
+    def resumo_prioridades(self) -> list[dict[str, Any]]:
         """
             Retorna o resumo das prioridades para o PAA.
 
@@ -671,8 +809,15 @@ class ResumoPrioridadesService:
 
         return True
 
-    def validar_valor_prioridade(self, valor_total, acao_uuid, tipo_aplicacao, recurso, prioridade_uuid=None,
-                                 valor_atual_prioridade=None):
+    def validar_valor_prioridade(
+        self,
+        valor_total: Decimal | None,
+        acao_uuid: str | None,
+        tipo_aplicacao: str | None,
+        recurso: str | None,
+        prioridade_uuid: str | None = None,
+        valor_atual_prioridade: Decimal | None = None,
+    ) -> Decimal | None:
         """
         Valida se o valor da prioridade não excede os valores disponíveis de receita.
 
@@ -688,20 +833,19 @@ class ResumoPrioridadesService:
             serializers.ValidationError: Se o valor exceder os recursos disponíveis
         """
 
-        def obtem_saldos(recurso_data, key_acao):
-            """
-            Obtém o saldo total disponível para uma ação.
+        def obtem_saldos(recurso_data: dict[str, Any], key_acao: str | None) -> Decimal:
+            """Obtém o saldo total disponível para uma ação.
 
             O saldo total é calculado somando o valor da instância em edição, o valor do Livre Aplicação e
             os valores de custeio e capital (de acordo com o tipo de aplicacao [CUSTEIO ou CAPITAL]).
 
-            Parâmetros:
+            Args:
                 recurso_data (dict): Dicionário com os dados da key do
-                                    recurso [PTRF, PDDE, RECURSO_PROPRIO ou OUTRO_RECURSO]
+                    recurso [PTRF, PDDE, RECURSO_PROPRIO ou OUTRO_RECURSO]
                 key_acao (str): UUID da ação (associação, PDDE ou Outro Recurso), em caso de Recursos Próprios,
-                este valor recebe 'RECURSO_PROPRIO'
+                    este valor recebe 'RECURSO_PROPRIO'
 
-            Retorna:
+            Returns:
                 Decimal: Saldo total disponível para a ação
             """
 
@@ -811,7 +955,19 @@ class ResumoPrioridadesService:
             raise
 
 
-def buscar_chave_em_todos_os_niveis(data, key):
+def buscar_chave_em_todos_os_niveis(data: list[dict[str, Any]], key: str | None) -> dict[str, Any] | None:
+    """Busca recursivamente um node pela chave em todos os níveis da hierarquia do resumo.
+
+    Percorre os nodes em profundidade, descendo pelos `children` de cada um, e retorna o
+    primeiro item cuja `key` seja igual à chave informada.
+
+    Args:
+        data: Lista de itens do resumo de prioridades (cada um pode ter `children`).
+        key: Chave do node procurado (ex.: `PTRF`, `<uuid>_saldo`).
+
+    Returns:
+        O primeiro node encontrado com a chave informada, ou None se nenhum for encontrado.
+    """
     for item in data:
         if item.get("key") == key:
             return item

@@ -90,6 +90,13 @@ class Paa(ModeloBase):
         self.status = PaaStatusEnum.GERADO.name
         self.save()
 
+    def set_paa_status_retificado(self) -> None:
+        """
+        Define o status do PAA como "RETIFICADO".
+        """
+        self.status = PaaStatusEnum.RETIFICADO.name
+        self.save()
+
     def set_descongelar_saldo(self) -> None:
         """
         Descongela o saldo do PAA, removendo a data de congelamento.
@@ -342,6 +349,11 @@ class Paa(ModeloBase):
     def status_gerado(self) -> bool:
         """ Verifica se o PAA está no status 'GERADO'."""
         return self.status == PaaStatusEnum.GERADO.name
+
+    @property
+    def status_retificado(self) -> bool:
+        """ Verifica se o PAA está no status 'RETIFICADO'."""
+        return self.status == PaaStatusEnum.RETIFICADO.name
 
     class Meta:
         verbose_name = 'PAA'

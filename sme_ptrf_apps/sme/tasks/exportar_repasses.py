@@ -20,7 +20,7 @@ def exportar_repasses_async(data_inicio, data_final, username, dre_uuid=None):
         'periodo__recurso',
         'conta_associacao__tipo_conta',
         'acao_associacao__acao',
-        'carga_origem',
+        'carga_origem',       
     )
 
     dre_codigo_eol = None
@@ -38,7 +38,11 @@ def exportar_repasses_async(data_inicio, data_final, username, dre_uuid=None):
     else:
         queryset = Repasse.objects.all()
 
-    queryset = queryset.select_related(*SELECT_RELATED).order_by('id')
+    queryset = (
+        queryset.select_related(*SELECT_RELATED)
+        .prefetch_related('receitas')
+        .order_by('id')
+    )
 
     try:
         logger.info("Criando arquivo %s repasses.csv")

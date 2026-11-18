@@ -5,7 +5,12 @@ from datetime import datetime
 
 from django.core.files import File
 from sme_ptrf_apps.core.models.arquivos_download import ArquivoDownload
-from sme_ptrf_apps.receitas.models.repasse import Repasse
+from sme_ptrf_apps.receitas.models.repasse import Repasse, StatusRepasse
+from sme_ptrf_apps.receitas.tipos_aplicacao_recurso_receitas import (
+    APLICACAO_CAPITAL,
+    APLICACAO_CUSTEIO,
+    APLICACAO_LIVRE
+)
 from sme_ptrf_apps.core.models.ambiente import Ambiente
 from sme_ptrf_apps.core.services.arquivo_download_service import gerar_arquivo_download
 from django.utils.timezone import make_aware
@@ -25,11 +30,15 @@ CABECALHO_REPASSES = (
         ("Nome do tipo de conta", "conta_associacao__tipo_conta__nome"),
         ("Nome da Ação", "acao_associacao__acao__nome"),
         ("Valor custeio", "valor_custeio"),
-        ("Valor capital", "valor_capital"),
-        ("Valor livre aplicação", "valor_livre"),
+        ('Data do crédito do repasse custeio', 'DATA_REALIZACAO_CUSTEIO'),
         ("Realizado custeio?", "realizado_custeio"),
+        ("Valor capital", "valor_capital"),
+        ('Data do crédito do repasse capital', 'DATA_REALIZACAO_CAPITAL'),
         ("Realizado capital?", "realizado_capital"),
+        ("Valor livre aplicação", "valor_livre"),
+        ('Data do crédito do repasse livre aplicação', 'DATA_REALIZACAO_LIVRE'),        
         ("Realizado livre aplicação?", "realizado_livre"),
+        ('Status', 'status'),
         ("Carga origem", "carga_origem__identificador"),
         ("ID da linha da carga origem", "carga_origem_linha_id"),
         ('Data e hora de criação', 'criado_em'),
@@ -78,6 +87,22 @@ class ExportacaoDadosRepassesService:
             return f"Filtro aplicado: Até {data_final_formatada} (data de criação do registro)"
 
         return ""
+
+    def get_data_realizacao_receita(self, tipo_aplicacao: str, receitas=[]) -> str:
+
+        receita = next(
+            (
+                receita for receita in receitas
+                if receita.categoria_receita == tipo_aplicacao
+            ),
+            None
+        )
+
+        if receita and receita.data:
+            data_receita = receita.data.strftime("%d/%m/%Y")
+            return data_receita
+
+        return '-'
 
     def exporta_repasses(self):
         self.cria_registro_central_download()
@@ -186,6 +211,30 @@ class ExportacaoDadosRepassesService:
                     linha_horizontal.append(criado_em_formatado)
                     continue
 
+                if campo == "status":
+                    campo = get_recursive_attr(instance, campo)
+                    status_display = StatusRepasse[campo].value if campo else ''
+                    linha_horizontal.append(status_display)
+                    continue
+
+                if campo == "DATA_REALIZACAO_CAPITAL":
+                    receitas = instance.receitas.all()
+                    data_receita = self.get_data_realizacao_receita(APLICACAO_CAPITAL, receitas)
+                    linha_horizontal.append(data_receita)
+                    continue
+
+                if campo == "DATA_REALIZACAO_CUSTEIO":
+                    receitas = instance.receitas.all()
+                    data_receita = self.get_data_realizacao_receita(APLICACAO_CUSTEIO, receitas)
+                    linha_horizontal.append(data_receita)
+                    continue
+
+                if campo == "DATA_REALIZACAO_LIVRE":
+                    receitas = instance.receitas.all()
+                    data_receita = self.get_data_realizacao_receita(APLICACAO_LIVRE, receitas)
+                    linha_horizontal.append(data_receita)
+                    continue
+
                 campo = get_recursive_attr(instance, campo)
                 linha_horizontal.append(campo)
 
@@ -261,6 +310,10 @@ class ExportacaoDadosRepassesService:
 
         data_hora_disponibilizado = datetime.now().strftime("%d/%m/%Y às %H:%M:%S")
         rodape.append(f"Arquivo disponibilizado em {data_hora_disponibilizado}")
+        write.writerow(rodape)
+        rodape.clear()
+
+        rodape.append(f"Legenda Status *: o status Realizado é atribuido após cadastro de todas as aplicações diferente de R$ 0,00")
         write.writerow(rodape)
         rodape.clear()
 
