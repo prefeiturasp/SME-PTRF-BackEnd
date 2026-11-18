@@ -1,7 +1,8 @@
 import logging
 from sme_ptrf_apps.core.models import PrestacaoConta, Periodo
-from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido
+from sme_ptrf_apps.situacao_patrimonial.models import BemProduzido, BemProduzidoDespesa
 from django.db import transaction
+from django.db.models import Max, OuterRef, Q, Subquery
 
 
 class BemProduzidoService:
@@ -91,6 +92,42 @@ class BemProduzidoService:
 
         candidatas.sort(key=lambda item: item[0])
         return candidatas[-1][1]
+
+    @staticmethod
+    def filtrar_itens_por_periodos(itens, periodos_uuid):
+        """
+        Filtra itens de bens produzidos pelo período das despesas que compõem o bem.
+
+        Regra:
+        - O bem pertence ao período da despesa mais recente (pela data de transação),
+          mesma regra da coluna "Período" da Situação Patrimonial
+        - A data de cadastro do bem (criado_em) não é considerada
+        - Bem sem despesa com data de transação não pertence a nenhum período
+        """
+        # Subquery para não sofrer influência dos joins de outros filtros (fornecedor, ação, conta)
+        ultima_data_transacao = (
+            BemProduzidoDespesa.objects
+            .filter(bem_produzido=OuterRef("bem_produzido"))
+            .values("bem_produzido")
+            .annotate(ultima=Max("despesa__data_transacao"))
+            .values("ultima")
+        )
+        itens = itens.annotate(ultima_data_transacao_despesas=Subquery(ultima_data_transacao))
+
+        periodo_filters = Q()
+        for periodo in Periodo.objects.filter(uuid__in=periodos_uuid):
+            if not periodo.data_inicio_realizacao_despesas:
+                continue
+
+            filtro = Q(ultima_data_transacao_despesas__gte=periodo.data_inicio_realizacao_despesas)
+            if periodo.data_fim_realizacao_despesas:
+                filtro &= Q(ultima_data_transacao_despesas__lte=periodo.data_fim_realizacao_despesas)
+            periodo_filters |= filtro
+
+        if not periodo_filters:
+            return itens.none()
+
+        return itens.filter(periodo_filters)
 
     @staticmethod
     def periodo_da_despesa_esta_fechado(despesa, associacao) -> bool:

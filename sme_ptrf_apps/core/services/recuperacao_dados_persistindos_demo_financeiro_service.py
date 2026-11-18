@@ -41,6 +41,7 @@ class RecuperaDadosDemoFinanceiro:
             "cargo_substituto_presidente_ausente": self.dados.cargo_substituto_presidente_ausente,
             "presidente_diretoria_executiva": self.dados.presidente_diretoria_executiva,
             "presidente_conselho_fiscal": self.dados.presidente_conselho_fiscal,
+            "cargo_conselheiro_assinatura": self.dados.cargo_conselheiro_assinatura,
             "tipo_unidade": self.dados.tipo_unidade,
             "nome_unidade": self.dados.nome_unidade,
         }

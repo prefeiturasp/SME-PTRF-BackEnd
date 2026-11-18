@@ -9,6 +9,7 @@ from sme_ptrf_apps.paa.api.serializers.renderizador_paa_serializer import (
     _url_documento_final,
     _url_ata_paa,
 )
+from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.models import DocumentoPaa, AtaPaa, LogReplicaPaa
 from sme_ptrf_apps.paa.services.retificacao_paa_service import ValidacaoRetificacao
 
@@ -198,6 +199,67 @@ class TestBuildCicloRetificacaoSemDocumento:
         )
         result = _builder(paa).build()
         assert result['ciclo_retificacao_sem_documento'] is False
+
+
+class TestBuild:
+
+    def test_build_retorna_valores_esperados(self, paa_factory):
+        paa = paa_factory(status=PaaStatusEnum.EM_ELABORACAO.name)
+        with patch(
+            'sme_ptrf_apps.paa.api.serializers.renderizador_paa_serializer.RetificacaoPaaService'
+        ) as mock:
+            mock.return_value.valida_pode_retificar.side_effect = ValidacaoRetificacao('não pode')
+            builder = _builder(paa)
+            result = builder.build()
+
+        assert result['uuid'] == str(paa.uuid)
+        assert result['status'] == PaaStatusEnum.EM_ELABORACAO.value
+        assert result['referencia'] == (paa.periodo_paa.referencia if paa.periodo_paa else '')
+        assert result['pode_retificar'] is False
+        assert result['esta_em_retificacao'] is False
+        assert result['exibe_dados_retificacao'] is False
+        assert result['ciclo_retificacao_sem_documento'] is False
+        assert result['unidade'] == builder._unidade()
+        assert result['original']['secao_titulo'] == 'PAA Original'
+        assert 'documento' in result['original']
+        assert 'ata' in result['original']
+        assert result['retificacao'] is None
+        assert result['retificacao_anterior'] is None
+        assert result['retificacoes_anteriores'] == []
+
+    def test_build_retificado_retorna_valores_esperados(
+        self, paa_factory, documento_paa_factory, ata_paa_factory
+    ):
+        paa = paa_factory()
+        paa.set_paa_status_retificado()
+        documento_paa_factory(
+            paa=paa, retificacao=True, versao=FINAL, status_geracao=CONCLUIDO, versao_documento=1
+        )
+        ata_paa_factory(
+            paa=paa, tipo_ata=AtaPaa.ATA_RETIFICACAO, status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO
+        )
+        with patch(
+            'sme_ptrf_apps.paa.api.serializers.renderizador_paa_serializer.RetificacaoPaaService'
+        ) as mock:
+            mock.return_value.valida_pode_retificar.side_effect = ValidacaoRetificacao('não pode')
+            builder = _builder(paa)
+            result = builder.build()
+
+        assert result['uuid'] == str(paa.uuid)
+        assert result['status'] == PaaStatusEnum.RETIFICADO.value
+        assert result['referencia'] == (paa.periodo_paa.referencia if paa.periodo_paa else '')
+        assert result['pode_retificar'] is False
+        assert result['esta_em_retificacao'] is False
+        assert result['exibe_dados_retificacao'] is True
+        assert result['ciclo_retificacao_sem_documento'] is False
+        assert result['unidade'] == builder._unidade()
+        assert result['original']['secao_titulo'] == 'PAA Original'
+        assert result['retificacao'] is not None
+        assert result['retificacao']['secao_titulo'] == 'Retificado #01'
+        assert 'documento' in result['retificacao']
+        assert 'ata' in result['retificacao']
+        assert result['retificacao_anterior'] is None
+        assert result['retificacoes_anteriores'] == []
 
 
 # Antes: build() — Rn fallback: exibe dados do ciclo anterior quando ciclo atual não tem doc

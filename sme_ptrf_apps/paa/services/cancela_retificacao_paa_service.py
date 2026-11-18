@@ -708,7 +708,12 @@ class CancelaRetificacaoPaaService(PaaRollbackHandlers):
 
     def _restaurar_status_paa(self) -> None:
         status_anterior = self.paa.status
-        self.paa.set_paa_status_gerado()
+
+        if self.paa.tem_doc_final_retificacao:
+            self.paa.set_paa_status_retificado()
+        else:
+            self.paa.set_paa_status_gerado()
+
         self.logger.info(
             f'Status restaurado de {status_anterior} para {self.paa.status}'
         )

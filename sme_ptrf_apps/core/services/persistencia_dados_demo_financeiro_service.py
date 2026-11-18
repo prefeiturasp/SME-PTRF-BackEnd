@@ -399,13 +399,16 @@ class PersistenciaDadosDemoFinanceiro:
         self.registro.save()
 
     def cria_registro_assinatura_responsaveis(self):
-        cargo_substituto_presidente_ausente = self.dados["identificacao_apm"]["cargo_substituto_presidente_ausente"]
-        presidente_diretoria_executiva = self.dados["identificacao_apm"]["presidente_diretoria_executiva"]
-        presidente_conselho_fiscal = self.dados["identificacao_apm"]["presidente_conselho_fiscal"]
+        identificacao = self.dados["identificacao_apm"]
+        cargo_substituto_presidente_ausente = identificacao["cargo_substituto_presidente_ausente"]
+        presidente_diretoria_executiva = identificacao["presidente_diretoria_executiva"]
+        presidente_conselho_fiscal = identificacao["presidente_conselho_fiscal"]
+        cargo_conselheiro_assinatura = identificacao.get("cargo_conselheiro_assinatura")
 
         self.registro.cargo_substituto_presidente_ausente = cargo_substituto_presidente_ausente
         self.registro.presidente_diretoria_executiva = presidente_diretoria_executiva
         self.registro.presidente_conselho_fiscal = presidente_conselho_fiscal
+        self.registro.cargo_conselheiro_assinatura = cargo_conselheiro_assinatura
 
         self.registro.save()
 

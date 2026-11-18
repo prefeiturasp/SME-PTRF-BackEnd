@@ -8,6 +8,7 @@ from django.db import transaction
 from django.db.models.aggregates import Sum
 
 from sme_ptrf_apps.core.models import Ata
+from sme_ptrf_apps.mandatos.choices import CargoComposicaoVacanciaChoices
 from sme_ptrf_apps.core.models_abstracts import ModeloBase
 from sme_ptrf_apps.dre.models import Atribuicao
 
@@ -112,6 +113,33 @@ class PrestacaoConta(ModeloBase):
 
     justificativa_pendencia_realizacao = models.TextField('Justificativa de pendências de realização de ajustes.',
                                                           blank=True, default='')
+
+    status_presidente = models.CharField(
+        'Status do presidente na conclusão',
+        max_length=15,
+        blank=True,
+        null=True,
+        choices=(
+            ('PRESENTE', 'Presente'),
+            ('AUSENTE', 'Ausente'),
+        ),
+    )
+
+    cargo_substituto_presidente_ausente = models.CharField(
+        'Cargo substituto do presidente na conclusão',
+        max_length=65,
+        blank=True,
+        null=True,
+        choices=CargoComposicaoVacanciaChoices.diretoria_executiva(),
+    )
+
+    cargo_conselheiro_assinatura = models.CharField(
+        'Conselheiro que assina na conclusão',
+        max_length=65,
+        blank=True,
+        null=True,
+        choices=CargoComposicaoVacanciaChoices.conselho_fiscal(),
+    )
 
     status_anterior_a_retificacao = models.CharField(
         'Status anterior a retificacao',

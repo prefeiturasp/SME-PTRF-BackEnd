@@ -64,6 +64,7 @@ def test_get_status_presidente_presente(
         'status_presidente': 'PRESENTE',
         'cargo_substituto_presidente_ausente_value': '',
         'cargo_substituto_presidente_ausente': None,
+        'cargo_conselheiro_assinatura': None,
     }
 
     assert response.status_code == status.HTTP_200_OK
@@ -85,6 +86,7 @@ def test_get_status_presidente_ausente(
         'status_presidente': 'AUSENTE',
         'cargo_substituto_presidente_ausente_value': 'Vice-Presidente da Diretoria Executiva',
         'cargo_substituto_presidente_ausente': 'VICE_PRESIDENTE_DIRETORIA_EXECUTIVA',
+        'cargo_conselheiro_assinatura': None,
     }
 
     assert response.status_code == status.HTTP_200_OK

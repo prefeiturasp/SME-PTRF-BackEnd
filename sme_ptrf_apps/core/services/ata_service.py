@@ -143,10 +143,33 @@ def verifica_precisa_professor_gremio_ata(ata: Ata) -> bool:
     ).filter(
         despesa__data_transacao__gte=periodo.data_inicio_realizacao_despesas
     )
-    
+
     if periodo.data_fim_realizacao_despesas:
         rateios_query = rateios_query.filter(
             despesa__data_transacao__lte=periodo.data_fim_realizacao_despesas
         )
-    
+
     return rateios_query.exists()
+
+
+def verifica_houve_alteracao_participantes_ata(ata: Ata) -> bool:
+    """
+    Verifica se os participantes da ata foram alterados pelo histórico de membros.
+
+    Caso tenham sido alterados, desmarca o campo atualizado_historico da ata,
+    para que o aviso seja exibido ao usuário apenas uma vez e nas próximas
+    atualizações ele seja selecionado novamente.
+
+    Args:
+        ata: Instância de Ata
+
+    Returns:
+        bool: True se houve alteração pelo histórico de membros, False caso contrário
+    """
+    if not ata.atualizado_historico:
+        return False
+
+    ata.atualizado_historico = False
+    ata.save(update_fields=['atualizado_historico'])
+
+    return True

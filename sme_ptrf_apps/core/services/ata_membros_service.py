@@ -84,7 +84,9 @@ class ServicoAtualizacaoMembrosAtas:
 
             if registro.ocupante_do_cargo:
                 cls._remove_ocupante_como_nao_membro(ata, participante, registro.ocupante_do_cargo)
-     
+
+            ata.marcar_como_atualizado_historico()
+
     @staticmethod
     def _dados_participante(registro: CargoComposicaoVacancia) -> dict:
         ocupante = registro.ocupante_do_cargo

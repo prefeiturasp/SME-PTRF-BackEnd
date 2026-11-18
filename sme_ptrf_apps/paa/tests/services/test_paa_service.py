@@ -6,23 +6,20 @@ from django.http import HttpResponse
 from unittest.mock import patch, MagicMock
 
 from sme_ptrf_apps.paa.services.paa_service import PaaService
-from sme_ptrf_apps.paa.enums import PaaStatusEnum
 from sme_ptrf_apps.paa.models import PrioridadePaa, DocumentoPaa
 from sme_ptrf_apps.paa.services.resumo_prioridades_service import ResumoPrioridadesService
 
 
 @pytest.mark.django_db
-def test_concluir_paa_atualiza_status(
-    paa_factory,
-    periodo_paa_1
-):
-    """Testa que concluir_paa atualiza status para GERADO"""
-    paa = paa_factory.create(periodo_paa=periodo_paa_1, status=PaaStatusEnum.EM_ELABORACAO.name)
+def test_concluir_paa_atualiza_status(paa_concluir_com_status_esperado):
+    """Testa que concluir_paa atualiza o status conforme o status atual do PAA:
+    EM_ELABORACAO -> GERADO e EM_RETIFICACAO -> RETIFICADO."""
+    paa, status_esperado = paa_concluir_com_status_esperado
 
     resultado = PaaService.concluir_paa(paa)
 
     paa.refresh_from_db()
-    assert paa.status_gerado
+    assert paa.status == status_esperado
     assert resultado == paa
 
 

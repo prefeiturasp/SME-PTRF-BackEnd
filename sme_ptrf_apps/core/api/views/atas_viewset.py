@@ -11,8 +11,9 @@ from drf_spectacular.utils import (
     extend_schema, OpenApiParameter, OpenApiTypes, OpenApiResponse, OpenApiExample)
 
 from sme_ptrf_apps.core.models.prestacao_conta import PrestacaoConta
-from sme_ptrf_apps.core.services.ata_service import validar_campos_ata
+from sme_ptrf_apps.core.services.ata_service import validar_campos_ata, verifica_houve_alteracao_participantes_ata
 from django.core.exceptions import ValidationError
+from waffle import flag_is_active
 from sme_ptrf_apps.core.tasks import gerar_arquivo_ata_async
 
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe, PermissaoAPITodosComLeituraOuGravacao
@@ -127,6 +128,8 @@ class AtasViewSet(mixins.RetrieveModelMixin,
     @action(detail=False, methods=['get'], url_path='gerar-arquivo-ata',
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def gerar_arquivo_ata(self, request):
+        v2_ativa = flag_is_active(request, 'historico-de-membros-v2')
+
         prestacao_de_contas_uuid = request.query_params.get('prestacao-de-conta-uuid')
         ata_uuid = request.query_params.get('ata-uuid')
 
@@ -164,6 +167,18 @@ class AtasViewSet(mixins.RetrieveModelMixin,
                 'campos_invalidos': ata_valida['campos']},
                 status=status.HTTP_422_UNPROCESSABLE_ENTITY
             )
+
+        if v2_ativa:
+            houve_alteracao_pelo_historico = verifica_houve_alteracao_participantes_ata(ata)
+
+            if houve_alteracao_pelo_historico:
+                return Response({
+                    'erro': 'participantes_alterados_pelo_historico',
+                    'mensagem': (
+                        'Os participantes da ata foram atualizados de acordo com o histórico de membros. '
+                        'Revise a ata antes de gerar o documento.'
+                    ),
+                }, status=status.HTTP_409_CONFLICT)
 
         gerar_arquivo_ata_async.delay(
             prestacao_de_contas_uuid=prestacao_de_contas_uuid,

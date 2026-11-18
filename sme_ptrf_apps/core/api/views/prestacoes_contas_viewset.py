@@ -14,7 +14,7 @@ from rest_framework.viewsets import GenericViewSet
 from drf_spectacular.utils import (
     extend_schema, OpenApiParameter, OpenApiTypes, OpenApiResponse, inline_serializer, OpenApiExample)
 
-from waffle import flag_is_active
+from waffle import flag_is_active, get_waffle_flag_model
 
 from sme_ptrf_apps.users.permissoes import (
     PermissaoApiUe,
@@ -44,8 +44,14 @@ from ...services import (
     concluir_prestacao_de_contas,
     informacoes_financeiras_para_atas,
     reabrir_prestacao_de_contas,
+
+    buscar_associacoes_com_prestacoes_nao_recebidas,
+    buscar_associacoes_com_prestacoes_todos_os_status,
     lista_prestacoes_de_conta_nao_recebidas,
+    lista_prestacoes_de_conta_nao_recebidas_v2,
     lista_prestacoes_de_conta_todos_os_status,
+    lista_prestacoes_de_conta_todos_os_status_v2,
+
     lancamentos_da_prestacao,
     marca_lancamentos_como_corretos,
     marca_lancamentos_como_nao_conferidos,
@@ -72,6 +78,7 @@ from sme_ptrf_apps.core.api.serializers.validation_serializers \
     .prestacoes_contas_concluir_validate_serializer import PrestacoesContasConcluirValidateSerializer
 
 from sme_ptrf_apps.paa.models.paa import Paa
+from sme_ptrf_apps.core.api.utils.pagination import CustomPagination
 
 from sme_ptrf_apps.core.tasks import (
     concluir_prestacao_de_contas_async,
@@ -97,6 +104,20 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
     serializer_class = PrestacaoContaLookUpSerializer
     filter_backends = (filters.DjangoFilterBackend, SearchFilter,)
     filterset_fields = ('associacao__unidade__dre__uuid', 'periodo__uuid', 'associacao__unidade__tipo_unidade')
+    pagination_class = CustomPagination
+
+    def paginate_queryset(self, queryset):
+        if (
+            self.action == 'list'
+            and not flag_is_active(
+                self.request,
+                'dre-pcs-paginacao'
+            )
+        ):
+            return None
+
+        return super().paginate_queryset(queryset)
+
 
     def get_queryset(self):
         qs = PrestacaoConta.objects.all().order_by('associacao__unidade__tipo_unidade', 'associacao__unidade__nome')
@@ -237,8 +258,22 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
         try:
             pc = pc_service.iniciar_tasks_de_conclusao_de_pc(
                 usuario=request.user,
-                justificativa_acertos_pendentes=serializer.validated_data.get("justificativa_acertos_pendentes", "")
+                justificativa_acertos_pendentes=serializer.validated_data.get("justificativa_acertos_pendentes", ""),
+                status_presidente=serializer.validated_data.get("status_presidente"),
+                cargo_substituto_presidente_ausente=serializer.validated_data.get(
+                    "cargo_substituto_presidente_ausente"
+                ),
+                cargo_conselheiro_assinatura=serializer.validated_data.get(
+                    "cargo_conselheiro_assinatura"
+                ),
             )
+        except ValidationError as e:
+            erro = {
+                'erro': 'erro_de_validacao',
+                'mensagem': f'{e}'
+            }
+            logger_pc.error('Erro de validação do status do presidente', stack_info=True, exc_info=True)
+            return Response(erro, status=status.HTTP_400_BAD_REQUEST)
         except IntegrityError:
             erro = {
                 'erro': 'prestacao_ja_iniciada',
@@ -317,6 +352,25 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
         justificativa_acertos_pendentes = request.data.get('justificativa_acertos_pendentes', '')
+        status_presidente_informado = request.data.get('status_presidente')
+        cargo_substituto_informado = request.data.get('cargo_substituto_presidente_ausente')
+        cargo_conselheiro_informado = request.data.get('cargo_conselheiro_assinatura')
+
+        if status_presidente_informado:
+            from sme_ptrf_apps.core.services.associacoes_service import update_status_presidente
+            try:
+                cargo_para_gravar = None if status_presidente_informado == 'PRESENTE' else cargo_substituto_informado
+                update_status_presidente(
+                    associacao=associacao,
+                    status_presidente=status_presidente_informado,
+                    cargo_substituto_presidente_ausente=cargo_para_gravar,
+                    cargo_conselheiro_assinatura=cargo_conselheiro_informado,
+                )
+            except ValidationError as e:
+                return Response(
+                    {'erro': 'erro_de_validacao', 'mensagem': f'{e}'},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         usuario = request.user
 
@@ -328,6 +382,19 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 monitoraPc=True,
             )
             prestacao_de_contas = dados["prestacao"]
+
+            if status_presidente_informado and prestacao_de_contas:
+                prestacao_de_contas.status_presidente = associacao.status_presidente
+                prestacao_de_contas.cargo_substituto_presidente_ausente = (
+                    associacao.cargo_substituto_presidente_ausente
+                )
+                prestacao_de_contas.cargo_conselheiro_assinatura = associacao.cargo_conselheiro_assinatura
+                prestacao_de_contas.save(update_fields=[
+                    'status_presidente',
+                    'cargo_substituto_presidente_ausente',
+                    'cargo_conselheiro_assinatura',
+                    'alterado_em',
+                ])
 
             erro_pc = dados["erro"]
             if erro_pc:
@@ -1087,7 +1154,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
         )},
     )
-    @action(detail=False, url_path='nao-recebidas',
+    @action(detail=False, url_path='nao-recebidas',            
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def nao_recebidas(self, request):
         # Determina a DRE
@@ -1151,13 +1218,43 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        result = lista_prestacoes_de_conta_nao_recebidas(dre=dre,
-                                                         periodo=periodo,
-                                                         filtro_nome=nome,
-                                                         filtro_tipo_unidade=tipo_unidade,
-                                                         filtro_status=status_pc_list,
-                                                         periodos_processo_sei=flag_is_active(
-                                                             request, 'periodos-processo-sei'))
+
+        periodos_processo_sei = flag_is_active(request, 'periodos-processo-sei')
+
+        flag_paginacao_ativa = get_waffle_flag_model().objects.filter(
+            name='dre-pcs-paginacao',
+            everyone=True
+        ).exists()
+
+        if flag_paginacao_ativa:
+            associacoes = buscar_associacoes_com_prestacoes_nao_recebidas(
+                dre=dre,
+                periodo=periodo,
+                filtro_nome=nome,
+                filtro_tipo_unidade=tipo_unidade,
+                filtro_status=status_pc_list,
+            )
+
+            pagina = self.paginate_queryset(associacoes)
+
+            if pagina is not None:
+                result = lista_prestacoes_de_conta_nao_recebidas_v2(
+                    associacoes=pagina,
+                    periodo=periodo,
+                    periodos_processo_sei=periodos_processo_sei,
+                )
+
+                return self.get_paginated_response(result)
+
+        else:
+            result = lista_prestacoes_de_conta_nao_recebidas(
+                dre=dre,
+                periodo=periodo,
+                filtro_nome=nome,
+                filtro_tipo_unidade=tipo_unidade,
+                filtro_status=status_pc_list,
+                periodos_processo_sei=periodos_processo_sei,
+            )
         return Response(result)
 
     @extend_schema(
@@ -1198,7 +1295,7 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
             }
         )},
     )
-    @action(detail=False, url_path='todos-os-status',
+    @action(detail=False, url_path='todos-os-status',            
             permission_classes=[IsAuthenticated & PermissaoAPITodosComLeituraOuGravacao])
     def todos_os_status(self, request):
         # Determina a DRE
@@ -1264,16 +1361,44 @@ class PrestacoesContasViewSet(mixins.RetrieveModelMixin,
                 logger.info('Erro: %r', erro)
                 return Response(erro, status=status.HTTP_400_BAD_REQUEST)
 
-        result = lista_prestacoes_de_conta_todos_os_status(
-            dre=dre,
-            periodo=periodo,
-            filtro_nome=nome,
-            filtro_tipo_unidade=tipo_unidade,
-            filtro_por_status=status_pc_list,
-            filtro_por_devolucao_tesouro=devolucao_tesouro,
-            periodos_processo_sei=flag_is_active(request, 'periodos-processo-sei')
-        )
-        return Response(result)
+        periodos_processo_sei = flag_is_active(request, 'periodos-processo-sei')
+
+        flag_paginacao_ativa = get_waffle_flag_model().objects.filter(
+            name='dre-pcs-paginacao',
+            everyone=True
+        ).exists()
+
+        if flag_paginacao_ativa:
+            associacoes = buscar_associacoes_com_prestacoes_todos_os_status(
+                dre=dre,
+                periodo=periodo,
+                filtro_nome=nome,
+                filtro_tipo_unidade=tipo_unidade,
+                filtro_por_status=status_pc_list,
+                filtro_por_devolucao_tesouro=devolucao_tesouro,
+            )
+
+            pagina = self.paginate_queryset(associacoes)
+
+            if pagina is not None:
+                result = lista_prestacoes_de_conta_todos_os_status_v2(
+                    associacoes=pagina,
+                    periodo=periodo,
+                    periodos_processo_sei=periodos_processo_sei,
+                )
+
+                return self.get_paginated_response(result)
+        else:
+            result = lista_prestacoes_de_conta_todos_os_status(
+                dre=dre,
+                periodo=periodo,
+                filtro_nome=nome,
+                filtro_tipo_unidade=tipo_unidade,
+                filtro_por_status=status_pc_list,
+                filtro_por_devolucao_tesouro=devolucao_tesouro,
+                periodos_processo_sei=periodos_processo_sei,
+            )
+            return Response(result)
 
     @extend_schema(
         parameters=[

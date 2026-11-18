@@ -216,6 +216,81 @@ class TestIniciarRetificacao:
         ).first().justificativa_retificacao == justificativa
 
 
+class TestValidaPodeRetificar:
+    MENSAGEM_STATUS_INVALIDO = 'Apenas PAA`s gerados podem ser retificados.'
+
+    def test_permite_quando_paa_gerado(self, paa_gerado, flag_paa_retificacao):
+        assert _service(paa_gerado).valida_pode_retificar() is None
+
+    def test_permite_quando_paa_retificado(self, paa_retificado, flag_paa_retificacao):
+        assert _service(paa_retificado).valida_pode_retificar() is None
+
+    def test_levanta_erro_quando_paa_em_elaboracao(self, paa_factory, flag_paa_retificacao):
+        paa = paa_factory(status=PaaStatusEnum.EM_ELABORACAO.name)
+
+        service = _service(paa)
+
+        with pytest.raises(ValidacaoRetificacao, match=self.MENSAGEM_STATUS_INVALIDO):
+            service.valida_pode_retificar()
+
+    def test_levanta_erro_quando_paa_em_retificacao(self, paa_retificado, flag_paa_retificacao):
+        paa_retificado.set_paa_status_em_retificacao()
+
+        service = _service(paa_retificado)
+
+        with pytest.raises(ValidacaoRetificacao, match=self.MENSAGEM_STATUS_INVALIDO):
+            service.valida_pode_retificar()
+
+    def test_levanta_erro_quando_gerado_sem_ata(self, paa_factory, documento_paa_factory, flag_paa_retificacao):
+        """GERADO sem ata de apresentação concluída fica FORA_FLUXO."""
+        paa = paa_factory(status=PaaStatusEnum.GERADO.name)
+        documento_paa_factory.create(
+            paa=paa,
+            versao=DocumentoPaa.VersaoChoices.FINAL,
+            status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+            retificacao=False,
+        )
+
+        service = _service(paa)
+
+        with pytest.raises(ValidacaoRetificacao, match=self.MENSAGEM_STATUS_INVALIDO):
+            service.valida_pode_retificar()
+
+    def test_levanta_erro_quando_retificado_sem_documento_final_retificacao(
+        self, paa_factory, ata_paa_factory, flag_paa_retificacao
+    ):
+        """RETIFICADO sem documento final de retificação fica FORA_FLUXO."""
+        paa = paa_factory(status=PaaStatusEnum.RETIFICADO.name)
+        ata_paa_factory.create(
+            paa=paa,
+            tipo_ata=AtaPaa.ATA_RETIFICACAO,
+            status_geracao_pdf=AtaPaa.STATUS_CONCLUIDO,
+            pdf_gerado_previamente=True,
+        )
+
+        service = _service(paa)
+
+        with pytest.raises(ValidacaoRetificacao, match=self.MENSAGEM_STATUS_INVALIDO):
+            service.valida_pode_retificar()
+
+    def test_levanta_erro_quando_retificado_sem_ata_retificacao(
+        self, paa_factory, documento_paa_factory, flag_paa_retificacao
+    ):
+        """RETIFICADO sem ata de retificação concluída fica FORA_FLUXO."""
+        paa = paa_factory(status=PaaStatusEnum.RETIFICADO.name)
+        documento_paa_factory.create(
+            paa=paa,
+            versao=DocumentoPaa.VersaoChoices.FINAL,
+            status_geracao=DocumentoPaa.StatusChoices.CONCLUIDO,
+            retificacao=True,
+        )
+
+        service = _service(paa)
+
+        with pytest.raises(ValidacaoRetificacao, match=self.MENSAGEM_STATUS_INVALIDO):
+            service.valida_pode_retificar()
+
+
 class TestIdentificarAlteracoes:
 
     def test_sem_replica_retorna_dict_vazio(self, paa_retificacao):

@@ -1,5 +1,6 @@
 import pytest
 from datetime import date, time
+from unittest.mock import patch
 from django.contrib import admin
 from waffle.testutils import override_flag
 
@@ -34,6 +35,28 @@ def test_instance_model(ata_2020_1_cheque_aprovada):
     assert model.id
     assert model.preenchida_em is None
     assert model.justificativa_repasses_pendentes == ''
+    assert model.atualizado_historico is False
+
+
+def test_atualizado_historico_pode_ser_alterado(ata_2020_1_cheque_aprovada):
+    ata_2020_1_cheque_aprovada.atualizado_historico = True
+    ata_2020_1_cheque_aprovada.save(update_fields=['atualizado_historico'])
+    ata = Ata.by_id(ata_2020_1_cheque_aprovada.id)
+    assert ata.atualizado_historico is True
+
+
+def test_marcar_como_atualizado_historico(ata_2020_1_cheque_aprovada):
+    assert ata_2020_1_cheque_aprovada.atualizado_historico is False
+    ata_2020_1_cheque_aprovada.marcar_como_atualizado_historico()
+    ata = Ata.by_id(ata_2020_1_cheque_aprovada.id)
+    assert ata.atualizado_historico is True
+
+
+def test_marcar_como_atualizado_historico_ja_marcado_nao_salva(ata_2020_1_cheque_aprovada):
+    ata_2020_1_cheque_aprovada.atualizado_historico = True
+    with patch.object(Ata, 'save') as mock_save:
+        ata_2020_1_cheque_aprovada.marcar_como_atualizado_historico()
+    mock_save.assert_not_called()
 
 
 def test_instance_mode_ata_retificacao(ata_2020_1_retificacao):

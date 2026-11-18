@@ -5,6 +5,7 @@ from .periodo_services import status_prestacao_conta_associacao
 from django.db.models import Q
 from django.core.exceptions import ValidationError
 from sme_ptrf_apps.core.choices import MembroEnum
+from sme_ptrf_apps.mandatos.choices import CargoComposicaoVacanciaChoices
 from sme_ptrf_apps.receitas.models.repasse import Repasse, StatusRepasse
 from ..models import PrestacaoConta, Associacao, SolicitacaoAcertoDocumento, FechamentoPeriodo
 from ...despesas.models import Despesa
@@ -146,7 +147,16 @@ def retorna_status_prestacoes(periodos=None, status_pc=None, uuid=None):
         return lista_de_periodos
 
 
-def get_status_presidente(associacao):
+def get_status_presidente(associacao: Associacao | None) -> dict:
+    """Retorna o status do presidente e os cargos usados na assinatura.
+
+    Args:
+        associacao: associação consultada. Quando ausente, os campos voltam vazios.
+
+    Returns:
+        Dicionário com status_presidente, cargo substituto (chave e rótulo) e
+        cargo_conselheiro_assinatura.
+    """
     status_presidente = associacao.status_presidente if associacao else ""
     cargo_substituto_presidente_ausente = associacao.cargo_substituto_presidente_ausente if associacao else ""
     cargo_substituto_presidente_ausente_value = ""
@@ -159,43 +169,183 @@ def get_status_presidente(associacao):
     result = {
         'status_presidente': status_presidente,
         'cargo_substituto_presidente_ausente': cargo_substituto_presidente_ausente,
-        'cargo_substituto_presidente_ausente_value': cargo_substituto_presidente_ausente_value
+        'cargo_substituto_presidente_ausente_value': cargo_substituto_presidente_ausente_value,
+        'cargo_conselheiro_assinatura': associacao.cargo_conselheiro_assinatura if associacao else None,
     }
 
     return result
 
 
-def update_status_presidente(associacao, status_presidente, cargo_substituto_presidente_ausente):
-    if not status_presidente or status_presidente not in ['PRESENTE', 'AUSENTE']:
-        result_error = {
-            'erro': 'campo_requerido',
-            'mensagem': 'É necessário enviar no payload um staus_presidente válido [PRESENTE|AUSENTE]. '
-        }
-        raise ValidationError(result_error)
+def normalizar_assinatura_prestacao(
+    status_presidente: str,
+    cargo_substituto_presidente_ausente: str | None,
+    cargo_conselheiro_assinatura: str | None = None,
+) -> tuple[str, str | None, str | None]:
+    """Valida a escolha da conclusão para gravar na prestação de contas.
 
-    if status_presidente == 'AUSENTE' and not cargo_diretoria_executiva_valido(cargo_substituto_presidente_ausente):
-        result_error = {
+    Não altera a associação. Com PRESENTE, o cargo substituto volta vazio.
+
+    Raises:
+        ValidationError: se o status ou algum cargo informado for inválido.
+    """
+    if not status_presidente or status_presidente not in ['PRESENTE', 'AUSENTE']:
+        raise ValidationError({
             'erro': 'campo_requerido',
-            'mensagem': 'É necessário enviar no payload um cargo_substituto_presidente_ausente válido.'
-        }
-        raise ValidationError(result_error)
+            'mensagem': 'É necessário enviar no payload um staus_presidente válido [PRESENTE|AUSENTE]. ',
+        })
+
+    if status_presidente == 'PRESENTE':
+        cargo_substituto_presidente_ausente = None
+    elif (not cargo_substituto_presidente_ausente or
+          cargo_substituto_presidente_ausente == (
+              CargoComposicaoVacanciaChoices.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA
+          ) or
+          not cargo_diretoria_executiva_valido(cargo_substituto_presidente_ausente)):
+        raise ValidationError({
+            'erro': 'campo_requerido',
+            'mensagem': 'É necessário enviar no payload um cargo_substituto_presidente_ausente válido.',
+        })
+
+    if cargo_conselheiro_assinatura and not cargo_conselheiro_assinatura_valido(cargo_conselheiro_assinatura):
+        raise ValidationError({
+            'erro': 'campo_requerido',
+            'mensagem': 'É necessário enviar no payload um cargo_conselheiro_assinatura válido.',
+        })
+
+    return status_presidente, cargo_substituto_presidente_ausente, cargo_conselheiro_assinatura or None
+
+
+def update_status_presidente(
+    associacao: Associacao,
+    status_presidente: str,
+    cargo_substituto_presidente_ausente: str | None,
+    cargo_conselheiro_assinatura: str | None = None,
+) -> dict:
+    """Grava o status do presidente e, quando informado, o conselheiro da assinatura.
+
+    Com status PRESENTE, o cargo substituto é limpo. Com AUSENTE, o substituto é
+    obrigatório e não pode ser o próprio presidente. Quando o conselheiro não vem
+    no payload, o valor já gravado na associação é mantido.
+    """
+    status_presidente, cargo_substituto_presidente_ausente, cargo_conselheiro_assinatura = (
+        normalizar_assinatura_prestacao(
+            status_presidente,
+            cargo_substituto_presidente_ausente,
+            cargo_conselheiro_assinatura,
+        )
+    )
 
     associacao.status_presidente = status_presidente
     associacao.cargo_substituto_presidente_ausente = cargo_substituto_presidente_ausente
+    if cargo_conselheiro_assinatura:
+        associacao.cargo_conselheiro_assinatura = cargo_conselheiro_assinatura
     associacao.save()
 
-    result = {
+    return {
         'status_presidente': associacao.status_presidente,
         'cargo_substituto_presidente_ausente': associacao.cargo_substituto_presidente_ausente,
     }
 
-    return result
 
-
-def cargo_diretoria_executiva_valido(cargo):
-    from sme_ptrf_apps.core.choices.membro_associacao import MembroEnum
-    cargos_diretoria_executiva = [key[0] for key in MembroEnum.diretoria_executiva_choices()]
+def cargo_diretoria_executiva_valido(cargo: str) -> bool:
+    """Indica se o cargo pertence à diretoria executiva."""
+    cargos_diretoria_executiva = [key for key, _label in CargoComposicaoVacanciaChoices.diretoria_executiva()]
     return cargo in cargos_diretoria_executiva
+
+
+def cargo_conselheiro_assinatura_valido(cargo: str) -> bool:
+    """Indica se o cargo pertence ao conselho fiscal e pode assinar os documentos."""
+    cargos_conselho = {key for key, _label in CargoComposicaoVacanciaChoices.conselho_fiscal()}
+    return cargo in cargos_conselho
+
+
+def nome_ocupante_cargo_v2(associacao: Associacao, cargo_associacao: str) -> str | None:
+    """Nome do ocupante do cargo na composição vigente da v2, ou None.
+
+    Args:
+        associacao: associação cuja composição vigente será consultada.
+        cargo_associacao: chave do cargo no catálogo de vacância.
+
+    Returns:
+        Nome do ocupante na data de hoje, ou None se o cargo estiver vago
+        ou não houver mandato ou composição.
+    """
+    from datetime import date
+
+    from sme_ptrf_apps.mandatos.models import ComposicaoVacancia
+    from sme_ptrf_apps.mandatos.services import ServicoHistoricoCargoComposicao
+    from sme_ptrf_apps.mandatos.services.mandato_vacancia_service import ServicoMandatoVigenteVacancia
+
+    mandato = ServicoMandatoVigenteVacancia().get_mandato_vigente()
+    if not mandato:
+        return None
+
+    composicao = ComposicaoVacancia.objects.filter(
+        associacao=associacao,
+        mandato=mandato,
+    ).first()
+    if not composicao:
+        return None
+
+    registro = ServicoHistoricoCargoComposicao.get_ocupante_em_data(
+        composicao,
+        cargo_associacao,
+        date.today(),
+    )
+    if registro and registro.ocupante_do_cargo_id and registro.ocupante_do_cargo.nome:
+        return registro.ocupante_do_cargo.nome
+    return None
+
+
+def assinatura_membros_v2(associacao: Associacao | None, prestacao=None) -> dict | None:
+    """Assinatura da diretoria e do conselho fiscal a partir da composição v2.
+
+    Os cargos saem da prestação do período. Sem prestação ou sem valor gravado,
+    a diretoria fica com o presidente e o conselho com o presidente do conselho fiscal.
+    """
+    from waffle import get_waffle_flag_model
+
+    flags = get_waffle_flag_model()
+    if not associacao or not flags.objects.filter(name='historico-de-membros-v2', everyone=True).exists():
+        return None
+
+    status_presidente = getattr(prestacao, 'status_presidente', None) if prestacao else None
+    cargo_substituto = getattr(prestacao, 'cargo_substituto_presidente_ausente', None) if prestacao else None
+    cargo_conselheiro = getattr(prestacao, 'cargo_conselheiro_assinatura', None) if prestacao else None
+
+    if status_presidente == 'AUSENTE' and cargo_substituto:
+        cargo_key = cargo_substituto
+    else:
+        cargo_key = CargoComposicaoVacanciaChoices.CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA
+
+    cargo_conselheiro = (
+        cargo_conselheiro or CargoComposicaoVacanciaChoices.CARGO_ASSOCIACAO_PRESIDENTE_CONSELHO_FISCAL
+    )
+
+    if cargo_key.startswith('VOGAL_'):
+        cargo_label = 'Vogal'
+    else:
+        try:
+            cargo_label = CargoComposicaoVacanciaChoices(cargo_key).label
+        except ValueError:
+            cargo_label = ''
+
+    if cargo_conselheiro.startswith('CONSELHEIRO_'):
+        cargo_conselheiro_label = 'Conselheiro'
+    else:
+        try:
+            cargo_conselheiro_label = CargoComposicaoVacanciaChoices(cargo_conselheiro).label
+        except ValueError:
+            cargo_conselheiro_label = (
+                CargoComposicaoVacanciaChoices.CARGO_ASSOCIACAO_PRESIDENTE_CONSELHO_FISCAL.label
+            )
+
+    return {
+        'presidente_diretoria_executiva': nome_ocupante_cargo_v2(associacao, cargo_key) or '-------',
+        'presidente_conselho_fiscal': nome_ocupante_cargo_v2(associacao, cargo_conselheiro) or '-------',
+        'cargo_substituto_presidente_ausente': cargo_label,
+        'cargo_conselheiro_assinatura': cargo_conselheiro_label,
+    }
 
 
 def associacao_pode_implantar_saldo(associacao, recurso=None):

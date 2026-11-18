@@ -99,6 +99,12 @@ def test_set_descongelar_saldo_limpa_saldo_congelado_em(paa_factory, periodo_paa
     assert paa.saldo_congelado_em is None
 
 
+def test_set_paa_status_retificado(paa):
+    paa.set_paa_status_retificado()
+    paa.refresh_from_db()
+    assert paa.status_retificado
+
+
 def test_set_paa_status_em_retificacao(paa):
     paa.set_paa_status_em_retificacao()
     paa.refresh_from_db()

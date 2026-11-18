@@ -66,6 +66,8 @@ class DadosDemonstrativoFinanceiro(ModeloBase):
         'Presidente da diretoria executiva', max_length=160, blank=True, default=None, null=True)
     presidente_conselho_fiscal = models.CharField(
         'Presidente do conselho fiscal', max_length=160, blank=True, default=None, null=True)
+    cargo_conselheiro_assinatura = models.CharField(
+        'Cargo do conselheiro na assinatura', max_length=160, blank=True, default=None, null=True)
 
     # rodape
     tipo_unidade = models.CharField('Tipo unidade', max_length=50, default='')

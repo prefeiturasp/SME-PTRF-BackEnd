@@ -2,8 +2,8 @@ from django.db import models
 
 
 class CargoComposicaoVacanciaChoices(models.TextChoices):
-    CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA = 'PRESIDENTE_DIRETORIA_EXECUTIVA', 'Presidente da diretoria executiva'  # noqa
-    CARGO_ASSOCIACAO_VICE_PRESIDENTE_DIRETORIA_EXECUTIVA = 'VICE_PRESIDENTE_DIRETORIA_EXECUTIVA', 'Vice-Presidente da diretoria executiva'  # noqa
+    CARGO_ASSOCIACAO_PRESIDENTE_DIRETORIA_EXECUTIVA = 'PRESIDENTE_DIRETORIA_EXECUTIVA', 'Presidente da Diretoria Executiva'  # noqa
+    CARGO_ASSOCIACAO_VICE_PRESIDENTE_DIRETORIA_EXECUTIVA = 'VICE_PRESIDENTE_DIRETORIA_EXECUTIVA', 'Vice-Presidente da Diretoria Executiva'  # noqa
     CARGO_ASSOCIACAO_SECRETARIO = 'SECRETARIO', 'Secretário'
     CARGO_ASSOCIACAO_TESOUREIRO = 'TESOUREIRO', 'Tesoureiro'
     CARGO_ASSOCIACAO_VOGAL_1 = 'VOGAL_1', 'Vogal 1'
@@ -11,11 +11,26 @@ class CargoComposicaoVacanciaChoices(models.TextChoices):
     CARGO_ASSOCIACAO_VOGAL_3 = 'VOGAL_3', 'Vogal 3'
     CARGO_ASSOCIACAO_VOGAL_4 = 'VOGAL_4', 'Vogal 4'
     CARGO_ASSOCIACAO_VOGAL_5 = 'VOGAL_5', 'Vogal 5'
-    CARGO_ASSOCIACAO_PRESIDENTE_CONSELHO_FISCAL = 'PRESIDENTE_CONSELHO_FISCAL', 'Presidente do conselho fiscal'
+    CARGO_ASSOCIACAO_PRESIDENTE_CONSELHO_FISCAL = 'PRESIDENTE_CONSELHO_FISCAL', 'Presidente do Conselho Fiscal'
     CARGO_ASSOCIACAO_CONSELHEIRO_1 = 'CONSELHEIRO_1', 'Conselheiro 1'
     CARGO_ASSOCIACAO_CONSELHEIRO_2 = 'CONSELHEIRO_2', 'Conselheiro 2'
     CARGO_ASSOCIACAO_CONSELHEIRO_3 = 'CONSELHEIRO_3', 'Conselheiro 3'
     CARGO_ASSOCIACAO_CONSELHEIRO_4 = 'CONSELHEIRO_4', 'Conselheiro 4'
+
+    @classmethod
+    def diretoria_executiva(cls):
+        """Nove cargos da diretoria executiva, na ordem do catálogo."""
+        return cls.choices[:9]
+
+    @classmethod
+    def substitutos_do_presidente(cls):
+        """Diretoria executiva sem o próprio presidente."""
+        return cls.choices[1:9]
+
+    @classmethod
+    def conselho_fiscal(cls):
+        """Cinco cargos do conselho fiscal."""
+        return cls.choices[9:]
 
     # Obter o label
     # CargoComposicaoVacanciaChoices(cargo_associacao).label
