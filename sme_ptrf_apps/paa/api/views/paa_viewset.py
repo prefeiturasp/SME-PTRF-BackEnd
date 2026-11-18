@@ -6,7 +6,7 @@ atualização, exclusão, geração de relatórios em PDF, congelamento de saldo
 e fluxos de retificação do PAA.
 """
 import logging
-from datetime import datetime
+from datetime import datetime, date
 from time import sleep
 from django.http import HttpResponse
 from django.http import Http404
@@ -38,6 +38,15 @@ from sme_ptrf_apps.paa.api.serializers.paa_serializer import (
 )
 from sme_ptrf_apps.paa.api.serializers.renderizador_paa_serializer import RenderizadorPaaBuilder
 from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
+from sme_ptrf_apps.paa import constantes
+from sme_ptrf_apps.paa.services.elaboracao_paa_service import proxima_vigencia_habilitada
+from sme_ptrf_apps.paa.services import VigenciaElaboracaoPaaService
+from sme_ptrf_apps.paa.api.serializers.vigencia_elaboracao_serializer import (
+    VigenciaElaboracaoQuerySerializer,
+    VigenciaElaboracaoSerializer,
+    PeriodoElaboracaoSerializer
+
+)
 from sme_ptrf_apps.logging.loggers import ContextualLogger
 from sme_ptrf_apps.paa.models import Paa, PeriodoPaa
 from sme_ptrf_apps.paa.models.documento_paa import DocumentoPaa, obter_documento_final_por_retificacao
@@ -71,6 +80,12 @@ from sme_ptrf_apps.paa.services.paa_status_bloqueia_alteracao_service import Tip
 logger = logging.getLogger(__name__)
 
 
+class VigenciaElaboracaoPagination(CustomPagination):
+    """Paginação dos períodos da vigência de elaboração."""
+    page_size = 20
+    max_page_size = 20
+
+
 @extend_schema_view(**PAA_DOCS)
 class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
     """
@@ -82,12 +97,12 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
 
     waffle_flag = "paa"
     tipo_bloqueio_paa = TipoBloqueioPaa.STATUS_GERADO
-    permission_classes = [IsAuthenticated & PermissaoApiUe]
+    permission_classes = (IsAuthenticated & PermissaoApiUe,)
     lookup_field = 'uuid'
     queryset = Paa.objects.all()
     serializer_class = PaaSerializer
     pagination_class = CustomPagination
-    http_method_names = ['get', 'post', 'delete', 'patch']
+    http_method_names = ('get', 'post', 'delete', 'patch')
 
     def get_serializer_class(self) -> type[Serializer]:
         """
@@ -283,9 +298,14 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
         paas_anteriores = self.queryset.filter(
             periodo_paa__data_inicial__lt=paa_atual.periodo_paa.data_inicial,
             associacao=paa_atual.associacao
-        ).order_by('-periodo_paa__data_inicial')
+        )
+        exigidos = constantes.STATUS_PAA_ORIGEM_EXIGIDOS_PARA_IMPORTAR_PRIORIDADES
+        if exigidos is not None:
+            paas_anteriores = paas_anteriores.filter(status_andamento__in=exigidos)
 
-        serializer = PaaSerializer(paas_anteriores, many=True)
+        paas_anteriores = paas_anteriores.order_by('-periodo_paa__data_inicial')
+
+        serializer = PaaSerializer(paas_anteriores, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='paa-vigente-e-anteriores',
@@ -329,15 +349,19 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
         paas_em_retificacao = Paa.objects.filter(
             pk=models.OuterRef('id')).paas_em_retificacao()
 
-        paa_vigente = (
-            self.queryset.select_related('periodo_paa', 'associacao__unidade')
-            .filter(
-                Q(models.Exists(paas_andamento_gerados_e_parciais) | Q(models.Exists(paas_em_retificacao))),
-                periodo_paa=periodo_paa_vigente,
-                associacao=associacao,
+        def paa_do_periodo(periodo):
+            if not periodo:
+                return None
+            return (
+                self.queryset.select_related('periodo_paa', 'associacao__unidade')
+                .filter(
+                    Q(models.Exists(paas_andamento_gerados_e_parciais) | Q(models.Exists(paas_em_retificacao))),
+                    periodo_paa=periodo,
+                    associacao=associacao,
+                ).first()
             )
-            .first()
-        )
+
+        paa_vigente = paa_do_periodo(periodo_paa_vigente)
 
         paas_anteriores = (
             self.queryset.select_related('periodo_paa', 'associacao__unidade')
@@ -360,6 +384,17 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
             'vigente': montar_render(paa_vigente, True) if paa_vigente else None,
             'anteriores': [montar_render(p, False) for p in paas_anteriores],
         }
+
+        # complementa com os dados de próxima vigencia quando flag está habilitada
+        flag_proxima_vigencia_habilitada = proxima_vigencia_habilitada(request)
+        if flag_proxima_vigencia_habilitada:
+            paa_proxima_vigencia = paa_do_periodo(
+                PeriodoPaa.proxima_vigencia_em(
+                    hoje=date.today(),
+                    vigente=periodo_paa_vigente
+                )
+            )
+            result['proxima_vigencia'] = montar_render(paa_proxima_vigencia, True) if paa_proxima_vigencia else None
 
         return Response(result, status=status.HTTP_200_OK)
 
@@ -564,7 +599,7 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
             uuid: O identificador único do PAA.
 
         Returns:
-            Lista de recursos próprios vinculados ao PAA com o contexto de alterações.
+            Lista de recursos próprios vinculados ao PAA com o vigencia de alterações.
         """
         from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import RecursoProprioPaaListSerializer
 
@@ -1010,3 +1045,22 @@ class PaaViewSet(WaffleFlagMixin, PaaBloqueiaAlteracaoMixin, ModelViewSet):
             context={'request': request, 'alteracoes': alteracoes}
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='vigencia-elaboracao',
+            permission_classes=[IsAuthenticated & PermissaoApiUe])
+    def vigencia_elaboracao(self, request: Request) -> Response:
+        """informa os períodos para decidir o estado do botão de elaboração do PAA"""
+        filtro = VigenciaElaboracaoQuerySerializer(data=request.query_params, context={'request': request})
+        filtro.is_valid(raise_exception=True)
+
+        vigencia = VigenciaElaboracaoPaaService.obter(
+            filtro.validated_data['associacao'],
+            proxima_vigencia_habilitada=proxima_vigencia_habilitada(request)
+        )
+
+        paginador = VigenciaElaboracaoPagination()
+        pagina = paginador.paginate_queryset(vigencia['periodos'], request, view=self)
+        periodos = PeriodoElaboracaoSerializer(pagina, many=True).data
+        vigencia['periodos'] = paginador.get_paginated_response(periodos).data
+
+        return Response(VigenciaElaboracaoSerializer(vigencia).data, status=status.HTTP_200_OK)

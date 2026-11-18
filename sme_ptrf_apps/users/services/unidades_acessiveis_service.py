@@ -64,3 +64,8 @@ def filtrar_queryset_pelo_contexto_selecionado(qs, contexto_uuid, user):
     if unidade.tipo_unidade == 'DRE':
         return qs.filter(associacao__unidade__dre=unidade)
     return qs.filter(associacao__unidade=unidade)
+
+
+def usuario_pode_acessar_associacao(user, associacao: Associacao) -> bool:
+    """Indica se a unidade da associação está entre as unidades acessíveis ao usuário."""
+    return unidades_acessiveis_do_usuario(user).filter(pk=associacao.unidade_id).exists()

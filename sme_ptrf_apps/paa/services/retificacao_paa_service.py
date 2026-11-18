@@ -5,7 +5,9 @@ from typing import TYPE_CHECKING, Any
 from sme_ptrf_apps.logging.loggers import ContextualLogger
 from django.db import transaction
 from waffle import get_waffle_flag_model
+from sme_ptrf_apps.paa import constantes
 from sme_ptrf_apps.paa.models import Paa
+from sme_ptrf_apps.paa.services.paa_anterior_service import PaaAnteriorService
 from sme_ptrf_apps.paa.enums import PaaStatusAndamentoEnum
 from sme_ptrf_apps.paa.models.documento_paa import DocumentoPaa
 from sme_ptrf_apps.paa.models.ata_paa import AtaPaa
@@ -551,6 +553,10 @@ class RetificacaoPaaService:
 
         if self.paa.get_status_andamento() != PaaStatusAndamentoEnum.GERADO.name:
             raise ValidacaoRetificacao('Apenas PAA`s gerados podem ser retificados.')
+
+        exigidos = constantes.STATUS_PAA_ANTERIOR_EXIGIDOS_PARA_RETIFICAR
+        if not PaaAnteriorService.atende_exigencia(self.paa, exigidos):
+            raise ValidacaoRetificacao('Só é possível retificar o PAA depois que o PAA anterior for concluído.')
 
     @transaction.atomic
     def iniciar_retificacao(self, justificativa: str | None) -> Paa:
