@@ -24,6 +24,7 @@ from sme_ptrf_apps.paa.services import AcoesReceitasPrevistasPaaService, AcoesPa
 from sme_ptrf_apps.paa.models import AcaoPdde, Paa, ProgramaPdde
 from ..serializers.acao_pdde_serializer import AcaoPddeSerializer
 from sme_ptrf_apps.paa.services.acoes_pdde_service import ExcluirAcaoPDDEException
+from sme_ptrf_apps.paa.services.elaboracao_paa_service import proxima_vigencia_habilitada
 from ....core.api.utils.pagination import CustomPagination
 
 from sme_ptrf_apps.users.permissoes import PermissaoApiUe
@@ -231,11 +232,12 @@ class AcoesPddeViewSet(WaffleFlagMixin, ModelViewSet):
         """ Método para inativar uma Ação PDDE com validações específicas """
         try:
             obj = self.get_object()
-            service = AcoesPddeService(obj)
+            flag_proxima_vigencia_habilitada = proxima_vigencia_habilitada(request)
+            service = AcoesPddeService(obj, flag_proxima_vigencia_habilitada)
             service.excluir_acao_pdde()
 
-            # ao Remover a Ação PDDE, caso não haja nenhum vínculo no período vigente,
-            # também pode cair no Protected erro, quando houver PAA anteriores ao periodo vigente
+            # ao Remover a Ação PDDE, caso não haja nenhum vínculo em PAA's elaborados,
+            # também pode cair no Protected erro, quando houver PAA anteriores ou próximas vigências geradas
             # Em caso de Protected erro, inativa a Ação PDDE
             return super().destroy(request, *args, **kwargs)
 

@@ -2,6 +2,7 @@ from datetime import date
 from django.db import transaction
 from django.db import IntegrityError
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound
 from sme_ptrf_apps.paa.models import Paa, PeriodoPaa, ObjetivoPaa, AtividadeEstatutaria, AtividadeEstatutariaPaa
 from sme_ptrf_apps.core.api.serializers.unidade_serializer import UnidadeSimplesSerializer
 from sme_ptrf_apps.core.models import Associacao
@@ -13,6 +14,8 @@ from sme_ptrf_apps.paa.api.serializers.atividade_estatutaria_paa_serializer impo
 from sme_ptrf_apps.paa.api.serializers.ata_paa_serializer import AtaPaaSerializer
 from sme_ptrf_apps.paa.api.serializers import PeriodoPaaSerializer, PeriodoPaaSimplesSerializer
 from sme_ptrf_apps.paa.services.ciclo_retificacao_service import CicloRetificacaoService
+from sme_ptrf_apps.paa.services.elaboracao_paa_service import (
+    ElaboracaoPaaService, proxima_vigencia_habilitada, PeriodoInvalidoParaElaboracaoException)
 
 
 class PaaSerializer(serializers.ModelSerializer):
@@ -30,6 +33,33 @@ class PaaSerializer(serializers.ModelSerializer):
     tem_ata_concluida = serializers.SerializerMethodField()
     status_andamento = serializers.SerializerMethodField()
     atividades_previstas_preenchidas = serializers.SerializerMethodField()
+    periodo = serializers.SlugRelatedField(
+        queryset=PeriodoPaa.objects.all(),
+        slug_field='uuid',
+        write_only=True,
+        required=False
+    )
+    vigencia = serializers.SerializerMethodField()
+
+    def get_vigencia(self, obj: Paa) -> str | None:
+        """Classifica o período do PAA como vigente, próxima vigência, encerrado ou futuro.
+
+        O par (vigente, próxima vigência) é calculado uma vez e guardado no contexto, para não
+        gerar consultas por item em listagens.
+        """
+        if not proxima_vigencia_habilitada(self.context.get('request')):
+            return None
+
+        if not obj.periodo_paa_id:
+            return None
+
+        hoje = date.today()
+        referencias = self.context.setdefault('_referencias_de_vigencia', {})
+        if hoje not in referencias:
+            referencias[hoje] = PeriodoPaa.vigente_e_proxima_vigencia_em(hoje)
+        vigente, proxima = referencias[hoje]
+
+        return PeriodoPaa.classificar_vigencia(obj.periodo_paa, vigente, proxima, hoje)
 
     def get_atividades_previstas_preenchidas(self, obj: Paa) -> bool:
         """
@@ -99,10 +129,10 @@ class PaaSerializer(serializers.ModelSerializer):
         fields = ('uuid', 'periodo_paa', 'associacao', 'periodo_paa_objeto', 'saldo_congelado_em',
                   'texto_introducao', 'texto_conclusao', 'status', 'objetivos', 'total_recursos_proprios',
                   'status_andamento', 'tem_documento_final_concluido', 'tem_ata_concluida',
-                  'atividades_previstas_preenchidas')
+                  'atividades_previstas_preenchidas', 'periodo', 'vigencia')
         read_only_fields = ('periodo_paa_objeto', 'periodo_paa', 'status', 'objetivos', 'total_recursos_proprios',
                             'status_andamento', 'tem_documento_final_concluido', 'tem_ata_concluida',
-                            'atividades_previstas_preenchidas')
+                            'atividades_previstas_preenchidas', 'vigencia')
 
     def get_total_recursos_proprios(self, obj: Paa) -> float:
         """
@@ -135,6 +165,25 @@ class PaaSerializer(serializers.ModelSerializer):
                 novo PAA ou não exista um período vigente.
         """
         from sme_ptrf_apps.paa.services.paa_service import PaaService
+        from sme_ptrf_apps.users.services.unidades_acessiveis_service import usuario_pode_acessar_associacao
+
+        request = self.context.get('request')
+        flag_proxima_vigencia_habilitada = proxima_vigencia_habilitada(request)
+        if request and not usuario_pode_acessar_associacao(request.user, attrs['associacao']):
+            raise NotFound('Associação não encontrada.')
+
+        periodo_informado = attrs.pop('periodo', None)
+        if periodo_informado and flag_proxima_vigencia_habilitada:
+            try:
+                ElaboracaoPaaService.validar_periodo_para_criacao(
+                    attrs['associacao'],
+                    periodo_informado,
+                    proxima_vigencia_habilitada=flag_proxima_vigencia_habilitada,
+                )
+            except PeriodoInvalidoParaElaboracaoException as exc:
+                raise serializers.ValidationError({'non_field_errors': [str(exc)]})
+            attrs['periodo_paa'] = periodo_informado
+            return super().validate(attrs)
 
         try:
             PaaService.pode_elaborar_novo_paa()
@@ -238,13 +287,13 @@ class PaaUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Paa
-        fields = [
+        fields = (
             "texto_introducao",
             "texto_conclusao",
             "objetivos",
             "atividades_estatutarias",
             "atividades_estatutarias_paa"
-        ]
+        )
 
     def update(self, instance: Paa, validated_data: dict) -> dict:
         """

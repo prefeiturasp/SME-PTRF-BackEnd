@@ -15,6 +15,7 @@ from weasyprint import HTML, CSS
 
 from sme_ptrf_apps.paa.models import ParametroPaa, ProgramaPdde, PrioridadePaa, Paa, DocumentoPaa
 from sme_ptrf_apps.paa.enums import PaaStatusEnum
+from sme_ptrf_apps.paa import constantes
 from sme_ptrf_apps.paa.services.registrar_acoes_conclusao_paa_service import (
     RegistrarAcoesPtrfConclusaoPaaService,
     RegistrarAcoesPddeConclusaoPaaService,
@@ -201,6 +202,8 @@ class PaaService:
             ImportacaoConfirmacaoNecessaria: Se já houver prioridades importadas
                 e a confirmação não tiver sido fornecida.
         """
+        cls._validar_paa_origem_da_importacao(paa_anterior)
+
         prioridades_a_importar = paa_anterior.prioridadepaa_set.filter(prioridade=True)
 
         if not prioridades_a_importar.exists():
@@ -368,3 +371,14 @@ class PaaService:
             errors.append("É necessário inserir o texto de conclusão")
 
         return errors
+
+    @classmethod
+    def _validar_paa_origem_da_importacao(cls, paa_anterior: Paa) -> None:
+        """Recusa a importação se o PAA de origem não estiver na situação exigida (quando houver exigência)."""
+        exigidos = constantes.STATUS_PAA_ORIGEM_EXIGIDOS_PARA_IMPORTAR_PRIORIDADES
+
+        if exigidos is not None and paa_anterior.get_status_andamento() not in exigidos:
+            raise Exception(
+                "Só é possível importar prioridades de PAA com situação andamento: "
+                f"{', '.join(exigidos)}"
+            )

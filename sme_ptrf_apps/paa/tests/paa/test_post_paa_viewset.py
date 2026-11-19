@@ -112,6 +112,7 @@ def test_action_importar_prioridades_paa_anterior_nao_encontrado(
     assert result == {"mensagem": "PAA anterior não encontrado."}
 
 
+@pytest.mark.usefixtures("sem_exigencia_para_importar_prioridades")
 def test_action_importar_prioridades_com_sucesso(
         jwt_authenticated_client_sme, flag_paa, periodo_paa_factory, paa_factory, prioridade_paa_factory):
 
@@ -153,6 +154,7 @@ def test_action_importar_prioridades_com_sucesso(
     assert prioridades_2024.count() != prioridades_2025.count()
 
 
+@pytest.mark.usefixtures("sem_exigencia_para_importar_prioridades")
 def test_action_importar_prioridades_sem_prioridades_paa_anterior(
         jwt_authenticated_client_sme, flag_paa, periodo_paa_factory, paa_factory, prioridade_paa_factory):
 
@@ -186,6 +188,7 @@ def test_action_importar_prioridades_sem_prioridades_paa_anterior(
     assert prioridades_2025.count() == 0
 
 
+@pytest.mark.usefixtures("sem_exigencia_para_importar_prioridades")
 def test_action_importar_prioridades_quando_ja_houver_prioridades_importadas_e_sem_confirmacao(
         jwt_authenticated_client_sme, flag_paa, periodo_paa_factory, paa_factory, prioridade_paa_factory):
 
@@ -224,6 +227,7 @@ def test_action_importar_prioridades_quando_ja_houver_prioridades_importadas_e_s
     assert result == response_esperado
 
 
+@pytest.mark.usefixtures("sem_exigencia_para_importar_prioridades")
 def test_action_importar_prioridades_quando_ja_houver_prioridades_importadas_e_com_confirmacao(
         jwt_authenticated_client_sme, flag_paa, periodo_paa_factory, paa_factory, prioridade_paa_factory):
 
@@ -276,6 +280,7 @@ def test_action_importar_prioridades_quando_ja_houver_prioridades_importadas_e_c
     assert prioridades_importadas_2024_em_2025.count() == 1  # Importadas após confirmação
 
 
+@pytest.mark.usefixtures("sem_exigencia_para_importar_prioridades")
 def test_action_importar_prioridades_quando_ja_houver_prioridades_importadas_do_mesmo_paa(
         jwt_authenticated_client_sme, flag_paa, periodo_paa_factory, paa_factory, prioridade_paa_factory):
 

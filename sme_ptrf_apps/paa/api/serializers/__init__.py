@@ -30,3 +30,10 @@ from .renderizador_paa_serializer import (
     RenderizadorDocumentoPaaSerializer,
     RenderizadorAtaPaaSerializer,
 )
+from .vigencia_elaboracao_serializer import (
+    VigenciaElaboracaoQuerySerializer,
+    PaaResumoSerializer,
+    PeriodoElaboracaoSerializer,
+    PeriodosPaginadosSerializer,
+    VigenciaElaboracaoSerializer,
+)
