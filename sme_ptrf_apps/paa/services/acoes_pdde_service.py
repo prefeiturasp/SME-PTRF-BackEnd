@@ -15,9 +15,17 @@ class ExcluirAcaoPDDEException(Exception):
 
 class AcoesPddeService:
 
-    def __init__(self, acao: AcaoPdde) -> None:
+    def __init__(self, acao: AcaoPdde, flag_proxima_vigencia_habilitada: bool = False) -> None:
         """Inicializa o service com a instância da ação PDDE."""
         self.acao = acao
+        self.flag_proxima_vigencia_habilitada = flag_proxima_vigencia_habilitada
+
+    def aplica_filtro_periodo_proxima_vigencia(self) -> dict:
+        """ Mantem o filtro de período quando a flag de próxima vigência estiver desativada """
+        if self.flag_proxima_vigencia_habilitada:
+            # Com a flag ligada não há filtro de período: a exclusão considera PAAs de todos os períodos
+            return {}
+        return {'paa__periodo_paa': self._periodo_vigente()}
 
     def _periodo_vigente(self) -> PeriodoPaa:
         """Retorna o período PAA vigente."""
@@ -39,7 +47,7 @@ class AcoesPddeService:
 
         return self.acao.receitaprevistapdde_set.filter(
             models.Exists(paas_andamento),
-            paa__periodo_paa=self._periodo_vigente()
+            **self.aplica_filtro_periodo_proxima_vigencia()
         )
 
     def acoes_pdde_prioridades_paas_gerados(self) -> models.QuerySet:
@@ -48,8 +56,8 @@ class AcoesPddeService:
 
         return self.acao.prioridadepaa_set.filter(
             models.Exists(paas_andamento),
-            paa__periodo_paa=self._periodo_vigente(),
-            acao_pdde=self.acao
+            acao_pdde=self.acao,
+            **self.aplica_filtro_periodo_proxima_vigencia()
         )
 
     def acoes_pdde_receitas_previstas_paas_elaboracao(self) -> models.QuerySet:
@@ -58,7 +66,7 @@ class AcoesPddeService:
 
         return self.acao.receitaprevistapdde_set.filter(
             models.Exists(paas_andamento),
-            paa__periodo_paa=self._periodo_vigente()
+            **self.aplica_filtro_periodo_proxima_vigencia()
         )
 
     def acoes_pdde_prioridades_paas_elaboracao(self) -> models.QuerySet:
@@ -67,8 +75,8 @@ class AcoesPddeService:
 
         return self.acao.prioridadepaa_set.filter(
             models.Exists(paas_andamento),
-            paa__periodo_paa=self._periodo_vigente(),
-            acao_pdde=self.acao
+            acao_pdde=self.acao,
+            **self.aplica_filtro_periodo_proxima_vigencia()
         )
 
     def excluir_acao_pdde(self) -> None:

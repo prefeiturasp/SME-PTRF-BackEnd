@@ -241,6 +241,7 @@ def especificacao_material():
 
 
 @pytest.mark.django_db
+@pytest.mark.usefixtures('sem_exigencia_para_importar_prioridades')
 class TestImportarPrioridadesPaaAnterior:
     """Testes para o método importar_prioridades_paa_anterior"""
 
@@ -506,3 +507,37 @@ class TestPodeGerarDocumentoFinal:
         erros = PaaService.pode_gerar_documento_final(paa)
 
         assert "Prioridades - há recurso com saldo." in erros
+
+
+@pytest.mark.django_db
+class TestExigenciaSobreOPaaDeOrigemDaImportacao:
+    """A constante de situações exigidas restringe de quais PAAs é possível importar prioridades."""
+
+    def test_paa_em_elaboracao_e_recusado_quando_a_exigencia_e_gerado(self, monkeypatch, paa_atual, paa_anterior):
+        from sme_ptrf_apps.paa import constantes
+        monkeypatch.setattr(constantes, 'STATUS_PAA_ORIGEM_EXIGIDOS_PARA_IMPORTAR_PRIORIDADES', ('GERADO',))
+
+        with pytest.raises(Exception) as exc_info:
+            PaaService.importar_prioridades_paa_anterior(paa_atual, paa_anterior)
+
+        assert 'situação andamento: GERADO' in str(exc_info.value)
+
+    def test_mensagem_lista_todas_as_situacoes_exigidas(self, monkeypatch, paa_atual, paa_anterior):
+        from sme_ptrf_apps.paa import constantes
+        monkeypatch.setattr(
+            constantes, 'STATUS_PAA_ORIGEM_EXIGIDOS_PARA_IMPORTAR_PRIORIDADES', ('GERADO_PARCIALMENTE', 'GERADO'))
+
+        with pytest.raises(Exception) as exc_info:
+            PaaService.importar_prioridades_paa_anterior(paa_atual, paa_anterior)
+
+        assert 'GERADO_PARCIALMENTE, GERADO' in str(exc_info.value)
+
+    def test_sem_exigencia_nao_recusa_pela_situacao(self, monkeypatch, paa_atual, paa_anterior):
+        from sme_ptrf_apps.paa import constantes
+        monkeypatch.setattr(constantes, 'STATUS_PAA_ORIGEM_EXIGIDOS_PARA_IMPORTAR_PRIORIDADES', None)
+
+        with pytest.raises(Exception) as exc_info:
+            PaaService.importar_prioridades_paa_anterior(paa_atual, paa_anterior)
+
+        assert 'situação andamento' not in str(exc_info.value)
+        assert 'Nenhuma prioridade encontrada' in str(exc_info.value)

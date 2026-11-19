@@ -3,6 +3,7 @@ from datetime import date
 from django.core.files.base import ContentFile
 from freezegun import freeze_time
 from rest_framework import status
+from sme_ptrf_apps.paa import constantes
 from sme_ptrf_apps.paa.choices import StatusChoices
 from sme_ptrf_apps.paa.enums import PaaStatusEnum, PaaStatusAndamentoEnum
 from sme_ptrf_apps.paa.models import AtaPaa, DocumentoPaa, Paa
@@ -10,7 +11,9 @@ from sme_ptrf_apps.paa.models import AtaPaa, DocumentoPaa, Paa
 pytestmark = pytest.mark.django_db
 
 
-def test_carrega_paas_anteriores(jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory):
+def test_carrega_paas_anteriores(
+        monkeypatch, jwt_authenticated_client_sme, flag_paa, paa_factory, periodo_paa_factory):
+    monkeypatch.setattr(constantes, 'STATUS_PAA_ORIGEM_EXIGIDOS_PARA_IMPORTAR_PRIORIDADES', None)
 
     periodo_2024 = periodo_paa_factory.create(
         referencia="Periodo 2024", data_inicial=date(2024, 1, 1), data_final=date(2024, 12, 31))

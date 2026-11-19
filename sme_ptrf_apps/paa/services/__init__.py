@@ -32,3 +32,6 @@ from .acoes_pdde_service import AcoesPddeService, ResumoAcoesPddeService
 from .acoes_paa_service import AcoesPaaService, AcoesReceitasPrevistasPaaService
 from .retificacao_paa_service import RetificacaoPaaService
 from .valida_geracao_documentos_service import ValidaGeracaoDocumentoPAAService, ValidaGeracaoDocumentoException
+from .vigencia_elaboracao_paa_service import VigenciaElaboracaoPaaService
+from .elaboracao_paa_service import ElaboracaoPaaService, PeriodoInvalidoParaElaboracaoException
+from .paa_anterior_service import PaaAnteriorService

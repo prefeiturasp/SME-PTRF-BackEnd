@@ -195,7 +195,7 @@ def validar_geracao_ata_paa(ata_paa: AtaPaa) -> dict:
     if not ata_paa.completa:
         errors.append("Todos os dados da edição da ata devem estar preenchidos")
 
-    paa = ata_paa.paa
+    paa: Paa = ata_paa.paa
     if paa.status_em_retificacao:
         from sme_ptrf_apps.paa.services.ciclo_retificacao_service import CicloRetificacaoService
         tem_doc_final = CicloRetificacaoService(paa).tem_documento_final_concluido
@@ -205,6 +205,14 @@ def validar_geracao_ata_paa(ata_paa: AtaPaa) -> dict:
 
     if not tem_doc_final:
         errors.append("O documento Plano Anual deve estar gerado")
+
+    if ata_paa.tipo_apresentacao:
+        from sme_ptrf_apps.paa.services.valida_geracao_documentos_service import (
+            ValidaGeracaoDocumentoException, ValidaGeracaoDocumentoPAAService)
+        try:
+            ValidaGeracaoDocumentoPAAService.valida_paa_anterior_atende_exigencia(paa)
+        except ValidaGeracaoDocumentoException as e:
+            errors.append(str(e))
 
     if ata_paa.tipo_apresentacao and ata_paa.documento_gerado:
         errors.append("A ata já foi gerada anteriormente")

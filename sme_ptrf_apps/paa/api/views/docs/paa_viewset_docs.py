@@ -8,6 +8,7 @@ from drf_spectacular.utils import (
 )
 from rest_framework import serializers
 
+from sme_ptrf_apps.paa.api.serializers.vigencia_elaboracao_serializer import VigenciaElaboracaoSerializer
 from sme_ptrf_apps.paa.api.serializers.paa_serializer import PaaSerializer, PaaUpdateSerializer
 from sme_ptrf_apps.paa.api.serializers.recurso_proprio_paa_serializer import RecursoProprioPaaListSerializer
 from sme_ptrf_apps.paa.api.serializers.receita_prevista_paa_serializer import ReceitaPrevistaPaaSerializer
@@ -612,7 +613,7 @@ SCHEMA_INICIAR_RETIFICACAO = extend_schema(
         403: OpenApiResponse(description="Sem permissão para executar esta ação."),
         404: OpenApiResponse(description="PAA não encontrado."),
     },
-),
+)
 
 SCHEMA_PAA_RETIFICACAO = extend_schema(
     summary="Comparativo do PAA em retificação",
@@ -686,8 +687,31 @@ SCHEMA_PAA_RETIFICACAO = extend_schema(
         ),
     },
 ),
+SCHEMA_VIGENCIA_ELABORACAO = extend_schema(
+    description=(
+        "Retorna os fatos usados para decidir o estado do botão de elaboração do PAA: data do servidor, "
+        "mês de elaboração parametrizado, situação da feature flag da próxima vigência e os períodos "
+        "relevantes (vigente, próxima vigência e encerrados com PAA em elaboração), cada um com o resumo "
+        "do PAA da associação. Os períodos vêm paginados (20 por página). "
+        "Associação inexistente ou de unidade não acessível ao usuário responde 404."
+    ),
+    parameters=[
+        OpenApiParameter(
+            name="associacao_uuid", description="UUID da associação.", required=True,
+            type=OpenApiTypes.UUID, location=OpenApiParameter.QUERY),
+        PARAM_PAGE,
+        PARAM_PAGE_SIZE,
+    ],
+    tags=["PAA"],
+    responses={
+        200: VigenciaElaboracaoSerializer,
+        400: OpenApiResponse(description="Parâmetros inválidos."),
+        404: OpenApiResponse(description="Associação não encontrada."),
+    },
+)
 
 DOCS = dict(
+    vigencia_elaboracao=SCHEMA_VIGENCIA_ELABORACAO,
     list=SCHEMA_LIST,
     retrieve=SCHEMA_RETRIEVE,
     create=SCHEMA_CREATE,

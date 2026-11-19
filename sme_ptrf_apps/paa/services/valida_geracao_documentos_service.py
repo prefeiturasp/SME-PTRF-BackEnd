@@ -1,6 +1,8 @@
 from typing import Any, Optional
 
+from sme_ptrf_apps.paa import constantes
 from sme_ptrf_apps.paa.models import Paa, DocumentoPaa
+from sme_ptrf_apps.paa.services.paa_anterior_service import PaaAnteriorService
 from sme_ptrf_apps.paa.services.retificacao_paa_service import RetificacaoPaaService
 from sme_ptrf_apps.paa.services.ciclo_retificacao_service import CicloRetificacaoService
 
@@ -8,6 +10,21 @@ PREVIA = DocumentoPaa.VersaoChoices.PREVIA
 FINAL = DocumentoPaa.VersaoChoices.FINAL
 EM_PROCESSAMENTO = DocumentoPaa.StatusChoices.EM_PROCESSAMENTO
 CONCLUIDO = DocumentoPaa.StatusChoices.CONCLUIDO
+
+
+# Mensagem por situação do PAA anterior.
+MENSAGENS_PAA_ANTERIOR_NAO_ATENDE = {
+    'GERADO_PARCIALMENTE': (
+        "Não é possível gerar o documento de Plano Anual pois a ata de apresentação do PAA anterior "
+        "ainda não foi gerada. Gere a ata pendente para continuar."),
+    'EM_RETIFICACAO': (
+        "Não é possível gerar o documento de Plano Anual pois existe retificação em andamento do PAA anterior. "
+        "Finalize a retificação para continuar."),
+    'EM_ELABORACAO': (
+        "Não é possível gerar o documento de Plano Anual pois o PAA anterior ainda não foi concluído. "
+        "Conclua o PAA anterior para continuar."),
+}
+MENSAGEM_PAA_ANTERIOR_PADRAO = MENSAGENS_PAA_ANTERIOR_NAO_ATENDE['EM_ELABORACAO']
 
 
 class ValidaGeracaoDocumentoException(Exception):
@@ -70,6 +87,25 @@ class ValidaGeracaoDocumentoPAAService:
         if cls._existe_doc(paa, retificacao=False, versao=FINAL, status=CONCLUIDO):
             raise ValidaGeracaoDocumentoException(
                 "Não é possível gerar o documento. Já existe uma versão final gerada.")
+
+        cls.valida_paa_anterior_atende_exigencia(paa)
+
+    @classmethod
+    def valida_paa_anterior_atende_exigencia(cls, paa: Paa) -> None:
+        """Impede gerar documentos enquanto o PAA do período anterior não estiver na situação exigida.
+
+        A exigência é `constantes.STATUS_PAA_ANTERIOR_EXIGIDOS_PARA_GERAR_DOCUMENTOS`.
+
+        Raises:
+            ValidaGeracaoDocumentoException: Se o PAA anterior existir e não estiver em uma situação exigida.
+        """
+        exigidos = constantes.STATUS_PAA_ANTERIOR_EXIGIDOS_PARA_GERAR_DOCUMENTOS
+        if PaaAnteriorService.atende_exigencia(paa, exigidos):
+            return
+
+        situacao = PaaAnteriorService.situacao_do_paa_anterior(paa)
+        raise ValidaGeracaoDocumentoException(
+            MENSAGENS_PAA_ANTERIOR_NAO_ATENDE.get(situacao, MENSAGEM_PAA_ANTERIOR_PADRAO))
 
     @classmethod
     def valida_gerar_documento_final(cls, paa: Paa) -> None:

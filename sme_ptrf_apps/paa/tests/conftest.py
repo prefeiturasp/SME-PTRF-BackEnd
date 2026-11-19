@@ -2,7 +2,9 @@ import pytest
 from datetime import date
 
 from django.contrib.admin.sites import site
+from django.core.cache import cache
 
+from sme_ptrf_apps.paa import constantes
 from sme_ptrf_apps.paa.admin import (
     PeriodoPaaAdmin, PaaAdmin, ParametroPaaAdmin
 )
@@ -14,6 +16,20 @@ from sme_ptrf_apps.paa.models import (
 @pytest.fixture
 def flag_paa(flag_factory):
     return flag_factory.create(name='paa')
+
+
+@pytest.fixture
+def flag_paa_proxima_vigencia(flag_factory):
+    cache.clear()
+    flag = flag_factory.create(name='paa-proxima-vigencia', everyone=True)
+    yield flag
+    cache.clear()
+
+
+@pytest.fixture
+def sem_exigencia_para_importar_prioridades(monkeypatch):
+    """Permite importar prioridades de PAA em qualquer situação, independente do padrão da constante."""
+    monkeypatch.setattr(constantes, 'STATUS_PAA_ORIGEM_EXIGIDOS_PARA_IMPORTAR_PRIORIDADES', None)
 
 
 @pytest.fixture
