@@ -100,6 +100,8 @@ class Periodo(ModeloBase):
     def da_data(cls, data):
         """
         Método depreciado. Utilize `da_data_por_recurso`.
+        Está sendo utilizado na verificação do recurso na transferência de eol que o recurso não implica na verificação:
+         TransferenciaEol.transferencia_possivel
         """
         periodos_da_data = cls.objects.filter(data_inicio_realizacao_despesas__lte=data).filter(
             Q(data_fim_realizacao_despesas__gte=data) | Q(data_fim_realizacao_despesas__isnull=True))

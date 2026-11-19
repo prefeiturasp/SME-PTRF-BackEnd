@@ -18,23 +18,40 @@ class DespesaSituacaoPatrimonialSerializer(serializers.ModelSerializer):
     tipo_transacao = TipoTransacaoSerializer()
     rateios = serializers.SerializerMethodField()
     recursos_proprios = serializers.SerializerMethodField()
-    
+
     periodo_referencia = serializers.SerializerMethodField(method_name="get_periodo_referencia", required=False, allow_null=True)
-    
+
     def get_periodo_referencia(self, despesa):
-        if not despesa.data_documento:
+        """Retorna a referência do período da despesa, considerando o seu recurso.
+
+        O período é buscado pela data do documento da despesa, filtrando pelo
+        recurso dela, já que cada recurso possui seus próprios períodos.
+
+        Args:
+            despesa (Despesa): despesa cujo período será identificado.
+
+        Returns:
+            str | None: referência do período (ex.: ``'2026.1'``), ou ``None``
+            se a despesa não tiver data do documento ou recurso, ou se não houver
+            período do recurso que cubra essa data.
+        """
+        data_documento_despesa = despesa.data_documento
+        recurso_despesa = despesa.recurso
+
+        if not data_documento_despesa or not recurso_despesa:
             return None
 
-        periodo = Periodo.da_data(despesa.data_documento)
+        periodo = Periodo.da_data_por_recurso(data_documento_despesa, recurso_despesa)
+
         return periodo.referencia if periodo else None
 
     def get_recursos_proprios(self, despesa):
         if not despesa.valor_recursos_proprios or despesa.valor_recursos_proprios <= 0:
             return None
-            
+
         bem_produzido_uuid = self.context.get('bem_produzido_uuid')
         valor_utilizado = 0
-        
+
         if bem_produzido_uuid:
             try:
                 bem_produzido_despesa = BemProduzidoDespesa.objects.get(
