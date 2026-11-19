@@ -223,7 +223,8 @@ class TransferenciaEol(ModeloBase):
         - A unidade com o EOL que está sendo transferido deve existir;
         - Deve existir uma associação para o código EOL que está sendo transferido;
         - O código EOL que será usado para o histórico NÃO deve existir;
-        - Deve existir um período para a data de início das atividades da nova unidade;
+        - Deve existir um período para a data de início das atividades da nova unidade
+           O perído pode ser de qualquer recurso;
         - Não deve existir fechamentos na associação original para o
           período de início das atividades da nova unidade;
         - A conta_associação que será transferida para a nova associação
@@ -240,7 +241,7 @@ class TransferenciaEol(ModeloBase):
         if Unidade.objects.filter(codigo_eol=self.eol_historico).exists():
             return False, f"Código EOL de histórico {self.eol_historico} já existe."
 
-        # Deve existir um período para a data de início das atividades
+        # Deve existir um período para a data de início das atividades - O perído pode ser de qualquer recurso.
         periodo_da_data_inicio_atividades = Periodo.da_data(self.data_inicio_atividades)
         if periodo_da_data_inicio_atividades is None:
             return (
