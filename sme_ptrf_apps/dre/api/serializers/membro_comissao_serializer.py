@@ -16,7 +16,17 @@ class MembroComissaoListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MembroComissao
-        fields = ('uuid', 'rf', 'nome', 'email', 'qtd_comissoes', 'dre', 'comissoes')
+        fields = (
+            'uuid',
+            'rf',
+            'nome',
+            'email',
+            'eh_contador',
+            'contador_crc',
+            'qtd_comissoes',
+            'dre',
+            'comissoes'
+        )
 
 
 class MembroComissaoCreateSerializer(serializers.ModelSerializer):
@@ -25,6 +35,52 @@ class MembroComissaoCreateSerializer(serializers.ModelSerializer):
         required=False,
         queryset=Unidade.dres.all()
     )
+
+    def validate(self, attrs):
+        eh_contador = attrs.get(
+            'eh_contador',
+            self.instance.eh_contador if self.instance else False
+        )
+
+        if not eh_contador:
+            attrs['contador_crc'] = None
+            return attrs
+
+        crc = attrs.get(
+            'contador_crc',
+            self.instance.contador_crc if self.instance else None
+        )
+
+        crc = crc.strip().upper() if crc else ''
+
+        if not crc:
+            raise serializers.ValidationError({
+                'contador_crc': 'Informe o CRC do contador.'
+            })
+
+        dre = attrs.get(
+            'dre',
+            self.instance.dre if self.instance else None
+        )
+
+        if dre:
+            membros = MembroComissao.objects.filter(
+                dre=dre,
+                contador_crc__iexact=crc,
+                eh_contador=True
+            )
+
+            if self.instance:
+                membros = membros.exclude(pk=self.instance.pk)
+
+            if membros.exists():
+                raise serializers.ValidationError({
+                    'contador_crc': 'Já existe um contador com este CRC nesta DRE.'
+                })
+
+        attrs['contador_crc'] = crc
+
+        return attrs
 
     def create(self, validated_data):
         """
@@ -50,7 +106,17 @@ class MembroComissaoCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MembroComissao
-        fields = ('uuid', 'rf', 'nome', 'email', 'qtd_comissoes', 'dre', 'comissoes')
+        fields = (
+            'uuid',
+            'rf',
+            'nome',
+            'email',
+            'eh_contador',
+            'contador_crc',
+            'qtd_comissoes',
+            'dre',
+            'comissoes'
+        )
 
 
 class MembroComissaoRetrieveSerializer(serializers.ModelSerializer):
@@ -60,4 +126,14 @@ class MembroComissaoRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MembroComissao
-        fields = ('uuid', 'rf', 'nome', 'email', 'qtd_comissoes', 'dre', 'comissoes')
+        fields = (
+            'uuid',
+            'rf',
+            'nome',
+            'email',
+            'eh_contador',
+            'contador_crc',
+            'qtd_comissoes',
+            'dre',
+            'comissoes'
+        )

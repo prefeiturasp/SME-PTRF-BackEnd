@@ -30,6 +30,8 @@ def test_retrieve_membro_comissao(
             'tipo_unidade': 'DRE',
             'uuid': f'{dre_x.uuid}'
         },
+        'eh_contador': False,
+        'contador_crc': None,
         'qtd_comissoes': 1,
         'comissoes': [
             {
