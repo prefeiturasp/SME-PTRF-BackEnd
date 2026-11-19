@@ -16,6 +16,8 @@ class MembroComissao(ModeloBase):
     rf = models.CharField('RF', max_length=10)
     nome = models.CharField('Nome', max_length=160)
     email = models.EmailField("E-mail", max_length=254, null=True, blank=True)
+    eh_contador = models.BooleanField('Contador?', default=False)
+    contador_crc = models.CharField('Contador CRC', max_length=20, null=True, blank=True)
 
     dre = models.ForeignKey('core.Unidade', on_delete=models.PROTECT, related_name='membros_de_comissoes',
                             to_field="codigo_eol", limit_choices_to={'tipo_unidade': 'DRE'})
