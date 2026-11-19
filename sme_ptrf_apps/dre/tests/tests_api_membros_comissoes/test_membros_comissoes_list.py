@@ -21,6 +21,8 @@ def test_api_list_membros_comissoes_todos(
             "rf": membro_alex_comissao_a_dre_x.rf,
             "nome": membro_alex_comissao_a_dre_x.nome,
             "email": membro_alex_comissao_a_dre_x.email,
+            'eh_contador': False,
+            'contador_crc': None,
             "qtd_comissoes": membro_alex_comissao_a_dre_x.qtd_comissoes,
             "dre": f'{membro_alex_comissao_a_dre_x.dre.uuid}',
             "comissoes": [
@@ -37,6 +39,8 @@ def test_api_list_membros_comissoes_todos(
             "rf": membro_beto_comissao_a_b_dre_x.rf,
             "nome": membro_beto_comissao_a_b_dre_x.nome,
             "email": membro_beto_comissao_a_b_dre_x.email,
+            'eh_contador': False,
+            'contador_crc': None,
             "qtd_comissoes": membro_beto_comissao_a_b_dre_x.qtd_comissoes,
             "dre": f'{membro_beto_comissao_a_b_dre_x.dre.uuid}',
             "comissoes": [
@@ -57,6 +61,8 @@ def test_api_list_membros_comissoes_todos(
             "rf": membro_jose_comissao_a_b_dre_y.rf,
             "nome": membro_jose_comissao_a_b_dre_y.nome,
             "email": membro_jose_comissao_a_b_dre_y.email,
+            'eh_contador': False,
+            'contador_crc': None,
             "qtd_comissoes": membro_jose_comissao_a_b_dre_y.qtd_comissoes,
             "dre": f'{membro_jose_comissao_a_b_dre_y.dre.uuid}',
             "comissoes": [
@@ -96,6 +102,8 @@ def test_api_list_membros_comissoes_por_dre(
             "rf": membro_alex_comissao_a_dre_x.rf,
             "nome": membro_alex_comissao_a_dre_x.nome,
             "email": membro_alex_comissao_a_dre_x.email,
+            'eh_contador': False,
+            'contador_crc': None,
             "qtd_comissoes": membro_alex_comissao_a_dre_x.qtd_comissoes,
             "dre": f'{membro_alex_comissao_a_dre_x.dre.uuid}',
             "comissoes": [
@@ -111,6 +119,8 @@ def test_api_list_membros_comissoes_por_dre(
             "rf": membro_beto_comissao_a_b_dre_x.rf,
             "nome": membro_beto_comissao_a_b_dre_x.nome,
             "email": membro_beto_comissao_a_b_dre_x.email,
+            'eh_contador': False,
+            'contador_crc': None,
             "qtd_comissoes": membro_beto_comissao_a_b_dre_x.qtd_comissoes,
             "dre": f'{membro_beto_comissao_a_b_dre_x.dre.uuid}',
             "comissoes": [
@@ -151,6 +161,8 @@ def test_api_list_membros_comissoes_por_rf(
             "rf": membro_beto_comissao_a_b_dre_x.rf,
             "nome": membro_beto_comissao_a_b_dre_x.nome,
             "email": membro_beto_comissao_a_b_dre_x.email,
+            'eh_contador': False,
+            'contador_crc': None,
             "qtd_comissoes": membro_beto_comissao_a_b_dre_x.qtd_comissoes,
             "dre": f'{membro_beto_comissao_a_b_dre_x.dre.uuid}',
             "comissoes": [
@@ -190,6 +202,8 @@ def test_api_list_membros_comissoes_por_nome_ignorando_maisculas_minusculas_acen
             "rf": membro_beto_comissao_a_b_dre_x.rf,
             "nome": membro_beto_comissao_a_b_dre_x.nome,
             "email": membro_beto_comissao_a_b_dre_x.email,
+            'eh_contador': False,
+            'contador_crc': None,
             "qtd_comissoes": membro_beto_comissao_a_b_dre_x.qtd_comissoes,
             "dre": f'{membro_beto_comissao_a_b_dre_x.dre.uuid}',
             "comissoes": [
@@ -230,6 +244,8 @@ def test_api_list_membros_comissoes_por_dre_e_nome(
             "rf": membro_beto_comissao_a_b_dre_x.rf,
             "nome": membro_beto_comissao_a_b_dre_x.nome,
             "email": membro_beto_comissao_a_b_dre_x.email,
+            'eh_contador': False,
+            'contador_crc': None,
             "qtd_comissoes": membro_beto_comissao_a_b_dre_x.qtd_comissoes,
             "dre": f'{membro_beto_comissao_a_b_dre_x.dre.uuid}',
             "comissoes": [
@@ -270,6 +286,8 @@ def test_api_list_membros_comissoes_por_comissao(
             "rf": membro_beto_comissao_a_b_dre_x.rf,
             "nome": membro_beto_comissao_a_b_dre_x.nome,
             "email": membro_beto_comissao_a_b_dre_x.email,
+            'eh_contador': False,
+            'contador_crc': None,
             "qtd_comissoes": membro_beto_comissao_a_b_dre_x.qtd_comissoes,
             "dre": f'{membro_beto_comissao_a_b_dre_x.dre.uuid}',
             "comissoes": [
@@ -290,6 +308,8 @@ def test_api_list_membros_comissoes_por_comissao(
             "rf": membro_jose_comissao_a_b_dre_y.rf,
             "nome": membro_jose_comissao_a_b_dre_y.nome,
             "email": membro_jose_comissao_a_b_dre_y.email,
+            'eh_contador': False,
+            'contador_crc': None,
             "qtd_comissoes": membro_jose_comissao_a_b_dre_y.qtd_comissoes,
             "dre": f'{membro_jose_comissao_a_b_dre_y.dre.uuid}',
             "comissoes": [
